@@ -1,5 +1,5 @@
-# AstrophysicalPlottingSystem
-Astrophysical Plotting System
+# AVS
+Astrophysical Visualization System
 
 ```
  ________  ________  _________  ________  ________  ________  ___  ___      ___    ___ ________  ___  ________  ________  ___                                     
