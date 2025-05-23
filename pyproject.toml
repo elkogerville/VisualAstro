@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Astrophysical_Visualization_System"
+version = "0.0.1"
+description = "Astro data analysis and plotting package"
+authors = [
+    {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
+]
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "astropy",
+    "numpy",
+    "tqdm",
+    "matplotlib",
+    "scipy",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.egg-info/*",
+    "*.egg-info",
+    "EGG-INFO/*",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]  # current directory
+exclude = [
+    "ANIMATIONS*",
+    "DOCUMENTATION*",
+    "Initial_Conditions*",
+    "Tests*",
+    "build*",
+    "dist*",
+    "*egg-info*",
+    "*.egg-info",
+    "EGG-INFO*",
+]
+
+[tool.setuptools.package-data]
+"AVS" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]

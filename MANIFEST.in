@@ -1,0 +1,16 @@
+include README_MSG.md
+include LICENSE
+recursive-include MSG_Nbody *.py
+
+global-exclude *.egg-info*
+global-exclude EGG-INFO*
+prune *egg-info*
+prune build
+prune dist
+
+prune ANIMATIONS
+prune DOCUMENTATION
+prune Initial_Conditions
+prune Tests
+
+
