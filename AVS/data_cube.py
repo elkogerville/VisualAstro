@@ -1,11 +1,10 @@
 import glob
+import re
 import numpy as np
 from astropy.io import fits
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 from tqdm import tqdm
 
-def load_fits(file_path):
+def load_fits_as_dict(file_path):
     '''
     loads fits data from HARPS spectrograph and outputs the header and data
     Parameters
@@ -19,9 +18,11 @@ def load_fits(file_path):
     header:
         header of fits file
     '''
-    return fits.getdata(file_path)
+    data, header = fits.getdata(file_path, header=True)
 
-def load_data_cube(path):
+    return data, header
+
+def load_data_cube(path, header=True):
     '''
     searches for all data fits files in a directory and loads them into a numpy 3D data cube
     Parameters
@@ -42,36 +43,18 @@ def load_data_cube(path):
     '''
     # searches for all files within a directory
     fits_files = sorted(glob.glob(path))
-    # allocate ixMxN data cube array
+    # allocate ixMxN data cube array and header array
     i = len(fits_files)
-    data = load_fits(fits_files[0])
+    headers = np.empty(i, dtype=object)
+    data, headers[0] = fits.getdata(fits_files[0], header=True)
     data_cube = np.zeros((i, data.shape[0], data.shape[1]))
     # save first file to data arrays
-    data_cube[0,:,:] = data
+    data_cube[0] = data
     # loop through each array in data list and store in data cube
     for i in tqdm(range(1, len(fits_files))):
-        data = load_fits(fits_files[i])
-        data_cube[i,:,:] = data
+            data_cube[i], headers[i] = fits.getdata(fits_files[0], header=True)
+    data_dict = {}
+    data_dict['data'] = data_cube
+    data_dict['header'] = headers
 
-    return data_cube
-
-def imshow(data, cmap='turbo', style='astro', vmin=None, vmax=None,
-           percentile=[3,99.5], circles=None, plot_boolean=False):
-    if plot_boolean:
-        vmin = 0
-        vmax = 1
-    else:
-        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
-        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
-    with plt.style.context(style + '.mplstyle'):
-        fig, ax = plt.subplots(figsize=(6,6))
-        ax.imshow(data.T, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
-        if circles is not None:
-            circle_colors = ['r', 'mediumvioletred', 'magenta']
-            for i, circle in enumerate(circles):
-                x, y, r = circle
-                circle = Circle((x, y), radius=r, fill=False, linewidth=2,
-                                color=circle_colors[i%len(circle_colors)])
-                ax.add_patch(circle)
-
-        plt.show()
+    return data_dict
