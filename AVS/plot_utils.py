@@ -1,9 +1,11 @@
 import numpy as np
+from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle
 
-def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None,
+def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True):
     data = check_is_array(data)
     if idx is not None and isinstance(idx, int):
@@ -18,7 +20,11 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None,
     with plt.style.context(style):
         data = data.T if transpose else data
         fig, ax = plt.subplots(figsize=(6,6))
-        ax.imshow(data.T, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+        if norm is None:
+            ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+        else:
+            norm = return_imshow_norm(vmin, vmax, norm)
+            ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
         if circles is not None:
             circle_colors = ['r', 'mediumvioletred', 'magenta']
             for i, circle in enumerate(circles):
@@ -64,6 +70,17 @@ def return_stylename(style):
         return style
     else:
         return style + '.mplstyle'
+
+def return_imshow_norm(vmin, vmax, norm):
+    norm = norm.lower()
+    norm_map = {
+        'log': LogNorm(vmin=vmin, vmax=vmax),
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch())
+    }
+    if norm not in norm_map:
+        raise ValueError(f"ERROR: unsupported norm: {norm}")
+
+    return norm_map[norm]
 
 def use_inline():
     try:
