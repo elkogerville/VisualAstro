@@ -1,17 +1,21 @@
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
-def imshow(data, cmap='turbo', style='astro', vmin=None, vmax=None,
+def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None,
            percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True):
     data = check_is_array(data)
+    if idx is not None and isinstance(idx, int):
+        data = data[idx]
     if plot_boolean:
         vmin = 0
         vmax = 1
     else:
         vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
         vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
-    with plt.style.context(style + '.mplstyle'):
+    style = return_stylename(style)
+    with plt.style.context(style):
         data = data.T if transpose else data
         fig, ax = plt.subplots(figsize=(6,6))
         ax.imshow(data.T, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
@@ -29,7 +33,8 @@ def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False, lab
     data = check_is_array(data)
     if data.ndim == 2:
         data = data.flatten()
-    with plt.style.context(style + '.mplstyle'):
+    style = return_stylename(style)
+    with plt.style.context(style):
         plt.figure(figsize=(5,5))
         plt.hist(data, bins=bins)
 
@@ -53,6 +58,12 @@ def check_is_array(cube):
         cube = np.asarray(cube)
 
     return cube
+
+def return_stylename(style):
+    if style in mpl.style.available:
+        return style
+    else:
+        return style + '.mplstyle'
 
 def use_inline():
     try:
