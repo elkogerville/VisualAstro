@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib as mpl
@@ -69,7 +70,10 @@ def return_stylename(style):
     if style in mpl.style.available:
         return style
     else:
-        return style + '.mplstyle'
+        style = style + '.mplstyle'
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        style_path = os.path.join(this_dir, 'stylelib', style)
+        return style_path
 
 def return_imshow_norm(vmin, vmax, norm):
     norm = norm.lower()
@@ -81,6 +85,20 @@ def return_imshow_norm(vmin, vmax, norm):
         raise ValueError(f"ERROR: unsupported norm: {norm}")
 
     return norm_map[norm]
+
+def save_figure_2_disk(dpi):
+    '''
+    Saves current figure to disk, and prompts user for a filename and format
+    Parameters
+    ----------
+    dpi: float
+        resolution in dots per inch
+    '''
+    file_name = input('input filename for image (ex: myimage.pdf): ')
+    plot_format = input('please enter format: png or pdf')
+    while plot_format not in {'png', 'pdf', 'svg'}:
+        plot_format = input('please enter format (png, pdf, or svg): ')
+    plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
 def use_inline():
     try:

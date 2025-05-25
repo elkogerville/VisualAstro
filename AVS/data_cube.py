@@ -1,8 +1,15 @@
 import glob
-import re
+import warnings
 import numpy as np
 from astropy.io import fits
+from astropy.utils.exceptions import AstropyWarning
+from regions import PixCoord, EllipsePixelRegion
+from spectral_cube import SpectralCube
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 from tqdm import tqdm
+from .plot_utils import check_is_array, return_imshow_norm, return_stylename, save_figure_2_disk
+warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
 #     '''
@@ -67,6 +74,95 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
         with fits.open(fits_files[0]) as hdul:
             hdul.info()
     return data_dict
+
+def plot_cube_slices(cubes, slice_idx, percentile=[3,99.5], vmin=None, vmax=None,
+                     norm='asinh', plot_ellipse=False, center=[None,None],
+                     w=14, h=10, angle=None, cmap='turbo', style='astro',
+                     savefig=False, dpi=600, figsize=(6,6), emission_line=None):
+    c = 299792.458
+    # define wcs figure axes
+    cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
+    style = return_stylename(style)
+    with plt.style.context(style):
+        fig = plt.figure(figsize=figsize)
+        wcs2d = cubes[0].wcs.celestial
+        ax = fig.add_subplot(111, projection=wcs2d)
+        if style.split('/')[-1] == 'latex_minimal.mplstyle':
+            ax.coords['ra'].set_ticks_position('bl')
+            ax.coords['dec'].set_ticks_position('bl')
+
+        for cube in cubes:
+            # return data cube slices
+            slice_data = return_cube_slice(cube, slice_idx)
+            data = slice_data.value
+
+            # compute imshow stretch
+            vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
+            vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+            norm = return_imshow_norm(vmin, vmax, norm)
+
+            im = ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
+            wavelength = cube.spectral_axis.to('micron')
+            wavelength = (wavelength[slice_idx[0]].value + wavelength[slice_idx[-1]+1].value)/2
+
+        if plot_ellipse:
+            text = ax.text(0.5, 0.5, '', size='small', color='darkslateblue')
+        else:
+            emission_line = r'$\lambda$' if emission_line is None else emission_line
+            plt.text(0.03, 0.03, fr'{emission_line} {wavelength:.4}$\mu$m', transform=ax.transAxes)
+
+        def update_region(region):
+
+            x_center = region.center.x
+            y_center = region.center.y
+            width = region.width
+            height = region.height
+            major = max(width, height)
+            minor = min(width, height)
+
+            # Update text display (positioned in data coordinates)
+            text.set_text(
+                f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+                f'Major: {major:.1f}\n'
+                f'Minor: {minor:.1f}\n'
+            )
+
+        if plot_ellipse:
+            _, X, Y = cube.shape
+            x_center = X//2 if center[0] is None else center[0]
+            y_center = Y//2 if center[1] is None else center[1]
+            if angle is not None:
+                e = Ellipse(xy=(x_center, y_center), width=w,
+                            height=h, angle=angle, fill=False)
+                ax.add_patch(e)
+            else:
+                ellipse = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
+                selector = ellipse.as_mpl_selector(ax, callback=update_region)
+
+        cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
+                            0.03, ax.get_position().height])
+        cbar = plt.colorbar(im, cax=cax, pad=0.04)
+        cbar.set_label(r'MJy sr$^{-1}$')
+
+        ax.set_xlabel('Right Ascension')
+        ax.set_ylabel('Declination')
+        ax.coords['dec'].set_ticklabel(rotation=90)
+
+        if savefig:
+            save_figure_2_disk(dpi)
+
+        plt.show()
+
+def return_cube_slice(cube, slice_idx):
+    if isinstance(slice_idx, int):
+        return cube[slice_idx]
+    elif isinstance(slice_idx, list):
+        if len(slice_idx) == 1:
+            return cube[slice_idx[0]]
+        elif len(slice_idx) == 2:
+            start, end = slice_idx
+            return cube[start:end+1].sum(axis=0)
+    raise ValueError("slice_idx must be an int or a list of one or two integers")
 
 def header_2_array(cube, key):
     headers = cube['header']
