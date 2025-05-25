@@ -9,8 +9,8 @@ from matplotlib.patches import Circle
 def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True):
     data = check_is_array(data)
-    if idx is not None and isinstance(idx, int):
-        data = data[idx]
+    if idx is not None:
+        data = return_cube_slice(data, idx)
     if plot_boolean:
         vmin = 0
         vmax = 1
@@ -71,8 +71,8 @@ def return_stylename(style):
         return style
     else:
         style = style + '.mplstyle'
-        this_dir = os.path.dirname(os.path.abspath(__file__))
-        style_path = os.path.join(this_dir, 'stylelib', style)
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
 
 def return_imshow_norm(vmin, vmax, norm):
@@ -85,6 +85,17 @@ def return_imshow_norm(vmin, vmax, norm):
         raise ValueError(f"ERROR: unsupported norm: {norm}")
 
     return norm_map[norm]
+
+def return_cube_slice(cube, idx):
+    if isinstance(idx, int):
+        return cube[idx]
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            return cube[idx[0]]
+        elif len(idx) == 2:
+            start, end = idx
+            return cube[start:end+1].sum(axis=0)
+    raise ValueError("'idx' must be an int or a list of one or two integers")
 
 def save_figure_2_disk(dpi):
     '''

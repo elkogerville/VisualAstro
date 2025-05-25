@@ -8,7 +8,7 @@ from spectral_cube import SpectralCube
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
-from .plot_utils import check_is_array, return_imshow_norm, return_stylename, save_figure_2_disk
+from .plot_utils import check_is_array, return_cube_slice, return_imshow_norm, return_stylename, save_figure_2_disk
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
@@ -75,10 +75,10 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
             hdul.info()
     return data_dict
 
-def plot_cube_slices(cubes, slice_idx, percentile=[3,99.5], vmin=None, vmax=None,
-                     norm='asinh', plot_ellipse=False, center=[None,None],
-                     w=14, h=10, angle=None, cmap='turbo', style='astro',
-                     savefig=False, dpi=600, figsize=(6,6), emission_line=None):
+def plot_spectral_cube(cubes, idx, percentile=[3,99.5], vmin=None, vmax=None,
+                     norm='asinh', radial_vel=None, plot_ellipse=False, center=[None,None],
+                     w=14, h=10, angle=None, cmap='turbo', style='astro', savefig=False,
+                     dpi=600, figsize=(6,6), emission_line=None):
     c = 299792.458
     # define wcs figure axes
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
@@ -93,7 +93,7 @@ def plot_cube_slices(cubes, slice_idx, percentile=[3,99.5], vmin=None, vmax=None
 
         for cube in cubes:
             # return data cube slices
-            slice_data = return_cube_slice(cube, slice_idx)
+            slice_data = return_cube_slice(cube, idx)
             data = slice_data.value
 
             # compute imshow stretch
@@ -103,7 +103,9 @@ def plot_cube_slices(cubes, slice_idx, percentile=[3,99.5], vmin=None, vmax=None
 
             im = ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
             wavelength = cube.spectral_axis.to('micron')
-            wavelength = (wavelength[slice_idx[0]].value + wavelength[slice_idx[-1]+1].value)/2
+            wavelength = (wavelength[idx[0]].value + wavelength[idx[-1]+1].value)/2
+            if radial_vel is not None:
+                wavelength /= (1 + radial_vel/c)
 
         if plot_ellipse:
             text = ax.text(0.5, 0.5, '', size='small', color='darkslateblue')
@@ -152,17 +154,6 @@ def plot_cube_slices(cubes, slice_idx, percentile=[3,99.5], vmin=None, vmax=None
             save_figure_2_disk(dpi)
 
         plt.show()
-
-def return_cube_slice(cube, slice_idx):
-    if isinstance(slice_idx, int):
-        return cube[slice_idx]
-    elif isinstance(slice_idx, list):
-        if len(slice_idx) == 1:
-            return cube[slice_idx[0]]
-        elif len(slice_idx) == 2:
-            start, end = slice_idx
-            return cube[start:end+1].sum(axis=0)
-    raise ValueError("slice_idx must be an int or a list of one or two integers")
 
 def header_2_array(cube, key):
     headers = cube['header']
