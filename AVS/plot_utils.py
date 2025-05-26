@@ -121,6 +121,17 @@ def save_figure_2_disk(dpi):
         plot_format = input('please enter format (png, pdf, or svg): ')
     plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
+def set_plot_colors(user_colors=None):
+    #
+    colors = ["#648FFF", "#DC267F", "#000000","#004B87","#785EF0", "#FE6100","#FFB000","#32CD32"]
+    model_colors = ['r', 'purple', 'magenta']
+    if user_colors is not None:
+        if isinstance(user_colors, str):
+            user_colors = [user_colors]
+        colors = user_colors
+
+    return colors, model_colors
+
 # ––––––––––––––
 # Notebook Utils
 # ––––––––––––––
