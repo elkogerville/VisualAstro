@@ -109,7 +109,7 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
                 wavelength /= (1 + radial_vel/c)
 
         if plot_ellipse:
-            text = ax.text(0.5, 0.5, '', size='small', color='darkslateblue')
+            text = ax.text(0.5, 0.5, '', size='small', color='r')
         else:
             emission_line = r'$\lambda$' if emission_line is None else emission_line
             plt.text(0.03, 0.03, fr'{emission_line} {wavelength:.4}$\mu$m', transform=ax.transAxes)
@@ -145,6 +145,7 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
         cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
                             0.03, ax.get_position().height])
         cbar = plt.colorbar(im, cax=cax, pad=0.04)
+        cbar.ax.tick_params(which='both', direction='out')
         cbar.set_label(r'MJy sr$^{-1}$')
 
         ax.set_xlabel('Right Ascension')
