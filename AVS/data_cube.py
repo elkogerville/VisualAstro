@@ -78,8 +78,8 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
 
 def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
                        radial_vel=None, plot_ellipse=False, center=[None,None], w=14, h=10,
-                       angle=None, cmap='turbo', style='astro', savefig=False, dpi=600,
-                       figsize=(6,6), emission_line=None):
+                       angle=None, emission_line=None, cmap='turbo', style='astro', savefig=False,
+                       dpi=600, figsize=(6,6)):
     c = 299792.458
     # define wcs figure axes
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
@@ -88,7 +88,7 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
         fig = plt.figure(figsize=figsize)
         wcs2d = cubes[0].wcs.celestial
         ax = fig.add_subplot(111, projection=wcs2d)
-        if style.split('/')[-1] == 'latex_minimal.mplstyle':
+        if style.split('/')[-1] == 'minimal.mplstyle':
             ax.coords['ra'].set_ticks_position('bl')
             ax.coords['dec'].set_ticks_position('bl')
 
