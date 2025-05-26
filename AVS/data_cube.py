@@ -1,14 +1,15 @@
 import glob
 import warnings
 import numpy as np
+import astropy.units as u
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyWarning
-from regions import PixCoord, EllipsePixelRegion
+from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
-from .plot_utils import check_is_array, return_cube_slice, return_imshow_norm, return_stylename, save_figure_2_disk
+from .plot_utils import return_cube_slice, return_imshow_norm, return_stylename, save_figure_2_disk
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
@@ -75,10 +76,10 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
             hdul.info()
     return data_dict
 
-def plot_spectral_cube(cubes, idx, percentile=[3,99.5], vmin=None, vmax=None,
-                     norm='asinh', radial_vel=None, plot_ellipse=False, center=[None,None],
-                     w=14, h=10, angle=None, cmap='turbo', style='astro', savefig=False,
-                     dpi=600, figsize=(6,6), emission_line=None):
+def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
+                       radial_vel=None, plot_ellipse=False, center=[None,None], w=14, h=10,
+                       angle=None, cmap='turbo', style='astro', savefig=False, dpi=600,
+                       figsize=(6,6), emission_line=None):
     c = 299792.458
     # define wcs figure axes
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
@@ -99,9 +100,9 @@ def plot_spectral_cube(cubes, idx, percentile=[3,99.5], vmin=None, vmax=None,
             # compute imshow stretch
             vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
             vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
-            norm = return_imshow_norm(vmin, vmax, norm)
+            cube_norm = return_imshow_norm(vmin, vmax, norm)
 
-            im = ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
+            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
             wavelength = cube.spectral_axis.to('micron')
             wavelength = (wavelength[idx[0]].value + wavelength[idx[-1]+1].value)/2
             if radial_vel is not None:
@@ -169,3 +170,62 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
+
+def mask_cube(cube, center, a, b, tolerance=2, angle=0, line_points=None, upper=True):
+    '''
+    Mask a cube using an elliptical annulus and optional line constraint.
+
+    Parameters:
+    - cube: SpectralCube
+    - center: tuple (x0, y0)
+    - a, b: semi-major and semi-minor axes of the ellipse
+    - tolerance: width of the annulus
+    - angle: rotation angle in degrees (counter-clockwise from +x)
+    - line_points: [[x1, y1], [x2, y2]] if a line constraint is needed
+    - upper: bool, whether to keep the region above the line
+
+    Returns:
+    - subcube: masked SpectralCube
+    '''
+
+    _, N, M = cube[:,:,:].shape
+    y, x = np.indices((N, M))
+
+    # Create annulus region
+    region = EllipseAnnulusPixelRegion(
+        center=PixCoord(center[0], center[1]),
+        inner_width=2*(a - tolerance),
+        inner_height=2*(b - tolerance),
+        outer_width=2*(a + tolerance),
+        outer_height=2*(b + tolerance),
+        angle=angle * u.deg
+    )
+
+    # Get mask from region
+    ellipse_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+
+    # Apply line mask if provided
+    if line_points is not None:
+        m, b_line = compute_line(line_points)
+        line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+
+    mask = ellipse_mask & line_mask
+
+    subcube = cube.with_mask(mask)
+    ellipse_cube = cube.with_mask(ellipse_mask)
+
+    return subcube, ellipse_cube
+
+def compute_line(points):
+    m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])
+    b = points[0][1] - m*points[0][0]
+
+    return m, b
+
+def compute_cube_percentile(cube, slice_idx, vmin, vmax):
+
+    data = return_cube_slice(cube, slice_idx)
+    vmin = np.nanpercentile(data.value, vmin)
+    vmax = np.nanpercentile(data.value, vmax)
+
+    return vmin, vmax
