@@ -1,6 +1,3 @@
-# AVS
-Astrophysical Visualization System
-
 ```
  /$$    /$$ /$$                               /$$  /$$$$$$              /$$                        
 | $$   | $$|__/                              | $$ /$$__  $$            | $$                        
@@ -11,3 +8,4 @@ Astrophysical Visualization System
    \  $/   | $$ /$$$$$$$/|  $$$$$$/|  $$$$$$$| $$| $$  | $$ /$$$$$$$/  |  $$$$/| $$      |  $$$$$$/
     \_/    |__/|_______/  \______/  \_______/|__/|__/  |__/|_______/    \___/  |__/       \______/                              
 ```
+# Astrophysical Numerical Data System
