@@ -153,7 +153,7 @@ def set_unit_labels(unit):
     }
     return unit_map.get(unit, unit) if unit else None
 
-def set_axis_labels(X, Y, x_unit, y_unit):
+def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
     if x_unit is None:
         x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
     if y_unit is None:
@@ -162,8 +162,14 @@ def set_axis_labels(X, Y, x_unit, y_unit):
     # Format for display (including LaTeX)
     x_unit_label = set_unit_labels(x_unit)
     y_unit_label = set_unit_labels(y_unit)
-    xlabel = fr'Wavelength ({x_unit_label})' if x_unit_label else 'Wavelength'
-    ylabel = fr'Flux ({y_unit_label})' if y_unit_label else 'Flux'
+    if use_brackets:
+        x_unit_label = '[' + x_unit_label + ']'
+        y_unit_label = '[' + y_unit_label + ']'
+    else:
+        x_unit_label = '(' + x_unit_label + ')'
+        y_unit_label = '(' + y_unit_label + ')'
+    xlabel = fr'Wavelength {x_unit_label}' if x_unit_label else 'Wavelength'
+    ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
