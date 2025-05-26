@@ -3,7 +3,7 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Astrophysical_Visualization_System"
+name = "VisualAstro"
 version = "0.0.1"
 description = "Astro data analysis and plotting package"
 authors = [
@@ -20,9 +20,12 @@ classifiers = [
 dependencies = [
     "astropy",
     "numpy",
-    "tqdm",
     "matplotlib",
+    "regions",
     "scipy",
+    "spectral_cube",
+    "specutils",
+    "tqdm",
 ]
 
 [tool.setuptools]
@@ -50,4 +53,4 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"AVS" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]
+"visualastro" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]
