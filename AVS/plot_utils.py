@@ -122,15 +122,50 @@ def save_figure_2_disk(dpi):
     plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
 def set_plot_colors(user_colors=None):
-    #
-    colors = ["#648FFF", "#DC267F", "#000000","#004B87","#785EF0", "#FE6100","#FFB000","#32CD32"]
+    default_color_map = 'ibm_contrast'
+    color_map = {
+        'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
+        #        mossgreen     bbblue    ibmblue   ibmpurple     pvr      traffico    gold
+        'astro': ['#26DCBA', '#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+        #          dsb        pvr       lilac    mossgreen  slateblue
+        'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+        #        ibmblue   ibmpurple     pvr      traffico    gold
+        'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000']
+    }
     model_colors = ['r', 'purple', 'magenta']
     if user_colors is not None:
-        if isinstance(user_colors, str):
-            user_colors = [user_colors]
-        colors = user_colors
+        if user_colors in color_map:
+            colors = color_map[user_colors]
+        else:
+            if isinstance(user_colors, str):
+                user_colors = [user_colors]
+            colors = user_colors
+    else:
+        colors = color_map[default_color_map]
 
     return colors, model_colors
+
+def set_unit_labels(unit):
+    unit_map = {
+        'MJy / sr': r'MJy sr$^{-1}$',
+        'micron': r'$\mu$m',
+        'um': r'$\mu$m',
+    }
+    return unit_map.get(unit, unit) if unit else None
+
+def set_axis_labels(X, Y, x_unit, y_unit):
+    if x_unit is None:
+        x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
+    if y_unit is None:
+        y_unit = str(getattr(Y, 'spectral_unit', getattr(Y, 'unit', None)))
+
+    # Format for display (including LaTeX)
+    x_unit_label = set_unit_labels(x_unit)
+    y_unit_label = set_unit_labels(y_unit)
+    xlabel = fr'Wavelength ({x_unit_label})' if x_unit_label else 'Wavelength'
+    ylabel = fr'Flux ({y_unit_label})' if y_unit_label else 'Flux'
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
 
 # ––––––––––––––
 # Notebook Utils
