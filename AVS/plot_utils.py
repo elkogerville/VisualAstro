@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle
 
+# ––––––––––––––––––
+# Plotting Functions
+# ––––––––––––––––––
 def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None,
-           percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True):
+           percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True, savefig=False, dpi=600):
     data = check_is_array(data)
     if idx is not None:
         data = return_cube_slice(data, idx)
@@ -33,10 +36,12 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, no
                 circle = Circle((x, y), radius=r, fill=False, linewidth=2,
                                 color=circle_colors[i%len(circle_colors)])
                 ax.add_patch(circle)
-
+        if savefig:
+                save_figure_2_disk(dpi)
         plt.show()
 
-def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False, labels=None):
+def plot_histogram(data, bins='auto', style='astro', xlog=False,
+                   ylog=False, labels=None, savefig=False, dpi=600):
     data = check_is_array(data)
     if data.ndim == 2:
         data = data.flatten()
@@ -56,8 +61,13 @@ def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False, lab
         else:
             plt.xlabel('')
             plt.ylabel('')
+        if savefig:
+                save_figure_2_disk(dpi)
         plt.show()
 
+# ––––––––––––––
+# Plotting Utils
+# ––––––––––––––
 def check_is_array(cube):
     if isinstance(cube, dict):
         cube = np.asarray(cube['data'])
@@ -111,6 +121,9 @@ def save_figure_2_disk(dpi):
         plot_format = input('please enter format (png, pdf, or svg): ')
     plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
+# ––––––––––––––
+# Notebook Utils
+# ––––––––––––––
 def use_inline():
     try:
         from IPython import get_ipython
