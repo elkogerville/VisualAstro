@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='Astrophysical_Visualization_System',
+    name='VisualAstro',
     version='0.0.1',
     description='Astro data analysis and plotting package',
-    url='https://github.com/elkogerville/Astrophysical_Visualization_System',
+    url='https://github.com/elkogerville/VisualAstro',
     author='Elko Gerville-Reache',
     author_email='elkogerville@gmail.com',
     license='MIT',
@@ -22,13 +22,16 @@ setup(
         'dist*',
     ]),
     package_data={
-        'AVS': ['stylelib/*.mplstyle'],
+        'visualastro': ['stylelib/*.mplstyle'],
     },
     install_requires=[
         'astropy'
         'numpy',
         'matplotlib',
+        'regions',
         'scipy',
+        'spectral_cube'
+        'specutils'
         'tqdm',
     ],
     classifiers=[

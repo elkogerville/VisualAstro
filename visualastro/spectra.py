@@ -1,6 +1,5 @@
 import warnings
 import astropy.units as u
-from dask.base import wait
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
