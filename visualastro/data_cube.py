@@ -113,7 +113,7 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
             text = ax.text(0.5, 0.5, '', size='small', color='r')
         else:
             emission_line = r'$\lambda$' if emission_line is None else emission_line
-            plt.text(0.03, 0.03, fr'{emission_line} {wavelength:.4}$\mu$m', transform=ax.transAxes)
+            plt.text(0.03, 0.03, fr'{emission_line} {wavelength:0.3}$\mu$m', transform=ax.transAxes)
 
         def update_region(region):
 

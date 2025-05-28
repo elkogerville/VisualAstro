@@ -123,9 +123,9 @@ def save_figure_2_disk(dpi):
     plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
 def set_plot_colors(user_colors=None):
-    default_color_map = 'visualastro'
+    default_color_map = 'ibm_contrast'
     color_map = {
-        #               dsb        mvr      ibmblue      gold
+        #                  dsb        mvr      ibmblue      gold
         'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000'],
         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
         #        mossgreen     bbblue    ibmblue   ibmpurple     mvr      traffico    gold
