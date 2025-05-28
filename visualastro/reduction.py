@@ -9,7 +9,7 @@ def compute_master_bias(bias_cube):
     return master_bias
 
 def compute_norm_flat(flats_cube, master_bias, remove_zeros=False, plot_hist=False,
-                      xlog=False, ylog=True, style='astro', bins='auto'):
+                      xlog=False, ylog=True, colors=None, style='astro', bins='auto'):
     flats_cube = check_is_array(flats_cube)
     flats_bias_sub = flats_cube - master_bias
     median_flat = np.median(flats_bias_sub, axis=0)
@@ -25,7 +25,8 @@ def compute_norm_flat(flats_cube, master_bias, remove_zeros=False, plot_hist=Fal
         normalized_flat = np.where(normalized_flat == 0, np.nan, normalized_flat)
     if plot_hist:
         labels = ['Counts', 'Number of Pixels']
-        plot_histogram(normalized_flat, bins, style, xlog=xlog, ylog=ylog, labels=labels)
+        plot_histogram(normalized_flat, bins, style, colors=colors,
+                       xlog=xlog, ylog=ylog, labels=labels)
 
     return normalized_flat
 
