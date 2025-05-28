@@ -1,5 +1,6 @@
 import glob
 import warnings
+from dask.array import isin
 import numpy as np
 import astropy.units as u
 from astropy.io import fits
@@ -77,9 +78,9 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
     return data_dict
 
 def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
-                       radial_vel=None, plot_ellipse=False, center=[None,None], w=14, h=10,
-                       angle=None, emission_line=None, cmap='turbo', style='astro', savefig=False,
-                       dpi=600, figsize=(6,6)):
+                       radial_vel=None, plot_ellipse=False, center=[None,None], w=None, h=None,
+                       angle=None, ellipses=None, emission_line=None, cmap='turbo', style='astro',
+                       savefig=False, dpi=600, figsize=(6,6)):
     c = 299792.458
     # define wcs figure axes
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
@@ -131,16 +132,23 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
             )
 
         if plot_ellipse:
-            _, X, Y = cube.shape
-            x_center = X//2 if center[0] is None else center[0]
-            y_center = Y//2 if center[1] is None else center[1]
-            if angle is not None:
-                e = Ellipse(xy=(x_center, y_center), width=w,
-                            height=h, angle=angle, fill=False)
-                ax.add_patch(e)
+            if isinstance(ellipses, list):
+                for ellipse in ellipses:
+                    ax.add_patch(copy_ellipse(ellipse))
             else:
-                ellipse = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
-                selector = ellipse.as_mpl_selector(ax, callback=update_region)
+                _, X, Y = cube.shape
+                x_center = center[0] if center[0] is not None else ellipses.center[0] if ellipses is not None else X//2
+                y_center = center[1] if center[1] is not None else ellipses.center[1] if ellipses is not None else Y//2
+                w = w if w is not None else ellipses.width if ellipses is not None else 15
+                h = h if h is not None else ellipses.height if ellipses is not None else 10
+                angle = angle if angle is not None else ellipses.angle if ellipses is not None else None
+                e = Ellipse(xy=(x_center, y_center), width=w, height=h, angle=angle, fill=False)
+
+                if angle is not None:
+                    ax.add_patch(e)
+                else:
+                    ellipse_region = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
+                    selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
 
         cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
                             0.03, ax.get_position().height])
@@ -172,7 +180,8 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
-def mask_cube(cube, center, a, b, tolerance=2, angle=0, line_points=None, upper=True):
+def mask_cube_ellipse(cube, center=None, w=None, h=None, angle=0, tolerance=2,
+                      ellipse=None, line_points=None, upper=True):
     '''
     Mask a cube using an elliptical annulus and optional line constraint.
 
@@ -189,8 +198,17 @@ def mask_cube(cube, center, a, b, tolerance=2, angle=0, line_points=None, upper=
     - subcube: masked SpectralCube
     '''
 
-    _, N, M = cube[:,:,:].shape
+    _, N, M = cube.shape
     y, x = np.indices((N, M))
+    center = [N//2, M//2] if center is None else center
+    a = w/2 if w is not None else 15
+    b = h/2 if h is not None else 10
+
+    if ellipse is not None:
+        center = ellipse.center
+        a = ellipse.width/2
+        b = ellipse.height/2
+        angle = ellipse.angle if ellipse.angle is not None else 0
 
     # Create annulus region
     region = EllipseAnnulusPixelRegion(
@@ -203,19 +221,36 @@ def mask_cube(cube, center, a, b, tolerance=2, angle=0, line_points=None, upper=
     )
 
     # Get mask from region
-    ellipse_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+    mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+    ellipse_cube = cube.with_mask(mask.copy())
 
     # Apply line mask if provided
     if line_points is not None:
         m, b_line = compute_line(line_points)
         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
-
-    mask = ellipse_mask & line_mask
+        mask &= line_mask
 
     subcube = cube.with_mask(mask)
-    ellipse_cube = cube.with_mask(ellipse_mask)
 
     return subcube, ellipse_cube
+
+def return_ellipse_region(center, w, h, angle=None):
+    ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
+
+    return ellipse
+
+def copy_ellipse(ellipse):
+    return Ellipse(
+        xy=ellipse.center,
+        width=ellipse.width,
+        height=ellipse.height,
+        angle=ellipse.angle,
+        edgecolor=ellipse.get_edgecolor(),
+        facecolor=ellipse.get_facecolor(),
+        lw=ellipse.get_linewidth(),
+        ls=ellipse.get_linestyle(),
+        alpha=ellipse.get_alpha()
+    )
 
 def compute_line(points):
     m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])

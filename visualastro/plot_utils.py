@@ -40,15 +40,16 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, no
                 save_figure_2_disk(dpi)
         plt.show()
 
-def plot_histogram(data, bins='auto', style='astro', xlog=False,
-                   ylog=False, labels=None, savefig=False, dpi=600):
+def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False,
+                   colors=None, labels=None, savefig=False, dpi=600):
     data = check_is_array(data)
+    colors, _ = set_plot_colors(colors)
     if data.ndim == 2:
         data = data.flatten()
     style = return_stylename(style)
     with plt.style.context(style):
         plt.figure(figsize=(5,5))
-        plt.hist(data, bins=bins)
+        plt.hist(data, bins=bins, color=colors[0], histtype='step')
 
         if xlog:
             plt.xscale('log')
@@ -116,20 +117,22 @@ def save_figure_2_disk(dpi):
         resolution in dots per inch
     '''
     file_name = input('input filename for image (ex: myimage.pdf): ')
-    plot_format = input('please enter format: png or pdf')
+    plot_format = input('please enter format (png, pdf, or svg): ')
     while plot_format not in {'png', 'pdf', 'svg'}:
         plot_format = input('please enter format (png, pdf, or svg): ')
     plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
 
 def set_plot_colors(user_colors=None):
-    default_color_map = 'ibm_contrast'
+    default_color_map = 'visualastro'
     color_map = {
+        #               dsb        mvr      ibmblue      gold
+        'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000'],
         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-        #        mossgreen     bbblue    ibmblue   ibmpurple     pvr      traffico    gold
+        #        mossgreen     bbblue    ibmblue   ibmpurple     mvr      traffico    gold
         'astro': ['#26DCBA', '#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-        #          dsb        pvr       lilac    mossgreen  slateblue
+        #          dsb        mvr       lilac    mossgreen  slateblue
         'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
-        #        ibmblue   ibmpurple     pvr      traffico    gold
+        #        ibmblue   ibmpurple     mvr      traffico    gold
         'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000']
     }
     model_colors = ['r', 'purple', 'magenta']
