@@ -141,7 +141,10 @@ def set_plot_colors(user_colors=None):
             colors = color_map[user_colors]
         else:
             if isinstance(user_colors, str):
-                user_colors = [user_colors]
+                if user_colors == 'mvr':
+                    user_colors = ['#DC267F']
+                else:
+                    user_colors = [user_colors]
             colors = user_colors
     else:
         colors = color_map[default_color_map]
