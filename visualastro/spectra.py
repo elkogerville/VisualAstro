@@ -12,7 +12,8 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
                   x_units=None, y_units=None, colors=None, return_spectra=False,
                   style='astro', savefig=False, dpi=600, figsize=(6,6)):
     c = 299792.458
-    spec_normalized, continuum_fit = [], []
+    spectra_dict_list = []
+    spec_normalized, continuum_fit = None, None
     colors, fit_colors = set_plot_colors(colors)
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
     style = return_stylename(style)
@@ -21,6 +22,7 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
         if emission_line is not None:
             plt.text(0.025, 0.95, f'{emission_line}', transform=plt.gca().transAxes)
         for i, cube in enumerate(cubes):
+            spectra_dict = {}
             wavelengths = cube.spectral_axis.to(u.micron)
             if radial_vel is not None:
                 wavelengths /= (1 + radial_vel/c)
@@ -28,6 +30,8 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
             xmax = x_limits[1] if x_limits else wavelengths.value.max()
             mask = (wavelengths.value > xmin) & (wavelengths.value < xmax)
             spectrum = cube.mean(axis=(1,2))
+            spectra_dict['wavelength'] = wavelengths
+            spectra_dict['flux'] = spectrum
             label = labels[i] if (labels is not None and i < len(labels)) else None
             if normalize_continuum != plot_continuum_fit:
                 spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=wavelengths)
@@ -46,7 +50,9 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
                 plt.plot(wavelengths[mask], spectrum[mask], color=colors[i%len(colors)], label=label)
             if plot_continuum_fit:
                 plt.plot(wavelengths[mask], continuum_fit[mask], color=fit_colors[i%len(fit_colors)])
-
+            spectra_dict['spec_norm'] = spec_normalized
+            spectra_dict['continuum_fit'] = continuum_fit
+            spectra_dict_list.append(spectra_dict)
         x_min = x_limits[0] if x_limits is not None else wavelengths.value.min()
         x_max = x_limits[1] if x_limits is not None else wavelengths.value.max()
         plt.xlim(x_min, x_max)
@@ -64,4 +70,4 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
         plt.show()
 
         if return_spectra:
-            return wavelengths, spectrum, spec_normalized, continuum_fit
+            return spectra_dict_list
