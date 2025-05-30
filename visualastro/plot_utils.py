@@ -9,8 +9,8 @@ from matplotlib.patches import Circle
 # ––––––––––––––––––
 # Plotting Functions
 # ––––––––––––––––––
-def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None,
-           percentile=[3,99.5], circles=None, plot_boolean=False, transpose=True, savefig=False, dpi=600):
+def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None, percentile=[3,99.5],
+           points=None, circles=None, plot_boolean=False, transpose=True, savefig=False, dpi=600):
     data = check_is_array(data)
     if idx is not None:
         data = return_cube_slice(data, idx)
@@ -36,6 +36,9 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, no
                 circle = Circle((x, y), radius=r, fill=False, linewidth=2,
                                 color=circle_colors[i%len(circle_colors)])
                 ax.add_patch(circle)
+        if points is not None:
+            for point in points:
+                plt.scatter(point[0], point[1], s=20, marker='*', c='r')
         if savefig:
                 save_figure_2_disk(dpi)
         plt.show()
@@ -137,7 +140,7 @@ def set_plot_colors(user_colors=None):
     }
     model_colors = ['r', 'purple', 'magenta']
     if user_colors is not None:
-        if user_colors in color_map:
+        if isinstance(user_colors, str) and user_colors in color_map:
             colors = color_map[user_colors]
         else:
             if isinstance(user_colors, str):
