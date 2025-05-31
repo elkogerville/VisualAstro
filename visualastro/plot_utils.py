@@ -172,7 +172,7 @@ def set_plot_colors(user_colors=None):
     default_color_map = 'ibm_contrast'
     color_map = {
         #                  dsb        mvr      ibmblue      gold
-        'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000'],
+        'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
         #        mossgreen     bbblue    ibmblue   ibmpurple     mvr      traffico    gold
         'astro': ['#26DCBA', '#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
