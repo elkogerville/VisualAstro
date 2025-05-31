@@ -41,6 +41,8 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, no
         if points is not None:
             for point in points:
                 plt.scatter(point[0], point[1], s=20, marker='*', c='r')
+        plt.xlabel('X [pixels]')
+        plt.ylabel('Y [pixels]')
         if savefig:
                 save_figure_2_disk(dpi)
         plt.show()
@@ -221,11 +223,12 @@ def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
     x_unit_label = set_unit_labels(x_unit)
     y_unit_label = set_unit_labels(y_unit)
     if use_brackets:
-        x_unit_label = '[' + x_unit_label + ']'
-        y_unit_label = '[' + y_unit_label + ']'
+        x_unit_label = r'[$' + x_unit_label + r'$]'
+        y_unit_label = r'[$' + y_unit_label + r'$]'
     else:
-        x_unit_label = '(' + x_unit_label + ')'
-        y_unit_label = '(' + y_unit_label + ')'
+        x_unit_label = r'($' + x_unit_label + r'$)'
+        y_unit_label = r'($' + y_unit_label + r'$)'
+
     xlabel = fr'Wavelength {x_unit_label}' if x_unit_label else 'Wavelength'
     ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
     plt.xlabel(xlabel)

@@ -10,7 +10,7 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
                   fit_method='fit_generic_continuum', region=None, radial_vel=None,
                   emission_line=None, labels=None, x_limits=None, y_limits=None,
                   x_units=None, y_units=None, colors=None, return_spectra=False,
-                  style='astro', savefig=False, dpi=600, figsize=(6,6)):
+                  style='astro', use_brackets=False, savefig=False, dpi=600, figsize=(6,6)):
     c = 299792.458
     spectra_dict_list = []
     spec_normalized, continuum_fit = None, None
@@ -59,7 +59,7 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
         if y_limits is not None:
             plt.ylim(y_limits[0], y_limits[1])
 
-        set_axis_labels(wavelengths, cubes[0], x_units, y_units)
+        set_axis_labels(wavelengths, cubes[0], x_units, y_units, use_brackets=use_brackets)
 
         if labels is not None:
             plt.legend()
@@ -70,4 +70,6 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
         plt.show()
 
         if return_spectra:
+            if len(spectra_dict_list) == 1:
+                spectra_dict_list = spectra_dict_list[0]
             return spectra_dict_list
