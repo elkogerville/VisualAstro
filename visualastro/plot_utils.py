@@ -174,8 +174,10 @@ def set_plot_colors(user_colors=None):
         #                  dsb        mvr      ibmblue      gold
         'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-        #        mossgreen     bbblue    ibmblue   ibmpurple     mvr      traffico    gold
-        'astro': ['#26DCBA', '#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+        #          bbblue    ibmblue   ibmpurple     mvr      traffico    gold      pondwater  mossgreen
+        'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
+        #          mossgreen    pondwater    gold      traffico    mvr      ibmpurple   ibmblue    bbblue
+        'astro_r': ['#26DCBA', '#CFE23C', '#FFB000', '#FE6100', '#DC267F', '#785EF0', '#648FFF', '#9FB7FF'],
         #          dsb        mvr       lilac    mossgreen  slateblue
         'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
         #        ibmblue   ibmpurple     mvr      traffico    gold
