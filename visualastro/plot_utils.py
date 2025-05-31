@@ -73,6 +73,24 @@ def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False,
                 save_figure_2_disk(dpi)
         plt.show()
 
+def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style='astro', colors=None, figsize=(6,6)):
+    if isinstance(data, np.ndarray) and data.ndim == 1:
+        data = [data]
+    colors, _ = set_plot_colors(colors)
+    style = return_stylename(style)
+    with plt.style.context(style):
+        plt.figure(figsize=figsize)
+        for i in range(len(data)):
+            y = data[i]
+            if normalize:
+                y=y/np.max(y)
+            plt.scatter(time, y, s=1, c=colors[i%len(colors)])
+
+        if xlabel is not None:
+            plt.xlabel(xlabel)
+        if ylabel is not None:
+            plt.ylabel(ylabel)
+        plt.show()
 # ––––––––––––––
 # Plotting Utils
 # ––––––––––––––
@@ -202,13 +220,14 @@ def set_unit_labels(unit):
         'um': r'\mathrm{\mu m}',
         'nm': 'nm',
         'nanometer': 'nm',
-        'Angstrom': r'\AA',
+        'Angstrom': r'\mathrm{\AA}',
         'm': 'm',
         'meter': 'm',
         'Hz': 'Hz',
         'kHz': 'kHz',
         'MHz': 'MHz',
         'GHz': 'GHz',
+        'km / s': r'\mathrm{km\ s^{-1}}',
     }
 
     return unit_map.get(str(unit), unit)
@@ -229,7 +248,8 @@ def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
         x_unit_label = r'($' + x_unit_label + r'$)'
         y_unit_label = r'($' + y_unit_label + r'$)'
 
-    xlabel = fr'Wavelength {x_unit_label}' if x_unit_label else 'Wavelength'
+    spectral_type = 'Wavelength' if X.unit.physical_type == 'length' else 'Frequency'
+    xlabel = fr'{spectral_type} {x_unit_label}' if x_unit_label else spectral_type
     ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
