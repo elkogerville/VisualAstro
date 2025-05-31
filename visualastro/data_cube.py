@@ -10,7 +10,10 @@ from spectral_cube import SpectralCube
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
-from .plot_utils import return_cube_slice, return_imshow_norm, return_stylename, save_figure_2_disk
+from .plot_utils import (
+    return_cube_slice, return_imshow_norm, return_spectral_axis_idx, return_stylename,
+    save_figure_2_disk, set_spectral_axis, set_unit_labels
+)
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
@@ -77,10 +80,99 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
             hdul.info()
     return data_dict
 
+# def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
+#                        radial_vel=None, plot_ellipse=False, center=[None,None], w=None, h=None,
+#                        angle=None, ellipses=None, emission_line=None, cmap='turbo', style='astro',
+#                        savefig=False, dpi=600, figsize=(6,6)):
+#     c = 299792.458
+#     # define wcs figure axes
+#     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
+#     style = return_stylename(style)
+#     with plt.style.context(style):
+#         fig = plt.figure(figsize=figsize)
+#         wcs2d = cubes[0].wcs.celestial
+#         ax = fig.add_subplot(111, projection=wcs2d)
+#         if style.split('/')[-1] == 'minimal.mplstyle':
+#             ax.coords['ra'].set_ticks_position('bl')
+#             ax.coords['dec'].set_ticks_position('bl')
+
+#         for cube in cubes:
+#             # return data cube slices
+#             slice_data = return_cube_slice(cube, idx)
+#             data = slice_data.value
+
+#             # compute imshow stretch
+#             vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
+#             vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+#             cube_norm = return_imshow_norm(vmin, vmax, norm)
+
+#             im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+#             wavelength = cube.spectral_axis.to('micron')
+#             wavelength = (wavelength[idx[0]].value + wavelength[idx[-1]+1].value)/2
+#             if radial_vel is not None:
+#                 wavelength /= (1 + radial_vel/c)
+
+#         if plot_ellipse:
+#             text = ax.text(0.5, 0.5, '', size='small', color='r')
+#         else:
+#             emission_line = r'$\lambda$' if emission_line is None else emission_line
+#             plt.text(0.03, 0.03, fr'{emission_line} {wavelength:0.3}$\mu$m', transform=ax.transAxes)
+
+#         def update_region(region):
+
+#             x_center = region.center.x
+#             y_center = region.center.y
+#             width = region.width
+#             height = region.height
+#             major = max(width, height)
+#             minor = min(width, height)
+
+#             # Update text display (positioned in data coordinates)
+#             text.set_text(
+#                 f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+#                 f'Major: {major:.1f}\n'
+#                 f'Minor: {minor:.1f}\n'
+#             )
+
+#         if plot_ellipse:
+#             if isinstance(ellipses, list):
+#                 for ellipse in ellipses:
+#                     ax.add_patch(copy_ellipse(ellipse))
+#             else:
+#                 _, X, Y = cube.shape
+#                 x_center = center[0] if center[0] is not None else ellipses.center[0] if ellipses is not None else X//2
+#                 y_center = center[1] if center[1] is not None else ellipses.center[1] if ellipses is not None else Y//2
+#                 w = w if w is not None else ellipses.width if ellipses is not None else 15
+#                 h = h if h is not None else ellipses.height if ellipses is not None else 10
+#                 angle = angle if angle is not None else ellipses.angle if ellipses is not None else None
+#                 e = Ellipse(xy=(x_center, y_center), width=w, height=h, angle=angle, fill=False)
+
+#                 if angle is not None:
+#                     ax.add_patch(e)
+#                 else:
+#                     ellipse_region = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
+#                     selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
+
+#         cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
+#                             0.03, ax.get_position().height])
+#         cbar = plt.colorbar(im, cax=cax, pad=0.04)
+#         cbar.ax.tick_params(which='both', direction='out')
+#         cbar.set_label(r'MJy sr$^{-1}$')
+
+#         ax.set_xlabel('Right Ascension')
+#         ax.set_ylabel('Declination')
+#         ax.coords['dec'].set_ticklabel(rotation=90)
+
+#         if savefig:
+#             save_figure_2_disk(dpi)
+
+#         plt.show()
+
 def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
-                       radial_vel=None, plot_ellipse=False, center=[None,None], w=None, h=None,
-                       angle=None, ellipses=None, emission_line=None, cmap='turbo', style='astro',
-                       savefig=False, dpi=600, figsize=(6,6)):
+                       radial_vel=None, unit=None, plot_ellipse=False, center=[None,None],
+                       w=None, h=None, angle=None, ellipses=None, emission_line=None,
+                       cmap='turbo', style='astro', title=False, label_color='k', savefig=False,
+                       dpi=600, figsize=(6,6)):
     c = 299792.458
     # define wcs figure axes
     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
@@ -104,16 +196,31 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
             cube_norm = return_imshow_norm(vmin, vmax, norm)
 
             im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
-            wavelength = cube.spectral_axis.to('micron')
-            wavelength = (wavelength[idx[0]].value + wavelength[idx[-1]+1].value)/2
+            spectral_axis = set_spectral_axis(cube, unit)
+            unit_label = set_unit_labels(spectral_axis.unit)
+            spectral_value = return_spectral_axis_idx(spectral_axis, idx)
             if radial_vel is not None:
-                wavelength /= (1 + radial_vel/c)
+                if spectral_axis.unit.is_equivalent(u.Hz):
+                    spectral_axis *= (1 + radial_vel / c)
+                else:
+                    spectral_axis /= (1 + radial_vel / c)
 
         if plot_ellipse:
-            text = ax.text(0.5, 0.5, '', size='small', color='r')
+            text = ax.text(0.5, 0.5, '', size='small', color=label_color)
         else:
-            emission_line = r'$\lambda$' if emission_line is None else emission_line
-            plt.text(0.03, 0.03, fr'{emission_line} {wavelength:0.3}$\mu$m', transform=ax.transAxes)
+            spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
+            if emission_line is None:
+                slice_label = fr'${spectral_type}{spectral_value:0.3f}\,\mathrm{{{unit_label}}}$'
+            else:
+                emission_line = emission_line.replace(' ', r'\ ')
+               #print(emission_line)
+                slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.3f}\,\mathrm{{{unit_label}}}$'
+            #emission_line = spectral_type if emission_line is None else emission_line
+            #slice_label = fr'${emission_line}{spectral_value:0.3f}\,\mathrm{{{unit}}}$'
+            if title:
+                plt.title(slice_label, color=label_color)
+            else:
+                plt.text(0.03, 0.03, slice_label, transform=ax.transAxes, color=label_color)
 
         def update_region(region):
 
@@ -139,8 +246,8 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
                 _, X, Y = cube.shape
                 x_center = center[0] if center[0] is not None else ellipses.center[0] if ellipses is not None else X//2
                 y_center = center[1] if center[1] is not None else ellipses.center[1] if ellipses is not None else Y//2
-                w = w if w is not None else ellipses.width if ellipses is not None else 15
-                h = h if h is not None else ellipses.height if ellipses is not None else 10
+                w = w if w is not None else ellipses.width if ellipses is not None else X//5
+                h = h if h is not None else ellipses.height if ellipses is not None else Y//5
                 angle = angle if angle is not None else ellipses.angle if ellipses is not None else None
                 e = Ellipse(xy=(x_center, y_center), width=w, height=h, angle=angle, fill=False)
 
@@ -154,7 +261,7 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
                             0.03, ax.get_position().height])
         cbar = plt.colorbar(im, cax=cax, pad=0.04)
         cbar.ax.tick_params(which='both', direction='out')
-        cbar.set_label(r'MJy sr$^{-1}$')
+        cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
 
         ax.set_xlabel('Right Ascension')
         ax.set_ylabel('Declination')

@@ -1,6 +1,8 @@
 import os
 import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
+from astropy import units as u
+from astropy.units import spectral
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
@@ -92,8 +94,9 @@ def return_stylename(style):
 def return_imshow_norm(vmin, vmax, norm):
     norm = norm.lower()
     norm_map = {
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
         'log': LogNorm(vmin=vmin, vmax=vmax),
-        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch())
+        'none': None
     }
     if norm not in norm_map:
         raise ValueError(f"ERROR: unsupported norm: {norm}")
@@ -109,6 +112,26 @@ def return_cube_slice(cube, idx):
         elif len(idx) == 2:
             start, end = idx
             return cube[start:end+1].sum(axis=0)
+    raise ValueError("'idx' must be an int or a list of one or two integers")
+
+def set_spectral_axis(cube, unit=None):
+    axis = cube.spectral_axis
+    if unit is None:
+        return axis
+    try:
+        return axis.to(unit, equivalencies=spectral())
+    except u.UnitConversionError:
+        raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
+
+def return_spectral_axis_idx(spectral_axis, idx):
+    if isinstance(idx, int):
+        return spectral_axis[idx].value
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            return spectral_axis[idx[0]].value
+        elif len(idx) == 2:
+            start, end = idx
+            return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
 def save_figure_2_disk(dpi):
@@ -154,13 +177,39 @@ def set_plot_colors(user_colors=None):
 
     return colors, model_colors
 
+# def set_unit_labels(unit):
+#     unit_map = {
+#         'MJy / sr': r'MJy sr$^{-1}$',
+#         'micron': r'$\mu$m',
+#         'um': r'$\mu$m',
+#         'nm': 'nm',
+#         'angstrom': r'$\AA$',
+#         'm': 'm',
+#         'Hz': 'Hz',
+#         'kHz': 'kHz',
+#         'MHz': 'MHz',
+#         'GHz': 'GHz',
+#     }
+#     return unit_map.get(unit, unit) if unit else None
+
 def set_unit_labels(unit):
     unit_map = {
-        'MJy / sr': r'MJy sr$^{-1}$',
-        'micron': r'$\mu$m',
-        'um': r'$\mu$m',
+        'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
+        'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
+        'micron': r'\mathrm{\mu m}',
+        'um': r'\mathrm{\mu m}',
+        'nm': 'nm',
+        'nanometer': 'nm',
+        'Angstrom': r'\AA',
+        'm': 'm',
+        'meter': 'm',
+        'Hz': 'Hz',
+        'kHz': 'kHz',
+        'MHz': 'MHz',
+        'GHz': 'GHz',
     }
-    return unit_map.get(unit, unit) if unit else None
+
+    return unit_map.get(str(unit), unit)
 
 def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
     if x_unit is None:
