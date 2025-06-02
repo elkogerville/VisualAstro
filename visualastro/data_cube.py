@@ -205,18 +205,15 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
                 else:
                     spectral_axis /= (1 + radial_vel / c)
 
-        if plot_ellipse:
+        if (plot_ellipse and ellipses is None):
             text = ax.text(0.5, 0.5, '', size='small', color=label_color)
         else:
             spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
             if emission_line is None:
-                slice_label = fr'${spectral_type}{spectral_value:0.3f}\,\mathrm{{{unit_label}}}$'
+                slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
             else:
                 emission_line = emission_line.replace(' ', r'\ ')
-               #print(emission_line)
-                slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.3f}\,\mathrm{{{unit_label}}}$'
-            #emission_line = spectral_type if emission_line is None else emission_line
-            #slice_label = fr'${emission_line}{spectral_value:0.3f}\,\mathrm{{{unit}}}$'
+                slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
             if title:
                 plt.title(slice_label, color=label_color)
             else:
@@ -341,7 +338,7 @@ def mask_cube_ellipse(cube, center=None, w=None, h=None, angle=0, tolerance=2,
 
     return subcube, ellipse_cube
 
-def return_ellipse_region(center, w, h, angle=None):
+def return_ellipse_region(center, w, h, angle=0):
     ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
 
     return ellipse
