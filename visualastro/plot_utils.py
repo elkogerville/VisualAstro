@@ -250,7 +250,13 @@ def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
         x_unit_label = r'($' + x_unit_label + r'$)'
         y_unit_label = r'($' + y_unit_label + r'$)'
 
-    spectral_type = 'Wavelength' if X.unit.physical_type == 'length' else 'Frequency'
+    spectral_type_map = {
+        'frequency': 'Frequency',
+        'length': 'Wavelength',
+        'speed/velocity': 'Velocity',
+    }
+
+    spectral_type = spectral_type_map.get(str(X.unit.physical_type), 'Spectral Axis')
     xlabel = fr'{spectral_type} {x_unit_label}' if x_unit_label else spectral_type
     ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
     plt.xlabel(xlabel)
