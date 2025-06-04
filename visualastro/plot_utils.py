@@ -11,17 +11,19 @@ from matplotlib.patches import Circle
 # ––––––––––––––––––
 # Plotting Functions
 # ––––––––––––––––––
-def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, norm=None, percentile=[3,99.5],
-           points=None, circles=None, plot_boolean=False, transpose=True, savefig=False, dpi=600):
+def imshow(data, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5],
+           cmap='turbo', style='astro', points=None, circles=None, plot_boolean=False,
+           transpose=True, savefig=False, dpi=600):
     data = check_is_array(data)
     if idx is not None:
         data = return_cube_slice(data, idx)
     if plot_boolean:
         vmin = 0
         vmax = 1
+        norm = None
     else:
-        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
-        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
+        norm = return_imshow_norm(vmin, vmax, norm)
     style = return_stylename(style)
     with plt.style.context(style):
         data = data.T if transpose else data
@@ -29,8 +31,7 @@ def imshow(data, idx=None, cmap='turbo', style='astro', vmin=None, vmax=None, no
         if norm is None:
             ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
         else:
-            norm = return_imshow_norm(vmin, vmax, norm)
-            ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
+            ax.imshow(data, origin='lower', norm=norm, cmap=cmap)
         if circles is not None:
             circle_colors = ['r', 'mediumvioletred', 'magenta']
             for i, circle in enumerate(circles):
@@ -111,7 +112,18 @@ def return_stylename(style):
         style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
 
+def set_vmin_vmax(data, percentile, vmin, vmax):
+    if percentile is not None:
+        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
+        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+    else:
+        vmin = None
+        vmax = None
+
+    return vmin, vmax
+
 def return_imshow_norm(vmin, vmax, norm):
+    norm = 'none' if norm is None else norm
     norm = norm.lower()
     norm_map = {
         'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
@@ -198,21 +210,6 @@ def set_plot_colors(user_colors=None):
         colors = color_map[default_color_map]
 
     return colors, model_colors
-
-# def set_unit_labels(unit):
-#     unit_map = {
-#         'MJy / sr': r'MJy sr$^{-1}$',
-#         'micron': r'$\mu$m',
-#         'um': r'$\mu$m',
-#         'nm': 'nm',
-#         'angstrom': r'$\AA$',
-#         'm': 'm',
-#         'Hz': 'Hz',
-#         'kHz': 'kHz',
-#         'MHz': 'MHz',
-#         'GHz': 'GHz',
-#     }
-#     return unit_map.get(unit, unit) if unit else None
 
 def set_unit_labels(unit):
     unit_map = {
