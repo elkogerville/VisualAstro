@@ -12,7 +12,7 @@ from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
     return_cube_slice, return_imshow_norm, return_spectral_axis_idx, return_stylename,
-    save_figure_2_disk, set_spectral_axis, set_unit_labels
+    save_figure_2_disk, set_spectral_axis, set_unit_labels, set_vmin_vmax
 )
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
@@ -103,11 +103,12 @@ def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], no
             data = slice_data.value
 
             # compute imshow stretch
-            vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
-            vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+            vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
             cube_norm = return_imshow_norm(vmin, vmax, norm)
-
-            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+            if norm is None:
+                im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+            else:
+                im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
             spectral_axis = set_spectral_axis(cube, unit)
             unit_label = set_unit_labels(spectral_axis.unit)
             spectral_value = return_spectral_axis_idx(spectral_axis, idx)
