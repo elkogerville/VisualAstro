@@ -1,4 +1,5 @@
 import warnings
+import numpy as np
 import astropy.units as u
 from astropy.coordinates import SpectralCoord
 from specutils.spectra import Spectrum1D
@@ -68,6 +69,68 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
             if len(spectra_dict_list) == 1:
                 spectra_dict_list = spectra_dict_list[0]
             return spectra_dict_list
+
+def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
+                          concatenate=False, return_spectra=False, style='latex', colors=None,
+                          use_samecolor=True, use_brackets=False, figsize=(12,6), savefig=False, dpi=600):
+
+    concatenate = True if return_spectra else concatenate
+    colors, _ = set_plot_colors(colors)
+    style = return_stylename(style)
+    with plt.style.context(style):
+        plt.figure(figsize=figsize)
+        lims = []
+        wave_list = []
+        flux_list = []
+        for i, spectra in enumerate(spectra_dict_list):
+            spectra = spectra[idx] if isinstance(spectra, list) else spectra
+            wavelength = spectra['wavelength']
+            flux = spectra['flux']
+            lims.append( [wavelength.value.min(), wavelength.value.max()] )
+            if spec_lims is not None:
+                spec_min = spec_lims[i]
+                spec_max = spec_lims[i+1]
+                mask = (wavelength.value > spec_min) & (wavelength.value < spec_max)
+                wavelength = wavelength[mask]
+                flux = flux[mask]
+
+            c = colors[0] if use_samecolor else colors[i%len(colors)]
+            l = label if label is not None and i == len(spectra_dict_list)-1 else None
+            if concatenate:
+                wave_list.append(wavelength)
+                flux_list.append(flux)
+            else:
+                plt.plot(wavelength, flux, color=c, label=l, lw=0.5)
+
+        if concatenate:
+            wavelength = np.concatenate(wave_list)
+            flux = np.concatenate(flux_list)
+            plt.plot(wavelength.value, flux.value, color=c, label=l, lw=0.5)
+
+        set_axis_labels(wavelength, flux, None, None, use_brackets=use_brackets)
+
+        if ylim is not None:
+            plt.ylim(ylim[0], ylim[1])
+        if spec_lims is None:
+            xmin = min(l[0] for l in lims)
+            xmax = max(l[1] for l in lims)
+        else:
+            xmin = spec_lims[0]
+            xmax = spec_lims[-1]
+        plt.xlim(xmin, xmax)
+
+        if label is not None:
+            plt.legend()
+        if savefig:
+            save_figure_2_disk(dpi)
+        plt.show()
+
+        if return_spectra:
+            spectra_dict = return_spectra_dict()
+            spectra_dict['wavelength'] = wavelength
+            spectra_dict['flux'] = flux.value
+
+            return spectra_dict
 
 def return_spectra_dict():
     spectra_dict = {}
