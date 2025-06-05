@@ -72,7 +72,8 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
 
 def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
                           concatenate=False, return_spectra=False, style='latex', colors=None,
-                          use_samecolor=True, use_brackets=False, figsize=(12,6), savefig=False, dpi=600):
+                          use_samecolor=True, use_brackets=False, figsize=(12,6), loc='best',
+                          savefig=False, dpi=600):
 
     concatenate = True if return_spectra else concatenate
     colors, _ = set_plot_colors(colors)
@@ -120,7 +121,7 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
         plt.xlim(xmin, xmax)
 
         if label is not None:
-            plt.legend()
+            plt.legend(loc=loc)
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
