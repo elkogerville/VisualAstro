@@ -197,14 +197,13 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
-def mask_cube(cube, center=None, w=None, h=None, angle=0, region='annulus', tolerance=2,
-              ellipse_region=None, line_points=None, outer=False, upper=True):
+def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, region='annulus',
+              tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True):
+
     _, N, M = cube.shape
     y, x = np.indices((N, M))
 
-    center = [N//2, M//2] if center is None else center
-    a = w/2 if w is not None else N//5
-    b = h/2 if h is not None else M//5
+    mask = np.ones((N, M), dtype=bool) if not composite_mask else cube.mask.include().copy()
 
     # if ellipse region is passed in use those values
     if ellipse_region is not None:
@@ -213,34 +212,38 @@ def mask_cube(cube, center=None, w=None, h=None, angle=0, region='annulus', tole
         b = ellipse_region.height/2
         angle = ellipse_region.angle if ellipse_region.angle is not None else 0
 
-    if region == 'annulus':
-        region = EllipseAnnulusPixelRegion(
-            center=PixCoord(center[0], center[1]),
-            inner_width=2*(a - tolerance),
-            inner_height=2*(b - tolerance),
-            outer_width=2*(a + tolerance),
-            outer_height=2*(b + tolerance),
-            angle=angle * u.deg
-        )
-    elif region == 'ellipse':
-        region = EllipsePixelRegion(
-            center=PixCoord(center[0], center[1]),
-            width=2*a,
-            height=2*b,
-            angle=angle * u.deg
-        )
-    else:
-        raise ValueError()
-    region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
-    if outer:
-        region_mask = ~region_mask
-    region_cube = cube.with_mask(region_mask)
+    if region is not None:
+        if region == 'annulus':
+            region = EllipseAnnulusPixelRegion(
+                center=PixCoord(center[0], center[1]),
+                inner_width=2*(a - tolerance),
+                inner_height=2*(b - tolerance),
+                outer_width=2*(a + tolerance),
+                outer_height=2*(b + tolerance),
+                angle=angle * u.deg
+            )
+        elif region == 'ellipse':
+            region = EllipsePixelRegion(
+                center=PixCoord(center[0], center[1]),
+                width=2*a,
+                height=2*b,
+                angle=angle * u.deg
+            )
+        else:
+            raise ValueError()
+
+        region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+        if outer:
+            region_mask = ~region_mask
+        mask &= region_mask
+    region_cube = cube.with_mask(mask)
 
     # apply line mask if provided
     if line_points is not None:
+        region_line_mask = mask.copy()
         m, b_line = compute_line(line_points)
         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
-        region_line_mask = region_mask & line_mask
+        region_line_mask &= line_mask
         region_line_cube = cube.with_mask(region_line_mask)
         return region_line_cube, region_cube
 
