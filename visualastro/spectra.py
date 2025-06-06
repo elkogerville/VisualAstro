@@ -12,41 +12,59 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
                       rest_freq=None, unit=None, emission_line=None, labels=None,
                       xlim=None, ylim=None, x_units=None, y_units=None, colors=None, return_spectra=False,
                       style='astro', use_brackets=False, savefig=False, dpi=600, figsize=(6,6)):
-    spectra_dict_list = []
+    # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
+    # set plot style and colors
     colors, fit_colors = set_plot_colors(colors)
     style = return_stylename(style)
+
     with plt.style.context(style):
         plt.figure(figsize=figsize)
+
         if emission_line is not None:
             plt.text(0.025, 0.95, f'{emission_line}', transform=plt.gca().transAxes)
-        for i, cube in enumerate(cubes):
-            spectra_dict = return_spectra_dict()
-            default_axis, spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
 
+        spectra_dict_list = []
+        for i, cube in enumerate(cubes):
+
+            # extract spectral axis converted to user specified units
+            default_axis, spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
+            # extract spectrum flux
             spectrum = cube.mean(axis=(1,2))
 
+            # set plot limits
             xmin = xlim[0] if xlim is not None else spectral_axis.value.min()
             xmax = xlim[1] if xlim is not None else spectral_axis.value.max()
             mask = (spectral_axis.value > xmin) & (spectral_axis.value < xmax)
-
-            spectra_dict['wavelength'] = spectral_axis
-            spectra_dict['flux'] = spectrum
+            # set plot labels
             label = labels[i] if (labels is not None and i < len(labels)) else None
 
+            spectra_dict = return_spectra_dict(spectral_axis, spectrum)
+            #spectra_dict['wavelength'] = spectral_axis
+            #spectra_dict['flux'] = spectrum
+
+            # compute continuum
             if normalize_continuum or plot_continuum_fit:
+
                 spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=default_axis)
+                # convert region to default units
                 region = convert_region_units(region, default_axis)
+                # compute continuum fit
                 continuum_fit = return_continuum_fit(default_axis, spectrum1d, fit_method, region)
+                # compute normalized flux
                 spec_normalized = spectrum1d / continuum_fit
+
                 spectra_dict['normalized'] = spec_normalized.flux
                 spectra_dict['continuum_fit'] = continuum_fit
+
                 if normalize_continuum:
                     plt.plot(spectral_axis[mask], spec_normalized.flux[mask],
                              color=colors[i%len(colors)], label=label)
                 if plot_continuum_fit:
+                    # normalize fit if spectrum is normalized
                     continuum_fit = continuum_fit/continuum_fit if normalize_continuum else continuum_fit
                     plt.plot(spectral_axis[mask], continuum_fit[mask], color=fit_colors[i%len(fit_colors)])
+
             if not normalize_continuum:
                 plt.plot(spectral_axis[mask], spectrum[mask], color=colors[i%len(colors)], label=label)
 
@@ -76,8 +94,10 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
                           savefig=False, dpi=600):
 
     concatenate = True if return_spectra else concatenate
+    # set plot style and colors
     colors, _ = set_plot_colors(colors)
     style = return_stylename(style)
+
     with plt.style.context(style):
         plt.figure(figsize=figsize)
         lims = []
@@ -127,18 +147,18 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
         plt.show()
 
         if return_spectra:
-            spectra_dict = return_spectra_dict()
-            spectra_dict['wavelength'] = wavelength
-            spectra_dict['flux'] = flux.value
+            spectra_dict = return_spectra_dict(wavelength, flux.value)
+            #spectra_dict['wavelength'] = wavelength
+            #spectra_dict['flux'] = flux.value
 
             return spectra_dict
 
-def return_spectra_dict():
+def return_spectra_dict(wavelength=None, flux=None, normalized=None, continuum_fit=None):
     spectra_dict = {}
-    spectra_dict['wavelength'] = None
-    spectra_dict['flux'] = None
-    spectra_dict['normalized'] = None
-    spectra_dict['continuum_fit'] = None
+    spectra_dict['wavelength'] = wavelength
+    spectra_dict['flux'] = flux
+    spectra_dict['normalized'] = normalized
+    spectra_dict['continuum_fit'] = continuum_fit
 
     return spectra_dict
 
@@ -184,8 +204,8 @@ def return_spectral_coord(cube, unit, radial_vel, rest_freq):
         try:
             shifted_axis = spectral_axis.to(unit)
         except Exception:
-            shifted_axis = spectral_axis  # fallback if conversion fails
+            shifted_axis = spectral_axis
     else:
-        shifted_axis = spectral_axis  # if no unit requested, keep original
+        shifted_axis = spectral_axis
 
     return spectral_axis, shifted_axis
