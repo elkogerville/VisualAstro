@@ -10,8 +10,9 @@ from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, s
 def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                       fit_method='fit_generic_continuum', region=None, radial_vel=None,
                       rest_freq=None, unit=None, emission_line=None, labels=None,
-                      xlim=None, ylim=None, x_units=None, y_units=None, colors=None, return_spectra=False,
-                      style='astro', use_brackets=False, savefig=False, dpi=600, figsize=(6,6)):
+                      xlim=None, ylim=None, x_units=None, y_units=None, colors=None,
+                      return_spectra=False, style='astro', use_brackets=False,
+                      text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6)):
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
@@ -22,7 +23,7 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
         plt.figure(figsize=figsize)
 
         if emission_line is not None:
-            plt.text(0.025, 0.95, f'{emission_line}', transform=plt.gca().transAxes)
+            plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
 
         spectra_dict_list = []
         for i, cube in enumerate(cubes):
@@ -54,6 +55,7 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
                 # compute normalized flux
                 spec_normalized = spectrum1d / continuum_fit
 
+                spectra_dict['spectrum1d'] = spectrum1d
                 spectra_dict['normalized'] = spec_normalized.flux
                 spectra_dict['continuum_fit'] = continuum_fit
 
@@ -153,10 +155,12 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
 
             return spectra_dict
 
-def return_spectra_dict(wavelength=None, flux=None, normalized=None, continuum_fit=None):
+def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
+                        normalized=None, continuum_fit=None):
     spectra_dict = {}
     spectra_dict['wavelength'] = wavelength
     spectra_dict['flux'] = flux
+    spectra_dict['spectrum1d'] = spectrum1d
     spectra_dict['normalized'] = normalized
     spectra_dict['continuum_fit'] = continuum_fit
 
