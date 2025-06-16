@@ -1,6 +1,5 @@
 import glob
 import warnings
-from dask.array import isin
 import numpy as np
 import astropy.units as u
 from astropy.io import fits
@@ -14,6 +13,7 @@ from .plot_utils import (
     return_cube_slice, return_imshow_norm, return_spectral_axis_idx, return_stylename,
     save_figure_2_disk, set_spectral_axis, set_unit_labels, set_vmin_vmax
 )
+
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
@@ -79,6 +79,27 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
         with fits.open(fits_files[0]) as hdul:
             hdul.info()
     return data_dict
+
+def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', print_info=False):
+
+    spectral_cube = SpectralCube.read(filepath, hdu=hdu)
+    result = [spectral_cube]
+
+    with fits.open(filepath) as hdul:
+
+        if print_info:
+            print( hdul.info() )
+
+        if error:
+            if error_key in hdul:
+                result.append( hdul[error_key].data )
+            else:
+                raise KeyError(f"HDU '{error_key}' not found in file")
+
+        if header:
+            result.append( hdul[hdu].header )
+
+    return tuple(result)
 
 def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
                        radial_vel=None, unit=None, plot_ellipse=False, center=[None,None],
@@ -198,7 +219,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
 def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, region='annulus',
-              tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True):
+              tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True, return_full=True):
 
     _, N, M = cube.shape
     y, x = np.indices((N, M))
@@ -236,7 +257,16 @@ def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, 
         if outer:
             region_mask = ~region_mask
         mask &= region_mask
-    region_cube = cube.with_mask(mask)
+
+    if isinstance(cube, np.ndarray):
+        if return_full:
+            region_cube = np.full_like(cube, np.nan)
+            region_cube[:, mask] = cube[:, mask]
+        else:
+            region_cube = cube[:, mask]
+
+    else:
+        region_cube = cube.with_mask(mask)
 
     # apply line mask if provided
     if line_points is not None:
@@ -244,7 +274,15 @@ def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, 
         m, b_line = compute_line(line_points)
         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
         region_line_mask &= line_mask
-        region_line_cube = cube.with_mask(region_line_mask)
+        if isinstance(cube, np.ndarray):
+            if return_full:
+                region_line_cube = np.full_like(cube, np.nan)
+                region_line_cube[:, region_line_mask] = cube[:, region_line_mask]
+            else:
+                region_line_cube = cube[:, region_line_mask]
+
+        else:
+            region_line_cube = cube.with_mask(region_line_mask)
         return region_line_cube, region_cube
 
     else:

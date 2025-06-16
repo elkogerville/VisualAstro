@@ -4,6 +4,7 @@ import astropy.units as u
 from astropy.coordinates import SpectralCoord
 from specutils.spectra import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
+from scipy.optimize import curve_fit, least_squares
 import matplotlib.pyplot as plt
 from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 
@@ -213,3 +214,122 @@ def return_spectral_coord(cube, unit, radial_vel, rest_freq):
         shifted_axis = spectral_axis
 
     return spectral_axis, shifted_axis
+
+def propagate_flux_errors(errors):
+    N = np.sum(~np.isnan(errors), axis=1)
+    flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
+
+    return flux_errors
+
+def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
+                        yerror=None, samples=1000, plot=True, colors=None, style='astro',
+                        xlim=None, plot_type='plot', figsize=(6,6), savefig=False, dpi=600):
+    wavelength = spectrum['wavelength'].value
+    flux = spectrum['flux'].value
+
+    wave_range = [flux.min(), flux.max()] if wave_range is None else wave_range
+
+    function_map = {
+        'gaussian': gaussian,
+        'gaussian_line': gaussian_line,
+        'residuals': residuals
+    }
+
+    if interpolate:
+        wavelength = np.linspace(wave_range[0], wave_range[1], samples)
+        flux = np.interp(wavelength, spectrum['wavelength'].value, flux)
+        if yerror is not None:
+            interp_var = np.interp(wavelength, spectrum['wavelength'].value, yerror**2)
+            yerror = np.sqrt(interp_var)
+            yerror = np.clip(yerror, 1e-6, None)
+
+    wave_mask = (wavelength > wave_range[0]) & (wavelength < wave_range[1])
+    wave_sub = wavelength[wave_mask]
+    flux_sub = flux[wave_mask]
+    if yerror is not None:
+        yerror = yerror[wave_mask]
+
+    #bounds=([wave_range[0], 10, p0[2]-3*p0[3], 1e-4, -np.inf, -np.inf], [wave_range[1], 70, p0[2]+3*p0[3], 0.05, np.inf, np.inf])
+    function = function_map.get(model, 'gaussian')
+    if model == 'residuals':
+        res = least_squares(function, p0, args=(wave_sub, flux_sub), loss='soft_l1')
+        popt = res.x
+        function = function_map.get('gaussian_line', 'gaussian')
+    else:
+        popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror, absolute_sigma=True, method='trf')
+
+    if plot:
+        # set plot style and colors
+        colors, fit_colors = set_plot_colors(colors)
+        style = return_stylename(style)
+
+        plot_map = {
+            'plot': plt.plot,
+            'scatter': plt.scatter
+        }
+        plt_plot = plot_map.get(plot_type, 'plot')
+
+        with plt.style.context(style):
+            plt.figure(figsize=figsize)
+            plt_plot(spectrum['wavelength'], spectrum['flux'],
+                     c=colors[0%len(colors)], label='spectrum')
+
+            plt.plot(wavelength, function(wavelength, *popt), c=colors[1%len(colors)], label='gaussian model')
+
+            set_axis_labels(spectrum['wavelength'], spectrum['flux'], None, None)
+            xlim = wave_range if xlim is None else xlim
+            plt.xlim(xlim[0], xlim[1])
+            if savefig:
+                save_figure_2_disk(dpi=dpi)
+            plt.show()
+
+    return popt
+
+def gaussian(x, A, mu, sigma):
+    '''
+    compute a gaussian curve given x values, amplitude, mean, and standard deviation
+    Parameters
+    ----------
+    x: np.ndarray[np.int64]
+        (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
+    A: float
+        amplitude of gaussian function
+    mu: int
+        mean or center of gaussian function
+    sigma: float
+        standard deviation of gaussian function
+    Returns
+    -------
+    y: np.ndarray[np.float64]
+        (N,) shaped array of values of gaussian function evaluated at each x
+    '''
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+    return y
+
+def gaussian_line(x, A, mu, sigma, m, b):
+    '''
+    compute a gaussian curve given x values, amplitude, mean, and standard deviation
+    Parameters
+    ----------
+    x: np.ndarray[np.int64]
+        (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
+    A: float
+        amplitude of gaussian function
+    mu: int
+        mean or center of gaussian function
+    sigma: float
+        standard deviation of gaussian function
+    Returns
+    -------
+    y: np.ndarray[np.float64]
+        (N,) shaped array of values of gaussian function evaluated at each x
+    '''
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2) + m*x+b
+
+    return y
+
+def residuals(params, x, y):
+    A, mu, sigma, m, b = params
+    model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
+    return y - model
