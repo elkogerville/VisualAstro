@@ -5,6 +5,7 @@ from astropy.coordinates import SpectralCoord
 from specutils.spectra import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from scipy.optimize import curve_fit, least_squares
+from scipy.interpolate import interp1d, CubicSpline
 import matplotlib.pyplot as plt
 from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 
@@ -42,8 +43,6 @@ def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False
             label = labels[i] if (labels is not None and i < len(labels)) else None
 
             spectra_dict = return_spectra_dict(spectral_axis, spectrum)
-            #spectra_dict['wavelength'] = spectral_axis
-            #spectra_dict['flux'] = spectrum
 
             # compute continuum
             if normalize_continuum or plot_continuum_fit:
@@ -151,8 +150,6 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
 
         if return_spectra:
             spectra_dict = return_spectra_dict(wavelength, flux.value)
-            #spectra_dict['wavelength'] = wavelength
-            #spectra_dict['flux'] = flux.value
 
             return spectra_dict
 
@@ -222,8 +219,9 @@ def propagate_flux_errors(errors):
     return flux_errors
 
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
-                        yerror=None, samples=1000, plot=True, colors=None, style='astro',
-                        xlim=None, plot_type='plot', figsize=(6,6), savefig=False, dpi=600):
+                        interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
+                        samples=1000, plot=True, colors=None, style='astro', xlim=None,
+                        plot_type='plot', figsize=(6,6), savefig=False, dpi=600, plot_vals=True):
     wavelength = spectrum['wavelength'].value
     flux = spectrum['flux'].value
 
@@ -236,12 +234,11 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     }
 
     if interpolate:
-        wavelength = np.linspace(wave_range[0], wave_range[1], samples)
-        flux = np.interp(wavelength, spectrum['wavelength'].value, flux)
+        wavelength, flux = interpolate_arrays(wavelength, flux, wave_range,
+                                              samples, method=interp_method)
         if yerror is not None:
-            interp_var = np.interp(wavelength, spectrum['wavelength'].value, yerror**2)
-            yerror = np.sqrt(interp_var)
-            yerror = np.clip(yerror, 1e-6, None)
+            _, yerror = interpolate_arrays(spectrum['wavelength'].value, yerror,
+                                           wave_range, samples, method=error_method)
 
     wave_mask = (wavelength > wave_range[0]) & (wavelength < wave_range[1])
     wave_sub = wavelength[wave_mask]
@@ -249,12 +246,11 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     if yerror is not None:
         yerror = yerror[wave_mask]
 
-    #bounds=([wave_range[0], 10, p0[2]-3*p0[3], 1e-4, -np.inf, -np.inf], [wave_range[1], 70, p0[2]+3*p0[3], 0.05, np.inf, np.inf])
-    function = function_map.get(model, 'gaussian')
+    function = function_map.get(model, gaussian)
     if model == 'residuals':
         res = least_squares(function, p0, args=(wave_sub, flux_sub), loss='soft_l1')
         popt = res.x
-        function = function_map.get('gaussian_line', 'gaussian')
+        function = function_map.get('gaussian_line', gaussian_line)
     else:
         popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror, absolute_sigma=True, method='trf')
 
@@ -267,7 +263,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             'plot': plt.plot,
             'scatter': plt.scatter
         }
-        plt_plot = plot_map.get(plot_type, 'plot')
+        plt_plot = plot_map.get(plot_type, plt.plot)
 
         with plt.style.context(style):
             plt.figure(figsize=figsize)
@@ -282,6 +278,32 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             if savefig:
                 save_figure_2_disk(dpi=dpi)
             plt.show()
+
+    amplitude = popt[0]
+    sigma = popt[2]
+    integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
+    FWHM = 2*sigma * np.sqrt(2 * np.log(2))
+    computed_vals = [integrated_flux, FWHM, '', '', '']
+
+    if plot_vals:
+        print('Best Fit Values:   | Computed Values:'
+              '\n–––––––––––––––––––––––––––––––––––––')
+        params = ['A', 'μ', 'σ', 'm', 'b']
+        computed_labels = ['Flux :', 'FWHM :', '', '', '']
+        for i in range(len(popt)):
+            # format left side (Best Fit Values)
+            fit_str = f"{params[i]:<2}: {popt[i]:>14.5f}"
+
+            # format right side (Computed Values)
+            # if value exists:
+            if computed_vals[i]:
+                comp_str = f"{computed_labels[i]:<6} {computed_vals[i]:>9.5f}"
+            else:
+                comp_str = f"{computed_labels[i]:<6} {'':>10}"
+
+            print(f"{fit_str} | {comp_str}")
+
+    popt = np.append(popt, [x for x in computed_vals if isinstance(x, float)])
 
     return popt
 
@@ -333,3 +355,19 @@ def residuals(params, x, y):
     A, mu, sigma, m, b = params
     model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
     return y - model
+
+def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
+    interpolation_map = {
+        'linear': interp1d,
+        'cubic': interp1d,
+        'cubic_spline': CubicSpline
+    }
+    interp = interpolation_map.get(method, interp1d)
+    x_interp = np.linspace(x_range[0], x_range[1], N_samples)
+    if method == 'cubic_spline':
+        f_interp = interp(xp, yp)
+    else:
+        f_interp = interp(xp, yp, kind=method)
+    y_interp = f_interp(x_interp)
+
+    return x_interp, y_interp
