@@ -83,7 +83,11 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
 def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', print_info=False):
 
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
-    result = [spectral_cube]
+
+    if error or header:
+        result = [spectral_cube]
+    else:
+        result = spectral_cube
 
     with fits.open(filepath) as hdul:
 
@@ -99,7 +103,7 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', 
         if header:
             result.append( hdul[hdu].header )
 
-    return tuple(result)
+    return result
 
 def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
                        radial_vel=None, unit=None, plot_ellipse=False, center=[None,None],
