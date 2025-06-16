@@ -223,6 +223,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
                         samples=1000, plot=True, colors=None, style='astro', xlim=None,
                         plot_type='plot', figsize=(6,6), savefig=False, dpi=600, print_vals=True):
+
     wavelength = spectrum['wavelength'].value
     flux = spectrum['flux'].value
 
@@ -231,8 +232,8 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     function_map = {
         'gaussian': gaussian,
         'gaussian_line': gaussian_line,
+        'gaussian_continuum': gaussian_continuum,
         'residuals': residuals,
-        'gaussian_continuum': gaussian_continuum
     }
 
     if interpolate:
@@ -434,6 +435,7 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
         set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], None, None)
         plt.show()
 
-    print(f'μ: {g_fit.mean.value:.5f} {g_fit.mean.unit}, FWHM: {g_fit.fwhm:.5f}')
+    integrated_flux = g_fit.amplitude.value * g_fit.stddev.value * np.sqrt(2*np.pi)
+    print(f'μ: {g_fit.mean.value:.5f} {g_fit.mean.unit}, FWHM: {g_fit.fwhm:.5f}, Flux: {integrated_flux:.5}')
 
     return g_fit
