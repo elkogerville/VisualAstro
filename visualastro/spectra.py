@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 import astropy.units as u
 from astropy.coordinates import SpectralCoord
+from astropy.modeling import models, fitting
 from specutils.spectra import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from scipy.optimize import curve_fit, least_squares
@@ -221,7 +222,7 @@ def propagate_flux_errors(errors):
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
                         samples=1000, plot=True, colors=None, style='astro', xlim=None,
-                        plot_type='plot', figsize=(6,6), savefig=False, dpi=600, plot_vals=True):
+                        plot_type='plot', figsize=(6,6), savefig=False, dpi=600, print_vals=True):
     wavelength = spectrum['wavelength'].value
     flux = spectrum['flux'].value
 
@@ -230,7 +231,8 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     function_map = {
         'gaussian': gaussian,
         'gaussian_line': gaussian_line,
-        'residuals': residuals
+        'residuals': residuals,
+        'gaussian_continuum': gaussian_continuum
     }
 
     if interpolate:
@@ -239,20 +241,32 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
         if yerror is not None:
             _, yerror = interpolate_arrays(spectrum['wavelength'].value, yerror,
                                            wave_range, samples, method=error_method)
+        if model == 'gaussian_continuum':
+            _, continuum = interpolate_arrays(spectrum['wavelength'].value, p0[-1],
+                                              wave_range, samples, method=interp_method)
+            p0.pop(-1)
 
     wave_mask = (wavelength > wave_range[0]) & (wavelength < wave_range[1])
     wave_sub = wavelength[wave_mask]
     flux_sub = flux[wave_mask]
     if yerror is not None:
         yerror = yerror[wave_mask]
+    if model == 'gaussian_continuum':
+        continuum = continuum[wave_mask]
 
     function = function_map.get(model, gaussian)
     if model == 'residuals':
         res = least_squares(function, p0, args=(wave_sub, flux_sub), loss='soft_l1')
         popt = res.x
         function = function_map.get('gaussian_line', gaussian_line)
+    if model == 'gaussian_continuum':
+        fitted_model = lambda x, A, mu, sigma: gaussian_continuum(x, A, mu, sigma, continuum)
+        popt, pcov = curve_fit(fitted_model, wave_sub, flux_sub, p0,
+                               sigma=yerror, absolute_sigma=True, method='trf')
+        function = fitted_model
     else:
-        popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror, absolute_sigma=True, method='trf')
+        popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror,
+                               absolute_sigma=True, method='trf')
 
     if plot:
         # set plot style and colors
@@ -270,7 +284,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             plt_plot(spectrum['wavelength'], spectrum['flux'],
                      c=colors[0%len(colors)], label='spectrum')
 
-            plt.plot(wavelength, function(wavelength, *popt), c=colors[1%len(colors)], label='gaussian model')
+            plt.plot(wave_sub, function(wave_sub, *popt), c=colors[1%len(colors)], label='gaussian model')
 
             set_axis_labels(spectrum['wavelength'], spectrum['flux'], None, None)
             xlim = wave_range if xlim is None else xlim
@@ -282,10 +296,10 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     amplitude = popt[0]
     sigma = popt[2]
     integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
-    FWHM = 2*sigma * np.sqrt(2 * np.log(2))
+    FWHM = 2*sigma * np.sqrt(2*np.log(2))
     computed_vals = [integrated_flux, FWHM, '', '', '']
 
-    if plot_vals:
+    if print_vals:
         print('Best Fit Values:   | Computed Values:'
               '\n–––––––––––––––––––––––––––––––––––––')
         params = ['A', 'μ', 'σ', 'm', 'b']
@@ -303,7 +317,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
 
             print(f"{fit_str} | {comp_str}")
 
-    popt = np.append(popt, [x for x in computed_vals if isinstance(x, float)])
+    popt = np.concatenate([popt, [x for x in computed_vals if isinstance(x, float)]])
 
     return popt
 
@@ -351,6 +365,11 @@ def gaussian_line(x, A, mu, sigma, m, b):
 
     return y
 
+def gaussian_continuum(x, A, mu, sigma, continuum):
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+    return y + continuum
+
 def residuals(params, x, y):
     A, mu, sigma, m, b = params
     model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
@@ -371,3 +390,50 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
     y_interp = f_interp(x_interp)
 
     return x_interp, y_interp
+
+def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
+                       interp_method='cubic', colors=None, style='astro', figsize=(6,6), xlim=None):
+
+    wavelength = spectra_dict['wavelength']
+    flux = spectra_dict['flux'].copy()
+    wave_unit = spectra_dict['wavelength'].unit
+    flux_unit = spectra_dict['flux'].unit
+
+    if subtract_continuum:
+        continuum = spectra_dict['continuum_fit']
+        flux -= continuum
+
+    wave_range = [flux.min(), flux.max()] if wave_range is None else wave_range
+
+    wave_sub, flux_sub = interpolate_arrays(wavelength, flux, wave_range, N_samples, method=interp_method)
+    mask = ( (wave_sub*wave_unit > wave_range[0]*wave_unit) &
+            (wave_sub*wave_unit < wave_range[1]*wave_unit) )
+
+    wave_sub = wave_sub[mask]
+    flux_sub = flux_sub[mask]
+
+    amplitude, mean, stddev = p0
+
+    g_init = models.Gaussian1D(amplitude=amplitude*flux_unit,
+                               mean=mean*wave_unit,
+                               stddev=stddev*wave_unit)
+    fitter = fitting.LevMarLSQFitter()
+    g_fit = fitter(g_init, wave_sub*wave_unit, flux_sub*flux_unit)
+    y_fit = g_fit(wave_sub*wave_unit)
+
+    # set plot style and colors
+    colors, fit_colors = set_plot_colors(colors)
+    style = return_stylename(style)
+
+    with plt.style.context(style):
+        plt.figure(figsize=figsize)
+        plt.plot(wavelength, flux, c=colors[0])
+        plt.plot(wave_sub, y_fit, c=colors[1])
+        xlim = wave_range if xlim is None else xlim
+        plt.xlim(xlim[0], xlim[1])
+        set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], None, None)
+        plt.show()
+
+    print(f'μ: {g_fit.mean.value:.5f} {g_fit.mean.unit}, FWHM: {g_fit.fwhm:.5f}')
+
+    return g_fit
