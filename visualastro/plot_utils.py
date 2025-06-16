@@ -196,10 +196,11 @@ def save_figure_2_disk(dpi):
 def set_plot_colors(user_colors=None):
     default_color_map = 'ibm_contrast'
     color_map = {
-        #                  dsb        mvr      ibmblue      gold
+        #                  dsb        mvr      ibmblue      gold     mossgreen
         'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+        #                ibmblue       mvr     ibmpurple  mossgreen    gold      traffico
         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-        #          bbblue    ibmblue   ibmpurple     mvr      traffico    gold      pondwater  mossgreen
+        #          bbblue     ibmblue   ibmpurple     mvr      traffico    gold      pondwater  mossgreen
         'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
         #          mossgreen    pondwater    gold      traffico    mvr      ibmpurple   ibmblue    bbblue
         'astro_r': ['#26DCBA', '#CFE23C', '#FFB000', '#FE6100', '#DC267F', '#785EF0', '#648FFF', '#9FB7FF'],
