@@ -10,12 +10,12 @@ from scipy.interpolate import interp1d, CubicSpline
 import matplotlib.pyplot as plt
 from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 
-def plot_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
-                      fit_method='fit_generic_continuum', region=None, radial_vel=None,
-                      rest_freq=None, unit=None, emission_line=None, labels=None,
-                      xlim=None, ylim=None, x_units=None, y_units=None, colors=None,
-                      return_spectra=False, style='astro', use_brackets=False,
-                      text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6)):
+def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
+                         fit_method='fit_generic_continuum', region=None, radial_vel=None,
+                         rest_freq=None, unit=None, emission_line=None, labels=None,
+                         xlim=None, ylim=None, x_units=None, y_units=None, colors=None,
+                         return_spectra=False, style='astro', use_brackets=False,
+                         text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6)):
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
