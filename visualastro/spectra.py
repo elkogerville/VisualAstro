@@ -268,6 +268,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     else:
         popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror,
                                absolute_sigma=True, method='trf')
+    perr = np.sqrt(np.diag(pcov))
 
     if plot:
         # set plot style and colors
@@ -295,32 +296,41 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             plt.show()
 
     amplitude = popt[0]
+    amplitude_error = perr[0]
     sigma = popt[2]
+    sigma_error = perr[2]
+
     integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
+    flux_error = np.sqrt(2*np.pi) * integrated_flux * (
+        np.sqrt((amplitude_error/amplitude)**2 + (sigma_error/sigma)**2) )
     FWHM = 2*sigma * np.sqrt(2*np.log(2))
+    FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
     computed_vals = [integrated_flux, FWHM, '', '', '']
+    computed_errors = [flux_error, FWHM_error, '', '', '']
 
     if print_vals:
-        print('Best Fit Values:   | Computed Values:'
-              '\n–––––––––––––––––––––––––––––––––––––')
+        print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
         params = ['A', 'μ', 'σ', 'm', 'b']
-        computed_labels = ['Flux :', 'FWHM :', '', '', '']
+        computed_labels = ['Flux', 'FWHM', '', '', '']
         for i in range(len(popt)):
-            # format left side (Best Fit Values)
-            fit_str = f"{params[i]:<2}: {popt[i]:>14.5f}"
-
-            # format right side (Computed Values)
-            # if value exists:
+            # format best fit values
+            fit_str = f'{params[i]+':':<2} {popt[i]:>15.6f}'
+            # format best fit errors
+            fit_err = f'{params[i]+'δ':<2}: {perr[i]:>14.8f}'
+            # format computed values if value exists
             if computed_vals[i]:
-                comp_str = f"{computed_labels[i]:<6} {computed_vals[i]:>9.5f}"
+                comp_str = f'{computed_labels[i]+':':<6} {computed_vals[i]:>10.9f}'
+                comp_err = f'{computed_labels[i]+'δ:':<6} {computed_errors[i]:>11.8f}'
             else:
-                comp_str = f"{computed_labels[i]:<6} {'':>10}"
+                comp_str = f'{computed_labels[i]:<6} {'':>11}'
+                comp_err = f'{computed_labels[i]:<6} {'':>11}'
 
-            print(f"{fit_str} | {comp_str}")
+            print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
 
-    popt = np.concatenate([popt, [x for x in computed_vals if isinstance(x, float)]])
+    popt = np.concatenate([popt, [integrated_flux, FWHM]])
+    perr = np.concatenate([perr, [flux_error, FWHM_error]])
 
-    return popt
+    return popt, perr
 
 def gaussian(x, A, mu, sigma):
     '''
