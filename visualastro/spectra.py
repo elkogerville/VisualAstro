@@ -166,10 +166,10 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
     return spectra_dict
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
-    c = 299792.458 # [m/s]
+    c = 299792.458 # [km/s]
     if radial_vel is not None:
         if spectral_axis.unit.is_equivalent(u.Hz):
-            spectral_axis *= (1 + radial_vel / c)
+            spectral_axis /= (1 - radial_vel / c)
         else:
             spectral_axis /= (1 + radial_vel / c)
         return spectral_axis
