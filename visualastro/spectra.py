@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 import astropy.units as u
+from astropy.units import Quantity
 from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
 from specutils.spectra import Spectrum1D
@@ -28,6 +29,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         if emission_line is not None:
             plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
 
+        wavelength_list = []
         spectra_dict_list = []
         for i, cube in enumerate(cubes):
 
@@ -37,9 +39,11 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             spectrum = cube.mean(axis=(1,2))
 
             # set plot limits
-            xmin = xlim[0] if xlim is not None else spectral_axis.value.min()
-            xmax = xlim[1] if xlim is not None else spectral_axis.value.max()
-            mask = (spectral_axis.value > xmin) & (spectral_axis.value < xmax)
+            # xmin = xlim[0] if xlim is not None else spectral_axis.value.min()
+            # xmax = xlim[1] if xlim is not None else spectral_axis.value.max()
+            # mask = (spectral_axis.value > xmin) & (spectral_axis.value < xmax)
+            mask = compute_limits_mask(spectral_axis, xlim=xlim)
+            wavelength_list.append(spectral_axis[mask])
             # set plot labels
             label = labels[i] if (labels is not None and i < len(labels)) else None
 
@@ -73,9 +77,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
             spectra_dict_list.append(spectra_dict)
 
-        plt.xlim(xmin, xmax)
-        if ylim is not None:
-            plt.ylim(ylim[0], ylim[1])
+        set_axis_limits(wavelength_list, xlim, ylim)
 
         set_axis_labels(spectral_axis, spectrum, x_units, y_units, use_brackets=use_brackets)
 
@@ -90,6 +92,39 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             if len(spectra_dict_list) == 1:
                 spectra_dict_list = spectra_dict_list[0]
             return spectra_dict_list
+
+def plot_spectrum(spectra_dicts, normalize=False, xlim=None, ylim=None, emission_line=None,
+                  labels=None, colors=None, text_loc=[0.025, 0.95], style='astro', figsize=(6,6)):
+    spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
+
+    # set plot style and colors
+    colors, _ = set_plot_colors(colors)
+    style = return_stylename(style)
+
+    with plt.style.context(style):
+        plt.figure(figsize=figsize)
+
+        if emission_line is not None:
+            plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
+
+        wavelength_list = []
+        for i, spectra_dict in enumerate(spectra_dicts):
+            if spectra_dict is not None:
+
+                wavelength = spectra_dict['wavelength']
+                flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
+
+                mask = compute_limits_mask(wavelength)
+
+                label = labels[i] if (labels is not None and i < len(labels)) else None
+
+                plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
+                wavelength_list.append(wavelength[mask])
+        set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
+        set_axis_labels(wavelength, spectra_dict['flux'], None, None)
+        if labels is not None:
+            plt.legend()
+        plt.show()
 
 def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
                           concatenate=False, return_spectra=False, style='latex', colors=None,
@@ -221,13 +256,13 @@ def propagate_flux_errors(errors):
 
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
-                        samples=1000, plot=True, colors=None, style='astro', xlim=None,
-                        plot_type='plot', figsize=(6,6), savefig=False, dpi=600, print_vals=True):
+                        samples=1000, return_fit_params=False, plot=True, colors=None, style='astro',
+                        xlim=None, plot_type='plot', figsize=(6,6), savefig=False, dpi=600, print_vals=True):
 
     wavelength = spectrum['wavelength'].value
     flux = spectrum['flux'].value
 
-    wave_range = [flux.min(), flux.max()] if wave_range is None else wave_range
+    wave_range = [wavelength.min(), wavelength.max()] if wave_range is None else wave_range
 
     function_map = {
         'gaussian': gaussian,
@@ -308,6 +343,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     computed_vals = [integrated_flux, FWHM, '', '', '']
     computed_errors = [flux_error, FWHM_error, '', '', '']
 
+
     if print_vals:
         print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
         params = ['A', 'μ', 'σ', 'm', 'b']
@@ -329,8 +365,10 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
 
     popt = np.concatenate([popt, [integrated_flux, FWHM]])
     perr = np.concatenate([perr, [flux_error, FWHM_error]])
-
-    return popt, perr
+    if return_fit_params:
+        return popt, perr
+    else:
+        return [integrated_flux, FWHM, popt[1]], [flux_error, FWHM_error, perr[1]]
 
 def gaussian(x, A, mu, sigma):
     '''
@@ -403,7 +441,7 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
     return x_interp, y_interp
 
 def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
-                       interp_method='cubic', colors=None, style='astro', figsize=(6,6), xlim=None):
+                       interp_method='cubic_spline', colors=None, style='astro', figsize=(6,6), xlim=None):
 
     wavelength = spectra_dict['wavelength']
     flux = spectra_dict['flux'].copy()
@@ -449,3 +487,28 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
     print(f'μ: {g_fit.mean.value:.5f} {g_fit.mean.unit}, FWHM: {g_fit.fwhm:.5f}, Flux: {integrated_flux:.5}')
 
     return g_fit
+
+def return_array_values(array):
+    array = array.value if isinstance(array, Quantity) else array
+
+    return array
+
+def compute_limits_mask(x, xlim=None):
+    x = return_array_values(x)
+
+    xmin = xlim[0] if xlim is not None else np.nanmin(x)
+    xmax = xlim[1] if xlim is not None else np.nanmax(x)
+
+    mask = (x > xmin) & (x < xmax)
+
+    return mask
+
+def set_axis_limits(data_list, xlim=None, ylim=None):
+    # min and max values across data sets
+    xmin = return_array_values(np.nanmin(data_list))
+    xmax = return_array_values(np.nanmax(data_list))
+
+    xlim = xlim if xlim is not None else [xmin, xmax]
+
+    plt.xlim(xlim)
+    plt.ylim(ylim)
