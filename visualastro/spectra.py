@@ -379,11 +379,16 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     else:
         return [integrated_flux, FWHM, popt[1]], [flux_error, FWHM_error, perr[1]]
 
-def construct_p0(spectra, args):
+def construct_p0(spectra, args, xlim=None):
     wavelength = return_array_values(spectra['wavelength'])
     flux = return_array_values(spectra['flux'])
+
+    if xlim is not None:
+        mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
+        wavelength = wavelength[mask]
+        flux = flux[mask]
     peak_idx = int(np.argmax(flux))
-    p0 = [np.max(flux), wavelength[peak_idx]]
+    p0 = [np.nanmax(flux), wavelength[peak_idx]]
     p0.extend(args)
 
     return p0
