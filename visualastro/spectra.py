@@ -352,7 +352,6 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     computed_vals = [integrated_flux, FWHM, '', '', '']
     computed_errors = [flux_error, FWHM_error, '', '', '']
 
-
     if print_vals:
         print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
         params = ['A', 'μ', 'σ', 'm', 'b']
