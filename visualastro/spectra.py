@@ -257,10 +257,11 @@ def propagate_flux_errors(errors):
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
                         samples=1000, return_fit_params=False, plot=True, colors=None, style='astro',
-                        xlim=None, plot_type='plot', figsize=(6,6), savefig=False, dpi=600, print_vals=True):
+                        xlim=None, plot_type='plot', plot_interp=False, figsize=(6,6), savefig=False,
+                        dpi=600, print_vals=True):
 
-    wavelength = spectrum['wavelength'].value
-    flux = spectrum['flux'].value
+    wavelength = return_array_values(spectrum['wavelength'])
+    flux = return_array_values(spectrum['flux'])
 
     wave_range = [wavelength.min(), wavelength.max()] if wave_range is None else wave_range
 
@@ -318,16 +319,24 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
 
         with plt.style.context(style):
             plt.figure(figsize=figsize)
-            plt_plot(spectrum['wavelength'], spectrum['flux'],
+            if plot_interp:
+                plt_plot(wavelength, flux, c=colors[2%len(colors)])
+            wavelength = return_array_values(spectrum['wavelength'])
+            flux = return_array_values(spectrum['flux'])
+            xlim = wave_range if xlim is None else xlim
+            mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
+            plt_plot(wavelength[mask], flux[mask],
                      c=colors[0%len(colors)], label='spectrum')
 
-            plt.plot(wave_sub, function(wave_sub, *popt), c=colors[1%len(colors)], label='gaussian model')
+
+            plt.plot(wave_sub, function(wave_sub, *popt),
+                     c=colors[1%len(colors)], label='gaussian model')
 
             set_axis_labels(spectrum['wavelength'], spectrum['flux'], None, None)
-            xlim = wave_range if xlim is None else xlim
             plt.xlim(xlim[0], xlim[1])
             if savefig:
                 save_figure_2_disk(dpi=dpi)
+            plt.legend()
             plt.show()
 
     amplitude = popt[0]
@@ -369,6 +378,15 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
         return popt, perr
     else:
         return [integrated_flux, FWHM, popt[1]], [flux_error, FWHM_error, perr[1]]
+
+def construct_p0(spectra, args):
+    wavelength = return_array_values(spectra['wavelength'])
+    flux = return_array_values(spectra['flux'])
+    peak_idx = int(np.argmax(flux))
+    p0 = [np.max(flux), wavelength[peak_idx]]
+    p0.extend(args)
+
+    return p0
 
 def gaussian(x, A, mu, sigma):
     '''
