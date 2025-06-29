@@ -8,15 +8,17 @@ from specutils.spectra import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from scipy.optimize import curve_fit, least_squares
 from scipy.interpolate import interp1d, CubicSpline
+from dust_extinction.parameter_averages import M14, G23
+from dust_extinction.grain_models import WD01
 import matplotlib.pyplot as plt
-from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
+from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors, update_kwargs
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
-                         rest_freq=None, unit=None, emission_line=None, labels=None,
-                         xlim=None, ylim=None, x_units=None, y_units=None, colors=None,
-                         return_spectra=False, style='astro', use_brackets=False,
-                         text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6)):
+                         rest_freq=None, deredden=False, unit=None, emission_line=None,
+                         labels=None, xlim=None, ylim=None, x_units=None, y_units=None,
+                         colors=None, return_spectra=False, style='astro', use_brackets=False,
+                         text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6), **kwargs):
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
@@ -35,8 +37,13 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
             # extract spectral axis converted to user specified units
             default_axis, spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
+
             # extract spectrum flux
             spectrum = cube.mean(axis=(1,2))
+
+            # derreden
+            if deredden:
+                spectrum = deredden_spectrum(spectral_axis, spectrum, **kwargs)
 
             # set plot limits
             # xmin = xlim[0] if xlim is not None else spectral_axis.value.min()
@@ -52,11 +59,14 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             # compute continuum
             if normalize_continuum or plot_continuum_fit:
 
-                spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=default_axis)
+                #spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=default_axis)
+                spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=spectral_axis)
                 # convert region to default units
-                region = convert_region_units(region, default_axis)
+                region = convert_region_units(region, spectral_axis)
+
                 # compute continuum fit
-                continuum_fit = return_continuum_fit(default_axis, spectrum1d, fit_method, region)
+                continuum_fit = return_continuum_fit(spectrum1d, fit_method, region)
+
                 # compute normalized flux
                 spec_normalized = spectrum1d / continuum_fit
 
@@ -210,20 +220,45 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
         return spectral_axis
     return spectral_axis
 
-def return_continuum_fit(spectral_axis, spectrum1d, fit_method, region):
+def deredden_spectrum(wavelength, flux, **kwargs):
+    Rv = kwargs.get('Rv', 3.1)
+    Ebv = kwargs.get('Ebv', 0.19)
+    deredden_method = kwargs.get('deredden_method', 'WD01')
+    region = kwargs.get('region', 'LMCAvg')
+    print(Rv, Ebv, deredden_method, region)
+
+    # Rv=3.1 and Ebv=0.19 are LMC parameters
+    deredden_map = {
+        'G23': G23,
+        'WD01': WD01,
+        'M14': M14
+    }
+
+    deredden = deredden_map.get(deredden_method, M14)
+
+    if deredden_method == 'WD01':
+        extinction = deredden(region)
+    else:
+        extinction = deredden(Rv=Rv)
+    deredden_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
+
+    return deredden_flux
+
+def return_continuum_fit(spectrum1d, fit_method, region):
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         if fit_method=='fit_continuum':
             fit = fit_continuum(spectrum1d, window=region)
         else:
             fit = fit_generic_continuum(spectrum1d)
+    spectral_axis = spectrum1d.spectral_axis
     continuum_fit = fit(spectral_axis)
 
     return continuum_fit
 
-def convert_region_units(region, default_axis):
+def convert_region_units(region, spectral_axis):
     if region is not None:
-        unit = default_axis.unit
+        unit = spectral_axis.unit
         region_converted = []
         for rmin, rmax in region:
             rmin = rmin.to(unit)
@@ -235,6 +270,9 @@ def convert_region_units(region, default_axis):
     return region
 
 def return_spectral_coord(cube, unit, radial_vel, rest_freq):
+    '''
+    return default axis as well as axis converted to user specified units
+    '''
     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq, doppler_convention='radio')
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
 
@@ -258,7 +296,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
                         samples=1000, return_fit_params=False, plot=True, colors=None, style='astro',
                         xlim=None, plot_type='plot', plot_interp=False, figsize=(6,6), savefig=False,
-                        dpi=600, print_vals=True):
+                        dpi=600, print_vals=True, label=None):
 
     wavelength = return_array_values(spectrum['wavelength'])
     flux = return_array_values(spectrum['flux'])
@@ -325,12 +363,13 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             flux = return_array_values(spectrum['flux'])
             xlim = wave_range if xlim is None else xlim
             mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
+            label = label if label is not None else 'Spectrum'
             plt_plot(wavelength[mask], flux[mask],
-                     c=colors[0%len(colors)], label='spectrum')
+                     c=colors[0%len(colors)], label=label)
 
 
             plt.plot(wave_sub, function(wave_sub, *popt),
-                     c=colors[1%len(colors)], label='gaussian model')
+                     c=colors[1%len(colors)], label='Gaussian Model')
 
             set_axis_labels(spectrum['wavelength'], spectrum['flux'], None, None)
             plt.xlim(xlim[0], xlim[1])
@@ -526,6 +565,7 @@ def compute_limits_mask(x, xlim=None):
     return mask
 
 def set_axis_limits(data_list, xlim=None, ylim=None):
+
     # min and max values across data sets
     xmin = return_array_values(np.nanmin(data_list))
     xmax = return_array_values(np.nanmax(data_list))
