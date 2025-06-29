@@ -273,6 +273,11 @@ def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
+def update_kwargs(val, key, kwargs):
+    if key in kwargs:
+        val = kwargs[key]
+    return val
+
 # ––––––––––––––
 # Notebook Utils
 # ––––––––––––––
