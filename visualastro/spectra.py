@@ -124,7 +124,7 @@ def plot_spectrum(spectra_dicts, normalize=False, xlim=None, ylim=None, emission
                 wavelength = spectra_dict['wavelength']
                 flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
 
-                mask = compute_limits_mask(wavelength)
+                mask = compute_limits_mask(wavelength, xlim=xlim)
 
                 label = labels[i] if (labels is not None and i < len(labels)) else None
 
@@ -225,7 +225,6 @@ def deredden_spectrum(wavelength, flux, **kwargs):
     Ebv = kwargs.get('Ebv', 0.19)
     deredden_method = kwargs.get('deredden_method', 'WD01')
     region = kwargs.get('region', 'LMCAvg')
-    print(Rv, Ebv, deredden_method, region)
 
     # Rv=3.1 and Ebv=0.19 are LMC parameters
     deredden_map = {
