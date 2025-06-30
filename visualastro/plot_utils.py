@@ -13,7 +13,7 @@ from matplotlib.patches import Circle
 # ––––––––––––––––––
 def imshow(datas, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5],
            cmap='turbo', style='astro', points=None, circles=None, plot_boolean=False,
-           transpose=True, colorbar=True, clabel=None, savefig=False, dpi=600):
+           transpose=True, colorbar=True, clabel=None, labels=True, savefig=False, dpi=600):
 
     datas = datas if isinstance(datas, list) else [datas]
 
@@ -48,8 +48,13 @@ def imshow(datas, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5]
         if points is not None:
             for point in points:
                 plt.scatter(point[0], point[1], s=20, marker='*', c='r')
-        plt.xlabel('X [pixels]')
-        plt.ylabel('Y [pixels]')
+        if labels is True:
+            plt.xlabel('X [pixels]')
+            plt.ylabel('Y [pixels]')
+        elif labels is not None:
+            plt.xlabel(labels[0])
+            plt.ylabel(labels[1])
+
         if colorbar:
             cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
                                0.03, ax.get_position().height])
