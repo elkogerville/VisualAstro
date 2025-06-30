@@ -39,6 +39,15 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 
 #     return data, header
 
+def load_fits(filepath, header=True, print_info=True):
+    if print_info:
+        with fits.open(filepath) as hdul:
+            hdul.info()
+    data, fits_header = fits.getdata(filepath, header=True)
+    result = [data, fits_header] if header else data
+
+    return result
+
 def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
     '''
     searches for all data fits files in a directory and loads them into a numpy 3D data cube
