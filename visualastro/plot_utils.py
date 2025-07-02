@@ -192,11 +192,20 @@ def save_figure_2_disk(dpi):
     dpi: float
         resolution in dots per inch
     '''
-    file_name = input('input filename for image (ex: myimage.pdf): ')
-    plot_format = input('please enter format (png, pdf, or svg): ')
-    while plot_format not in {'png', 'pdf', 'svg'}:
-        plot_format = input('please enter format (png, pdf, or svg): ')
-    plt.savefig(file_name, format=plot_format, bbox_inches='tight', dpi=dpi)
+    allowed_formats = {'pdf', 'png', 'svg'}
+
+    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
+    basename, *extension = filename.rsplit('.', 1)
+
+    if extension and extension[0].lower() in allowed_formats:
+        extension = extension[0]
+    else:
+        extension = ''
+        while extension not in allowed_formats:
+            extension = input(f'Please choose a format from ({", ".join(allowed_formats)}): ').strip().lower()
+    filename = f'{basename}.{extension}'
+
+    plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
 
 def set_plot_colors(user_colors=None):
     default_color_map = 'ibm_contrast'
