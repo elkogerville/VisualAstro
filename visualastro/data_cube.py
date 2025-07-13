@@ -11,33 +11,11 @@ from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
     return_cube_slice, return_imshow_norm, return_spectral_axis_idx, return_stylename,
-    save_figure_2_disk, set_spectral_axis, set_unit_labels, set_vmin_vmax
+    save_figure_2_disk, set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
-# def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
-#     '''
-#     loads fits data from HARPS spectrograph and outputs the header and data
-#     Parameters
-#     ----------
-#     file_path: string
-#         filename including path to a fits file
-#     Returns
-#     -------
-#     data: np.ndarray[np.float64]
-#         NxM array of intensities
-#     header:
-#         header of fits file
-#     '''
-#     with fits.open(filepath) as hdu:
-#         header = hdu[header_idx].header
-#         data = hdu[data_idx].data.astype(np.float64)
-#     #data =
-
-#     data, header = fits.getdata(filepath, header=True)
-
-#     return data, header
 
 def load_fits(filepath, header=True, print_info=True):
     if print_info:
@@ -50,7 +28,7 @@ def load_fits(filepath, header=True, print_info=True):
 
 def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
     '''
-    searches for all data fits files in a directory and loads them into a numpy 3D data cube
+    Searches for all data fits files in a directory and loads them into a numpy 3D data cube
     Parameters
     ----------
     path: string
@@ -114,107 +92,204 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', 
 
     return result
 
-def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
-                       radial_vel=None, unit=None, plot_ellipse=False, center=[None,None],
-                       w=None, h=None, angle=None, ellipses=None, emission_line=None,
-                       cmap='turbo', style='astro', title=False, label_color='k', savefig=False,
-                       dpi=600, figsize=(6,6)):
-    c = 299792.458
-    # define wcs figure axes
-    cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
-    style = return_stylename(style)
-    with plt.style.context(style):
-        fig = plt.figure(figsize=figsize)
-        wcs2d = cubes[0].wcs.celestial
-        ax = fig.add_subplot(111, projection=wcs2d)
-        if style.split('/')[-1] == 'minimal.mplstyle':
-            ax.coords['ra'].set_ticks_position('bl')
-            ax.coords['dec'].set_ticks_position('bl')
+def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
+                        norm='asinh', radial_vel=None, unit=None, **kwargs):
+    # plot params
+    cmap = kwargs.get('cmap', 'turbo')
+    # labels
+    title = kwargs.get('title', False)
+    emission_line = kwargs.get('emission_line', None)
+    text_loc = kwargs.get('text_loc', [0.03, 0.03])
+    text_color = kwargs.get('text_color', 'k')
+    cbar_width = kwargs.get('cbar_width', 0.03)
+    cbar_offset = kwargs.get('cbar_offset', 0.02)
+    xlabel = kwargs.get('xlabel', 'Right Ascension')
+    ylabel = kwargs.get('ylabel', 'Declination')
+    # plot ellipse
+    plot_ellipse = kwargs.get('plot_ellipse', False)
+    ellipses = kwargs.get('ellipses', None)
+    _, X, Y = cube.shape
+    center = kwargs.get('center', [X//2, Y//2])
+    w = kwargs.get('w', X//5)
+    h = kwargs.get('h', Y//5)
+    angle = kwargs.get('angle', None)
 
-        for cube in cubes:
-            # return data cube slices
-            slice_data = return_cube_slice(cube, idx)
-            data = slice_data.value
+    fig = ax.figure
 
-            # compute imshow stretch
-            vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-            cube_norm = return_imshow_norm(vmin, vmax, norm)
-            if norm is None:
-                im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
-            else:
-                im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
-            spectral_axis = set_spectral_axis(cube, unit)
-            unit_label = set_unit_labels(spectral_axis.unit)
-            spectral_value = return_spectral_axis_idx(spectral_axis, idx)
-            if radial_vel is not None:
-                if spectral_axis.unit.is_equivalent(u.Hz):
-                    spectral_axis *= (1 + radial_vel / c)
-                else:
-                    spectral_axis /= (1 + radial_vel / c)
+    # return data cube slices
+    slice_data = return_cube_slice(cube, idx)
+    data = slice_data.value
 
-        if (plot_ellipse and ellipses is None):
-            text = ax.text(0.5, 0.5, '', size='small', color=label_color)
+    # compute imshow stretch
+    vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
+    cube_norm = return_imshow_norm(vmin, vmax, norm)
+
+    if norm is None:
+        im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+    else:
+        im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+
+    cax = fig.add_axes([ax.get_position().x1+cbar_offset, ax.get_position().y0,
+                        cbar_width, ax.get_position().height])
+    cbar = fig.colorbar(im, cax=cax, pad=0.02)
+    cbar.ax.tick_params(which='both', direction='out')
+    cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
+
+    spectral_axis = set_spectral_axis(cube, unit)
+    spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
+    spectral_value = return_spectral_axis_idx(spectral_axis, idx)
+    unit_label = set_unit_labels(spectral_axis.unit)
+
+    if (plot_ellipse and ellipses is None):
+        text = ax.text(0.5, 0.5, '', size='small', color=text_color)
+    else:
+        # lambda for wavelength, f for frequency
+        spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
+
+        if emission_line is None:
+            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
         else:
-            spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
-            if emission_line is None:
-                slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+            emission_line = emission_line.replace(' ', r'\ ')
+            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+        if title:
+            plt.title(slice_label, color=text_color)
+        else:
+            plt.text(text_loc[0], text_loc[1], slice_label, transform=ax.transAxes, color=text_color)
+
+    def update_region(region):
+        x_center = region.center.x
+        y_center = region.center.y
+        width = region.width
+        height = region.height
+        major = max(width, height)
+        minor = min(width, height)
+
+        # Update text display (positioned in data coordinates)
+        text.set_text(
+            f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+            f'Major: {major:.1f}\n'
+            f'Minor: {minor:.1f}\n'
+        )
+
+    if plot_ellipse:
+        if ellipses is not None:
+            ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
+            for ellipse in ellipses:
+                ax.add_patch(copy_ellipse(ellipse))
+        else:
+            if angle is not None:
+                e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
+                ax.add_patch(e)
             else:
-                emission_line = emission_line.replace(' ', r'\ ')
-                slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
-            if title:
-                plt.title(slice_label, color=label_color)
-            else:
-                plt.text(0.03, 0.03, slice_label, transform=ax.transAxes, color=label_color)
+                ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]), width=w, height=h)
+                selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
+                ax._ellipse_selector = selector
 
-        def update_region(region):
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.coords['dec'].set_ticklabel(rotation=90)
 
-            x_center = region.center.x
-            y_center = region.center.y
-            width = region.width
-            height = region.height
-            major = max(width, height)
-            minor = min(width, height)
+# def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5], norm='asinh',
+#                        radial_vel=None, unit=None, plot_ellipse=False, center=[None,None],
+#                        w=None, h=None, angle=None, ellipses=None, emission_line=None,
+#                        cmap='turbo', style='astro', title=False, label_color='k', savefig=False,
+#                        dpi=600, figsize=(6,6)):
+#     c = 299792.458
+#     # define wcs figure axes
+#     cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
+#     style = return_stylename(style)
+#     with plt.style.context(style):
+#         fig = plt.figure(figsize=figsize)
+#         wcs2d = cubes[0].wcs.celestial
+#         ax = fig.add_subplot(111, projection=wcs2d)
+#         if style.split('/')[-1] == 'minimal.mplstyle':
+#             ax.coords['ra'].set_ticks_position('bl')
+#             ax.coords['dec'].set_ticks_position('bl')
 
-            # Update text display (positioned in data coordinates)
-            text.set_text(
-                f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
-                f'Major: {major:.1f}\n'
-                f'Minor: {minor:.1f}\n'
-            )
+#         for cube in cubes:
+#             # return data cube slices
+#             slice_data = return_cube_slice(cube, idx)
+#             data = slice_data.value
 
-        if plot_ellipse:
-            if isinstance(ellipses, list):
-                for ellipse in ellipses:
-                    ax.add_patch(copy_ellipse(ellipse))
-            else:
-                _, X, Y = cube.shape
-                x_center = center[0] if center[0] is not None else ellipses.center[0] if ellipses is not None else X//2
-                y_center = center[1] if center[1] is not None else ellipses.center[1] if ellipses is not None else Y//2
-                w = w if w is not None else ellipses.width if ellipses is not None else X//5
-                h = h if h is not None else ellipses.height if ellipses is not None else Y//5
-                angle = angle if angle is not None else ellipses.angle if ellipses is not None else None
-                e = Ellipse(xy=(x_center, y_center), width=w, height=h, angle=angle, fill=False)
+#             # compute imshow stretch
+#             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
+#             cube_norm = return_imshow_norm(vmin, vmax, norm)
+#             if norm is None:
+#                 im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+#             else:
+#                 im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+#             spectral_axis = set_spectral_axis(cube, unit)
+#             unit_label = set_unit_labels(spectral_axis.unit)
+#             spectral_value = return_spectral_axis_idx(spectral_axis, idx)
+#             if radial_vel is not None:
+#                 if spectral_axis.unit.is_equivalent(u.Hz):
+#                     spectral_axis *= (1 + radial_vel / c)
+#                 else:
+#                     spectral_axis /= (1 + radial_vel / c)
 
-                if angle is not None:
-                    ax.add_patch(e)
-                else:
-                    ellipse_region = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
-                    selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
+#         if (plot_ellipse and ellipses is None):
+#             text = ax.text(0.5, 0.5, '', size='small', color=label_color)
+#         else:
+#             spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
+#             if emission_line is None:
+#                 slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+#             else:
+#                 emission_line = emission_line.replace(' ', r'\ ')
+#                 slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+#             if title:
+#                 plt.title(slice_label, color=label_color)
+#             else:
+#                 plt.text(0.03, 0.03, slice_label, transform=ax.transAxes, color=label_color)
 
-        cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
-                            0.03, ax.get_position().height])
-        cbar = plt.colorbar(im, cax=cax, pad=0.04)
-        cbar.ax.tick_params(which='both', direction='out')
-        cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
+#         def update_region(region):
 
-        ax.set_xlabel('Right Ascension')
-        ax.set_ylabel('Declination')
-        ax.coords['dec'].set_ticklabel(rotation=90)
+#             x_center = region.center.x
+#             y_center = region.center.y
+#             width = region.width
+#             height = region.height
+#             major = max(width, height)
+#             minor = min(width, height)
 
-        if savefig:
-            save_figure_2_disk(dpi)
+#             # Update text display (positioned in data coordinates)
+#             text.set_text(
+#                 f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+#                 f'Major: {major:.1f}\n'
+#                 f'Minor: {minor:.1f}\n'
+#             )
 
-        plt.show()
+#         if plot_ellipse:
+#             if isinstance(ellipses, list):
+#                 for ellipse in ellipses:
+#                     ax.add_patch(copy_ellipse(ellipse))
+#             else:
+#                 _, X, Y = cube.shape
+#                 x_center = center[0] if center[0] is not None else ellipses.center[0] if ellipses is not None else X//2
+#                 y_center = center[1] if center[1] is not None else ellipses.center[1] if ellipses is not None else Y//2
+#                 w = w if w is not None else ellipses.width if ellipses is not None else X//5
+#                 h = h if h is not None else ellipses.height if ellipses is not None else Y//5
+#                 angle = angle if angle is not None else ellipses.angle if ellipses is not None else None
+#                 e = Ellipse(xy=(x_center, y_center), width=w, height=h, angle=angle, fill=False)
+
+#                 if angle is not None:
+#                     ax.add_patch(e)
+#                 else:
+#                     ellipse_region = EllipsePixelRegion(center=PixCoord(x=x_center, y=y_center), width=w, height=h)
+#                     selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
+
+#         cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
+#                             0.03, ax.get_position().height])
+#         cbar = plt.colorbar(im, cax=cax, pad=0.04)
+#         cbar.ax.tick_params(which='both', direction='out')
+#         cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
+
+#         ax.set_xlabel('Right Ascension')
+#         ax.set_ylabel('Declination')
+#         ax.coords['dec'].set_ticklabel(rotation=90)
+
+#         if savefig:
+#             save_figure_2_disk(dpi)
+
+#         plt.show()
 
 def header_2_array(cube, key):
     headers = cube['header']
@@ -332,3 +407,27 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     vmax = np.nanpercentile(data.value, vmax)
 
     return vmin, vmax
+
+
+# def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
+#     '''
+#     loads fits data from HARPS spectrograph and outputs the header and data
+#     Parameters
+#     ----------
+#     file_path: string
+#         filename including path to a fits file
+#     Returns
+#     -------
+#     data: np.ndarray[np.float64]
+#         NxM array of intensities
+#     header:
+#         header of fits file
+#     '''
+#     with fits.open(filepath) as hdu:
+#         header = hdu[header_idx].header
+#         data = hdu[data_idx].data.astype(np.float64)
+#     #data =
+
+#     data, header = fits.getdata(filepath, header=True)
+
+#     return data, header
