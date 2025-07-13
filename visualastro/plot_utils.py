@@ -121,6 +121,17 @@ def check_is_array(cube):
 
     return cube
 
+def shift_by_radial_vel(spectral_axis, radial_vel):
+    c = 299792.458 # [km/s]
+    if radial_vel is not None:
+        if spectral_axis.unit.is_equivalent(u.Hz):
+            spectral_axis /= (1 - radial_vel / c)
+        else:
+            spectral_axis /= (1 + radial_vel / c)
+        return spectral_axis
+
+    return spectral_axis
+
 def return_stylename(style):
     if style in mpl.style.available:
         return style
@@ -184,7 +195,7 @@ def return_spectral_axis_idx(spectral_axis, idx):
             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
-def save_figure_2_disk(dpi):
+def save_figure_2_disk(dpi=600):
     '''
     Saves current figure to disk as a pdf, png, or svg,
     and prompts user for a filename and format.
@@ -290,11 +301,6 @@ def set_axis_labels(X, Y, x_unit, y_unit, use_brackets=False):
     ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-
-def update_kwargs(val, key, kwargs):
-    if key in kwargs:
-        val = kwargs[key]
-    return val
 
 # ––––––––––––––
 # Notebook Utils

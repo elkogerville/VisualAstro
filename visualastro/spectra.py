@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d, CubicSpline
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import matplotlib.pyplot as plt
-from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors, update_kwargs
+from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors, shift_by_radial_vel
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
@@ -209,16 +209,6 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
     spectra_dict['continuum_fit'] = continuum_fit
 
     return spectra_dict
-
-def shift_by_radial_vel(spectral_axis, radial_vel):
-    c = 299792.458 # [km/s]
-    if radial_vel is not None:
-        if spectral_axis.unit.is_equivalent(u.Hz):
-            spectral_axis /= (1 - radial_vel / c)
-        else:
-            spectral_axis /= (1 + radial_vel / c)
-        return spectral_axis
-    return spectral_axis
 
 def deredden_spectrum(wavelength, flux, **kwargs):
     Rv = kwargs.get('Rv', 3.1)
