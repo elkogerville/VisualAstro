@@ -16,9 +16,24 @@ from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, s
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None,
-                         labels=None, xlim=None, ylim=None, x_units=None, y_units=None,
-                         colors=None, return_spectra=False, style='astro', use_brackets=False,
-                         text_loc=[0.025, 0.95], savefig=False, dpi=600, figsize=(6,6), **kwargs):
+                         return_spectra=False, **kwargs):
+
+    # figure params
+    figsize = kwargs.get('figsize', (6,6))
+    style = kwargs.get('style', 'astro')
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+    # labels
+    labels = kwargs.get('labels', None)
+    x_units = kwargs.get('x_units', None)
+    y_units = kwargs.get('y_units', None)
+    colors = kwargs.get('colors', None)
+    text_loc = kwargs.get('text_loc', [0.025, 0.95])
+    use_brackets = kwargs.get('use_brackets', False)
+    # savefig
+    savefig = kwargs.get('savefig', False)
+    dpi = kwargs.get('dpi', 600)
+
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
@@ -103,8 +118,21 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
                 spectra_dict_list = spectra_dict_list[0]
             return spectra_dict_list
 
-def plot_spectrum(spectra_dicts, normalize=False, xlim=None, ylim=None, emission_line=None,
-                  labels=None, colors=None, text_loc=[0.025, 0.95], style='astro', figsize=(6,6)):
+def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
+
+    # figure params
+    figsize = kwargs.get('figsize', (6,6))
+    style = kwargs.get('style', 'astro')
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+    # labels
+    labels = kwargs.get('labels', None)
+    x_units = kwargs.get('x_units', None)
+    y_units = kwargs.get('y_units', None)
+    colors = kwargs.get('colors', None)
+    text_loc = kwargs.get('text_loc', [0.025, 0.95])
+    use_brackets = kwargs.get('use_brackets', False)
+
     spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
 
     # set plot style and colors
@@ -131,10 +159,10 @@ def plot_spectrum(spectra_dicts, normalize=False, xlim=None, ylim=None, emission
                 plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
                 wavelength_list.append(wavelength[mask])
         set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
-        set_axis_labels(wavelength, spectra_dict['flux'], None, None)
+        set_axis_labels(wavelength, spectra_dict['flux'], x_units, y_units, use_brackets=use_brackets)
         if labels is not None:
             plt.legend()
-        plt.show()
+
 
 def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
                           concatenate=False, return_spectra=False, style='latex', colors=None,

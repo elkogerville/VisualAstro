@@ -102,7 +102,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     text_loc = kwargs.get('text_loc', [0.03, 0.03])
     text_color = kwargs.get('text_color', 'k')
     cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_offset = kwargs.get('cbar_offset', 0.02)
+    cbar_offset = kwargs.get('cbar_offset', 0.015)
     xlabel = kwargs.get('xlabel', 'Right Ascension')
     ylabel = kwargs.get('ylabel', 'Declination')
     # plot ellipse
