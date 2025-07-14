@@ -44,8 +44,8 @@ class va:
         ylim = kwargs.get('ylim', None)
         # labels
         labels = kwargs.get('labels', None)
-        x_units = kwargs.get('x_units', None)
-        y_units = kwargs.get('y_units', None)
+        xlabel = kwargs.get('xlabel', None)
+        ylabel = kwargs.get('ylabel', None)
         colors = kwargs.get('colors', None)
         text_loc = kwargs.get('text_loc', [0.025, 0.95])
         use_brackets = kwargs.get('use_brackets', False)
@@ -79,7 +79,7 @@ class va:
                     plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
                     wavelength_list.append(wavelength[mask])
             set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
-            set_axis_labels(wavelength, spectra_dict['flux'], x_units, y_units, use_brackets=use_brackets)
+            set_axis_labels(wavelength, spectra_dict['flux'], xlabel, ylabel, use_brackets=use_brackets)
             if labels is not None:
                 plt.legend()
             if savefig:
