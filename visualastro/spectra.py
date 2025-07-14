@@ -15,8 +15,7 @@ from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, s
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
-                         rest_freq=None, deredden=False, unit=None, emission_line=None,
-                         return_spectra=False, **kwargs):
+                         rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
 
     # figure params
     figsize = kwargs.get('figsize', (6,6))
@@ -25,8 +24,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     ylim = kwargs.get('ylim', None)
     # labels
     labels = kwargs.get('labels', None)
-    x_units = kwargs.get('x_units', None)
-    y_units = kwargs.get('y_units', None)
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
     colors = kwargs.get('colors', None)
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
@@ -51,7 +50,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         for i, cube in enumerate(cubes):
 
             # extract spectral axis converted to user specified units
-            default_axis, spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
+            spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
 
             # extract spectrum flux
             spectrum = cube.mean(axis=(1,2))
@@ -104,7 +103,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         set_axis_limits(wavelength_list, xlim, ylim)
 
-        set_axis_labels(spectral_axis, spectrum, x_units, y_units, use_brackets=use_brackets)
+        set_axis_labels(spectral_axis, spectrum, xlabel, ylabel, use_brackets=use_brackets)
 
         if labels is not None:
             plt.legend()
@@ -113,10 +112,9 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             save_figure_2_disk(dpi)
         plt.show()
 
-        if return_spectra:
-            if len(spectra_dict_list) == 1:
-                spectra_dict_list = spectra_dict_list[0]
-            return spectra_dict_list
+        if len(spectra_dict_list) == 1:
+            spectra_dict_list = spectra_dict_list[0]
+        return spectra_dict_list
 
 def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
 
@@ -127,8 +125,8 @@ def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
     ylim = kwargs.get('ylim', None)
     # labels
     labels = kwargs.get('labels', None)
-    x_units = kwargs.get('x_units', None)
-    y_units = kwargs.get('y_units', None)
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
     colors = kwargs.get('colors', None)
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
@@ -159,10 +157,9 @@ def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
                 plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
                 wavelength_list.append(wavelength[mask])
         set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
-        set_axis_labels(wavelength, spectra_dict['flux'], x_units, y_units, use_brackets=use_brackets)
+        set_axis_labels(wavelength, spectra_dict['flux'], xlabel, ylabel, use_brackets=use_brackets)
         if labels is not None:
             plt.legend()
-
 
 def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
                           concatenate=False, return_spectra=False, style='latex', colors=None,
@@ -288,20 +285,22 @@ def convert_region_units(region, spectral_axis):
 
 def return_spectral_coord(cube, unit, radial_vel, rest_freq):
     '''
-    return default axis as well as axis converted to user specified units
+    Return cube spectral axis shifted by radial velocity and converted to user specified units
     '''
-    spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq, doppler_convention='radio')
+    spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
+                                  doppler_convention='radio')
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
 
     if unit is not None:
         try:
-            shifted_axis = spectral_axis.to(unit)
+            spectral_axis = spectral_axis.to(unit)
         except Exception:
-            shifted_axis = spectral_axis
-    else:
-        shifted_axis = spectral_axis
+            print(
+                f'Could not convert to unit: {unit}. \n'
+                f'Defaulting to unit: {spectral_axis.unit}.'
+            )
 
-    return spectral_axis, shifted_axis
+    return spectral_axis
 
 def propagate_flux_errors(errors):
     N = np.sum(~np.isnan(errors), axis=1)
