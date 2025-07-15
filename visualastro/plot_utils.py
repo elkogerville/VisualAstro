@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
+from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy import units as u
 from astropy.units import spectral
 import matplotlib as mpl
@@ -23,7 +24,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
     colorbar = kwargs.get('colorbar', True)
     clabel = kwargs.get('clabel', None)
     cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_offset = kwargs.get('cbar_offset', 0.015)
+    cbar_pad = kwargs.get('cbar_pad', 0.015)
+    rotate_ax_label = kwargs.get('rotate_ax_label', None)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -64,13 +66,17 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
             for point in points:
                 ax.scatter(point[0], point[1], s=20, marker='*', c='r')
 
+        if isinstance(ax, WCSAxes):
+            if rotate_ax_label is not None:
+                ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
+
         if xlabel is not None:
             ax.set_xlabel(xlabel)
         if ylabel is not None:
             ax.set_ylabel(ylabel)
 
         if colorbar:
-            cax = fig.add_axes([ax.get_position().x1+cbar_offset, ax.get_position().y0,
+            cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
                                 cbar_width, ax.get_position().height])
             cbar = fig.colorbar(im, cax=cax, pad=0.04)
             cbar.ax.tick_params(which='both', direction='out')

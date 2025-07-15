@@ -37,7 +37,7 @@ class va:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
-                   cmap, plot_boolean, transpose, **kwargs)
+                   cmap, plot_boolean, transpose, wcs_input=wcs_input, **kwargs)
 
             if wcs_input is not None:
                 if invert_wcs:
