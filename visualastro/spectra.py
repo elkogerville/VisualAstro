@@ -150,7 +150,6 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False, emis
     if labels is not None:
         ax.legend()
 
-
 def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
                           concatenate=False, return_spectra=False,
                           use_samecolor=True, **kwargs):
