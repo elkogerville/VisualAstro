@@ -132,7 +132,7 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, emission_line=None, **kwar
     colors, _ = set_plot_colors(colors)
 
     if emission_line is not None:
-        plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
+        ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
 
     wavelength_list = []
     for i, spectra_dict in enumerate(spectra_dicts):
@@ -147,7 +147,7 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, emission_line=None, **kwar
             ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
             wavelength_list.append(wavelength[mask])
     set_axis_limits(wavelength_list, ax, xlim, ylim)
-    set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
+    set_axis_labels(wavelength, spectra_dict['flux'], xlabel, ylabel, ax, use_brackets=use_brackets)
     if labels is not None:
         ax.legend()
 
