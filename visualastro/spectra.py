@@ -40,7 +40,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     style = return_stylename(style)
 
     with plt.style.context(style):
-        plt.figure(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize)
 
         if emission_line is not None:
             plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
@@ -60,9 +60,6 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
                 spectrum = deredden_spectrum(spectral_axis, spectrum, **kwargs)
 
             # set plot limits
-            # xmin = xlim[0] if xlim is not None else spectral_axis.value.min()
-            # xmax = xlim[1] if xlim is not None else spectral_axis.value.max()
-            # mask = (spectral_axis.value > xmin) & (spectral_axis.value < xmax)
             mask = compute_limits_mask(spectral_axis, xlim=xlim)
             wavelength_list.append(spectral_axis[mask])
             # set plot labels
@@ -89,21 +86,21 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
                 spectra_dict['continuum_fit'] = continuum_fit
 
                 if normalize_continuum:
-                    plt.plot(spectral_axis[mask], spec_normalized.flux[mask],
-                             color=colors[i%len(colors)], label=label)
+                    ax.plot(spectral_axis[mask], spec_normalized.flux[mask],
+                            color=colors[i%len(colors)], label=label)
                 if plot_continuum_fit:
                     # normalize fit if spectrum is normalized
                     continuum_fit = continuum_fit/continuum_fit if normalize_continuum else continuum_fit
-                    plt.plot(spectral_axis[mask], continuum_fit[mask], color=fit_colors[i%len(fit_colors)])
+                    ax.plot(spectral_axis[mask], continuum_fit[mask], color=fit_colors[i%len(fit_colors)])
 
             if not normalize_continuum:
-                plt.plot(spectral_axis[mask], spectrum[mask], color=colors[i%len(colors)], label=label)
+                ax.plot(spectral_axis[mask], spectrum[mask], color=colors[i%len(colors)], label=label)
 
             spectra_dict_list.append(spectra_dict)
 
-        set_axis_limits(wavelength_list, xlim, ylim)
+        set_axis_limits(wavelength_list, ax, xlim, ylim)
 
-        set_axis_labels(spectral_axis, spectrum, xlabel, ylabel, use_brackets=use_brackets)
+        set_axis_labels(spectral_axis, spectrum, ax, xlabel, ylabel, use_brackets=use_brackets)
 
         if labels is not None:
             plt.legend()
@@ -116,11 +113,9 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             spectra_dict_list = spectra_dict_list[0]
         return spectra_dict_list
 
-def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
+def plot_spectrum(spectra_dicts, ax, normalize=False, emission_line=None, **kwargs):
 
     # figure params
-    figsize = kwargs.get('figsize', (6,6))
-    style = kwargs.get('style', 'astro')
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
@@ -135,31 +130,26 @@ def plot_spectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
 
     # set plot style and colors
     colors, _ = set_plot_colors(colors)
-    style = return_stylename(style)
 
-    with plt.style.context(style):
-        plt.figure(figsize=figsize)
+    if emission_line is not None:
+        plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
 
-        if emission_line is not None:
-            plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
+    wavelength_list = []
+    for i, spectra_dict in enumerate(spectra_dicts):
+        if spectra_dict is not None:
+            wavelength = spectra_dict['wavelength']
+            flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
 
-        wavelength_list = []
-        for i, spectra_dict in enumerate(spectra_dicts):
-            if spectra_dict is not None:
+            mask = compute_limits_mask(wavelength, xlim=xlim)
 
-                wavelength = spectra_dict['wavelength']
-                flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
+            label = labels[i] if (labels is not None and i < len(labels)) else None
 
-                mask = compute_limits_mask(wavelength, xlim=xlim)
-
-                label = labels[i] if (labels is not None and i < len(labels)) else None
-
-                plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
-                wavelength_list.append(wavelength[mask])
-        set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
-        set_axis_labels(wavelength, spectra_dict['flux'], xlabel, ylabel, use_brackets=use_brackets)
-        if labels is not None:
-            plt.legend()
+            ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
+            wavelength_list.append(wavelength[mask])
+    set_axis_limits(wavelength_list, ax, xlim, ylim)
+    set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
+    if labels is not None:
+        ax.legend()
 
 def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_lims=None,
                           concatenate=False, return_spectra=False, style='latex', colors=None,
@@ -201,7 +191,7 @@ def plot_combine_spectrum(spectra_dict_list, idx=0, label=None, ylim=None, spec_
             flux = np.concatenate(flux_list)
             plt.plot(wavelength.value, flux.value, color=c, label=l, lw=0.5)
 
-        set_axis_labels(wavelength, flux, None, None, use_brackets=use_brackets)
+        set_axis_labels(wavelength, flux, ax, None, None, use_brackets=use_brackets)
 
         if ylim is not None:
             plt.ylim(ylim[0], ylim[1])
@@ -242,13 +232,11 @@ def deredden_spectrum(wavelength, flux, **kwargs):
     region = kwargs.get('region', 'LMCAvg')
 
     # Rv=3.1 and Ebv=0.19 are LMC parameters
-    deredden_map = {
+    deredden = {
         'G23': G23,
         'WD01': WD01,
         'M14': M14
-    }
-
-    deredden = deredden_map.get(deredden_method, M14)
+    }.get(deredden_method, M14)
 
     if deredden_method == 'WD01':
         extinction = deredden(region)
@@ -387,7 +375,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             plt.plot(wave_sub, function(wave_sub, *popt),
                      c=colors[1%len(colors)], label='Gaussian Model')
 
-            set_axis_labels(spectrum['wavelength'], spectrum['flux'], None, None)
+            set_axis_labels(spectrum['wavelength'], spectrum['flux'], ax, None, None)
             plt.xlim(xlim[0], xlim[1])
             if savefig:
                 save_figure_2_disk(dpi=dpi)
@@ -557,7 +545,7 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
         plt.plot(wave_sub, y_fit, c=colors[1])
         xlim = wave_range if xlim is None else xlim
         plt.xlim(xlim[0], xlim[1])
-        set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], None, None)
+        set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], ax, None, None)
         plt.show()
 
     integrated_flux = g_fit.amplitude.value * g_fit.stddev.value * np.sqrt(2*np.pi)
@@ -580,7 +568,7 @@ def compute_limits_mask(x, xlim=None):
 
     return mask
 
-def set_axis_limits(data_list, xlim=None, ylim=None):
+def set_axis_limits(data_list, ax, xlim=None, ylim=None):
 
     # min and max values across data sets
     xmin = return_array_values(np.nanmin(data_list))
@@ -588,5 +576,5 @@ def set_axis_limits(data_list, xlim=None, ylim=None):
 
     xlim = xlim if xlim is not None else [xmin, xmax]
 
-    plt.xlim(xlim)
-    plt.ylim(ylim)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
