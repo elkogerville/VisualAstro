@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    return_cube_slice, return_imshow_norm, return_spectral_axis_idx, return_stylename,
-    save_figure_2_disk, set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
+    return_cube_slice, return_imshow_norm, return_spectral_axis_idx,
+    set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -102,7 +102,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     text_loc = kwargs.get('text_loc', [0.03, 0.03])
     text_color = kwargs.get('text_color', 'k')
     cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_offset = kwargs.get('cbar_offset', 0.015)
+    cbar_pad = kwargs.get('cbar_pad', 0.015)
     xlabel = kwargs.get('xlabel', 'Right Ascension')
     ylabel = kwargs.get('ylabel', 'Declination')
     # plot ellipse
@@ -129,7 +129,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
 
-    cax = fig.add_axes([ax.get_position().x1+cbar_offset, ax.get_position().y0,
+    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
                         cbar_width, ax.get_position().height])
     cbar = fig.colorbar(im, cax=cax, pad=0.02)
     cbar.ax.tick_params(which='both', direction='out')
