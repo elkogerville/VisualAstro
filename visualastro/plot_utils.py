@@ -303,7 +303,7 @@ def set_unit_labels(unit):
 #     plt.xlabel(xlabel)
 #     plt.ylabel(ylabel)
 
-def set_axis_labels(X, Y, xlabel, ylabel, use_brackets=False):
+def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     spectral_type = {
         'frequency': 'Frequency',
         'length': 'Wavelength',
@@ -316,22 +316,14 @@ def set_axis_labels(X, Y, xlabel, ylabel, use_brackets=False):
         x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
         x_unit_label = fr'{brackets[0]}{set_unit_labels(x_unit)}{brackets[1]}'
         xlabel = fr'{spectral_type} {x_unit_label}' if x_unit_label else spectral_type
-        # if use_brackets:
-        #     x_unit_label = r'[$' + x_unit_label + r'$]'
-        # else:
-        #     x_unit_label = r'($' + x_unit_label + r'$)'
 
     if ylabel is None:
         y_unit = str(getattr(Y, 'spectral_unit', getattr(Y, 'unit', None)))
         y_unit_label = fr'{brackets[0]}{set_unit_labels(y_unit)}{brackets[1]}'
         ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
-        # if use_brackets:
-        #     y_unit_label = r'[$' + y_unit_label + r'$]'
-        # else:
-        #     y_unit_label = r'($' + y_unit_label + r'$)'
 
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
 # ––––––––––––––
 # Notebook Utils

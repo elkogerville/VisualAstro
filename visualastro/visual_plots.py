@@ -60,10 +60,10 @@ class va:
         style = return_stylename(style)
 
         with plt.style.context(style):
-            plt.figure(figsize=figsize)
+            fig, ax = plt.subplots(figsize=figsize)
 
             if emission_line is not None:
-                plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
+                ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
 
             wavelength_list = []
             for i, spectra_dict in enumerate(spectra_dicts):
@@ -76,12 +76,12 @@ class va:
 
                     label = labels[i] if (labels is not None and i < len(labels)) else None
 
-                    plt.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
+                    ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
                     wavelength_list.append(wavelength[mask])
-            set_axis_limits(wavelength_list, xlim=xlim, ylim=ylim)
-            set_axis_labels(wavelength, spectra_dict['flux'], xlabel, ylabel, use_brackets=use_brackets)
+            set_axis_limits(wavelength_list, ax, xlim, ylim)
+            set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
             if labels is not None:
-                plt.legend()
+                ax.legend()
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()
