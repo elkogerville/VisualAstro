@@ -245,6 +245,7 @@ def deredden_spectrum(wavelength, flux, **kwargs):
         extinction = deredden(region)
     else:
         extinction = deredden(Rv=Rv)
+
     deredden_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
 
     return deredden_flux
