@@ -212,7 +212,7 @@ def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
         plt.legend(loc=loc)
 
     if return_spectra:
-        spectra_dict = return_spectra_dict(wavelength, flux.value)
+        spectra_dict = return_spectra_dict(wavelength, flux)
 
         return spectra_dict
 
@@ -587,6 +587,7 @@ def compute_limits_mask(x, xlim=None):
 
 def set_axis_limits(data_list, ax, xlim=None, ylim=None):
 
+    data_list = np.concatenate(data_list)
     # min and max values across data sets
     xmin = return_array_values(np.nanmin(data_list))
     xmax = return_array_values(np.nanmax(data_list))
