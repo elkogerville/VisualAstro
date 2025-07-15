@@ -35,7 +35,7 @@ class va:
             plt.show()
 
     @staticmethod
-    def plotSpectrum(spectra_dicts, normalize=False, emission_line=None, **kwargs):
+    def plotSpectrum(spectra_dicts, normalize=False, plot_continuum=False, emission_line=None, **kwargs):
 
         # figure params
         figsize = kwargs.get('figsize', (6,6))
@@ -56,7 +56,7 @@ class va:
         spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
 
         # set plot style and colors
-        colors, _ = set_plot_colors(colors)
+        colors, fit_colors = set_plot_colors(colors)
         style = return_stylename(style)
 
         with plt.style.context(style):
@@ -77,7 +77,11 @@ class va:
                     label = labels[i] if (labels is not None and i < len(labels)) else None
 
                     ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
+                    if plot_continuum:
+                        ax.plot(wavelength[mask], spectra_dict['continuum_fit'][mask], c=fit_colors[i%len(fit_colors)])
+
                     wavelength_list.append(wavelength[mask])
+
             set_axis_limits(wavelength_list, ax, xlim, ylim)
             set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
             if labels is not None:
