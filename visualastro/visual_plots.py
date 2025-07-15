@@ -1,11 +1,63 @@
 import numpy as np
+from astropy.wcs import WCS
+from astropy.io.fits import Header
 import matplotlib.pyplot as plt
 from spectral_cube import SpectralCube
 from .data_cube import plot_spectral_cube
-from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
+from .plot_utils import imshow, return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 from .spectra import compute_limits_mask, return_spectra_dict, set_axis_limits
 
 class va:
+    @staticmethod
+    def imshow(datas, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5], origin='lower',
+                   wcs_input=None, cmap='turbo', plot_boolean=False, transpose=True, **kwargs):
+        # figure params
+        figsize = kwargs.get('figsize', (6,6))
+        style = kwargs.get('style', 'astro')
+        invert_wcs = kwargs.get('invert_wcs', False)
+        # labels
+        xlabel = kwargs.get('xlabel', True)
+        ylabel = kwargs.get('ylabel', True)
+        # savefig
+        savefig = kwargs.get('savefig', False)
+        dpi = kwargs.get('dpi', 600)
+
+        datas = datas if isinstance(datas, list) else [datas]
+
+        if wcs_input is not None:
+            if isinstance(wcs_input, Header):
+                wcs = WCS(wcs_input)
+            if isinstance(wcs_input, WCS):
+                wcs = wcs_input
+            wcs = wcs.swapaxes(0, 1) if invert_wcs else wcs
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig = plt.figure(figsize=figsize)
+            ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
+
+            imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
+                   cmap, plot_boolean, transpose, **kwargs)
+
+            if wcs_input is not None:
+                if invert_wcs:
+                    ax.coords['dec'].set_ticklabel(rotation=90)
+                else:
+                    ax.coords['ra'].set_ticklabel(rotation=90)
+
+            if xlabel is not None:
+                if xlabel is True:
+                    xlabel = 'RA' if wcs_input is not None else 'X [pixels]'
+                ax.set_xlabel(xlabel)
+            if ylabel is not None:
+                if ylabel is True:
+                    ylabel = 'DEC' if wcs_input is not None else 'Y [pixels]'
+                ax.set_ylabel(ylabel)
+
+            if savefig:
+                    save_figure_2_disk(dpi)
+            plt.show()
+
     @staticmethod
     def plotSpectralCube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, **kwargs):
@@ -165,6 +217,6 @@ class va:
             plt.show()
 
             if return_spectra:
-                spectra_dict = return_spectra_dict(wavelength, flux.value)
+                spectra_dict = return_spectra_dict(wavelength, flux)
 
                 return spectra_dict
