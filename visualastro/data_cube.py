@@ -305,27 +305,3 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     vmax = np.nanpercentile(data.value, vmax)
 
     return vmin, vmax
-
-
-# def load_fits_as_dict(filepath, data_idx=1, header_idx=0):
-#     '''
-#     loads fits data from HARPS spectrograph and outputs the header and data
-#     Parameters
-#     ----------
-#     file_path: string
-#         filename including path to a fits file
-#     Returns
-#     -------
-#     data: np.ndarray[np.float64]
-#         NxM array of intensities
-#     header:
-#         header of fits file
-#     '''
-#     with fits.open(filepath) as hdu:
-#         header = hdu[header_idx].header
-#         data = hdu[data_idx].data.astype(np.float64)
-#     #data =
-
-#     data, header = fits.getdata(filepath, header=True)
-
-#     return data, header
