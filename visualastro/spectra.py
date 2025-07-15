@@ -228,6 +228,7 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
     return spectra_dict
 
 def deredden_spectrum(wavelength, flux, **kwargs):
+
     Rv = kwargs.get('Rv', 3.1)
     Ebv = kwargs.get('Ebv', 0.19)
     deredden_method = kwargs.get('deredden_method', 'WD01')
