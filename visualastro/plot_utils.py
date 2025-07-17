@@ -12,8 +12,9 @@ from matplotlib.patches import Circle
 # ––––––––––––––––––
 # Plotting Functions
 # ––––––––––––––––––
-def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5],
-           origin='lower', cmap='turbo', plot_boolean=False, transpose=True, **kwargs):
+def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
+           percentile=[3,99.5], origin='lower', cmap='turbo',
+           plot_boolean=False, transpose=True, aspect='auto', **kwargs):
 
     # figure params
     invert_xaxis = kwargs.get('invert_xaxis', False)
@@ -51,9 +52,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
             data = data.T
 
         if norm is None:
-            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap)
+            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap, aspect=aspect)
         else:
-            im = ax.imshow(data, origin=origin, norm=norm, cmap=cmap)
+            im = ax.imshow(data, origin=origin, norm=norm, cmap=cmap, aspect=aspect)
 
         plot_circles(circles, ax)
         plot_points(points, ax)
@@ -337,6 +338,7 @@ def set_unit_labels(unit):
         'kHz': 'kHz',
         'MHz': 'MHz',
         'GHz': 'GHz',
+        'electron': r'\mathrm{e^{-}}',
         'km / s': r'\mathrm{km\ s^{-1}}',
     }
 
