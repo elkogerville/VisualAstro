@@ -33,7 +33,7 @@ class va:
 
         style = return_stylename(style)
         with plt.style.context(style):
-            fig = plt.figure(figsize=figsize)
+            plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,

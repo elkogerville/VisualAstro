@@ -29,6 +29,10 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
+    if plot_boolean:
+        vmin = 0
+        vmax = 1
+        norm = None
 
     fig = ax.figure
 
@@ -38,11 +42,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
         data = check_is_array(data)
         if idx is not None:
             data = return_cube_slice(data, idx)
-        if plot_boolean:
-            vmin = 0
-            vmax = 1
-            norm = None
-        else:
+
+        if not plot_boolean:
             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
             norm = return_imshow_norm(vmin, vmax, norm)
 
@@ -54,21 +55,11 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,9
         else:
             im = ax.imshow(data, origin=origin, norm=norm, cmap=cmap)
 
-        if circles is not None:
-            circle_colors = ['r', 'mediumvioletred', 'magenta']
-            for i, circle in enumerate(circles):
-                x, y, r = circle
-                circle = Circle((x, y), radius=r, fill=False, linewidth=2,
-                                color=circle_colors[i%len(circle_colors)])
-                ax.add_patch(circle)
+        plot_circles(circles, ax)
+        plot_points(points, ax)
 
-        if points is not None:
-            for point in points:
-                ax.scatter(point[0], point[1], s=20, marker='*', c='r')
-
-        if isinstance(ax, WCSAxes):
-            if rotate_ax_label is not None:
-                ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
+        if isinstance(ax, WCSAxes) and (rotate_ax_label is not None):
+            ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
 
         if xlabel is not None:
             ax.set_xlabel(xlabel)
@@ -351,35 +342,6 @@ def set_unit_labels(unit):
 
     return unit_map.get(str(unit), unit)
 
-# def set_axis_labels(X, Y, xlabel, ylabel, use_brackets=False):
-
-#     if x_unit is None:
-#         x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
-#     if y_unit is None:
-#         y_unit = str(getattr(Y, 'spectral_unit', getattr(Y, 'unit', None)))
-
-#     # Format for display (including LaTeX)
-#     x_unit_label = set_unit_labels(x_unit)
-#     y_unit_label = set_unit_labels(y_unit)
-#     if use_brackets:
-#         x_unit_label = r'[$' + x_unit_label + r'$]'
-#         y_unit_label = r'[$' + y_unit_label + r'$]'
-#     else:
-#         x_unit_label = r'($' + x_unit_label + r'$)'
-#         y_unit_label = r'($' + y_unit_label + r'$)'
-
-#     spectral_type_map = {
-#         'frequency': 'Frequency',
-#         'length': 'Wavelength',
-#         'speed/velocity': 'Velocity',
-#     }
-
-#     spectral_type = spectral_type_map.get(str(X.unit.physical_type), 'Spectral Axis')
-#     xlabel = fr'{spectral_type} {x_unit_label}' if x_unit_label else spectral_type
-#     ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
-#     plt.xlabel(xlabel)
-#     plt.ylabel(ylabel)
-
 def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     spectral_type = {
         'frequency': 'Frequency',
@@ -401,6 +363,33 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+def plot_circles(circles, ax):
+    circle_colors = ['r', 'mediumvioletred', 'magenta']
+
+    if circles is not None:
+        circles = np.asarray(circles)
+        if circles.ndim == 1 and circles.shape[0] == 3:
+            circles = circles[np.newaxis, :]
+        elif circles.ndim != 2 or circles.shape[1] != 3:
+            raise ValueError("Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]")
+
+        for i, circle in enumerate(circles):
+            x, y, r = circle
+            circle_patch = Circle((x, y), radius=r, fill=False, linewidth=2,
+                            color=circle_colors[i%len(circle_colors)])
+            ax.add_patch(circle_patch)
+
+def plot_points(points, ax):
+    if points is not None:
+        points = np.asarray(points)
+        if points.ndim == 1 and points.shape[0] == 2:
+            points = points[np.newaxis, :]
+        elif points.ndim != 2 or points.shape[1] != 2:
+            raise ValueError("Points must be either [x, y] or [[x1, y1], [x2, y2], ...]")
+
+        for point in points:
+            ax.scatter(point[0], point[1], s=20, marker='*', c='r')
 
 # ––––––––––––––
 # Notebook Utils
