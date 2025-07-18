@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import njit, prange
 from tqdm import tqdm
 from .plot_utils import plot_histogram, check_is_array
 
@@ -48,6 +49,26 @@ def reduce_science_frames(data_cube, master_bias, master_flat, trim=None, vector
             if trim is not None:
                 norm_data = norm_data[trim:-trim, trim:-trim]
             norm_data_cube[i] = norm_data
+
+    return norm_data_cube
+
+@njit(parallel=True)
+def njit_reduce_science_frames(data_cube, master_bias, master_flat, trim=None, vectorize=False):
+    if isinstance(data_cube, dict):
+        data_cube = np.asarray(data_cube['data'])
+    else:
+        data_cube = np.asarray(data_cube)
+
+    if trim is None:
+        norm_data_cube = np.zeros_like(data_cube)
+    else:
+        norm_data_cube = np.zeros_like(data_cube[:, trim:-trim, trim:-trim])
+    for i in prange(len(data_cube)):
+        data_bias_sub = data_cube[i] - master_bias
+        norm_data = data_bias_sub / master_flat
+        if trim is not None:
+            norm_data = norm_data[trim:-trim, trim:-trim]
+        norm_data_cube[i] = norm_data
 
     return norm_data_cube
 
