@@ -14,7 +14,7 @@ from matplotlib.patches import Circle
 # ––––––––––––––––––
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
-           plot_boolean=False, transpose=True, aspect='auto', **kwargs):
+           plot_boolean=False, transpose=True, aspect=None, **kwargs):
 
     # figure params
     invert_xaxis = kwargs.get('invert_xaxis', False)
