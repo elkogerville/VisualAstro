@@ -80,61 +80,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         if invert_yaxis:
             ax.invert_yaxis()
 
-# def imshow(datas, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5],
-#            cmap='turbo', style='astro', points=None, circles=None, plot_boolean=False,
-#            transpose=True, colorbar=True, clabel=None, labels=True, savefig=False, dpi=600):
-
-#     datas = datas if isinstance(datas, list) else [datas]
-
-#     style = return_stylename(style)
-#     with plt.style.context(style):
-#         fig, ax = plt.subplots(figsize=(6,6))
-#         for data in datas:
-#             data = check_is_array(data)
-#             if idx is not None:
-#                 data = return_cube_slice(data, idx)
-#             if plot_boolean:
-#                 vmin = 0
-#                 vmax = 1
-#                 norm = None
-#             else:
-#                 vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-#                 norm = return_imshow_norm(vmin, vmax, norm)
-
-#             data = data.T if transpose else data
-
-#             if norm is None:
-#                 im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
-#             else:
-#                 im = ax.imshow(data, origin='lower', norm=norm, cmap=cmap)
-#         if circles is not None:
-#             circle_colors = ['r', 'mediumvioletred', 'magenta']
-#             for i, circle in enumerate(circles):
-#                 x, y, r = circle
-#                 circle = Circle((x, y), radius=r, fill=False, linewidth=2,
-#                                 color=circle_colors[i%len(circle_colors)])
-#                 ax.add_patch(circle)
-#         if points is not None:
-#             for point in points:
-#                 plt.scatter(point[0], point[1], s=20, marker='*', c='r')
-#         if labels is True:
-#             plt.xlabel('X [pixels]')
-#             plt.ylabel('Y [pixels]')
-#         elif labels is not None:
-#             plt.xlabel(labels[0])
-#             plt.ylabel(labels[1])
-
-#         if colorbar:
-#             cax = fig.add_axes([ax.get_position().x1+0.02, ax.get_position().y0,
-#                                0.03, ax.get_position().height])
-#             cbar = plt.colorbar(im, cax=cax, pad=0.04)
-#             cbar.ax.tick_params(which='both', direction='out')
-#             if clabel is not None:
-#                 cbar.set_label(fr'{clabel}')
-#         if savefig:
-#                 save_figure_2_disk(dpi)
-#         plt.show()
-
 def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False,
                    colors=None, labels=None, savefig=False, dpi=600):
     data = check_is_array(data)
