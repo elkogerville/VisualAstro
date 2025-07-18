@@ -324,7 +324,7 @@ def set_plot_colors(user_colors=None):
     return colors, model_colors
 
 def set_unit_labels(unit):
-    unit_map = {
+    unit_label = {
         'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
         'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
         'micron': r'\mathrm{\mu m}',
@@ -340,9 +340,9 @@ def set_unit_labels(unit):
         'GHz': 'GHz',
         'electron': r'\mathrm{e^{-}}',
         'km / s': r'\mathrm{km\ s^{-1}}',
-    }
+    }.get(str(unit), unit)
 
-    return unit_map.get(str(unit), unit)
+    return unit_label
 
 def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     spectral_type = {
@@ -374,7 +374,9 @@ def plot_circles(circles, ax):
         if circles.ndim == 1 and circles.shape[0] == 3:
             circles = circles[np.newaxis, :]
         elif circles.ndim != 2 or circles.shape[1] != 3:
-            raise ValueError("Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]")
+            error = 'Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]'
+
+            raise ValueError(error)
 
         for i, circle in enumerate(circles):
             x, y, r = circle
@@ -388,7 +390,9 @@ def plot_points(points, ax):
         if points.ndim == 1 and points.shape[0] == 2:
             points = points[np.newaxis, :]
         elif points.ndim != 2 or points.shape[1] != 2:
-            raise ValueError("Points must be either [x, y] or [[x1, y1], [x2, y2], ...]")
+            error = 'Points must be either [x, y] or [[x1, y1], [x2, y2], ...]'
+
+            raise ValueError(error)
 
         for point in points:
             ax.scatter(point[0], point[1], s=20, marker='*', c='r')
