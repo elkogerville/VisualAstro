@@ -9,8 +9,10 @@ from .spectra import compute_limits_mask, return_spectra_dict, set_axis_limits
 
 class va:
     @staticmethod
-    def imshow(datas, idx=None, vmin=None, vmax=None, norm=None, percentile=[3,99.5], origin='lower',
-                   wcs_input=None, cmap='turbo', plot_boolean=False, transpose=True, **kwargs):
+    def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
+               percentile=[3,99.5], origin='lower', wcs_input=None,
+               cmap='turbo', plot_boolean=False, transpose=True,
+               aspect=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -37,7 +39,8 @@ class va:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
-                   cmap, plot_boolean, transpose, wcs_input=wcs_input, **kwargs)
+                   cmap, plot_boolean, transpose, aspect, wcs_input=wcs_input,
+                   **kwargs)
 
             if wcs_input is not None:
                 if invert_wcs:
