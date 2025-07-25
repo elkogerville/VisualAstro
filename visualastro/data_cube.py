@@ -1,18 +1,16 @@
 import glob
 import warnings
-from functools import partial
 import numpy as np
 import astropy.units as u
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyWarning
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
-import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    add_colorbar, return_cube_slice, return_imshow_norm, return_spectral_axis_idx,
-    set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel, update_region
+    add_colorbar, plot_ellipses, plot_interactive_ellipse, return_cube_slice, return_imshow_norm,
+    return_spectral_axis_idx, set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -140,19 +138,13 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
 
     if plot_ellipse:
         if ellipses is not None:
-            ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
-            for ellipse in ellipses:
-                ax.add_patch(copy_ellipse(ellipse))
+            plot_ellipses(ellipses, ax)
+        elif angle is not None:
+            e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
+            ax.add_patch(e)
         else:
-            if angle is not None:
-                e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
-                ax.add_patch(e)
-            else:
-                text = ax.text(0.5, 0.5, '', size='small', color=text_color)
-                ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]), width=w, height=h)
-                selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
-                ax._ellipse_selector = selector
-                draw_spectral_label = False
+            plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
+            draw_spectral_label = False
 
     if draw_spectral_label:
         # lambda for wavelength, f for frequency
@@ -261,19 +253,6 @@ def return_ellipse_region(center, w, h, angle=0):
     ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
 
     return ellipse
-
-def copy_ellipse(ellipse):
-    return Ellipse(
-        xy=ellipse.center,
-        width=ellipse.width,
-        height=ellipse.height,
-        angle=ellipse.angle,
-        edgecolor=ellipse.get_edgecolor(),
-        facecolor=ellipse.get_facecolor(),
-        lw=ellipse.get_linewidth(),
-        ls=ellipse.get_linestyle(),
-        alpha=ellipse.get_alpha()
-    )
 
 def compute_line(points):
     m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])
