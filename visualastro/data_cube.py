@@ -128,7 +128,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
 
-    clabel = set_unit_labels(cube.unit) if clabel is True else clabel
+    clabel = '$'+set_unit_labels(cube.unit)+'$' if clabel is True else clabel
     add_colorbar(im, ax, cbar_width, cbar_pad, True, clabel)
     # cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
     #                     cbar_width, ax.get_position().height])

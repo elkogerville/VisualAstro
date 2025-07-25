@@ -311,7 +311,7 @@ def add_colorbar(im, ax, cbar_width, cbar_pad, colorbar, clabel):
         cbar = fig.colorbar(im, cax=cax, pad=0.04)
         cbar.ax.tick_params(which='both', direction='out')
         if clabel is not None:
-            cbar.set_label(fr'${clabel}$')
+            cbar.set_label(fr'{clabel}')
 
 def plot_circles(circles, ax):
     circle_colors = ['r', 'mediumvioletred', 'magenta']
