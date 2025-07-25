@@ -1,4 +1,5 @@
 import os
+from functools import partial
 import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
@@ -7,7 +8,8 @@ from astropy.units import spectral
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Ellipse
+from regions import PixCoord, EllipsePixelRegion
 
 # ––––––––––––––––––
 # Plotting Functions
@@ -20,6 +22,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     invert_xaxis = kwargs.get('invert_xaxis', False)
     invert_yaxis = kwargs.get('invert_yaxis', False)
     # labels
+    text_loc = kwargs.get('text_loc', [0.03,0.03])
+    text_color = kwargs.get('text_color', 'k')
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colorbar = kwargs.get('colorbar', True)
@@ -30,6 +34,13 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
+    # plot ellipse
+    ellipses = kwargs.get('ellipses', None)
+    plot_ellipse = kwargs.get('plot_ellipse', False)
+    X, Y = datas[0].shape if isinstance(datas, list) else datas.shape
+    center = kwargs.get('center', [X//2, Y//2])
+    w = kwargs.get('w', X//5)
+    h = kwargs.get('h', Y//5)
     if plot_boolean:
         vmin = 0
         vmax = 1
@@ -56,6 +67,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
     plot_circles(circles, ax)
     plot_points(points, ax)
+    plot_ellipses(ellipses, ax)
+    if plot_ellipse:
+        plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
 
     if isinstance(ax, WCSAxes) and (rotate_ax_label is not None):
         ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
@@ -328,8 +342,27 @@ def plot_circles(circles, ax):
         for i, circle in enumerate(circles):
             x, y, r = circle
             circle_patch = Circle((x, y), radius=r, fill=False, linewidth=2,
-                            color=circle_colors[i%len(circle_colors)])
+                                  color=circle_colors[i%len(circle_colors)])
             ax.add_patch(circle_patch)
+
+def plot_ellipses(ellipses, ax):
+    if ellipses is not None:
+        ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
+        for ellipse in ellipses:
+            ax.add_patch(copy_ellipse(ellipse))
+
+def copy_ellipse(ellipse):
+    return Ellipse(
+        xy=ellipse.center,
+        width=ellipse.width,
+        height=ellipse.height,
+        angle=ellipse.angle,
+        edgecolor=ellipse.get_edgecolor(),
+        facecolor=ellipse.get_facecolor(),
+        lw=ellipse.get_linewidth(),
+        ls=ellipse.get_linestyle(),
+        alpha=ellipse.get_alpha()
+    )
 
 def plot_points(points, ax):
     if points is not None:
@@ -343,6 +376,12 @@ def plot_points(points, ax):
 
         for point in points:
             ax.scatter(point[0], point[1], s=20, marker='*', c='r')
+
+def plot_interactive_ellipse(center, w, h, ax, text_loc=[0.03,0.03], text_color='k'):
+    text = ax.text(text_loc[0], text_loc[1], '', transform=ax.transAxes, size='small', color=text_color)
+    ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]), width=w, height=h)
+    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
+    ax._ellipse_selector = selector
 
 def update_region(region, text):
     x_center = region.center.x
