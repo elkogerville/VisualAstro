@@ -1,5 +1,6 @@
 import glob
 import warnings
+from functools import partial
 import numpy as np
 import astropy.units as u
 from astropy.io import fits
@@ -11,7 +12,7 @@ from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
     add_colorbar, return_cube_slice, return_imshow_norm, return_spectral_axis_idx,
-    set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
+    set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel, update_region
 )
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -106,6 +107,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     clabel = kwargs.get('clabel', True)
     xlabel = kwargs.get('xlabel', 'Right Ascension')
     ylabel = kwargs.get('ylabel', 'Declination')
+    draw_spectral_label = kwargs.get('spectral_label', True)
     # plot ellipse
     plot_ellipse = kwargs.get('plot_ellipse', False)
     ellipses = kwargs.get('ellipses', None)
@@ -130,47 +132,11 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
 
     clabel = '$'+set_unit_labels(cube.unit)+'$' if clabel is True else clabel
     add_colorbar(im, ax, cbar_width, cbar_pad, True, clabel)
-    # cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-    #                     cbar_width, ax.get_position().height])
-    # cbar = fig.colorbar(im, cax=cax, pad=0.02)
-    # cbar.ax.tick_params(which='both', direction='out')
-    # cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
 
     spectral_axis = set_spectral_axis(cube, unit)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
     spectral_value = return_spectral_axis_idx(spectral_axis, idx)
     unit_label = set_unit_labels(spectral_axis.unit)
-
-    if (plot_ellipse and ellipses is None):
-        text = ax.text(0.5, 0.5, '', size='small', color=text_color)
-    else:
-        # lambda for wavelength, f for frequency
-        spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
-
-        if emission_line is None:
-            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
-        else:
-            emission_line = emission_line.replace(' ', r'\ ')
-            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
-        if title:
-            plt.title(slice_label, color=text_color)
-        else:
-            plt.text(text_loc[0], text_loc[1], slice_label, transform=ax.transAxes, color=text_color)
-
-    def update_region(region):
-        x_center = region.center.x
-        y_center = region.center.y
-        width = region.width
-        height = region.height
-        major = max(width, height)
-        minor = min(width, height)
-
-        # Update text display (positioned in data coordinates)
-        text.set_text(
-            f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
-            f'Major: {major:.1f}\n'
-            f'Minor: {minor:.1f}\n'
-        )
 
     if plot_ellipse:
         if ellipses is not None:
@@ -182,9 +148,25 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
                 e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
                 ax.add_patch(e)
             else:
+                text = ax.text(0.5, 0.5, '', size='small', color=text_color)
                 ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]), width=w, height=h)
-                selector = ellipse_region.as_mpl_selector(ax, callback=update_region)
+                selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
                 ax._ellipse_selector = selector
+                draw_spectral_label = False
+
+    if draw_spectral_label:
+        # lambda for wavelength, f for frequency
+        spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
+
+        if emission_line is None:
+            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+        else:
+            emission_line = emission_line.replace(' ', r'\ ')
+            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+        if title:
+            ax.set_title(slice_label, color=text_color, loc='center')
+        else:
+            ax.text(text_loc[0], text_loc[1], slice_label, transform=ax.transAxes, color=text_color)
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)

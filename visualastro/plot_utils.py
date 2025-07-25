@@ -344,6 +344,20 @@ def plot_points(points, ax):
         for point in points:
             ax.scatter(point[0], point[1], s=20, marker='*', c='r')
 
+def update_region(region, text):
+    x_center = region.center.x
+    y_center = region.center.y
+    width = region.width
+    height = region.height
+    major = max(width, height)
+    minor = min(width, height)
+
+    text.set_text(
+        f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+        f'Major: {major:.1f}\n'
+        f'Minor: {minor:.1f}\n'
+    )
+
 # ––––––––––––––
 # Notebook Utils
 # ––––––––––––––
