@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    return_cube_slice, return_imshow_norm, return_spectral_axis_idx,
+    add_colorbar, return_cube_slice, return_imshow_norm, return_spectral_axis_idx,
     set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
 
@@ -103,6 +103,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     text_color = kwargs.get('text_color', 'k')
     cbar_width = kwargs.get('cbar_width', 0.03)
     cbar_pad = kwargs.get('cbar_pad', 0.015)
+    clabel = kwargs.get('clabel', True)
     xlabel = kwargs.get('xlabel', 'Right Ascension')
     ylabel = kwargs.get('ylabel', 'Declination')
     # plot ellipse
@@ -113,8 +114,6 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
     angle = kwargs.get('angle', None)
-
-    fig = ax.figure
 
     # return data cube slices
     slice_data = return_cube_slice(cube, idx)
@@ -129,11 +128,13 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
 
-    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-                        cbar_width, ax.get_position().height])
-    cbar = fig.colorbar(im, cax=cax, pad=0.02)
-    cbar.ax.tick_params(which='both', direction='out')
-    cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
+    clabel = set_unit_labels(cube.unit) if clabel is True else clabel
+    add_colorbar(im, ax, cbar_width, cbar_pad, True, clabel)
+    # cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
+    #                     cbar_width, ax.get_position().height])
+    # cbar = fig.colorbar(im, cax=cax, pad=0.02)
+    # cbar.ax.tick_params(which='both', direction='out')
+    # cbar.set_label(fr'${set_unit_labels(cube.unit)}$')
 
     spectral_axis = set_spectral_axis(cube, unit)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
