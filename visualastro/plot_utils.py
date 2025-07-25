@@ -35,8 +35,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         vmax = 1
         norm = None
 
-    fig = ax.figure
-
     datas = datas if isinstance(datas, list) else [datas]
 
     for data in datas:
@@ -56,29 +54,23 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         else:
             im = ax.imshow(data, origin=origin, norm=norm, cmap=cmap, aspect=aspect)
 
-        plot_circles(circles, ax)
-        plot_points(points, ax)
+    plot_circles(circles, ax)
+    plot_points(points, ax)
 
-        if isinstance(ax, WCSAxes) and (rotate_ax_label is not None):
-            ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
+    if isinstance(ax, WCSAxes) and (rotate_ax_label is not None):
+        ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
 
-        if xlabel is not None:
-            ax.set_xlabel(xlabel)
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
 
-        if colorbar:
-            cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-                                cbar_width, ax.get_position().height])
-            cbar = fig.colorbar(im, cax=cax, pad=0.04)
-            cbar.ax.tick_params(which='both', direction='out')
-            if clabel is not None:
-                cbar.set_label(fr'{clabel}')
+    add_colorbar(im, ax, cbar_width, cbar_pad, colorbar, clabel)
 
-        if invert_xaxis:
-            ax.invert_xaxis()
-        if invert_yaxis:
-            ax.invert_yaxis()
+    if invert_xaxis:
+        ax.invert_xaxis()
+    if invert_yaxis:
+        ax.invert_yaxis()
 
 def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False,
                    colors=None, labels=None, savefig=False, dpi=600):
@@ -310,6 +302,16 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+def add_colorbar(im, ax, cbar_width, cbar_pad, colorbar, clabel):
+    fig = ax.figure
+    if colorbar:
+        cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
+                            cbar_width, ax.get_position().height])
+        cbar = fig.colorbar(im, cax=cax, pad=0.04)
+        cbar.ax.tick_params(which='both', direction='out')
+        if clabel is not None:
+            cbar.set_label(fr'${clabel}$')
 
 def plot_circles(circles, ax):
     circle_colors = ['r', 'mediumvioletred', 'magenta']
