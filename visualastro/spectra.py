@@ -554,15 +554,15 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
     y_fit = g_fit(wave_sub*wave_unit)
 
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors)
     style = return_stylename(style)
 
     with plt.style.context(style):
-        plt.figure(figsize=figsize)
-        plt.plot(wavelength, flux, c=colors[0])
-        plt.plot(wave_sub, y_fit, c=colors[1])
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.plot(wavelength, flux, c=colors[0])
+        ax.plot(wave_sub, y_fit, c=colors[1])
         xlim = wave_range if xlim is None else xlim
-        plt.xlim(xlim[0], xlim[1])
+        ax.set_xlim(xlim[0], xlim[1])
         set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], ax, None, None)
         plt.show()
 
