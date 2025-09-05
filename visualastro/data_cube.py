@@ -16,16 +16,19 @@ from .plot_utils import (
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
-def load_fits(filepath, header=True, print_info=True):
+def load_fits(filepath, header=True, print_info=True, transpose=False):
     if print_info:
         with fits.open(filepath) as hdul:
             hdul.info()
     data, fits_header = fits.getdata(filepath, header=True)
+    if transpose:
+        data = data.T
     result = [data, fits_header] if header else data
 
     return result
 
-def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
+def load_data_cube(filepath, header=True, dtype=np.float64,
+                   print_info=True, transpose=False):
     '''
     Searches for all data fits files in a directory and loads them into a numpy 3D data cube
     Parameters
@@ -50,12 +53,16 @@ def load_data_cube(filepath, header=True, dtype=np.float64, print_info=True):
     i = len(fits_files)
     headers = np.empty(i, dtype=object)
     data, headers[0] = fits.getdata(fits_files[0], header=True)
+    if transpose:
+        data = data.T
     data_cube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dtype)
     # save first file to data arrays
     data_cube[0] = data.astype(dtype)
     # loop through each array in data list and store in data cube
     for i in tqdm(range(1, len(fits_files))):
         data, headers[i] = fits.getdata(fits_files[i], header=True)
+        if transpose:
+            data = data.T
         data_cube[i] = data.astype(dtype)
 
     data_dict = {}
@@ -178,6 +185,86 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
+
+def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
+               invert=False, upper=True, preserve_shape=True, **kwargs):
+
+    center = kwargs.get('center', None)
+    w = kwargs.get('w', None)
+    h = kwargs.get('h', None)
+    angle = kwargs.get('angle', 0)
+    tolerance = kwargs.get('tolerance', 2)
+
+    N, M = image.shape
+    y, x = np.indices((N, M))
+
+    mask = np.ones((N, M), dtype=bool)
+
+    # if ellipse region is passed in use those values
+    if ellipse_region is not None:
+        center = ellipse_region.center
+        a = ellipse_region.width/2
+        b = ellipse_region.height/2
+        angle = ellipse_region.angle if ellipse_region.angle is not None else 0
+    elif None not in (center, w, h):
+        a = w/2
+        b = h/2
+    else:
+        raise ValueError("Either 'ellipse_region' or 'center', 'w', 'h' must be provided.")
+
+    if region is not None:
+        if region == 'annulus':
+            region = EllipseAnnulusPixelRegion(
+                center=PixCoord(center[0], center[1]),
+                inner_width=2*(a - tolerance),
+                inner_height=2*(b - tolerance),
+                outer_width=2*(a + tolerance),
+                outer_height=2*(b + tolerance),
+                angle=angle * u.deg
+            )
+        elif region == 'ellipse':
+            region = EllipsePixelRegion(
+                center=PixCoord(center[0], center[1]),
+                width=2*a,
+                height=2*b,
+                angle=angle * u.deg
+            )
+        else:
+            raise ValueError()
+
+        region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+        if invert:
+            region_mask = ~region_mask
+        mask &= region_mask
+
+    if isinstance(image, np.ndarray):
+        if preserve_shape:
+            region_image = np.full_like(image, np.nan, dtype=float)
+            region_image[..., mask] = image[..., mask]
+        else:
+            region_image = image[..., mask]
+    else:
+        region_image = image.with_mask(mask)
+
+    # apply line mask if provided
+    if line_points is not None:
+        region_line_mask = mask.copy()
+        m, b_line = compute_line(line_points)
+        line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+        region_line_mask &= line_mask
+        if isinstance(image, np.ndarray):
+            if preserve_shape:
+                region_line_image = np.full_like(image, np.nan)
+                region_line_image[..., region_line_mask] = image[..., region_line_mask]
+            else:
+                region_line_image = image[..., region_line_mask]
+
+        else:
+            region_line_image = image.with_mask(region_line_mask)
+        return region_line_image, region_image
+
+    else:
+        return region_image
 
 def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, region='annulus',
               tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True, return_full=True):

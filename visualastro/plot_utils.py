@@ -16,7 +16,7 @@ from regions import PixCoord, EllipsePixelRegion
 # ––––––––––––––––––
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
-           plot_boolean=False, transpose=True, aspect=None, **kwargs):
+           plot_boolean=False, aspect=None, **kwargs):
 
     # figure params
     invert_xaxis = kwargs.get('invert_xaxis', False)
@@ -57,8 +57,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
             norm = return_imshow_norm(vmin, vmax, norm)
 
-        if transpose:
-            data = data.T
+        # if transpose:
+        #     data = data.T
 
         if norm is None:
             im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap, aspect=aspect)
