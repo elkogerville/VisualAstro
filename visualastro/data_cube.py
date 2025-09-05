@@ -230,7 +230,7 @@ def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
                 angle=angle * u.deg
             )
         else:
-            raise ValueError()
+            raise ValueError("region must be 'annulus' or 'ellipse'")
 
         region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
         if invert:
@@ -266,8 +266,21 @@ def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
     else:
         return region_image
 
-def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, region='annulus',
-              tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True, return_full=True):
+def mask_cube(cube, ellipse_region=None, composite_mask=False, region='annulus',
+              tolerance=2, line_points=None, invert=False, upper=True, preserve_shape=True, **kwargs):
+    '''
+    Function to mask a data cube using user defined regions
+    Paramerters
+    –––––––––––
+    composite_mask: bool
+        set to True if layering multiple masks ontop of cube
+
+
+    '''
+    center = kwargs.get('center', None)
+    w = kwargs.get('w', None)
+    h = kwargs.get('h', None)
+    angle = kwargs.get('angle', 0)
 
     _, N, M = cube.shape
     y, x = np.indices((N, M))
@@ -302,12 +315,12 @@ def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, 
             raise ValueError()
 
         region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
-        if outer:
+        if invert:
             region_mask = ~region_mask
         mask &= region_mask
 
     if isinstance(cube, np.ndarray):
-        if return_full:
+        if preserve_shape:
             region_cube = np.full_like(cube, np.nan)
             region_cube[:, mask] = cube[:, mask]
         else:
@@ -323,7 +336,7 @@ def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, 
         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
         region_line_mask &= line_mask
         if isinstance(cube, np.ndarray):
-            if return_full:
+            if preserve_shape:
                 region_line_cube = np.full_like(cube, np.nan)
                 region_line_cube[:, region_line_mask] = cube[:, region_line_mask]
             else:
@@ -335,6 +348,76 @@ def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, 
 
     else:
         return region_cube
+
+# def mask_cube(cube, composite_mask=False, center=None, w=None, h=None, angle=0, region='annulus',
+#               tolerance=2, ellipse_region=None, line_points=None, outer=False, upper=True, return_full=True):
+
+#     _, N, M = cube.shape
+#     y, x = np.indices((N, M))
+
+#     mask = np.ones((N, M), dtype=bool) if not composite_mask else cube.mask.include().copy()
+
+#     # if ellipse region is passed in use those values
+#     if ellipse_region is not None:
+#         center = ellipse_region.center
+#         a = ellipse_region.width/2
+#         b = ellipse_region.height/2
+#         angle = ellipse_region.angle if ellipse_region.angle is not None else 0
+
+#     if region is not None:
+#         if region == 'annulus':
+#             region = EllipseAnnulusPixelRegion(
+#                 center=PixCoord(center[0], center[1]),
+#                 inner_width=2*(a - tolerance),
+#                 inner_height=2*(b - tolerance),
+#                 outer_width=2*(a + tolerance),
+#                 outer_height=2*(b + tolerance),
+#                 angle=angle * u.deg
+#             )
+#         elif region == 'ellipse':
+#             region = EllipsePixelRegion(
+#                 center=PixCoord(center[0], center[1]),
+#                 width=2*a,
+#                 height=2*b,
+#                 angle=angle * u.deg
+#             )
+#         else:
+#             raise ValueError("region must be 'annulus' or 'ellipse'")
+
+#         region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+#         if outer:
+#             region_mask = ~region_mask
+#         mask &= region_mask
+
+#     if isinstance(cube, np.ndarray):
+#         if return_full:
+#             region_cube = np.full_like(cube, np.nan)
+#             region_cube[:, mask] = cube[:, mask]
+#         else:
+#             region_cube = cube[:, mask]
+
+#     else:
+#         region_cube = cube.with_mask(mask)
+
+#     # apply line mask if provided
+#     if line_points is not None:
+#         region_line_mask = mask.copy()
+#         m, b_line = compute_line(line_points)
+#         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+#         region_line_mask &= line_mask
+#         if isinstance(cube, np.ndarray):
+#             if return_full:
+#                 region_line_cube = np.full_like(cube, np.nan)
+#                 region_line_cube[:, region_line_mask] = cube[:, region_line_mask]
+#             else:
+#                 region_line_cube = cube[:, region_line_mask]
+
+#         else:
+#             region_line_cube = cube.with_mask(region_line_mask)
+#         return region_line_cube, region_cube
+
+#     else:
+#         return region_cube
 
 def return_ellipse_region(center, w, h, angle=0):
     ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
