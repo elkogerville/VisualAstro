@@ -55,15 +55,12 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
         if not plot_boolean:
             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-            norm = return_imshow_norm(vmin, vmax, norm)
-
-        # if transpose:
-        #     data = data.T
+            img_norm = return_imshow_norm(vmin, vmax, norm)
 
         if norm is None:
             im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap, aspect=aspect)
         else:
-            im = ax.imshow(data, origin=origin, norm=norm, cmap=cmap, aspect=aspect)
+            im = ax.imshow(data, origin=origin, norm=img_norm, cmap=cmap, aspect=aspect)
 
     plot_circles(circles, ax)
     plot_points(points, ax)
