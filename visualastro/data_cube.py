@@ -186,35 +186,171 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
+# def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
+#                invert_region=False, upper=True, preserve_shape=True, **kwargs):
+
+#     center = kwargs.get('center', None)
+#     w = kwargs.get('w', None)
+#     h = kwargs.get('h', None)
+#     angle = kwargs.get('angle', 0)
+#     tolerance = kwargs.get('tolerance', 2)
+#     existing_mask = kwargs.get('exsisting_mask', None)
+#     if None in (center, w, h) and ellipse_region is None:
+#         region = None
+
+#     # determine image shape
+#     N, M = image.shape
+#     y, x = np.indices((N, M))
+#     # construct empty boolean mask for image
+#     mask = np.ones((N, M), dtype=bool)
+#     # empty list to hold all masks
+#     masks = []
+
+#     # if ellipse region is passed in use those values
+#     if ellipse_region is not None:
+#         center = ellipse_region.center
+#         a = ellipse_region.width/2
+#         b = ellipse_region.height/2
+#         angle = ellipse_region.angle if ellipse_region.angle is not None else 0
+#     # accept user defined center, w, and h values if used
+#     elif None not in (center, w, h):
+#         a = w/2
+#         b = h/2
+#     # stop program if attempting to plot a region without necessary data
+#     elif region is not None:
+#         raise ValueError("Either 'ellipse_region' or 'center', 'w', 'h' must be provided.")
+
+#     # filter by region mask
+#     if region is not None:
+#         if region == 'annulus':
+#             region = EllipseAnnulusPixelRegion(
+#                 center=PixCoord(center[0], center[1]),
+#                 inner_width=2*(a - tolerance),
+#                 inner_height=2*(b - tolerance),
+#                 outer_width=2*(a + tolerance),
+#                 outer_height=2*(b + tolerance),
+#                 angle=angle * u.deg
+#             )
+#         elif region == 'ellipse':
+#             region = EllipsePixelRegion(
+#                 center=PixCoord(center[0], center[1]),
+#                 width=2*a,
+#                 height=2*b,
+#                 angle=angle * u.deg
+#             )
+#         else:
+#             raise ValueError("region must be 'annulus' or 'ellipse'")
+
+#         # mask image
+#         region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
+#         if invert_region:
+#             region_mask = ~region_mask
+#         # add region mask to mask array
+#         mask &= region_mask
+#         masks.append(region_mask)
+
+#     # filter by linear line
+#     if line_points is not None:
+#         # create copy of mask
+#         region_line_mask = mask.copy()
+#         # compute slope and intercept of line
+#         m, b_line = compute_line(line_points)
+#         # filter out points above/below line
+#         line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+#         # add line region to mask array
+#         region_line_mask &= line_mask
+#         masks.append(region_line_mask)
+#         mask = region_line_mask
+
+#     # if user passes an existing mask
+#     if existing_mask is not None:
+#         if existing_mask.shape != mask.shape:
+#             raise ValueError('Existing_mask must have the same shape as the image')
+#         mask |= existing_mask
+#         masks.append(existing_mask.copy())
+
+#     # apply mask to data
+#     if isinstance(image, np.ndarray):
+#         # if numpy array:
+#         if preserve_shape:
+#             masked_image = np.full_like(image, np.nan, dtype=float)
+#             masked_image[..., mask] = image[..., mask]
+#         else:
+#             masked_image = image[..., mask]
+#     # if spectral cube object
+#     else:
+#         masked_image = image.with_mask(mask)
+
+#     masks = [mask] + masks if len(masks) > 1 else mask
+
+#     return masked_image, masks
+
+    # # filter by linear line
+    # if line_points is not None:
+    #     region_line_mask = mask.copy()
+    #     m, b_line = compute_line(line_points)
+    #     line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+    #     region_line_mask &= line_mask
+    #     if isinstance(image, np.ndarray):
+    #         if preserve_shape:
+    #             region_line_image = np.full_like(image, np.nan)
+    #             region_line_image[..., region_line_mask] = image[..., region_line_mask]
+    #         else:
+    #             region_line_image = image[..., region_line_mask]
+
+    #     else:
+    #         region_line_image = image.with_mask(region_line_mask)
+    #     return region_line_image, region_image
+
+    # else:
+    #     return region_image
+    #
+
 def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
-               invert=False, upper=True, preserve_shape=True, **kwargs):
+               invert_region=False, upper=True, preserve_shape=True, **kwargs):
+    """
+    Mask an image with modular filters:
+    - Ellipse or annulus region
+    - Line cut (upper/lower)
+    - Existing mask (unioned)
+
+    Returns:
+        masked_image: image with mask applied
+        masks: master mask + individual masks
+    """
 
     center = kwargs.get('center', None)
     w = kwargs.get('w', None)
     h = kwargs.get('h', None)
     angle = kwargs.get('angle', 0)
     tolerance = kwargs.get('tolerance', 2)
+    existing_mask = kwargs.get('existing_mask', None)
 
+    # determine image shape
     N, M = image.shape
     y, x = np.indices((N, M))
+    # empty list to hold all masks
+    masks = []
 
-    mask = np.ones((N, M), dtype=bool)
-
+    # ----- REGION MASK -----
     # if ellipse region is passed in use those values
     if ellipse_region is not None:
         center = ellipse_region.center
-        a = ellipse_region.width/2
-        b = ellipse_region.height/2
+        a = ellipse_region.width / 2
+        b = ellipse_region.height / 2
         angle = ellipse_region.angle if ellipse_region.angle is not None else 0
+    # accept user defined center, w, and h values if used
     elif None not in (center, w, h):
-        a = w/2
-        b = h/2
-    else:
+        a = w / 2
+        b = h / 2
+    # stop program if attempting to plot a region without necessary data
+    elif region is not None:
         raise ValueError("Either 'ellipse_region' or 'center', 'w', 'h' must be provided.")
 
+    # construct region
     if region is not None:
         if region == 'annulus':
-            region = EllipseAnnulusPixelRegion(
+            region_obj = EllipseAnnulusPixelRegion(
                 center=PixCoord(center[0], center[1]),
                 inner_width=2*(a - tolerance),
                 inner_height=2*(b - tolerance),
@@ -223,7 +359,7 @@ def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
                 angle=angle * u.deg
             )
         elif region == 'ellipse':
-            region = EllipsePixelRegion(
+            region_obj = EllipsePixelRegion(
                 center=PixCoord(center[0], center[1]),
                 width=2*a,
                 height=2*b,
@@ -232,39 +368,55 @@ def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
         else:
             raise ValueError("region must be 'annulus' or 'ellipse'")
 
-        region_mask = region.to_mask(mode='center').to_image((N, M)).astype(bool)
-        if invert:
+        # filter by region mask
+        region_mask = region_obj.to_mask(mode='center').to_image((N, M)).astype(bool)
+        if invert_region:
             region_mask = ~region_mask
-        mask &= region_mask
+        masks.append(region_mask.copy())
+    else:
+        region_mask = np.ones((N, M), dtype=bool)
 
+    # ----- LINE MASK -----
+    if line_points is not None:
+        # start from region_mask only for this line module
+        line_mask = region_mask.copy()
+        # compute slope and intercept of line
+        m, b_line = compute_line(line_points)
+        # filter out points above/below line
+        line_mask &= (y >= m*x + b_line) if upper else (y <= m*x + b_line)
+        # add line region to mask array
+        masks.append(line_mask.copy())
+    else:
+        line_mask = region_mask.copy()
+
+    # ----- COMBINE MASKS -----
+    # start master mask with line_mask (or region if no line)
+    mask = line_mask.copy()
+
+    # union with existing mask if provided
+    if existing_mask is not None:
+        if existing_mask.shape != mask.shape:
+            raise ValueError("existing_mask must have the same shape as the image")
+        mask |= existing_mask
+        masks.append(existing_mask.copy())
+
+    # ----- APPLY MASK -----
+    # if numpy array:
     if isinstance(image, np.ndarray):
         if preserve_shape:
-            region_image = np.full_like(image, np.nan, dtype=float)
-            region_image[..., mask] = image[..., mask]
+            masked_image = np.full_like(image, np.nan, dtype=float)
+            masked_image[..., mask] = image[..., mask]
         else:
-            region_image = image[..., mask]
+            masked_image = image[..., mask]
+    # if spectral cube object
     else:
-        region_image = image.with_mask(mask)
+        masked_image = image.with_mask(mask)
 
-    # apply line mask if provided
-    if line_points is not None:
-        region_line_mask = mask.copy()
-        m, b_line = compute_line(line_points)
-        line_mask = (y >= m*x + b_line) if upper else (y <= m*x + b_line)
-        region_line_mask &= line_mask
-        if isinstance(image, np.ndarray):
-            if preserve_shape:
-                region_line_image = np.full_like(image, np.nan)
-                region_line_image[..., region_line_mask] = image[..., region_line_mask]
-            else:
-                region_line_image = image[..., region_line_mask]
+    # ----- FINAL MASK LIST -----
+    # Return master mask as first element
+    masks = [mask] + masks if len(masks) > 1 else mask
 
-        else:
-            region_line_image = image.with_mask(region_line_mask)
-        return region_line_image, region_image
-
-    else:
-        return region_image
+    return masked_image, masks
 
 def mask_cube(cube, ellipse_region=None, composite_mask=False, region='annulus',
               tolerance=2, line_points=None, invert=False, upper=True, preserve_shape=True, **kwargs):
