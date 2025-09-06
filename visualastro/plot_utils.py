@@ -317,9 +317,32 @@ def return_stylename(style):
         return style_path
 
 def set_vmin_vmax(data, percentile, vmin, vmax):
+    '''
+    Compute vmin and vmax for image display, optionally using percentiles.
+    Parameters
+    ––––––––––
+    data : array-like
+        Input data array (e.g., 2D image) for which to compute vmin and vmax.
+    percentile : list or tuple of two floats, optional
+        Percentile range '[pmin, pmax]' to compute vmin and vmax.
+        If None, sets vmin and vmax to None.
+    vmin : float or None
+        If provided, overrides the computed vmin.
+    vmax : float or None
+        If provided, overrides the computed vmax.
+    Returns
+    –––––––
+    vmin : float or None
+        Minimum value for image scaling.
+    vmax : float or None
+        Maximum value for image scaling.
+    '''
+    # by default use percentile range. if vmin or vmax is provided
+    # overide and use those instead
     if percentile is not None:
         vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
         vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+    # if percentile is None return None for vmin and vmax
     else:
         vmin = None
         vmax = None
@@ -327,8 +350,11 @@ def set_vmin_vmax(data, percentile, vmin, vmax):
     return vmin, vmax
 
 def return_imshow_norm(vmin, vmax, norm):
+    # ensure norm is a string
     norm = 'none' if norm is None else norm
+    # ensure case insensitivity
     norm = norm.lower()
+    # dict containing possible stretch algorithms
     norm_map = {
         'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
         'log': LogNorm(vmin=vmin, vmax=vmax),
