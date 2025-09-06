@@ -23,8 +23,6 @@ class va:
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
 
-        datas = datas if isinstance(datas, list) else [datas]
-
         if wcs_input is not None:
             if isinstance(wcs_input, Header):
                 wcs = WCS(wcs_input)
