@@ -43,10 +43,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         values are determined from 'percentile'.
     norm : str, optional
         Normalization algorithm for colormap scaling.
-
-        - 'asinh' -> ImageNormalize(vmin, vmax, stretch=AsinhStretch())
-        - 'log' -> LogNorm(vmin, vmax)
-        - 'none' -> None
+        - 'asinh' -> AsinhStretch using 'ImageNormalize'
+        - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'none' or None -> no normalization applied
 
     percentile : list of float, default [3, 99.5]
         Default percentile range used to determine 'vmin' and 'vmax'.
@@ -350,6 +349,24 @@ def set_vmin_vmax(data, percentile, vmin, vmax):
     return vmin, vmax
 
 def return_imshow_norm(vmin, vmax, norm):
+    '''
+    Return a matplotlib or astropy normalization object for image display.
+    Parameters
+    ––––––––––
+    vmin : float or None
+        Minimum value for normalization.
+    vmax : float or None
+        Maximum value for normalization.
+    norm : str or None
+        Normalization algorithm for colormap scaling.
+        - 'asinh' -> AsinhStretch using 'ImageNormalize'
+        - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'none' or None -> no normalization applied
+    Returns
+    –––––––
+    norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
+        Normalization object to pass to `imshow`. None if `norm` is 'none'.
+    '''
     # ensure norm is a string
     norm = 'none' if norm is None else norm
     # ensure case insensitivity
