@@ -47,8 +47,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         norm = None
 
     datas = datas if isinstance(datas, list) else [datas]
+    cmap = cmap if isinstance(cmap, list) else [cmap]
 
-    for data in datas:
+    for i, data in enumerate(datas):
         data = check_is_array(data)
         if idx is not None:
             data = return_cube_slice(data, idx)
@@ -58,9 +59,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
             img_norm = return_imshow_norm(vmin, vmax, norm)
 
         if norm is None:
-            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap, aspect=aspect)
+            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap[i%len(cmap)], aspect=aspect)
         else:
-            im = ax.imshow(data, origin=origin, norm=img_norm, cmap=cmap, aspect=aspect)
+            im = ax.imshow(data, origin=origin, norm=img_norm, cmap=cmap[i%len(cmap)], aspect=aspect)
 
     plot_circles(circles, ax)
     plot_points(points, ax)
