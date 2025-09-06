@@ -286,8 +286,30 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
     return spectral_axis
 
 def return_stylename(style):
+    '''
+    Returns the path to a visualastro mpl stylesheet for
+    consistent plotting parameters. Matplotlib styles are
+    also available (ex: 'solaris').
+
+    To add custom user defined mpl sheets, add files in:
+    VisualAstro/visualastro/stylelib/
+    Ensure the stylesheet follows the naming convention:
+        mystylesheet.mplstyle
+
+    Parameters
+    ––––––––––
+    style : str
+        name of the mpl stylesheet without the extension
+        ex: 'astro'
+    Returns
+    –––––––
+    style_path : str
+        path to matplotlib stylesheet
+    '''
+    # if style is a default matplotlib stylesheet
     if style in mpl.style.available:
         return style
+    # if style is a visualastro stylesheet
     else:
         style = style + '.mplstyle'
         dir_path = os.path.dirname(os.path.realpath(__file__))
