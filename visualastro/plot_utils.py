@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 from regions import PixCoord, EllipsePixelRegion
+from multiprocessing.dummy import dict
 
 # ––––––––––––––––––
 # Plotting Functions
@@ -17,6 +18,100 @@ from regions import PixCoord, EllipsePixelRegion
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
            plot_boolean=False, aspect=None, **kwargs):
+    '''
+    Display 2D image data with optional overlays and customization.
+    Parameters
+    ––––––––––
+    datas : np.ndarray or list of np.ndarray
+        Image array or list of image arrays to plot. Each array should
+        be 2D (Ny, Nx) or 3D (Nx, Ny, Nz) if using 'idx' to slice a cube.
+    ax : matplotlib.axes.Axes or WCSAxes
+        Matplotlib axis on which to plot the image(s).
+    idx : int or list of int, optional
+        Index for slicing along the first axis if 'datas'
+        contains a cube.
+
+        - i -> returns cube[i]
+        - [i] -> returns cube[i]
+        - [i, j] -> returns the sum of cube[i:j+1] along axis 0
+
+        If 'datas' is a list of cubes, you may also pass a list of
+        indeces.
+        ex: passing indeces for 2 cubes-> [[i,j], k].
+    vmin, vmax : float, optional
+        Lower and upper limits for colormap scaling. If not provided,
+        values are determined from 'percentile'.
+    norm : str, optional
+        Normalization algorithm for colormap scaling.
+
+        - 'asinh' -> ImageNormalize(vmin, vmax, stretch=AsinhStretch())
+        - 'log' -> LogNorm(vmin, vmax)
+        - 'none' -> None
+
+    percentile : list of float, default [3, 99.5]
+        Default percentile range used to determine 'vmin' and 'vmax'.
+    origin : str, {'upper', 'lower'}, default 'lower'
+        Pixel origin convention for imshow.
+    cmap : str or list of str, default 'turbo'
+        Matplotlib colormap name or list of colormaps, cycled across images.
+        ex: ['turbo', 'RdPu_r']
+    plot_boolean : bool, default False
+        If True, assumes 'datas' contain boolean arrays and fixes
+        colormap scaling between 0 and 1, with norm = None.
+    aspect : str, {'auto', 'equal'} or float, optional
+        Aspect ratio passed to imshow. By default is None.
+
+    Kwargs
+    ––––––
+    invert_xaxis : bool, default False
+        Invert the x-axis if True.
+    invert_yaxis : bool, default False
+        Invert the y-axis if True.
+    text_loc : list of float, default [0.03, 0.03]
+        Relative axes coordinates for text placement when plotting interactive ellipses.
+    text_color : str, default 'k'
+        Color of the ellipse annotation text.
+    xlabel : str, optional
+        X-axis label.
+    ylabel : str, optional
+        Y-axis label.
+    colorbar : bool, default True
+        Add colobar if True.
+    clabel : str, optional
+        Colorbar label.
+    cbar_width : float, default 0.03
+        Width of the colorbar.
+    cbar_pad : float, default 0.015
+        Padding between plot and colorbar.
+    rotate_tick_axis : str, {'ra', 'dec'}, optional
+        Coordinate axis name whose tick labels should be rotated
+        by 90 degrees. Only applies if 'ax' is a WCSAxes.
+    circles : list, optional
+        List of circle objects (e.g., matplotlib.patches.Circle)
+        to overplot on the axes.
+    points : array-like, shape (2,) or (N, 2), optional
+        Coordinates of points to overplot. Can be a single point '[x, y]'
+        or a list/array of points '[[x1, y1], [x2, y2], ...]'.
+        Points are plotted as red stars by default.
+    ellipses : list, optional
+        List of Ellipse objects (e.g., matplotlib.patches.Ellipse) to
+        overplot on the axes. Single ellipses can also be passed directly.
+    plot_ellipse : bool, default False
+        If True, plot an interactive ellipse overlay.
+        Ensure you are using an interactive backend such as
+        use_interactive() for this to work.
+    center : list of float, default [X, Y]
+        Center of the default interactive ellipse (x, y).
+    w : float, default X//5
+        Width of the default interactive ellipse.
+    h : float, default Y//5
+        Height of the default interactive ellipse.
+
+    Returns
+    -------
+    im : matplotlib.image.AxesImage
+        The last image plotted (if multiple images are given, the final one).
+    '''
     # –––– KWARGS ––––
     # figure params
     invert_xaxis = kwargs.get('invert_xaxis', False)
@@ -30,7 +125,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     clabel = kwargs.get('clabel', None)
     cbar_width = kwargs.get('cbar_width', 0.03)
     cbar_pad = kwargs.get('cbar_pad', 0.015)
-    rotate_tick_label = kwargs.get('rotate_tick_label', None)
+    rotate_tick_axis = kwargs.get('rotate_tick_axis', None)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -47,9 +142,10 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         vmin = 0
         vmax = 1
         norm = None
-    # ensure inputs are iterable
+    # ensure inputs are iterable or conform to standard
     datas = datas if isinstance(datas, list) else [datas]
     cmap = cmap if isinstance(cmap, list) else [cmap]
+    idx = idx if isinstance(cmap, list) else [idx]
 
     # loop over data list
     for i, data in enumerate(datas):
@@ -57,7 +153,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         data = check_is_array(data)
         # slice data with index if provided
         if idx is not None:
-            data = return_cube_slice(data, idx)
+            data = return_cube_slice(data, idx[i%len(idx)])
         # set imshow norm and scaling if not plotting boolean
         if not plot_boolean:
             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
@@ -65,9 +161,11 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
         # imshow image
         if norm is None:
-            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap[i%len(cmap)], aspect=aspect)
+            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax,
+                           cmap=cmap[i%len(cmap)], aspect=aspect)
         else:
-            im = ax.imshow(data, origin=origin, norm=img_norm, cmap=cmap[i%len(cmap)], aspect=aspect)
+            im = ax.imshow(data, origin=origin, norm=img_norm,
+                           cmap=cmap[i%len(cmap)], aspect=aspect)
 
     # overplot
     plot_circles(circles, ax)
@@ -77,8 +175,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
 
     # rotate tick labels
-    if isinstance(ax, WCSAxes) and (rotate_tick_label is not None):
-        ax.coords[rotate_tick_label].set_ticklabel(rotation=90)
+    if isinstance(ax, WCSAxes) and (rotate_tick_axis is not None):
+        ax.coords[rotate_tick_axis].set_ticklabel(rotation=90)
     # set axes labels
     if xlabel is not None:
         ax.set_xlabel(xlabel)
@@ -141,6 +239,15 @@ def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style
 # Plotting Utils
 # ––––––––––––––
 def check_is_array(cube):
+    '''
+    Ensure array input is np.ndarray.
+    Parameters
+    ––––––––––
+    cube : np.ndarray or dict
+    Returns
+    –––––––
+    cube : np.ndarray
+    '''
     if isinstance(cube, dict):
         cube = np.asarray(cube['data'])
     else:
@@ -149,13 +256,32 @@ def check_is_array(cube):
     return cube
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
+    '''
+    Shift spectral axis by a radial velocity.
+    Parameters
+    ––––––––––
+    spectral_axis : astropy.units.Quantity
+        The spectral axis to shift. Can be in frequency or wavelength units.
+    radial_vel : float or None
+        Radial velocity in km/s (astropy units are not needed). Positive values
+        correspond to a redshift (moving away). If None, no shift is applied.
+    Returns
+    –––––––
+    shifted_axis : astropy.units.Quantity
+        The spectral axis shifted according to the given radial velocity.
+        If the input is in frequency units, the relativistic Doppler
+        formula for frequency is applied; otherwise, the formula for
+        wavelength is applied.
+    '''
+    # speed of light in km/s in vacuum
     c = 299792.458 # [km/s]
     if radial_vel is not None:
+        # if spectral axis in units of frequency
         if spectral_axis.unit.is_equivalent(u.Hz):
             spectral_axis /= (1 - radial_vel / c)
+        # if spectral axis in units of wavelength
         else:
             spectral_axis /= (1 + radial_vel / c)
-        return spectral_axis
 
     return spectral_axis
 
