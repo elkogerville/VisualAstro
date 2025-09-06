@@ -107,6 +107,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     emission_line = kwargs.get('emission_line', None)
     text_loc = kwargs.get('text_loc', [0.03, 0.03])
     text_color = kwargs.get('text_color', 'k')
+    colorbar = kwargs.get('colorbar', True)
     cbar_width = kwargs.get('cbar_width', 0.03)
     cbar_pad = kwargs.get('cbar_pad', 0.015)
     clabel = kwargs.get('clabel', True)
@@ -136,7 +137,8 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
 
     clabel = '$'+set_unit_labels(cube.unit)+'$' if clabel is True else clabel
-    add_colorbar(im, ax, cbar_width, cbar_pad, True, clabel)
+    if colorbar:
+        add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 
     spectral_axis = set_spectral_axis(cube, unit)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)

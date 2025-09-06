@@ -17,7 +17,7 @@ from regions import PixCoord, EllipsePixelRegion
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
            plot_boolean=False, aspect=None, **kwargs):
-
+    # –––– KWARGS ––––
     # figure params
     invert_xaxis = kwargs.get('invert_xaxis', False)
     invert_yaxis = kwargs.get('invert_yaxis', False)
@@ -30,55 +30,64 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     clabel = kwargs.get('clabel', None)
     cbar_width = kwargs.get('cbar_width', 0.03)
     cbar_pad = kwargs.get('cbar_pad', 0.015)
-    rotate_ax_label = kwargs.get('rotate_ax_label', None)
+    rotate_tick_label = kwargs.get('rotate_tick_label', None)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = kwargs.get('plot_ellipse', False)
+    # default ellipse parameters
     X, Y = datas[0].shape if isinstance(datas, list) else datas.shape
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
+    # settings to plot boolean array
     if plot_boolean:
         vmin = 0
         vmax = 1
         norm = None
-
+    # ensure inputs are iterable
     datas = datas if isinstance(datas, list) else [datas]
     cmap = cmap if isinstance(cmap, list) else [cmap]
 
+    # loop over data list
     for i, data in enumerate(datas):
+        # ensure data is an array
         data = check_is_array(data)
+        # slice data with index if provided
         if idx is not None:
             data = return_cube_slice(data, idx)
-
+        # set imshow norm and scaling if not plotting boolean
         if not plot_boolean:
             vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
             img_norm = return_imshow_norm(vmin, vmax, norm)
 
+        # imshow image
         if norm is None:
             im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax, cmap=cmap[i%len(cmap)], aspect=aspect)
         else:
             im = ax.imshow(data, origin=origin, norm=img_norm, cmap=cmap[i%len(cmap)], aspect=aspect)
 
+    # overplot
     plot_circles(circles, ax)
     plot_points(points, ax)
     plot_ellipses(ellipses, ax)
     if plot_ellipse:
         plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
 
-    if isinstance(ax, WCSAxes) and (rotate_ax_label is not None):
-        ax.coords[rotate_ax_label].set_ticklabel(rotation=90)
-
+    # rotate tick labels
+    if isinstance(ax, WCSAxes) and (rotate_tick_label is not None):
+        ax.coords[rotate_tick_label].set_ticklabel(rotation=90)
+    # set axes labels
     if xlabel is not None:
         ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
-
-    add_colorbar(im, ax, cbar_width, cbar_pad, colorbar, clabel)
-
+    # add colorbar
+    if colorbar:
+        add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
+    # invert axes
     if invert_xaxis:
         ax.invert_xaxis()
     if invert_yaxis:
@@ -315,15 +324,14 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-def add_colorbar(im, ax, cbar_width, cbar_pad, colorbar, clabel):
+def add_colorbar(im, ax, cbar_width, cbar_pad, clabel):
     fig = ax.figure
-    if colorbar:
-        cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-                            cbar_width, ax.get_position().height])
-        cbar = fig.colorbar(im, cax=cax, pad=0.04)
-        cbar.ax.tick_params(which='both', direction='out')
-        if clabel is not None:
-            cbar.set_label(fr'{clabel}')
+    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
+                        cbar_width, ax.get_position().height])
+    cbar = fig.colorbar(im, cax=cax, pad=0.04)
+    cbar.ax.tick_params(which='both', direction='out')
+    if clabel is not None:
+        cbar.set_label(fr'{clabel}')
 
 def plot_circles(circles, ax):
     circle_colors = ['r', 'mediumvioletred', 'magenta']
