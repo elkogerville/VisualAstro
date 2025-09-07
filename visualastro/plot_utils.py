@@ -383,11 +383,31 @@ def return_imshow_norm(vmin, vmax, norm):
     return norm_map[norm]
 
 def return_cube_slice(cube, idx):
+    '''
+    Return a slice of a data cube along the first axis.
+    Parameters
+    ––––––––––
+    cube : np.ndarray
+        Input data cube, typically with shape (T, N, ...) where T is the first axis.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'cube[i]'
+        - [i] -> returns 'cube[i[0]]'
+        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
+    Returns
+    –––––––
+    cube : np.ndarray
+        Sliced cube with shape (N, ...).
+    '''
+    # if index is integer
     if isinstance(idx, int):
         return cube[idx]
+    # if index is list of integers
     elif isinstance(idx, list):
+        # list of len 1
         if len(idx) == 1:
             return cube[idx[0]]
+        # list of len 2
         elif len(idx) == 2:
             start, end = idx
             return cube[start:end+1].sum(axis=0)
@@ -598,6 +618,11 @@ def update_region(region, text):
 # Notebook Utils
 # ––––––––––––––
 def use_inline():
+    '''
+    Start an inline IPython backend session.
+    Allows for inline plots in IPython sessions
+    like Jupyter Notebook.
+    '''
     try:
         from IPython import get_ipython
         ipython = get_ipython()
@@ -609,6 +634,11 @@ def use_inline():
         print("IPython is not installed. Install it to use this feature.")
 
 def use_interactive():
+    '''
+    Start an interactive IPython backend session.
+    Allows for interactive plots in IPython sessions
+    like Jupyter Notebook.
+    '''
     try:
         from IPython import get_ipython
         ipython = get_ipython()
@@ -620,4 +650,7 @@ def use_interactive():
         print("IPython is not installed. Install it to use this feature.")
 
 def plt_close():
+    '''
+    Close all interactive plots in session.
+    '''
     plt.close('all')
