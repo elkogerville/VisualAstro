@@ -9,8 +9,9 @@ from spectral_cube import SpectralCube
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    add_colorbar, plot_ellipses, plot_interactive_ellipse, return_cube_slice, return_imshow_norm,
-    return_spectral_axis_idx, set_spectral_axis, set_unit_labels, set_vmin_vmax, shift_by_radial_vel
+    add_colorbar, extract_spectral_axis, plot_ellipses, plot_interactive_ellipse,
+    return_cube_slice, return_imshow_norm, return_spectral_value, set_unit_labels,
+    set_vmin_vmax, shift_by_radial_vel
 )
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -140,9 +141,9 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 
-    spectral_axis = set_spectral_axis(cube, unit)
+    spectral_axis = extract_spectral_axis(cube, unit)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-    spectral_value = return_spectral_axis_idx(spectral_axis, idx)
+    spectral_value = return_spectral_value(spectral_axis, idx)
     unit_label = set_unit_labels(spectral_axis.unit)
 
     if plot_ellipse:
