@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 from regions import PixCoord, EllipsePixelRegion
-from multiprocessing.dummy import dict
 
 # ––––––––––––––––––
 # Plotting Functions
@@ -686,6 +685,6 @@ def use_interactive():
 
 def plt_close():
     '''
-    Close all interactive plots in session.
+    Closes all interactive plots in session.
     '''
     plt.close('all')
