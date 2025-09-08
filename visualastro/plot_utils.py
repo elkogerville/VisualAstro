@@ -30,11 +30,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     idx : int or list of int, optional
         Index for slicing along the first axis if 'datas'
         contains a cube.
-
         - i -> returns cube[i]
         - [i] -> returns cube[i]
         - [i, j] -> returns the sum of cube[i:j+1] along axis 0
-
         If 'datas' is a list of cubes, you may also pass a list of
         indeces.
         ex: passing indeces for 2 cubes-> [[i,j], k].
@@ -298,12 +296,12 @@ def return_stylename(style):
     Parameters
     ––––––––––
     style : str
-        name of the mpl stylesheet without the extension
+        Name of the mpl stylesheet without the extension
         ex: 'astro'
     Returns
     –––––––
     style_path : str
-        path to matplotlib stylesheet
+        Path to matplotlib stylesheet
     '''
     # if style is a default matplotlib stylesheet
     if style in mpl.style.available:
@@ -392,7 +390,7 @@ def return_cube_slice(cube, idx):
     idx : int or list of int
         Index or indices specifying the slice along the first axis:
         - i -> returns 'cube[i]'
-        - [i] -> returns 'cube[i[0]]'
+        - [i] -> returns 'cube[i]'
         - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
     Returns
     –––––––
@@ -413,23 +411,60 @@ def return_cube_slice(cube, idx):
             return cube[start:end+1].sum(axis=0)
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
-def set_spectral_axis(cube, unit=None):
+def extract_spectral_axis(cube, unit=None):
+    '''
+    Extract the spectral axis from a data cube and optionally
+    convert it to a specified unit.
+    Parameters
+    ––––––––––
+    cube : SpectralCube
+        The input spectral data cube.
+    unit : astropy.units.Unit, optional
+        Desired unit for the spectral axis. If None, the axis
+        is returned in its native units.
+    Returns
+    –––––––
+    spectral_axis : Quantity
+        The spectral axis of the cube, optionally converted
+        to the specified unit.
+    '''
     axis = cube.spectral_axis
+    # return axis if unit is None
     if unit is None:
         return axis
+    # if a unit is specified, attempt to
+    # convert axis to those units
     try:
         return axis.to(unit, equivalencies=spectral())
     except u.UnitConversionError:
         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
 
-def return_spectral_axis_idx(spectral_axis, idx):
+def return_spectral_value(spectral_axis, idx):
+    '''
+    Return a representative value from a spectral axis
+    given an index or index range.
+    Parameters
+    ––––––––––
+    spectral_axis : Quantity
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an 'astropy.units.Quantity' array.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'spectral_axis[i]'
+        - [i] -> returns 'spectral_axis[i]'
+        - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
+    Returns
+    –––––––
+    spectral_value : float
+        The spectral value at the specified index or index
+        range, in the units of 'spectral_axis'.
+    '''
     if isinstance(idx, int):
         return spectral_axis[idx].value
     elif isinstance(idx, list):
         if len(idx) == 1:
             return spectral_axis[idx[0]].value
         elif len(idx) == 2:
-            start, end = idx
             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
@@ -438,9 +473,9 @@ def save_figure_2_disk(dpi=600):
     Saves current figure to disk as a pdf, png, or svg,
     and prompts user for a filename and format.
     Parameters
-    ----------
+    ––––––––––
     dpi: float
-        resolution in dots per inch
+        Resolution in dots per inch.
     '''
     allowed_formats = {'pdf', 'png', 'svg'}
     # prompt user for filename, and extract extension
