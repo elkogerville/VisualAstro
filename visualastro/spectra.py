@@ -16,7 +16,9 @@ from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, s
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
-
+    # –––– KWARGS ––––
+    # doppler convention
+    convention = kwargs.get('convention', 'optical')
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
@@ -50,7 +52,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         for i, cube in enumerate(cubes):
 
             # extract spectral axis converted to user specified units
-            spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq)
+            spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq, convention)
 
             # extract spectrum flux
             spectrum = cube.mean(axis=(1,2))
@@ -275,12 +277,12 @@ def convert_region_units(region, spectral_axis):
 
     return region
 
-def return_spectral_coord(cube, unit, radial_vel, rest_freq):
+def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical'):
     '''
     Return cube spectral axis shifted by radial velocity and converted to user specified units
     '''
     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
-                                  doppler_convention='radio')
+                                  doppler_convention=convention)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
 
     if unit is not None:
