@@ -312,19 +312,22 @@ def return_stylename(style):
         style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
 
-def set_vmin_vmax(data, percentile, vmin, vmax):
+def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     '''
-    Compute vmin and vmax for image display, optionally using percentiles.
+    Compute vmin and vmax for image display. By default uses the
+    percentile range [1,99], but optionally vmin and/or vmax can
+    be set by the user. Setting percentile to None results in no
+    stretch.
     Parameters
     ––––––––––
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, optional
+    percentile : list or tuple of two floats, default [1,99]
         Percentile range '[pmin, pmax]' to compute vmin and vmax.
         If None, sets vmin and vmax to None.
-    vmin : float or None
+    vmin : float or None, default None
         If provided, overrides the computed vmin.
-    vmax : float or None
+    vmax : float or None, default None
         If provided, overrides the computed vmax.
     Returns
     –––––––
