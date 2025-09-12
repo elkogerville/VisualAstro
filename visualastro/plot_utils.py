@@ -595,6 +595,19 @@ def set_plot_colors(user_colors=None):
     )
 
 def set_unit_labels(unit):
+    '''
+    Convert an astropy unit string into a LaTeX-formatted label for plotting.
+    Parameters
+    ––––––––––
+    unit : str
+        The unit string to convert. Common astropy units such as 'um',
+        'Angstrom', 'km / s', etc. are mapped to LaTeX-friendly forms.
+    Returns
+    –––––––
+    str or None
+        A LaTeX-formatted unit label if the input is recognized.
+        Returns None if the unit is not in the predefined mapping.
+    '''
     unit_label = {
         'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
         'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
@@ -616,24 +629,64 @@ def set_unit_labels(unit):
     return unit_label
 
 def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
+    '''
+    Automatically format labels including units for any plot involving intensity as
+    a function of spectral type.
+    Parameters
+    ––––––––––
+    X : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
+        The data for the x-axis, typically a spectral axis (frequency, wavelength, or velocity).
+    Y : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
+        The data for the y-axis, typically flux or intensity.
+    ax : 'matplotlib.axes.Axes'
+        The matplotlib axes object on which to set the labels.
+    xlabel : str or None, optional
+        Custom label for the x-axis. If None (default), the label is inferred from 'X'.
+    ylabel : str or None, optional
+        Custom label for the y-axis. If None (default), the label is inferred from 'Y'.
+    use_brackets : bool, optional
+        If True, wrap units in square brackets '[ ]'. If False (default), use parentheses '( )'.
+    Notes
+    –––––
+    - Units are formatted using 'set_unit_labels', which provides LaTeX-friendly labels.
+    - If units are not recognized, only the axis type (e.g., 'Spectral Axis', 'Intensity')
+      is displayed without units.
+    '''
+    # determine spectral type of data (frequency, length, or velocity)
     spectral_type = {
         'frequency': 'Frequency',
         'length': 'Wavelength',
         'speed/velocity': 'Velocity',
-    }.get(str(X.unit.physical_type), 'Spectral Axis')
-
+    }.get(str(getattr(getattr(X, 'unit', None), 'physical_type', None)), 'Spectral Axis')
+    # determine intensity type of data (counts, flux)
+    flux_type = {
+        'count': 'Counts',
+        'flux density': 'Flux',
+        'surface brightness': 'Flux'
+    }.get(str(getattr(getattr(Y, 'unit', None), 'physical_type', None)), 'Intensity')
+    # unit bracket type [] or ()
     brackets = [r'[$',r'$]'] if use_brackets else [r'($',r'$)']
-
+    # if xlabel is not overidden by user
     if xlabel is None:
+        # determine unit from data
         x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
-        x_unit_label = fr'{brackets[0]}{set_unit_labels(x_unit)}{brackets[1]}'
-        xlabel = fr'{spectral_type} {x_unit_label}' if x_unit_label else spectral_type
-
+        x_unit_label = set_unit_labels(x_unit)
+        # format unit label if valid unit is found
+        if x_unit_label:
+            xlabel = fr'{spectral_type} {brackets[0]}{x_unit_label}{brackets[1]}'
+        else:
+            xlabel = spectral_type
+    # if ylabel is not overidden by user
     if ylabel is None:
+        # determine unit from data
         y_unit = str(getattr(Y, 'spectral_unit', getattr(Y, 'unit', None)))
-        y_unit_label = fr'{brackets[0]}{set_unit_labels(y_unit)}{brackets[1]}'
-        ylabel = fr'Flux {y_unit_label}' if y_unit_label else 'Flux'
-
+        y_unit_label = set_unit_labels(y_unit)
+        # format unit label if valid unit is found
+        if y_unit_label:
+            ylabel = fr'{flux_type} {brackets[0]}{y_unit_label}{brackets[1]}'
+        else:
+            ylabel = flux_type
+    # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 

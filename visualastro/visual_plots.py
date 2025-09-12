@@ -231,6 +231,7 @@ class va:
                 with plt.style.context(style):
                     fig, ax = plt.subplots(figsize=(8, len(color_map)))
                     ax.axis("off")
+                    print('Default VisualAstro color palettes:')
                     # loop through color schemes
                     for i, color in enumerate(color_map):
                         plot_colors, _ = set_plot_colors(color)
@@ -250,6 +251,7 @@ class va:
                 with plt.style.context(style):
                     fig, ax = plt.subplots(figsize=(8, len(color_map)))
                     ax.axis("off")
+                    print('VisualAstro model color palettes:')
                     # loop through color schemes
                     for i, color in enumerate(color_map):
                         _, model_colors = set_plot_colors(color)

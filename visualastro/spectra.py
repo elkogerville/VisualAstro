@@ -110,7 +110,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             spectra_dict_list = spectra_dict_list[0]
         return spectra_dict_list
 
-def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False, emission_line=None, **kwargs):
+def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
+                  emission_line=None, **kwargs):
 
     # figure params
     xlim = kwargs.get('xlim', None)
