@@ -220,3 +220,65 @@ class va:
                 spectra_dict = return_spectra_dict(wavelength, flux)
 
                 return spectra_dict
+
+    class help:
+        @staticmethod
+        def colors(user_color=None):
+            style = return_stylename('astro')
+            # visualastro default color schemes
+            color_map = ['visualastro', 'ibm_contrast', 'astro', 'astro_r', 'MSG', 'ibm']
+            if user_color is None:
+                with plt.style.context(style):
+                    fig, ax = plt.subplots(figsize=(8, len(color_map)))
+                    ax.axis("off")
+                    # loop through color schemes
+                    for i, color in enumerate(color_map):
+                        plot_colors, _ = set_plot_colors(color)
+                        # add color tile for each color in scheme
+                        for j, c in enumerate(plot_colors):
+                            ax.add_patch(
+                                plt.Rectangle((j, -i), 1, 1, color=c, ec="black")
+                            )
+                        # add color scheme name
+                        ax.text(-0.5, -i + 0.5, color, va="center", ha="right")
+                    # formatting
+                    ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+                    ax.set_ylim(-len(color_map), 1)
+                    plt.tight_layout()
+                    plt.show()
+
+                with plt.style.context(style):
+                    fig, ax = plt.subplots(figsize=(8, len(color_map)))
+                    ax.axis("off")
+                    # loop through color schemes
+                    for i, color in enumerate(color_map):
+                        _, model_colors = set_plot_colors(color)
+                        # add color tile for each color in scheme
+                        for j, c in enumerate(model_colors):
+                            ax.add_patch(
+                                plt.Rectangle((j, -i), 1, 1, color=c, ec="black")
+                            )
+                        # add color scheme name
+                        ax.text(-0.5, -i + 0.5, color, va="center", ha="right")
+                    # formatting
+                    ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+                    ax.set_ylim(-len(color_map), 1)
+                    plt.tight_layout()
+                    plt.show()
+            else:
+                color_palettes = set_plot_colors(user_color)
+                label = ['plot colors', 'model colors']
+                fig, ax = plt.subplots(figsize=(8, 2))
+                ax.axis("off")
+                for i in range(2):
+                    for j in range(len(color_palettes[i])):
+                        ax.add_patch(
+                            plt.Rectangle((j, -i), 1, 1, color=color_palettes[i][j], ec="black")
+                        )
+                    # add color scheme name
+                    ax.text(-0.5, -i + 0.5, label[i], va="center", ha="right")
+                # formatting
+                ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+                ax.set_ylim(-len(color_map), 1)
+                plt.tight_layout()
+                plt.show()

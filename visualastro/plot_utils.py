@@ -7,6 +7,7 @@ from astropy import units as u
 from astropy.units import spectral
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 from regions import PixCoord, EllipsePixelRegion
@@ -497,37 +498,144 @@ def save_figure_2_disk(dpi=600):
     # save figure
     plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
 
-def set_plot_colors(user_colors=None):
-    default_color_map = 'ibm_contrast'
-    color_map = {
-        #                  dsb        mvr      ibmblue      gold     mossgreen
-        'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-        #                ibmblue       mvr     ibmpurple  mossgreen    gold      traffico
-        'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-        #          bbblue     ibmblue   ibmpurple     mvr      traffico    gold      pondwater  mossgreen
-        'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
-        #          mossgreen    pondwater    gold      traffico    mvr      ibmpurple   ibmblue    bbblue
-        'astro_r': ['#26DCBA', '#CFE23C', '#FFB000', '#FE6100', '#DC267F', '#785EF0', '#648FFF', '#9FB7FF'],
-        #          dsb        mvr       lilac    mossgreen  slateblue
-        'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
-        #        ibmblue   ibmpurple     mvr      traffico    gold
-        'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000']
-    }
-    model_colors = ['r', 'purple', 'magenta']
-    if user_colors is not None:
-        if isinstance(user_colors, str) and user_colors in color_map:
-            colors = color_map[user_colors]
-        else:
-            if isinstance(user_colors, str):
-                if user_colors == 'mvr':
-                    user_colors = ['#DC267F']
-                else:
-                    user_colors = [user_colors]
-            colors = user_colors
-    else:
-        colors = color_map[default_color_map]
+# def set_plot_colors(user_colors=None, model_colors=None):
+#     default_color_map = 'ibm_contrast'
+#     color_map = {
+#         #                  dsb        mvr      ibmblue      gold     mossgreen
+#         'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+#         #                ibmblue       mvr     ibmpurple  mossgreen    gold      traffico
+#         'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
+#         #          bbblue     ibmblue   ibmpurple     mvr      traffico    gold      pondwater  mossgreen
+#         'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
+#         #          mossgreen    pondwater    gold      traffico    mvr      ibmpurple   ibmblue    bbblue
+#         'astro_r': ['#26DCBA', '#CFE23C', '#FFB000', '#FE6100', '#DC267F', '#785EF0', '#648FFF', '#9FB7FF'],
+#         #          dsb        mvr       lilac    mossgreen  slateblue
+#         'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+#         #        ibmblue   ibmpurple     mvr      traffico    gold
+#         'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000']
+#     }
+#     #model_colors = ['r', 'purple', 'magenta']
+#     model_colors_map = {
+#         'visualastro': ['#7C71B3', '#E78FB5', '#A2B9FF', '#FFD666', '#6FECD4'],
+#         'ibm_contrast': ['#A2B9FF', '#E78FB5', '#B39DF7', '#6FECD4', '#FFD666', '#FF9552'],
+#         'astro': ['#C7D5FF', '#A2B9FF', '#B39DF7', '#E78FB5', '#FF9552', '#FFD666', '#DFF279', '#6FECD4'],
+#         'astro_r': ['#6FECD4', '#DFF279', '#FFD666', '#FF9552', '#E78FB5', '#B39DF7', '#A2B9FF', '#C7D5FF'],
+#         'MSG': ['#7C71B3', '#E78FB5', '#E8CCFF', '#6FECD4', '#A6A6F6'],
+#         'ibm': ['#A2B9FF', '#B39DF7', '#E78FB5', '#FF9552', '#FFD666']
+#     }
 
-    return colors, model_colors
+#     if user_colors is not None:
+#         if isinstance(user_colors, str) and user_colors in color_map:
+#             colors = color_map[user_colors]
+#             model_colors = model_colors_map[user_colors]
+#         else:
+#             if isinstance(user_colors, str):
+#                 if user_colors == 'mvr':
+#                     user_colors = ['#DC267F']
+#                 else:
+#                     user_colors = [user_colors]
+#             colors = user_colors
+#     else:
+#         colors = color_map[default_color_map]
+
+#     return colors, model_colors
+
+def lighten_color(color, mix=0.5):
+    '''
+    Lightens the given matplotlib color by mixing it with white.
+    Parameters
+    ––––––––––
+    color : matplotlib color, str
+        Matplotlib named color, hex color, html color or rgb tuple.
+    mix : float or int
+        Ratio of color to white in mix.
+        mix=0 returns the original color,
+        mix=1 returns pure white.
+    '''
+    # convert to rgb
+    rgb = np.array(mcolors.to_rgb(color))
+    white = np.array([1, 1, 1])
+    # mix color with white
+    mixed = (1 - mix) * rgb + mix * white
+
+    return mcolors.to_hex(mixed)
+
+
+def set_plot_colors(user_colors=None):
+    '''
+    Returns plot and model colors based on predefined palettes or user input.
+    Parameters
+    ––––––––––
+    user_colors : None, str, or list, optional
+        - None (default): returns the default palette ('ibm_contrast').
+        - str:
+            * If the string matches a palette name, returns that palette.
+            * If the string ends with '_r', returns the reversed version of the palette.
+            * If the string is a single color (hex or matplotlib color name), returns
+                that color and a lighter version for the model.
+        - list:
+            * A list of colors (hex or matplotlib color names). Returns the list
+                for plotting and lighter versions for models.
+    Returns
+    –––––––
+    plot_colors : list of str
+        Colors for plotting the data.
+    model_colors : list of str
+        Colors for plotting the model (contrasting or lighter versions).
+    '''
+    # default visualastro color palettes
+    palettes = {
+        'visualastro': {
+            'plot':  ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+            'model': ['#D62728', '#1F77B4', '#E45756', '#17BECF', '#9467BD']
+        },
+        'ibm_contrast': {
+            'plot':  ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
+            'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#1F77B4', '#8C564B']
+        },
+        'astro': {
+            'plot':  ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
+            'model': ['#D62728', '#1F77B4', '#9467BD', '#2CA02C', '#E45756', '#17BECF', '#8C564B', '#FFD700']
+        },
+        'MSG': {
+            'plot':  ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+            'model': ['#D62728', '#1F77B4', '#2CA02C', '#9467BD', '#17BECF']
+        },
+        'ibm': {
+            'plot':  ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+            'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#E45756']
+        }
+    }
+
+    default_palette = 'ibm_contrast'
+    # default case
+    if user_colors is None:
+        palette = palettes[default_palette]
+        return palette['plot'], palette['model']
+    # if user passes a color string
+    if isinstance(user_colors, str):
+        # if palette in visualastro palettes
+        # return a reversed palette if palette
+        # ends with '_r'
+        if user_colors.rstrip('_r') in palettes:
+            base_name = user_colors.rstrip('_r')
+            palette = palettes[base_name]
+            plot_colors = palette['plot']
+            model_colors = palette['model']
+            # if '_r', reverse palette
+            if user_colors.endswith('_r'):
+                plot_colors = plot_colors[::-1]
+                model_colors = model_colors[::-1]
+            return plot_colors, model_colors
+        else:
+            return [user_colors], [lighten_color(user_colors)]
+    # if user passes a list of colors
+    if isinstance(user_colors, list):
+            return user_colors, [lighten_color(c) for c in user_colors]
+
+    raise ValueError(
+        'user_colors must be None, a str palette name, a str color, or a list of colors'
+    )
 
 def set_unit_labels(unit):
     unit_label = {
