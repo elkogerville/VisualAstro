@@ -518,7 +518,6 @@ def lighten_color(color, mix=0.5):
 
     return mcolors.to_hex(mixed)
 
-
 def set_plot_colors(user_colors=None):
     '''
     Returns plot and model colors based on predefined palettes or user input.
@@ -612,7 +611,7 @@ def set_unit_labels(unit):
         'GHz': 'GHz',
         'electron': r'\mathrm{e^{-}}',
         'km / s': r'\mathrm{km\ s^{-1}}',
-    }.get(str(unit), unit)
+    }.get(str(unit))
 
     return unit_label
 
@@ -638,7 +637,7 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-def add_colorbar(im, ax, cbar_width, cbar_pad, clabel):
+def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     fig = ax.figure
     cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
                         cbar_width, ax.get_position().height])
