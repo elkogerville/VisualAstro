@@ -100,6 +100,7 @@ class va:
         xlabel = kwargs.get('xlabel', None)
         ylabel = kwargs.get('ylabel', None)
         colors = kwargs.get('colors', None)
+        cmap = kwargs.get('cmap', 'turbo')
         text_loc = kwargs.get('text_loc', [0.025, 0.95])
         use_brackets = kwargs.get('use_brackets', False)
         # savefig
@@ -109,7 +110,7 @@ class va:
         spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
 
         # set plot style and colors
-        colors, fit_colors = set_plot_colors(colors)
+        colors, fit_colors = set_plot_colors(colors, cmap=cmap)
         style = return_stylename(style)
 
         with plt.style.context(style):
@@ -157,6 +158,7 @@ class va:
         xlabel = kwargs.get('xlabel', None)
         ylabel = kwargs.get('ylabel', None)
         colors = kwargs.get('colors', None)
+        cmap = kwargs.get('cmap', 'turbo')
         loc = kwargs.get('loc', 'best')
         use_brackets = kwargs.get('use_brackets', False)
         # savefig
@@ -165,7 +167,7 @@ class va:
 
         concatenate = True if return_spectra else concatenate
         # set plot style and colors
-        colors, _ = set_plot_colors(colors)
+        colors, _ = set_plot_colors(colors, cmap=cmap)
         style = return_stylename(style)
 
         with plt.style.context(style):
