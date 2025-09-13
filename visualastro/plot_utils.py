@@ -498,7 +498,30 @@ def save_figure_2_disk(dpi=600):
     # save figure
     plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
 
-def set_plot_colors(user_colors=None):
+def sample_cmap(N, cmap='turbo', return_hex=False):
+    '''
+    Sample N distinct colors from a given matplotlib colormap
+    returned as RGBA tuples in an array of shape (N,4).
+    Parameters
+    ––––––––––
+    N : int
+        Number of colors to sample.
+    cmap : str or Colormap, optional
+        Name of the matplotlib colormap (default is 'turbo').
+    return_hex : bool, optional, default False
+        If True, return colors as hex strings.
+    Returns
+    –––––––
+    list of tuple
+        A list of RGBA colors sampled evenly from the colormap.
+    '''
+    colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
+    if return_hex:
+        colors = np.array([mcolors.to_hex(c) for c in colors])
+
+    return colors
+
+def set_plot_colors(user_colors=None, cmap='turbo'):
     '''
     Returns plot and model colors based on predefined palettes or user input.
     Parameters
@@ -509,10 +532,15 @@ def set_plot_colors(user_colors=None):
             * If the string matches a palette name, returns that palette.
             * If the string ends with '_r', returns the reversed version of the palette.
             * If the string is a single color (hex or matplotlib color name), returns
-                that color and a lighter version for the model.
+              that color and a lighter version for the model.
         - list:
             * A list of colors (hex or matplotlib color names). Returns the list
-                for plotting and lighter versions for models.
+              for plotting and lighter versions for models.
+        - int:
+            * An integer specifying how many colors to sample from a matplolib cmap
+              using sample_cmap(). By default uses 'turbo'.
+    cmap : str or list of str, default 'turbo'
+        Matplotlib colormap name.
     Returns
     –––––––
     plot_colors : list of str
@@ -566,12 +594,14 @@ def set_plot_colors(user_colors=None):
             return plot_colors, model_colors
         else:
             return [user_colors], [lighten_color(user_colors)]
-    # if user passes a list of colors
-    if isinstance(user_colors, list):
-            return user_colors, [lighten_color(c) for c in user_colors]
-
+    # if user passes a list or array of colors
+    if isinstance(user_colors, (list, np.ndarray)):
+        return user_colors, [lighten_color(c) for c in user_colors]
+    if isinstance(user_colors, int):
+        colors = sample_cmap(user_colors, cmap=cmap)
+        return colors, [lighten_color(c) for c in colors]
     raise ValueError(
-        'user_colors must be None, a str palette name, a str color, or a list of colors'
+        'user_colors must be None, a str palette name, a str color, a list of colors, or an integer'
     )
 
 def lighten_color(color, mix=0.5):

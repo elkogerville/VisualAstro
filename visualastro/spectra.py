@@ -29,6 +29,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colors = kwargs.get('colors', None)
+    cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
     # savefig
@@ -38,7 +39,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors)
+    colors, fit_colors = set_plot_colors(colors, cmap=cmap)
     style = return_stylename(style)
 
     with plt.style.context(style):
@@ -122,13 +123,14 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colors = kwargs.get('colors', None)
+    cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
 
     spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
 
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors)
+    colors, fit_colors = set_plot_colors(colors, cmap=cmap)
 
     if emission_line is not None:
         ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
@@ -165,12 +167,13 @@ def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colors = kwargs.get('colors', None)
+    cmap = kwargs.get('cmap', 'turbo')
     loc = kwargs.get('loc', 'best')
     use_brackets = kwargs.get('use_brackets', False)
 
     concatenate = True if return_spectra else concatenate
     # set plot style and colors
-    colors, _ = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors, cmap=cmap)
 
     lims = []
     wave_list = []
