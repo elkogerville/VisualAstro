@@ -691,10 +691,31 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     ax.set_ylabel(ylabel)
 
 def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
+    '''
+    Add a colorbar next to an Axes.
+    Parameters
+    ––––––––––
+    im : matplotlib.cm.ScalarMappable
+        The image, contour set, or mappable object returned by a plotting
+        function (e.g., 'imshow', 'scatter', etc...).
+    ax : matplotlib.axes.Axes
+        The axes to which the colorbar will be attached.
+    cbar_width : float, optional
+        Width of the colorbar in figure coordinates. Default is 0.03.
+    cbar_pad : float, optional
+        Padding between the main axes and the colorbar in figure coordinates.
+        Default is 0.015.
+    clabel : str, optional
+        Label for the colorbar. If None, no label is set.
+    '''
+    # extract figure from axes
     fig = ax.figure
+    # add colorbar axes
     cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
                         cbar_width, ax.get_position().height])
+    # add colorbar
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
+    # formatting and label
     cbar.ax.tick_params(which='both', direction='out')
     if clabel is not None:
         cbar.set_label(fr'{clabel}')

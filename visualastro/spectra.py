@@ -97,7 +97,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         set_axis_limits(wavelength_list, ax, xlim, ylim)
 
-        set_axis_labels(spectral_axis, spectrum, ax, xlabel, ylabel, use_brackets)
+        set_axis_labels(spectral_axis, spectrum, ax,
+                        xlabel, ylabel, use_brackets)
 
         if labels is not None:
             plt.legend()
@@ -589,14 +590,25 @@ def compute_limits_mask(x, xlim=None):
 
     return mask
 
-def set_axis_limits(data_list, ax, xlim=None, ylim=None):
-
-    data_list = np.concatenate(data_list)
+def set_axis_limits(data_list, ax, ydata=None, xlim=None, ylim=None):
+    # concatenate list of data into single array
+    if isinstance(data_list, (list, tuple)):
+        data_list = np.concatenate(data_list)
+    else:
+        data_list = np.asarray(data_list)
     # min and max values across data sets
     xmin = return_array_values(np.nanmin(data_list))
     xmax = return_array_values(np.nanmax(data_list))
-
+    # use computed limits unless user overides
     xlim = xlim if xlim is not None else [xmin, xmax]
-
+    # set x and y limits
     ax.set_xlim(xlim)
+    if ydata is not None:
+        if isinstance(ydata, (list, tuple)):
+            ydata = np.concatenate(ydata)
+        else:
+            ydata = np.asarray(ydata)
+        ymin = return_array_values(np.nanmin(ydata))
+        ymax = return_array_values(np.nanmax(ydata))
+        ylim = ylim if ylim is not None else [ymin, ymax]
     ax.set_ylim(ylim)
