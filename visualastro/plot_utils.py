@@ -498,26 +498,6 @@ def save_figure_2_disk(dpi=600):
     # save figure
     plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
 
-def lighten_color(color, mix=0.5):
-    '''
-    Lightens the given matplotlib color by mixing it with white.
-    Parameters
-    ––––––––––
-    color : matplotlib color, str
-        Matplotlib named color, hex color, html color or rgb tuple.
-    mix : float or int
-        Ratio of color to white in mix.
-        mix=0 returns the original color,
-        mix=1 returns pure white.
-    '''
-    # convert to rgb
-    rgb = np.array(mcolors.to_rgb(color))
-    white = np.array([1, 1, 1])
-    # mix color with white
-    mixed = (1 - mix) * rgb + mix * white
-
-    return mcolors.to_hex(mixed)
-
 def set_plot_colors(user_colors=None):
     '''
     Returns plot and model colors based on predefined palettes or user input.
@@ -593,6 +573,26 @@ def set_plot_colors(user_colors=None):
     raise ValueError(
         'user_colors must be None, a str palette name, a str color, or a list of colors'
     )
+
+def lighten_color(color, mix=0.5):
+    '''
+    Lightens the given matplotlib color by mixing it with white.
+    Parameters
+    ––––––––––
+    color : matplotlib color, str
+        Matplotlib named color, hex color, html color or rgb tuple.
+    mix : float or int
+        Ratio of color to white in mix.
+        mix=0 returns the original color,
+        mix=1 returns pure white.
+    '''
+    # convert to rgb
+    rgb = np.array(mcolors.to_rgb(color))
+    white = np.array([1, 1, 1])
+    # mix color with white
+    mixed = (1 - mix) * rgb + mix * white
+
+    return mcolors.to_hex(mixed)
 
 def set_unit_labels(unit):
     '''
@@ -779,6 +779,70 @@ def copy_ellipse(ellipse):
         alpha=ellipse.get_alpha()
     )
 
+def plot_interactive_ellipse(center, w, h, ax,
+                             text_loc=[0.03,0.03],
+                             text_color='k'):
+    '''
+    Create an interactive ellipse selector on an Axes
+    along with an interactive text window displaying
+    the current ellipse center, width, and height.
+    Parameters
+    ––––––––––
+    center : tuple of float
+        (x, y) coordinates of the ellipse center in data units.
+    w : float
+        Width of the ellipse.
+    h : float
+        Height of the ellipse.
+    ax : matplotlib.axes.Axes
+        The Axes on which to draw the ellipse selector.
+    text_loc : list of float, optional
+        Position of the text label in Axes coordinates, given as [x, y].
+        Default is [0.03, 0.03].
+    text_color : str, optional
+        Color of the annotation text. Default is 'k'.
+    Notes
+    –––––
+    Ensure an interactive backend is active. This can be
+    activated with use_interactive().
+    '''
+    # define text for ellipse data display
+    text = ax.text(text_loc[0], text_loc[1], '',
+                   transform=ax.transAxes,
+                   size='small', color=text_color)
+    # define ellipse
+    ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]),
+                                        width=w, height=h)
+    # define interactive ellipse
+    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
+    # bind ellipse to axes
+    ax._ellipse_selector = selector
+
+def update_region(region, text):
+    '''
+    Update ellipse information text when the
+    interactive region is modified.
+    Parameters
+    ––––––––––
+    region : regions.EllipsePixelRegion
+        The ellipse region being updated.
+    text : matplotlib.text.Text
+        The text object used to display ellipse parameters.
+    '''
+    # extract properties from ellipse object
+    x_center = region.center.x
+    y_center = region.center.y
+    width = region.width
+    height = region.height
+    major = max(width, height)
+    minor = min(width, height)
+    # display properties
+    text.set_text(
+        f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
+        f'Major: {major:.1f}\n'
+        f'Minor: {minor:.1f}\n'
+    )
+
 def plot_points(points, ax):
     if points is not None:
         points = np.asarray(points)
@@ -791,26 +855,6 @@ def plot_points(points, ax):
 
         for point in points:
             ax.scatter(point[0], point[1], s=20, marker='*', c='r')
-
-def plot_interactive_ellipse(center, w, h, ax, text_loc=[0.03,0.03], text_color='k'):
-    text = ax.text(text_loc[0], text_loc[1], '', transform=ax.transAxes, size='small', color=text_color)
-    ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]), width=w, height=h)
-    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
-    ax._ellipse_selector = selector
-
-def update_region(region, text):
-    x_center = region.center.x
-    y_center = region.center.y
-    width = region.width
-    height = region.height
-    major = max(width, height)
-    minor = min(width, height)
-
-    text.set_text(
-        f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
-        f'Major: {major:.1f}\n'
-        f'Minor: {minor:.1f}\n'
-    )
 
 # ––––––––––––––
 # Notebook Utils
