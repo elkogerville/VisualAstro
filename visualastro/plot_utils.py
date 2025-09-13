@@ -739,12 +739,34 @@ def plot_circles(circles, ax):
             ax.add_patch(circle_patch)
 
 def plot_ellipses(ellipses, ax):
+    '''
+    Plots an ellipse or list of ellipses to an axes.
+    Parameters
+    ––––––––––
+    ellipses : matplotlib.patches.Ellipse or list
+        The Ellipse or list of Ellipses to plot.
+    ax : matplotlib.axes.Axes
+        Matplotlib axis on which to plot the ellipses(s).
+    '''
     if ellipses is not None:
+        # ensure ellipses is iterable
         ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
+        # plot each ellipse
         for ellipse in ellipses:
             ax.add_patch(copy_ellipse(ellipse))
 
 def copy_ellipse(ellipse):
+    '''
+    Returns a copy of an Ellipse object.
+    Parameters
+    ––––––––––
+    ellipse : matplotlib.patches.Ellipse
+        The Ellipse object to copy.
+    Returns
+    ––––––––––
+    matplotlib.patches.Ellipse
+        A new Ellipse object with the same properties as the input.
+    '''
     return Ellipse(
         xy=ellipse.center,
         width=ellipse.width,
