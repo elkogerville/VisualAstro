@@ -597,6 +597,7 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
     # if user passes a list or array of colors
     if isinstance(user_colors, (list, np.ndarray)):
         return user_colors, [lighten_color(c) for c in user_colors]
+    # if user passes an integer N, sample a cmap for N colors
     if isinstance(user_colors, int):
         colors = sample_cmap(user_colors, cmap=cmap)
         return colors, [lighten_color(c) for c in colors]
@@ -873,18 +874,39 @@ def update_region(region, text):
         f'Minor: {minor:.1f}\n'
     )
 
-def plot_points(points, ax):
+def plot_points(points, ax, color='r', size=20, marker='*'):
+    '''
+    Plot points on a given Matplotlib axis with customizable style.
+    Parameters
+    ––––––––––
+    points : array-like or None
+        Coordinates of points to plot. Can be a single point `[x, y]`
+        or a list/array of points `[[x1, y1], [x2, y2], ...]`.
+        If None, no points are plotted.
+    ax : matplotlib.axes.Axes
+        The Matplotlib axis on which to plot the points.
+    color : str or list or int, optional, default 'r'
+        Color of the points. If an integer, will draw colors
+        from sample_cmap().
+    size : float, optional, default 20
+        Marker size.
+    marker : str, optional, default '*'
+        Matplotlib marker style.
+    '''
     if points is not None:
         points = np.asarray(points)
+        # ensure points is list [x,y] or list of list [[x,y],[x,y]...]
         if points.ndim == 1 and points.shape[0] == 2:
             points = points[np.newaxis, :]
         elif points.ndim != 2 or points.shape[1] != 2:
             error = 'Points must be either [x, y] or [[x1, y1], [x2, y2], ...]'
-
             raise ValueError(error)
-
-        for point in points:
-            ax.scatter(point[0], point[1], s=20, marker='*', c='r')
+        if isinstance(color, int):
+            color = sample_cmap(color)
+        color = color if isinstance(color, list) else [color]
+        # loop through each set of points in points and plot
+        for i, point in enumerate(points):
+            ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
 
 # ––––––––––––––
 # Notebook Utils
