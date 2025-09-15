@@ -11,7 +11,7 @@ class va:
     @staticmethod
     def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
                percentile=[3,99.5], origin='lower', wcs_input=None,
-               cmap='turbo', plot_boolean=False, aspect=None, **kwargs):
+               cmap='turbo', aspect=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -36,8 +36,7 @@ class va:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
-                   cmap, plot_boolean, aspect, wcs_input=wcs_input,
-                   **kwargs)
+                   cmap, aspect, wcs_input=wcs_input, **kwargs)
 
             if wcs_input is not None:
                 if invert_wcs:
