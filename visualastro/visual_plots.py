@@ -4,7 +4,10 @@ from astropy.io.fits import Header
 import matplotlib.pyplot as plt
 from spectral_cube import SpectralCube
 from .data_cube import plot_spectral_cube
-from .plot_utils import imshow, return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
+from .plot_utils import (
+    imshow, plot_histogram, return_stylename,
+    save_figure_2_disk, set_axis_labels, set_plot_colors
+)
 from .spectra import compute_limits_mask, return_spectra_dict, set_axis_limits
 
 class va:
@@ -221,6 +224,28 @@ class va:
                 spectra_dict = return_spectra_dict(wavelength, flux)
 
                 return spectra_dict
+
+    @staticmethod
+    def plotHistogram(datas, bins='auto', xlog=False,
+                      ylog=False, colors=None, **kwargs):
+        # figure params
+        figsize = kwargs.get('figsize', (6,6))
+        style = kwargs.get('style', 'astro')
+        # savefig
+        savefig = kwargs.get('savefig', False)
+        dpi = kwargs.get('dpi', 600)
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            plot_histogram(datas, ax, bins, xlog, ylog, colors, **kwargs)
+
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
+    # –––– VISUALASTRO HELP ––––
 
     class help:
         @staticmethod

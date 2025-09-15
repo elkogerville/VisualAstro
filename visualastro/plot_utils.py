@@ -5,7 +5,7 @@ from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy import units as u
 from astropy.units import spectral
-import matplotlib as mpl
+import matplotlib.style as mplstyle
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
 from matplotlib.colors import LogNorm
@@ -124,6 +124,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
+
     # ensure inputs are iterable or conform to standard
     datas = datas if isinstance(datas, list) else [datas]
     cmap = cmap if isinstance(cmap, list) else [cmap]
@@ -161,10 +162,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     if isinstance(ax, WCSAxes) and (rotate_tick_axis is not None):
         ax.coords[rotate_tick_axis].set_ticklabel(rotation=90)
     # set axes labels
-    if xlabel is not None:
-        ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     # add colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
@@ -174,31 +173,59 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     if invert_yaxis:
         ax.invert_yaxis()
 
-def plot_histogram(data, bins='auto', style='astro', xlog=False, ylog=False,
-                   colors=None, labels=None, savefig=False, dpi=600):
-    data = check_is_array(data)
+def plot_histogram(datas, ax, bins='auto', xlog=False,
+                   ylog=False, colors=None, **kwargs):
+    '''
+    Plot one or more histograms on a given Axes object.
+    Parameters
+    ––––––––––
+    datas : array-like or list of array-like
+        Input data to histogram. Can be a single 1D array or a
+        list of 1D/2D arrays. 2D arrays are automatically flattened.
+    ax : matplotlib.axes.Axes
+        The Axes object on which to plot the histogram.
+    bins : int, sequence, or str, optional, default 'auto'
+        Number of bins or binning method. Passed to 'ax.hist'.
+    xlog : bool, optional, default False
+        If True, set x-axis to logarithmic scale.
+    ylog : bool, optional, Default False
+        If True, set y-axis to logarithmic scale.
+    colors : list of colors or None, optional, default None
+        Colors to use for each dataset. If None, default
+        color cycle is used.
+    Kwargs
+    ––––––
+    xlabel : str or None
+        Label for the x-axis.
+    ylabel : str or None
+        Label for the y-axis.
+    histtype : str {'bar', 'barstacked', 'step', 'stepfilled'}, default 'step'
+        Matplotlib histogram type.
+    '''
+    # –––– KWARGS ––––
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
+    histtype = kwargs.get('histtype', 'step')
+
     colors, _ = set_plot_colors(colors)
-    if data.ndim == 2:
-        data = data.flatten()
-    style = return_stylename(style)
-    with plt.style.context(style):
-        plt.figure(figsize=(5,5))
-        plt.hist(data, bins=bins, color=colors[0], histtype='step')
+    # ensure inputs are iterable or conform to standard
+    datas = datas if isinstance(datas, list) else [datas]
 
-        if xlog:
-            plt.xscale('log')
-        if ylog:
-            plt.yscale('log')
+    # loop over data list
+    for i, data in enumerate(datas):
+        # ensure data is an array and is 1D
+        data = check_is_array(data)
+        if data.ndim == 2:
+            data = data.flatten()
+        ax.hist(data, bins=bins, color=colors[i%len(colors)], histtype=histtype)
 
-        if labels is not None and len(labels) >= 2:
-            plt.xlabel(labels[0])
-            plt.ylabel(labels[1])
-        else:
-            plt.xlabel('')
-            plt.ylabel('')
-        if savefig:
-                save_figure_2_disk(dpi)
-        plt.show()
+    if xlog:
+        ax.set_xscale('log')
+    if ylog:
+        ax.set_yscale('log')
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
 def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style='astro', colors=None, figsize=(6,6)):
     if isinstance(data, np.ndarray) and data.ndim == 1:
@@ -290,7 +317,7 @@ def return_stylename(style):
         Path to matplotlib stylesheet
     '''
     # if style is a default matplotlib stylesheet
-    if style in mpl.style.available:
+    if style in mplstyle.available:
         return style
     # if style is a visualastro stylesheet
     else:
@@ -363,7 +390,7 @@ def return_imshow_norm(vmin, vmax, norm):
     norm = norm.lower()
     # dict containing possible stretch algorithms
     norm_map = {
-        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
         'log': LogNorm(vmin=vmin, vmax=vmax),
         'none': None
     }
@@ -743,24 +770,6 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
 
-# def plot_circles(circles, ax):
-
-#     if circles is not None:
-#         circles = np.asarray(circles)
-#         # ensure circles is list [x,y,r] or list of list [[x,y,r],[x,y,r]...]
-#         if circles.ndim == 1 and circles.shape[0] == 3:
-#             circles = circles[np.newaxis, :]
-#         elif circles.ndim != 2 or circles.shape[1] != 3:
-#             error = 'Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]'
-
-#             raise ValueError(error)
-#         circle_colors = ['r', 'mediumvioletred', 'magenta']
-#         for i, circle in enumerate(circles):
-#             x, y, r = circle
-#             circle_patch = Circle((x, y), radius=r, fill=False, linewidth=2,
-#                                   color=circle_colors[i%len(circle_colors)])
-#             ax.add_patch(circle_patch)
-
 def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'):
     '''
     Plot one or more circles on a Matplotlib axis with customizable style.
@@ -955,7 +964,7 @@ def use_inline():
     like Jupyter Notebook.
     '''
     try:
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
         ipython = get_ipython()
         if ipython is not None:
             ipython.run_line_magic("matplotlib", "inline")
@@ -971,7 +980,7 @@ def use_interactive():
     like Jupyter Notebook.
     '''
     try:
-        from IPython import get_ipython
+        from IPython.core.getipython import get_ipython
         ipython = get_ipython()
         if ipython is not None:
             ipython.run_line_magic("matplotlib", "ipympl")
