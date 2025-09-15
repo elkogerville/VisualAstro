@@ -51,12 +51,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     cmap : str or list of str, default 'turbo'
         Matplotlib colormap name or list of colormaps, cycled across images.
         ex: ['turbo', 'RdPu_r']
-    plot_boolean : bool, default False
-        If True, assumes 'datas' contain boolean arrays and fixes
-        colormap scaling between 0 and 1, with norm = None.
     aspect : str, {'auto', 'equal'} or float, optional
         Aspect ratio passed to imshow. By default is None.
-
     Kwargs
     ––––––
     invert_xaxis : bool, default False
@@ -142,6 +138,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         if idx is not None:
             data = return_cube_slice(data, idx[i%len(idx)])
 
+        # set image stretch
         vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
         img_norm = return_imshow_norm(vmin, vmax, norm)
 
