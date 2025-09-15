@@ -17,7 +17,7 @@ from regions import PixCoord, EllipsePixelRegion
 # ––––––––––––––––––
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
-           plot_boolean=False, aspect=None, **kwargs):
+           aspect=None, **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
     Parameters
@@ -44,7 +44,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         - 'asinh' -> AsinhStretch using 'ImageNormalize'
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'none' or None -> no normalization applied
-
     percentile : list of float, default [3, 99.5]
         Default percentile range used to determine 'vmin' and 'vmax'.
     origin : str, {'upper', 'lower'}, default 'lower'
@@ -103,11 +102,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         Width of the default interactive ellipse.
     h : float, default Y//5
         Height of the default interactive ellipse.
-
-    Returns
-    -------
-    im : matplotlib.image.AxesImage
-        The last image plotted (if multiple images are given, the final one).
     '''
     # –––– KWARGS ––––
     # figure params
@@ -130,19 +124,15 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = kwargs.get('plot_ellipse', False)
     # default ellipse parameters
-    X, Y = datas[0].shape if isinstance(datas, list) else datas.shape
+    X, Y = (datas[0].shape if isinstance(datas, list) else datas.shape)[-2:]
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
-    # settings to plot boolean array
-    if plot_boolean:
-        vmin = 0
-        vmax = 1
-        norm = None
     # ensure inputs are iterable or conform to standard
     datas = datas if isinstance(datas, list) else [datas]
     cmap = cmap if isinstance(cmap, list) else [cmap]
-    idx = idx if isinstance(cmap, list) else [idx]
+    if idx is not None:
+        idx = idx if isinstance(idx, list) else [idx]
 
     # loop over data list
     for i, data in enumerate(datas):
@@ -151,13 +141,12 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         # slice data with index if provided
         if idx is not None:
             data = return_cube_slice(data, idx[i%len(idx)])
-        # set imshow norm and scaling if not plotting boolean
-        if not plot_boolean:
-            vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-            img_norm = return_imshow_norm(vmin, vmax, norm)
+
+        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
+        img_norm = return_imshow_norm(vmin, vmax, norm)
 
         # imshow image
-        if norm is None:
+        if img_norm is None:
             im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax,
                            cmap=cmap[i%len(cmap)], aspect=aspect)
         else:
@@ -318,7 +307,7 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     Compute vmin and vmax for image display. By default uses the
     percentile range [1,99], but optionally vmin and/or vmax can
     be set by the user. Setting percentile to None results in no
-    stretch.
+    stretch. Passing in a boolean array uses vmin=0, vmax=1.
     Parameters
     ––––––––––
     data : array-like
@@ -337,6 +326,9 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     vmax : float or None
         Maximum value for image scaling.
     '''
+    # check if data is boolean
+    if data.dtype == bool:  # special case for boolean arrays
+        return 0, 1
     # by default use percentile range. if vmin or vmax is provided
     # overide and use those instead
     if percentile is not None:
@@ -380,6 +372,9 @@ def return_imshow_norm(vmin, vmax, norm):
     }
     if norm not in norm_map:
         raise ValueError(f"ERROR: unsupported norm: {norm}")
+    # use linear stretch if plotting boolean array
+    if vmin==0 and vmax==1:
+        return None
 
     return norm_map[norm]
 
@@ -751,22 +746,67 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
 
-def plot_circles(circles, ax):
-    circle_colors = ['r', 'mediumvioletred', 'magenta']
+# def plot_circles(circles, ax):
 
+#     if circles is not None:
+#         circles = np.asarray(circles)
+#         # ensure circles is list [x,y,r] or list of list [[x,y,r],[x,y,r]...]
+#         if circles.ndim == 1 and circles.shape[0] == 3:
+#             circles = circles[np.newaxis, :]
+#         elif circles.ndim != 2 or circles.shape[1] != 3:
+#             error = 'Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]'
+
+#             raise ValueError(error)
+#         circle_colors = ['r', 'mediumvioletred', 'magenta']
+#         for i, circle in enumerate(circles):
+#             x, y, r = circle
+#             circle_patch = Circle((x, y), radius=r, fill=False, linewidth=2,
+#                                   color=circle_colors[i%len(circle_colors)])
+#             ax.add_patch(circle_patch)
+
+def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'):
+    '''
+    Plot one or more circles on a Matplotlib axis with customizable style.
+    Parameters
+    ––––––––––
+    circles : array-like or None
+        Circle coordinates and radii. Can be a single circle `[x, y, r]`
+        or a list/array of circles `[[x1, y1, r1], [x2, y2, r2], ...]`.
+        If None, no circles are plotted.
+    ax : matplotlib.axes.Axes
+        The Matplotlib axis on which to plot the circles.
+    colors : list of str or None, optional
+        List of colors to cycle through for each circle. Defaults to
+        ['r', 'mediumvioletred', 'magenta']. A single color can also
+        be passed. If there are more circles than colors, colors are
+        sampled from a colormap using sample_cmap().
+    linewidth : float, optional
+        Width of the circle edge lines. Default is 2.
+    fill : bool, optional
+        Whether the circles are filled. Default is False.
+    cmap : str, optional, default 'turbo'
+        matplolib cmap used to sample default circle colors.
+    '''
     if circles is not None:
-        circles = np.asarray(circles)
-        if circles.ndim == 1 and circles.shape[0] == 3:
-            circles = circles[np.newaxis, :]
-        elif circles.ndim != 2 or circles.shape[1] != 3:
-            error = 'Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]'
+        # ensure circles is list [x,y,r] or list of list [[x,y,r],[x,y,r]...]
+        circles = np.atleast_2d(circles)
+        if circles.shape[1] != 3:
+            raise ValueError(
+                'Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]'
+            )
+        # number of circles to plot
+        N = circles.shape[0]
+        # set circle colors
+        if colors is None:
+            colors = ['r', 'mediumvioletred', 'magenta'] if N<=3 else sample_cmap(N)
+        if isinstance(colors, str):
+            colors = [colors]
 
-            raise ValueError(error)
-
+        # plot each cirlce
         for i, circle in enumerate(circles):
             x, y, r = circle
-            circle_patch = Circle((x, y), radius=r, fill=False, linewidth=2,
-                                  color=circle_colors[i%len(circle_colors)])
+            color = colors[i%len(colors)]
+            circle_patch = Circle((x, y), radius=r, fill=fill, linewidth=linewidth, color=color)
             ax.add_patch(circle_patch)
 
 def plot_ellipses(ellipses, ax):
