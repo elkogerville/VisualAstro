@@ -120,7 +120,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = kwargs.get('plot_ellipse', False)
     # default ellipse parameters
-    X, Y = (datas[0].shape if isinstance(datas, list) else datas.shape)[-2:]
+    data = check_is_array(datas)
+    X, Y = (data[0].shape if isinstance(datas, list) else data.shape)[-2:]
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
@@ -218,12 +219,11 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         if data.ndim == 2:
             data = data.flatten()
         ax.hist(data, bins=bins, color=colors[i%len(colors)], histtype=histtype)
-
+    # set axes parameters
     if xlog:
         ax.set_xscale('log')
     if ylog:
         ax.set_yscale('log')
-
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
@@ -245,25 +245,26 @@ def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style
         if ylabel is not None:
             plt.ylabel(ylabel)
         plt.show()
+
 # ––––––––––––––
 # Plotting Utils
 # ––––––––––––––
-def check_is_array(cube):
+def check_is_array(data):
     '''
     Ensure array input is np.ndarray.
     Parameters
     ––––––––––
-    cube : np.ndarray or dict
+    data : np.ndarray or DataCube
+        Array or DataCube object.
     Returns
     –––––––
-    cube : np.ndarray
+    data : np.ndarray
+        Array or 'data' component of DataCube.
     '''
-    if isinstance(cube, dict):
-        cube = np.asarray(cube['data'])
-    else:
-        cube = np.asarray(cube)
+    if hasattr(data, 'data'):
+        return np.asarray(data.data)
 
-    return cube
+    return np.asarray(data)
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
     '''

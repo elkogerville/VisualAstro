@@ -16,35 +16,58 @@ from .plot_utils import (
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
+class DataCube:
+    def __init__(self, data, headers):
+        # type checks
+        if not isinstance(data, np.ndarray):
+            raise TypeError(
+                f"'data' must be a numpy array, got {type(data).__name__}."
+            )
+        if not isinstance(headers, (list, np.ndarray)):
+            raise TypeError(
+                f"'headers' must be a list, got {type(headers).__name__}."
+            )
+        if data.ndim != 3:
+            raise ValueError(
+                f"'data' must be 3D (T, N, M), got shape {data.shape}."
+            )
+        if data.shape[0] != len(headers):
+            raise ValueError(
+                'Mismatch between T dimension and number of headers: '
+                f'T={data.shape[0]}, headers={len(headers)}.'
+            )
+        # assign data and header list to DataCube
+        self.data = data
+        self.header = headers
 
 def load_fits(filepath, header=True, print_info=True, transpose=False):
     if print_info:
         with fits.open(filepath) as hdul:
             hdul.info()
-    data, fits_header = fits.getdata(filepath, header=True)
+    data, fits_header = fits.getdata(filepath, header=True) # type: ignore
     if transpose:
         data = data.T
     result = [data, fits_header] if header else data
 
     return result
 
-def load_data_cube(filepath, header=True, dtype=np.float64,
+def load_data_cube(filepath, dtype=np.float64,
                    print_info=True, transpose=False):
     '''
-    Searches for all data fits files in a directory and loads them into a numpy 3D data cube
+    Searches for all data fits files in a directory and loads them into a numpy 3D data cube.
     Parameters
-    ----------
+    ––––––––––
     path: string
         path to directory with fits files, will search for all files of specified extension
     Returns
-    -------
+    –––––––
     data_cube: np.ndarray[np.float64]
         ixMxN array where each i index corresponds to a different fits data file
         each data file is transposed into a MxN matrix
     header_list: list[astropy.io.fits.Header]
         list of each corresponding fits header file
     Example
-    -------
+    –––––––
     search for all fits files starting with 'HARPS' with .fits extention
         path = 'Spectro-Module/raw/HARPS.*.fits'
     '''
@@ -53,26 +76,26 @@ def load_data_cube(filepath, header=True, dtype=np.float64,
     # allocate ixMxN data cube array and header array
     i = len(fits_files)
     headers = np.empty(i, dtype=object)
-    data, headers[0] = fits.getdata(fits_files[0], header=True)
+    data, headers[0] = fits.getdata(fits_files[0], header=True) # type: ignore
     if transpose:
         data = data.T
-    data_cube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dtype)
+    datacube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dtype)
     # save first file to data arrays
-    data_cube[0] = data.astype(dtype)
+    datacube[0] = data.astype(dtype)
     # loop through each array in data list and store in data cube
     for i in tqdm(range(1, len(fits_files))):
-        data, headers[i] = fits.getdata(fits_files[i], header=True)
+        data, headers[i] = fits.getdata(fits_files[i], header=True) # type: ignore
         if transpose:
             data = data.T
-        data_cube[i] = data.astype(dtype)
+        datacube[i] = data.astype(dtype)
 
-    data_dict = {}
-    data_dict['data'] = data_cube
-    data_dict['header'] = headers
+    cube = DataCube(datacube, headers)
+
     if print_info:
         with fits.open(fits_files[0]) as hdul:
             hdul.info()
-    return data_dict
+
+    return cube
 
 def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', print_info=False):
 
@@ -175,7 +198,7 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     ax.coords['dec'].set_ticklabel(rotation=90)
 
 def header_2_array(cube, key):
-    headers = cube['header']
+    headers = cube.header
     array = []
     for i in range(len(headers)):
         array.append(headers[i][key])
