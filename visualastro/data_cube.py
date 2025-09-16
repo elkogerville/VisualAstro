@@ -9,8 +9,8 @@ from spectral_cube import SpectralCube
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    add_colorbar, extract_spectral_axis, plot_ellipses, plot_interactive_ellipse,
-    return_cube_slice, return_imshow_norm, return_spectral_value, set_unit_labels,
+    add_colorbar, extract_spectral_axis, get_spectral_slice_value, plot_ellipses,
+    plot_interactive_ellipse, return_cube_slice, return_imshow_norm, set_unit_labels,
     set_vmin_vmax, shift_by_radial_vel
 )
 
@@ -170,16 +170,17 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
     # set colorbar label
-    unit_label = set_unit_labels(cube.unit)
-    if clabel is True and unit_label is not None:
-        clabel = f'${unit_label}$'
+    cbar_unit = set_unit_labels(cube.unit)
+    if clabel is True and cbar_unit is not None:
+        clabel = f'${cbar_unit}$'
     # set colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 
+    # compute spectral axis value of slice
     spectral_axis = extract_spectral_axis(cube, unit)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-    spectral_value = return_spectral_value(spectral_axis, idx)
+    spectral_value = get_spectral_slice_value(spectral_axis, idx)
     unit_label = set_unit_labels(spectral_axis.unit)
 
     if plot_ellipse:
