@@ -54,22 +54,31 @@ def load_fits(filepath, header=True, print_info=True, transpose=False):
 def load_data_cube(filepath, dtype=np.float64,
                    print_info=True, transpose=False):
     '''
-    Searches for all data fits files in a directory and loads them into a numpy 3D data cube.
+    Load a sequence of FITS files into a 3D data cube.
+    This function searches for all FITS files matching a given path pattern,
+    loads them into a NumPy array of shape (T, M, N), and bundles the data
+    and headers into a `DataCube` object.
     Parameters
     ––––––––––
-    path: string
-        path to directory with fits files, will search for all files of specified extension
+    filepath : str
+        Path pattern to FITS files. Wildcards are supported.
+        Example: 'Spectro-Module/raw/HARPS*.fits'
+    dtype : numpy.dtype, optional
+        Data type for the loaded FITS data (default: np.float64).
+    print_info : bool, optional
+        If True, print summary information about the loaded cube (default: True).
+    transpose : bool, optional
+        If True, transpose each 2D image before stacking into the cube (default: False).
     Returns
     –––––––
-    data_cube: np.ndarray[np.float64]
-        ixMxN array where each i index corresponds to a different fits data file
-        each data file is transposed into a MxN matrix
-    header_list: list[astropy.io.fits.Header]
-        list of each corresponding fits header file
+    cube : DataCube
+        A DataCube object containing:
+        - 'cube.data' : np.ndarray of shape (T, M, N)
+        - 'cube.headers' : list of astropy.io.fits.Header objects
     Example
     –––––––
-    search for all fits files starting with 'HARPS' with .fits extention
-        path = 'Spectro-Module/raw/HARPS.*.fits'
+    Search for all fits files starting with 'HARPS' with .fits extention and load them.
+        filepath = 'Spectro-Module/raw/HARPS.*.fits'
     '''
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
@@ -155,12 +164,16 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
     cube_norm = return_imshow_norm(vmin, vmax, norm)
 
+    # imshow data
     if norm is None:
         im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
-
-    clabel = '$'+set_unit_labels(cube.unit)+'$' if clabel is True else clabel
+    # set colorbar label
+    unit_label = set_unit_labels(cube.unit)
+    if clabel is True and unit_label is not None:
+        clabel = f'${unit_label}$'
+    # set colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 

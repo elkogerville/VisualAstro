@@ -462,7 +462,7 @@ def extract_spectral_axis(cube, unit=None):
     except u.UnitConversionError:
         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
 
-def return_spectral_value(spectral_axis, idx):
+def slice_spectral_axis(spectral_axis, idx):
     '''
     Return a representative value from a spectral axis
     given an index or index range.
