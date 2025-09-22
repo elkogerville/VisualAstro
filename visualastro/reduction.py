@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numba import njit, prange
 from tqdm import tqdm
-from .plot_utils import plot_histogram, check_is_array
+from .plot_utils import check_is_array
+from .plotting import plot_histogram
 
 def compute_master_bias(bias_cube):
     bias_cube = check_is_array(bias_cube)

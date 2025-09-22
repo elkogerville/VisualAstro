@@ -2,7 +2,6 @@ import os
 from functools import partial
 import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
-from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy import units as u
 from astropy.units import spectral
 import matplotlib.style as mplstyle
@@ -11,244 +10,13 @@ from matplotlib import colors as mcolors
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 from regions import PixCoord, EllipsePixelRegion
+from .visual_classes import DataCube
 
-# ––––––––––––––––––
-# Plotting Functions
-# ––––––––––––––––––
-def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
-           percentile=[3,99.5], origin='lower', cmap='turbo',
-           aspect=None, **kwargs):
-    '''
-    Display 2D image data with optional overlays and customization.
-    Parameters
-    ––––––––––
-    datas : np.ndarray or list of np.ndarray
-        Image array or list of image arrays to plot. Each array should
-        be 2D (Ny, Nx) or 3D (Nx, Ny, Nz) if using 'idx' to slice a cube.
-    ax : matplotlib.axes.Axes or WCSAxes
-        Matplotlib axis on which to plot the image(s).
-    idx : int or list of int, optional
-        Index for slicing along the first axis if 'datas'
-        contains a cube.
-        - i -> returns cube[i]
-        - [i] -> returns cube[i]
-        - [i, j] -> returns the sum of cube[i:j+1] along axis 0
-        If 'datas' is a list of cubes, you may also pass a list of
-        indeces.
-        ex: passing indeces for 2 cubes-> [[i,j], k].
-    vmin, vmax : float, optional
-        Lower and upper limits for colormap scaling. If not provided,
-        values are determined from 'percentile'.
-    norm : str, optional
-        Normalization algorithm for colormap scaling.
-        - 'asinh' -> AsinhStretch using 'ImageNormalize'
-        - 'log' -> logarithmic scaling using 'LogNorm'
-        - 'none' or None -> no normalization applied
-    percentile : list of float, default [3, 99.5]
-        Default percentile range used to determine 'vmin' and 'vmax'.
-    origin : str, {'upper', 'lower'}, default 'lower'
-        Pixel origin convention for imshow.
-    cmap : str or list of str, default 'turbo'
-        Matplotlib colormap name or list of colormaps, cycled across images.
-        ex: ['turbo', 'RdPu_r']
-    aspect : str, {'auto', 'equal'} or float, optional
-        Aspect ratio passed to imshow. By default is None.
-    Kwargs
-    ––––––
-    invert_xaxis : bool, default False
-        Invert the x-axis if True.
-    invert_yaxis : bool, default False
-        Invert the y-axis if True.
-    text_loc : list of float, default [0.03, 0.03]
-        Relative axes coordinates for text placement when plotting interactive ellipses.
-    text_color : str, default 'k'
-        Color of the ellipse annotation text.
-    xlabel : str, optional
-        X-axis label.
-    ylabel : str, optional
-        Y-axis label.
-    colorbar : bool, default True
-        Add colobar if True.
-    clabel : str, optional
-        Colorbar label.
-    cbar_width : float, default 0.03
-        Width of the colorbar.
-    cbar_pad : float, default 0.015
-        Padding between plot and colorbar.
-    rotate_tick_axis : str, {'ra', 'dec'}, optional
-        Coordinate axis name whose tick labels should be rotated
-        by 90 degrees. Only applies if 'ax' is a WCSAxes.
-    circles : list, optional
-        List of circle objects (e.g., matplotlib.patches.Circle)
-        to overplot on the axes.
-    points : array-like, shape (2,) or (N, 2), optional
-        Coordinates of points to overplot. Can be a single point '[x, y]'
-        or a list/array of points '[[x1, y1], [x2, y2], ...]'.
-        Points are plotted as red stars by default.
-    ellipses : list, optional
-        List of Ellipse objects (e.g., matplotlib.patches.Ellipse) to
-        overplot on the axes. Single ellipses can also be passed directly.
-    plot_ellipse : bool, default False
-        If True, plot an interactive ellipse overlay.
-        Ensure you are using an interactive backend such as
-        use_interactive() for this to work.
-    center : list of float, default [X, Y]
-        Center of the default interactive ellipse (x, y).
-    w : float, default X//5
-        Width of the default interactive ellipse.
-    h : float, default Y//5
-        Height of the default interactive ellipse.
-    '''
-    # –––– KWARGS ––––
-    # figure params
-    invert_xaxis = kwargs.get('invert_xaxis', False)
-    invert_yaxis = kwargs.get('invert_yaxis', False)
-    # labels
-    text_loc = kwargs.get('text_loc', [0.03,0.03])
-    text_color = kwargs.get('text_color', 'k')
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    colorbar = kwargs.get('colorbar', True)
-    clabel = kwargs.get('clabel', None)
-    cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_pad = kwargs.get('cbar_pad', 0.015)
-    rotate_tick_axis = kwargs.get('rotate_tick_axis', None)
-    # plot objects
-    circles = kwargs.get('circles', None)
-    points = kwargs.get('points', None)
-    # plot ellipse
-    ellipses = kwargs.get('ellipses', None)
-    plot_ellipse = kwargs.get('plot_ellipse', False)
-    # default ellipse parameters
-    data = check_is_array(datas)
-    X, Y = (data[0].shape if isinstance(datas, list) else data.shape)[-2:]
-    center = kwargs.get('center', [X//2, Y//2])
-    w = kwargs.get('w', X//5)
-    h = kwargs.get('h', Y//5)
+def return_cube_data(cube):
+    if isinstance(cube, DataCube):
+        cube = cube.data
+    return cube
 
-    # ensure inputs are iterable or conform to standard
-    datas = datas if isinstance(datas, list) else [datas]
-    cmap = cmap if isinstance(cmap, list) else [cmap]
-    if idx is not None:
-        idx = idx if isinstance(idx, list) else [idx]
-
-    # loop over data list
-    for i, data in enumerate(datas):
-        # ensure data is an array
-        data = check_is_array(data)
-        # slice data with index if provided
-        if idx is not None:
-            data = return_cube_slice(data, idx[i%len(idx)])
-
-        # set image stretch
-        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-        img_norm = return_imshow_norm(vmin, vmax, norm)
-
-        # imshow image
-        if img_norm is None:
-            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax,
-                           cmap=cmap[i%len(cmap)], aspect=aspect)
-        else:
-            im = ax.imshow(data, origin=origin, norm=img_norm,
-                           cmap=cmap[i%len(cmap)], aspect=aspect)
-
-    # overplot
-    plot_circles(circles, ax)
-    plot_points(points, ax)
-    plot_ellipses(ellipses, ax)
-    if plot_ellipse:
-        plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
-
-    # rotate tick labels
-    if isinstance(ax, WCSAxes) and (rotate_tick_axis is not None):
-        ax.coords[rotate_tick_axis].set_ticklabel(rotation=90)
-    # set axes labels
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    # add colorbar
-    if colorbar:
-        add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
-    # invert axes
-    if invert_xaxis:
-        ax.invert_xaxis()
-    if invert_yaxis:
-        ax.invert_yaxis()
-
-def plot_histogram(datas, ax, bins='auto', xlog=False,
-                   ylog=False, colors=None, **kwargs):
-    '''
-    Plot one or more histograms on a given Axes object.
-    Parameters
-    ––––––––––
-    datas : array-like or list of array-like
-        Input data to histogram. Can be a single 1D array or a
-        list of 1D/2D arrays. 2D arrays are automatically flattened.
-    ax : matplotlib.axes.Axes
-        The Axes object on which to plot the histogram.
-    bins : int, sequence, or str, optional, default 'auto'
-        Number of bins or binning method. Passed to 'ax.hist'.
-    xlog : bool, optional, default False
-        If True, set x-axis to logarithmic scale.
-    ylog : bool, optional, Default False
-        If True, set y-axis to logarithmic scale.
-    colors : list of colors or None, optional, default None
-        Colors to use for each dataset. If None, default
-        color cycle is used.
-    Kwargs
-    ––––––
-    xlabel : str or None
-        Label for the x-axis.
-    ylabel : str or None
-        Label for the y-axis.
-    histtype : str {'bar', 'barstacked', 'step', 'stepfilled'}, default 'step'
-        Matplotlib histogram type.
-    '''
-    # –––– KWARGS ––––
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    histtype = kwargs.get('histtype', 'step')
-
-    colors, _ = set_plot_colors(colors)
-    # ensure inputs are iterable or conform to standard
-    datas = datas if isinstance(datas, list) else [datas]
-
-    # loop over data list
-    for i, data in enumerate(datas):
-        # ensure data is an array and is 1D
-        data = check_is_array(data)
-        if data.ndim == 2:
-            data = data.flatten()
-        ax.hist(data, bins=bins, color=colors[i%len(colors)], histtype=histtype)
-    # set axes parameters
-    if xlog:
-        ax.set_xscale('log')
-    if ylog:
-        ax.set_yscale('log')
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-
-def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style='astro', colors=None, figsize=(6,6)):
-    if isinstance(data, np.ndarray) and data.ndim == 1:
-        data = [data]
-    colors, _ = set_plot_colors(colors)
-    style = return_stylename(style)
-    with plt.style.context(style):
-        plt.figure(figsize=figsize)
-        for i in range(len(data)):
-            y = data[i]
-            if normalize:
-                y=y/np.max(y)
-            plt.scatter(time, y, s=1, c=colors[i%len(colors)])
-
-        if xlabel is not None:
-            plt.xlabel(xlabel)
-        if ylabel is not None:
-            plt.ylabel(ylabel)
-        plt.show()
-
-# ––––––––––––––
-# Plotting Utils
-# ––––––––––––––
 def check_is_array(data):
     '''
     Ensure array input is np.ndarray.
@@ -261,8 +29,8 @@ def check_is_array(data):
     data : np.ndarray
         Array or 'data' component of DataCube.
     '''
-    if hasattr(data, 'data'):
-        return np.asarray(data.data)
+    if isinstance(data, DataCube):
+        data = data.value
 
     return np.asarray(data)
 
@@ -420,6 +188,7 @@ def return_cube_slice(cube, idx):
     cube : np.ndarray
         Sliced cube with shape (N, ...).
     '''
+    cube = return_cube_data(cube)
     # if index is integer
     if isinstance(idx, int):
         return cube[idx]
@@ -859,7 +628,8 @@ def copy_ellipse(ellipse):
 
 def plot_interactive_ellipse(center, w, h, ax,
                              text_loc=[0.03,0.03],
-                             text_color='k'):
+                             text_color='k',
+                             highlight=True):
     '''
     Create an interactive ellipse selector on an Axes
     along with an interactive text window displaying
@@ -877,17 +647,22 @@ def plot_interactive_ellipse(center, w, h, ax,
     text_loc : list of float, optional
         Position of the text label in Axes coordinates, given as [x, y].
         Default is [0.03, 0.03].
-    text_color : str, optional
-        Color of the annotation text. Default is 'k'.
+    text_color : str, optional, default 'k'
+        Color of the annotation text.
+    highlight : bool, optional, default True
+        If True, adds a bbox to highlight the text.
     Notes
     –––––
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     '''
     # define text for ellipse data display
+    facecolor = 'k' if text_color == 'w' else 'w'
+    bbox = dict(facecolor=facecolor, alpha=0.6, edgecolor="none") if highlight else None
     text = ax.text(text_loc[0], text_loc[1], '',
                    transform=ax.transAxes,
-                   size='small', color=text_color)
+                   size='small', color=text_color,
+                   bbox=bbox)
     # define ellipse
     ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]),
                                         width=w, height=h)
@@ -958,6 +733,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
 # ––––––––––––––
 # Notebook Utils
 # ––––––––––––––
+
 def use_inline():
     '''
     Start an inline IPython backend session.

@@ -2,11 +2,10 @@ import numpy as np
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import matplotlib.pyplot as plt
-from spectral_cube import SpectralCube
-from .data_cube import plot_spectral_cube
+from .data_cube import plot_spectral_cube, return_cube_data
+from .plotting import imshow, plot_histogram
 from .plot_utils import (
-    imshow, plot_histogram, return_stylename,
-    save_figure_2_disk, set_axis_labels, set_plot_colors
+    return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 )
 from .spectra import compute_limits_mask, return_spectra_dict, set_axis_limits
 
@@ -71,11 +70,11 @@ class va:
         dpi = kwargs.get('dpi', 600)
 
         # define wcs figure axes
-        cubes = [cubes] if isinstance(cubes, SpectralCube) else cubes
+        cubes = [cubes] if not isinstance(cubes, list) else cubes
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
-            wcs2d = cubes[0].wcs.celestial
+            wcs2d = return_cube_data(cubes[0]).wcs.celestial
             ax = fig.add_subplot(111, projection=wcs2d)
             if style.split('/')[-1] == 'minimal.mplstyle':
                 ax.coords['ra'].set_ticks_position('bl')
@@ -138,7 +137,7 @@ class va:
 
                     wavelength_list.append(wavelength[mask])
 
-            set_axis_limits(wavelength_list, ax, xlim, ylim)
+            set_axis_limits(wavelength_list, None, ax, xlim, ylim)
             set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
             if labels is not None:
                 ax.legend()

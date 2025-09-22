@@ -10,35 +10,12 @@ from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
     add_colorbar, extract_spectral_axis, get_spectral_slice_value, plot_ellipses,
-    plot_interactive_ellipse, return_cube_slice, return_imshow_norm, set_unit_labels,
-    set_vmin_vmax, shift_by_radial_vel
+    plot_interactive_ellipse, return_cube_data, return_cube_slice, return_imshow_norm,
+    set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
+from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
-
-class DataCube:
-    def __init__(self, data, headers):
-        # type checks
-        if not isinstance(data, np.ndarray):
-            raise TypeError(
-                f"'data' must be a numpy array, got {type(data).__name__}."
-            )
-        if not isinstance(headers, (list, np.ndarray)):
-            raise TypeError(
-                f"'headers' must be a list, got {type(headers).__name__}."
-            )
-        if data.ndim != 3:
-            raise ValueError(
-                f"'data' must be 3D (T, N, M), got shape {data.shape}."
-            )
-        if data.shape[0] != len(headers):
-            raise ValueError(
-                'Mismatch between T dimension and number of headers: '
-                f'T={data.shape[0]}, headers={len(headers)}.'
-            )
-        # assign data and header list to DataCube
-        self.data = data
-        self.header = headers
 
 def load_fits(filepath, header=True, print_info=True, transpose=False):
     if print_info:
@@ -107,34 +84,33 @@ def load_data_cube(filepath, dtype=np.float64,
     return cube
 
 def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', print_info=False):
-
+    # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
-
-    if error or header:
-        result = [spectral_cube]
-    else:
-        result = spectral_cube
-
+    # initialize error and header objects
+    error_array = None
+    hdr = None
+    # open fits file
     with fits.open(filepath) as hdul:
-
+        # print fits info
         if print_info:
-            print( hdul.info() )
-
+            hdul.info()
+        # load error array
         if error:
             if error_key in hdul:
-                result.append( hdul[error_key].data )
+                error_array = hdul[error_key].data
             else:
                 raise KeyError(f"HDU '{error_key}' not found in file")
-
+        # load header
         if header:
-            result.append( hdul[hdu].header )
+            hdr = hdul[hdu].header
 
-    return result
+    return DataCube(spectral_cube, headers=hdr, errors=error_array)
 
 def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
-                        norm='asinh', radial_vel=None, unit=None, **kwargs):
-    # plot params
-    cmap = kwargs.get('cmap', 'turbo')
+                        norm='asinh', radial_vel=None, unit=None, cmap='turbo', **kwargs):
+
+    cube = return_cube_data(cube)
+    # –––– Kwargs ––––
     # labels
     title = kwargs.get('title', False)
     emission_line = kwargs.get('emission_line', None)
@@ -147,9 +123,12 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     xlabel = kwargs.get('xlabel', 'Right Ascension')
     ylabel = kwargs.get('ylabel', 'Declination')
     draw_spectral_label = kwargs.get('spectral_label', True)
+    highlight = kwargs.get('highlight', True)
     # plot ellipse
-    plot_ellipse = kwargs.get('plot_ellipse', False)
     ellipses = kwargs.get('ellipses', None)
+    plot_ellipse = (
+        True if ellipses is not None else kwargs.get('plot_ellipse', False)
+    )
     _, X, Y = cube.shape
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
@@ -157,8 +136,8 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     angle = kwargs.get('angle', None)
 
     # return data cube slices
-    slice_data = return_cube_slice(cube, idx)
-    data = slice_data.value
+    cube_slice = return_cube_slice(cube, idx)
+    data = cube_slice.value
 
     # compute imshow stretch
     vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
@@ -169,20 +148,16 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
         im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
     else:
         im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
-    # set colorbar label
+    # determine unit of colorbar
     cbar_unit = set_unit_labels(cube.unit)
+    # set colorbar label
     if clabel is True and cbar_unit is not None:
         clabel = f'${cbar_unit}$'
     # set colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 
-    # compute spectral axis value of slice
-    spectral_axis = extract_spectral_axis(cube, unit)
-    spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-    spectral_value = get_spectral_slice_value(spectral_axis, idx)
-    unit_label = set_unit_labels(spectral_axis.unit)
-
+    # plot ellipses
     if plot_ellipse:
         if ellipses is not None:
             plot_ellipses(ellipses, ax)
@@ -190,23 +165,34 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
             e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
             ax.add_patch(e)
         else:
-            plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
+            plot_interactive_ellipse(center, w, h, ax, text_loc, text_color, highlight)
             draw_spectral_label = False
 
+    # plot spectral label
     if draw_spectral_label:
+        # compute spectral axis value of slice for label
+        spectral_axis = extract_spectral_axis(cube, unit)
+        spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
+        spectral_value = get_spectral_slice_value(spectral_axis, idx)
+        unit_label = set_unit_labels(spectral_axis.unit)
+
         # lambda for wavelength, f for frequency
         spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
-
+        # replace spectral type with emission line if provided
         if emission_line is None:
             slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
         else:
+            # replace spaces with latex format
             emission_line = emission_line.replace(' ', r'\ ')
             slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+        # display label as either a title or text in figure
         if title:
             ax.set_title(slice_label, color=text_color, loc='center')
         else:
-            ax.text(text_loc[0], text_loc[1], slice_label, transform=ax.transAxes, color=text_color)
+            ax.text(text_loc[0], text_loc[1], slice_label,
+                    transform=ax.transAxes, color=text_color)
 
+    # set axes labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.coords['dec'].set_ticklabel(rotation=90)
@@ -344,11 +330,10 @@ def write_cube_2_fits(cube, filename, overwrite=False):
 
     # else:
     #     return region_image
-    #
 
 def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
                invert_region=False, upper=True, preserve_shape=True, **kwargs):
-    """
+    '''
     Mask an image with modular filters:
     - Ellipse or annulus region
     - Line cut (upper/lower)
@@ -357,7 +342,7 @@ def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
     Returns:
         masked_image: image with mask applied
         masks: master mask + individual masks
-    """
+    '''
 
     center = kwargs.get('center', None)
     w = kwargs.get('w', None)
@@ -473,6 +458,8 @@ def mask_cube(cube, ellipse_region=None, composite_mask=False, region='annulus',
     w = kwargs.get('w', None)
     h = kwargs.get('h', None)
     angle = kwargs.get('angle', 0)
+
+    cube = return_cube_data(cube)
 
     _, N, M = cube.shape
     y, x = np.indices((N, M))
@@ -623,6 +610,8 @@ def compute_line(points):
     return m, b
 
 def compute_cube_percentile(cube, slice_idx, vmin, vmax):
+
+    cube = return_cube_data(cube)
 
     data = return_cube_slice(cube, slice_idx)
     vmin = np.nanpercentile(data.value, vmin)

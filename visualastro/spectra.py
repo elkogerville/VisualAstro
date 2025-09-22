@@ -11,7 +11,10 @@ from scipy.interpolate import interp1d, CubicSpline
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import matplotlib.pyplot as plt
-from .plot_utils import return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors, shift_by_radial_vel
+from .plot_utils import (
+    return_stylename, save_figure_2_disk, set_axis_labels,
+    set_plot_colors, shift_by_radial_vel
+)
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
@@ -46,7 +49,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         fig, ax = plt.subplots(figsize=figsize)
 
         if emission_line is not None:
-            plt.text(text_loc[0], text_loc[1], f'{emission_line}', transform=plt.gca().transAxes)
+            plt.text(text_loc[0], text_loc[1], f'{emission_line}',
+                     transform=plt.gca().transAxes)
 
         wavelength_list = []
         spectra_dict_list = []
@@ -65,6 +69,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             # set plot limits
             mask = compute_limits_mask(spectral_axis, xlim=xlim)
             wavelength_list.append(spectral_axis[mask])
+
             # set plot labels
             label = labels[i] if (labels is not None and i < len(labels)) else None
 
@@ -96,8 +101,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
             spectra_dict_list.append(spectra_dict)
 
-        set_axis_limits(wavelength_list, ax, xlim, ylim)
-
+        set_axis_limits(wavelength_list, None, ax, xlim, ylim)
         set_axis_labels(spectral_axis, spectrum, ax,
                         xlabel, ylabel, use_brackets)
 
@@ -151,7 +155,7 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
 
             wavelength_list.append(wavelength[mask])
 
-    set_axis_limits(wavelength_list, ax, xlim, ylim)
+    set_axis_limits(wavelength_list, None, ax, xlim, ylim)
     set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
     if labels is not None:
         ax.legend()
@@ -286,6 +290,14 @@ def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical
     '''
     Return cube spectral axis shifted by radial velocity and converted to user specified units
     '''
+    if convention is None:
+        axis_type = getattr(getattr(cube.spectral_axis, 'unit', None), 'physical_type', None)
+        convention = {
+            'frequency': 'radio',
+            'length': 'optical',
+            'speed': 'relativistic'
+        }.get(axis_type or '', 'optical')
+
     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
                                   doppler_convention=convention)
     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
@@ -593,20 +605,23 @@ def compute_limits_mask(x, xlim=None):
 
     return mask
 
-def set_axis_limits(data_list, ax, ydata=None, xlim=None, ylim=None):
-    # concatenate list of data into single array
-    if isinstance(data_list, (list, tuple)):
-        data_list = np.concatenate(data_list)
-    else:
-        data_list = np.asarray(data_list)
-    # min and max values across data sets
-    xmin = return_array_values(np.nanmin(data_list))
-    xmax = return_array_values(np.nanmax(data_list))
-    # use computed limits unless user overides
-    xlim = xlim if xlim is not None else [xmin, xmax]
-    # set x and y limits
+def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
+    if xdata is not None:
+        # concatenate list of data into single array
+        if isinstance(xdata, (list, tuple)):
+            xdata = np.concatenate(xdata)
+        else:
+            xdata = np.asarray(xdata)
+        # min and max values across data sets
+        xmin = return_array_values(np.nanmin(xdata))
+        xmax = return_array_values(np.nanmax(xdata))
+        # use computed limits unless user overides
+        xlim = xlim if xlim is not None else [xmin, xmax]
+        # set x and y limits
     ax.set_xlim(xlim)
+
     if ydata is not None:
+        # concatenate list of data into single array
         if isinstance(ydata, (list, tuple)):
             ydata = np.concatenate(ydata)
         else:
