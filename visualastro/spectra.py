@@ -87,7 +87,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             wavelength = spectrum1d.spectral_axis
             if unit is not None:
                 try:
-                    wavelength = spectrum1d.spectral_axis.to(unit)
+                    wavelength = wavelength.to(unit)
                 except Exception:
                     print(
                         f'Could not convert to unit: {unit}. \n'
