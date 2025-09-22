@@ -29,16 +29,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
     # labels
-    labels = kwargs.get('labels', None)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    colors = kwargs.get('colors', None)
-    cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
-    use_brackets = kwargs.get('use_brackets', False)
     # savefig
     savefig = kwargs.get('savefig', False)
     dpi = kwargs.get('dpi', 600)
@@ -46,102 +38,75 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # ensure cubes are iterable
     cubes = [cubes] if not isinstance(cubes, list) else cubes
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors, cmap=cmap)
     style = return_stylename(style)
 
+    extracted_spectrum_list = []
+    for cube in cubes:
+
+        # extract spectral axis converted to user specified units
+        spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
+
+        # extract spectrum flux
+        flux = cube.mean(axis=(1,2))
+
+        # derreden
+        if deredden:
+            flux = deredden_spectrum(spectral_axis, flux, **kwargs)
+
+        # initialize Spectrum1D object
+        spectrum1d = Spectrum1D(
+            spectral_axis=spectral_axis,
+            flux=flux,
+            rest_value=rest_freq,
+            velocity_convention=convention
+        )
+
+        # convert region to default units
+        region = convert_region_units(region, spectral_axis)
+
+        # compute continuum fit
+        continuum_fit = return_continuum_fit(spectrum1d, fit_method, region)
+
+        # compute normalized flux
+        flux_normalized = spectrum1d / continuum_fit
+
+        # variable for plotting wavelength
+        wavelength = spectrum1d.spectral_axis
+        if unit is not None:
+            try:
+                wavelength = wavelength.to(unit)
+            except Exception:
+                print(
+                    f'Could not convert to unit: {unit}. \n'
+                    f'Defaulting to unit: {spectral_axis.unit}.'
+                )
+
+        # save computed spectrum
+        extracted_spectrum_list.append(ExtractedSpectrum(
+            wavelength=wavelength,
+            flux=flux,
+            spectrum1d=spectrum1d,
+            normalized=flux_normalized.flux,
+            continuum_fit=continuum_fit
+        ))
+    # plot spectrum
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
 
         if emission_line is not None:
             plt.text(text_loc[0], text_loc[1], f'{emission_line}',
-                     transform=plt.gca().transAxes)
+                        transform=plt.gca().transAxes)
 
-        wavelength_list = []
-        extracted_spectrum_list = []
-        for i, cube in enumerate(cubes):
-
-            # extract spectral axis converted to user specified units
-            spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
-
-            # extract spectrum flux
-            flux = cube.mean(axis=(1,2))
-
-            # derreden
-            if deredden:
-                flux = deredden_spectrum(spectral_axis, flux, **kwargs)
-
-            # initialize Spectrum1D object
-            spectrum1d = Spectrum1D(
-                spectral_axis=spectral_axis,
-                flux=flux,
-                rest_value=rest_freq,
-                velocity_convention=convention
-            )
-
-            # convert region to default units
-            region = convert_region_units(region, spectral_axis)
-
-            # compute continuum fit
-            continuum_fit = return_continuum_fit(spectrum1d, fit_method, region)
-
-            # compute normalized flux
-            spec_normalized = spectrum1d / continuum_fit
-
-            # variable for plotting wavelength
-            wavelength = spectrum1d.spectral_axis
-            if unit is not None:
-                try:
-                    wavelength = wavelength.to(unit)
-                except Exception:
-                    print(
-                        f'Could not convert to unit: {unit}. \n'
-                        f'Defaulting to unit: {spectral_axis.unit}.'
-                    )
-            # mask data within its range
-            mask = mask_within_range(wavelength, xlim=xlim)
-            wavelength_list.append(wavelength[mask])
-
-            # set spectrum label and color
-            label = labels[i] if (labels is not None and i < len(labels)) else None
-            color = colors[i%len(colors)]
-
-            # plot normalized spectrum
-            if normalize_continuum:
-                ax.plot(wavelength[mask], spec_normalized.flux[mask],
-                        color=color, label=label)
-            # plot default spectrum
-            else:
-                ax.plot(wavelength[mask], flux[mask], color=color, label=label)
-            # plot continuum fit
-            if plot_continuum_fit:
-                # normalize fit if spectrum is normalized
-                continuum_plot = continuum_fit/continuum_fit if normalize_continuum else continuum_fit
-                ax.plot(wavelength[mask], continuum_plot[mask], color=fit_colors[i%len(fit_colors)])
-            # save computed spectrum
-            extracted_spectrum_list.append(ExtractedSpectrum(
-                wavelength=wavelength,
-                flux=flux,
-                spectrum1d=spectrum1d,
-                normalized=spec_normalized,
-                continuum_fit=continuum_fit
-            ))
-        # set plot axis limits and labels
-        set_axis_limits(wavelength_list, None, ax, xlim, ylim)
-        set_axis_labels(wavelength, flux, ax,
-                        xlabel, ylabel, use_brackets)
-
-        if labels is not None:
-            plt.legend()
-        plt.tight_layout()
+        plot_spectrum(extracted_spectrum_list, ax, normalize_continuum,
+                        plot_continuum_fit, emission_line, **kwargs)
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
-        # return computed ExtractedSpectrums
-        if len(extracted_spectrum_list) == 1:
-            extracted_spectrum_list = extracted_spectrum_list[0]
-        return extracted_spectrum_list
+    if len(extracted_spectrum_list) == 1:
+        extracted_spectrum_list = extracted_spectrum_list[0]
+    return extracted_spectrum_list
 
-def plot_spectrum(extracted_spectrums=None, ax=None, normalize=False, plot_continuum=False,
+def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False, plot_continuum_fit=False,
                   emission_line=None, wavelength=None, flux=None, norm_flux=None, **kwargs):
     # –––– Kwargs ––––
     # figure params
@@ -180,21 +145,26 @@ def plot_spectrum(extracted_spectrums=None, ax=None, normalize=False, plot_conti
         if extracted_spectrum is not None:
             # extract wavelength and flux
             wavelength = extracted_spectrum.wavelength
-            if normalize:
+            if normalize_continuum:
                 flux = extracted_spectrum.normalized
             else:
                 flux = extracted_spectrum.flux
             # mask wavelength within data range
             mask = mask_within_range(wavelength, xlim=xlim)
+            wavelength_list.append(wavelength[mask])
             # define spectrum label, color, and fit color
             label = labels[i] if (labels is not None and i < len(labels)) else None
             color = colors[i%len(colors)]
             fit_color = fit_colors[i%len(fit_colors)]
+            # plot spectrum
             ax.plot(wavelength[mask], flux[mask], c=color, label=label)
-            if plot_continuum and extracted_spectrum.continuum_fit is not None:
-                ax.plot(wavelength[mask], extracted_spectrum.continuum_fit[mask], c=fit_color)
+            if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
+                if normalize_continuum:
+                    continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
+                else:
+                    continuum_fit = extracted_spectrum.continuum_fit
+                ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color)
 
-            wavelength_list.append(wavelength[mask])
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
@@ -332,8 +302,8 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     savefig = kwargs.get('savefig', False)
     dpi = kwargs.get('dpi', 600)
 
-    wavelength = return_array_values(spectrum['wavelength'])
-    flux = return_array_values(spectrum['flux'])
+    wavelength = return_array_values(spectrum.wavelength)
+    flux = return_array_values(spectrum.flux)
 
     wave_range = [wavelength.min(), wavelength.max()] if wave_range is None else wave_range
 
@@ -348,11 +318,13 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
         wavelength, flux = interpolate_arrays(wavelength, flux, wave_range,
                                               samples, method=interp_method)
         if yerror is not None:
-            _, yerror = interpolate_arrays(spectrum['wavelength'].value, yerror,
-                                           wave_range, samples, method=error_method)
+            _, yerror = interpolate_arrays(spectrum.wavelength, yerror,
+                                           wave_range, samples,
+                                           method=error_method)
         if model == 'gaussian_continuum':
-            _, continuum = interpolate_arrays(spectrum['wavelength'].value, p0[-1],
-                                              wave_range, samples, method=interp_method)
+            _, continuum = interpolate_arrays(spectrum.wavelength, p0[-1],
+                                              wave_range, samples,
+                                              method=interp_method)
             p0.pop(-1)
 
     wave_mask = (wavelength > wave_range[0]) & (wavelength < wave_range[1])
@@ -393,8 +365,8 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
         if plot_interp:
             plt_plot(wavelength, flux, c=colors[2%len(colors)])
 
-        wavelength = return_array_values(spectrum['wavelength'])
-        flux = return_array_values(spectrum['flux'])
+        wavelength = return_array_values(spectrum.wavelength)
+        flux = return_array_values(spectrum.flux)
         xlim = wave_range if xlim is None else xlim
         mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
         label = label if label is not None else 'Spectrum'
@@ -404,7 +376,7 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
         ax.plot(wave_sub, function(wave_sub, *popt),
                 c=colors[1%len(colors)], label='Gaussian Model')
 
-        set_axis_labels(spectrum['wavelength'], spectrum['flux'],
+        set_axis_labels(spectrum.wavelength, spectrum.flux,
                         ax, xlabel, ylabel, use_brackets)
         ax.set_xlim(xlim[0], xlim[1])
         plt.legend()

@@ -91,8 +91,8 @@ class va:
             plt.show()
 
     @staticmethod
-    def plotSpectrum(extracted_spectrums, normalize=False, plot_continuum=False,
-                     emission_line=None, **kwargs):
+    def plotSpectrum(extracted_spectrums=None, normalize_continuum=False, plot_continuum_fit=False,
+                     emission_line=None, wavelength=None, flux=None, norm_flux=None, **kwargs):
 
         # figure params
         figsize = kwargs.get('figsize', (6,6))
@@ -107,8 +107,9 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            plot_spectrum(extracted_spectrums, ax, normalize,
-                          plot_continuum, emission_line, **kwargs)
+            plot_spectrum(extracted_spectrums, ax, normalize_continuum,
+                          plot_continuum_fit, emission_line, wavelength,
+                          flux, norm_flux,**kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
