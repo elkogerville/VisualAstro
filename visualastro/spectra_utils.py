@@ -93,7 +93,7 @@ def gaussian_line(x, A, mu, sigma, m, b):
     '''
     compute a gaussian curve given x values, amplitude, mean, and standard deviation
     Parameters
-    ----------
+    ––––––––––
     x: np.ndarray[np.int64]
         (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
     A: float
@@ -103,7 +103,7 @@ def gaussian_line(x, A, mu, sigma, m, b):
     sigma: float
         standard deviation of gaussian function
     Returns
-    -------
+    –––––––
     y: np.ndarray[np.float64]
         (N,) shaped array of values of gaussian function evaluated at each x
     '''
