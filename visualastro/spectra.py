@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit, least_squares
+from .io import save_figure_2_disk
 from .numerical_utils import (
     interpolate_arrays, mask_within_range,
     return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
-    return_stylename, save_figure_2_disk,
-    set_axis_labels, set_axis_limits, set_plot_colors
+    return_stylename, set_axis_labels,
+    set_axis_limits, set_plot_colors
 )
 from .spectra_utils import (
     convert_region_units, deredden_spectrum, gaussian,
@@ -140,9 +141,9 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             extracted_spectrum_list = extracted_spectrum_list[0]
         return extracted_spectrum_list
 
-def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
-                  emission_line=None, **kwargs):
-
+def plot_spectrum(extracted_spectrums=None, ax=None, normalize=False, plot_continuum=False,
+                  emission_line=None, wavelength=None, flux=None, norm_flux=None, **kwargs):
+    # –––– Kwargs ––––
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
@@ -154,33 +155,50 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
     cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
+    # ensure an axis is passed
+    if ax is None:
+        raise ValueError('ax must be a matplotlib axes object!')
 
-    spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
+    # construct ExtractedSpectrum if user passes in wavelenght and flux
+    if None not in (wavelength, flux) or None not in (wavelength, norm_flux):
+        flux = flux if norm_flux is None else norm_flux
+        extracted_spectrums = ExtractedSpectrum(wavelength=wavelength, flux=flux)
+
+    # ensure extracted_spectrums is iterable
+    if not isinstance(extracted_spectrums, list):
+        extracted_spectrums = [extracted_spectrums]
 
     # set plot style and colors
     colors, fit_colors = set_plot_colors(colors, cmap=cmap)
-
+    # add emission line text
     if emission_line is not None:
         ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
 
     wavelength_list = []
-    for i, spectra_dict in enumerate(spectra_dicts):
-        if spectra_dict is not None:
-            wavelength = spectra_dict['wavelength']
-            flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
-
+    # loop through each spectrum
+    for i, extracted_spectrum in enumerate(extracted_spectrums):
+        if extracted_spectrum is not None:
+            # extract wavelength and flux
+            wavelength = extracted_spectrum.wavelength
+            if normalize:
+                flux = extracted_spectrum.normalized
+            else:
+                flux = extracted_spectrum.flux
+            # mask wavelength within data range
             mask = mask_within_range(wavelength, xlim=xlim)
-
+            # define spectrum label, color, and fit color
             label = labels[i] if (labels is not None and i < len(labels)) else None
-
-            ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
-            if plot_continuum:
-                ax.plot(wavelength[mask], spectra_dict['continuum_fit'][mask], c=fit_colors[i%len(fit_colors)])
+            color = colors[i%len(colors)]
+            fit_color = fit_colors[i%len(fit_colors)]
+            ax.plot(wavelength[mask], flux[mask], c=color, label=label)
+            if plot_continuum and extracted_spectrum.continuum_fit is not None:
+                ax.plot(wavelength[mask], extracted_spectrum.continuum_fit[mask], c=fit_color)
 
             wavelength_list.append(wavelength[mask])
-
+    # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
-    set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
+    set_axis_labels(wavelength, extracted_spectrum.flux, ax,
+                    xlabel, ylabel, use_brackets=use_brackets)
     if labels is not None:
         ax.legend()
 
