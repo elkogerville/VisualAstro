@@ -2,6 +2,7 @@ import glob
 import warnings
 import numpy as np
 import astropy.units as u
+from astropy.units import spectral
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyWarning
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
@@ -9,7 +10,7 @@ from spectral_cube import SpectralCube
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
 from .plot_utils import (
-    add_colorbar, extract_spectral_axis, get_spectral_slice_value, plot_ellipses,
+    add_colorbar, get_spectral_slice_value, plot_ellipses,
     plot_interactive_ellipse, return_cube_data, return_cube_slice, return_imshow_norm,
     set_unit_labels, set_vmin_vmax, shift_by_radial_vel
 )
@@ -211,6 +212,34 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_reduced_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
+
+def extract_spectral_axis(cube, unit=None):
+    '''
+    Extract the spectral axis from a data cube and optionally
+    convert it to a specified unit.
+    Parameters
+    ––––––––––
+    cube : SpectralCube
+        The input spectral data cube.
+    unit : astropy.units.Unit, optional
+        Desired unit for the spectral axis. If None, the axis
+        is returned in its native units.
+    Returns
+    –––––––
+    spectral_axis : Quantity
+        The spectral axis of the cube, optionally converted
+        to the specified unit.
+    '''
+    axis = cube.spectral_axis
+    # return axis if unit is None
+    if unit is None:
+        return axis
+    # if a unit is specified, attempt to
+    # convert axis to those units
+    try:
+        return axis.to(unit, equivalencies=spectral())
+    except u.UnitConversionError:
+        raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
 
 # def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
 #                invert_region=False, upper=True, preserve_shape=True, **kwargs):
