@@ -2,12 +2,14 @@ import numpy as np
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import matplotlib.pyplot as plt
-from .data_cube import plot_spectral_cube, return_cube_data
+from .data_cube import plot_spectral_cube
+from .io import save_figure_2_disk
+from .numerical_utils import return_cube_data
 from .plotting import imshow, plot_histogram
 from .plot_utils import (
-    return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
+    return_stylename, set_axis_labels, set_plot_colors
 )
-from .spectra import mask_within_range, return_spectra_dict, set_axis_limits
+from .spectra import plot_spectrum, return_spectra_dict
 
 class va:
     @staticmethod
@@ -89,58 +91,25 @@ class va:
             plt.show()
 
     @staticmethod
-    def plotSpectrum(spectra_dicts, normalize=False, plot_continuum=False, emission_line=None, **kwargs):
+    def plotSpectrum(extracted_spectrums, normalize=False, plot_continuum=False,
+                     emission_line=None, **kwargs):
 
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
-        xlim = kwargs.get('xlim', None)
-        ylim = kwargs.get('ylim', None)
-        # labels
-        labels = kwargs.get('labels', None)
-        xlabel = kwargs.get('xlabel', None)
-        ylabel = kwargs.get('ylabel', None)
-        colors = kwargs.get('colors', None)
-        cmap = kwargs.get('cmap', 'turbo')
-        text_loc = kwargs.get('text_loc', [0.025, 0.95])
-        use_brackets = kwargs.get('use_brackets', False)
         # savefig
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
 
-        spectra_dicts = spectra_dicts if isinstance(spectra_dicts, list) else [spectra_dicts]
-
-        # set plot style and colors
-        colors, fit_colors = set_plot_colors(colors, cmap=cmap)
+        # set plot style
         style = return_stylename(style)
 
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            if emission_line is not None:
-                ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
+            plot_spectrum(extracted_spectrums, ax, normalize,
+                          plot_continuum, emission_line, **kwargs)
 
-            wavelength_list = []
-            for i, spectra_dict in enumerate(spectra_dicts):
-                if spectra_dict is not None:
-
-                    wavelength = spectra_dict['wavelength']
-                    flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
-
-                    mask = mask_within_range(wavelength, xlim=xlim)
-
-                    label = labels[i] if (labels is not None and i < len(labels)) else None
-
-                    ax.plot(wavelength[mask], flux[mask], c=colors[i%len(colors)], label=label)
-                    if plot_continuum:
-                        ax.plot(wavelength[mask], spectra_dict['continuum_fit'][mask], c=fit_colors[i%len(fit_colors)])
-
-                    wavelength_list.append(wavelength[mask])
-
-            set_axis_limits(wavelength_list, None, ax, xlim, ylim)
-            set_axis_labels(wavelength, spectra_dict['flux'], ax, xlabel, ylabel, use_brackets=use_brackets)
-            if labels is not None:
-                ax.legend()
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()

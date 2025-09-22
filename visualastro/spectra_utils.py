@@ -53,9 +53,9 @@ def propagate_flux_errors(errors):
 
     return flux_errors
 
-def construct_p0(spectra, args, xlim=None):
-    wavelength = return_array_values(spectra['wavelength'])
-    flux = return_array_values(spectra['flux'])
+def construct_p0(extracted_spectrum, args, xlim=None):
+    wavelength = return_array_values(extracted_spectrum.wavelength)
+    flux = return_array_values(extracted_spectrum.flux)
 
     if xlim is not None:
         mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
@@ -71,7 +71,7 @@ def gaussian(x, A, mu, sigma):
     '''
     compute a gaussian curve given x values, amplitude, mean, and standard deviation
     Parameters
-    ----------
+    ––––––––––
     x: np.ndarray[np.int64]
         (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
     A: float
@@ -81,7 +81,7 @@ def gaussian(x, A, mu, sigma):
     sigma: float
         standard deviation of gaussian function
     Returns
-    -------
+    –––––––
     y: np.ndarray[np.float64]
         (N,) shaped array of values of gaussian function evaluated at each x
     '''
