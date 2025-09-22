@@ -1,6 +1,5 @@
 import warnings
 import numpy as np
-import astropy.units as u
 from astropy.units import Quantity
 from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
@@ -15,13 +14,14 @@ from .plot_utils import (
     return_stylename, save_figure_2_disk, set_axis_labels,
     set_plot_colors, shift_by_radial_vel
 )
+from .visual_classes import ExtractedSpectrum
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
     # –––– KWARGS ––––
     # doppler convention
-    convention = kwargs.get('convention', 'optical')
+    convention = kwargs.get('convention', None)
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
@@ -53,28 +53,27 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
                      transform=plt.gca().transAxes)
 
         wavelength_list = []
-        spectra_dict_list = []
+        extracted_spectrum_list = []
         for i, cube in enumerate(cubes):
 
             # extract spectral axis converted to user specified units
-            spectral_axis = return_spectral_coord(cube, unit, radial_vel, rest_freq, convention)
+            spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
 
             # extract spectrum flux
-            spectrum = cube.mean(axis=(1,2))
+            flux = cube.mean(axis=(1,2))
 
             # derreden
             if deredden:
-                spectrum = deredden_spectrum(spectral_axis, spectrum, **kwargs)
+                flux = deredden_spectrum(spectral_axis, flux, **kwargs)
 
-            # set plot limits
-            mask = compute_limits_mask(spectral_axis, xlim=xlim)
-            wavelength_list.append(spectral_axis[mask])
+            # initialize Spectrum1D object
+            spectrum1d = Spectrum1D(
+                spectral_axis=spectral_axis,
+                flux=flux,
+                rest_value=rest_freq,
+                velocity_convention=convention
+            )
 
-            # set plot labels
-            label = labels[i] if (labels is not None and i < len(labels)) else None
-
-            # compute continuum
-            spectrum1d = Spectrum1D(flux=spectrum, spectral_axis=spectral_axis)
             # convert region to default units
             region = convert_region_units(region, spectral_axis)
 
@@ -84,25 +83,47 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             # compute normalized flux
             spec_normalized = spectrum1d / continuum_fit
 
-            spectra_dict = return_spectra_dict(spectral_axis, spectrum)
-            spectra_dict['spectrum1d'] = spectrum1d
-            spectra_dict['normalized'] = spec_normalized.flux
-            spectra_dict['continuum_fit'] = continuum_fit
+            # variable for plotting wavelength
+            wavelength = spectrum1d.spectral_axis
+            if unit is not None:
+                try:
+                    wavelength = spectrum1d.spectral_axis.to(unit)
+                except Exception:
+                    print(
+                        f'Could not convert to unit: {unit}. \n'
+                        f'Defaulting to unit: {spectral_axis.unit}.'
+                    )
+            # mask data within its range
+            mask = mask_within_range(wavelength, xlim=xlim)
+            wavelength_list.append(wavelength[mask])
 
+            # set spectrum label and color
+            label = labels[i] if (labels is not None and i < len(labels)) else None
+            color = colors[i%len(colors)]
+
+            # plot normalized spectrum
             if normalize_continuum:
-                ax.plot(spectral_axis[mask], spec_normalized.flux[mask],
-                        color=colors[i%len(colors)], label=label)
+                ax.plot(wavelength[mask], spec_normalized.flux[mask],
+                        color=color, label=label)
+            # plot default spectrum
             else:
-                ax.plot(spectral_axis[mask], spectrum[mask], color=colors[i%len(colors)], label=label)
+                ax.plot(wavelength[mask], flux[mask], color=color, label=label)
+            # plot continuum fit
             if plot_continuum_fit:
                 # normalize fit if spectrum is normalized
-                continuum_fit = continuum_fit/continuum_fit if normalize_continuum else continuum_fit
-                ax.plot(spectral_axis[mask], continuum_fit[mask], color=fit_colors[i%len(fit_colors)])
-
-            spectra_dict_list.append(spectra_dict)
-
+                continuum_plot = continuum_fit/continuum_fit if normalize_continuum else continuum_fit
+                ax.plot(wavelength[mask], continuum_plot[mask], color=fit_colors[i%len(fit_colors)])
+            # save computed spectrum
+            extracted_spectrum_list.append(ExtractedSpectrum(
+                wavelength=wavelength,
+                flux=flux,
+                spectrum1d=spectrum1d,
+                normalized=spec_normalized,
+                continuum_fit=continuum_fit
+            ))
+        # set plot axis limits and labels
         set_axis_limits(wavelength_list, None, ax, xlim, ylim)
-        set_axis_labels(spectral_axis, spectrum, ax,
+        set_axis_labels(wavelength, flux, ax,
                         xlabel, ylabel, use_brackets)
 
         if labels is not None:
@@ -111,10 +132,10 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
-
-        if len(spectra_dict_list) == 1:
-            spectra_dict_list = spectra_dict_list[0]
-        return spectra_dict_list
+        # return computed ExtractedSpectrums
+        if len(extracted_spectrum_list) == 1:
+            extracted_spectrum_list = extracted_spectrum_list[0]
+        return extracted_spectrum_list
 
 def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
                   emission_line=None, **kwargs):
@@ -145,7 +166,7 @@ def plot_spectrum(spectra_dicts, ax, normalize=False, plot_continuum=False,
             wavelength = spectra_dict['wavelength']
             flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
 
-            mask = compute_limits_mask(wavelength, xlim=xlim)
+            mask = mask_within_range(wavelength, xlim=xlim)
 
             label = labels[i] if (labels is not None and i < len(labels)) else None
 
@@ -274,17 +295,23 @@ def return_continuum_fit(spectrum1d, fit_method, region):
     return continuum_fit
 
 def convert_region_units(region, spectral_axis):
-    if region is not None:
-        unit = spectral_axis.unit
-        region_converted = []
-        for rmin, rmax in region:
-            rmin = rmin.to(unit)
-            rmax = rmax.to(unit)
-            region_converted.append((rmin, rmax))
+    if region is None:
+        return region
 
-        return region_converted
+    unit = spectral_axis.unit
+    return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
 
-    return region
+    # if region is not None:
+    #     unit = spectral_axis.unit
+    #     region_converted = []
+    #     for rmin, rmax in region:
+    #         rmin = rmin.to(unit)
+    #         rmax = rmax.to(unit)
+    #         region_converted.append((rmin, rmax))
+
+    #     return region_converted
+
+    # return region
 
 def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical'):
     '''
@@ -297,6 +324,7 @@ def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical
             'length': 'optical',
             'speed': 'relativistic'
         }.get(axis_type or '', 'optical')
+        print(convention)
 
     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
                                   doppler_convention=convention)
@@ -595,17 +623,45 @@ def return_array_values(array):
 
     return array
 
-def compute_limits_mask(x, xlim=None):
+def mask_within_range(x, xlim=None):
+    '''
+    Return a boolean mask for values of x within the given limits.
+    Parameters
+    ––––––––––
+    x : array-like
+        Data array (e.g., wavelength or flux values)
+    xlim : tuple or list, optional
+        (xmin, xmax) range. If None, uses the min/max of x.
+
+    Returns
+    –––––––
+    mask : ndarray of bool
+        True where x is within the limits.
+    '''
     x = return_array_values(x)
 
     xmin = xlim[0] if xlim is not None else np.nanmin(x)
     xmax = xlim[1] if xlim is not None else np.nanmax(x)
-
     mask = (x > xmin) & (x < xmax)
 
     return mask
 
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
+    '''
+    Set axis limits based on concatenated data or user-provided limits.
+    Parameters
+    ––––––––––
+    xdata : list/tuple of arrays or array
+        X-axis data from multiple datasets.
+    ydata : list/tuple of arrays or array
+        Y-axis data from multiple datasets.
+    ax : matplotlib axis
+        The matplotlib axes object on which to set the axis limits.
+    xlim : tuple/list, optional
+        User-defined x-axis limits.
+    ylim : tuple/list, optional
+        User-defined y-axis limits.
+    '''
     if xdata is not None:
         # concatenate list of data into single array
         if isinstance(xdata, (list, tuple)):
@@ -617,8 +673,6 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
         xmax = return_array_values(np.nanmax(xdata))
         # use computed limits unless user overides
         xlim = xlim if xlim is not None else [xmin, xmax]
-        # set x and y limits
-    ax.set_xlim(xlim)
 
     if ydata is not None:
         # concatenate list of data into single array
@@ -626,7 +680,12 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
             ydata = np.concatenate(ydata)
         else:
             ydata = np.asarray(ydata)
+        # min and max values across data sets
         ymin = return_array_values(np.nanmin(ydata))
         ymax = return_array_values(np.nanmax(ydata))
+        # use computed limits unless user overides
         ylim = ylim if ylim is not None else [ymin, ymax]
+
+    # set x and y limits
+    ax.set_xlim(xlim)
     ax.set_ylim(ylim)

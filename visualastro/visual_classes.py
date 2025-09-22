@@ -43,7 +43,7 @@ class DataCube:
         self.error = errors
         self.value = array
 
-class Spectrum:
+class ExtractedSpectrum:
     def __init__(self, wavelength=None, flux=None,
                  spectrum1d=None, normalized=None,
                  continuum_fit=None):

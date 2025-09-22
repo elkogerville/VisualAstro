@@ -7,7 +7,7 @@ from .plotting import imshow, plot_histogram
 from .plot_utils import (
     return_stylename, save_figure_2_disk, set_axis_labels, set_plot_colors
 )
-from .spectra import compute_limits_mask, return_spectra_dict, set_axis_limits
+from .spectra import mask_within_range, return_spectra_dict, set_axis_limits
 
 class va:
     @staticmethod
@@ -127,7 +127,7 @@ class va:
                     wavelength = spectra_dict['wavelength']
                     flux = spectra_dict['normalized'] if normalize else spectra_dict['flux']
 
-                    mask = compute_limits_mask(wavelength, xlim=xlim)
+                    mask = mask_within_range(wavelength, xlim=xlim)
 
                     label = labels[i] if (labels is not None and i < len(labels)) else None
 
