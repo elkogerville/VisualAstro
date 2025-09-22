@@ -1,19 +1,21 @@
-import warnings
-import numpy as np
-from astropy.units import Quantity
-from astropy.coordinates import SpectralCoord
+#from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
-from specutils.spectra import Spectrum1D
-from specutils.fitting import fit_generic_continuum, fit_continuum
-from scipy.optimize import curve_fit, least_squares
-from scipy.interpolate import interp1d, CubicSpline
-from dust_extinction.parameter_averages import M14, G23
-from dust_extinction.grain_models import WD01
 import matplotlib.pyplot as plt
-from .numerical_utils import shift_by_radial_vel
+import numpy as np
+from specutils.spectra import Spectrum1D
+from scipy.optimize import curve_fit, least_squares
+from .numerical_utils import (
+    interpolate_arrays, mask_within_range,
+    return_array_values, shift_by_radial_vel
+)
 from .plot_utils import (
     return_stylename, save_figure_2_disk,
-    set_axis_labels, set_plot_colors
+    set_axis_labels, set_axis_limits, set_plot_colors
+)
+from .spectra_utils import (
+    convert_region_units, deredden_spectrum, gaussian,
+    gaussian_continuum, gaussian_line, residuals,
+    return_continuum_fit
 )
 from .visual_classes import ExtractedSpectrum
 
@@ -260,93 +262,37 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
 
     return spectra_dict
 
-def deredden_spectrum(wavelength, flux, **kwargs):
 
-    Rv = kwargs.get('Rv', 3.1)
-    Ebv = kwargs.get('Ebv', 0.19)
-    deredden_method = kwargs.get('deredden_method', 'WD01')
-    region = kwargs.get('region', 'LMCAvg')
 
-    # Rv=3.1 and Ebv=0.19 are LMC parameters
-    deredden = {
-        'G23': G23,
-        'WD01': WD01,
-        'M14': M14
-    }.get(deredden_method, M14)
 
-    if deredden_method == 'WD01':
-        extinction = deredden(region)
-    else:
-        extinction = deredden(Rv=Rv)
 
-    deredden_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
+# def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical'):
+#     '''
+#     Return cube spectral axis shifted by radial velocity and converted to user specified units
+#     '''
+#     if convention is None:
+#         axis_type = getattr(getattr(cube.spectral_axis, 'unit', None), 'physical_type', None)
+#         convention = {
+#             'frequency': 'radio',
+#             'length': 'optical',
+#             'speed': 'relativistic'
+#         }.get(axis_type or '', 'optical')
+#         print(convention)
 
-    return deredden_flux
+#     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
+#                                   doppler_convention=convention)
+#     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
 
-def return_continuum_fit(spectrum1d, fit_method, region):
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        if fit_method=='fit_continuum':
-            fit = fit_continuum(spectrum1d, window=region)
-        else:
-            fit = fit_generic_continuum(spectrum1d)
-    spectral_axis = spectrum1d.spectral_axis
-    continuum_fit = fit(spectral_axis)
+#     if unit is not None:
+#         try:
+#             spectral_axis = spectral_axis.to(unit)
+#         except Exception:
+#             print(
+#                 f'Could not convert to unit: {unit}. \n'
+#                 f'Defaulting to unit: {spectral_axis.unit}.'
+#             )
 
-    return continuum_fit
-
-def convert_region_units(region, spectral_axis):
-    if region is None:
-        return region
-
-    unit = spectral_axis.unit
-    return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
-
-    # if region is not None:
-    #     unit = spectral_axis.unit
-    #     region_converted = []
-    #     for rmin, rmax in region:
-    #         rmin = rmin.to(unit)
-    #         rmax = rmax.to(unit)
-    #         region_converted.append((rmin, rmax))
-
-    #     return region_converted
-
-    # return region
-
-def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical'):
-    '''
-    Return cube spectral axis shifted by radial velocity and converted to user specified units
-    '''
-    if convention is None:
-        axis_type = getattr(getattr(cube.spectral_axis, 'unit', None), 'physical_type', None)
-        convention = {
-            'frequency': 'radio',
-            'length': 'optical',
-            'speed': 'relativistic'
-        }.get(axis_type or '', 'optical')
-        print(convention)
-
-    spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
-                                  doppler_convention=convention)
-    spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-
-    if unit is not None:
-        try:
-            spectral_axis = spectral_axis.to(unit)
-        except Exception:
-            print(
-                f'Could not convert to unit: {unit}. \n'
-                f'Defaulting to unit: {spectral_axis.unit}.'
-            )
-
-    return spectral_axis
-
-def propagate_flux_errors(errors):
-    N = np.sum(~np.isnan(errors), axis=1)
-    flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
-
-    return flux_errors
+#     return spectral_axis
 
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
@@ -487,90 +433,6 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     else:
         return [integrated_flux, FWHM, popt[1]], [flux_error, FWHM_error, perr[1]]
 
-def construct_p0(spectra, args, xlim=None):
-    wavelength = return_array_values(spectra['wavelength'])
-    flux = return_array_values(spectra['flux'])
-
-    if xlim is not None:
-        mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
-        wavelength = wavelength[mask]
-        flux = flux[mask]
-    peak_idx = int(np.argmax(flux))
-    p0 = [np.nanmax(flux), wavelength[peak_idx]]
-    p0.extend(args)
-
-    return p0
-
-def gaussian(x, A, mu, sigma):
-    '''
-    compute a gaussian curve given x values, amplitude, mean, and standard deviation
-    Parameters
-    ----------
-    x: np.ndarray[np.int64]
-        (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
-    A: float
-        amplitude of gaussian function
-    mu: int
-        mean or center of gaussian function
-    sigma: float
-        standard deviation of gaussian function
-    Returns
-    -------
-    y: np.ndarray[np.float64]
-        (N,) shaped array of values of gaussian function evaluated at each x
-    '''
-    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
-
-    return y
-
-def gaussian_line(x, A, mu, sigma, m, b):
-    '''
-    compute a gaussian curve given x values, amplitude, mean, and standard deviation
-    Parameters
-    ----------
-    x: np.ndarray[np.int64]
-        (N,) shaped range of x values (pixel indeces) to compute the gaussian function over
-    A: float
-        amplitude of gaussian function
-    mu: int
-        mean or center of gaussian function
-    sigma: float
-        standard deviation of gaussian function
-    Returns
-    -------
-    y: np.ndarray[np.float64]
-        (N,) shaped array of values of gaussian function evaluated at each x
-    '''
-    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2) + m*x+b
-
-    return y
-
-def gaussian_continuum(x, A, mu, sigma, continuum):
-    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
-
-    return y + continuum
-
-def residuals(params, x, y):
-    A, mu, sigma, m, b = params
-    model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
-    return y - model
-
-def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
-    interpolation_map = {
-        'linear': interp1d,
-        'cubic': interp1d,
-        'cubic_spline': CubicSpline
-    }
-    interp = interpolation_map.get(method, interp1d)
-    x_interp = np.linspace(x_range[0], x_range[1], N_samples)
-    if method == 'cubic_spline':
-        f_interp = interp(xp, yp)
-    else:
-        f_interp = interp(xp, yp, kind=method)
-    y_interp = f_interp(x_interp)
-
-    return x_interp, y_interp
-
 def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
                        interp_method='cubic_spline', colors=None, style='astro', figsize=(6,6), xlim=None):
 
@@ -618,75 +480,3 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
     print(f'μ: {g_fit.mean.value:.5f} {g_fit.mean.unit}, FWHM: {g_fit.fwhm:.5f}, Flux: {integrated_flux:.5}')
 
     return g_fit
-
-def return_array_values(array):
-    array = array.value if isinstance(array, Quantity) else array
-
-    return array
-
-def mask_within_range(x, xlim=None):
-    '''
-    Return a boolean mask for values of x within the given limits.
-    Parameters
-    ––––––––––
-    x : array-like
-        Data array (e.g., wavelength or flux values)
-    xlim : tuple or list, optional
-        (xmin, xmax) range. If None, uses the min/max of x.
-
-    Returns
-    –––––––
-    mask : ndarray of bool
-        True where x is within the limits.
-    '''
-    x = return_array_values(x)
-
-    xmin = xlim[0] if xlim is not None else np.nanmin(x)
-    xmax = xlim[1] if xlim is not None else np.nanmax(x)
-    mask = (x > xmin) & (x < xmax)
-
-    return mask
-
-def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
-    '''
-    Set axis limits based on concatenated data or user-provided limits.
-    Parameters
-    ––––––––––
-    xdata : list/tuple of arrays or array
-        X-axis data from multiple datasets.
-    ydata : list/tuple of arrays or array
-        Y-axis data from multiple datasets.
-    ax : matplotlib axis
-        The matplotlib axes object on which to set the axis limits.
-    xlim : tuple/list, optional
-        User-defined x-axis limits.
-    ylim : tuple/list, optional
-        User-defined y-axis limits.
-    '''
-    if xdata is not None:
-        # concatenate list of data into single array
-        if isinstance(xdata, (list, tuple)):
-            xdata = np.concatenate(xdata)
-        else:
-            xdata = np.asarray(xdata)
-        # min and max values across data sets
-        xmin = return_array_values(np.nanmin(xdata))
-        xmax = return_array_values(np.nanmax(xdata))
-        # use computed limits unless user overides
-        xlim = xlim if xlim is not None else [xmin, xmax]
-
-    if ydata is not None:
-        # concatenate list of data into single array
-        if isinstance(ydata, (list, tuple)):
-            ydata = np.concatenate(ydata)
-        else:
-            ydata = np.asarray(ydata)
-        # min and max values across data sets
-        ymin = return_array_values(np.nanmin(ydata))
-        ymax = return_array_values(np.nanmax(ydata))
-        # use computed limits unless user overides
-        ylim = ylim if ylim is not None else [ymin, ymax]
-
-    # set x and y limits
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
