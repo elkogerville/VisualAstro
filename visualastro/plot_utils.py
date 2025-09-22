@@ -1,16 +1,18 @@
 import os
 from functools import partial
-import numpy as np
 from astropy.visualization import AsinhStretch, ImageNormalize
-
-import matplotlib.style as mplstyle
 import matplotlib.pyplot as plt
+import matplotlib.style as mplstyle
 from matplotlib import colors as mcolors
 from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
+import numpy as np
 from regions import PixCoord, EllipsePixelRegion
+from .numerical_utils import return_array_values
 from .visual_classes import DataCube
 
+# Plot Style and Color Functions
+# ––––––––––––––––––––––––––––––
 def return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
@@ -42,197 +44,25 @@ def return_stylename(style):
         style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
 
-def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
+def lighten_color(color, mix=0.5):
     '''
-    Compute vmin and vmax for image display. By default uses the
-    percentile range [1,99], but optionally vmin and/or vmax can
-    be set by the user. Setting percentile to None results in no
-    stretch. Passing in a boolean array uses vmin=0, vmax=1.
+    Lightens the given matplotlib color by mixing it with white.
     Parameters
     ––––––––––
-    data : array-like
-        Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, default [1,99]
-        Percentile range '[pmin, pmax]' to compute vmin and vmax.
-        If None, sets vmin and vmax to None.
-    vmin : float or None, default None
-        If provided, overrides the computed vmin.
-    vmax : float or None, default None
-        If provided, overrides the computed vmax.
-    Returns
-    –––––––
-    vmin : float or None
-        Minimum value for image scaling.
-    vmax : float or None
-        Maximum value for image scaling.
+    color : matplotlib color, str
+        Matplotlib named color, hex color, html color or rgb tuple.
+    mix : float or int
+        Ratio of color to white in mix.
+        mix=0 returns the original color,
+        mix=1 returns pure white.
     '''
-    # check if data is boolean
-    if data.dtype == bool:  # special case for boolean arrays
-        return 0, 1
-    # by default use percentile range. if vmin or vmax is provided
-    # overide and use those instead
-    if percentile is not None:
-        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
-        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
-    # if percentile is None return None for vmin and vmax
-    else:
-        vmin = None
-        vmax = None
+    # convert to rgb
+    rgb = np.array(mcolors.to_rgb(color))
+    white = np.array([1, 1, 1])
+    # mix color with white
+    mixed = (1 - mix) * rgb + mix * white
 
-    return vmin, vmax
-
-def return_imshow_norm(vmin, vmax, norm):
-    '''
-    Return a matplotlib or astropy normalization object for image display.
-    Parameters
-    ––––––––––
-    vmin : float or None
-        Minimum value for normalization.
-    vmax : float or None
-        Maximum value for normalization.
-    norm : str or None
-        Normalization algorithm for colormap scaling.
-        - 'asinh' -> AsinhStretch using 'ImageNormalize'
-        - 'log' -> logarithmic scaling using 'LogNorm'
-        - 'none' or None -> no normalization applied
-    Returns
-    –––––––
-    norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
-        Normalization object to pass to `imshow`. None if `norm` is 'none'.
-    '''
-    # ensure norm is a string
-    norm = 'none' if norm is None else norm
-    # ensure case insensitivity
-    norm = norm.lower()
-    # dict containing possible stretch algorithms
-    norm_map = {
-        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
-        'log': LogNorm(vmin=vmin, vmax=vmax),
-        'none': None
-    }
-    if norm not in norm_map:
-        raise ValueError(f"ERROR: unsupported norm: {norm}")
-    # use linear stretch if plotting boolean array
-    if vmin==0 and vmax==1:
-        return None
-
-    return norm_map[norm]
-
-# def return_cube_slice(cube, idx):
-#     '''
-#     Return a slice of a data cube along the first axis.
-#     Parameters
-#     ––––––––––
-#     cube : np.ndarray
-#         Input data cube, typically with shape (T, N, ...) where T is the first axis.
-#     idx : int or list of int
-#         Index or indices specifying the slice along the first axis:
-#         - i -> returns 'cube[i]'
-#         - [i] -> returns 'cube[i]'
-#         - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
-#     Returns
-#     –––––––
-#     cube : np.ndarray
-#         Sliced cube with shape (N, ...).
-#     '''
-#     cube = return_cube_data(cube)
-#     # if index is integer
-#     if isinstance(idx, int):
-#         return cube[idx]
-#     # if index is list of integers
-#     elif isinstance(idx, list):
-#         # list of len 1
-#         if len(idx) == 1:
-#             return cube[idx[0]]
-#         # list of len 2
-#         elif len(idx) == 2:
-#             start, end = idx
-#             return cube[start:end+1].sum(axis=0)
-#     raise ValueError("'idx' must be an int or a list of one or two integers")
-
-# def extract_spectral_axis(cube, unit=None):
-#     '''
-#     Extract the spectral axis from a data cube and optionally
-#     convert it to a specified unit.
-#     Parameters
-#     ––––––––––
-#     cube : SpectralCube
-#         The input spectral data cube.
-#     unit : astropy.units.Unit, optional
-#         Desired unit for the spectral axis. If None, the axis
-#         is returned in its native units.
-#     Returns
-#     –––––––
-#     spectral_axis : Quantity
-#         The spectral axis of the cube, optionally converted
-#         to the specified unit.
-#     '''
-#     axis = cube.spectral_axis
-#     # return axis if unit is None
-#     if unit is None:
-#         return axis
-#     # if a unit is specified, attempt to
-#     # convert axis to those units
-#     try:
-#         return axis.to(unit, equivalencies=spectral())
-#     except u.UnitConversionError:
-#         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
-
-# def get_spectral_slice_value(spectral_axis, idx):
-#     '''
-#     Return a representative value from a spectral axis
-#     given an index or index range.
-#     Parameters
-#     ––––––––––
-#     spectral_axis : Quantity
-#         The spectral axis (e.g., wavelength, frequency, or
-#         velocity) as an 'astropy.units.Quantity' array.
-#     idx : int or list of int
-#         Index or indices specifying the slice along the first axis:
-#         - i -> returns 'spectral_axis[i]'
-#         - [i] -> returns 'spectral_axis[i]'
-#         - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
-#     Returns
-#     –––––––
-#     spectral_value : float
-#         The spectral value at the specified index or index
-#         range, in the units of 'spectral_axis'.
-#     '''
-#     if isinstance(idx, int):
-#         return spectral_axis[idx].value
-#     elif isinstance(idx, list):
-#         if len(idx) == 1:
-#             return spectral_axis[idx[0]].value
-#         elif len(idx) == 2:
-#             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
-#     raise ValueError("'idx' must be an int or a list of one or two integers")
-
-def save_figure_2_disk(dpi=600):
-    '''
-    Saves current figure to disk as a pdf, png, or svg,
-    and prompts user for a filename and format.
-    Parameters
-    ––––––––––
-    dpi: float
-        Resolution in dots per inch.
-    '''
-    allowed_formats = {'pdf', 'png', 'svg'}
-    # prompt user for filename, and extract extension
-    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
-    basename, *extension = filename.rsplit('.', 1)
-    # if extension exists, and is allowed, extract extension from list
-    if extension and extension[0].lower() in allowed_formats:
-        extension = extension[0]
-    # else prompt user to input a valid extension
-    else:
-        extension = ''
-        while extension not in allowed_formats:
-            extension = input(f'Please choose a format from ({", ".join(allowed_formats)}): ').strip().lower()
-    # construct complete filename
-    filename = f'{basename}.{extension}'
-
-    # save figure
-    plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
+    return mcolors.to_hex(mixed)
 
 def sample_cmap(N, cmap='turbo', return_hex=False):
     '''
@@ -341,59 +171,187 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
         'user_colors must be None, a str palette name, a str color, a list of colors, or an integer'
     )
 
-def lighten_color(color, mix=0.5):
+# Imshow Stretch Functions
+# ––––––––––––––––––––––––
+def return_imshow_norm(vmin, vmax, norm):
     '''
-    Lightens the given matplotlib color by mixing it with white.
+    Return a matplotlib or astropy normalization object for image display.
     Parameters
     ––––––––––
-    color : matplotlib color, str
-        Matplotlib named color, hex color, html color or rgb tuple.
-    mix : float or int
-        Ratio of color to white in mix.
-        mix=0 returns the original color,
-        mix=1 returns pure white.
-    '''
-    # convert to rgb
-    rgb = np.array(mcolors.to_rgb(color))
-    white = np.array([1, 1, 1])
-    # mix color with white
-    mixed = (1 - mix) * rgb + mix * white
-
-    return mcolors.to_hex(mixed)
-
-def set_unit_labels(unit):
-    '''
-    Convert an astropy unit string into a LaTeX-formatted label for plotting.
-    Parameters
-    ––––––––––
-    unit : str
-        The unit string to convert. Common astropy units such as 'um',
-        'Angstrom', 'km / s', etc. are mapped to LaTeX-friendly forms.
+    vmin : float or None
+        Minimum value for normalization.
+    vmax : float or None
+        Maximum value for normalization.
+    norm : str or None
+        Normalization algorithm for colormap scaling.
+        - 'asinh' -> AsinhStretch using 'ImageNormalize'
+        - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'none' or None -> no normalization applied
     Returns
     –––––––
-    str or None
-        A LaTeX-formatted unit label if the input is recognized.
-        Returns None if the unit is not in the predefined mapping.
+    norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
+        Normalization object to pass to `imshow`. None if `norm` is 'none'.
     '''
-    unit_label = {
-        'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
-        'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
-        'micron': r'\mathrm{\mu m}',
-        'um': r'\mathrm{\mu m}',
-        'nm': 'nm',
-        'nanometer': 'nm',
-        'Angstrom': r'\mathrm{\AA}',
-        'm': 'm',
-        'meter': 'm',
-        'Hz': 'Hz',
-        'kHz': 'kHz',
-        'MHz': 'MHz',
-        'GHz': 'GHz',
-        'electron': r'\mathrm{e^{-}}',
-        'km / s': r'\mathrm{km\ s^{-1}}',
-    }.get(str(unit))
+    # ensure norm is a string
+    norm = 'none' if norm is None else norm
+    # ensure case insensitivity
+    norm = norm.lower()
+    # dict containing possible stretch algorithms
+    norm_map = {
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
+        'log': LogNorm(vmin=vmin, vmax=vmax),
+        'none': None
+    }
+    if norm not in norm_map:
+        raise ValueError(f"ERROR: unsupported norm: {norm}")
+    # use linear stretch if plotting boolean array
+    if vmin==0 and vmax==1:
+        return None
 
-    return unit_label
+    return norm_map[norm]
+
+def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
+    '''
+    Compute vmin and vmax for image display. By default uses the
+    percentile range [1,99], but optionally vmin and/or vmax can
+    be set by the user. Setting percentile to None results in no
+    stretch. Passing in a boolean array uses vmin=0, vmax=1.
+    Parameters
+    ––––––––––
+    data : array-like
+        Input data array (e.g., 2D image) for which to compute vmin and vmax.
+    percentile : list or tuple of two floats, default [1,99]
+        Percentile range '[pmin, pmax]' to compute vmin and vmax.
+        If None, sets vmin and vmax to None.
+    vmin : float or None, default None
+        If provided, overrides the computed vmin.
+    vmax : float or None, default None
+        If provided, overrides the computed vmax.
+    Returns
+    –––––––
+    vmin : float or None
+        Minimum value for image scaling.
+    vmax : float or None
+        Maximum value for image scaling.
+    '''
+    # check if data is boolean
+    if data.dtype == bool:  # special case for boolean arrays
+        return 0, 1
+    # by default use percentile range. if vmin or vmax is provided
+    # overide and use those instead
+    if percentile is not None:
+        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
+        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
+    # if percentile is None return None for vmin and vmax
+    else:
+        vmin = None
+        vmax = None
+
+    return vmin, vmax
+
+
+def save_figure_2_disk(dpi=600):
+    '''
+    Saves current figure to disk as a pdf, png, or svg,
+    and prompts user for a filename and format.
+    Parameters
+    ––––––––––
+    dpi: float
+        Resolution in dots per inch.
+    '''
+    allowed_formats = {'pdf', 'png', 'svg'}
+    # prompt user for filename, and extract extension
+    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
+    basename, *extension = filename.rsplit('.', 1)
+    # if extension exists, and is allowed, extract extension from list
+    if extension and extension[0].lower() in allowed_formats:
+        extension = extension[0]
+    # else prompt user to input a valid extension
+    else:
+        extension = ''
+        while extension not in allowed_formats:
+            extension = input(f'Please choose a format from ({", ".join(allowed_formats)}): ').strip().lower()
+    # construct complete filename
+    filename = f'{basename}.{extension}'
+
+    # save figure
+    plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
+
+# Axes Labels, Format, and Styling
+# ––––––––––––––––––––––––––––––––
+def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
+    '''
+    Add a colorbar next to an Axes.
+    Parameters
+    ––––––––––
+    im : matplotlib.cm.ScalarMappable
+        The image, contour set, or mappable object returned by a plotting
+        function (e.g., 'imshow', 'scatter', etc...).
+    ax : matplotlib.axes.Axes
+        The axes to which the colorbar will be attached.
+    cbar_width : float, optional
+        Width of the colorbar in figure coordinates. Default is 0.03.
+    cbar_pad : float, optional
+        Padding between the main axes and the colorbar in figure coordinates.
+        Default is 0.015.
+    clabel : str, optional
+        Label for the colorbar. If None, no label is set.
+    '''
+    # extract figure from axes
+    fig = ax.figure
+    # add colorbar axes
+    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
+                        cbar_width, ax.get_position().height])
+    # add colorbar
+    cbar = fig.colorbar(im, cax=cax, pad=0.04)
+    # formatting and label
+    cbar.ax.tick_params(which='both', direction='out')
+    if clabel is not None:
+        cbar.set_label(fr'{clabel}')
+
+def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
+    '''
+    Set axis limits based on concatenated data or user-provided limits.
+    Parameters
+    ––––––––––
+    xdata : list/tuple of arrays or array
+        X-axis data from multiple datasets.
+    ydata : list/tuple of arrays or array
+        Y-axis data from multiple datasets.
+    ax : matplotlib axis
+        The matplotlib axes object on which to set the axis limits.
+    xlim : tuple/list, optional
+        User-defined x-axis limits.
+    ylim : tuple/list, optional
+        User-defined y-axis limits.
+    '''
+    if xdata is not None:
+        # concatenate list of data into single array
+        if isinstance(xdata, (list, tuple)):
+            xdata = np.concatenate(xdata)
+        else:
+            xdata = np.asarray(xdata)
+        # min and max values across data sets
+        xmin = return_array_values(np.nanmin(xdata))
+        xmax = return_array_values(np.nanmax(xdata))
+        # use computed limits unless user overides
+        xlim = xlim if xlim is not None else [xmin, xmax]
+
+    if ydata is not None:
+        # concatenate list of data into single array
+        if isinstance(ydata, (list, tuple)):
+            ydata = np.concatenate(ydata)
+        else:
+            ydata = np.asarray(ydata)
+        # min and max values across data sets
+        ymin = return_array_values(np.nanmin(ydata))
+        ymax = return_array_values(np.nanmax(ydata))
+        # use computed limits unless user overides
+        ylim = ylim if ylim is not None else [ymin, ymax]
+
+    # set x and y limits
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
 
 def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     '''
@@ -457,36 +415,42 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
+def set_unit_labels(unit):
     '''
-    Add a colorbar next to an Axes.
+    Convert an astropy unit string into a LaTeX-formatted label for plotting.
     Parameters
     ––––––––––
-    im : matplotlib.cm.ScalarMappable
-        The image, contour set, or mappable object returned by a plotting
-        function (e.g., 'imshow', 'scatter', etc...).
-    ax : matplotlib.axes.Axes
-        The axes to which the colorbar will be attached.
-    cbar_width : float, optional
-        Width of the colorbar in figure coordinates. Default is 0.03.
-    cbar_pad : float, optional
-        Padding between the main axes and the colorbar in figure coordinates.
-        Default is 0.015.
-    clabel : str, optional
-        Label for the colorbar. If None, no label is set.
+    unit : str
+        The unit string to convert. Common astropy units such as 'um',
+        'Angstrom', 'km / s', etc. are mapped to LaTeX-friendly forms.
+    Returns
+    –––––––
+    str or None
+        A LaTeX-formatted unit label if the input is recognized.
+        Returns None if the unit is not in the predefined mapping.
     '''
-    # extract figure from axes
-    fig = ax.figure
-    # add colorbar axes
-    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-                        cbar_width, ax.get_position().height])
-    # add colorbar
-    cbar = fig.colorbar(im, cax=cax, pad=0.04)
-    # formatting and label
-    cbar.ax.tick_params(which='both', direction='out')
-    if clabel is not None:
-        cbar.set_label(fr'{clabel}')
+    unit_label = {
+        'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
+        'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
+        'micron': r'\mathrm{\mu m}',
+        'um': r'\mathrm{\mu m}',
+        'nm': 'nm',
+        'nanometer': 'nm',
+        'Angstrom': r'\mathrm{\AA}',
+        'm': 'm',
+        'meter': 'm',
+        'Hz': 'Hz',
+        'kHz': 'kHz',
+        'MHz': 'MHz',
+        'GHz': 'GHz',
+        'electron': r'\mathrm{e^{-}}',
+        'km / s': r'\mathrm{km\ s^{-1}}',
+    }.get(str(unit))
 
+    return unit_label
+
+# Plot Matplotlib Patches and Shapes
+# ––––––––––––––––––––––––––––––––––
 def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'):
     '''
     Plot one or more circles on a Matplotlib axis with customizable style.
@@ -532,23 +496,6 @@ def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'
             circle_patch = Circle((x, y), radius=r, fill=fill, linewidth=linewidth, color=color)
             ax.add_patch(circle_patch)
 
-def plot_ellipses(ellipses, ax):
-    '''
-    Plots an ellipse or list of ellipses to an axes.
-    Parameters
-    ––––––––––
-    ellipses : matplotlib.patches.Ellipse or list
-        The Ellipse or list of Ellipses to plot.
-    ax : matplotlib.axes.Axes
-        Matplotlib axis on which to plot the ellipses(s).
-    '''
-    if ellipses is not None:
-        # ensure ellipses is iterable
-        ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
-        # plot each ellipse
-        for ellipse in ellipses:
-            ax.add_patch(copy_ellipse(ellipse))
-
 def copy_ellipse(ellipse):
     '''
     Returns a copy of an Ellipse object.
@@ -572,6 +519,23 @@ def copy_ellipse(ellipse):
         ls=ellipse.get_linestyle(),
         alpha=ellipse.get_alpha()
     )
+
+def plot_ellipses(ellipses, ax):
+    '''
+    Plots an ellipse or list of ellipses to an axes.
+    Parameters
+    ––––––––––
+    ellipses : matplotlib.patches.Ellipse or list
+        The Ellipse or list of Ellipses to plot.
+    ax : matplotlib.axes.Axes
+        Matplotlib axis on which to plot the ellipses(s).
+    '''
+    if ellipses is not None:
+        # ensure ellipses is iterable
+        ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
+        # plot each ellipse
+        for ellipse in ellipses:
+            ax.add_patch(copy_ellipse(ellipse))
 
 def plot_interactive_ellipse(center, w, h, ax,
                              text_loc=[0.03,0.03],
@@ -614,11 +578,11 @@ def plot_interactive_ellipse(center, w, h, ax,
     ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]),
                                         width=w, height=h)
     # define interactive ellipse
-    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_region, text=text))
+    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_ellipse_region, text=text))
     # bind ellipse to axes
     ax._ellipse_selector = selector
 
-def update_region(region, text):
+def update_ellipse_region(region, text):
     '''
     Update ellipse information text when the
     interactive region is modified.
@@ -677,10 +641,8 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
         for i, point in enumerate(points):
             ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
 
-# ––––––––––––––
 # Notebook Utils
 # ––––––––––––––
-
 def use_inline():
     '''
     Start an inline IPython backend session.
