@@ -10,9 +10,10 @@ from scipy.interpolate import interp1d, CubicSpline
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import matplotlib.pyplot as plt
+from .numerical_utils import shift_by_radial_vel
 from .plot_utils import (
-    return_stylename, save_figure_2_disk, set_axis_labels,
-    set_plot_colors, shift_by_radial_vel
+    return_stylename, save_figure_2_disk,
+    set_axis_labels, set_plot_colors
 )
 from .visual_classes import ExtractedSpectrum
 

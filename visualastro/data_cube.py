@@ -9,10 +9,10 @@ from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from matplotlib.patches import Ellipse
 from tqdm import tqdm
+from .numerical_utils import return_cube_data, shift_by_radial_vel
 from .plot_utils import (
-    add_colorbar, get_spectral_slice_value, plot_ellipses,
-    plot_interactive_ellipse, return_cube_data, return_cube_slice, return_imshow_norm,
-    set_unit_labels, set_vmin_vmax, shift_by_radial_vel
+    add_colorbar, plot_ellipses, plot_interactive_ellipse,
+    return_imshow_norm, set_unit_labels, set_vmin_vmax,
 )
 from .visual_classes import DataCube
 
@@ -240,6 +240,68 @@ def extract_spectral_axis(cube, unit=None):
         return axis.to(unit, equivalencies=spectral())
     except u.UnitConversionError:
         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
+
+def return_cube_slice(cube, idx):
+    '''
+    Return a slice of a data cube along the first axis.
+    Parameters
+    ––––––––––
+    cube : np.ndarray
+        Input data cube, typically with shape (T, N, ...) where T is the first axis.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'cube[i]'
+        - [i] -> returns 'cube[i]'
+        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
+    Returns
+    –––––––
+    cube : np.ndarray
+        Sliced cube with shape (N, ...).
+    '''
+    cube = return_cube_data(cube)
+    # if index is integer
+    if isinstance(idx, int):
+        return cube[idx]
+    # if index is list of integers
+    elif isinstance(idx, list):
+        # list of len 1
+        if len(idx) == 1:
+            return cube[idx[0]]
+        # list of len 2
+        elif len(idx) == 2:
+            start, end = idx
+            return cube[start:end+1].sum(axis=0)
+    raise ValueError("'idx' must be an int or a list of one or two integers")
+
+def get_spectral_slice_value(spectral_axis, idx):
+    '''
+    Return a representative value from a spectral axis
+    given an index or index range.
+    Parameters
+    ––––––––––
+    spectral_axis : Quantity
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an 'astropy.units.Quantity' array.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'spectral_axis[i]'
+        - [i] -> returns 'spectral_axis[i]'
+        - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
+    Returns
+    –––––––
+    spectral_value : float
+        The spectral value at the specified index or index
+        range, in the units of 'spectral_axis'.
+    '''
+    if isinstance(idx, int):
+        return spectral_axis[idx].value
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            return spectral_axis[idx[0]].value
+        elif len(idx) == 2:
+            return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
+    raise ValueError("'idx' must be an int or a list of one or two integers")
+
 
 # def mask_image(image, ellipse_region=None, region='annulus', line_points=None,
 #                invert_region=False, upper=True, preserve_shape=True, **kwargs):

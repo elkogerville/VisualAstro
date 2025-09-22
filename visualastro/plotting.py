@@ -1,10 +1,13 @@
 from astropy.visualization.wcsaxes.core import WCSAxes
 import numpy as np
 import matplotlib.pyplot as plt
+from .data_cube import return_cube_slice
+from .numerical_utils import check_is_array
 from .plot_utils import (
-    add_colorbar, check_is_array, plot_circles, plot_ellipses,
-    plot_interactive_ellipse, plot_points, return_cube_slice,
-    return_imshow_norm, return_stylename, set_plot_colors, set_vmin_vmax,
+    add_colorbar, plot_circles, plot_ellipses,
+    plot_interactive_ellipse, plot_points,
+    return_imshow_norm, return_stylename,
+    set_plot_colors, set_vmin_vmax,
 )
 
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
