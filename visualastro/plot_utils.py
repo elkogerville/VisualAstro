@@ -8,8 +8,8 @@ from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
-from .numerical_utils import return_array_values
-from .visual_classes import DataCube
+from .data_cube_utils import return_cube_slice
+from .numerical_utils import check_is_array, return_array_values, return_cube_data
 
 # Plot Style and Color Functions
 # ––––––––––––––––––––––––––––––
@@ -215,7 +215,8 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     Compute vmin and vmax for image display. By default uses the
     percentile range [1,99], but optionally vmin and/or vmax can
     be set by the user. Setting percentile to None results in no
-    stretch. Passing in a boolean array uses vmin=0, vmax=1.
+    stretch. Passing in a boolean array uses vmin=0, vmax=1. This
+    function is used internally by plotting functions.
     Parameters
     ––––––––––
     data : array-like
@@ -234,6 +235,8 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     vmax : float or None
         Maximum value for image scaling.
     '''
+    # check if data is an array
+    data = check_is_array(data)
     # check if data is boolean
     if data.dtype == bool:  # special case for boolean arrays
         return 0, 1
@@ -246,6 +249,42 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     else:
         vmin = None
         vmax = None
+
+    return vmin, vmax
+
+def compute_cube_percentile(cube, slice_idx, vmin, vmax):
+    '''
+    Compute percentile-based intensity limits from a data cube slice.
+    This function is intended to be used to compute an image scaling.
+    Parameters
+    ––––––––––
+    cube : ndarray, SpectralCube, or DataCube
+        Input data cube of shape (N_frames, N, M).
+    slice_idx : int or list of int, optional
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'cube[i]'
+        - [i] -> returns 'cube[i]'
+        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
+    vmin : float
+        Lower percentile (0–100) for intensity scaling.
+    vmax : float
+        Upper percentile (0–100) for intensity scaling.
+    Returns
+    –––––––
+    vmin : float
+        Computed lower intensity value corresponding to the
+        specified 'vmin' percentile.
+    vmax : float
+        Computed upper intensity value corresponding to the
+        specified 'vmax' percentile.
+    '''
+    # ensure cube is stripped of metadata
+    cube = return_cube_data(cube)
+    # slice cube
+    data = return_cube_slice(cube, slice_idx)
+    # compute vmin and vmax
+    vmin = np.nanpercentile(data.value, vmin)
+    vmax = np.nanpercentile(data.value, vmax)
 
     return vmin, vmax
 
