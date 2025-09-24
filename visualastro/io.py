@@ -4,6 +4,8 @@ import numpy as np
 from tqdm import tqdm
 from .visual_classes import FitsFile
 
+# Fits File I/O Operations
+# ––––––––––––––––––––––––
 def load_fits(filepath, header=True, print_info=True,
               transpose=False, dtype=np.float64):
     '''
@@ -49,6 +51,32 @@ def load_fits(filepath, header=True, print_info=True,
     else:
         return data
 
+def write_cube_2_fits(cube, filename, overwrite=False):
+    '''
+    Write a 3D data cube to a series of FITS files.
+    Parameters
+    ––––––––––
+    cube : ndarray (N_frames, N, M)
+        Data cube containing N_frames images of shape (N, M).
+    filename : str
+        Base filename (without extension). Each
+        output file will be saved as "{filename}_i.fits".
+    overwrite : bool, optional, default=False
+        If True, existing files with the same name
+        will be overwritten.
+    Notes
+    –––––
+    Prints a message indicating the number of
+    frames and the base filename.
+    '''
+    N_frames, N, M = cube.shape
+    print(f'Writing {N_frames} fits files to {filename}_i.fits')
+    for i in tqdm(range(N_frames)):
+        output_name = filename + f'_{i}.fits'
+        fits.writeto(output_name, cube[i], overwrite=overwrite)
+
+# Figure I/O Operations
+# –––––––––––––––––––––
 def save_figure_2_disk(dpi=600):
     '''
     Saves current figure to disk as a pdf, png, or svg,
@@ -77,27 +105,3 @@ def save_figure_2_disk(dpi=600):
 
     # save figure
     plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
-
-def write_cube_2_fits(cube, filename, overwrite=False):
-    '''
-    Write a 3D data cube to a series of FITS files.
-    Parameters
-    ––––––––––
-    cube : ndarray (N_frames, N, M)
-        Data cube containing N_frames images of shape (N, M).
-    filename : str
-        Base filename (without extension). Each
-        output file will be saved as "{filename}_i.fits".
-    overwrite : bool, optional, default=False
-        If True, existing files with the same name
-        will be overwritten.
-    Notes
-    –––––
-    Prints a message indicating the number of
-    frames and the base filename.
-    '''
-    N_frames, N, M = cube.shape
-    print(f'Writing {N_frames} fits files to {filename}_i.fits')
-    for i in tqdm(range(N_frames)):
-        output_name = filename + f'_{i}.fits'
-        fits.writeto(output_name, cube[i], overwrite=overwrite)

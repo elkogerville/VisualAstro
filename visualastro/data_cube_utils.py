@@ -1,7 +1,5 @@
-
 import astropy.units as u
 from astropy.units import spectral
-from matplotlib.patches import Ellipse
 import numpy as np
 from .numerical_utils import return_cube_data
 
@@ -102,12 +100,25 @@ def get_spectral_slice_value(spectral_axis, idx):
             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
-def return_ellipse_region(center, w, h, angle=0):
-    ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
-
-    return ellipse
-
 def compute_line(points):
+    '''
+    Compute the slope and intercept of a line passing through two points.
+    Parameters
+    ––––––––––
+    points : list or tuple of tuples
+        A sequence containing exactly two points, each as (x, y), e.g.,
+        [(x0, y0), (x1, y1)].
+    Returns
+    –––––––
+    m : float
+        Slope of the line.
+    b : float
+        Intercept of the line (y = m*x + b).
+    Notes
+    –––––
+    - The function assumes the two points have different x-coordinates.
+    - If the x-coordinates are equal, a ZeroDivisionError will be raised.
+    '''
     m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])
     b = points[0][1] - m*points[0][0]
 
