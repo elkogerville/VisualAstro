@@ -19,18 +19,7 @@ from .plot_utils import (
 )
 from .visual_classes import DataCube
 
-warnings.filterwarnings('ignore', category=AstropyWarning)
-
-def load_fits(filepath, header=True, print_info=True, transpose=False):
-    if print_info:
-        with fits.open(filepath) as hdul:
-            hdul.info()
-    data, fits_header = fits.getdata(filepath, header=True) # type: ignore
-    if transpose:
-        data = data.T
-    result = [data, fits_header] if header else data
-
-    return result
+#warnings.filterwarnings('ignore', category=AstropyWarning)
 
 def load_data_cube(filepath, dtype=np.float64,
                    print_info=True, transpose=False):
@@ -44,12 +33,12 @@ def load_data_cube(filepath, dtype=np.float64,
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
         Example: 'Spectro-Module/raw/HARPS*.fits'
-    dtype : numpy.dtype, optional
-        Data type for the loaded FITS data (default: np.float64).
-    print_info : bool, optional
-        If True, print summary information about the loaded cube (default: True).
-    transpose : bool, optional
-        If True, transpose each 2D image before stacking into the cube (default: False).
+    dtype : numpy.dtype, optional, default=np.float64
+        Data type for the loaded FITS data.
+    print_info : bool, optional, default=True
+        If True, print summary information about the loaded cube.
+    transpose : bool, optional, default=False
+        If True, transpose each 2D image before stacking into the cube.
     Returns
     –––––––
     cube : DataCube
