@@ -1,6 +1,5 @@
 #from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
-from astropy.units import spectral
 import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
@@ -61,9 +60,6 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             rest_value=rest_freq,
             velocity_convention=convention
         )
-
-        # convert region to default units
-        region = convert_region_units(region, spectral_axis)
 
         # compute continuum fit
         continuum_fit = return_continuum_fit(spectrum1d, fit_method, region)
