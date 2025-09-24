@@ -1,9 +1,8 @@
-from astropy.io import fits
+
 import astropy.units as u
 from astropy.units import spectral
 from matplotlib.patches import Ellipse
 import numpy as np
-from tqdm import tqdm
 from .numerical_utils import return_cube_data
 
 def header_2_array(cube, key):
@@ -13,13 +12,6 @@ def header_2_array(cube, key):
         array.append(headers[i][key])
 
     return np.asarray(array)
-
-def write_cube_2_fits(cube, filename, overwrite=False):
-    N_frames, N, M = cube.shape
-    print(f'Writing {N_frames} fits files to {filename}_reduced_i.fits')
-    for i in tqdm(range(N_frames)):
-        output_name = filename + f'_reduced_{i}.fits'
-        fits.writeto(output_name, cube[i], overwrite=overwrite)
 
 def extract_spectral_axis(cube, unit=None):
     '''
@@ -120,13 +112,3 @@ def compute_line(points):
     b = points[0][1] - m*points[0][0]
 
     return m, b
-
-def compute_cube_percentile(cube, slice_idx, vmin, vmax):
-
-    cube = return_cube_data(cube)
-
-    data = return_cube_slice(cube, slice_idx)
-    vmin = np.nanpercentile(data.value, vmin)
-    vmax = np.nanpercentile(data.value, vmax)
-
-    return vmin, vmax
