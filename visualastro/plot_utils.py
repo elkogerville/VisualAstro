@@ -617,6 +617,30 @@ def update_ellipse_region(region, text):
         f'Minor: {minor:.1f}\n'
     )
 
+def return_ellipse_region(center, w, h, angle=0, fill=False):
+    '''
+    Create a matplotlib.patches.Ellipse object.
+    Parameters
+    ––––––––––
+    center : tuple of float
+        (x, y) coordinates of the ellipse center.
+    w : float
+        Width of the ellipse (along x-axis before rotation).
+    h : float
+        Height of the ellipse (along y-axis before rotation).
+    angle : float, default=0
+        Rotation angle of the ellipse in degrees (counterclockwise).
+    fill : bool, default=False
+        Whether the ellipse should be filled (True) or only outlined (False).
+    Returns
+    –––––––
+    matplotlib.patches.Ellipse
+        An Ellipse patch that can be added to a matplotlib Axes.
+    '''
+    ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill)
+
+    return ellipse
+
 def plot_points(points, ax, color='r', size=20, marker='*'):
     '''
     Plot points on a given Matplotlib axis with customizable style.
