@@ -1,12 +1,13 @@
 #from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
+from astropy.units import spectral
 import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit, least_squares
 from .io import save_figure_2_disk
 from .numerical_utils import (
-    interpolate_arrays, mask_within_range,
+    convert_units, interpolate_arrays, mask_within_range,
     return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
@@ -72,14 +73,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         # variable for plotting wavelength
         wavelength = spectrum1d.spectral_axis
-        if unit is not None:
-            try:
-                wavelength = wavelength.to(unit)
-            except Exception:
-                print(
-                    f'Could not convert to unit: {unit}. \n'
-                    f'Defaulting to unit: {spectral_axis.unit}.'
-                )
+        # convert wavelength to desired units
+        wavelength = convert_units(wavelength, unit)
 
         # save computed spectrum
         extracted_spectrum_list.append(ExtractedSpectrum(
@@ -102,8 +97,11 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
+
+    # ensure a list is only returned if returning more than 1 spectrum
     if len(extracted_spectrum_list) == 1:
         extracted_spectrum_list = extracted_spectrum_list[0]
+
     return extracted_spectrum_list
 
 def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False, plot_continuum_fit=False,
@@ -249,38 +247,6 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
     spectra_dict['continuum_fit'] = continuum_fit
 
     return spectra_dict
-
-
-
-
-
-# def return_spectral_coord(cube, unit, radial_vel, rest_freq, convention='optical'):
-#     '''
-#     Return cube spectral axis shifted by radial velocity and converted to user specified units
-#     '''
-#     if convention is None:
-#         axis_type = getattr(getattr(cube.spectral_axis, 'unit', None), 'physical_type', None)
-#         convention = {
-#             'frequency': 'radio',
-#             'length': 'optical',
-#             'speed': 'relativistic'
-#         }.get(axis_type or '', 'optical')
-#         print(convention)
-
-#     spectral_axis = SpectralCoord(cube.spectral_axis, doppler_rest=rest_freq,
-#                                   doppler_convention=convention)
-#     spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-
-#     if unit is not None:
-#         try:
-#             spectral_axis = spectral_axis.to(unit)
-#         except Exception:
-#             print(
-#                 f'Could not convert to unit: {unit}. \n'
-#                 f'Defaulting to unit: {spectral_axis.unit}.'
-#             )
-
-#     return spectral_axis
 
 def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
                         interp_method='cubic_spline', yerror=None, error_method='cubic_spline',

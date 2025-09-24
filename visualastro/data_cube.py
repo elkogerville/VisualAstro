@@ -12,14 +12,14 @@ from .data_cube_utils import (
     compute_line, extract_spectral_axis,
     get_spectral_slice_value, return_cube_slice
 )
-from .numerical_utils import return_cube_data, shift_by_radial_vel
+from .numerical_utils import get_data, shift_by_radial_vel
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
     return_imshow_norm, set_unit_labels, set_vmin_vmax,
 )
 from .visual_classes import DataCube
 
-#warnings.filterwarnings('ignore', category=AstropyWarning)
+warnings.filterwarnings('ignore', category=AstropyWarning)
 
 def load_data_cube(filepath, dtype=np.float64,
                    print_info=True, transpose=False):
@@ -102,7 +102,7 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', 
 def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, cmap='turbo', **kwargs):
 
-    cube = return_cube_data(cube)
+    cube = get_data(cube)
     # –––– Kwargs ––––
     # labels
     title = kwargs.get('title', False)
@@ -447,7 +447,7 @@ def mask_cube(cube, ellipse_region=None, composite_mask=False, region='annulus',
     h = kwargs.get('h', None)
     angle = kwargs.get('angle', 0)
 
-    cube = return_cube_data(cube)
+    cube = get_data(cube)
 
     _, N, M = cube.shape
     y, x = np.indices((N, M))

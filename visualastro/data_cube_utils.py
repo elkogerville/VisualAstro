@@ -1,7 +1,7 @@
 import astropy.units as u
 from astropy.units import spectral
 import numpy as np
-from .numerical_utils import return_cube_data
+from .numerical_utils import get_data
 
 def header_2_array(cube, key):
     headers = cube.header
@@ -56,7 +56,7 @@ def return_cube_slice(cube, idx):
     cube : np.ndarray
         Sliced cube with shape (N, ...).
     '''
-    cube = return_cube_data(cube)
+    cube = get_data(cube)
     # if index is integer
     if isinstance(idx, int):
         return cube[idx]
