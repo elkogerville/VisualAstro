@@ -72,9 +72,9 @@ def sample_cmap(N, cmap='turbo', return_hex=False):
     ––––––––––
     N : int
         Number of colors to sample.
-    cmap : str or Colormap, optional
-        Name of the matplotlib colormap (default is 'turbo').
-    return_hex : bool, optional, default False
+    cmap : str or Colormap, optional, default='turbo'
+        Name of the matplotlib colormap.
+    return_hex : bool, optional, default=False
         If True, return colors as hex strings.
     Returns
     –––––––
@@ -92,8 +92,8 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
     Returns plot and model colors based on predefined palettes or user input.
     Parameters
     ––––––––––
-    user_colors : None, str, or list, optional
-        - None (default): returns the default palette ('ibm_contrast').
+    user_colors : None, str, or list, optional, default=None
+        - None: returns the default palette ('ibm_contrast').
         - str:
             * If the string matches a palette name, returns that palette.
             * If the string ends with '_r', returns the reversed version of the palette.
@@ -105,7 +105,7 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
         - int:
             * An integer specifying how many colors to sample from a matplolib cmap
               using sample_cmap(). By default uses 'turbo'.
-    cmap : str or list of str, default 'turbo'
+    cmap : str or list of str, default='turbo'
         Matplotlib colormap name.
     Returns
     –––––––
@@ -221,12 +221,12 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     ––––––––––
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, default [1,99]
+    percentile : list or tuple of two floats, default=[1,99]
         Percentile range '[pmin, pmax]' to compute vmin and vmax.
         If None, sets vmin and vmax to None.
-    vmin : float or None, default None
+    vmin : float or None, default=None
         If provided, overrides the computed vmin.
-    vmax : float or None, default None
+    vmax : float or None, default=None
         If provided, overrides the computed vmax.
     Returns
     –––––––
@@ -296,15 +296,15 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     Parameters
     ––––––––––
     im : matplotlib.cm.ScalarMappable
-        The image, contour set, or mappable object returned by a plotting
-        function (e.g., 'imshow', 'scatter', etc...).
+        The image, contour set, or mappable object returned by
+        a plotting function (e.g., 'imshow', 'scatter', etc...).
     ax : matplotlib.axes.Axes
         The axes to which the colorbar will be attached.
-    cbar_width : float, optional
-        Width of the colorbar in figure coordinates. Default is 0.03.
-    cbar_pad : float, optional
-        Padding between the main axes and the colorbar in figure coordinates.
-        Default is 0.015.
+    cbar_width : float, optional, default=0.03
+        Width of the colorbar in figure coordinates.
+    cbar_pad : float, optional, default=0.015
+        Padding between the main axes and the colorbar
+        in figure coordinates.
     clabel : str, optional
         Label for the colorbar. If None, no label is set.
     '''
@@ -376,12 +376,12 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
         The data for the y-axis, typically flux or intensity.
     ax : 'matplotlib.axes.Axes'
         The matplotlib axes object on which to set the labels.
-    xlabel : str or None, optional
-        Custom label for the x-axis. If None (default), the label is inferred from 'X'.
-    ylabel : str or None, optional
-        Custom label for the y-axis. If None (default), the label is inferred from 'Y'.
-    use_brackets : bool, optional
-        If True, wrap units in square brackets '[ ]'. If False (default), use parentheses '( )'.
+    xlabel : str or None, optional, default=None
+        Custom label for the x-axis. If None, the label is inferred from 'X'.
+    ylabel : str or None, optional, default=None
+        Custom label for the y-axis. If None, the label is inferred from 'Y'.
+    use_brackets : bool, optional, default=False
+        If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
     Notes
     –––––
     - Units are formatted using 'set_unit_labels', which provides LaTeX-friendly labels.
@@ -473,16 +473,16 @@ def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'
         If None, no circles are plotted.
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the circles.
-    colors : list of str or None, optional
+    colors : list of str or None, optional, default=None
         List of colors to cycle through for each circle. Defaults to
         ['r', 'mediumvioletred', 'magenta']. A single color can also
         be passed. If there are more circles than colors, colors are
         sampled from a colormap using sample_cmap().
-    linewidth : float, optional
-        Width of the circle edge lines. Default is 2.
-    fill : bool, optional
-        Whether the circles are filled. Default is False.
-    cmap : str, optional, default 'turbo'
+    linewidth : float, optional, default=2
+        Width of the circle edge lines.
+    fill : bool, optional, default=False
+        Whether the circles are filled.
+    cmap : str, optional, default='turbo'
         matplolib cmap used to sample default circle colors.
     '''
     if circles is not None:
@@ -566,12 +566,11 @@ def plot_interactive_ellipse(center, w, h, ax,
         Height of the ellipse.
     ax : matplotlib.axes.Axes
         The Axes on which to draw the ellipse selector.
-    text_loc : list of float, optional
+    text_loc : list of float, optional, default=[0.03,0.03]
         Position of the text label in Axes coordinates, given as [x, y].
-        Default is [0.03, 0.03].
-    text_color : str, optional, default 'k'
+    text_color : str, optional, default='k'
         Color of the annotation text.
-    highlight : bool, optional, default True
+    highlight : bool, optional, default=True
         If True, adds a bbox to highlight the text.
     Notes
     –––––
@@ -629,12 +628,12 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
         If None, no points are plotted.
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the points.
-    color : str or list or int, optional, default 'r'
+    color : str or list or int, optional, default='r'
         Color of the points. If an integer, will draw colors
         from sample_cmap().
-    size : float, optional, default 20
+    size : float, optional, default=20
         Marker size.
-    marker : str, optional, default '*'
+    marker : str, optional, default='*'
         Matplotlib marker style.
     '''
     if points is not None:

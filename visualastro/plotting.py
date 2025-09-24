@@ -19,10 +19,10 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     ––––––––––
     datas : np.ndarray or list of np.ndarray
         Image array or list of image arrays to plot. Each array should
-        be 2D (Ny, Nx) or 3D (Nx, Ny, Nz) if using 'idx' to slice a cube.
+        be 2D (Ny, Nx) or 3D (Nz, Nx, Ny) if using 'idx' to slice a cube.
     ax : matplotlib.axes.Axes or WCSAxes
         Matplotlib axis on which to plot the image(s).
-    idx : int or list of int, optional
+    idx : int or list of int, optional, default=None
         Index for slicing along the first axis if 'datas'
         contains a cube.
         - i -> returns cube[i]
@@ -31,67 +31,67 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         If 'datas' is a list of cubes, you may also pass a list of
         indeces.
         ex: passing indeces for 2 cubes-> [[i,j], k].
-    vmin, vmax : float, optional
+    vmin, vmax : float, optional, default=None
         Lower and upper limits for colormap scaling. If not provided,
         values are determined from 'percentile'.
-    norm : str, optional
+    norm : str, optional, default=None
         Normalization algorithm for colormap scaling.
         - 'asinh' -> AsinhStretch using 'ImageNormalize'
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'none' or None -> no normalization applied
-    percentile : list of float, default [3, 99.5]
+    percentile : list of float, default=[3, 99.5]
         Default percentile range used to determine 'vmin' and 'vmax'.
-    origin : str, {'upper', 'lower'}, default 'lower'
+    origin : str, {'upper', 'lower'}, default='lower'
         Pixel origin convention for imshow.
-    cmap : str or list of str, default 'turbo'
+    cmap : str or list of str, default='turbo'
         Matplotlib colormap name or list of colormaps, cycled across images.
         ex: ['turbo', 'RdPu_r']
-    aspect : str, {'auto', 'equal'} or float, optional
-        Aspect ratio passed to imshow. By default is None.
+    aspect : str, {'auto', 'equal'} or float, optional, default=None
+        Aspect ratio passed to imshow.
     Kwargs
     ––––––
-    invert_xaxis : bool, default False
+    invert_xaxis : bool, default=False
         Invert the x-axis if True.
-    invert_yaxis : bool, default False
+    invert_yaxis : bool, default=False
         Invert the y-axis if True.
-    text_loc : list of float, default [0.03, 0.03]
+    text_loc : list of float, default=[0.03, 0.03]
         Relative axes coordinates for text placement when plotting interactive ellipses.
-    text_color : str, default 'k'
+    text_color : str, default='k'
         Color of the ellipse annotation text.
-    xlabel : str, optional
+    xlabel : str, optional, default=None
         X-axis label.
-    ylabel : str, optional
+    ylabel : str, optional, default=None
         Y-axis label.
-    colorbar : bool, default True
+    colorbar : bool, default=True
         Add colobar if True.
-    clabel : str, optional
+    clabel : str, optional, default=True
         Colorbar label.
-    cbar_width : float, default 0.03
+    cbar_width : float, default=0.03
         Width of the colorbar.
-    cbar_pad : float, default 0.015
+    cbar_pad : float, default=0.015
         Padding between plot and colorbar.
-    rotate_tick_axis : str, {'ra', 'dec'}, optional
+    rotate_tick_axis : str, {'ra', 'dec'}, optional, default=None
         Coordinate axis name whose tick labels should be rotated
         by 90 degrees. Only applies if 'ax' is a WCSAxes.
-    circles : list, optional
+    circles : list, optional, default=None
         List of circle objects (e.g., matplotlib.patches.Circle)
         to overplot on the axes.
-    points : array-like, shape (2,) or (N, 2), optional
+    ellipses : list, optional, default=None
+        List of Ellipse objects (e.g., matplotlib.patches.Ellipse) to
+        overplot on the axes. Single ellipses can also be passed directly.
+    points : array-like, shape (2,) or (N, 2), optional, default=None
         Coordinates of points to overplot. Can be a single point '[x, y]'
         or a list/array of points '[[x1, y1], [x2, y2], ...]'.
         Points are plotted as red stars by default.
-    ellipses : list, optional
-        List of Ellipse objects (e.g., matplotlib.patches.Ellipse) to
-        overplot on the axes. Single ellipses can also be passed directly.
-    plot_ellipse : bool, default False
+    plot_ellipse : bool, default=False
         If True, plot an interactive ellipse overlay.
         Ensure you are using an interactive backend such as
         use_interactive() for this to work.
-    center : list of float, default [X, Y]
+    center : list of float, default=[Nx//2, Ny//2]
         Center of the default interactive ellipse (x, y).
-    w : float, default X//5
+    w : float, default=X//5
         Width of the default interactive ellipse.
-    h : float, default Y//5
+    h : float, default=Y//5
         Height of the default interactive ellipse.
     '''
     # –––– KWARGS ––––
@@ -180,13 +180,13 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         list of 1D/2D arrays. 2D arrays are automatically flattened.
     ax : matplotlib.axes.Axes
         The Axes object on which to plot the histogram.
-    bins : int, sequence, or str, optional, default 'auto'
+    bins : int, sequence, or str, optional, default='auto'
         Number of bins or binning method. Passed to 'ax.hist'.
-    xlog : bool, optional, default False
+    xlog : bool, optional, default=False
         If True, set x-axis to logarithmic scale.
-    ylog : bool, optional, Default False
+    ylog : bool, optional, Default=False
         If True, set y-axis to logarithmic scale.
-    colors : list of colors or None, optional, default None
+    colors : list of colors or None, optional, default=None
         Colors to use for each dataset. If None, default
         color cycle is used.
     Kwargs
@@ -195,7 +195,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         Label for the x-axis.
     ylabel : str or None
         Label for the y-axis.
-    histtype : str {'bar', 'barstacked', 'step', 'stepfilled'}, default 'step'
+    histtype : str {'bar', 'barstacked', 'step', 'stepfilled'}, default='step'
         Matplotlib histogram type.
     '''
     # –––– KWARGS ––––

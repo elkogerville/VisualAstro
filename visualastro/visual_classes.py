@@ -53,3 +53,9 @@ class ExtractedSpectrum:
         self.spectrum1d = spectrum1d
         self.normalized = normalized
         self.continuum_fit = continuum_fit
+
+class FitsFile:
+    def __init__(self, data, header=None):
+
+        self.data = data
+        self.header = header
