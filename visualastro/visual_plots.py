@@ -4,7 +4,7 @@ from astropy.io.fits import Header
 import matplotlib.pyplot as plt
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
-from .numerical_utils import return_cube_data
+from .numerical_utils import get_data
 from .plotting import imshow, plot_histogram
 from .plot_utils import (
     return_stylename, set_axis_labels, set_plot_colors
@@ -76,7 +76,7 @@ class va:
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
-            wcs2d = return_cube_data(cubes[0]).wcs.celestial
+            wcs2d = get_data(cubes[0]).wcs.celestial
             ax = fig.add_subplot(111, projection=wcs2d)
             if style.split('/')[-1] == 'minimal.mplstyle':
                 ax.coords['ra'].set_ticks_position('bl')
