@@ -11,6 +11,8 @@ def header_2_array(cube, key):
 
     return np.asarray(array)
 
+# Cube Manipulation Functions
+# ___________________________
 def extract_spectral_axis(cube, unit=None):
     '''
     Extract the spectral axis from a data cube and optionally
@@ -100,6 +102,8 @@ def get_spectral_slice_value(spectral_axis, idx):
             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
+# Cube Masking Functions
+# ––––––––––––––––––––––
 def compute_line(points):
     '''
     Compute the slope and intercept of a line passing through two points.
