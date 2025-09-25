@@ -1,13 +1,10 @@
-from logging.config import ConvertingDict
-from shutil import which
-from turtledemo.chaos import line
 import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from specutils.fitting import fit_generic_continuum, fit_continuum
-from .numerical_utils import return_array_values
-from mypyc.test-data.fixtures.ir import float
+from .visual_classes import ExtractedSpectrum
+from .numerical_utils import mask_within_range, return_array_values
 
 # Science Spectrum Functions
 # ––––––––––––––––––––––––––
@@ -68,8 +65,10 @@ def return_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     Fit the continuum of a 1D spectrum using a specified method.
     Parameters
     ––––––––––
-    spectrum1d : Spectrum1D
+    spectrum1d : Spectrum1D or ExtractedSpectrum
         Input 1D spectrum object containing flux and spectral_axis.
+        ExtractedSpectrum is supported only if it contains a
+        spectrum1d object.
     fit_method : str, optional, default='generic'
         Method used for fitting the continuum.
         - 'fit_continuum': uses `fit_continuum` with a specified window
@@ -89,6 +88,10 @@ def return_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     –––––
     - Warnings during the fitting process are suppressed.
     '''
+    # if input spectrum is ExtractedSpectrum object
+    # extract the spectrum1d attribute
+    if isinstance(spectrum1d, ExtractedSpectrum):
+        spectrum1d = spectrum1d.spectrum1d
     # extract spectral axis
     spectral_axis = spectrum1d.spectral_axis
     # suppress warnings during continuum fitting
@@ -105,7 +108,6 @@ def return_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     continuum_fit = fit(spectral_axis)
 
     return continuum_fit
-
 
 def convert_region_units(region, spectral_axis):
     '''
@@ -125,33 +127,82 @@ def convert_region_units(region, spectral_axis):
     list of tuple of astropy.units.Quantity or None
         The input regions converted to the same unit as 'spectral_axis'.
         Returns `None` if `region` is `None`.
-
     Examples
-    --------
+    ––––––––
     >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
     '''
     if region is None:
         return region
-
+    # extract unit
     unit = spectral_axis.unit
+    # convert each element to spectral axis units
     return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
 
 def propagate_flux_errors(errors):
+    '''
+    Compute propagated flux errors from individual pixel errors in a spectrum.
+    Parameters
+    ––––––––––
+    errors : np.ndarray
+        2D array of individual pixel errors, with shape (N_spectra, N_pixels).
+        N_spectra represents the wavelength axis of a data cube. The pixel
+        errors should have physical units (not counts). NaN values are ignored
+        in the computation.
+    Returns
+    –––––––
+    flux_errors : np.ndarray
+        1D array of propagated flux errors for each spectrum (shape N_spectra),
+        computed as the quadrature sum of pixel errors divided by the number
+        of valid pixels:
+
+            flux_error[i] = sqrt(sum_j(errors[i,j]^2)) / N_valid_pixels
+    '''
     N = np.sum(~np.isnan(errors), axis=1)
     flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
 
     return flux_errors
 
-def construct_p0(extracted_spectrum, args, xlim=None):
+# Model Fitting Functions
+# –––––––––––––––––––––––
+def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
+    '''
+    Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
+    Parameters
+    ––––––––––
+    extracted_spectrum : `ExtractedSpectrum`
+        `ExtractedSpectrum` object containing `wavelength` and `flux` attributes.
+        These can be `numpy.ndarray` or `astropy.units.Quantity`.
+    args : list or array-like
+        Additional parameters to append to the initial guess after
+        amplitude and center (e.g., sigma, linear continuum slope/intercept).
+    xlim : tuple of float, optional, default=None
+        Wavelength range `(xmin, xmax)` to restrict the fitting region.
+        If None, the full spectrum is used.
+    Returns
+    –––––––
+    p0 : list of float
+        Initial guess for Gaussian fitting parameters:
+        - First element: amplitude (`max(flux)` in the region)
+        - Second element: center (`wavelength` at max flux)
+        - Remaining elements: values from `args`
+    Notes
+    –––––
+    - Useful for feeding into `scipy.optimize.curve_fit`
+      or similar fitting routines.
+    '''
+    # extract wavelength and flux from ExtractedSpectrum object
     wavelength = return_array_values(extracted_spectrum.wavelength)
     flux = return_array_values(extracted_spectrum.flux)
-
+    # clip arrays by xlim
     if xlim is not None:
-        mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
+        mask = mask_within_range(wavelength, xlim)
         wavelength = wavelength[mask]
         flux = flux[mask]
+    # compute index of peak flux value
     peak_idx = int(np.argmax(flux))
+    # compute max amplitude and corresponding wavelength value
     p0 = [np.nanmax(flux), wavelength[peak_idx]]
+    # extend any arguments needed for gaussian fitting
     p0.extend(args)
 
     return p0
@@ -236,6 +287,31 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     return y + continuum
 
 def residuals(params, x, y):
+    '''
+    Compute the residuals between data and a Gaussian with linear continuum.
+    Parameters
+    ––––––––––
+    params : array-like of float
+        Parameters of the Gaussian + linear continuum model, in order:
+        - A : amplitude of the Gaussian
+        - mu : mean/center of the Gaussian
+        - sigma : standard deviation of the Gaussian
+        - m : slope of the linear continuum
+        - b : y-intercept of the linear continuum
+    x : np.ndarray
+        (N,) shaped array of x-values (e.g., pixel indices or wavelengths).
+    y : np.ndarray
+        (N,) shaped array of observed data values corresponding to `x`.
+    Returns
+    –––––––
+    residuals : np.ndarray
+        (N,) shaped array of residuals `y - model(x)` for each data point.
+    Notes
+    –––––
+    - Intended for use in least-squares fitting routines.
+    - The model is y_model = A * exp(-0.5*((x - mu)/sigma)**2) + m*x + b.
+    '''
     A, mu, sigma, m, b = params
     model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
+
     return y - model

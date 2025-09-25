@@ -26,6 +26,11 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # –––– KWARGS ––––
     # doppler convention
     convention = kwargs.get('convention', None)
+    # dereddening parameters
+    Rv = kwargs.get('Rv', 3.1)
+    Ebv = kwargs.get('Ebv', 0.19)
+    deredden_method = kwargs.get('deredden_method', 'WD01')
+    deredden_region = kwargs.get('deredden_region', 'LMCAvg')
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
@@ -51,7 +56,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         # derreden
         if deredden:
-            flux = deredden_spectrum(spectral_axis, flux, **kwargs)
+            flux = deredden_spectrum(spectral_axis, flux, Rv, Ebv,
+                                     deredden_method, deredden_region)
 
         # initialize Spectrum1D object
         spectrum1d = Spectrum1D(
