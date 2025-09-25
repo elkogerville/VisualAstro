@@ -83,7 +83,7 @@ def save_figure_2_disk(dpi=600):
     and prompts user for a filename and format.
     Parameters
     ––––––––––
-    dpi: float or int
+    dpi : float or int
         Resolution in dots per inch.
     '''
     allowed_formats = {'pdf', 'png', 'svg'}

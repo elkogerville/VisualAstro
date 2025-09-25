@@ -23,7 +23,6 @@ def return_stylename(style):
     VisualAstro/visualastro/stylelib/
     Ensure the stylesheet follows the naming convention:
         mystylesheet.mplstyle
-
     Parameters
     ––––––––––
     style : str

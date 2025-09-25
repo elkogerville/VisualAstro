@@ -8,6 +8,55 @@ from .numerical_utils import mask_within_range, return_array_values
 
 # Science Spectrum Functions
 # ––––––––––––––––––––––––––
+def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
+    '''
+    Fit the continuum of a 1D spectrum using a specified method.
+    Parameters
+    ––––––––––
+    spectrum1d : Spectrum1D or ExtractedSpectrum
+        Input 1D spectrum object containing flux and spectral_axis.
+        ExtractedSpectrum is supported only if it contains a
+        spectrum1d object.
+    fit_method : str, optional, default='generic'
+        Method used for fitting the continuum.
+        - 'fit_continuum': uses `fit_continuum` with a specified window
+        - 'generic'      : uses `fit_generic_continuum`
+    region : array-like, optional, default=None
+        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
+        Ignored for other methods. This allows the user to specify which
+        regions to include in the fit. Removing strong peaks is preferable to
+        avoid skewing the fit up or down.
+        Ex: Remove strong emission peak at 7um from fit
+        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+    Returns
+    –––––––
+    continuum_fit : np.ndarray
+        Continuum flux values evaluated at `spectrum1d.spectral_axis`.
+    Notes
+    –––––
+    - Warnings during the fitting process are suppressed.
+    '''
+    # if input spectrum is ExtractedSpectrum object
+    # extract the spectrum1d attribute
+    if isinstance(spectrum1d, ExtractedSpectrum):
+        spectrum1d = spectrum1d.spectrum1d
+    # extract spectral axis
+    spectral_axis = spectrum1d.spectral_axis
+    # suppress warnings during continuum fitting
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        # fit continuum with selected method
+        if fit_method=='fit_continuum':
+            # convert region to default units
+            region = convert_region_units(region, spectral_axis)
+            fit = fit_continuum(spectrum1d, window=region)
+        else:
+            fit = fit_generic_continuum(spectrum1d)
+    # fit the continuum of the provided spectral axis
+    continuum_fit = fit(spectral_axis)
+
+    return continuum_fit
+
 def deredden_spectrum(wavelength, flux, Rv=3.1, Ebv=0.19,
                       deredden_method='WD01', region='LMCAvg'):
     '''
@@ -59,55 +108,6 @@ def deredden_spectrum(wavelength, flux, Rv=3.1, Ebv=0.19,
     dereddened_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
 
     return dereddened_flux
-
-def return_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
-    '''
-    Fit the continuum of a 1D spectrum using a specified method.
-    Parameters
-    ––––––––––
-    spectrum1d : Spectrum1D or ExtractedSpectrum
-        Input 1D spectrum object containing flux and spectral_axis.
-        ExtractedSpectrum is supported only if it contains a
-        spectrum1d object.
-    fit_method : str, optional, default='generic'
-        Method used for fitting the continuum.
-        - 'fit_continuum': uses `fit_continuum` with a specified window
-        - 'generic'      : uses `fit_generic_continuum`
-    region : array-like, optional, default=None
-        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
-        Ignored for other methods. This allows the user to specify which
-        regions to include in the fit. Removing strong peaks is preferable to
-        avoid skewing the fit up or down.
-        Ex: Remove strong emission peak at 7um from fit
-        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    Returns
-    –––––––
-    continuum_fit : np.ndarray
-        Continuum flux values evaluated at `spectrum1d.spectral_axis`.
-    Notes
-    –––––
-    - Warnings during the fitting process are suppressed.
-    '''
-    # if input spectrum is ExtractedSpectrum object
-    # extract the spectrum1d attribute
-    if isinstance(spectrum1d, ExtractedSpectrum):
-        spectrum1d = spectrum1d.spectrum1d
-    # extract spectral axis
-    spectral_axis = spectrum1d.spectral_axis
-    # suppress warnings during continuum fitting
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        # fit continuum with selected method
-        if fit_method=='fit_continuum':
-            # convert region to default units
-            region = convert_region_units(region, spectral_axis)
-            fit = fit_continuum(spectrum1d, window=region)
-        else:
-            fit = fit_generic_continuum(spectrum1d)
-    # fit the continuum of the provided spectral axis
-    continuum_fit = fit(spectral_axis)
-
-    return continuum_fit
 
 def convert_region_units(region, spectral_axis):
     '''

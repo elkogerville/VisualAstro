@@ -1,9 +1,8 @@
-#from astropy.coordinates import SpectralCoord
 from astropy.modeling import models, fitting
 import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
-from scipy.optimize import curve_fit, least_squares
+from scipy.optimize import curve_fit
 from .io import save_figure_2_disk
 from .numerical_utils import (
     convert_units, interpolate_arrays, mask_within_range,
@@ -14,9 +13,9 @@ from .plot_utils import (
     set_axis_limits, set_plot_colors
 )
 from .spectra_utils import (
-    convert_region_units, deredden_spectrum, gaussian,
-    gaussian_continuum, gaussian_line, residuals,
-    return_continuum_fit
+    compute_continuum_fit,
+    deredden_spectrum, gaussian,
+    gaussian_continuum, gaussian_line,
 )
 from .visual_classes import ExtractedSpectrum
 
@@ -68,7 +67,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         )
 
         # compute continuum fit
-        continuum_fit = return_continuum_fit(spectrum1d, fit_method, region)
+        continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
 
         # compute normalized flux
         flux_normalized = spectrum1d / continuum_fit
@@ -106,8 +105,9 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
     return extracted_spectrum_list
 
-def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False, plot_continuum_fit=False,
-                  emission_line=None, wavelength=None, flux=None, norm_flux=None, **kwargs):
+def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
+                  plot_continuum_fit=False, emission_line=None, wavelength=None,
+                  flux=None, norm_flux=None, **kwargs):
     # –––– Kwargs ––––
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -125,9 +125,15 @@ def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False, 
         raise ValueError('ax must be a matplotlib axes object!')
 
     # construct ExtractedSpectrum if user passes in wavelenght and flux
-    if None not in (wavelength, flux) or None not in (wavelength, norm_flux):
-        flux = flux if norm_flux is None else norm_flux
-        extracted_spectrums = ExtractedSpectrum(wavelength=wavelength, flux=flux)
+    if extracted_spectrums is None:
+        if None not in (wavelength, flux) or None not in (wavelength, norm_flux):
+            flux = flux if norm_flux is None else norm_flux
+            extracted_spectrums = ExtractedSpectrum(wavelength=wavelength, flux=flux)
+        else:
+            raise ValueError(
+                "Either 'extracted_spectrums' must be provided, "
+                "or both 'wavelength' and 'flux'/'norm_flux' must be given."
+            )
 
     # ensure extracted_spectrums is iterable
     if not isinstance(extracted_spectrums, list):
@@ -250,11 +256,93 @@ def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
 
     return spectra_dict
 
-def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpolate=True,
-                        interp_method='cubic_spline', yerror=None, error_method='cubic_spline',
-                        samples=1000, return_fit_params=False, plot_interp=False, print_vals=True,
-                        **kwargs):
-
+def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=None,
+                        interpolate=True, interp_method='cubic_spline', yerror=None,
+                        error_method='cubic_spline', samples=1000, return_fit_params=False,
+                        plot_interp=False, print_vals=True, **kwargs):
+    '''
+    Fit a Gaussian or Gaussian variant to a 1D spectrum, optionally including a continuum.
+    Parameters
+    ––––––––––
+    extracted_spectrum : ExtractedSpectrum
+        Spectrum object containing 'wavelength' and 'flux' arrays.
+    p0 : list
+        Initial guess for the Gaussian fit parameters.
+        This should match the input arguments of the
+        gaussian model (excluding the first argument
+        which is wavelength).
+    model : str, default='gaussian'
+        Type of Gaussian model to fit:
+        - 'gaussian' : standard Gaussian
+        - 'gaussian_line' : Gaussian with linear continuum
+        - 'gaussian_continuum' : Gaussian with computed continuum array
+        The continuum can be computed with compute_continuum_fit().
+    wave_range : tuple or list, optional, default=None
+        (min, max) wavelength range to restrict the fit.
+        If None, computes the min and max from the wavelength.
+    interpolate : bool, default=True
+        Whether to interpolate the spectrum over
+        a regular wavelength grid. The number of
+        samples is controlled by `samples`.
+    interp_method : str, {'cubic', 'cubic_spline', 'linear'} default='cubic_spline'
+        Interpolation method used.
+    yerror : array-like, optional, default=None
+        Flux uncertainties.
+    error_method : str, {'cubic', 'cubic_spline', 'linear'}, default='cubic_spline'
+        Method to interpolate yerror if provided.
+    samples : int, default=1000
+        Number of points in interpolated wavelength grid.
+    return_fit_params : bool, default=False
+        If True, return full computed best-fit parameters
+        including derived flux and FWHM. If False, return
+        only Flux, FWHM, and mu.
+    plot_interp : bool, default=False
+        If True, plot the interpolated spectrum. This is
+        provided for debugging purposes.
+    print_vals : bool, default=True
+        If True, print a table of best-fit parameters,
+        errors, and computed quantities.
+    kwargs
+    ––––––
+    figsize : list or tuple, default=(6,6)
+        Figure size.
+    style : str or {'astro', 'latex', 'minimal'}, default='astro'
+        Plot style used. Can either be a matplotlib mplstyle
+        or an included visualastro style.
+    xlim : tuple, default=None
+        Wavelength range for plotting. If None uses `wave_range`.
+    plot_type: str, {'plot', 'scatter'}, default='plot'
+        Which matplotlib plotting style to use.
+    label : str, default=None
+        Spectrum legend label.
+    xlabel : str, default=None
+        Plot xlabel.
+    ylabel : str, default=None
+        Plot ylabel.
+    colors : str or list, default=None
+        Plot colors. If None will use default visualastro
+        color palette.
+    use_brackets : bool, default=False
+        If True, use square brackets for plot units. If
+        False, use parentheses.
+    savefig : bool, optional, default=False
+        If True, save current figure to disk.
+    dpi : float or int, default=600
+        Resolution in dots per inch.
+    Returns
+    –––––––
+    If return_fit_params:
+        popt : np.ndarray
+            Best-fit parameters including integrated flux and FWHM.
+        perr : np.ndarray
+            Uncertainties of fit parameters including flux and FWHM errors.
+    Else:
+        list
+            [integrated_flux, FWHM, mu]
+        list
+            [flux_error, FWHM_error, mu_error]
+    '''
+    # –––– Kwargs ––––
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
@@ -270,32 +358,40 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     savefig = kwargs.get('savefig', False)
     dpi = kwargs.get('dpi', 600)
 
-    wavelength = return_array_values(spectrum.wavelength)
-    flux = return_array_values(spectrum.flux)
-
-    wave_range = [wavelength.min(), wavelength.max()] if wave_range is None else wave_range
-
+    # ensure arrays are not quantity objects
+    wavelength = return_array_values(extracted_spectrum.wavelength)
+    flux = return_array_values(extracted_spectrum.flux)
+    # compute default wavelength range from wavelength
+    wave_range = [np.nanmin(wavelength), np.nanmax(wavelength)] if wave_range is None else wave_range
+    # guassian fitting function map
     function_map = {
         'gaussian': gaussian,
         'gaussian_line': gaussian_line,
-        'gaussian_continuum': gaussian_continuum,
-        'residuals': residuals,
+        'gaussian_continuum': gaussian_continuum
     }
-
+    if model == 'gaussian_continuum':
+        continuum = p0[-1]
+    # interpolate arrays
     if interpolate:
+        # interpolate wavelength and flux arrays
         wavelength, flux = interpolate_arrays(wavelength, flux, wave_range,
                                               samples, method=interp_method)
+        # interpolate y error values
         if yerror is not None:
-            _, yerror = interpolate_arrays(spectrum.wavelength, yerror,
-                                           wave_range, samples,
+            _, yerror = interpolate_arrays(extracted_spectrum.wavelength,
+                                           yerror, wave_range, samples,
                                            method=error_method)
+        # interpolate continuum array
         if model == 'gaussian_continuum':
-            _, continuum = interpolate_arrays(spectrum.wavelength, p0[-1],
-                                              wave_range, samples,
+            _, continuum = interpolate_arrays(extracted_spectrum.wavelength,
+                                              continuum, wave_range, samples,
                                               method=interp_method)
+            # remove continuum values to ensure it is not
+            # included as a free parameter during minimization
             p0.pop(-1)
 
-    wave_mask = (wavelength > wave_range[0]) & (wavelength < wave_range[1])
+    # clip values outisde wavelength range
+    wave_mask = mask_within_range(wavelength, wave_range)
     wave_sub = wavelength[wave_mask]
     flux_sub = flux[wave_mask]
     if yerror is not None:
@@ -303,48 +399,66 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
     if model == 'gaussian_continuum':
         continuum = continuum[wave_mask]
 
+    # extract fitting function from map
     function = function_map.get(model, gaussian)
-    if model == 'residuals':
-        res = least_squares(function, p0, args=(wave_sub, flux_sub), loss='soft_l1')
-        popt = res.x
-        function = function_map.get('gaussian_line', gaussian_line)
+    # fit gaussian model to data
     if model == 'gaussian_continuum':
+        # define lambda function
         fitted_model = lambda x, A, mu, sigma: gaussian_continuum(x, A, mu, sigma, continuum)
+        # fit gaussian to data
         popt, pcov = curve_fit(fitted_model, wave_sub, flux_sub, p0,
                                sigma=yerror, absolute_sigma=True, method='trf')
+        # overwrite for plotting
         function = fitted_model
     else:
+        # fit gaussian to data
         popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror,
                                absolute_sigma=True, method='trf')
+    # estimate errors
     perr = np.sqrt(np.diag(pcov))
+    # extract physical quantities from model fitting
+    amplitude = popt[0]
+    amplitude_error = perr[0]
+    sigma = popt[2]
+    sigma_error = perr[2]
+    # compute integrated flux, FWHM, and their errors
+    integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
+    flux_error = np.sqrt(2*np.pi) * integrated_flux * (
+        np.sqrt((amplitude_error/amplitude)**2 + (sigma_error/sigma)**2) )
+    FWHM = 2*sigma * np.sqrt(2*np.log(2))
+    FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
 
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors)
     style = return_stylename(style)
 
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
-
+        # determine plot type
         plt_plot = {
             'plot': ax.plot,
             'scatter': ax.scatter
         }.get(plot_type, ax.plot)
-
+        # plot interpolated data
         if plot_interp:
-            plt_plot(wavelength, flux, c=colors[2%len(colors)])
-
-        wavelength = return_array_values(spectrum.wavelength)
-        flux = return_array_values(spectrum.flux)
+            plt_plot(wavelength, flux,
+                     c=colors[2%len(colors)],
+                     label='Interpolated')
+        # plot original data
+        # re-extract values of original data
+        wavelength = return_array_values(extracted_spectrum.wavelength)
+        flux = return_array_values(extracted_spectrum.flux)
+        # clip values outisde of plotting range
         xlim = wave_range if xlim is None else xlim
-        mask = (wavelength > xlim[0]) & (wavelength < xlim[1])
+        plot_mask = mask_within_range(wavelength, xlim)
         label = label if label is not None else 'Spectrum'
-        plt_plot(wavelength[mask], flux[mask],
+        plt_plot(wavelength[plot_mask], flux[plot_mask],
                  c=colors[0%len(colors)], label=label)
-
+        # plot gaussian model
         ax.plot(wave_sub, function(wave_sub, *popt),
                 c=colors[1%len(colors)], label='Gaussian Model')
-
-        set_axis_labels(spectrum.wavelength, spectrum.flux,
+        # set axis labels and limits
+        set_axis_labels(extracted_spectrum.wavelength, extracted_spectrum.flux,
                         ax, xlabel, ylabel, use_brackets)
         ax.set_xlim(xlim[0], xlim[1])
         plt.legend()
@@ -352,20 +466,11 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
             save_figure_2_disk(dpi=dpi)
         plt.show()
 
-    amplitude = popt[0]
-    amplitude_error = perr[0]
-    sigma = popt[2]
-    sigma_error = perr[2]
-
-    integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
-    flux_error = np.sqrt(2*np.pi) * integrated_flux * (
-        np.sqrt((amplitude_error/amplitude)**2 + (sigma_error/sigma)**2) )
-    FWHM = 2*sigma * np.sqrt(2*np.log(2))
-    FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
-    computed_vals = [integrated_flux, FWHM, '', '', '']
-    computed_errors = [flux_error, FWHM_error, '', '', '']
-
     if print_vals:
+        # format list for printed table
+        computed_vals = [integrated_flux, FWHM, '', '', '']
+        computed_errors = [flux_error, FWHM_error, '', '', '']
+        # table headers
         print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
         params = ['A', 'μ', 'σ', 'm', 'b']
         computed_labels = ['Flux', 'FWHM', '', '', '']
@@ -383,9 +488,10 @@ def fit_gaussian_2_spec(spectrum, p0, model='gaussian', wave_range=None, interpo
                 comp_err = f'{computed_labels[i]:<6} {'':>11}'
 
             print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
-
+    # concatenate computed values and errors
     popt = np.concatenate([popt, [integrated_flux, FWHM]])
     perr = np.concatenate([perr, [flux_error, FWHM_error]])
+
     if return_fit_params:
         return popt, perr
     else:
