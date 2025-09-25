@@ -178,13 +178,13 @@ def mask_within_range(x, xlim=None):
         Data array (e.g., wavelength or flux values)
     xlim : tuple or list, optional
         (xmin, xmax) range. If None, uses the min/max of x.
-
     Returns
     –––––––
     mask : ndarray of bool
         True where x is within the limits.
     '''
     x = return_array_values(x)
+    xlim = return_array_values(xlim)
 
     xmin = xlim[0] if xlim is not None else np.nanmin(x)
     xmax = xlim[1] if xlim is not None else np.nanmax(x)
