@@ -202,8 +202,8 @@ def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
     flux_list = []
     for i, spectra in enumerate(spectra_dict_list):
         spectra = spectra[idx] if isinstance(spectra, list) else spectra
-        wavelength = spectra['wavelength']
-        flux = spectra['flux']
+        wavelength = spectra.wavelength
+        flux = spectra.flux
         lims.append( [wavelength.value.min(), wavelength.value.max()] )
         if spec_lims is not None:
             spec_min = spec_lims[i]
@@ -500,13 +500,13 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
 def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
                        interp_method='cubic_spline', colors=None, style='astro', figsize=(6,6), xlim=None):
 
-    wavelength = spectra_dict['wavelength']
-    flux = spectra_dict['flux'].copy()
-    wave_unit = spectra_dict['wavelength'].unit
-    flux_unit = spectra_dict['flux'].unit
+    wavelength = spectra_dict.wavelength
+    flux = spectra_dict.flux.copy()
+    wave_unit = spectra_dict.wavelength.unit
+    flux_unit = spectra_dict.flux.unit
 
     if subtract_continuum:
-        continuum = spectra_dict['continuum_fit']
+        continuum = spectra_dict.continuum_fit
         flux -= continuum
 
     wave_range = [flux.min(), flux.max()] if wave_range is None else wave_range
@@ -537,7 +537,7 @@ def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_co
         ax.plot(wave_sub, y_fit, c=colors[1])
         xlim = wave_range if xlim is None else xlim
         ax.set_xlim(xlim[0], xlim[1])
-        set_axis_labels(spectra_dict['wavelength'], spectra_dict['flux'], ax, None, None)
+        set_axis_labels(spectra_dict.wavelength, spectra_dict.flux, ax, None, None)
         plt.show()
 
     integrated_flux = g_fit.amplitude.value * g_fit.stddev.value * np.sqrt(2*np.pi)
