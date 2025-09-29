@@ -4,10 +4,17 @@ import numpy as np
 from tqdm import tqdm
 from .visual_classes import FitsFile
 
+
 # Fits File I/O Operations
 # ––––––––––––––––––––––––
-def load_fits(filepath, header=True, print_info=True,
-              transpose=False, dtype=np.float64):
+def load_fits(
+    filepath,
+    header=True,
+    error=True,
+    print_info=True,
+    transpose=False,
+    dtype=np.float64,
+):
     '''
     Load a FITS file and return its data and optional header.
     Parameters
@@ -18,6 +25,8 @@ def load_fits(filepath, header=True, print_info=True,
         If True, return the FITS header along with the data
         as a FitsFile object.
         If False, only the data is returned.
+    error : bool, default=True
+        If True, return the 'ERR' extention of the fits file.
     print_info : bool, default=True
         If True, print HDU information using 'hdul.info()'.
     transpose : bool, default=False
@@ -34,22 +43,38 @@ def load_fits(filepath, header=True, print_info=True,
         If header is False, returns just the data component.
     '''
     # print fits file info
-    if print_info:
-        with fits.open(filepath) as hdul:
+    with fits.open(filepath) as hdul:
+        if print_info:
             hdul.info()
-    # extract data and optionally the header from the file
-    # if header is not requested, return None
-    result = fits.getdata(filepath, header=header)
-    data, fits_header = result if isinstance(result, tuple) else (result, None)
+        # extract data and optionally the header from the file
+        # if header is not requested, return None
+        result = fits.getdata(filepath, header=header)
+        data, fits_header = result if isinstance(result, tuple) else (result, None)
 
-    data = data.astype(dtype, copy=False)
+        data = data.astype(dtype, copy=False)
+        if transpose:
+            data = data.T
 
-    if transpose:
-        data = data.T
-    if header:
-        return FitsFile(data, fits_header)
+        errors = None
+        if error:
+            for hdu in hdul[1:]:
+                extname = hdu.header.get('EXTNAME', '').upper()
+                if extname in {'ERR', 'ERROR', 'UNCERT'}:
+                    errors = hdu.data.astype(dtype, copy=False)
+                    break
+            # fallback to variance if no explicit errors
+            if errors is None:
+                for hdu in hdul[1:]:
+                    extname = hdu.header.get('EXTNAME', '').upper()
+                    if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
+                        errors = np.sqrt(hdu.data.astype(dtype, copy=False))
+                        break
+
+    if header or error:
+        return FitsFile(data, fits_header, errors)
     else:
         return data
+
 
 def write_cube_2_fits(cube, filename, overwrite=False):
     '''
@@ -70,10 +95,11 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     frames and the base filename.
     '''
     N_frames, N, M = cube.shape
-    print(f'Writing {N_frames} fits files to {filename}_i.fits')
+    print(f"Writing {N_frames} fits files to {filename}_i.fits")
     for i in tqdm(range(N_frames)):
-        output_name = filename + f'_{i}.fits'
+        output_name = filename + f"_{i}.fits"
         fits.writeto(output_name, cube[i], overwrite=overwrite)
+
 
 # Figure I/O Operations
 # –––––––––––––––––––––
@@ -86,22 +112,24 @@ def save_figure_2_disk(dpi=600):
     dpi : float or int
         Resolution in dots per inch.
     '''
-    allowed_formats = {'pdf', 'png', 'svg'}
+    allowed_formats = {"pdf", "png", "svg"}
     # prompt user for filename, and extract extension
-    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
-    basename, *extension = filename.rsplit('.', 1)
+    filename = input("Input filename for image (ex: myimage.pdf): ").strip()
+    basename, *extension = filename.rsplit(".", 1)
     # if extension exists, and is allowed, extract extension from list
     if extension and extension[0].lower() in allowed_formats:
         extension = extension[0]
     # else prompt user to input a valid extension
     else:
-        extension = ''
+        extension = ""
         while extension not in allowed_formats:
-            extension = input(
-                f'Please choose a format from ({", ".join(allowed_formats)}): '
-            ).strip().lower()
+            extension = (
+                input(f"Please choose a format from ({', '.join(allowed_formats)}): ")
+                .strip()
+                .lower()
+            )
     # construct complete filename
-    filename = f'{basename}.{extension}'
+    filename = f"{basename}.{extension}"
 
     # save figure
-    plt.savefig(filename, format=extension, bbox_inches='tight', dpi=dpi)
+    plt.savefig(filename, format=extension, bbox_inches="tight", dpi=dpi)
