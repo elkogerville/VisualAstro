@@ -2,6 +2,7 @@ from astropy.io import fits
 import numpy as np
 from spectral_cube import SpectralCube
 
+
 class DataCube:
     def __init__(self, data, headers=None, errors=None):
         # type checks
@@ -9,7 +10,9 @@ class DataCube:
             raise TypeError(
                 f"'data' must be a numpy array or SpectralCube, got {type(data).__name__}."
             )
-        if headers is not None and not isinstance(headers, (list, np.ndarray, fits.Header)):
+        if headers is not None and not isinstance(
+            headers, (list, np.ndarray, fits.Header)
+        ):
             raise TypeError(
                 f"'headers' must be a list, array or fits.Header, got {type(headers).__name__}."
             )
@@ -21,9 +24,7 @@ class DataCube:
             array = data
 
         if array.ndim != 3:
-            raise ValueError(
-                f"'data' must be 3D (T, N, M), got shape {array.shape}."
-            )
+            raise ValueError(f"'data' must be 3D (T, N, M), got shape {array.shape}.")
 
         if isinstance(data, np.ndarray) and isinstance(headers, (list, np.ndarray)):
             if array.shape[0] != len(headers):
@@ -43,19 +44,25 @@ class DataCube:
         self.error = errors
         self.value = array
 
-class ExtractedSpectrum:
-    def __init__(self, wavelength=None, flux=None,
-                 spectrum1d=None, normalized=None,
-                 continuum_fit=None):
 
+class ExtractedSpectrum:
+    def __init__(
+        self,
+        wavelength=None,
+        flux=None,
+        spectrum1d=None,
+        normalized=None,
+        continuum_fit=None,
+    ):
         self.wavelength = wavelength
         self.flux = flux
         self.spectrum1d = spectrum1d
         self.normalized = normalized
         self.continuum_fit = continuum_fit
 
-class FitsFile:
-    def __init__(self, data, header=None):
 
+class FitsFile:
+    def __init__(self, data, header=None, error=None):
         self.data = data
         self.header = header
+        self.error = error
