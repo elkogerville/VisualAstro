@@ -12,6 +12,7 @@ from .data_cube_utils import (
     compute_line, extract_spectral_axis,
     get_spectral_slice_value, return_cube_slice
 )
+from .io import get_dtype, get_errors
 from .numerical_utils import get_data, shift_by_radial_vel
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
@@ -21,7 +22,7 @@ from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
-def load_data_cube(filepath, dtype=np.float64,
+def load_data_cube(filepath, error=True, dtype=None,
                    print_info=True, transpose=False):
     '''
     Load a sequence of FITS files into a 3D data cube.
@@ -56,17 +57,18 @@ def load_data_cube(filepath, dtype=np.float64,
     i = len(fits_files)
     headers = np.empty(i, dtype=object)
     data, headers[0] = fits.getdata(fits_files[0], header=True) # type: ignore
+    dt = get_dtype(data, dtype)
     if transpose:
         data = data.T
-    datacube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dtype)
+    datacube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dt)
     # save first file to data arrays
-    datacube[0] = data.astype(dtype)
+    datacube[0] = data.astype(dt)
     # loop through each array in data list and store in data cube
     for i in tqdm(range(1, len(fits_files))):
         data, headers[i] = fits.getdata(fits_files[i], header=True) # type: ignore
         if transpose:
             data = data.T
-        datacube[i] = data.astype(dtype)
+        datacube[i] = data.astype(dt)
 
     cube = DataCube(datacube, headers)
 
@@ -76,7 +78,7 @@ def load_data_cube(filepath, dtype=np.float64,
 
     return cube
 
-def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', print_info=False):
+def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=False):
     # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects
@@ -89,10 +91,7 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, error_key='ERR', 
             hdul.info()
         # load error array
         if error:
-            if error_key in hdul:
-                error_array = hdul[error_key].data
-            else:
-                raise KeyError(f"HDU '{error_key}' not found in file")
+            error_array = get_errors(hdul, dtype)
         # load header
         if header:
             hdr = hdul[hdu].header

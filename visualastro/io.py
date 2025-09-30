@@ -2,19 +2,14 @@ from astropy.io import fits
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+from .numerical_utils import check_is_array
 from .visual_classes import FitsFile
 
 
 # Fits File I/O Operations
 # ––––––––––––––––––––––––
-def load_fits(
-    filepath,
-    header=True,
-    error=True,
-    print_info=True,
-    transpose=False,
-    dtype=np.float64,
-):
+def load_fits(filepath, header=True, error=True,
+              print_info=True, transpose=False, dtype=None):
     '''
     Load a FITS file and return its data and optional header.
     Parameters
@@ -31,8 +26,9 @@ def load_fits(
         If True, print HDU information using 'hdul.info()'.
     transpose : bool, default=False
         If True, transpose the data array before returning.
-    dtype : data-type, default=np.float64
-            Data type to convert the FITS data to.
+    dtype : np.dtype, default=None
+        Data type to convert the FITS data to. If None,
+        determines the dtype from the data.
     Returns
     –––––––
     FitsFile
@@ -51,11 +47,12 @@ def load_fits(
         result = fits.getdata(filepath, header=header)
         data, fits_header = result if isinstance(result, tuple) else (result, None)
 
-        data = data.astype(dtype, copy=False)
+        dt = get_dtype(data, dtype)
+        data = data.astype(dt, copy=False)
         if transpose:
             data = data.T
 
-        errors = get_errors(hdul, dtype)
+        errors = get_errors(hdul, dt)
 
     if header or error:
         return FitsFile(data, fits_header, errors)
@@ -63,7 +60,40 @@ def load_fits(
         return data
 
 
-def get_errors(hdul, dtype=np.float64):
+def get_dtype(data, dtype=None, default_dtype=np.float64):
+    '''
+    Returns the dtype from the provided data. Promotes
+    integers to floats if needed.
+    Parameters
+    ––––––––––
+    data : array-like
+        Input array whose dtype will be checked.
+    dtype : data-type, optional, default=None
+        If provided, this dtype is returned directly.
+        If None, returns `data.dtype` if floating or
+        `np.float64` if integer or unsigned.
+    default_dtype : data-type, optional, default=np.float64
+        Float type to use if `data` is integer or unsigned.
+    Returns
+    –––––––
+    dtype : np.dtype
+        NumPy dtype object: user dtype if given, otherwise the array's
+        float dtype or `default_dtype` if array is integer/unsigned.
+    '''
+    # return user dtype if passed in
+    if dtype is not None:
+        return np.dtype(dtype)
+
+    data = check_is_array(data)
+    # by default use data dtype if floating
+    # if unsigned or int use default_dtype
+    if np.issubdtype(data.dtype, np.floating):
+        return np.dtype(data.dtype)
+    else:
+        return np.dtype(default_dtype)
+
+
+def get_errors(hdul, dtype=None):
     '''
     Return the error array from an HDUList, falling back to square root
     of variance if needed.
@@ -82,17 +112,20 @@ def get_errors(hdul, dtype=np.float64):
     for hdu in hdul[1:]:
         extname = hdu.header.get('EXTNAME', '').upper()
         if extname in {'ERR', 'ERROR', 'UNCERT'}:
-            errors = hdu.data.astype(dtype, copy=False)
+            dt = get_dtype(hdu.data, dtype)
+            errors = hdu.data.astype(dt, copy=False)
             break
     # fallback to variance if no explicit errors
     if errors is None:
         for hdu in hdul[1:]:
             extname = hdu.header.get('EXTNAME', '').upper()
             if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
+                dt = get_dtype(hdu.data, dtype)
                 errors = np.sqrt(hdu.data.astype(dtype, copy=False))
                 break
 
     return errors
+
 
 def write_cube_2_fits(cube, filename, overwrite=False):
     '''
