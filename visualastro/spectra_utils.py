@@ -6,6 +6,7 @@ from specutils.fitting import fit_generic_continuum, fit_continuum
 from .visual_classes import ExtractedSpectrum
 from .numerical_utils import mask_within_range, return_array_values
 
+
 # Science Spectrum Functions
 # ––––––––––––––––––––––––––
 def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):

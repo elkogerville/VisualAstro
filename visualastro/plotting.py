@@ -10,6 +10,7 @@ from .plot_utils import (
     set_plot_colors, set_vmin_vmax,
 )
 
+
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
            aspect=None, **kwargs):
@@ -70,9 +71,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         Width of the colorbar.
     cbar_pad : float, default=0.015
         Padding between plot and colorbar.
-    rotate_tick_axis : str, {'ra', 'dec'}, optional, default=None
-        Coordinate axis name whose tick labels should be rotated
-        by 90 degrees. Only applies if 'ax' is a WCSAxes.
     circles : list, optional, default=None
         List of circle objects (e.g., matplotlib.patches.Circle)
         to overplot on the axes.

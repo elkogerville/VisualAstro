@@ -22,6 +22,7 @@ from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
+
 def load_data_cube(filepath, error=True, hdu=0, dtype=None,
                    print_info=True, transpose=False):
     '''
@@ -103,40 +104,6 @@ def load_data_cube(filepath, error=True, hdu=0, dtype=None,
 
     return cube
 
-
-
-    # headers = np.empty(n_files, dtype=object)
-    # data, headers[0] = fits.getdata(fits_files[0], header=True) # type: ignore
-    # dt = get_dtype(data, dtype)
-    # if transpose:
-    #     data = data.T
-    # datacube = np.zeros((n_files, data.shape[0], data.shape[1]), dtype=dt)
-    # # save first file to data arrays
-    # datacube[0] = data.astype(dt)
-    # # loop through each array in data list and store in data cube
-    # for i in tqdm(range(1, len(fits_files))):
-    #     data, headers[i] = fits.getdata(fits_files[i], header=True) # type: ignore
-    #     if transpose:
-    #         data = data.T
-    #     datacube[i] = data.astype(dt)
-
-    # error_array = np.zeros_like(datacube, dtype=dt) if error else None
-    # print(dt)
-    # if error:
-    #     for i, file in enumerate(fits_files):
-    #         with fits.open(file) as hdul:
-    #             err = get_errors(hdul, dt)
-    #             if transpose:
-    #                 err = err.T
-    #             error_array[i] = err
-
-    # cube = DataCube(datacube, headers, error_array)
-
-    # if print_info:
-    #     with fits.open(fits_files[0]) as hdul:
-    #         hdul.info()
-
-    # return cube
 
 def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=False):
     '''

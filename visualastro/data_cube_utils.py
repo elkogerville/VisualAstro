@@ -3,6 +3,7 @@ from astropy.units import spectral
 import numpy as np
 from .numerical_utils import get_data
 
+
 def header_2_array(cube, key):
     headers = cube.header
     array = []

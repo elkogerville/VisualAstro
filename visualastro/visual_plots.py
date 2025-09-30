@@ -12,6 +12,7 @@ from .plot_utils import (
 from .spectra import plot_spectrum, return_spectra_dict
 from .visual_classes import DataCube, FitsFile
 
+
 class va:
     @staticmethod
     def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
