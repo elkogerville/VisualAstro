@@ -160,11 +160,19 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
 
     # rotate tick labels
-    if isinstance(ax, WCSAxes) and (rotate_tick_axis is not None):
-        ax.coords[rotate_tick_axis].set_ticklabel(rotation=90)
+    if isinstance(ax, WCSAxes):
+        ax.coords['ra'].set_axislabel('RA')
+        ax.coords['ra'].set_axislabel_position('b')
+        ax.coords['ra'].set_ticklabel(rotation=0)
+        ax.coords['dec'].set_axislabel('DEC')
+        ax.coords['dec'].set_axislabel_position('l')
+        ax.coords['dec'].set_ticklabel(rotation=90)
+
     # set axes labels
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    if isinstance(xlabel, str):
+        ax.set_xlabel(xlabel)
+    if isinstance(ylabel, str):
+        ax.set_ylabel(ylabel)
     # add colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
@@ -173,6 +181,25 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         ax.invert_xaxis()
     if invert_yaxis:
         ax.invert_yaxis()
+
+
+def get_wcs_pixel_angles(wcs_obj):
+    """
+    Returns RA and DEC axis rotation angles (degrees) relative to x-axis.
+    Works across Astropy versions.
+    """
+    w = wcs_obj.wcs
+    if hasattr(w, 'cd') and w.cd is not None:
+        cd = w.cd
+    else:
+        pc = getattr(w, 'pc', np.eye(2))
+        cdelt = getattr(w, 'cdelt', [1, 1])
+        cd = np.dot(np.diag(cdelt), pc)
+    ra_angle = np.degrees(np.arctan2(cd[1,0], cd[0,0]))
+    dec_angle = np.degrees(np.arctan2(cd[1,1], cd[0,1]))
+    return ra_angle, dec_angle
+
+
 
 def plot_histogram(datas, ax, bins='auto', xlog=False,
                    ylog=False, colors=None, **kwargs):
