@@ -127,6 +127,11 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     if idx is not None:
         idx = idx if isinstance(idx, list) else [idx]
 
+    # if wcsaxes are used, origin can only be 'lower'
+    if isinstance(ax, WCSAxes) and origin == 'upper':
+        origin = 'lower'
+        invert_yaxis = True
+
     # loop over data list
     for i, data in enumerate(datas):
         # ensure data is an array
