@@ -55,26 +55,44 @@ def load_fits(
         if transpose:
             data = data.T
 
-        errors = None
-        if error:
-            for hdu in hdul[1:]:
-                extname = hdu.header.get('EXTNAME', '').upper()
-                if extname in {'ERR', 'ERROR', 'UNCERT'}:
-                    errors = hdu.data.astype(dtype, copy=False)
-                    break
-            # fallback to variance if no explicit errors
-            if errors is None:
-                for hdu in hdul[1:]:
-                    extname = hdu.header.get('EXTNAME', '').upper()
-                    if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
-                        errors = np.sqrt(hdu.data.astype(dtype, copy=False))
-                        break
+        errors = get_errors(hdul, dtype)
 
     if header or error:
         return FitsFile(data, fits_header, errors)
     else:
         return data
 
+
+def get_errors(hdul, dtype=np.float64):
+    '''
+    Return the error array from an HDUList, falling back to square root
+    of variance if needed.
+    Parameters
+    ––––––––––
+    hdul : astropy.io.fits.HDUList
+        The HDUList object containing FITS extensions to search for errors or variance.
+    dtype : data-type, optional, default=np.float64
+        The desired NumPy dtype of the returned error array.
+    Returns
+    –––––––
+    errors : np.ndarray or None
+        The error array if found, or None if no suitable extension is present.
+    '''
+    errors = None
+    for hdu in hdul[1:]:
+        extname = hdu.header.get('EXTNAME', '').upper()
+        if extname in {'ERR', 'ERROR', 'UNCERT'}:
+            errors = hdu.data.astype(dtype, copy=False)
+            break
+    # fallback to variance if no explicit errors
+    if errors is None:
+        for hdu in hdul[1:]:
+            extname = hdu.header.get('EXTNAME', '').upper()
+            if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
+                errors = np.sqrt(hdu.data.astype(dtype, copy=False))
+                break
+
+    return errors
 
 def write_cube_2_fits(cube, filename, overwrite=False):
     '''
