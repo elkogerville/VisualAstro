@@ -26,6 +26,7 @@ def check_is_array(data):
 
     return np.asarray(data)
 
+
 def get_data(obj):
     '''
     Extract the underlying data attribute from a DataCube or FitsFile object.
@@ -47,6 +48,7 @@ def get_data(obj):
 
     return obj
 
+
 def return_array_values(array):
     '''
     Extract the numerical values from an 'astropy.units.Quantity'
@@ -65,6 +67,7 @@ def return_array_values(array):
     array = array.value if isinstance(array, Quantity) else array
 
     return array
+
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
@@ -101,6 +104,7 @@ def convert_units(quantity, unit):
             )
         return quantity
 
+
 def shift_by_radial_vel(spectral_axis, radial_vel):
     '''
     Shift spectral axis to rest frame using a radial velocity.
@@ -130,6 +134,7 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
             spectral_axis /= (1 + radial_vel / c)
 
     return spectral_axis
+
 
 # Numerical Operation Functions
 # –––––––––––––––––––––––––––––
@@ -171,6 +176,7 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
     y_interp = f_interp(x_interp)
 
     return x_interp, y_interp
+
 
 def mask_within_range(x, xlim=None):
     '''
