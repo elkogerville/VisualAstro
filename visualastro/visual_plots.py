@@ -28,6 +28,7 @@ class va:
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
         # by default plot WCS if available
+        wcs = None
         if wcs_input is not False:
             if wcs_input is None:
                 # if provided data is a DataCube or FitsFile, use the header
@@ -54,20 +55,11 @@ class va:
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
                    cmap, aspect, wcs_input=wcs_input, **kwargs)
 
-            if wcs_input is not None:
-                if invert_wcs:
-                    ax.coords['dec'].set_ticklabel(rotation=90)
-                else:
-                    ax.coords['ra'].set_ticklabel(rotation=90)
-
-            if xlabel is not None:
-                if xlabel is True:
-                    xlabel = 'RA' if wcs_input is not None else 'X [pixels]'
-                ax.set_xlabel(xlabel)
-            if ylabel is not None:
-                if ylabel is True:
-                    ylabel = 'DEC' if wcs_input is not None else 'Y [pixels]'
-                ax.set_ylabel(ylabel)
+            if wcs_input is False:
+                if xlabel:
+                    ax.set_xlabel('X [Pixels]')
+                if ylabel:
+                    ax.set_ylabel('Y [Pixels]')
 
             if savefig:
                     save_figure_2_disk(dpi)
@@ -233,7 +225,7 @@ class va:
         def colors(user_color=None):
             style = return_stylename('astro')
             # visualastro default color schemes
-            color_map = ['visualastro', 'ibm_contrast', 'astro', 'astro_r', 'MSG', 'ibm']
+            color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r']
             if user_color is None:
                 with plt.style.context(style):
                     fig, ax = plt.subplots(figsize=(8, len(color_map)))

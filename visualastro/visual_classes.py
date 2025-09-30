@@ -54,13 +54,6 @@ class DataCube:
         self.itemsize = array.itemsize
         self.nbytes = array.nbytes
 
-        # physical attributes / statistics
-        self.max = np.nanmax(array)
-        self.min = np.nanmin(array)
-        self.mean = np.nanmean(array)
-        self.median = np.nanmedian(array)
-        self.std = np.nanstd(array)
-
     # magic functions for DataCube to behave like a np.ndarray
     def __getitem__(self, key):
         return self.value[key]
@@ -73,6 +66,22 @@ class DataCube:
 
     def __array__(self):
         return self.value
+    # physical properties / statistics
+    @property
+    def max(self):
+        return np.nanmax(self.value)
+    @property
+    def min(self):
+        return np.nanmin(self.value)
+    @property
+    def mean(self):
+        return np.nanmean(self.value)
+    @property
+    def median(self):
+        return np.nanmedian(self.value)
+    @property
+    def std(self):
+        return np.nanstd(self.value)
 
 
 class ExtractedSpectrum:
@@ -109,13 +118,6 @@ class FitsFile:
         self.itemsize = data.itemsize
         self.nbytes = data.nbytes
 
-        # physical attributes / statistics
-        self.max = np.nanmax(data)
-        self.min = np.nanmin(data)
-        self.mean = np.nanmean(data)
-        self.median = np.nanmedian(data)
-        self.std = np.nanstd(data)
-
     # magic functions for FitsFile to behave like a np.ndarray
     def __getitem__(self, key):
         return self.data[key]
@@ -128,3 +130,20 @@ class FitsFile:
 
     def __array__(self):
         return self.data
+
+    # physical properties / statistics
+    @property
+    def max(self):
+        return np.nanmax(self.data)
+    @property
+    def min(self):
+        return np.nanmin(self.data)
+    @property
+    def mean(self):
+        return np.nanmean(self.data)
+    @property
+    def median(self):
+        return np.nanmedian(self.data)
+    @property
+    def std(self):
+        return np.nanstd(self.data)

@@ -22,7 +22,7 @@ from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
-def load_data_cube(filepath, error=True, dtype=None,
+def load_data_cube(filepath, error=True, hdu=0, dtype=None,
                    print_info=True, transpose=False):
     '''
     Load a sequence of FITS files into a 3D data cube.
@@ -56,29 +56,87 @@ def load_data_cube(filepath, error=True, dtype=None,
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
     # allocate ixMxN data cube array and header array
-    i = len(fits_files)
-    headers = np.empty(i, dtype=object)
-    data, headers[0] = fits.getdata(fits_files[0], header=True) # type: ignore
-    dt = get_dtype(data, dtype)
-    if transpose:
-        data = data.T
-    datacube = np.zeros((i, data.shape[0], data.shape[1]), dtype=dt)
-    # save first file to data arrays
-    datacube[0] = data.astype(dt)
-    # loop through each array in data list and store in data cube
-    for i in tqdm(range(1, len(fits_files))):
-        data, headers[i] = fits.getdata(fits_files[i], header=True) # type: ignore
-        if transpose:
-            data = data.T
-        datacube[i] = data.astype(dt)
+    n_files = len(fits_files)
 
-    cube = DataCube(datacube, headers)
-
-    if print_info:
-        with fits.open(fits_files[0]) as hdul:
+    # load first file to determine shape, dtype, and check for errors
+    with fits.open(fits_files[0]) as hdul:
+        if print_info:
             hdul.info()
 
+        data = hdul[hdu].data
+        header = hdul[hdu].header
+        err = get_errors(hdul, dtype)
+
+    dt = get_dtype(data, dtype)
+
+    if transpose:
+        data = data.T
+        if err is not None:
+            err = err.T
+
+    # Preallocate data cube and headers
+    datacube = np.zeros((n_files, data.shape[0], data.shape[1]), dtype=dt)
+    datacube[0] = data.astype(dt)
+    headers = [None] * n_files
+    headers[0] = header
+    # preallocate error array if needed and error exists
+    error_array = None
+    if error and err is not None:
+        error_array = np.zeros_like(datacube, dtype=dt)
+        error_array[0] = err.astype(dt)
+
+    # loop through remaining files
+    for i, file in enumerate(tqdm(fits_files[1:], desc="Loading FITS")):
+        with fits.open(file) as hdul:
+            data = hdul[hdu].data
+            headers[i+1] = hdul[hdu].header
+            err = get_errors(hdul, dt)
+        if transpose:
+            data = data.T
+            if err is not None:
+                err = err.T
+        datacube[i+1] = data.astype(dt)
+        if error_array is not None and err is not None:
+            error_array[i+1] = err.astype(dt)
+
+    cube = DataCube(datacube, headers, error_array)
+
     return cube
+
+
+
+    # headers = np.empty(n_files, dtype=object)
+    # data, headers[0] = fits.getdata(fits_files[0], header=True) # type: ignore
+    # dt = get_dtype(data, dtype)
+    # if transpose:
+    #     data = data.T
+    # datacube = np.zeros((n_files, data.shape[0], data.shape[1]), dtype=dt)
+    # # save first file to data arrays
+    # datacube[0] = data.astype(dt)
+    # # loop through each array in data list and store in data cube
+    # for i in tqdm(range(1, len(fits_files))):
+    #     data, headers[i] = fits.getdata(fits_files[i], header=True) # type: ignore
+    #     if transpose:
+    #         data = data.T
+    #     datacube[i] = data.astype(dt)
+
+    # error_array = np.zeros_like(datacube, dtype=dt) if error else None
+    # print(dt)
+    # if error:
+    #     for i, file in enumerate(fits_files):
+    #         with fits.open(file) as hdul:
+    #             err = get_errors(hdul, dt)
+    #             if transpose:
+    #                 err = err.T
+    #             error_array[i] = err
+
+    # cube = DataCube(datacube, headers, error_array)
+
+    # if print_info:
+    #     with fits.open(fits_files[0]) as hdul:
+    #         hdul.info()
+
+    # return cube
 
 def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=False):
     '''
