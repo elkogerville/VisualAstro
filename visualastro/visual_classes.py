@@ -85,14 +85,8 @@ class DataCube:
 
 
 class ExtractedSpectrum:
-    def __init__(
-        self,
-        wavelength=None,
-        flux=None,
-        spectrum1d=None,
-        normalized=None,
-        continuum_fit=None,
-    ):
+    def __init__(self, wavelength=None, flux=None, spectrum1d=None,
+                 normalized=None, continuum_fit=None):
         self.wavelength = wavelength
         self.flux = flux
         self.spectrum1d = spectrum1d
