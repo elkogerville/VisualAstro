@@ -135,6 +135,8 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
             Fits file error array.
         - value : np.ndarray
             Fits file data as np.ndarray.
+        Ex:
+        data = cube.data
     '''
     # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)

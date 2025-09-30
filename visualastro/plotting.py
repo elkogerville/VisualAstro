@@ -181,24 +181,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         ax.invert_yaxis()
 
 
-def get_wcs_pixel_angles(wcs_obj):
-    """
-    Returns RA and DEC axis rotation angles (degrees) relative to x-axis.
-    Works across Astropy versions.
-    """
-    w = wcs_obj.wcs
-    if hasattr(w, 'cd') and w.cd is not None:
-        cd = w.cd
-    else:
-        pc = getattr(w, 'pc', np.eye(2))
-        cdelt = getattr(w, 'cdelt', [1, 1])
-        cd = np.dot(np.diag(cdelt), pc)
-    ra_angle = np.degrees(np.arctan2(cd[1,0], cd[0,0]))
-    dec_angle = np.degrees(np.arctan2(cd[1,1], cd[0,1]))
-    return ra_angle, dec_angle
-
-
-
 def plot_histogram(datas, ax, bins='auto', xlog=False,
                    ylog=False, colors=None, **kwargs):
     '''
