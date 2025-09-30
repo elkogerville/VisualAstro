@@ -10,6 +10,7 @@ from .plot_utils import (
     return_stylename, set_axis_labels, set_plot_colors
 )
 from .spectra import plot_spectrum, return_spectra_dict
+from .visual_classes import DataCube, FitsFile
 
 class va:
     @staticmethod
@@ -26,13 +27,24 @@ class va:
         # savefig
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
-
-        if wcs_input is not None:
+        # by default plot WCS if available
+        if wcs_input is not False:
+            if wcs_input is None:
+                # if provided data is a DataCube or FitsFile, use the header
+                if isinstance(datas, (DataCube, FitsFile)):
+                    wcs_input = datas.header[0] if isinstance(datas.header, list) else datas.header
+                else:
+                    # fall back to default axes
+                    wcs_input = None
+            # create wcs object if provided
             if isinstance(wcs_input, Header):
                 wcs = WCS(wcs_input)
-            if isinstance(wcs_input, WCS):
+            elif isinstance(wcs_input, WCS):
                 wcs = wcs_input
-            wcs = wcs.swapaxes(0, 1) if invert_wcs else wcs
+            elif wcs_input is not None:
+                raise TypeError(f'Unsupported wcs_input type: {type(wcs_input)}')
+            if invert_wcs and isinstance(wcs, WCS):
+                wcs = wcs.swapaxes(0, 1)
 
         style = return_stylename(style)
         with plt.style.context(style):

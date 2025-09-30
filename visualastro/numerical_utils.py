@@ -11,7 +11,7 @@ def check_is_array(data):
     Ensure array input is np.ndarray.
     Parameters
     ––––––––––
-    data : np.ndarray or DataCube
+    data : np.ndarray, DataCube, or FitsFile
         Array or DataCube object.
     Returns
     –––––––
@@ -20,6 +20,8 @@ def check_is_array(data):
     '''
     if isinstance(data, DataCube):
         data = data.value
+    elif isinstance(data, FitsFile):
+        data = data.data
 
     return np.asarray(data)
 
