@@ -75,7 +75,6 @@ class DataCube:
         return self.value
 
 
-
 class ExtractedSpectrum:
     def __init__(
         self,
@@ -94,6 +93,38 @@ class ExtractedSpectrum:
 
 class FitsFile:
     def __init__(self, data, header=None, error=None):
+        data = np.asarray(data)
+
         self.data = data
         self.header = header
         self.error = error
+
+        # data attributes
+        self.shape = data.shape
+        self.size = data.size
+        self.ndim = data.ndim
+        self.dtype = data.dtype
+        self.len = len(data)
+        self.has_nan = np.isnan(data).any()
+        self.itemsize = data.itemsize
+        self.nbytes = data.nbytes
+
+        # physical attributes / statistics
+        self.max = np.nanmax(data)
+        self.min = np.nanmin(data)
+        self.mean = np.nanmean(data)
+        self.median = np.nanmedian(data)
+        self.std = np.nanstd(data)
+
+    # magic functions for FitsFile to behave like a np.ndarray
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def reshape(self, *shape):
+            return self.data.reshape(*shape)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __array__(self):
+        return self.data
