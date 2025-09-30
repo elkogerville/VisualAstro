@@ -12,6 +12,7 @@ def header_2_array(cube, key):
 
     return np.asarray(array)
 
+
 # Cube Manipulation Functions
 # ___________________________
 def extract_spectral_axis(cube, unit=None):
@@ -41,6 +42,7 @@ def extract_spectral_axis(cube, unit=None):
         return axis.to(unit, equivalencies=spectral())
     except u.UnitConversionError:
         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
+
 
 def return_cube_slice(cube, idx):
     '''
@@ -74,6 +76,7 @@ def return_cube_slice(cube, idx):
             return cube[start:end+1].sum(axis=0)
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
+
 def get_spectral_slice_value(spectral_axis, idx):
     '''
     Return a representative value from a spectral axis
@@ -102,6 +105,7 @@ def get_spectral_slice_value(spectral_axis, idx):
         elif len(idx) == 2:
             return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
     raise ValueError("'idx' must be an int or a list of one or two integers")
+
 
 # Cube Masking Functions
 # ––––––––––––––––––––––
