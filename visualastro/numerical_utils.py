@@ -4,6 +4,7 @@ import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
 from .visual_classes import DataCube, FitsFile
 
+
 # Type Checking Arrays and Objects
 # ––––––––––––––––––––––––––––––––
 def check_is_array(data):

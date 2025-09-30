@@ -19,6 +19,7 @@ from .spectra_utils import (
 )
 from .visual_classes import ExtractedSpectrum
 
+
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_generic_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
