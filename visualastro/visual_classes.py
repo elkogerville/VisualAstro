@@ -44,6 +44,37 @@ class DataCube:
         self.error = errors
         self.value = array
 
+        # data attributes
+        self.shape = array.shape
+        self.size = array.size
+        self.ndim = array.ndim
+        self.dtype = array.dtype
+        self.len = len(array)
+        self.has_nan = np.isnan(array).any()
+        self.itemsize = array.itemsize
+        self.nbytes = array.nbytes
+
+        # physical attributes / statistics
+        self.max = np.nanmax(array)
+        self.min = np.nanmin(array)
+        self.mean = np.nanmean(array)
+        self.median = np.nanmedian(array)
+        self.std = np.nanstd(array)
+
+    # magic functions for DataCube to behave like a np.ndarray
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def reshape(self, *shape):
+            return self.value.reshape(*shape)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __array__(self):
+        return self.value
+
+
 
 class ExtractedSpectrum:
     def __init__(

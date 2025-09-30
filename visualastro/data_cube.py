@@ -34,8 +34,10 @@ def load_data_cube(filepath, error=True, dtype=None,
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
         Example: 'Spectro-Module/raw/HARPS*.fits'
-    dtype : numpy.dtype, optional, default=np.float64
-        Data type for the loaded FITS data.
+    dtype : numpy.dtype, optional, default=None
+        Data type for the loaded FITS data. If None, will use
+        the dtype of the provided data, promoting integer or
+        unsigned to `np.float64`.
     print_info : bool, optional, default=True
         If True, print summary information about the loaded cube.
     transpose : bool, optional, default=False
@@ -79,6 +81,36 @@ def load_data_cube(filepath, error=True, dtype=None,
     return cube
 
 def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=False):
+    '''
+    Load a spectral cube from a FITS file, optionally including errors and header.
+    Parameters
+    ––––––––––
+    filepath : str
+        Path to the FITS file to read.
+    hdu : int or str
+        HDU index or name to read from the FITS file.
+    error : bool, optional, default=True
+        If True, load the associated error array using `get_errors`.
+    header : bool, optional, default=True
+        If True, load the HDU header.
+    dtype : data-type, optional, default=None
+        Desired NumPy dtype for the error array. If None, inferred
+        from FITS data, promoting integer and unsigned to `np.float64`.
+    print_info : bool, optional, default=False
+        If True, print FITS file info to the console.
+    Returns
+    –––––––
+    DataCube
+        A `DataCube` object containing:
+        - data : SpectralCube
+            Fits file data loaded as SpectralCube object.
+        - header : astropy.io.fits.Header
+            Fits file header.
+        - error : np.ndarray
+            Fits file error array.
+        - value : np.ndarray
+            Fits file data as np.ndarray.
+    '''
     # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects
