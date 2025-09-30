@@ -281,9 +281,10 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     cube = get_data(cube)
     # slice cube
     data = return_cube_slice(cube, slice_idx)
+    data = return_array_values(data)
     # compute vmin and vmax
-    vmin = np.nanpercentile(data.value, vmin)
-    vmax = np.nanpercentile(data.value, vmax)
+    vmin = np.nanpercentile(data, vmin)
+    vmax = np.nanpercentile(data, vmax)
 
     return vmin, vmax
 
@@ -455,7 +456,7 @@ def set_unit_labels(unit):
         'GHz': 'GHz',
         'electron': r'\mathrm{e^{-}}',
         'km / s': r'\mathrm{km\ s^{-1}}',
-    }.get(str(unit))
+    }.get(str(unit), None)
 
     return unit_label
 

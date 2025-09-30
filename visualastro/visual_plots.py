@@ -17,14 +17,10 @@ class va:
     @staticmethod
     def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
                percentile=[3,99.5], origin='lower', wcs_input=None,
-               cmap='turbo', aspect=None, **kwargs):
+               invert_wcs=False, cmap='turbo', aspect=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
-        invert_wcs = kwargs.get('invert_wcs', False)
-        # labels
-        xlabel = kwargs.get('xlabel', True)
-        ylabel = kwargs.get('ylabel', True)
         # savefig
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
@@ -55,12 +51,6 @@ class va:
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
                    cmap, aspect, wcs_input=wcs_input, **kwargs)
-
-            if wcs_input is False:
-                if xlabel:
-                    ax.set_xlabel('X [Pixels]')
-                if ylabel:
-                    ax.set_ylabel('Y [Pixels]')
 
             if savefig:
                     save_figure_2_disk(dpi)

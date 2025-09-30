@@ -1,13 +1,14 @@
 from astropy.visualization.wcsaxes.core import WCSAxes
+from gwcs.selector import get_unique_regions
 import numpy as np
 import matplotlib.pyplot as plt
 from .data_cube import return_cube_slice
-from .numerical_utils import check_is_array
+from .numerical_utils import check_is_array, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
     return_imshow_norm, return_stylename,
-    set_plot_colors, set_vmin_vmax,
+    set_plot_colors, set_unit_labels, set_vmin_vmax,
 )
 
 
@@ -102,10 +103,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colorbar = kwargs.get('colorbar', True)
-    clabel = kwargs.get('clabel', None)
+    clabel = kwargs.get('clabel', True)
     cbar_width = kwargs.get('cbar_width', 0.03)
     cbar_pad = kwargs.get('cbar_pad', 0.015)
-    rotate_tick_axis = kwargs.get('rotate_tick_axis', None)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -172,6 +172,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     if isinstance(ylabel, str):
         ax.set_ylabel(ylabel)
     # add colorbar
+    cbar_unit = set_unit_labels(get_units(datas[0]))
+    if clabel is True:
+        clabel = f'${cbar_unit}$' if cbar_unit is not None else None
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
     # invert axes
