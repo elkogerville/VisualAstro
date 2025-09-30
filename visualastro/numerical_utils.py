@@ -1,7 +1,9 @@
+from astropy.io.fits import Header
 from astropy import units as u
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
+from spectral_cube import SpectralCube
 from .visual_classes import DataCube, FitsFile
 
 
@@ -71,6 +73,23 @@ def return_array_values(array):
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
+def get_units(obj):
+    # check if object is DataCube or FitsFile
+    data = get_data(obj)
+    # check if unit extension exists
+    if isinstance(data, (Quantity, SpectralCube)):
+        return data.unit
+
+    header = getattr(obj, 'header', None)
+    if isinstance(header, Header) and "BUNIT" in header:
+        try:
+            return Unit(obj.header['BUNIT'])
+        except Exception:
+            return None
+
+    return None
+
+
 def convert_units(quantity, unit):
     '''
     Convert an Astropy Quantity to a specified unit, with a fallback if conversion fails.

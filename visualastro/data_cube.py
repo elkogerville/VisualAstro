@@ -202,8 +202,8 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     # determine unit of colorbar
     cbar_unit = set_unit_labels(cube.unit)
     # set colorbar label
-    if clabel is True and cbar_unit is not None:
-        clabel = f'${cbar_unit}$'
+    if clabel is True:
+        clabel = f'${cbar_unit}$' if cbar_unit is not None else None
     # set colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
