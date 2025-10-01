@@ -3,7 +3,7 @@ from gwcs.selector import get_unique_regions
 import numpy as np
 import matplotlib.pyplot as plt
 from .data_cube import return_cube_slice
-from .numerical_utils import check_is_array, get_units
+from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
@@ -120,10 +120,10 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     h = kwargs.get('h', Y//5)
 
     # ensure inputs are iterable or conform to standard
-    datas = datas if isinstance(datas, list) else [datas]
-    cmap = cmap if isinstance(cmap, list) else [cmap]
+    datas = check_units_consistency(datas)
+    cmap = cmap if isinstance(cmap, (list, tuple)) else [cmap]
     if idx is not None:
-        idx = idx if isinstance(idx, list) else [idx]
+        idx = idx if isinstance(idx, (list, tuple)) else [idx]
 
     # if wcsaxes are used, origin can only be 'lower'
     if isinstance(ax, WCSAxes) and origin == 'upper':
@@ -223,7 +223,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
     colors, _ = set_plot_colors(colors)
     # ensure inputs are iterable or conform to standard
-    datas = datas if isinstance(datas, list) else [datas]
+    datas = check_units_consistency(datas)
 
     # loop over data list
     for i, data in enumerate(datas):

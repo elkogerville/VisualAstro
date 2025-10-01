@@ -1,10 +1,11 @@
+import warnings
 from astropy.io.fits import Header
 from astropy import units as u
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
-from .visual_classes import DataCube, FitsFile
+from .visual_classes import DataCube, ExtractedSpectrum, FitsFile
 
 
 # Type Checking Arrays and Objects
@@ -73,6 +74,33 @@ def return_array_values(array):
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
+def check_units_consistency(datas):
+    '''
+    Check that all input objects have the same units and warn if they differ.
+    Additionally ensure that the input is iterable by wrapping in a list.
+    Parameters
+    ----------
+    datas : object or list/tuple of objects
+        Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
+    Returns
+    -------
+    datas : list
+        The input objects as a list.
+    '''
+    datas = datas if isinstance(datas, (list, tuple)) else [datas]
+
+    first_unit = get_units(datas[0])
+    for i, obj in enumerate(datas[1:], start=1):
+        unit = get_units(obj)
+        if unit != first_unit:
+            warnings.warn(
+                f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
+                f"at index 0."
+            )
+
+    return datas
+
+
 def get_units(obj):
     '''
     Extract the unit from an object, if it exists.
@@ -96,6 +124,8 @@ def get_units(obj):
     # check if unit extension exists
     if isinstance(data, (Quantity, SpectralCube)):
         return data.unit
+    if isinstance(obj, ExtractedSpectrum):
+        return obj.spectrum1d.unit
 
     header = getattr(obj, 'header', None)
     if isinstance(header, Header) and "BUNIT" in header:

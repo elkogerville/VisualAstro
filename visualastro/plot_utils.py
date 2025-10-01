@@ -26,12 +26,12 @@ def return_stylename(style):
     Parameters
     ––––––––––
     style : str
-        Name of the mpl stylesheet without the extension
+        Name of the mpl stylesheet without the extension.
         ex: 'astro'
     Returns
     –––––––
     style_path : str
-        Path to matplotlib stylesheet
+        Path to matplotlib stylesheet.
     '''
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
