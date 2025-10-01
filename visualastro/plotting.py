@@ -52,6 +52,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         Aspect ratio passed to imshow.
 
     **kwargs : dict, optional
+        Additional plotting parameters.
 
         Supported keywords:
 
@@ -206,6 +207,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         color cycle is used.
 
     **kwargs : dict, optional
+        Additional plotting parameters.
 
         Supported keywords:
 
