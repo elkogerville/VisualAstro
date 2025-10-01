@@ -66,8 +66,9 @@ class va:
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
 
-        # define wcs figure axes
         cubes = check_units_consistency(cubes)
+
+        # define wcs figure axes
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
@@ -77,9 +78,8 @@ class va:
                 ax.coords['ra'].set_ticks_position('bl')
                 ax.coords['dec'].set_ticks_position('bl')
 
-            for cube in cubes:
-                plot_spectral_cube(cube, idx, ax, vmin, vmax, percentile,
-                                   norm, radial_vel, unit, **kwargs)
+            plot_spectral_cube(cubes, idx, ax, vmin, vmax, percentile,
+                                norm, radial_vel, unit, **kwargs)
             if savefig:
                 save_figure_2_disk(dpi)
 
