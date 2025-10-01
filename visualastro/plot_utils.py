@@ -428,7 +428,8 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
 
 def set_unit_labels(unit):
     '''
-    Convert an astropy unit string into a LaTeX-formatted label for plotting.
+    Convert an astropy unit string into a LaTeX-formatted label
+    for plotting. Returns None if no unit is found.
     Parameters
     ––––––––––
     unit : str

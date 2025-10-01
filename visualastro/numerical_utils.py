@@ -74,6 +74,23 @@ def return_array_values(array):
 # Science Operation Functions
 # –––––––––––––––––––––––––––
 def get_units(obj):
+    '''
+    Extract the unit from an object, if it exists.
+    Parameters
+    ––––––––––
+    obj : Quantity, SpectralCube, FITS-like object, or any
+        The input object from which to extract a unit. This can be:
+        - an astropy.units.Quantity
+        - a SpectralCube
+        - a DataCube or FitsFile
+        - a FITS-like object with a header containing a 'BUNIT' keyword
+        - any other object (returns None if no unit is found)
+    Returns
+    –––––––
+    astropy.units.Unit or None
+        The unit associated with the input object, if it exists.
+        Returns None if the object has no unit or if the unit cannot be parsed.
+    '''
     # check if object is DataCube or FitsFile
     data = get_data(obj)
     # check if unit extension exists
@@ -111,7 +128,7 @@ def convert_units(quantity, unit):
     - If conversion fails, prints a warning and returns the original quantity.
     '''
     if unit is None:
-            return quantity
+        return quantity
     try:
         # convert string unit to Unit if necessary
         target_unit = Unit(unit) if isinstance(unit, str) else unit
@@ -131,8 +148,8 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
     ––––––––––
     spectral_axis : astropy.units.Quantity
         The spectral axis to shift. Can be in frequency or wavelength units.
-    radial_vel : float or None
-        Radial velocity in km/s (astropy units are not needed). Positive values
+    radial_vel : float, astropy.units.Quantity or None
+        Radial velocity in km/s (astropy units are optional). Positive values
         correspond to a redshift (moving away). If None, no shift is applied.
     Returns
     –––––––
@@ -145,6 +162,8 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
     # speed of light in km/s in vacuum
     c = 299792.458 # [km/s]
     if radial_vel is not None:
+        if isinstance(radial_vel, Quantity):
+            radial_vel = radial_vel.to(u.km/u.s).value # type: ignore
         # if spectral axis in units of frequency
         if spectral_axis.unit.is_equivalent(u.Unit('Hz')):
             spectral_axis /= (1 - radial_vel / c)

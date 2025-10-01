@@ -58,8 +58,8 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
 
     return continuum_fit
 
-def deredden_spectrum(wavelength, flux, Rv=3.1, Ebv=0.19,
-                      deredden_method='WD01', region='LMCAvg'):
+def deredden_flux(wavelength, flux, Rv=3.1, Ebv=0.19,
+                  deredden_method='WD01', region='LMCAvg'):
     '''
     Apply extinction correction (dereddening) to a spectrum.
     Default values are for LMC parameters.
