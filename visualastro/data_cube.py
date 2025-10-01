@@ -13,7 +13,7 @@ from .data_cube_utils import (
     get_spectral_slice_value, return_cube_slice
 )
 from .io import get_dtype, get_errors
-from .numerical_utils import get_data, shift_by_radial_vel
+from .numerical_utils import check_units_consistency, get_data, shift_by_radial_vel
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
     return_imshow_norm, set_unit_labels, set_vmin_vmax,
@@ -157,10 +157,10 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
 
     return DataCube(spectral_cube, headers=hdr, errors=error_array)
 
-def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
+def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, cmap='turbo', **kwargs):
-
-    cube = get_data(cube)
+    # check cube units match
+    cubes = check_units_consistency(cubes)
     # –––– Kwargs ––––
     # labels
     title = kwargs.get('title', False)
@@ -180,25 +180,30 @@ def plot_spectral_cube(cube, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
     plot_ellipse = (
         True if ellipses is not None else kwargs.get('plot_ellipse', False)
     )
-    _, X, Y = cube.shape
+    _, X, Y = get_data(cubes[0]).shape
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
     angle = kwargs.get('angle', None)
 
-    # return data cube slices
-    cube_slice = return_cube_slice(cube, idx)
-    data = cube_slice.value
+    for cube in cubes:
+        # extract data component
+        cube = get_data(cube)
 
-    # compute imshow stretch
-    vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-    cube_norm = return_imshow_norm(vmin, vmax, norm)
+        # return data cube slices
+        cube_slice = return_cube_slice(cube, idx)
+        data = cube_slice.value
 
-    # imshow data
-    if norm is None:
-        im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
-    else:
-        im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+        # compute imshow stretch
+        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
+        cube_norm = return_imshow_norm(vmin, vmax, norm)
+
+        # imshow data
+        if norm is None:
+            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+        else:
+            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+
     # determine unit of colorbar
     cbar_unit = set_unit_labels(cube.unit)
     # set colorbar label
