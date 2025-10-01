@@ -5,8 +5,8 @@ from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
 from .io import save_figure_2_disk
 from .numerical_utils import (
-    check_units_consistency, convert_units, interpolate_arrays, mask_within_range,
-    return_array_values, shift_by_radial_vel
+    check_units_consistency, convert_units, interpolate_arrays,
+    mask_within_range, return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
     return_stylename, set_axis_labels,
@@ -58,6 +58,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         Name of an emission line to annotate on the plot.
 
     **kwargs : dict, optional
+        Additional plotting parameters.
 
         Supported keywords:
 
@@ -169,9 +170,60 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
     return extracted_spectra
 
-def plot_spectrum(extracted_spectra=None, ax=None, normalize_continuum=False,
+def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
-                  flux=None, norm_flux=None, **kwargs):
+                  flux=None, continuum_fit=None, **kwargs):
+    '''
+    Plot one or more extracted spectra on a matplotlib Axes.
+    Parameters
+    ----------
+    extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
+        Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
+        and `flux` must be given.
+    ax : matplotlib.axes.Axes
+        Axis to plot on.
+    normalize_continuum : bool, optional, default=False
+        If True, plot normalized flux instead of raw flux.
+    plot_continuum_fit : bool, optional, default=False
+        If True, overplot continuum fit.
+    emission_line : str, optional, default=None
+        Label for an emission line to annotate on the plot.
+    wavelength : array-like, optional, default=None
+        Wavelength array (required if `extracted_spectrums` is None).
+    flux : array-like, optional, default=None
+        Flux array (required if `extracted_spectrums` is None).
+    continuum_fit : array-like, optional, default=None
+        Fitted continuum array.
+
+    **kwargs : dict, optional
+        Additional plotting parameters.
+
+        Supported keywords:
+
+        - `xlim` : tuple, optional
+            Wavelength range to display.
+        - `ylim` : tuple, optional
+            Flux range to display.
+        - `labels` : list of str, optional
+            Labels for each spectrum to use in the legend.
+        - `xlabel` : str, optional
+            Label for the x-axis.
+        - `ylabel` : str, optional
+            Label for the y-axis.
+        - `colors` : list or str, optional
+            Colors for each spectrum. If None, default palette is used.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
+        - `text_loc` : list of float, optional, default=[0.025, 0.95]
+            Location for emission line annotation text in axes coordinates.
+        - `use_brackets` : bool, optional, default=False
+            If True, plot units in square brackets; otherwise, parentheses.
+
+    Returns
+    -------
+    None
+        The function plots directly on the provided matplotlib Axes.
+    '''
     # –––– Kwargs ––––
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -190,18 +242,22 @@ def plot_spectrum(extracted_spectra=None, ax=None, normalize_continuum=False,
 
     # construct ExtractedSpectrum if user passes in wavelenght and flux
     if extracted_spectra is None:
-        if None not in (wavelength, flux) or None not in (wavelength, norm_flux):
-            flux = flux if norm_flux is None else norm_flux
-            extracted_spectra = ExtractedSpectrum(wavelength=wavelength, flux=flux)
+        if None not in (wavelength, flux):
+            extracted_spectra = ExtractedSpectrum(
+                wavelength=wavelength,
+                flux=flux,
+                continuum_fit=continuum_fit
+            )
+            # to avoid missing normalize attribute
+            plot_norm_continuum = False
         else:
             raise ValueError(
                 "Either `extracted_spectrums` must be provided, "
-                "or both `wavelength` and `flux`/`norm_flux` must be given."
+                "or both `wavelength` and `flux` must be given."
             )
 
     # ensure extracted_spectra is iterable
-    if not isinstance(extracted_spectra, (list, tuple)):
-        extracted_spectra = [extracted_spectra]
+    extracted_spectra = check_units_consistency(extracted_spectra)
 
     # set plot style and colors
     colors, fit_colors = set_plot_colors(colors, cmap=cmap)
@@ -212,28 +268,33 @@ def plot_spectrum(extracted_spectra=None, ax=None, normalize_continuum=False,
     wavelength_list = []
     # loop through each spectrum
     for i, extracted_spectrum in enumerate(extracted_spectra):
-        if extracted_spectrum is not None:
-            # extract wavelength and flux
-            wavelength = extracted_spectrum.wavelength
-            if normalize_continuum:
-                flux = extracted_spectrum.normalized
+
+        # extract wavelength and flux
+        wavelength = extracted_spectrum.wavelength
+        if plot_norm_continuum:
+            flux = extracted_spectrum.normalized
+        else:
+            flux = extracted_spectrum.flux
+
+        # mask wavelength within data range
+        mask = mask_within_range(wavelength, xlim=xlim)
+        wavelength_list.append(wavelength[mask])
+
+        # define spectrum label, color, and fit color
+        label = labels[i] if (labels is not None and i < len(labels)) else None
+        color = colors[i%len(colors)]
+        fit_color = fit_colors[i%len(fit_colors)]
+
+        # plot spectrum
+        ax.plot(wavelength[mask], flux[mask], c=color, label=label)
+        # plot continuum fit
+        if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
+            if plot_norm_continuum:
+                # normalize continuum fit
+                continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
             else:
-                flux = extracted_spectrum.flux
-            # mask wavelength within data range
-            mask = mask_within_range(wavelength, xlim=xlim)
-            wavelength_list.append(wavelength[mask])
-            # define spectrum label, color, and fit color
-            label = labels[i] if (labels is not None and i < len(labels)) else None
-            color = colors[i%len(colors)]
-            fit_color = fit_colors[i%len(fit_colors)]
-            # plot spectrum
-            ax.plot(wavelength[mask], flux[mask], c=color, label=label)
-            if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
-                if normalize_continuum:
-                    continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
-                else:
-                    continuum_fit = extracted_spectrum.continuum_fit
-                ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color)
+                continuum_fit = extracted_spectrum.continuum_fit
+            ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color)
 
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
@@ -368,6 +429,7 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
         errors, and computed quantities.
 
     **kwargs : dict, optional
+        Additional plotting parameters.
 
         Supported keywords:
 
