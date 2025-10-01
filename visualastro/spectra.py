@@ -14,15 +14,78 @@ from .plot_utils import (
 )
 from .spectra_utils import (
     compute_continuum_fit,
-    deredden_spectrum, gaussian,
+    deredden_flux, gaussian,
     gaussian_continuum, gaussian_line,
 )
 from .visual_classes import ExtractedSpectrum
 
 
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
-                         fit_method='fit_generic_continuum', region=None, radial_vel=None,
+                         fit_method='fit_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
+    '''
+    Extract 1D spectra from one or more data cubes, with optional continuum normalization,
+    dereddening, and plotting.
+    Parameters
+    ––––––––––
+    cubes : DataCube, SpectralCube, or list of cubes
+        Input cube(s) from which to extract spectra. The data must either be
+        a SpectralCube, or a DataCube containing a SpectralCube.
+    normalize_continuum : bool, optional, default=False
+        Whether to normalize extracted spectra by a computed continuum fit
+    plot_continuum_fit : bool, optional, default=False
+        Whether to overplot the continuum fit.
+    fit_method : str, {'fit_continuum', 'generic'}, optional, default='fit_continuum'
+        Method used to fit the continuum.
+    region : array-like, optional, default=None
+        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
+        Ignored for other methods. This allows the user to specify which
+        regions to include in the fit. Removing strong peaks is preferable to
+        avoid skewing the fit up or down.
+        Ex: Remove strong emission peak at 7um from fit
+        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+    radial_vel : float, optional, default=None
+        Radial velocity in km/s to shift the spectral axis.
+        Astropy units are optional.
+    rest_freq : float, optional, default=None
+        Rest-frame frequency or wavelength of the spectrum.
+    deredden : bool, optional, default=False
+        Whether to apply dereddening to the flux using deredden_flux().
+    unit : str or astropy.units.Unit, optional, default=None
+        Desired units for the wavelength axis. Converts the default
+        units if possible.
+    emission_line : str, optional, default=None
+        Name of an emission line to annotate on the plot.
+
+    **kwargs : dict, optional
+
+        Supported keywords:
+
+        - `convention` : str, optional
+            Doppler convention.
+        - `Rv` : float, optional, default=3.1
+            Dereddening parameter.
+        - `Ebv` : float, optional, default=0.19
+            Dereddening parameter.
+        - `deredden_method` : str, optional, default='WD01'
+            Extinction law to use.
+        - `deredden_region` : str, optional, default='LMCAvg'
+            Region/environment for WD01 extinction law.
+        - `figsize` : tuple, optional, default=(6, 6)
+            Figure size for plotting.
+        - `style` : str, optional, default='astro'
+            Plotting style.
+        - `text_loc` : list, optional, default=[0.025, 0.95]
+            Location of text annotations in axes coordinates.
+        - `savefig` : bool, optional, default=False
+            Whether to save the figure to disk.
+        - `dpi` : int, optional, default=600
+            Figure resolution for saving.
+    Returns
+    –––––––
+    ExtractedSpectrum or list of ExtractedSpectrum
+        Single object if one cube is provided, list if multiple cubes are provided.
+    '''
     # –––– KWARGS ––––
     # doppler convention
     convention = kwargs.get('convention', None)
@@ -41,11 +104,11 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     dpi = kwargs.get('dpi', 600)
 
     # ensure cubes are iterable
-    cubes = [cubes] if not isinstance(cubes, list) else cubes
+    cubes = [cubes] if not isinstance(cubes, (list, tuple)) else cubes
     # set plot style and colors
     style = return_stylename(style)
 
-    extracted_spectrum_list = []
+    extracted_spectra = []
     for cube in cubes:
 
         # extract spectral axis converted to user specified units
@@ -56,8 +119,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         # derreden
         if deredden:
-            flux = deredden_spectrum(spectral_axis, flux, Rv, Ebv,
-                                     deredden_method, deredden_region)
+            flux = deredden_flux(spectral_axis, flux, Rv, Ebv,
+                                 deredden_method, deredden_region)
 
         # initialize Spectrum1D object
         spectrum1d = Spectrum1D(
@@ -79,7 +142,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         wavelength = convert_units(wavelength, unit)
 
         # save computed spectrum
-        extracted_spectrum_list.append(ExtractedSpectrum(
+        extracted_spectra.append(ExtractedSpectrum(
             wavelength=wavelength,
             flux=flux,
             spectrum1d=spectrum1d,
@@ -91,20 +154,20 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         fig, ax = plt.subplots(figsize=figsize)
 
         if emission_line is not None:
-            plt.text(text_loc[0], text_loc[1], f'{emission_line}',
-                        transform=plt.gca().transAxes)
+            ax.text(text_loc[0], text_loc[1], f'{emission_line}',
+                    transform=plt.gca().transAxes)
 
-        plot_spectrum(extracted_spectrum_list, ax, normalize_continuum,
+        plot_spectrum(extracted_spectra, ax, normalize_continuum,
                         plot_continuum_fit, emission_line, **kwargs)
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
 
     # ensure a list is only returned if returning more than 1 spectrum
-    if len(extracted_spectrum_list) == 1:
-        extracted_spectrum_list = extracted_spectrum_list[0]
+    if len(extracted_spectra) == 1:
+        return extracted_spectra[0]
 
-    return extracted_spectrum_list
+    return extracted_spectra
 
 def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
@@ -132,8 +195,8 @@ def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
             extracted_spectrums = ExtractedSpectrum(wavelength=wavelength, flux=flux)
         else:
             raise ValueError(
-                "Either 'extracted_spectrums' must be provided, "
-                "or both 'wavelength' and 'flux'/'norm_flux' must be given."
+                "Either `extracted_spectrums` must be provided, "
+                "or both `wavelength` and `flux`/`norm_flux` must be given."
             )
 
     # ensure extracted_spectrums is iterable
@@ -303,33 +366,34 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     print_vals : bool, default=True
         If True, print a table of best-fit parameters,
         errors, and computed quantities.
-    kwargs
-    ––––––
-    figsize : list or tuple, default=(6,6)
-        Figure size.
-    style : str or {'astro', 'latex', 'minimal'}, default='astro'
-        Plot style used. Can either be a matplotlib mplstyle
-        or an included visualastro style.
-    xlim : tuple, default=None
-        Wavelength range for plotting. If None uses `wave_range`.
-    plot_type: str, {'plot', 'scatter'}, default='plot'
-        Which matplotlib plotting style to use.
-    label : str, default=None
-        Spectrum legend label.
-    xlabel : str, default=None
-        Plot xlabel.
-    ylabel : str, default=None
-        Plot ylabel.
-    colors : str or list, default=None
-        Plot colors. If None will use default visualastro
-        color palette.
-    use_brackets : bool, default=False
-        If True, use square brackets for plot units. If
-        False, use parentheses.
-    savefig : bool, optional, default=False
-        If True, save current figure to disk.
-    dpi : float or int, default=600
-        Resolution in dots per inch.
+
+    **kwargs : dict, optional
+
+        Supported keywords:
+
+        - `figsize` : list or tuple, optional, default=(6, 6)
+            Figure size.
+        - `style` : str or {'astro', 'latex', 'minimal'}, optional, default='astro'
+            Plot style used. Can either be a matplotlib mplstyle
+            or an included visualastro style.
+        - `xlim` : tuple, optional, default=None
+            Wavelength range for plotting. If None, uses `wave_range`.
+        - `plot_type` : {'plot', 'scatter'}, optional, default='plot'
+            Matplotlib plotting style to use.
+        - `label` : str, optional, default=None
+            Spectrum legend label.
+        - `xlabel` : str, optional, default=None
+            Plot x-axis label.
+        - `ylabel` : str, optional, default=None
+            Plot y-axis label.
+        - `colors` : str or list, optional, default=None
+            Plot colors. If None, will use default visualastro color palette.
+        - `use_brackets` : bool, optional, default=False
+            If True, use square brackets for plot units. If False, use parentheses.
+        - `savefig` : bool, optional, default=False
+            If True, save current figure to disk.
+        - `dpi` : float or int, optional, default=600
+            Resolution in dots per inch.
     Returns
     –––––––
     If return_fit_params:

@@ -50,48 +50,48 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         ex: ['turbo', 'RdPu_r']
     aspect : str, {'auto', 'equal'} or float, optional, default=None
         Aspect ratio passed to imshow.
-    Kwargs
-    ––––––
-    invert_xaxis : bool, default=False
-        Invert the x-axis if True.
-    invert_yaxis : bool, default=False
-        Invert the y-axis if True.
-    text_loc : list of float, default=[0.03, 0.03]
-        Relative axes coordinates for text placement when plotting interactive ellipses.
-    text_color : str, default='k'
-        Color of the ellipse annotation text.
-    xlabel : str, optional, default=None
-        X-axis label.
-    ylabel : str, optional, default=None
-        Y-axis label.
-    colorbar : bool, default=True
-        Add colobar if True.
-    clabel : str, optional, default=True
-        Colorbar label.
-    cbar_width : float, default=0.03
-        Width of the colorbar.
-    cbar_pad : float, default=0.015
-        Padding between plot and colorbar.
-    circles : list, optional, default=None
-        List of circle objects (e.g., matplotlib.patches.Circle)
-        to overplot on the axes.
-    ellipses : list, optional, default=None
-        List of Ellipse objects (e.g., matplotlib.patches.Ellipse) to
-        overplot on the axes. Single ellipses can also be passed directly.
-    points : array-like, shape (2,) or (N, 2), optional, default=None
-        Coordinates of points to overplot. Can be a single point '[x, y]'
-        or a list/array of points '[[x1, y1], [x2, y2], ...]'.
-        Points are plotted as red stars by default.
-    plot_ellipse : bool, default=False
-        If True, plot an interactive ellipse overlay.
-        Ensure you are using an interactive backend such as
-        use_interactive() for this to work.
-    center : list of float, default=[Nx//2, Ny//2]
-        Center of the default interactive ellipse (x, y).
-    w : float, default=X//5
-        Width of the default interactive ellipse.
-    h : float, default=Y//5
-        Height of the default interactive ellipse.
+
+    **kwargs : dict, optional
+
+        Supported keywords:
+
+        - `invert_xaxis` : bool, optional, default=False
+            Invert the x-axis if True.
+        - `invert_yaxis` : bool, optional, default=False
+            Invert the y-axis if True.
+        - `text_loc` : list of float, optional, default=[0.03, 0.03]
+            Relative axes coordinates for text placement when plotting interactive ellipses.
+        - `text_color` : str, optional, default='k'
+            Color of the ellipse annotation text.
+        - `xlabel` : str, optional, default=None
+            X-axis label.
+        - `ylabel` : str, optional, default=None
+            Y-axis label.
+        - `colorbar` : bool, optional, default=True
+            Add colorbar if True.
+        - `clabel` : str or bool, optional, default=True
+            Colorbar label. If True, use default label; if None or False, no label.
+        - `cbar_width` : float, optional, default=0.03
+            Width of the colorbar.
+        - `cbar_pad` : float, optional, default=0.015
+            Padding between plot and colorbar.
+        - `circles` : list, optional, default=None
+            List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
+        - `ellipses` : list, optional, default=None
+            List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.
+            Single Ellipse objects can also be passed directly.
+        - `points` : array-like, shape (2,) or (N, 2), optional, default=None
+            Coordinates of points to overplot. Can be a single point `[x, y]`
+            or a list/array of points `[[x1, y1], [x2, y2], ...]`.
+            Points are plotted as red stars by default.
+        - `plot_ellipse` : bool, optional, default=False
+            If True, plot an interactive ellipse overlay. Requires an interactive backend.
+        - `center` : list of float, optional, default=[Nx//2, Ny//2]
+            Center of the default interactive ellipse (x, y).
+        - `w` : float, optional, default=X//5
+            Width of the default interactive ellipse.
+        - `h` : float, optional, default=Y//5
+            Height of the default interactive ellipse.
     '''
     # –––– KWARGS ––––
     # figure params
@@ -204,14 +204,17 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
     colors : list of colors or None, optional, default=None
         Colors to use for each dataset. If None, default
         color cycle is used.
-    Kwargs
-    ––––––
-    xlabel : str or None
-        Label for the x-axis.
-    ylabel : str or None
-        Label for the y-axis.
-    histtype : str {'bar', 'barstacked', 'step', 'stepfilled'}, default='step'
-        Matplotlib histogram type.
+
+    **kwargs : dict, optional
+
+        Supported keywords:
+
+        - `xlabel` : str or None, optional
+            Label for the x-axis.
+        - `ylabel` : str or None, optional
+            Label for the y-axis.
+        - `histtype` : {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
+            Matplotlib histogram type.
     '''
     # –––– KWARGS ––––
     xlabel = kwargs.get('xlabel', None)
