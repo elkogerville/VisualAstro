@@ -1,4 +1,5 @@
 from astropy.io import fits
+from astropy.units import Quantity, spectral, Unit
 import numpy as np
 from spectral_cube import SpectralCube
 
@@ -20,8 +21,13 @@ class DataCube:
         # extract array view for validation
         if isinstance(data, SpectralCube):
             array = data.unmasked_data[:].value
+            unit = data.unit
+        elif isinstance(data, Quantity):
+            array = data.value
+            unit = data.unit
         else:
             array = data
+            unit = None
 
         if array.ndim != 3:
             raise ValueError(f"'data' must be 3D (T, N, M), got shape {array.shape}.")
@@ -43,6 +49,7 @@ class DataCube:
         self.header = headers
         self.error = errors
         self.value = array
+        self.unit = unit
 
         # data attributes
         self.shape = array.shape
@@ -54,18 +61,19 @@ class DataCube:
         self.itemsize = array.itemsize
         self.nbytes = array.nbytes
 
-    # magic functions for DataCube to behave like a np.ndarray
+    # support slicing
     def __getitem__(self, key):
         return self.value[key]
-
+    # support reshaping
     def reshape(self, *shape):
             return self.value.reshape(*shape)
-
+    # support len()
     def __len__(self):
         return len(self.value)
-
+    # support numpy operations
     def __array__(self):
         return self.value
+
     # physical properties / statistics
     @property
     def max(self):

@@ -5,7 +5,7 @@ from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
 from .io import save_figure_2_disk
 from .numerical_utils import (
-    convert_units, interpolate_arrays, mask_within_range,
+    check_units_consistency, convert_units, interpolate_arrays, mask_within_range,
     return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
@@ -104,7 +104,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     dpi = kwargs.get('dpi', 600)
 
     # ensure cubes are iterable
-    cubes = [cubes] if not isinstance(cubes, (list, tuple)) else cubes
+    cubes = check_units_consistency(cubes)
     # set plot style and colors
     style = return_stylename(style)
 
@@ -169,7 +169,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
     return extracted_spectra
 
-def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
+def plot_spectrum(extracted_spectra=None, ax=None, normalize_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
                   flux=None, norm_flux=None, **kwargs):
     # –––– Kwargs ––––
@@ -189,19 +189,19 @@ def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
         raise ValueError('ax must be a matplotlib axes object!')
 
     # construct ExtractedSpectrum if user passes in wavelenght and flux
-    if extracted_spectrums is None:
+    if extracted_spectra is None:
         if None not in (wavelength, flux) or None not in (wavelength, norm_flux):
             flux = flux if norm_flux is None else norm_flux
-            extracted_spectrums = ExtractedSpectrum(wavelength=wavelength, flux=flux)
+            extracted_spectra = ExtractedSpectrum(wavelength=wavelength, flux=flux)
         else:
             raise ValueError(
                 "Either `extracted_spectrums` must be provided, "
                 "or both `wavelength` and `flux`/`norm_flux` must be given."
             )
 
-    # ensure extracted_spectrums is iterable
-    if not isinstance(extracted_spectrums, list):
-        extracted_spectrums = [extracted_spectrums]
+    # ensure extracted_spectra is iterable
+    if not isinstance(extracted_spectra, (list, tuple)):
+        extracted_spectra = [extracted_spectra]
 
     # set plot style and colors
     colors, fit_colors = set_plot_colors(colors, cmap=cmap)
@@ -211,7 +211,7 @@ def plot_spectrum(extracted_spectrums=None, ax=None, normalize_continuum=False,
 
     wavelength_list = []
     # loop through each spectrum
-    for i, extracted_spectrum in enumerate(extracted_spectrums):
+    for i, extracted_spectrum in enumerate(extracted_spectra):
         if extracted_spectrum is not None:
             # extract wavelength and flux
             wavelength = extracted_spectrum.wavelength

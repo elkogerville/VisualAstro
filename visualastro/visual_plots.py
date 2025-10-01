@@ -4,7 +4,7 @@ from astropy.io.fits import Header
 import matplotlib.pyplot as plt
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
-from .numerical_utils import get_data
+from .numerical_utils import check_units_consistency, get_data
 from .plotting import imshow, plot_histogram
 from .plot_utils import (
     return_stylename, set_axis_labels, set_plot_colors
@@ -67,7 +67,7 @@ class va:
         dpi = kwargs.get('dpi', 600)
 
         # define wcs figure axes
-        cubes = [cubes] if not isinstance(cubes, list) else cubes
+        cubes = check_units_consistency(cubes)
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
