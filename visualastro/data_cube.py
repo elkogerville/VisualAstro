@@ -159,7 +159,72 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
 
 def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, cmap='turbo', **kwargs):
-    # check cube units match
+    '''
+    Plot a single spectral slice from one or more spectral cubes.
+    Parameters
+    ––––––––––
+    cubes : DataCube, SpectralCube, or list of such
+        One or more spectral cubes to plot. All cubes should have consistent units.
+    idx : int
+        Index along the spectral axis corresponding to the slice to plot.
+    ax : matplotlib.axes.Axes
+        The axes on which to draw the slice.
+    vmin, vmax : float, optional, default=None
+        Minimum and maximum values for image scaling. Overrides percentile if provided.
+    percentile : list of two floats, default=[3, 99.5]
+        Percentile values for automatic scaling if vmin/vmax are not specified.
+    norm : str or None, default='asinh'
+        Normalization type for `imshow`. Use None for linear scaling.
+    radial_vel : float or astropy.units.Quantity, optional, default=None
+        Radial velocity to shift spectral axis to the rest frame.
+    unit : astropy.units.Unit or str, optional, default=None
+        Desired spectral axis unit for labeling.
+    cmap : str, list, or tuple, default='turbo'
+        Colormap(s) to use for plotting.
+
+    **kwargs
+        Additional keyword arguments controlling plot appearance:
+        title : bool, default=False
+            If True, display spectral slice label as plot title.
+        emission_line : str or None, default=None
+            Optional emission line label to display instead of slice value.
+        text_loc : list of float, default=[0.03, 0.03]
+            Relative axes coordinates for overlay text placement.
+        text_color : str, default='k'
+            Color of overlay text.
+        colorbar : bool, default=True
+            Whether to add a colorbar.
+        cbar_width : float, default=0.03
+            Width of the colorbar.
+        cbar_pad : float, default=0.015
+            Padding between axes and colorbar.
+        clabel : str, bool, or None, default=True
+            Label for colorbar. If True, automatically generate from cube unit.
+        xlabel, ylabel : str, default='Right Ascension', 'Declination'
+            Axes labels.
+        spectral_label : bool, default=True
+            Whether to draw spectral slice value as a label.
+        highlight : bool, default=True
+            Whether to highlight interactive ellipse if plotted.
+        ellipses : list or None, default=None
+            Ellipse objects to overlay on the image.
+        plot_ellipse : bool, default=False
+            If True, plot a default or interactive ellipse.
+        center : list of two ints, default=[Nx//2, Ny//2]
+            Center of default ellipse.
+        w, h : float, default=X//5, Y//5
+            Width and height of default ellipse.
+        angle : float or None, default=None
+            Angle of ellipse in degrees.
+
+    Notes
+    -----
+    - The function automatically checks that all input cubes have consistent units.
+    - Color scaling can be determined either by explicit `vmin`/`vmax` or percentiles of the data.
+    - Spectral slice labels are automatically converted to LaTeX-formatted units.
+    - If multiple cubes are provided, they are overplotted in sequence.
+    '''
+    # check cube units match and ensure cubes is iterable
     cubes = check_units_consistency(cubes)
     # –––– Kwargs ––––
     # labels
@@ -215,19 +280,22 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5]
 
     # plot ellipses
     if plot_ellipse:
+        # plot Ellipse objects
         if ellipses is not None:
             plot_ellipses(ellipses, ax)
+        # plot ellipse with angle
         elif angle is not None:
             e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
             ax.add_patch(e)
+        # plot default/interactive ellipse
         else:
             plot_interactive_ellipse(center, w, h, ax, text_loc, text_color, highlight)
             draw_spectral_label = False
 
-    # plot spectral label
+    # plot wavelength/frequency of current spectral slice, and emission line
     if draw_spectral_label:
         # compute spectral axis value of slice for label
-        spectral_axis = extract_spectral_axis(cube, unit)
+        spectral_axis = convert_units(cube.spectral_axis, unit)
         spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
         spectral_value = get_spectral_slice_value(spectral_axis, idx)
         unit_label = set_unit_labels(spectral_axis.unit)

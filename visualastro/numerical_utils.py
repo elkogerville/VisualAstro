@@ -30,6 +30,33 @@ def check_is_array(data):
     return np.asarray(data)
 
 
+def check_units_consistency(datas):
+    '''
+    Check that all input objects have the same units and warn if they differ.
+    Additionally ensure that the input is iterable by wrapping in a list.
+    Parameters
+    ----------
+    datas : object or list/tuple of objects
+        Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
+    Returns
+    -------
+    datas : list
+        The input objects as a list.
+    '''
+    datas = datas if isinstance(datas, (list, tuple)) else [datas]
+
+    first_unit = get_units(datas[0])
+    for i, obj in enumerate(datas[1:], start=1):
+        unit = get_units(obj)
+        if unit != first_unit:
+            warnings.warn(
+                f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
+                f"at index 0."
+            )
+
+    return datas
+
+
 def get_data(obj):
     '''
     Extract the underlying data attribute from a DataCube or FitsFile object.
@@ -74,33 +101,6 @@ def return_array_values(array):
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
-def check_units_consistency(datas):
-    '''
-    Check that all input objects have the same units and warn if they differ.
-    Additionally ensure that the input is iterable by wrapping in a list.
-    Parameters
-    ----------
-    datas : object or list/tuple of objects
-        Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
-    Returns
-    -------
-    datas : list
-        The input objects as a list.
-    '''
-    datas = datas if isinstance(datas, (list, tuple)) else [datas]
-
-    first_unit = get_units(datas[0])
-    for i, obj in enumerate(datas[1:], start=1):
-        unit = get_units(obj)
-        if unit != first_unit:
-            warnings.warn(
-                f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
-                f"at index 0."
-            )
-
-    return datas
-
-
 def get_units(obj):
     '''
     Extract the unit from an object, if it exists.
