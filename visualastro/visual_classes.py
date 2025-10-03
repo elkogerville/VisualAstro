@@ -63,7 +63,7 @@ class DataCube:
 
     # support slicing
     def __getitem__(self, key):
-        return self.value[key]
+        return self.data[key]
     # support reshaping
     def reshape(self, *shape):
             return self.value.reshape(*shape)
@@ -73,6 +73,14 @@ class DataCube:
     # support numpy operations
     def __array__(self):
         return self.value
+
+    def with_mask(self, mask):
+        if isinstance(self.data, SpectralCube):
+            return self.data.with_mask(mask)
+        elif isinstance(self.data, (np.ndarray, Quantity)):
+            return self.data[mask]
+        else:
+            raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
 
     # physical properties / statistics
     @property
@@ -149,3 +157,6 @@ class FitsFile:
     @property
     def std(self):
         return np.nanstd(self.data)
+
+# class Mask:
+#     def __init__(self, region=None, line=None, all=None):
