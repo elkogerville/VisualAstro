@@ -40,6 +40,11 @@ class va:
                     wcs = WCS(wcs_input)
                 except:
                     wcs_input = None
+            elif isinstance(wcs_input, (list, tuple)):
+                try:
+                    wcs = WCS(wcs_input[0])
+                except:
+                    wcs_input = None
             elif isinstance(wcs_input, WCS):
                 wcs = wcs_input
             elif wcs_input is not None:
