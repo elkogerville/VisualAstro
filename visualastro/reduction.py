@@ -54,7 +54,7 @@ def reduce_science_frames(data_cube, master_bias, master_flat, trim=None, vector
     return norm_data_cube
 
 @njit(parallel=True)
-def njit_reduce_science_frames(data_cube, master_bias, master_flat, trim=None, vectorize=False):
+def njit_reduce_science_frames(data_cube, master_bias, master_flat, trim=None):
     if isinstance(data_cube, dict):
         data_cube = np.asarray(data_cube['data'])
     else:
