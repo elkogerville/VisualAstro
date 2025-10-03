@@ -239,7 +239,7 @@ class va:
             plt.show()
 
     @staticmethod
-    def scatter(X, Y, normalize=False, **kwargs):
+    def scatter(X, Y, normalize=False, xlog=False, ylog=False, colors=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -251,7 +251,7 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            scatter_plot(X, Y, ax, normalize=normalize, **kwargs)
+            scatter_plot(X, Y, ax, normalize=normalize, xlog=xlog, ylog=ylog, colors=colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)

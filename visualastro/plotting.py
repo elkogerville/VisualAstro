@@ -251,25 +251,6 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 # set xlim doc above
 
 
-def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style='astro', colors=None, figsize=(6,6)):
-    if isinstance(data, np.ndarray) and data.ndim == 1:
-        data = [data]
-    colors, _ = set_plot_colors(colors)
-    style = return_stylename(style)
-    with plt.style.context(style):
-        plt.figure(figsize=figsize)
-        for i in range(len(data)):
-            y = data[i]
-            if normalize:
-                y=y/np.max(y)
-            plt.scatter(time, y, s=1, c=colors[i%len(colors)])
-
-        if xlabel is not None:
-            plt.xlabel(xlabel)
-        if ylabel is not None:
-            plt.ylabel(ylabel)
-        plt.show()
-
 def plot_lines(X, Y, ax, normalize=False,
                xlog=False, ylog=False, colors=None, **kwargs):
 
@@ -284,18 +265,18 @@ def plot_lines(X, Y, ax, normalize=False,
     Y = check_units_consistency(Y)
 
     colors, _ = set_plot_colors(colors)
-
+    y_list = []
     for i in range(len(Y)):
         x = X[i%len(X)]
         y = Y[i%len(Y)]
         color = colors[i%len(colors)]
         if normalize:
             y = y / np.nanmax(y)
-            Y[i%len(Y)] = y
+        y_list.append(y)
         ax.plot(x, y, lw=linewidth, c=color)
 
     # set axes parameters
-    set_axis_limits(X, Y, ax, xlim, ylim)
+    set_axis_limits(X, y_list, ax, xlim, ylim)
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
     ax.set_xlabel(xlabel)
@@ -323,7 +304,6 @@ def scatter_plot(X, Y, ax, normalize=False,
         color = colors[i%len(colors)]
         if normalize:
             y = y / np.nanmax(y)
-            Y[i%len(Y)] = y
         ax.scatter(x, y, s=size, c=color)
 
     # set axes parameters
