@@ -219,7 +219,10 @@ class va:
             plt.show()
 
     @staticmethod
-    def plot(X, Y, normalize=False, xlog=False, ylog=False, **kwargs):
+    def plot(X, Y, normalize=False, xlog=False,
+             ylog=False, colors=None, linestyle='-',
+             linewidth=0.8, alpha=1, zorder=None, **kwargs):
+
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -232,14 +235,19 @@ class va:
             fig, ax = plt.subplots(figsize=figsize)
 
             plot_lines(X, Y, ax, normalize=normalize,
-                       xlog=xlog, ylog=ylog, **kwargs)
+                       xlog=xlog, ylog=ylog, colors=colors,
+                       linestyle=linestyle, linewidth=linewidth,
+                       alpha=alpha, zorder=zorder, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()
 
     @staticmethod
-    def scatter(X, Y, normalize=False, xlog=False, ylog=False, colors=None, **kwargs):
+    def scatter(X, Y, normalize=False, xlog=False,
+                ylog=False, colors=None, size=10,
+                marker='o', alpha=1, edgecolors='face',
+                **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -251,7 +259,8 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            scatter_plot(X, Y, ax, normalize=normalize, xlog=xlog, ylog=ylog, colors=colors, **kwargs)
+            scatter_plot(X, Y, ax, normalize=normalize, xlog=xlog, ylog=ylog, colors=colors,
+                         size=size, marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
