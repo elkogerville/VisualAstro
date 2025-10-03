@@ -286,33 +286,3 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y + continuum
-
-def residuals(params, x, y):
-    '''
-    Compute the residuals between data and a Gaussian with linear continuum.
-    Parameters
-    ––––––––––
-    params : array-like of float
-        Parameters of the Gaussian + linear continuum model, in order:
-        - A : amplitude of the Gaussian
-        - mu : mean/center of the Gaussian
-        - sigma : standard deviation of the Gaussian
-        - m : slope of the linear continuum
-        - b : y-intercept of the linear continuum
-    x : np.ndarray
-        (N,) shaped array of x-values (e.g., pixel indices or wavelengths).
-    y : np.ndarray
-        (N,) shaped array of observed data values corresponding to `x`.
-    Returns
-    –––––––
-    residuals : np.ndarray
-        (N,) shaped array of residuals `y - model(x)` for each data point.
-    Notes
-    –––––
-    - Intended for use in least-squares fitting routines.
-    - The model is y_model = A * exp(-0.5*((x - mu)/sigma)**2) + m*x + b.
-    '''
-    A, mu, sigma, m, b = params
-    model = A*np.exp(-0.5*((x - mu) / sigma)**2) + m*x + b
-
-    return y - model
