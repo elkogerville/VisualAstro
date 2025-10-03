@@ -44,7 +44,7 @@ def extract_spectral_axis(cube, unit=None):
         raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
 
 
-def return_cube_slice(cube, idx):
+def slice_cube(cube, idx):
     '''
     Return a slice of a data cube along the first axis.
     Parameters
