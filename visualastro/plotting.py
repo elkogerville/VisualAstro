@@ -1,8 +1,7 @@
 from astropy.visualization.wcsaxes.core import WCSAxes
-from gwcs.selector import get_unique_regions
 import numpy as np
 import matplotlib.pyplot as plt
-from .data_cube import return_cube_slice
+from .data_cube import slice_cube
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
@@ -137,7 +136,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         data = check_is_array(data)
         # slice data with index if provided
         if idx is not None:
-            data = return_cube_slice(data, idx[i%len(idx)])
+            data = slice_cube(data, idx[i%len(idx)])
 
         # set image stretch
         vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
