@@ -265,11 +265,11 @@ def plot(X, Y, ax, normalize=False, **kwargs):
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
     size = get_kwargs(kwargs, 'size', 's', default=1)
 
-
     colors, _ = set_plot_colors(colors)
 
     for i in range(len(Y)):
-        y = Y[i]
+        x = X[i%len(X)]
+        y = Y[i%len(X)]
         if normalize:
             y = y / np.nanmax(y)
-        ax.plot(X, y, s=size)
+        ax.plot(x, y, s=size)
