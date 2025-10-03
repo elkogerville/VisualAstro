@@ -4,15 +4,6 @@ import numpy as np
 from .numerical_utils import get_data
 
 
-def header_2_array(cube, key):
-    headers = cube.header
-    array = []
-    for i in range(len(headers)):
-        array.append(headers[i][key])
-
-    return np.asarray(array)
-
-
 # Cube Manipulation Functions
 # ___________________________
 def extract_spectral_axis(cube, unit=None):

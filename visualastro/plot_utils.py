@@ -11,6 +11,7 @@ from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import check_is_array, get_data, return_array_values
 
+
 # Plot Style and Color Functions
 # ––––––––––––––––––––––––––––––
 def return_stylename(style):
@@ -43,6 +44,7 @@ def return_stylename(style):
         style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
 
+
 def lighten_color(color, mix=0.5):
     '''
     Lightens the given matplotlib color by mixing it with white.
@@ -62,6 +64,7 @@ def lighten_color(color, mix=0.5):
     mixed = (1 - mix) * rgb + mix * white
 
     return mcolors.to_hex(mixed)
+
 
 def sample_cmap(N, cmap='turbo', return_hex=False):
     '''
@@ -85,6 +88,7 @@ def sample_cmap(N, cmap='turbo', return_hex=False):
         colors = np.array([mcolors.to_hex(c) for c in colors])
 
     return colors
+
 
 def set_plot_colors(user_colors=None, cmap='turbo'):
     '''
@@ -170,6 +174,7 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
         'user_colors must be None, a str palette name, a str color, a list of colors, or an integer'
     )
 
+
 # Imshow Stretch Functions
 # ––––––––––––––––––––––––
 def return_imshow_norm(vmin, vmax, norm):
@@ -208,6 +213,7 @@ def return_imshow_norm(vmin, vmax, norm):
         return None
 
     return norm_map[norm]
+
 
 def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
     '''
@@ -251,6 +257,7 @@ def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
 
     return vmin, vmax
 
+
 def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     '''
     Compute percentile-based intensity limits from a data cube slice.
@@ -288,6 +295,7 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
 
     return vmin, vmax
 
+
 # Axes Labels, Format, and Styling
 # ––––––––––––––––––––––––––––––––
 def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
@@ -319,6 +327,7 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     cbar.ax.tick_params(which='both', direction='out')
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
+
 
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
     '''
@@ -363,6 +372,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
     # set x and y limits
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
+
 
 def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     '''
@@ -426,6 +436,7 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
+
 def set_unit_labels(unit):
     '''
     Convert an astropy unit string into a LaTeX-formatted label
@@ -460,6 +471,7 @@ def set_unit_labels(unit):
     }.get(str(unit), None)
 
     return unit_label
+
 
 # Plot Matplotlib Patches and Shapes
 # ––––––––––––––––––––––––––––––––––
@@ -508,6 +520,7 @@ def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'
             circle_patch = Circle((x, y), radius=r, fill=fill, linewidth=linewidth, color=color)
             ax.add_patch(circle_patch)
 
+
 def copy_ellipse(ellipse):
     '''
     Returns a copy of an Ellipse object.
@@ -532,6 +545,7 @@ def copy_ellipse(ellipse):
         alpha=ellipse.get_alpha()
     )
 
+
 def plot_ellipses(ellipses, ax):
     '''
     Plots an ellipse or list of ellipses to an axes.
@@ -548,6 +562,7 @@ def plot_ellipses(ellipses, ax):
         # plot each ellipse
         for ellipse in ellipses:
             ax.add_patch(copy_ellipse(ellipse))
+
 
 def plot_interactive_ellipse(center, w, h, ax,
                              text_loc=[0.03,0.03],
@@ -593,6 +608,7 @@ def plot_interactive_ellipse(center, w, h, ax,
     # bind ellipse to axes
     ax._ellipse_selector = selector
 
+
 def update_ellipse_region(region, text):
     '''
     Update ellipse information text when the
@@ -618,6 +634,7 @@ def update_ellipse_region(region, text):
         f'Minor: {minor:.1f}\n'
     )
 
+
 def return_ellipse_region(center, w, h, angle=0, fill=False):
     '''
     Create a matplotlib.patches.Ellipse object.
@@ -641,6 +658,7 @@ def return_ellipse_region(center, w, h, angle=0, fill=False):
     ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill)
 
     return ellipse
+
 
 def plot_points(points, ax, color='r', size=20, marker='*'):
     '''
@@ -676,6 +694,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
         for i, point in enumerate(points):
             ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
 
+
 # Notebook Utils
 # ––––––––––––––
 def use_inline():
@@ -694,6 +713,7 @@ def use_inline():
     except ImportError:
         print("IPython is not installed. Install it to use this feature.")
 
+
 def use_interactive():
     '''
     Start an interactive IPython backend session.
@@ -709,6 +729,7 @@ def use_interactive():
             print("Not in an IPython environment.")
     except ImportError:
         print("IPython is not installed. Install it to use this feature.")
+
 
 def plt_close():
     '''
