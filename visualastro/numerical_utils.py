@@ -86,6 +86,42 @@ def get_data(obj):
     return obj
 
 
+def get_units(obj):
+    '''
+    Extract the unit from an object, if it exists.
+    Parameters
+    ––––––––––
+    obj : Quantity, SpectralCube, FITS-like object, or any
+        The input object from which to extract a unit. This can be:
+        - an astropy.units.Quantity
+        - a SpectralCube
+        - a DataCube or FitsFile
+        - a FITS-like object with a header containing a 'BUNIT' keyword
+        - any other object (returns None if no unit is found)
+    Returns
+    –––––––
+    astropy.units.Unit or None
+        The unit associated with the input object, if it exists.
+        Returns None if the object has no unit or if the unit cannot be parsed.
+    '''
+    # check if object is DataCube or FitsFile
+    data = get_data(obj)
+    # check if unit extension exists
+    if isinstance(data, (DataCube, FitsFile, Quantity, SpectralCube)):
+        return data.unit
+    if isinstance(obj, ExtractedSpectrum):
+        return obj.spectrum1d.unit
+
+    header = getattr(obj, 'header', None)
+    if isinstance(header, Header) and 'BUNIT' in header:
+        try:
+            return Unit(obj.header['BUNIT'])
+        except Exception:
+            return None
+
+    return None
+
+
 def return_array_values(array):
     '''
     Extract the numerical values from an 'astropy.units.Quantity'
@@ -108,42 +144,6 @@ def return_array_values(array):
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
-def get_units(obj):
-    '''
-    Extract the unit from an object, if it exists.
-    Parameters
-    ––––––––––
-    obj : Quantity, SpectralCube, FITS-like object, or any
-        The input object from which to extract a unit. This can be:
-        - an astropy.units.Quantity
-        - a SpectralCube
-        - a DataCube or FitsFile
-        - a FITS-like object with a header containing a 'BUNIT' keyword
-        - any other object (returns None if no unit is found)
-    Returns
-    –––––––
-    astropy.units.Unit or None
-        The unit associated with the input object, if it exists.
-        Returns None if the object has no unit or if the unit cannot be parsed.
-    '''
-    # check if object is DataCube or FitsFile
-    data = get_data(obj)
-    # check if unit extension exists
-    if isinstance(data, (Quantity, SpectralCube)):
-        return data.unit
-    if isinstance(obj, ExtractedSpectrum):
-        return obj.spectrum1d.unit
-
-    header = getattr(obj, 'header', None)
-    if isinstance(header, Header) and "BUNIT" in header:
-        try:
-            return Unit(obj.header['BUNIT'])
-        except Exception:
-            return None
-
-    return None
-
-
 def convert_units(quantity, unit):
     '''
     Convert an Astropy Quantity to a specified unit, with a fallback if conversion fails.

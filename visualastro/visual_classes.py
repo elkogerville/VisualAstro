@@ -1,5 +1,7 @@
 from astropy.io import fits
-from astropy.units import Quantity, spectral, Unit
+from astropy.io.fits import Header
+from astropy.units import Quantity, Unit
+from dask.array import isin
 import numpy as np
 from spectral_cube import SpectralCube
 
@@ -43,6 +45,18 @@ class DataCube:
             raise ValueError(
                 f"'errors' must match shape of 'data', got {errors.shape} vs {array.shape}."
             )
+
+        # try extracting unit from headers
+        if isinstance(headers, Header) and 'BUNIT' in headers:
+            try:
+                unit = Unit(headers['BUNIT'])
+            except Exception:
+                pass
+        if isinstance(headers, list) and 'BUNIT' in headers[0]:
+            try:
+                unit = Unit(headers[0]['BUNIT'])
+            except Exception:
+                pass
 
         # assign
         self.data = data
@@ -113,10 +127,19 @@ class ExtractedSpectrum:
 class FitsFile:
     def __init__(self, data, header=None, error=None):
         data = np.asarray(data)
+        unit = None
+        if isinstance(data, Quantity):
+            unit = data.unit
+        elif isinstance(header, Header) and 'BUNIT' in header:
+            try:
+                unit = Unit(header['BUNIT'])
+            except:
+                pass
 
         self.data = data
         self.header = header
         self.error = error
+        self.unit = unit
 
         # data attributes
         self.shape = data.shape
@@ -127,6 +150,8 @@ class FitsFile:
         self.has_nan = np.isnan(data).any()
         self.itemsize = data.itemsize
         self.nbytes = data.nbytes
+
+
 
     # magic functions for FitsFile to behave like a np.ndarray
     def __getitem__(self, key):
@@ -157,6 +182,3 @@ class FitsFile:
     @property
     def std(self):
         return np.nanstd(self.data)
-
-# class Mask:
-#     def __init__(self, region=None, line=None, all=None):
