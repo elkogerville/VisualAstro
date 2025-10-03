@@ -8,7 +8,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.patches import Circle, Ellipse
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
-from .data_cube_utils import return_cube_slice
+from .data_cube_utils import slice_cube
 from .numerical_utils import check_is_array, get_data, return_array_values
 
 # Plot Style and Color Functions
@@ -280,7 +280,7 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     # ensure cube is stripped of metadata
     cube = get_data(cube)
     # slice cube
-    data = return_cube_slice(cube, slice_idx)
+    data = slice_cube(cube, slice_idx)
     data = return_array_values(data)
     # compute vmin and vmax
     vmin = np.nanpercentile(data, vmin)
