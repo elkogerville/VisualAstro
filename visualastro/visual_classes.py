@@ -88,6 +88,14 @@ class DataCube:
     def __array__(self):
         return self.value
 
+    def header_get(self, key):
+        if isinstance(self.header, (list, tuple)):
+            return [h[key] for h in self.header]
+        elif isinstance(self.header, Header):
+            return self.header[key]
+        else:
+            raise ValueError(f"Unsupported header type or key '{key}' not found.")
+
     def with_mask(self, mask):
         if isinstance(self.data, SpectralCube):
             return self.data.with_mask(mask)
