@@ -1,3 +1,4 @@
+from ndcube.ndcube import PlotterDescriptor
 import numpy as np
 from astropy.wcs import WCS
 from astropy.io.fits import Header
@@ -5,7 +6,7 @@ import matplotlib.pyplot as plt
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import check_units_consistency, get_data
-from .plotting import imshow, plot_histogram
+from .plotting import imshow, plot_histogram, plot_lines, scatter_plot
 from .plot_utils import (
     return_stylename, set_axis_labels, set_plot_colors
 )
@@ -212,6 +213,45 @@ class va:
             fig, ax = plt.subplots(figsize=figsize)
 
             plot_histogram(datas, ax, bins, xlog, ylog, colors, **kwargs)
+
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
+    @staticmethod
+    def plot(X, Y, normalize=False, xlog=False, ylog=False, **kwargs):
+        # figure params
+        figsize = kwargs.get('figsize', (6,6))
+        style = kwargs.get('style', 'astro')
+        # savefig
+        savefig = kwargs.get('savefig', False)
+        dpi = kwargs.get('dpi', 600)
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            plot_lines(X, Y, ax, normalize=normalize,
+                       xlog=xlog, ylog=ylog, **kwargs)
+
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
+    @staticmethod
+    def scatter(X, Y, normalize=False, **kwargs):
+        # figure params
+        figsize = kwargs.get('figsize', (6,6))
+        style = kwargs.get('style', 'astro')
+        # savefig
+        savefig = kwargs.get('savefig', False)
+        dpi = kwargs.get('dpi', 600)
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            scatter_plot(X, Y, ax, normalize=normalize, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)

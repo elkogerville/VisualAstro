@@ -2,6 +2,7 @@ import warnings
 from astropy.io.fits import Header
 from astropy import units as u
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
+from dask.array import isin
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
@@ -111,11 +112,12 @@ def get_units(obj):
         return data.unit
     if isinstance(obj, ExtractedSpectrum):
         return obj.spectrum1d.unit
-
-    header = getattr(obj, 'header', None)
+    # try to extract unit from header
+    # use either header extension or obj if obj is a header
+    header = getattr(obj, 'header', obj if isinstance(obj, Header) else None)
     if isinstance(header, Header) and 'BUNIT' in header:
         try:
-            return Unit(obj.header['BUNIT'])
+            return Unit(header['BUNIT'])
         except Exception:
             return None
 

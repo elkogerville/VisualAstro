@@ -7,7 +7,7 @@ from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
-    return_imshow_norm, return_stylename,
+    return_imshow_norm, return_stylename, set_axis_limits,
     set_plot_colors, set_unit_labels, set_vmin_vmax,
 )
 
@@ -186,7 +186,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
 
 def plot_histogram(datas, ax, bins='auto', xlog=False,
-                   ylog=False, colors=None, **kwargs):
+                   ylog=False, colors=None, histtype='step', **kwargs):
     '''
     Plot one or more histograms on a given Axes object.
     Parameters
@@ -205,6 +205,8 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
     colors : list of colors or None, optional, default=None
         Colors to use for each dataset. If None, default
         color cycle is used.
+    histtype : str, {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
+        Matplotlib histogram type.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -215,32 +217,39 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
             Label for the x-axis.
         - `ylabel` : str or None, optional
             Label for the y-axis.
-        - `histtype` : {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
-            Matplotlib histogram type.
     '''
     # –––– KWARGS ––––
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    histtype = kwargs.get('histtype', 'step')
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
 
-    colors, _ = set_plot_colors(colors)
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
 
+    colors, _ = set_plot_colors(colors)
+    data_list = []
     # loop over data list
     for i, data in enumerate(datas):
         # ensure data is an array and is 1D
         data = check_is_array(data)
         if data.ndim == 2:
             data = data.flatten()
+        data_list.append(data)
         ax.hist(data, bins=bins, color=colors[i%len(colors)], histtype=histtype)
+
     # set axes parameters
-    if xlog:
-        ax.set_xscale('log')
-    if ylog:
-        ax.set_yscale('log')
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+
+# set xlim doc above
+
 
 def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style='astro', colors=None, figsize=(6,6)):
     if isinstance(data, np.ndarray) and data.ndim == 1:
@@ -261,15 +270,66 @@ def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style
             plt.ylabel(ylabel)
         plt.show()
 
-def plot(X, Y, ax, normalize=False, **kwargs):
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
-    size = get_kwargs(kwargs, 'size', 's', default=1)
+def plot_lines(X, Y, ax, normalize=False,
+               xlog=False, ylog=False, colors=None, **kwargs):
+
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
+    linewidth = get_kwargs(kwargs, 'linewidth', 'lw', default=0.8)
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+
+    X = check_units_consistency(X)
+    Y = check_units_consistency(Y)
 
     colors, _ = set_plot_colors(colors)
 
     for i in range(len(Y)):
         x = X[i%len(X)]
-        y = Y[i%len(X)]
+        y = Y[i%len(Y)]
+        color = colors[i%len(colors)]
         if normalize:
             y = y / np.nanmax(y)
-        ax.plot(x, y, s=size)
+            Y[i%len(Y)] = y
+        ax.plot(x, y, lw=linewidth, c=color)
+
+    # set axes parameters
+    set_axis_limits(X, Y, ax, xlim, ylim)
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+
+def scatter_plot(X, Y, ax, normalize=False,
+               xlog=False, ylog=False, colors=None, **kwargs):
+
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
+    size = get_kwargs(kwargs, 'size', 's', default=1)
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+
+    X = check_units_consistency(X)
+    Y = check_units_consistency(Y)
+
+    colors, _ = set_plot_colors(colors)
+
+    for i in range(len(Y)):
+        x = X[i%len(X)]
+        y = Y[i%len(Y)]
+        color = colors[i%len(colors)]
+        if normalize:
+            y = y / np.nanmax(y)
+            Y[i%len(Y)] = y
+        ax.scatter(x, y, s=size, c=color)
+
+    # set axes parameters
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
