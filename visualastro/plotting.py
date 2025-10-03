@@ -2,6 +2,7 @@ from astropy.visualization.wcsaxes.core import WCSAxes
 import numpy as np
 import matplotlib.pyplot as plt
 from .data_cube import slice_cube
+from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
@@ -259,3 +260,16 @@ def plot_timeseries(time, data, normalize=False, xlabel=None, ylabel=None, style
         if ylabel is not None:
             plt.ylabel(ylabel)
         plt.show()
+
+def plot(X, Y, ax, normalize=False, **kwargs):
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
+    size = get_kwargs(kwargs, 'size', 's', default=1)
+
+
+    colors, _ = set_plot_colors(colors)
+
+    for i in range(len(Y)):
+        y = Y[i]
+        if normalize:
+            y = y / np.nanmax(y)
+        ax.plot(X, y, s=size)

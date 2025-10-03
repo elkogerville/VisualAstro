@@ -36,7 +36,10 @@ class va:
                     wcs_input = None
             # create wcs object if provided
             if isinstance(wcs_input, Header):
-                wcs = WCS(wcs_input)
+                try:
+                    wcs = WCS(wcs_input)
+                except:
+                    wcs_input = None
             elif isinstance(wcs_input, WCS):
                 wcs = wcs_input
             elif wcs_input is not None:
