@@ -10,13 +10,15 @@ from .visual_classes import DataCube, ExtractedSpectrum, FitsFile
 
 # Type Checking Arrays and Objects
 # ––––––––––––––––––––––––––––––––
-def check_is_array(data):
+def check_is_array(data, keep_units=False):
     '''
     Ensure array input is np.ndarray.
     Parameters
     ––––––––––
-    data : np.ndarray, DataCube, or FitsFile
+    data : np.ndarray, DataCube, FitsFile, or Quantity
         Array or DataCube object.
+    keep_inits : bool, optional, default=False
+        If True, keep astropy units attached if present.
     Returns
     –––––––
     data : np.ndarray
@@ -26,6 +28,11 @@ def check_is_array(data):
         data = data.value
     elif isinstance(data, FitsFile):
         data = data.data
+    if isinstance(data, Quantity):
+        if keep_units:
+            return data
+        else:
+            data = data.value
 
     return np.asarray(data)
 
