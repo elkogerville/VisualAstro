@@ -76,15 +76,6 @@ def slice_cube(cube, idx):
             return cube[start:end+1].sum(axis=0)
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
-def _slice_cube_header(header, idx):
-    if isinstance(header, list):
-        if isinstance(idx, int):
-            return header[idx]
-        elif isinstance(idx, list):
-                return header[idx[0]]
-    return header
-
-
 
 def get_spectral_slice_value(spectral_axis, idx):
     '''
