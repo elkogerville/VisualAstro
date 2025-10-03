@@ -75,7 +75,7 @@ class va:
         savefig = kwargs.get('savefig', False)
         dpi = kwargs.get('dpi', 600)
 
-        cubes = check_units_consistency(cubes)
+        cubes = cubes if isinstance(cubes, (list, tuple)) else [cubes]
 
         # define wcs figure axes
         style = return_stylename(style)

@@ -159,8 +159,6 @@ class FitsFile:
         self.itemsize = data.itemsize
         self.nbytes = data.nbytes
 
-
-
     # magic functions for FitsFile to behave like a np.ndarray
     def __getitem__(self, key):
         return self.data[key]
