@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
-from .io import save_figure_2_disk
+from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
     mask_within_range, return_array_values, shift_by_radial_vel
@@ -76,12 +76,29 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Figure size for plotting.
         - `style` : str, optional, default='astro'
             Plotting style.
-        - `text_loc` : list, optional, default=[0.025, 0.95]
-            Location of text annotations in axes coordinates.
         - `savefig` : bool, optional, default=False
             Whether to save the figure to disk.
         - `dpi` : int, optional, default=600
             Figure resolution for saving.
+        - `xlim` : tuple, optional
+            Wavelength range to display.
+        - `ylim` : tuple, optional
+            Flux range to display.
+        - `labels` : list of str, optional
+            Labels for each spectrum to use in the legend.
+        - `xlabel` : str, optional
+            Label for the x-axis.
+        - `ylabel` : str, optional
+            Label for the y-axis.
+        - `colors`, `color` or `c` : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
+        - `text_loc` : list of float, optional, default=[0.025, 0.95]
+            Location for emission line annotation text in axes coordinates.
+        - `use_brackets` : bool, optional, default=False
+            If True, plot units in square brackets; otherwise, parentheses.
     Returns
     –––––––
     ExtractedSpectrum or list of ExtractedSpectrum
@@ -98,8 +115,6 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # figure params
     figsize = kwargs.get('figsize', (6,6))
     style = kwargs.get('style', 'astro')
-    # labels
-    text_loc = kwargs.get('text_loc', [0.025, 0.95])
     # savefig
     savefig = kwargs.get('savefig', False)
     dpi = kwargs.get('dpi', 600)
@@ -154,10 +169,6 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
 
-        if emission_line is not None:
-            ax.text(text_loc[0], text_loc[1], f'{emission_line}',
-                    transform=plt.gca().transAxes)
-
         plot_spectrum(extracted_spectra, ax, normalize_continuum,
                         plot_continuum_fit, emission_line, **kwargs)
         if savefig:
@@ -210,8 +221,9 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             Label for the x-axis.
         - `ylabel` : str, optional
             Label for the y-axis.
-        - `colors` : list or str, optional
-            Colors for each spectrum. If None, default palette is used.
+        - `colors`, `color` or `c` : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
         - `cmap` : str, optional, default='turbo'
             Colormap to use if `colors` is not provided.
         - `text_loc` : list of float, optional, default=[0.025, 0.95]
@@ -232,7 +244,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     labels = kwargs.get('labels', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = kwargs.get('colors', None)
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
     cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)

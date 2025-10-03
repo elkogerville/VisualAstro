@@ -219,9 +219,6 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5]
             Angle of ellipse in degrees.
     Notes
     –––––
-    - The function automatically checks that all input cubes have consistent units.
-    - Color scaling can be determined either by explicit `vmin`/`vmax` or percentiles of the data.
-    - Spectral slice labels are automatically converted to LaTeX-formatted units.
     - If multiple cubes are provided, they are overplotted in sequence.
     '''
     # check cube units match and ensure cubes is iterable
