@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.ndimage import center_of_mass
 from tqdm import tqdm
-from .plotting import imshow, check_is_array
+from .numerical_utils import check_is_array
+from .visual_plots import va
 
 def compute_flux(cube, target_pixel_loc, star_radius, sky_radii=None, window_half_width=100, plot=False):
     cube = check_is_array(cube)
@@ -34,6 +35,6 @@ def compute_flux(cube, target_pixel_loc, star_radius, sky_radii=None, window_hal
             if sky_radii is not None:
                 for r in sky_radii:
                     circles.append([cenx, ceny, r])
-            imshow(sub_image, circles=circles)
+            va.imshow(sub_image, circles=circles)
 
     return star_flux, sky_flux
