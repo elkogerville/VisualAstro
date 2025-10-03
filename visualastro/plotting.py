@@ -256,7 +256,8 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
 
 def plot_lines(X, Y, ax, normalize=False, xlog=False,
-               ylog=False, colors=None, **kwargs):
+               ylog=False, colors=None, linestyle='-',
+               linewidth=0.8, alpha=1, zorder=None, **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
     Parameters
@@ -275,6 +276,16 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         If True, set the y-axis to logarithmic scale.
     colors : str, list of str or None, optional, default=None
         Colors to use for each line. If None, default color cycle is used.
+    linestyle : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
+        Line style of plotted lines.
+    linewidth : float or list of float, optional, default=0.8
+        Line width for the plotted lines.
+    alpha : float or list of float default=None
+        The alpha blending value, between 0 (transparent) and 1 (opaque).
+    zorder : float or list of float, optional, default=None
+        Order in which to plot lines in. Lines are drawn in order
+        of greatest to lowest zorder. If None, starts at 0 and increments
+        the zorder by 1 for each subsequent line drawn.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -289,10 +300,6 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
             Line width for the plotted lines.
         - `alpha`, `a` : float or list of float default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorder` : float or list of float, optional, default=None
-            Order in which to plot lines in. Lines are drawn in order
-            of greatest to lowest zorder. If None, starts at 0 and increments
-            the zorder by 1 for each subsequent line drawn.
         - `xlabel` : str or None
             Label for the x-axis.
         - `ylabel` : str or None
@@ -302,10 +309,10 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         - `ylim` : tuple of two floats or None
             Limits for the y-axis.
     '''
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
-    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=0.8)
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
+    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=linewidth)
     alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
-    zorders = kwargs.get('zorder', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     xlim = kwargs.get('xlim', None)
@@ -315,15 +322,17 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     Y = check_units_consistency(Y)
 
     colors, _ = set_plot_colors(colors)
+    linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
-    zorders = zorders if isinstance(zorders, (list, tuple)) else [zorders]
+    zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
 
     y_list = []
     for i in range(len(Y)):
         x = X[i%len(X)]
         y = Y[i%len(Y)]
         color = colors[i%len(colors)]
+        linestyle = linestyles[i%len(linestyles)]
         linewidth = linewidths[i%len(linewidths)]
         alpha = alphas[i%len(alphas)]
         zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
@@ -332,7 +341,7 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
             y = y / np.nanmax(y)
         y_list.append(y)
 
-        ax.plot(x, y, lw=linewidth, c=color, alpha=alpha, zorder=zorder)
+        ax.plot(x, y, c=color, ls=linestyle, lw=linewidth, alpha=alpha, zorder=zorder)
 
     # set axes parameters
     if xlog: ax.set_xscale('log')
@@ -343,7 +352,8 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
 
 
 def scatter_plot(X, Y, ax, normalize=False, xlog=False,
-                 ylog=False, colors=None, **kwargs):
+                 ylog=False, colors=None, size=10, marker='o',
+                 alpha=1, edgecolors='face', **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
     Parameters
@@ -362,6 +372,17 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
         If True, set the y-axis to logarithmic scale.
     colors : list of str or None, optional, default=None
         Colors to use for each line. If None, default color cycle is used.
+    size : float or list of float, optional, default=10
+        Size of scatter dots.
+    marker : str or list of str, optional, default='o'
+        Marker style for scatter dots.
+    alpha : float or list of float default=None
+        The alpha blending value, between 0 (transparent) and 1 (opaque).
+    edgecolors : {'face', 'none', None} or color or list of color, default='face'
+        The edge color of the marker. Possible values:
+        - 'face': The edge color will always be the same as the face color.
+        - 'none': No patch boundary will be drawn.
+        - A color or sequence of colors.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -370,17 +391,14 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
 
         - `color`, `c` : str, list of str or None, optional, default=None
             Colors to use for each line. If None, default color cycle is used.
-        - `size`, `s` : float or list of float, optional, default=0.8
+        - `size`, `s` : float or list of float, optional, default=10
             Size of scatter dots.
         - `marker` : str or list of str, optional, default='o'
             Marker style for scatter dots.
         - `alpha`, `a` : float or list of float default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
         - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None} or color or list of color, default='face'
-            The edge color of the marker. Possible values:
-            - 'face': The edge color will always be the same as the face color.
-            - 'none': No patch boundary will be drawn.
-            - A color or sequence of colors.
+            The edge color of the marker.
         - `xlabel` : str or None
             Label for the x-axis.
         - `ylabel` : str or None
@@ -390,11 +408,11 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
         - `ylim` : tuple of two floats or None
             Limits for the y-axis.
     '''
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
-    sizes = get_kwargs(kwargs, 'size', 's', default=10)
-    markers = get_kwargs(kwargs, 'marker', 'ms', default='o')
-    alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
-    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default='face')
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    sizes = get_kwargs(kwargs, 'size', 's', default=size)
+    markers = get_kwargs(kwargs, 'marker', 'ms', default=marker)
+    alphas = get_kwargs(kwargs, 'alpha', 'a', default=alpha)
+    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     xlim = kwargs.get('xlim', None)
