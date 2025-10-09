@@ -111,7 +111,14 @@ def get_units(obj):
     if isinstance(data, (DataCube, FitsFile, Quantity, SpectralCube)):
         return data.unit
     if isinstance(obj, ExtractedSpectrum):
-        return obj.spectrum1d.unit
+        try:
+            return obj.spectrum1d.unit
+        except:
+            try:
+                return obj.flux.unit
+            except:
+                return None
+
     # try to extract unit from header
     # use either header extension or obj if obj is a header
     header = getattr(obj, 'header', obj if isinstance(obj, Header) else None)

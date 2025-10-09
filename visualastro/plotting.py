@@ -12,6 +12,8 @@ from .plot_utils import (
 )
 
 
+# Plotting Functions
+# ––––––––––––––––––
 def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
            percentile=[3,99.5], origin='lower', cmap='turbo',
            aspect=None, **kwargs):

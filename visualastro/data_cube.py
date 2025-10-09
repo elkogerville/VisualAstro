@@ -12,7 +12,7 @@ from .data_cube_utils import compute_line, get_spectral_slice_value, slice_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
     check_units_consistency, convert_units,
-    get_data, shift_by_radial_vel
+    get_data, get_units, shift_by_radial_vel
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
@@ -319,7 +319,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5]
     ax.coords['dec'].set_ticklabel(rotation=90)
 
 
-def mask_image(image, ellipse_region=None, region='annulus',
+def mask_image(image, ellipse_region=None, region=None,
                line_points=None, invert_region=False, above_line=True,
                preserve_shape=True, existing_mask=None, **kwargs):
     '''
@@ -333,7 +333,7 @@ def mask_image(image, ellipse_region=None, region='annulus',
         to the last two axes.
     ellipse_region : `EllipsePixelRegion` or `EllipseAnnulusPixelRegion`, optional, default=None
         Region object specifying an ellipse or annulus.
-    region : str, {'annulus', 'ellipse'}, optional, default='annulus'
+    region : str {'annulus', 'ellipse'}, optional, default=None
         Type of region to apply. Ignored if `ellipse_region` is provided.
     line_points : array-like, shape (2, 2), optional, default=None
         Two (x, y) points defining a line for masking above/below.
@@ -388,6 +388,23 @@ def mask_image(image, ellipse_region=None, region='annulus',
     y, x = np.indices((N, M))
     # empty list to hold all masks
     masks = []
+
+    # early return if just applying an existing mask
+    if ellipse_region is None and region is None and line_points is None and existing_mask is not None:
+        if existing_mask.shape != image.shape[-2:]:
+            raise ValueError("existing_mask must have same shape as image")
+
+        if isinstance(image, np.ndarray):
+            if preserve_shape:
+                masked_image = np.full_like(image, np.nan, dtype=float)
+                masked_image[..., existing_mask] = image[..., existing_mask]
+            else:
+                masked_image = image[..., existing_mask]
+        else:
+            # if spectral cube or similar object
+            masked_image = image.with_mask(existing_mask)
+
+        return masked_image
 
     # –––– Region Mask ––––
     # if ellipse region is passed in use those values
