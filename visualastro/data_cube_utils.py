@@ -5,7 +5,7 @@ from .numerical_utils import get_data
 
 
 # Cube Manipulation Functions
-# ___________________________
+# –––––––––––––––––––––––––––
 def extract_spectral_axis(cube, unit=None):
     '''
     Extract the spectral axis from a data cube and optionally

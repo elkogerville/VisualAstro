@@ -454,6 +454,7 @@ def set_unit_labels(unit):
     '''
     unit_label = {
         'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
+        'MJy um / sr': r'\mathrm{MJy\ \mu m\ sr^{-1}}',
         'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
         'micron': r'\mathrm{\mu m}',
         'um': r'\mathrm{\mu m}',

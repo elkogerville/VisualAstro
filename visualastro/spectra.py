@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
-from .io import get_kwargs, save_figure_2_disk
+from .io import get_kwargs, pop_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
     mask_within_range, return_array_values, shift_by_radial_vel
@@ -181,6 +181,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
     return extracted_spectra
 
+
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
                   flux=None, continuum_fit=None, **kwargs):
@@ -193,7 +194,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         and `flux` must be given.
     ax : matplotlib.axes.Axes
         Axis to plot on.
-    normalize_continuum : bool, optional, default=False
+    plot_norm_continuum : bool, optional, default=False
         If True, plot normalized flux instead of raw flux.
     plot_continuum_fit : bool, optional, default=False
         If True, overplot continuum fit.
@@ -217,6 +218,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             Flux range to display.
         - `labels` : list of str, optional
             Labels for each spectrum to use in the legend.
+        - `loc` : str, optional, default='best'
+            Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
@@ -244,6 +247,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     labels = kwargs.get('labels', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
+    loc = kwargs.get('loc', 'best')
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
     cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
@@ -313,11 +317,11 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
                     xlabel, ylabel, use_brackets=use_brackets)
     if labels is not None:
-        ax.legend()
+        ax.legend(loc=loc)
 
-def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
+def plot_combine_spectrum(extracted_spectra, ax, idx=0, spec_lims=None,
                           concatenate=False, return_spectra=False,
-                          use_samecolor=True, **kwargs):
+                          plot_normalize=False, use_samecolor=True, **kwargs):
 
     # figure params
     ylim = kwargs.get('ylim', None)
@@ -325,42 +329,51 @@ def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
     label = kwargs.get('label', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = kwargs.get('colors', None)
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=None)
     cmap = kwargs.get('cmap', 'turbo')
     loc = kwargs.get('loc', 'best')
     use_brackets = kwargs.get('use_brackets', False)
-
+    # ensure units match and that extracted_spectra is a list
+    extracted_spectra = check_units_consistency(extracted_spectra)
     concatenate = True if return_spectra else concatenate
+    use_samecolor = True if concatenate else use_samecolor
     # set plot style and colors
     colors, _ = set_plot_colors(colors, cmap=cmap)
 
     lims = []
     wave_list = []
     flux_list = []
-    for i, spectra in enumerate(spectra_dict_list):
-        spectra = spectra[idx] if isinstance(spectra, list) else spectra
-        wavelength = spectra.wavelength
-        flux = spectra.flux
-        lims.append( [wavelength.value.min(), wavelength.value.max()] )
+    for i, spectrum in enumerate(extracted_spectra):
+        # index spectrum if list
+        spectrum = spectrum[idx] if isinstance(spectrum, list) else spectrum
+        wavelength = spectrum.wavelength
+        flux = spectrum.normalize if plot_normalize else spectrum.flux
+        wmin = np.nanmin(return_array_values(wavelength))
+        wmax = np.nanmax(return_array_values(wavelength))
+        lims.append( [wmin, wmax] )
+        # mask wavelength and flux if user passes in limits
         if spec_lims is not None:
             spec_min = spec_lims[i]
             spec_max = spec_lims[i+1]
-            mask = (wavelength.value > spec_min) & (wavelength.value < spec_max)
+            mask = mask_within_range(return_array_values(wavelength), [spec_min, spec_max])
+            #mask = (return_array_values(wavelength) > spec_min) & (return_array_values(wavelength) < spec_max)
             wavelength = wavelength[mask]
             flux = flux[mask]
 
         c = colors[0] if use_samecolor else colors[i%len(colors)]
-        l = label if label is not None and i == len(spectra_dict_list)-1 else None
+        # only plot a label for combined spectrum, not each sub spectra
+        l = label if label is not None and i == len(extracted_spectra)-1 else None
+        # append to lists if concatenate
         if concatenate:
             wave_list.append(wavelength)
             flux_list.append(flux)
         else:
             ax.plot(wavelength, flux, color=c, label=l, lw=0.5)
-
+    # plot entire spectrum if concatenate
     if concatenate:
         wavelength = np.concatenate(wave_list)
         flux = np.concatenate(flux_list)
-        ax.plot(wavelength.value, flux.value, color=c, label=l, lw=0.5)
+        ax.plot(return_array_values(wavelength), return_array_values(flux), color=c, label=l, lw=0.5)
 
     set_axis_labels(wavelength, flux, ax, xlabel, ylabel, use_brackets)
 
@@ -378,9 +391,9 @@ def plot_combine_spectrum(spectra_dict_list, ax, idx=0, spec_lims=None,
         plt.legend(loc=loc)
 
     if return_spectra:
-        spectra_dict = return_spectra_dict(wavelength, flux)
+        extracted_spectrum = ExtractedSpectrum(wavelength, flux)
 
-        return spectra_dict
+        return extracted_spectrum
 
 def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
                         normalized=None, continuum_fit=None):
@@ -498,6 +511,8 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     dpi = kwargs.get('dpi', 600)
 
     # ensure arrays are not quantity objects
+    wave_unit = extracted_spectrum.wavelength.unit
+    flux_unit = extracted_spectrum.flux.unit
     wavelength = return_array_values(extracted_spectrum.wavelength)
     flux = return_array_values(extracted_spectrum.flux)
     # compute default wavelength range from wavelength
@@ -556,10 +571,12 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     # estimate errors
     perr = np.sqrt(np.diag(pcov))
     # extract physical quantities from model fitting
-    amplitude = popt[0]
-    amplitude_error = perr[0]
-    sigma = popt[2]
-    sigma_error = perr[2]
+    amplitude = popt[0] * flux_unit
+    amplitude_error = perr[0] * flux_unit
+    mu = popt[1] * wave_unit
+    mu_error = perr[1] * wave_unit
+    sigma = popt[2] * wave_unit
+    sigma_error = perr[2] * wave_unit
     # compute integrated flux, FWHM, and their errors
     integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
     flux_error = np.sqrt(2*np.pi) * integrated_flux * (
@@ -607,8 +624,8 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
 
     if print_vals:
         # format list for printed table
-        computed_vals = [integrated_flux, FWHM, '', '', '']
-        computed_errors = [flux_error, FWHM_error, '', '', '']
+        computed_vals = [return_array_values(integrated_flux), return_array_values(FWHM), '', '', '']
+        computed_errors = [return_array_values(flux_error), return_array_values(FWHM_error), '', '', '']
         # table headers
         print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
         params = ['A', 'μ', 'σ', 'm', 'b']
@@ -627,14 +644,22 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
                 comp_err = f'{computed_labels[i]:<6} {'':>11}'
 
             print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
+
     # concatenate computed values and errors
-    popt = np.concatenate([popt, [integrated_flux, FWHM]])
-    perr = np.concatenate([perr, [flux_error, FWHM_error]])
+    fitted_params = [amplitude, mu, sigma]
+    fitted_errors = [amplitude_error, mu_error, sigma_error]
+    # add any extra fitting params
+    if len(popt) > 3:
+        fitted_params.extend(popt[3:])
+        fitted_errors.extend(perr[3:])
+    # added computed valuesn and errors
+    fitted_params += [integrated_flux, FWHM]
+    fitted_errors += [flux_error, FWHM_error]
 
     if return_fit_params:
-        return popt, perr
+        return fitted_params, fitted_errors
     else:
-        return [integrated_flux, FWHM, popt[1]], [flux_error, FWHM_error, perr[1]]
+        return [integrated_flux, FWHM, mu], [flux_error, FWHM_error, mu_error]
 
 def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
                        interp_method='cubic_spline', colors=None, style='astro', figsize=(6,6), xlim=None):

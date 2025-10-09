@@ -178,6 +178,29 @@ def get_kwargs(kwargs, *names, default=None):
             return kwargs[name]
     return default
 
+def pop_kwargs(kwargs, *names, default=None):
+    '''
+    Return the first matching kwarg value from a list of possible names.
+    Parameters
+    ––––––––––
+    kwargs : dict
+            Dictionary of keyword arguments, typically taken from ``**kwargs``.
+    *names : str
+        One or more possible keyword names to search for. The first name found
+        in ``kwargs`` with a non-None value is returned.
+    default : any, optional, default=None
+        Value to return if none of the provided names are found in ``kwargs``.
+        Default is None.
+    Returns
+    –––––––
+    value : any
+        The value of the first matching keyword argument, or `default` if
+        none are found.
+    '''
+    for name in names:
+        if name in kwargs and kwargs[name] is not None:
+            return kwargs.pop(name)
+    return default
 
 def save_figure_2_disk(dpi=600):
     '''
