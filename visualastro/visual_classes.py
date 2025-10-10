@@ -4,6 +4,7 @@ from astropy.units import Quantity, Unit
 from dask.array import isin
 import numpy as np
 from spectral_cube import SpectralCube
+from specutils.spectra import Spectrum1D
 
 
 class DataCube:
@@ -130,6 +131,38 @@ class ExtractedSpectrum:
         self.spectrum1d = spectrum1d
         self.normalized = normalized
         self.continuum_fit = continuum_fit
+
+    # support slicing
+    def __getitem__(self, key):
+        wavelength = None
+        flux = None
+        spectrum1d = None
+        normalized = None
+        continuum_fit = None
+
+        if self.wavelength is not None:
+            wavelength = self.wavelength[key]
+        if self.flux is not None:
+            flux = self.flux[key]
+        if self.spectrum1d is not None:
+            spectrum1d = Spectrum1D(
+                spectral_axis=self.spectrum1d.spectral_axis[key],
+                flux=self.spectrum1d.flux[key],
+                rest_value=self.spectrum1d.rest_value,
+                velocity_convention=self.spectrum1d.velocity_convention
+            )
+        if self.normalized is not None:
+            normalized = self.normalized[key]
+        if self.continuum_fit is not None:
+            continuum_fit = self.continuum_fit[key]
+
+        return ExtractedSpectrum(
+            wavelength,
+            flux,
+            spectrum1d,
+            normalized,
+            continuum_fit
+        )
 
 
 class FitsFile:

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
-from .io import get_kwargs, pop_kwargs, save_figure_2_disk
+from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
     mask_within_range, return_array_values, shift_by_radial_vel
@@ -84,8 +84,10 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Wavelength range to display.
         - `ylim` : tuple, optional
             Flux range to display.
-        - `labels` : list of str, optional
-            Labels for each spectrum to use in the legend.
+        - `labels`, `label`, `l` : str or list of str, default=None
+            Legend labels.
+        - `loc` : str, default='best'
+            Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
@@ -99,6 +101,10 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Location for emission line annotation text in axes coordinates.
         - `use_brackets` : bool, optional, default=False
             If True, plot units in square brackets; otherwise, parentheses.
+        - `xlim` : tuple, optional
+            Wavelength range to display.
+        - `ylim` : tuple, optional
+            Flux range to display.
     Returns
     –––––––
     ExtractedSpectrum or list of ExtractedSpectrum
@@ -184,7 +190,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
-                  flux=None, continuum_fit=None, **kwargs):
+                  flux=None, continuum_fit=None, colors=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
     Parameters
@@ -206,52 +212,65 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         Flux array (required if `extracted_spectrums` is None).
     continuum_fit : array-like, optional, default=None
         Fitted continuum array.
+    colors : list of colors or None, optional, default=None
+        Colors to use for each dataset. If None, default
+        color cycle is used.
 
     **kwargs : dict, optional
         Additional plotting parameters.
 
         Supported keywords:
 
+        - `colors`, `color` or `c` : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
+        - `linestyles`, `linestyle`, `ls` : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
+            Line style of plotted lines.
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=0.8
+            Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float or list of float default=None
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        ` `zorders`, `zorder` : float, default=None
+            Order of line placement. If None, will increment by 1 for
+            each additional line plotted.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional
             Wavelength range to display.
         - `ylim` : tuple, optional
             Flux range to display.
-        - `labels` : list of str, optional
-            Labels for each spectrum to use in the legend.
-        - `loc` : str, optional, default='best'
+        - `labels`, `label`, `l` : str or list of str, default=None
+            Legend labels.
+        - `loc` : str, default='best'
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
             Label for the y-axis.
-        - `colors`, `color` or `c` : list of colors or None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
-        - `cmap` : str, optional, default='turbo'
-            Colormap to use if `colors` is not provided.
         - `text_loc` : list of float, optional, default=[0.025, 0.95]
             Location for emission line annotation text in axes coordinates.
         - `use_brackets` : bool, optional, default=False
             If True, plot units in square brackets; otherwise, parentheses.
-
-    Returns
-    -------
-    None
-        The function plots directly on the provided matplotlib Axes.
     '''
     # –––– Kwargs ––––
+    # line params
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=0.8)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
+    zorder = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
+    cmap = kwargs.get('cmap', 'turbo')
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
-    labels = kwargs.get('labels', None)
+    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    loc = kwargs.get('loc', 'best')
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    loc = kwargs.get('loc', 'best')
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', None)
-    cmap = kwargs.get('cmap', 'turbo')
     text_loc = kwargs.get('text_loc', [0.025, 0.95])
     use_brackets = kwargs.get('use_brackets', False)
+
     # ensure an axis is passed
     if ax is None:
         raise ValueError('ax must be a matplotlib axes object!')
@@ -274,6 +293,11 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
     # ensure extracted_spectra is iterable
     extracted_spectra = check_units_consistency(extracted_spectra)
+    linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
+    linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
+    alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
+    zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
+    labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
     # set plot style and colors
     colors, fit_colors = set_plot_colors(colors, cmap=cmap)
@@ -296,13 +320,18 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         mask = mask_within_range(wavelength, xlim=xlim)
         wavelength_list.append(wavelength[mask])
 
-        # define spectrum label, color, and fit color
-        label = labels[i] if (labels is not None and i < len(labels)) else None
+        # define plot params
         color = colors[i%len(colors)]
         fit_color = fit_colors[i%len(fit_colors)]
+        linestyle = linestyles[i%len(linestyles)]
+        linewidth = linewidths[i%len(linewidths)]
+        alpha = alphas[i%len(alphas)]
+        zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
+        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         # plot spectrum
-        ax.plot(wavelength[mask], flux[mask], c=color, label=label)
+        ax.plot(wavelength[mask], flux[mask], c=color, ls=linestyle,
+                lw=linewidth, alpha=alpha, zorder=zorder, label=label)
         # plot continuum fit
         if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
             if plot_norm_continuum:
@@ -310,29 +339,36 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                 continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
             else:
                 continuum_fit = extracted_spectrum.continuum_fit
-            ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color)
+            ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color,
+                    ls=linestyle, lw=linewidth, alpha=alpha)
 
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
                     xlabel, ylabel, use_brackets=use_brackets)
-    if labels is not None:
+    if labels[0] is not None:
         ax.legend(loc=loc)
 
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, spec_lims=None,
                           concatenate=False, return_spectra=False,
-                          plot_normalize=False, use_samecolor=True, **kwargs):
+                          plot_normalize=False, use_samecolor=True,
+                          colors=None, **kwargs):
 
     # figure params
     ylim = kwargs.get('ylim', None)
+    # line params
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=0.8)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
+    cmap = kwargs.get('cmap', 'turbo')
     # labels
     label = kwargs.get('label', None)
+    loc = kwargs.get('loc', 'best')
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=None)
-    cmap = kwargs.get('cmap', 'turbo')
-    loc = kwargs.get('loc', 'best')
     use_brackets = kwargs.get('use_brackets', False)
+
     # ensure units match and that extracted_spectra is a list
     extracted_spectra = check_units_consistency(extracted_spectra)
     concatenate = True if return_spectra else concatenate
@@ -356,7 +392,6 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, spec_lims=None,
             spec_min = spec_lims[i]
             spec_max = spec_lims[i+1]
             mask = mask_within_range(return_array_values(wavelength), [spec_min, spec_max])
-            #mask = (return_array_values(wavelength) > spec_min) & (return_array_values(wavelength) < spec_max)
             wavelength = wavelength[mask]
             flux = flux[mask]
 
@@ -368,12 +403,14 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, spec_lims=None,
             wave_list.append(wavelength)
             flux_list.append(flux)
         else:
-            ax.plot(wavelength, flux, color=c, label=l, lw=0.5)
+            ax.plot(wavelength, flux, color=c, label=l,
+                    ls=linestyles, lw=linewidths, alpha=alphas)
     # plot entire spectrum if concatenate
     if concatenate:
         wavelength = np.concatenate(wave_list)
         flux = np.concatenate(flux_list)
-        ax.plot(return_array_values(wavelength), return_array_values(flux), color=c, label=l, lw=0.5)
+        ax.plot(return_array_values(wavelength), return_array_values(flux),
+                color=c, label=l, ls=linestyles, lw=linewidths, alpha=alphas)
 
     set_axis_labels(wavelength, flux, ax, xlabel, ylabel, use_brackets)
 
@@ -395,16 +432,6 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, spec_lims=None,
 
         return extracted_spectrum
 
-def return_spectra_dict(wavelength=None, flux=None, spectrum1d=None,
-                        normalized=None, continuum_fit=None):
-    spectra_dict = {}
-    spectra_dict['wavelength'] = wavelength
-    spectra_dict['flux'] = flux
-    spectra_dict['spectrum1d'] = spectrum1d
-    spectra_dict['normalized'] = normalized
-    spectra_dict['continuum_fit'] = continuum_fit
-
-    return spectra_dict
 
 def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=None,
                         interpolate=True, interp_method='cubic_spline', yerror=None,

@@ -52,7 +52,7 @@ def load_fits(filepath, header=True, error=True,
         if transpose:
             data = data.T
 
-        errors = get_errors(hdul, dt)
+        errors = get_errors(hdul, dt, transpose)
 
     if header or error:
         return FitsFile(data, fits_header, errors)
@@ -93,7 +93,7 @@ def get_dtype(data, dtype=None, default_dtype=np.float64):
         return np.dtype(default_dtype)
 
 
-def get_errors(hdul, dtype=None):
+def get_errors(hdul, dtype=None, transpose=False):
     '''
     Return the error array from an HDUList, falling back to square root
     of variance if needed.
@@ -123,6 +123,8 @@ def get_errors(hdul, dtype=None):
                 dt = get_dtype(hdu.data, dtype)
                 errors = np.sqrt(hdu.data.astype(dtype, copy=False))
                 break
+    if transpose and errors is not None:
+        errors = errors.T
 
     return errors
 
@@ -178,29 +180,6 @@ def get_kwargs(kwargs, *names, default=None):
             return kwargs[name]
     return default
 
-def pop_kwargs(kwargs, *names, default=None):
-    '''
-    Return the first matching kwarg value from a list of possible names.
-    Parameters
-    ––––––––––
-    kwargs : dict
-            Dictionary of keyword arguments, typically taken from ``**kwargs``.
-    *names : str
-        One or more possible keyword names to search for. The first name found
-        in ``kwargs`` with a non-None value is returned.
-    default : any, optional, default=None
-        Value to return if none of the provided names are found in ``kwargs``.
-        Default is None.
-    Returns
-    –––––––
-    value : any
-        The value of the first matching keyword argument, or `default` if
-        none are found.
-    '''
-    for name in names:
-        if name in kwargs and kwargs[name] is not None:
-            return kwargs.pop(name)
-    return default
 
 def save_figure_2_disk(dpi=600):
     '''
