@@ -215,38 +215,52 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
         Supported keywords:
 
-        - `c` or `color` : list of colors or None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
-        - `xlabel` : str or None, optional
-            Label for the x-axis.
-        - `ylabel` : str or None, optional
-            Label for the y-axis.
+        - `colors`, `color`, `c` : str, list of str or None, optional, default=None
+            Colors to use for each line. If None, default color cycle is used.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional
             X data range to display.
         - `ylim` : tuple, optional
             Y data range to display.
+        - `labels`, `label`, `l` : str or list of str, default=None
+            Legend labels.
+        - `loc` : str, default='best'
+            Location of legend.
+        - `xlabel` : str or None, optional
+            Label for the x-axis.
+        - `ylabel` : str or None, optional
+            Label for the y-axis.
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
+    cmap = kwargs.get('cmap', 'turbo')
+    # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
+    # labels
+    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    loc = kwargs.get('loc', 'best')
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
 
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
+    labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
-    colors, _ = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors, cmap=cmap)
     data_list = []
     # loop over data list
     for i, data in enumerate(datas):
+        color = colors[i%len(colors)]
+        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
         # ensure data is an array and is 1D
         data = check_is_array(data)
         if data.ndim == 2:
             data = data.flatten()
         data_list.append(data)
-        ax.hist(data, bins=bins, color=colors[i%len(colors)], histtype=histtype)
+        ax.hist(data, bins=bins, color=color,
+                histtype=histtype, label=label)
 
     # set axes parameters
     if xlim: ax.set_xlim(xlim)
@@ -255,6 +269,8 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
     if ylog: ax.set_yscale('log')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    if labels[0] is not None:
+        ax.legend(loc=loc)
 
 
 def plot_lines(X, Y, ax, normalize=False, xlog=False,
@@ -294,40 +310,52 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
 
         Supported keywords:
 
-        - `color`, `c` : str, list of str or None, optional, default=None
+        - `colors`, `color`, `c` : str, list of str or None, optional, default=None
             Colors to use for each line. If None, default color cycle is used.
-        - `linestyle`, `ls` : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
+        - `linestyles`, `linestyle`, `ls` : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
             Line style of plotted lines.
-        - `linewidth`, `lw` : float or list of float, optional, default=0.8
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=0.8
             Line width for the plotted lines.
-        - `alpha`, `a` : float or list of float default=None
+        - `alphas`, `alpha`, `a` : float or list of float default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `xlabel` : str or None
-            Label for the x-axis.
-        - `ylabel` : str or None
-            Label for the y-axis.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
             Limits for the x-axis.
         - `ylim` : tuple of two floats or None
             Limits for the y-axis.
+        - `labels`, `label`, `l` : str or list of str, default=None
+            Legend labels.
+        - `loc` : str, default='best'
+            Location of legend.
+        - `xlabel` : str or None
+            Label for the x-axis.
+        - `ylabel` : str or None
+            Label for the y-axis.
     '''
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
     linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=linewidth)
     alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
+    cmap = kwargs.get('cmap', 'turbo')
+    # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
+    # labels
+    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    loc = kwargs.get('loc', 'best')
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
 
-    colors, _ = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors, cmap=cmap)
     linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
     zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
+    labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
     y_list = []
     for i in range(len(Y)):
@@ -338,12 +366,14 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         linewidth = linewidths[i%len(linewidths)]
         alpha = alphas[i%len(alphas)]
         zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
+        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         if normalize:
             y = y / np.nanmax(y)
         y_list.append(y)
 
-        ax.plot(x, y, c=color, ls=linestyle, lw=linewidth, alpha=alpha, zorder=zorder)
+        ax.plot(x, y, c=color, ls=linestyle, lw=linewidth,
+                alpha=alpha, zorder=zorder, label=label)
 
     # set axes parameters
     if xlog: ax.set_xscale('log')
@@ -351,6 +381,8 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     set_axis_limits(X, y_list, ax, xlim, ylim)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    if labels[0] is not None:
+        ax.legend(loc=loc)
 
 
 def scatter_plot(X, Y, ax, normalize=False, xlog=False,
@@ -391,43 +423,56 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
 
         Supported keywords:
 
-        - `color`, `c` : str, list of str or None, optional, default=None
+        - `colors`, `color`, `c` : str, list of str or None, optional, default=None
             Colors to use for each line. If None, default color cycle is used.
-        - `size`, `s` : float or list of float, optional, default=10
+        - `sizes`, `size`, `s` : float or list of float, optional, default=10
             Size of scatter dots.
-        - `marker` : str or list of str, optional, default='o'
+        - `markers`, `marker` : str or list of str, optional, default='o'
             Marker style for scatter dots.
-        - `alpha`, `a` : float or list of float default=None
+        - `alphas`, `alpha`, `a` : float or list of float default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
         - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None} or color or list of color, default='face'
             The edge color of the marker.
-        - `xlabel` : str or None
-            Label for the x-axis.
-        - `ylabel` : str or None
-            Label for the y-axis.
+        - `cmap` : str, optional, default='turbo'
+            Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
             Limits for the x-axis.
         - `ylim` : tuple of two floats or None
             Limits for the y-axis.
+        - `labels`, `label`, `l` : str or list of str, default=None
+            Legend labels.
+        - `loc` : str, default='best'
+            Location of legend.
+        - `xlabel` : str or None
+            Label for the x-axis.
+        - `ylabel` : str or None
+            Label for the y-axis.
     '''
+    # scatter params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'size', 's', default=size)
     markers = get_kwargs(kwargs, 'marker', 'ms', default=marker)
     alphas = get_kwargs(kwargs, 'alpha', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
+    cmap = kwargs.get('cmap', 'turbo')
+    # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
+    # labels
+    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    loc = kwargs.get('loc', 'best')
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
 
-    colors, _ = set_plot_colors(colors)
+    colors, _ = set_plot_colors(colors, cmap=cmap)
     sizes = sizes if isinstance(sizes, (list, tuple)) else [sizes]
     markers = markers if isinstance(markers, (list, tuple)) else [markers]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
     edgecolors = edgecolors if isinstance(edgecolors, (list, tuple)) else [edgecolors]
+    labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
     for i in range(len(Y)):
         x = X[i%len(X)]
@@ -437,11 +482,13 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
         marker = markers[i%len(markers)]
         alpha = alphas[i%len(alphas)]
         edgecolor = edgecolors[i%len(edgecolors)]
+        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         if normalize:
             y = y / np.nanmax(y)
 
-        ax.scatter(x, y, s=size, c=color, marker=marker, alpha=alpha, edgecolors=edgecolor)
+        ax.scatter(x, y, c=color, s=size, marker=marker,
+                   alpha=alpha, edgecolors=edgecolor, label=label)
 
     # set axes parameters
     if xlim: ax.set_xlim(xlim)
@@ -450,3 +497,5 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
     if ylog: ax.set_yscale('log')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    if labels[0] is not None:
+        ax.legend(loc=loc)

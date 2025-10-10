@@ -123,6 +123,10 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
             'plot':  ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
             'model': ['#D62728', '#1F77B4', '#E45756', '#17BECF', '#9467BD']
         },
+        'va': {
+            'plot':  ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+            'model': ['#D62728', '#1F77B4', '#E45756', '#17BECF', '#9467BD']
+        },
         'ibm_contrast': {
             'plot':  ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
             'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#1F77B4', '#8C564B']
