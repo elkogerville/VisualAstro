@@ -349,6 +349,10 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
+    if np.ndim(X[0]) == 0:
+        X = [X]
+    if np.ndim(Y[0]) == 0:
+        Y = [Y]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
     linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
@@ -385,9 +389,9 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         ax.legend(loc=loc)
 
 
-def scatter_plot(X, Y, ax, normalize=False, xlog=False,
-                 ylog=False, colors=None, size=10, marker='o',
-                 alpha=1, edgecolors='face', **kwargs):
+def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
+                 xlog=False, ylog=False, colors=None, size=10,
+                 marker='o', alpha=1, edgecolors='face', **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
     Parameters
@@ -463,16 +467,37 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
     loc = kwargs.get('loc', 'best')
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
+    # errorbars
+    ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=None)
+    elinewidth = kwargs.get('elinewidth', None)
+    capsize = kwargs.get('capsize', None)
+    capthick = kwargs.get('capthick', None)
+    barsabove = kwargs.get('barsabove', False)
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
+    if np.ndim(X[0]) == 0:
+        X = [X]
+    if np.ndim(Y[0]) == 0:
+        Y = [Y]
 
+    if xerr is not None:
+        xerr = xerr if isinstance(xerr, (list, tuple)) else [xerr]
+        if np.ndim(xerr[0]) == 0:
+            xerr = [xerr]
+    if yerr is not None:
+        yerr = yerr if isinstance(yerr, (list, tuple)) else [yerr]
+        if np.ndim(yerr[0]) == 0:
+            yerr = [yerr]
+
+    xerror, yerror = None, None
     colors, _ = set_plot_colors(colors, cmap=cmap)
     sizes = sizes if isinstance(sizes, (list, tuple)) else [sizes]
     markers = markers if isinstance(markers, (list, tuple)) else [markers]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
     edgecolors = edgecolors if isinstance(edgecolors, (list, tuple)) else [edgecolors]
     labels = labels if isinstance(labels, (list, tuple)) else [labels]
+    ecolors = ecolors if isinstance(ecolors, (list, tuple)) else [ecolors]
 
     for i in range(len(Y)):
         x = X[i%len(X)]
@@ -489,6 +514,15 @@ def scatter_plot(X, Y, ax, normalize=False, xlog=False,
 
         ax.scatter(x, y, c=color, s=size, marker=marker,
                    alpha=alpha, edgecolors=edgecolor, label=label)
+
+        if xerr is not None:
+            xerror = xerr[i%len(xerr)]
+        if yerr is not None:
+            yerror = yerr[i%len(yerr)]
+
+        ecolor = ecolors[i%len(ecolors)]
+        ax.errorbar(x, y, yerror, xerror, fmt='None', ecolor=ecolor, elinewidth=elinewidth,
+                    capsize=capsize, capthick=capthick, barsabove=barsabove)
 
     # set axes parameters
     if xlim: ax.set_xlim(xlim)
