@@ -204,8 +204,8 @@ class va:
 
 
     @staticmethod
-    def scatter(X, Y, normalize=False, xlog=False,
-                ylog=False, colors=None, size=10,
+    def scatter(X, Y, xerr=None, yerr=None, normalize=False,
+                xlog=False, ylog=False, colors=None, size=10,
                 marker='o', alpha=1, edgecolors='face',
                 **kwargs):
         # figure params
@@ -219,8 +219,9 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            scatter_plot(X, Y, ax, normalize=normalize, xlog=xlog, ylog=ylog, colors=colors,
-                         size=size, marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
+            scatter_plot(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
+                         xlog=xlog, ylog=ylog, colors=colors, size=size,
+                         marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
