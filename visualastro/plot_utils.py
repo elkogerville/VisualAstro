@@ -333,7 +333,7 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
         cbar.set_label(fr'{clabel}')
 
 
-def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
+def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, xpad=0.0, ypad=0.05):
     '''
     Set axis limits based on concatenated data or user-provided limits.
     Parameters
@@ -358,6 +358,11 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
         # min and max values across data sets
         xmin = return_array_values(np.nanmin(xdata))
         xmax = return_array_values(np.nanmax(xdata))
+        # pad xlim
+        if xpad > 0:
+            dx = xmax - xmin
+            xmin -= xpad * dx
+            xmax += xpad * dx
         # use computed limits unless user overides
         xlim = xlim if xlim is not None else [xmin, xmax]
 
@@ -370,6 +375,11 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None):
         # min and max values across data sets
         ymin = return_array_values(np.nanmin(ydata))
         ymax = return_array_values(np.nanmax(ydata))
+        # pad ylim
+        if ypad > 0:
+            dy = ymax - ymin
+            ymin -= ypad * dy
+            ymax += ypad * dy
         # use computed limits unless user overides
         ylim = ylim if ylim is not None else [ymin, ymax]
 
