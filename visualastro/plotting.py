@@ -6,7 +6,7 @@ from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
-    plot_interactive_ellipse, plot_points,
+    plot_interactive_ellipse, plot_points, return_array_values,
     return_imshow_norm, return_stylename, set_axis_limits,
     set_plot_colors, set_unit_labels, set_vmin_vmax,
 )
@@ -469,26 +469,24 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     ylabel = kwargs.get('ylabel', None)
     # errorbars
     ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=None)
-    elinewidth = kwargs.get('elinewidth', None)
-    capsize = kwargs.get('capsize', None)
-    capthick = kwargs.get('capthick', None)
+    elinewidth = kwargs.get('elinewidth', 1)
+    capsize = kwargs.get('capsize', 1)
+    capthick = kwargs.get('capthick', 1)
     barsabove = kwargs.get('barsabove', False)
 
+    # X = return_array_values(X)
+    # Y = return_array_values(Y)
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
-    if np.ndim(X[0]) == 0:
+    if np.ndim(X) == 1 and np.ndim(Y) >= 2:
         X = [X]
-    if np.ndim(Y[0]) == 0:
+    if np.ndim(Y) == 1 and np.ndim(X) >= 2:
         Y = [Y]
 
     if xerr is not None:
         xerr = xerr if isinstance(xerr, (list, tuple)) else [xerr]
-        if np.ndim(xerr[0]) == 0:
-            xerr = [xerr]
     if yerr is not None:
         yerr = yerr if isinstance(yerr, (list, tuple)) else [yerr]
-        if np.ndim(yerr[0]) == 0:
-            yerr = [yerr]
 
     xerror, yerror = None, None
     colors, _ = set_plot_colors(colors, cmap=cmap)
