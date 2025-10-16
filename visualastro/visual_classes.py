@@ -1,7 +1,9 @@
+import os
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
-from dask.array import isin
+import matplotlib.pyplot as plt
+import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
@@ -104,6 +106,30 @@ class DataCube:
             return self.data[mask]
         else:
             raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
+
+    def inspect(self, figsize=(8,4), style='astro'):
+        cube = self.value
+        # compute mean and std across wavelengths
+        mean_flux = np.nanmean(cube, axis=(1, 2))
+        std_flux  = np.nanstd(cube, axis=(1, 2))
+
+        T = np.arange(mean_flux.shape[0])
+        style = _return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            ax.plot(T, mean_flux, c='darkslateblue', label='Mean')
+            ax.plot(T, std_flux, c='#D81B60', ls='--', label='Std Dev')
+
+            ax.set_xlabel('Cube Slice Index')
+            ax.set_ylabel('Counts')
+            ax.set_xlim(np.nanmin(T), np.nanmax(T))
+
+            ax.legend(loc='best')
+
+            plt.show()
+
+
 
     # physical properties / statistics
     @property
@@ -221,3 +247,33 @@ class FitsFile:
     @property
     def std(self):
         return np.nanstd(self.data)
+
+def _return_stylename(style):
+    '''
+    Returns the path to a visualastro mpl stylesheet for
+    consistent plotting parameters. Matplotlib styles are
+    also available (ex: 'solaris').
+
+    To add custom user defined mpl sheets, add files in:
+    VisualAstro/visualastro/stylelib/
+    Ensure the stylesheet follows the naming convention:
+        mystylesheet.mplstyle
+    Parameters
+    ––––––––––
+    style : str
+        Name of the mpl stylesheet without the extension.
+        ex: 'astro'
+    Returns
+    –––––––
+    style_path : str
+        Path to matplotlib stylesheet.
+    '''
+    # if style is a default matplotlib stylesheet
+    if style in mplstyle.available:
+        return style
+    # if style is a visualastro stylesheet
+    else:
+        style = style + '.mplstyle'
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        style_path = os.path.join(dir_path, 'stylelib', style)
+        return style_path
