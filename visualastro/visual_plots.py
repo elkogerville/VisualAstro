@@ -11,8 +11,6 @@ from .visual_classes import DataCube, FitsFile
 
 
 class va:
-
-
     @staticmethod
     def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
                percentile=[3,99.5], origin='lower', wcs_input=None,
@@ -125,7 +123,7 @@ class va:
 
 
     @staticmethod
-    def plotCombineSpectrum(extracted_spectra, idx=0, spec_lims=None,
+    def plotCombineSpectrum(extracted_spectra, idx=0, wave_cuttofs=None,
                             concatenate=False, return_spectra=False,
                             plot_normalize=False, use_samecolor=True, **kwargs):
 
@@ -143,12 +141,12 @@ class va:
             fig, ax = plt.subplots(figsize=figsize)
             if return_spectra:
                 combined_spectra = plot_combine_spectrum(extracted_spectra, ax, idx,
-                                                         spec_lims, concatenate,
+                                                         wave_cuttofs, concatenate,
                                                          return_spectra, plot_normalize,
                                                          use_samecolor, **kwargs)
             else:
                 plot_combine_spectrum(extracted_spectra, ax, idx,
-                                      spec_lims, concatenate,
+                                      wave_cuttofs, concatenate,
                                       return_spectra, plot_normalize,
                                       use_samecolor, **kwargs)
 

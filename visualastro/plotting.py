@@ -334,6 +334,7 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         - `ylabel` : str or None
             Label for the y-axis.
     '''
+    # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
     linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=linewidth)
@@ -453,6 +454,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         - `ylabel` : str or None
             Label for the y-axis.
     '''
+    # –––– KWARGS ––––
     # scatter params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'size', 's', default=size)
@@ -536,7 +538,6 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
 
 # Figure Functions
 # ––––––––––––––––
-
 def panel_axes(nrows_ncols=[2,2], figsize=(6,6), sharex=False, sharey=False,
                hspace=None, wspace=None, fancy_axes=False, Nticks=4):
     Nx, Ny = nrows_ncols
