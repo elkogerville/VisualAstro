@@ -188,8 +188,118 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         ax.invert_yaxis()
 
 
+def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
+                           xlog=True, ylog=True, xlog_hist=None,
+                           ylog_hist=None, histtype='step', colors=None,
+                           **kwargs):
+    # –––– KWARGS ––––
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    # scatter params
+    sizes = get_kwargs(kwargs, 'size', 's', default=10)
+    markers = get_kwargs(kwargs, 'marker', 'ms', default='o')
+    alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
+    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=None)
+    # line params
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
+    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=0.8)
+    zorders = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
+    cmap = kwargs.get('cmap', 'turbo')
+    # figure params
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+    # labels
+    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    loc = kwargs.get('loc', 'best')
+    xlabel = kwargs.get('xlabel', None)
+    ylabel = kwargs.get('ylabel', None)
+
+    X = check_units_consistency(X)
+    Y = check_units_consistency(Y)
+    if np.ndim(X) == 1 and np.ndim(Y) >= 2:
+        X = [X]
+    if np.ndim(Y) == 1 and np.ndim(X) >= 2:
+        Y = [Y]
+
+    if xlog_hist is None:
+        xhistlog = xlog
+    if ylog_hist is None:
+        ylog_hist = ylog
+
+    # configure scales and ticks
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+    if xlog_hist: ax_histx.set_xscale('log')
+    if ylog_hist: ax_histy.set_yscale('log')
+
+    ax.minorticks_on()
+    # tick parameters for main plot
+    ax.tick_params(axis='both', length=2, direction='in', which='both',
+                    pad=5, right=True, top=True)
+    # tick parameters for top histogram (x-axis)
+    ax_histx.tick_params(axis='x', direction='in', which='both',
+                            labelbottom=False, bottom=True)
+    ax_histx.tick_params(axis='y', direction = 'in', which='both',
+                            left=True, right=True, labelleft=True, pad=5)
+    ax_histx.yaxis.set_label_position("left")
+    # tick parameters for right histogram (y-axis)
+    ax_histy.tick_params(axis='y', direction='in', which='both',
+                            labelleft=False, left=True)
+    ax_histy.tick_params(axis='x', direction = 'in', which='both',
+                            bottom=True, top=True, labelbottom=True, pad=5)
+    ax_histy.xaxis.set_label_position("bottom")
+    # set plot colors
+    colors, _ = set_plot_colors(colors, cmap=cmap)
+
+    sizes = sizes if isinstance(sizes, (list, tuple)) else [sizes]
+    markers = markers if isinstance(markers, (list, tuple)) else [markers]
+    alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
+    edgecolors = edgecolors if isinstance(edgecolors, (list, tuple)) else [edgecolors]
+
+    linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
+    linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
+    zorders = zorders if isinstance(zorders, (list, tuple)) else [zorders]
+    labels = labels if isinstance(labels, (list, tuple)) else [labels]
+
+    for i in range(len(Y)):
+        x = X[i%len(X)]
+        y = Y[i%len(Y)]
+        color = colors[i%len(colors)]
+        size = sizes[i%len(sizes)]
+        marker = markers[i%len(markers)]
+        alpha = alphas[i%len(alphas)]
+        edgecolor = edgecolors[i%len(edgecolors)]
+        linestyle = linestyles[i%len(linestyles)]
+        linewidth = linewidths[i%len(linewidths)]
+        alpha = alphas[i%len(alphas)]
+        zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
+        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
+
+        ax.scatter(x, y, c=color, s=size, marker=marker,
+                   alpha=alpha, edgecolors=edgecolor, label=label)
+        # top histogram (x-axis)
+        ax_histx.hist(x, bins=bins, color=color, histtype=histtype,
+                      ls=linestyle, lw=linewidth, alpha=alpha,
+                      zorder=zorder, density=True)
+        # right histogram (y-axis)
+        ax_histy.hist(y, bins=bins, orientation='horizontal',
+                      color=color, histtype=histtype, ls=linestyle,
+                      lw=linewidth, alpha=alpha, zorder=zorder,
+                      density=True)
+
+    if xlog_hist:
+        ax_histx.set_ylabel('[Log]', labelpad=10)
+    if ylog_hist:
+        ax_histy.set_xlabel('[Log]', labelpad=10)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if labels[0] is not None:
+        ax.legend(loc=loc)
+
+
 def plot_histogram(datas, ax, bins='auto', xlog=False,
-                   ylog=False, colors=None, histtype='step', **kwargs):
+                   ylog=False, histtype='step', colors=None, **kwargs):
     '''
     Plot one or more histograms on a given Axes object.
     Parameters
@@ -205,11 +315,11 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         If True, set x-axis to logarithmic scale.
     ylog : bool, optional, Default=False
         If True, set y-axis to logarithmic scale.
+    histtype : str, {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
+        Matplotlib histogram type.
     colors : list of colors or None, optional, default=None
         Colors to use for each dataset. If None, default
         color cycle is used.
-    histtype : str, {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
-        Matplotlib histogram type.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -234,7 +344,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
             Label for the y-axis.
     '''
     # –––– KWARGS ––––
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', colors)
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     cmap = kwargs.get('cmap', 'turbo')
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -458,7 +568,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     # scatter params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'size', 's', default=size)
-    markers = get_kwargs(kwargs, 'marker', 'ms', default=marker)
+    markers = get_kwargs(kwargs, 'marker', 'm', default=marker)
     alphas = get_kwargs(kwargs, 'alpha', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
     cmap = kwargs.get('cmap', 'turbo')
@@ -477,8 +587,6 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     capthick = kwargs.get('capthick', 1)
     barsabove = kwargs.get('barsabove', False)
 
-    # X = return_array_values(X)
-    # Y = return_array_values(Y)
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
     if np.ndim(X) == 1 and np.ndim(Y) >= 2:
@@ -508,6 +616,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         marker = markers[i%len(markers)]
         alpha = alphas[i%len(alphas)]
         edgecolor = edgecolors[i%len(edgecolors)]
+        ecolor = ecolors[i%len(ecolors)]
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         if normalize:
@@ -521,7 +630,6 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         if yerr is not None:
             yerror = yerr[i%len(yerr)]
 
-        ecolor = ecolors[i%len(ecolors)]
         ax.errorbar(x, y, yerror, xerror, fmt='None', ecolor=ecolor, elinewidth=elinewidth,
                     capsize=capsize, capthick=capthick, barsabove=barsabove)
 

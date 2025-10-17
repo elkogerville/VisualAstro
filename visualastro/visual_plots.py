@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data
-from .plotting import imshow, panel_axes, plot_histogram, plot_lines, scatter_plot
+from .plotting import imshow, plot_density_histogram, plot_histogram, plot_lines, scatter_plot
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
 from .visual_classes import DataCube, FitsFile
@@ -159,8 +159,43 @@ class va:
 
 
     @staticmethod
+    def plotDensityHistogram(X, Y, bins='auto', xlog=False, ylog=False,
+                             xlog_hist=True, ylog_hist=True, sharex=False,
+                             sharey=False, histtype='step', colors=None, **kwargs):
+        # figure params
+        figsize = kwargs.get('figsize', (6,6))
+        style = kwargs.get('style', 'astro')
+        # savefig
+        savefig = kwargs.get('savefig', False)
+        dpi = kwargs.get('dpi', 600)
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig = plt.figure(figsize=figsize)
+            # adjust grid layout to prevent overlap
+            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2),
+                                    height_ratios=(1.2, 4),
+                                    left=0.15, right=0.9, bottom=0.15,
+                                    top=0.9, wspace=0.09, hspace=0.09)
+            # create subplots
+            ax = fig.add_subplot(gs[1, 0])
+            sharex = ax if sharex is True else None
+            sharey = ax if sharey is True else None
+            ax_histx = fig.add_subplot(gs[0, 0], sharex=sharex)
+            ax_histy = fig.add_subplot(gs[1, 1], sharey=sharey)
+
+            plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins,
+                                   xlog, ylog, xlog_hist, ylog_hist,
+                                   histtype, colors, **kwargs)
+
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
+
+    @staticmethod
     def plotHistogram(datas, bins='auto', xlog=False, ylog=False,
-                      colors=None, histtype='step', **kwargs):
+                      histtype='step', colors=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -173,7 +208,7 @@ class va:
             fig, ax = plt.subplots(figsize=figsize)
 
             plot_histogram(datas, ax, bins, xlog, ylog,
-                           colors, histtype, **kwargs)
+                           histtype, colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
