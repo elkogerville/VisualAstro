@@ -49,7 +49,7 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
         # fit continuum with selected method
         if fit_method=='fit_continuum':
             # convert region to default units
-            region = convert_region_units(region, spectral_axis)
+            region = _convert_region_units(region, spectral_axis)
             fit = fit_continuum(spectrum1d, window=region)
         else:
             fit = fit_generic_continuum(spectrum1d)
@@ -57,6 +57,7 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     continuum_fit = fit(spectral_axis)
 
     return continuum_fit
+
 
 def deredden_flux(wavelength, flux, Rv=3.1, Ebv=0.19,
                   deredden_method='WD01', region='LMCAvg'):
@@ -110,7 +111,35 @@ def deredden_flux(wavelength, flux, Rv=3.1, Ebv=0.19,
 
     return dereddened_flux
 
-def convert_region_units(region, spectral_axis):
+
+def propagate_flux_errors(errors):
+    '''
+    Compute propagated flux errors from individual pixel errors in a spectrum.
+    Parameters
+    ––––––––––
+    errors : np.ndarray
+        2D array of individual pixel errors, with shape (N_spectra, N_pixels).
+        N_spectra represents the wavelength axis of a data cube. The pixel
+        errors should have physical units (not counts). NaN values are ignored
+        in the computation.
+    Returns
+    –––––––
+    flux_errors : np.ndarray
+        1D array of propagated flux errors for each spectrum (shape N_spectra),
+        computed as the quadrature sum of pixel errors divided by the number
+        of valid pixels:
+
+            flux_error[i] = sqrt(sum_j(errors[i,j]^2)) / N_valid_pixels
+    '''
+    N = np.sum(~np.isnan(errors), axis=1)
+    flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
+
+    return flux_errors
+
+
+# Science Helper Functions
+# ––––––––––––––––––––––––
+def _convert_region_units(region, spectral_axis):
     '''
     Convert the units of a list of spectral regions to match
     a given spectral axis. Helper function used when fitting
@@ -139,29 +168,6 @@ def convert_region_units(region, spectral_axis):
     # convert each element to spectral axis units
     return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
 
-def propagate_flux_errors(errors):
-    '''
-    Compute propagated flux errors from individual pixel errors in a spectrum.
-    Parameters
-    ––––––––––
-    errors : np.ndarray
-        2D array of individual pixel errors, with shape (N_spectra, N_pixels).
-        N_spectra represents the wavelength axis of a data cube. The pixel
-        errors should have physical units (not counts). NaN values are ignored
-        in the computation.
-    Returns
-    –––––––
-    flux_errors : np.ndarray
-        1D array of propagated flux errors for each spectrum (shape N_spectra),
-        computed as the quadrature sum of pixel errors divided by the number
-        of valid pixels:
-
-            flux_error[i] = sqrt(sum_j(errors[i,j]^2)) / N_valid_pixels
-    '''
-    N = np.sum(~np.isnan(errors), axis=1)
-    flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
-
-    return flux_errors
 
 # Model Fitting Functions
 # –––––––––––––––––––––––
