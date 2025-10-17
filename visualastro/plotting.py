@@ -1,6 +1,7 @@
 from astropy.visualization.wcsaxes.core import WCSAxes
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from .data_cube import slice_cube
 from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
@@ -531,3 +532,35 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+
+# Figure Functions
+# ––––––––––––––––
+
+def panel_axes(nrows_ncols=[2,2], figsize=(6,6), sharex=False, sharey=False,
+               hspace=None, wspace=None, fancy_axes=False, Nticks=4):
+    Nx, Ny = nrows_ncols
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace)
+    axs = gs.subplots(sharex=sharex, sharey=sharey)
+    axs = np.atleast_1d(axs).ravel()
+
+    if fancy_axes:
+        labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
+        labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
+
+    for i in range(Nx):
+        for j in range(Ny):
+            ax = axs[j + Ny*i]
+
+            if fancy_axes:
+                ax.minorticks_on()
+                ax.tick_params(axis='both', length=2, direction='in',
+                               which='both', labeltop=labeltop[i][j],
+                               labelright=labelright[i][j],
+                               right=True, top=True)
+            ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
+            ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
+            ax.set_box_aspect(1)
+
+    return axs
