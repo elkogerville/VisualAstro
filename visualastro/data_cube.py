@@ -12,7 +12,7 @@ from .data_cube_utils import compute_line, get_spectral_slice_value, slice_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
     check_units_consistency, convert_units,
-    get_data, get_units, shift_by_radial_vel
+    get_data, shift_by_radial_vel
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,

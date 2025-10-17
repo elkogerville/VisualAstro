@@ -130,7 +130,6 @@ class DataCube:
             plt.show()
 
 
-
     # physical properties / statistics
     @property
     def max(self):
