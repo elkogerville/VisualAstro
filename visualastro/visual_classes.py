@@ -266,6 +266,10 @@ def _return_stylename(style):
     –––––––
     style_path : str
         Path to matplotlib stylesheet.
+    Notes
+    –––––
+    This is the helper function variant of return_stylename
+    used for visual_classes.
     '''
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
