@@ -2,7 +2,6 @@ import warnings
 from astropy.io.fits import Header
 from astropy import units as u
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
-from dask.array import isin
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
