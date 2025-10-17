@@ -189,14 +189,78 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
 
 def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
-                           xlog=True, ylog=True, xlog_hist=None,
-                           ylog_hist=None, histtype='step', colors=None,
-                           **kwargs):
+                           xlog=False, ylog=False, xlog_hist=False,
+                           ylog_hist=False, histtype='step', normalize=True,
+                           colors=None, **kwargs):
+    '''
+    Plot a 2D scatter distribution with normalized density histograms.
+
+    This function creates a scatter plot of `X` vs. `Y` along
+    with the normalized histograms of `X` and `Y`.
+    Parameters
+    ––––––––––
+    X : array-like or list of arrays
+        The x-axis data or list of data arrays.
+    Y : array-like or list of arrays
+        The y-axis data or list of data arrays.
+    ax : matplotlib.axes.Axes
+        Main axis for the 2D scatter plot.
+    ax_histx : matplotlib.axes.Axes
+        Axis for the top histogram (x-axis).
+    ax_histy : matplotlib.axes.Axes
+        Axis for the right histogram (y-axis).
+    bins : int, str, or sequence, optional, default='auto'
+        Histogram bin specification. Passed directly to `matplotlib.pyplot.hist`.
+    xlog : bool, optional, default=False
+        Whether to use a logarithmic x-axis scale for the scatter plot.
+    ylog : bool, optional, default=False
+        Whether to use a logarithmic y-axis scale for the scatter plot.
+    xlog_hist : bool, optional, default=False
+        Whether to use a logarithmic x-axis scale for the top histogram.
+    ylog_hist : bool, optional, default=False
+        Whether to use a logarithmic y-axis scale for the right histogram.
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'}, optional, default='step'
+        Type of histogram to draw.
+    normalize : bool, optional, default=True
+        If True, normalize histograms.
+    colors : list, str, or None, optional, default=None
+        Colors for each dataset. If `None`, a colormap will be used.
+
+    **kwargs : dict, optional
+        Additional plotting parameters.
+
+        Supported keyword arguments include:
+
+        - `sizes`, `size`, `s` : float or list, optional, default=10
+            Marker size(s) for scatter points.
+        - `markers`, `marker`, `m` : str or list, optional, default='o'
+            Marker style(s) for scatter points.
+        - `alphas`, `alpha`, `a` : float or list, optional, default=1
+            Transparency level(s).
+        - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=None
+            Edge colors for scatter points.
+        - `linestyles`, `linestyle`, `ls` : str or list, optional, default='-'
+            Line style(s) for histogram edges.
+        - `linewidth`, `lw` : float or list, optional, default=0.8
+            Line width(s) for histogram edges.
+        - `zorders`, `zorder` : int or list, optional, default=None
+            Z-order(s) for drawing priority.
+        - `cmap` : str, optional, default='turbo'
+            Colormap name for automatic color assignment.
+        - `xlim`, `ylim` : tuple, optional, default=None
+            Axis limits for the scatter plot.
+        - `labels`, `label`, `l` : list or str, optional, default=None
+            Labels for legend entries.
+        - `loc` : str, optional, default='best'
+            Legend location.
+        - `xlabel`, `ylabel` : str, optional, default=None
+            Axis labels for the scatter plot.
+    '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     # scatter params
     sizes = get_kwargs(kwargs, 'size', 's', default=10)
-    markers = get_kwargs(kwargs, 'marker', 'ms', default='o')
+    markers = get_kwargs(kwargs, 'marker', 'm', default='o')
     alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=None)
     # line params
@@ -219,11 +283,6 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
         X = [X]
     if np.ndim(Y) == 1 and np.ndim(X) >= 2:
         Y = [Y]
-
-    if xlog_hist is None:
-        xhistlog = xlog
-    if ylog_hist is None:
-        ylog_hist = ylog
 
     # configure scales and ticks
     if xlim: ax.set_xlim(xlim)
@@ -272,7 +331,6 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
         edgecolor = edgecolors[i%len(edgecolors)]
         linestyle = linestyles[i%len(linestyles)]
         linewidth = linewidths[i%len(linewidths)]
-        alpha = alphas[i%len(alphas)]
         zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
@@ -281,12 +339,12 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
         # top histogram (x-axis)
         ax_histx.hist(x, bins=bins, color=color, histtype=histtype,
                       ls=linestyle, lw=linewidth, alpha=alpha,
-                      zorder=zorder, density=True)
+                      zorder=zorder, density=normalize)
         # right histogram (y-axis)
         ax_histy.hist(y, bins=bins, orientation='horizontal',
                       color=color, histtype=histtype, ls=linestyle,
                       lw=linewidth, alpha=alpha, zorder=zorder,
-                      density=True)
+                      density=normalize)
 
     if xlog_hist:
         ax_histx.set_ylabel('[Log]', labelpad=10)
@@ -447,8 +505,8 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
-    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=linewidth)
-    alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=linewidth)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
     cmap = kwargs.get('cmap', 'turbo')
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -543,7 +601,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
             Colors to use for each line. If None, default color cycle is used.
         - `sizes`, `size`, `s` : float or list of float, optional, default=10
             Size of scatter dots.
-        - `markers`, `marker` : str or list of str, optional, default='o'
+        - `markers`, `marker`, `m` : str or list of str, optional, default='o'
             Marker style for scatter dots.
         - `alphas`, `alpha`, `a` : float or list of float default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
@@ -567,9 +625,9 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     # –––– KWARGS ––––
     # scatter params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    sizes = get_kwargs(kwargs, 'size', 's', default=size)
-    markers = get_kwargs(kwargs, 'marker', 'm', default=marker)
-    alphas = get_kwargs(kwargs, 'alpha', 'a', default=alpha)
+    sizes = get_kwargs(kwargs, 'sizes', 'size', 's', default=size)
+    markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
     cmap = kwargs.get('cmap', 'turbo')
     # figure params
