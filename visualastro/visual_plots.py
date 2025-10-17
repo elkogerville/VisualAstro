@@ -161,7 +161,8 @@ class va:
     @staticmethod
     def plotDensityHistogram(X, Y, bins='auto', xlog=False, ylog=False,
                              xlog_hist=True, ylog_hist=True, sharex=False,
-                             sharey=False, histtype='step', colors=None, **kwargs):
+                             sharey=False, histtype='step', normalize=True,
+                             colors=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -186,7 +187,7 @@ class va:
 
             plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins,
                                    xlog, ylog, xlog_hist, ylog_hist,
-                                   histtype, colors, **kwargs)
+                                   histtype, normalize, colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
