@@ -73,6 +73,76 @@ class va:
     @staticmethod
     def plotSpectralCube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, **kwargs):
+        '''
+        Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
+        along a given slice.
+
+        Initializes a Matplotlib figure and axis using the specified plotting style,
+        then calls the core `plot_spectral_cube` routine with the provided parameters.
+        This method is intended for rapid visualization and consistent figure formatting,
+        while preserving full configurability through **kwargs.
+        Parameters
+        ––––––––––
+        cubes : DataCube, SpectralCube, or list of such
+            One or more spectral cubes to plot. All cubes should have consistent units.
+        idx : int
+            Index along the spectral axis corresponding to the slice to plot.
+        ax : matplotlib.axes.Axes
+            The axes on which to draw the slice.
+        vmin, vmax : float, optional, default=None
+            Minimum and maximum values for image scaling. Overrides percentile if provided.
+        percentile : list of two floats, default=[3, 99.5]
+            Percentile values for automatic scaling if vmin/vmax are not specified.
+        norm : str or None, default='asinh'
+            Normalization type for `imshow`. Use None for linear scaling.
+        radial_vel : float or astropy.units.Quantity, optional, default=None
+            Radial velocity to shift spectral axis to the rest frame.
+        unit : astropy.units.Unit or str, optional, default=None
+            Desired spectral axis unit for labeling.
+        cmap : str, list, or tuple, default='turbo'
+            Colormap(s) to use for plotting.
+
+        **kwargs : dict, optional
+            Additional plotting parameters.
+
+            Supported keywords:
+
+            title : bool, default=False
+                If True, display spectral slice label as plot title.
+            emission_line : str or None, default=None
+                Optional emission line label to display instead of slice value.
+            text_loc : list of float, default=[0.03, 0.03]
+                Relative axes coordinates for overlay text placement.
+            text_color : str, default='k'
+                Color of overlay text.
+            colorbar : bool, default=True
+                Whether to add a colorbar.
+            cbar_width : float, default=0.03
+                Width of the colorbar.
+            cbar_pad : float, default=0.015
+                Padding between axes and colorbar.
+            clabel : str, bool, or None, default=True
+                Label for colorbar. If True, automatically generate from cube unit.
+            xlabel, ylabel : str, default='Right Ascension', 'Declination'
+                Axes labels.
+            spectral_label : bool, default=True
+                Whether to draw spectral slice value as a label.
+            highlight : bool, default=True
+                Whether to highlight interactive ellipse if plotted.
+            ellipses : list or None, default=None
+                Ellipse objects to overlay on the image.
+            plot_ellipse : bool, default=False
+                If True, plot a default or interactive ellipse.
+            center : list of two ints, default=[Nx//2, Ny//2]
+                Center of default ellipse.
+            w, h : float, default=X//5, Y//5
+                Width and height of default ellipse.
+            angle : float or None, default=None
+                Angle of ellipse in degrees.
+        Notes
+        –––––
+        - If multiple cubes are provided, they are overplotted in sequence.
+        '''
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -105,9 +175,13 @@ class va:
                      plot_continuum_fit=False, emission_line=None, wavelength=None,
                      flux=None, continuum_fit=None, colors=None, **kwargs):
         '''
-        Wrapper for `plot_spectrum`.
-        This method sets up a matplotlib style, figure, and axis, calls the core
-        `plot_spectrum` function, and allows for figure saving or resizing.
+        Convenience wrapper for `plot_spectrum`, which visualizes extracted
+        spectra with optional continuum fits and emission-line overlays.
+
+        Initializes a Matplotlib figure and axis using the specified plotting style,
+        then calls the core `plot_spectrum` routine with the provided parameters.
+        This method is intended for rapid visualization and consistent figure formatting,
+        while preserving full configurability through **kwargs.
         Parameters
         ––––––––––
         extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
@@ -169,7 +243,8 @@ class va:
             - `figsize` : tuple of float, default=(6, 6)
                 Figure size in inches.
             - `style` : str, default='astro'
-                Matplotlib style name to apply during plotting.
+                Matplotlib or visualastro style name to apply during plotting.
+                Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=False
                 If True, saves the figure to disk using `save_figure_2_disk`.
             - `dpi` : int, default=600
