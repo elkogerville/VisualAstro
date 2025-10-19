@@ -15,6 +15,27 @@ from .visual_classes import DataCube, FitsFile
 class va:
     @contextmanager
     def style(name):
+        '''
+        Context manager to temporarily apply a Matplotlib style.
+
+        Parameters
+        ––––––––––
+        name : str
+            Name of the Matplotlib or visualastro style to apply.
+            The style name is passed to `return_stylename`, which
+            returns the path to a visualastro mpl stylesheet.
+            Matplotlib styles are also allowed (ex: 'classic').
+        Yields
+        ––––––
+        None
+            This context manager does not return a value. Code executed within
+            the context will use the specified style, which is restored upon exit.
+        Examples
+        ––––––––
+        >>> with style('astro'):
+        ...     plt.plot(x, y)
+        ...     plt.show()
+        '''
         style_name = return_stylename(name)
         with plt.style.context(style_name):
             yield
@@ -184,7 +205,7 @@ class va:
 
     @staticmethod
     def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
-                        norm='asinh', radial_vel=None, unit=None, **kwargs):
+                           norm='asinh', radial_vel=None, unit=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
         along a given slice.
@@ -291,8 +312,8 @@ class va:
 
     @staticmethod
     def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=False,
-                     plot_continuum_fit=False, emission_line=None, wavelength=None,
-                     flux=None, continuum_fit=None, colors=None, **kwargs):
+                      plot_continuum_fit=False, emission_line=None, wavelength=None,
+                      flux=None, continuum_fit=None, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectrum`, which visualizes extracted
         spectra with optional continuum fits and emission-line overlays.
@@ -392,8 +413,8 @@ class va:
 
     @staticmethod
     def plot_combine_spectrum(extracted_spectra, idx=0, wave_cuttofs=None,
-                            concatenate=False, return_spectra=False,
-                            plot_normalize=False, use_samecolor=True, **kwargs):
+                              concatenate=False, return_spectra=False,
+                              plot_normalize=False, use_samecolor=True, **kwargs):
         '''
         Convenience wrapper for `plot_combine_spectrum`, to facilitate stiching
         spectra together.
@@ -718,8 +739,6 @@ class va:
             x-axis data for the lines. Can be a single array or a list of arrays.
         Y : array-like or list of array-like
             y-axis data for the lines. Must match the length of X if lists are provided.
-        ax : matplotlib.axes.Axes
-            The Axes object to plot on.
         normalize : bool, optional, default=False
             If True, normalize each line to its maximum value.
         xlog : bool, optional, default=False
@@ -807,6 +826,79 @@ class va:
                 xlog=False, ylog=False, colors=None, size=10,
                 marker='o', alpha=1, edgecolors='face',
                 **kwargs):
+
+        '''
+        Convenience wrapper for `scatter_plot`, to scatter plot one or more distributions.
+
+        Initializes a Matplotlib figure and axis using the specified plotting
+        style, then calls the core `scatter_plot` routine with the provided
+        parameters. This method is intended for rapid visualization and consistent
+        figure formatting, while preserving full configurability through **kwargs.
+        Parameters
+        ––––––––––
+        X : array-like or list of array-like
+            x-axis data for the lines. Can be a single array or a list of arrays.
+        Y : array-like or list of array-like
+            y-axis data for the lines. Must match the length of X if lists are provided.
+        normalize : bool, optional, default=False
+            If True, normalize each line to its maximum value.
+        xlog : bool, optional, default=False
+            If True, set the x-axis to logarithmic scale.
+        ylog : bool, optional, default=False
+            If True, set the y-axis to logarithmic scale.
+        colors : list of str or None, optional, default=None
+            Colors to use for each line. If None, default color cycle is used.
+        size : float or list of float, optional, default=10
+            Size of scatter dots.
+        marker : str or list of str, optional, default='o'
+            Marker style for scatter dots.
+        alpha : float or list of float default=None
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        edgecolors : {'face', 'none', None} or color or list of color, default='face'
+            The edge color of the marker. Possible values:
+            - 'face': The edge color will always be the same as the face color.
+            - 'none': No patch boundary will be drawn.
+            - A color or sequence of colors.
+
+        **kwargs : dict, optional
+            Additional plotting parameters.
+
+            Supported keywords:
+
+            - `colors`, `color`, `c` : str, list of str or None, optional, default=None
+                Colors to use for each line. If None, default color cycle is used.
+            - `sizes`, `size`, `s` : float or list of float, optional, default=10
+                Size of scatter dots.
+            - `markers`, `marker`, `m` : str or list of str, optional, default='o'
+                Marker style for scatter dots.
+            - `alphas`, `alpha`, `a` : float or list of float default=None
+                The alpha blending value, between 0 (transparent) and 1 (opaque).
+            - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None} or color or list of color, default='face'
+                The edge color of the marker.
+            - `cmap` : str, optional, default='turbo'
+                Colormap to use if `colors` is not provided.
+            - `xlim` : tuple of two floats or None
+                Limits for the x-axis.
+            - `ylim` : tuple of two floats or None
+                Limits for the y-axis.
+            - `labels`, `label`, `l` : str or list of str, default=None
+                Legend labels.
+            - `loc` : str, default='best'
+                Location of legend.
+            - `xlabel` : str or None
+                Label for the x-axis.
+            - `ylabel` : str or None
+                Label for the y-axis.
+            - `figsize` : tuple of float, default=(6, 6)
+                Figure size in inches.
+            - `style` : str, default='astro'
+                Matplotlib or visualastro style name to apply during plotting.
+                Ex: 'astro', 'classic', etc...
+            - `savefig` : bool, default=False
+                If True, saves the figure to disk using `save_figure_2_disk`.
+            - `dpi` : int, default=600
+                Resolution (dots per inch) for saved figure.
+        '''
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -831,6 +923,26 @@ class va:
     class help:
         @staticmethod
         def colors(user_color=None):
+            '''
+            Display VisualAstro color palettes.
+
+            Displays predefined VisualAstro color schemes or, if specified, a custom
+            user-provided palette. Each palette is shown as a horizontal row of color
+            tiles, labeled by palette name. Two sets of colors are displayed for each
+            scheme: 'plot colors' and 'model colors'.
+
+            Parameters
+            ––––––––––
+            user_color : str or None, optional, default=None
+                Name of a specific color scheme to display. If `None`,
+                all default VisualAstro palettes are shown.
+            Examples
+            ––––––––
+            Display all default VisualAstro color palettes:
+            >>> va.help.colors()
+            Display only the 'astro' palette, including plot and model colors:
+            >>> va.help.colors('astro')
+            '''
             style = return_stylename('astro')
             # visualastro default color schemes
             color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r']
@@ -891,3 +1003,42 @@ class va:
                 ax.set_ylim(-len(color_map), 1)
                 plt.tight_layout()
                 plt.show()
+
+
+        @staticmethod
+        def styles(style_name=None):
+            '''
+            Display example plots for one or more available matplotlib style sheets.
+
+            This method is primarily intended for previewing and comparing the
+            visual appearance of built-in style sheets such as 'astro',
+            'latex', and 'minimal'.
+            Parameters
+            ––––––––––
+            style_name : str or None, optional
+                Name of a specific style to preview. If ``None`` (default),
+                all predefined styles ``['astro', 'latex', 'minimal']`` are shown
+                sequentially.
+            Examples
+            ––––––––
+            Display all visualastro plotting styles:
+            >>> va.help.styles()
+            Display a matplotlib or visualastro plotting style:
+            >>> va.help.styles('classic')
+            '''
+            style_names = ['astro', 'latex', 'minimal'] if style_name is None else [style_name]
+            for style_name in style_names:
+                style = return_stylename(style_name)
+                with plt.style.context(style):
+                    print(fr"Style : '{style_name}'")
+                    fig, ax = plt.subplots(figsize=(6,6))
+                    ax.set_xscale('log')
+
+                    x = np.logspace(1, 9, 100)
+                    y = (0.8 + 0.4 * np.random.uniform(size=100)) * np.log10(x)**2
+                    ax.scatter(x, y, color='darkslateblue')
+
+                    ax.set_xlabel('Frequency [Hz]')
+                    ax.set_ylabel('Counts')
+
+                    plt.show()
