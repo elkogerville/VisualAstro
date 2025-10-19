@@ -1,21 +1,28 @@
+from contextlib import contextmanager
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import matplotlib.pyplot as plt
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data
-from .plotting import imshow, plot_density_histogram, plot_histogram, plot_lines, scatter_plot
+from .plotting import imshow, panel_axes, plot_density_histogram, plot_histogram, plot_lines, scatter_plot
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
 from .visual_classes import DataCube, FitsFile
 
 
 class va:
+    @contextmanager
+    def style(name):
+        style_name = return_stylename(name)
+        with plt.style.context(style_name):
+            yield
+
+
     @staticmethod
     def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
                percentile=[3,99.5], origin='lower', wcs_input=None,
-               invert_wcs=False, cmap='turbo', aspect=None, ax=None,
-               show=True, **kwargs):
+               invert_wcs=False, cmap='turbo', aspect=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
         style = kwargs.get('style', 'astro')
@@ -52,17 +59,15 @@ class va:
 
         style = return_stylename(style)
         with plt.style.context(style):
-            if ax is None:
-                plt.figure(figsize=figsize)
-                ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
+            plt.figure(figsize=figsize)
+            ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile, origin,
                    cmap, aspect, wcs_input=wcs_input, **kwargs)
 
             if savefig:
                     save_figure_2_disk(dpi)
-            if show:
-                plt.show()
+            plt.show()
 
 
     @staticmethod
