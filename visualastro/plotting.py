@@ -125,9 +125,9 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
-    cmap = cmap if isinstance(cmap, (list, tuple)) else [cmap]
+    cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
     if idx is not None:
-        idx = idx if isinstance(idx, (list, tuple)) else [idx]
+        idx = idx if isinstance(idx, (list, np.ndarray, tuple)) else [idx]
 
     # if wcsaxes are used, origin can only be 'lower'
     if isinstance(ax, WCSAxes) and origin == 'upper':
@@ -196,7 +196,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
     '''
     Plot a 2D scatter distribution with normalized density histograms.
     This function creates a scatter plot of `X` vs. `Y` along
-    with the normalized histograms of `X` and `Y`.
+    with normalizable histograms of `X` and `Y`.
     Parameters
     ––––––––––
     X : array-like or list of arrays
@@ -311,15 +311,15 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
     # set plot colors
     colors, _ = set_plot_colors(colors, cmap=cmap)
 
-    sizes = sizes if isinstance(sizes, (list, tuple)) else [sizes]
-    markers = markers if isinstance(markers, (list, tuple)) else [markers]
-    alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
-    edgecolors = edgecolors if isinstance(edgecolors, (list, tuple)) else [edgecolors]
+    sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
+    markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
+    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
+    edgecolors = edgecolors if isinstance(edgecolors, (list, np.ndarray, tuple)) else [edgecolors]
 
-    linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
-    linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
-    zorders = zorders if isinstance(zorders, (list, tuple)) else [zorders]
-    labels = labels if isinstance(labels, (list, tuple)) else [labels]
+    linestyles = linestyles if isinstance(linestyles, (list, np.ndarray, tuple)) else [linestyles]
+    linewidths = linewidths if isinstance(linewidths, (list, np.ndarray, tuple)) else [linewidths]
+    zorders = zorders if isinstance(zorders, (list, np.ndarray, tuple)) else [zorders]
+    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     for i in range(len(Y)):
         x = X[i%len(X)]
@@ -415,7 +415,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
-    labels = labels if isinstance(labels, (list, tuple)) else [labels]
+    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
     data_list = []
@@ -536,11 +536,11 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
         Y = [Y]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
-    linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
-    linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
-    alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
-    zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
-    labels = labels if isinstance(labels, (list, tuple)) else [labels]
+    linestyles = linestyles if isinstance(linestyles, (list, np.ndarray, tuple)) else [linestyles]
+    linewidths = linewidths if isinstance(linewidths, (list, np.ndarray, tuple)) else [linewidths]
+    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
+    zorders = zorder if isinstance(zorder, (list, np.ndarray, tuple)) else [zorder]
+    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
@@ -665,18 +665,18 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         Y = [Y]
 
     if xerr is not None:
-        xerr = xerr if isinstance(xerr, (list, tuple)) else [xerr]
+        xerr = xerr if isinstance(xerr, (list, np.ndarray, tuple)) else [xerr]
     if yerr is not None:
-        yerr = yerr if isinstance(yerr, (list, tuple)) else [yerr]
+        yerr = yerr if isinstance(yerr, (list, np.ndarray, tuple)) else [yerr]
 
     xerror, yerror = None, None
     colors, _ = set_plot_colors(colors, cmap=cmap)
-    sizes = sizes if isinstance(sizes, (list, tuple)) else [sizes]
-    markers = markers if isinstance(markers, (list, tuple)) else [markers]
-    alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
-    edgecolors = edgecolors if isinstance(edgecolors, (list, tuple)) else [edgecolors]
-    labels = labels if isinstance(labels, (list, tuple)) else [labels]
-    ecolors = ecolors if isinstance(ecolors, (list, tuple)) else [ecolors]
+    sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
+    markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
+    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
+    edgecolors = edgecolors if isinstance(edgecolors, (list, np.ndarray, tuple)) else [edgecolors]
+    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
+    ecolors = ecolors if isinstance(ecolors, (list, np.ndarray, tuple)) else [ecolors]
 
     # set axes
     if xlog: ax.set_xscale('log')
