@@ -718,17 +718,55 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
 
 # Figure Functions
 # ––––––––––––––––
-def panel_axes(nrows_ncols=[2,2], figsize=(6,6), sharex=False, sharey=False,
-               hspace=None, wspace=None, fancy_axes=False, Nticks=4):
+def panel_axes(nrows_ncols=(2,2), figsize=(6,6), sharex=False, sharey=False,
+               hspace=None, wspace=None, fancy_axes=False, Nticks=4, aspect=1):
+    '''
+    Create a grid of Matplotlib axes panels with consistent sizing
+    and optional fancy tick styling.
+    Parameters
+    ––––––––––
+    nrows_ncols : tuple of int, default=(2, 2)
+        Number of subplot rows and columns, as (nrows, ncols).
+    figsize : tuple of float, default=(6, 6)
+        Figure size in inches as (width, height).
+    sharex : bool, default=False
+        If True, share the x-axis among all subplots.
+    sharey : bool, default=False
+        If True, share the y-axis among all subplots.
+    hspace : float or None, default=None
+        Height padding between subplots. If None, Matplotlib’s default spacing is used.
+    wspace : float or None, default=None
+        Width padding between subplots. If None, Matplotlib’s default spacing is used.
+    fancy_axes : bool, default=False
+        If True, enables "fancy" axes styling:
+        - minor ticks on
+        - inward ticks on all sides
+        - axes labels on outer grid axes
+        - h/wspace = 0.0
+    Nticks : int, default=4
+        Maximum number of major ticks per axis.
+    aspect : float, default=1
+        Aspect ratio for each subplot (e.g., 1 for square panels).
+    Returns
+    –––––––
+    fig : `~matplotlib.figure.Figure`
+        The created Matplotlib Figure instance.
+    axs : ndarray of `~matplotlib.axes.Axes`
+        Flattened array of Axes objects, ordered row-wise.
+    '''
+
     Nx, Ny = nrows_ncols
-    fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace)
-    axs = gs.subplots(sharex=sharex, sharey=sharey)
-    axs = np.atleast_1d(axs).ravel()
 
     if fancy_axes:
         labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
         labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
+        hspace = 0.0 if hspace is None else hspace
+        wspace = 0.0 if wspace is None else wspace
+
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace)
+    axs = gs.subplots(sharex=sharex, sharey=sharey)
+    axs = np.atleast_1d(axs).ravel()
 
     for i in range(Nx):
         for j in range(Ny):
@@ -737,11 +775,11 @@ def panel_axes(nrows_ncols=[2,2], figsize=(6,6), sharex=False, sharey=False,
             if fancy_axes:
                 ax.minorticks_on()
                 ax.tick_params(axis='both', length=2, direction='in',
-                               which='both', labeltop=labeltop[i][j],
-                               labelright=labelright[i][j],
-                               right=True, top=True)
+                            which='both', labeltop=labeltop[i][j],
+                            labelright=labelright[i][j],
+                            right=True, top=True)
             ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
             ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
-            ax.set_box_aspect(1)
+            ax.set_box_aspect(aspect)
 
-    return axs
+    return fig, axs
