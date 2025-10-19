@@ -251,7 +251,7 @@ def _return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters. Matplotlib styles are
-    also available (ex: 'solaris').
+    also available (ex: 'classic').
 
     To add custom user defined mpl sheets, add files in:
     VisualAstro/visualastro/stylelib/
