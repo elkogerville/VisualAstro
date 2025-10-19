@@ -104,6 +104,77 @@ class va:
     def plotSpectrum(extracted_spectrums=None, plot_norm_continuum=False,
                      plot_continuum_fit=False, emission_line=None, wavelength=None,
                      flux=None, continuum_fit=None, colors=None, **kwargs):
+        '''
+        Wrapper for `plot_spectrum`.
+        This method sets up a matplotlib style, figure, and axis, calls the core
+        `plot_spectrum` function, and allows for figure saving or resizing.
+        Parameters
+        ––––––––––
+        extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
+            Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
+            and `flux` must be given.
+        ax : matplotlib.axes.Axes
+            Axis to plot on.
+        plot_norm_continuum : bool, optional, default=False
+            If True, plot normalized flux instead of raw flux.
+        plot_continuum_fit : bool, optional, default=False
+            If True, overplot continuum fit.
+        emission_line : str, optional, default=None
+            Label for an emission line to annotate on the plot.
+        wavelength : array-like, optional, default=None
+            Wavelength array (required if `extracted_spectrums` is None).
+        flux : array-like, optional, default=None
+            Flux array (required if `extracted_spectrums` is None).
+        continuum_fit : array-like, optional, default=None
+            Fitted continuum array.
+        colors : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
+
+        **kwargs : dict, optional
+            Additional plotting parameters.
+
+            Supported keywords:
+
+            - `colors`, `color` or `c` : list of colors or None, optional, default=None
+                Colors to use for each dataset. If None, default
+                color cycle is used.
+            - `linestyles`, `linestyle`, `ls` : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
+                Line style of plotted lines.
+            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=0.8
+                Line width for the plotted lines.
+            - `alphas`, `alpha`, `a` : float or list of float default=None
+                The alpha blending value, between 0 (transparent) and 1 (opaque).
+            - `zorders`, `zorder` : float, default=None
+                Order of line placement. If None, will increment by 1 for
+                each additional line plotted.
+            - `cmap` : str, optional, default='turbo'
+                Colormap to use if `colors` is not provided.
+            - `xlim` : tuple, optional
+                Wavelength range to display.
+            - `ylim` : tuple, optional
+                Flux range to display.
+            - `labels`, `label`, `l` : str or list of str, default=None
+                Legend labels.
+            - `loc` : str, default='best'
+                Location of legend.
+            - `xlabel` : str, optional
+                Label for the x-axis.
+            - `ylabel` : str, optional
+                Label for the y-axis.
+            - `text_loc` : list of float, optional, default=[0.025, 0.95]
+                Location for emission line annotation text in axes coordinates.
+            - `use_brackets` : bool, optional, default=False
+                If True, plot units in square brackets; otherwise, parentheses.
+            - `figsize` : tuple of float, default=(6, 6)
+                Figure size in inches.
+            - `style` : str, default='astro'
+                Matplotlib style name to apply during plotting.
+            - `savefig` : bool, default=False
+                If True, saves the figure to disk using `save_figure_2_disk`.
+            - `dpi` : int, default=600
+                Resolution (dots per inch) for saved figure.
+        '''
 
         # figure params
         figsize = kwargs.get('figsize', (6,6))

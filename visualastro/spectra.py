@@ -194,7 +194,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
     Parameters
-    ----------
+    ––––––––––
     extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
         Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
         and `flux` must be given.
