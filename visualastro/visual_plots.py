@@ -71,7 +71,7 @@ class va:
 
 
     @staticmethod
-    def plotSpectralCube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
+    def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
                         norm='asinh', radial_vel=None, unit=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
@@ -139,6 +139,15 @@ class va:
                 Width and height of default ellipse.
             angle : float or None, default=None
                 Angle of ellipse in degrees.
+            - `figsize` : tuple of float, default=(6, 6)
+                Figure size in inches.
+            - `style` : str, default='astro'
+                Matplotlib or visualastro style name to apply during plotting.
+                Ex: 'astro', 'classic', etc...
+            - `savefig` : bool, default=False
+                If True, saves the figure to disk using `save_figure_2_disk`.
+            - `dpi` : int, default=600
+                Resolution (dots per inch) for saved figure.
         Notes
         –––––
         - If multiple cubes are provided, they are overplotted in sequence.
@@ -171,7 +180,7 @@ class va:
 
 
     @staticmethod
-    def plotSpectrum(extracted_spectrums=None, plot_norm_continuum=False,
+    def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=False,
                      plot_continuum_fit=False, emission_line=None, wavelength=None,
                      flux=None, continuum_fit=None, colors=None, **kwargs):
         '''
@@ -274,7 +283,7 @@ class va:
 
 
     @staticmethod
-    def plotCombineSpectrum(extracted_spectra, idx=0, wave_cuttofs=None,
+    def plot_combine_spectrum(extracted_spectra, idx=0, wave_cuttofs=None,
                             concatenate=False, return_spectra=False,
                             plot_normalize=False, use_samecolor=True, **kwargs):
 
@@ -310,7 +319,7 @@ class va:
 
 
     @staticmethod
-    def plotDensityHistogram(X, Y, bins='auto', xlog=False, ylog=False,
+    def plot_density_histogram(X, Y, bins='auto', xlog=False, ylog=False,
                              xlog_hist=True, ylog_hist=True, sharex=False,
                              sharey=False, histtype='step', normalize=True,
                              colors=None, **kwargs):
@@ -346,7 +355,7 @@ class va:
 
 
     @staticmethod
-    def plotHistogram(datas, bins='auto', xlog=False, ylog=False,
+    def plot_histogram(datas, bins='auto', xlog=False, ylog=False,
                       histtype='step', colors=None, **kwargs):
         # figure params
         figsize = kwargs.get('figsize', (6,6))
