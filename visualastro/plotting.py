@@ -161,6 +161,12 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     if plot_ellipse:
         plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
 
+    # invert axes
+    if invert_xaxis:
+        ax.invert_xaxis()
+    if invert_yaxis:
+        ax.invert_yaxis()
+
     # rotate tick labels
     if isinstance(ax, WCSAxes):
         ax.coords['ra'].set_axislabel('RA')
@@ -181,11 +187,6 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         clabel = f'${cbar_unit}$' if cbar_unit is not None else None
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
-    # invert axes
-    if invert_xaxis:
-        ax.invert_xaxis()
-    if invert_yaxis:
-        ax.invert_yaxis()
 
 
 def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
@@ -194,7 +195,6 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
                            colors=None, **kwargs):
     '''
     Plot a 2D scatter distribution with normalized density histograms.
-
     This function creates a scatter plot of `X` vs. `Y` along
     with the normalized histograms of `X` and `Y`.
     Parameters
@@ -419,6 +419,13 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
     data_list = []
+
+    # set axes
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+
     # loop over data list
     for i, data in enumerate(datas):
         color = colors[i%len(colors)]
@@ -431,11 +438,7 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
         ax.hist(data, bins=bins, color=color,
                 histtype=histtype, label=label)
 
-    # set axes parameters
-    if xlim: ax.set_xlim(xlim)
-    if ylim: ax.set_ylim(ylim)
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    # set axes labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
@@ -501,6 +504,11 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
             Label for the x-axis.
         - `ylabel` : str or None
             Label for the y-axis.
+        - `xpad`/`ypad` : float
+            padding along x and y axis used when computing
+            axis limits. Defined as:
+                xmax/min ±= xpad * (xmax - xmin)
+                ymax/min ±= ypad * (ymax - ymin)
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
@@ -516,6 +524,9 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     loc = kwargs.get('loc', 'best')
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
+    # axes
+    xpad = kwargs.get('xpad', 0.0)
+    ypad = kwargs.get('ypad', 0.0)
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
@@ -530,6 +541,9 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
     zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
     labels = labels if isinstance(labels, (list, tuple)) else [labels]
+
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
 
     y_list = []
     for i in range(len(Y)):
@@ -550,9 +564,7 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
                 alpha=alpha, zorder=zorder, label=label)
 
     # set axes parameters
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
-    set_axis_limits(X, y_list, ax, xlim, ylim)
+    set_axis_limits(X, y_list, ax, xlim, ylim, xpad=xpad, ypad=ypad)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
@@ -666,6 +678,12 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     labels = labels if isinstance(labels, (list, tuple)) else [labels]
     ecolors = ecolors if isinstance(ecolors, (list, tuple)) else [ecolors]
 
+    # set axes
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+
     for i in range(len(Y)):
         x = X[i%len(X)]
         y = Y[i%len(Y)]
@@ -691,11 +709,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         ax.errorbar(x, y, yerror, xerror, fmt='None', ecolor=ecolor, elinewidth=elinewidth,
                     capsize=capsize, capthick=capthick, barsabove=barsabove)
 
-    # set axes parameters
-    if xlim: ax.set_xlim(xlim)
-    if ylim: ax.set_ylim(ylim)
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    # set axes labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
