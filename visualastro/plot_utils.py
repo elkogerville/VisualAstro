@@ -333,7 +333,7 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
         cbar.set_label(fr'{clabel}')
 
 
-def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, xpad=0.0, ypad=0.05):
+def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     '''
     Set axis limits based on concatenated data or user-provided limits.
     Parameters
@@ -348,7 +348,21 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, xpad=0.0, ypad=0.05)
         User-defined x-axis limits.
     ylim : tuple/list, optional
         User-defined y-axis limits.
+
+    **kwargs : dict, optional
+        Additional plotting parameters.
+
+        Supported keywords:
+
+        - `xpad`/`ypad` : float
+            padding along x and y axis used when computing
+            axis limits. Defined as:
+                xmax/min ±= xpad * (xmax - xmin)
+                ymax/min ±= ypad * (ymax - ymin)
     '''
+    xpad = kwargs.get('xpad', 0.0)
+    ypad = kwargs.get('ypad', 0.05)
+
     if xdata is not None:
         # concatenate list of data into single array
         if isinstance(xdata, (list, tuple)):
