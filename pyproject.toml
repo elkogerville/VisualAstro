@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visualastro"
-version = "0.0.2"
+version = "0.0.3"
 description = "Astro data analysis and plotting package"
 authors = [
     {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
@@ -21,7 +21,6 @@ dependencies = [
     "astropy",
     "dust_extinction",
     "matplotlib",
-    "numba",
     "numpy",
     "regions",
     "scipy",
