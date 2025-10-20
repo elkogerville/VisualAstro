@@ -7,8 +7,8 @@ from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
-    plot_interactive_ellipse, plot_points, return_array_values,
-    return_imshow_norm, return_stylename, set_axis_limits,
+    plot_interactive_ellipse, plot_points,
+    return_imshow_norm, set_axis_limits,
     set_plot_colors, set_unit_labels, set_vmin_vmax,
 )
 
@@ -144,7 +144,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
 
         # set image stretch
         vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-        img_norm = return_imshow_norm(vmin, vmax, norm)
+        img_norm = return_imshow_norm(vmin, vmax, norm, **kwargs)
 
         # imshow image
         if img_norm is None:
@@ -718,15 +718,18 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
 
 # Figure Functions
 # ––––––––––––––––
-def panel_axes(nrows_ncols=(2,2), figsize=(6,6), sharex=False, sharey=False,
-               hspace=None, wspace=None, fancy_axes=False, Nticks=4, aspect=1):
+def panel_axes(nrows=1, ncols=2, figsize=(6,6), sharex=False, sharey=False,
+               hspace=None, wspace=None, width_ratios=None, height_ratios=None,
+               fancy_axes=False, Nticks=4, aspect=1):
     '''
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
     Parameters
     ––––––––––
-    nrows_ncols : tuple of int, default=(2, 2)
-        Number of subplot rows and columns, as (nrows, ncols).
+    nrows : int, default=1
+        Number of subplot rows.
+    ncols : int, default=2
+        Number of subplot columns.
     figsize : tuple of float, default=(6, 6)
         Figure size in inches as (width, height).
     sharex : bool, default=False
@@ -736,7 +739,13 @@ def panel_axes(nrows_ncols=(2,2), figsize=(6,6), sharex=False, sharey=False,
     hspace : float or None, default=None
         Height padding between subplots. If None, Matplotlib’s default spacing is used.
     wspace : float or None, default=None
+    width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
+        Defines the relative widths of the columns. Each column gets a relative width
+        of width_ratios[i] / sum(width_ratios). If not given, all columns will have the same width.
+    height_ratios : array-like of length `nrows`, optional
+        Defines the relative heights of the rows. Each row gets a relative height of
+        height_ratios[i] / sum(height_ratios). If not given, all rows will have the same height.
     fancy_axes : bool, default=False
         If True, enables "fancy" axes styling:
         - minor ticks on
@@ -755,7 +764,8 @@ def panel_axes(nrows_ncols=(2,2), figsize=(6,6), sharex=False, sharey=False,
         Flattened array of Axes objects, ordered row-wise.
     '''
 
-    Nx, Ny = nrows_ncols
+    Nx = nrows
+    Ny = ncols
 
     if fancy_axes:
         labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
@@ -764,7 +774,9 @@ def panel_axes(nrows_ncols=(2,2), figsize=(6,6), sharex=False, sharey=False,
         wspace = 0.0 if wspace is None else wspace
 
     fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace)
+    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace,
+                          width_ratios=width_ratios,
+                          height_ratios=height_ratios)
     axs = gs.subplots(sharex=sharex, sharey=sharey)
     axs = np.atleast_1d(axs).ravel()
 

@@ -215,7 +215,7 @@ def save_figure_2_disk(dpi=600, pdf_compression=6):
     # construct complete filename
     filename = f"{basename}.{extension}"
 
-    if extension == 'pdf' and isinstance(pdf_compression, int):
-        mpl.rcParams["pdf.compression"] = pdf_compression
+    with plt.rc_context(rc={'pdf.compression': int(pdf_compression)} if extension == 'pdf' else {}):
+        plt.rcParams['pdf.compression'] = pdf_compression
     # save figure
     plt.savefig(filename, format=extension, bbox_inches="tight", dpi=dpi)
