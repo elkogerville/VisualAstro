@@ -19,7 +19,7 @@
 - 3D spectral cubes
 - 1D spectra with gaussian fitting tools
 
-** Features
+## Features
 
 - Simple, high-level wrapper functions for common astrophysical plots
 - Custom matplotlib style sheets optimized for publication-quality figures
@@ -28,9 +28,10 @@
 ## Installation
 
 You can install visualastro via pip:
-
+```
 pip install visualastro
-
+```
+## Documentation
 The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
 
 ## Dependencies
