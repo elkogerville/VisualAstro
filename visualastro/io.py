@@ -1,4 +1,5 @@
 from astropy.io import fits
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -181,16 +182,21 @@ def get_kwargs(kwargs, *names, default=None):
     return default
 
 
-def save_figure_2_disk(dpi=600):
+def save_figure_2_disk(dpi=600, pdf_compression=6):
     '''
-    Saves current figure to disk as a pdf, png, or svg,
-    and prompts user for a filename and format.
+    Saves current figure to disk as a
+    eps, pdf, png, or svg, and prompts
+    user for a filename and format.
     Parameters
     ––––––––––
-    dpi : float or int
+    dpi : float or int, optional, default=600
         Resolution in dots per inch.
+    pdf_compression : int, optional, default=False
+        'Pdf.compression' value for matplotlib.rcParams.
+        Accepts integers from 0-9, with 0 meaning no
+        compression.
     '''
-    allowed_formats = {"pdf", "png", "svg"}
+    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
     # prompt user for filename, and extract extension
     filename = input("Input filename for image (ex: myimage.pdf): ").strip()
     basename, *extension = filename.rsplit(".", 1)
@@ -209,5 +215,7 @@ def save_figure_2_disk(dpi=600):
     # construct complete filename
     filename = f"{basename}.{extension}"
 
+    if extension == 'pdf' and isinstance(pdf_compression, int):
+        mpl.rcParams["pdf.compression"] = pdf_compression
     # save figure
     plt.savefig(filename, format=extension, bbox_inches="tight", dpi=dpi)
