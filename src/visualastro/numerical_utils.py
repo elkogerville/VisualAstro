@@ -1,6 +1,26 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-09-22
+Date Modified: 2025-10-17
+Description:
+    Numerical utility functions.
+Dependencies:
+    - astropy
+    - numpy
+    - scipy
+    - spectral_cube
+Module Structure:
+    - Type Checking Arrays and Objects
+        Utility functions for type checking.
+    - Science Operation Functions
+        Utility functions related to scientific operations.
+    - Numerical Operation Functions
+        Utility functions related to numerical computations.
+'''
+
 import warnings
-from astropy.io.fits import Header
 from astropy import units as u
+from astropy.io.fits import Header
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
 from scipy.interpolate import interp1d, CubicSpline

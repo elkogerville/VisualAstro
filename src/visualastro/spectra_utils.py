@@ -1,3 +1,24 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-09-22
+Date Modified: 2025-10-17
+Description:
+    Spectra utility functions.
+Dependencies:
+    - dust_extinction
+    - numpy
+    - specutils
+Module Structure:
+    - Science Spectrum Functions
+        Utility functions for scientific spectra work.
+    - Science Helper Functions
+        Utility functions for Science Spectrum Functions.
+    - Axes Labels, Format, and Styling
+        Axes related utility functions.
+    - Model Fitting Functions
+        Model fitting utility functions.
+'''
+
 import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01

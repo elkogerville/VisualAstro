@@ -1,3 +1,24 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-09-22
+Date Modified: 2025-10-19
+Description:
+    Visualastro core data classes.
+Dependencies:
+    - astropy
+    - matplotlib
+    - numpy
+    - spectral_cube
+    - specutils
+Module Structure:
+    - DataCube
+        Data class for 3D datacubes, spectral_cubes, or timeseries data.
+    - ExtractedSpectrum
+        Data class for extracted spectra.
+    - FitsFile
+        Lightweight data class for fits files.
+'''
+
 import os
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -8,7 +29,8 @@ import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
 
-
+# DataCube
+# ––––––––
 class DataCube:
     def __init__(self, data, headers=None, errors=None):
         # type checks
@@ -148,6 +170,8 @@ class DataCube:
         return np.nanstd(self.value)
 
 
+# ExtractedSpectrum
+# –––––––––––––––––
 class ExtractedSpectrum:
     def __init__(self, wavelength=None, flux=None, spectrum1d=None,
                  normalized=None, continuum_fit=None):
@@ -190,6 +214,8 @@ class ExtractedSpectrum:
         )
 
 
+# FitsFile
+# ––––––––
 class FitsFile:
     def __init__(self, data, header=None, error=None):
         data = np.asarray(data)
