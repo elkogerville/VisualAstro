@@ -31,6 +31,12 @@ dependencies = [
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"visualastro" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]
+
 [tool.setuptools.exclude-package-data]
 "*" = [
     "*.egg-info/*",
@@ -38,8 +44,6 @@ include-package-data = true
     "EGG-INFO/*",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]  # current directory
 exclude = [
     "ANIMATIONS*",
     "DOCUMENTATION*",
@@ -51,6 +55,3 @@ exclude = [
     "*.egg-info",
     "EGG-INFO*",
 ]
-
-[tool.setuptools.package-data]
-"visualastro" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]
