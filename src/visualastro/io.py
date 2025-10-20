@@ -1,5 +1,22 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-09-22
+Date Modified: 2025-10-20
+Description:
+    Functions for I/O operations within visualastro.
+Dependencies:
+    - astropy
+    - matplotlib
+    - numpy
+    - tqdm
+Module Structure:
+    - Fits File I/O Operations
+        Functions to handle Fits files I/O operations.
+    - Figure I/O Operations
+        Functions to handle matplotlib figure I/O operations.
+'''
+
 from astropy.io import fits
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm

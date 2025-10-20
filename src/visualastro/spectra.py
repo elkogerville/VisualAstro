@@ -1,8 +1,29 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-05-23
+Date Modified: 2025-10-19
+Description:
+    Spectra science functions.
+Dependencies:
+    - astropy
+    - matplotlib
+    - numpy
+    - scipy
+    - specutils
+Module Structure:
+    - Spectra Extraction Functions
+        Functions for extracting spectra from data.
+    - Spectra Plotting Functions
+        Functions for plotting extracted spectra.
+    - Spectra Fitting Functions
+        Fitting routines for spectra.
+'''
+
 from astropy.modeling import models, fitting
 import matplotlib.pyplot as plt
 import numpy as np
-from specutils.spectra import Spectrum1D
 from scipy.optimize import curve_fit
+from specutils.spectra import Spectrum1D
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
@@ -20,6 +41,8 @@ from .spectra_utils import (
 from .visual_classes import ExtractedSpectrum
 
 
+# Spectra Extraction Functions
+# ––––––––––––––––––––––––––––
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_continuum', region=None, radial_vel=None,
                          rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
@@ -188,6 +211,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     return extracted_spectra
 
 
+# Spectra Plotting Functions
+# ––––––––––––––––––––––––––
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
                   flux=None, continuum_fit=None, colors=None, **kwargs):
@@ -513,6 +538,8 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         return extracted_spectrum
 
 
+# Spectra Fitting Functions
+# –––––––––––––––––––––––––
 def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=None,
                         interpolate=True, interp_method='cubic_spline', yerror=None,
                         error_method='cubic_spline', samples=1000, return_fit_params=False,

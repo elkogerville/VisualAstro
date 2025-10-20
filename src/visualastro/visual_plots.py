@@ -1,6 +1,22 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-07-13
+Date Modified: 2025-10-20
+Description:
+    Visualastro user interface for publication ready plots.
+Dependencies:
+    - astropy
+    - matplotlib
+    - numpy
+Module Structure:
+    - Plotting Functions
+        Publication ready plots.
+    - Help
+        VisualAstro user help.
+'''
 from contextlib import contextmanager
-from astropy.wcs import WCS
 from astropy.io.fits import Header
+from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from .data_cube import plot_spectral_cube
@@ -16,6 +32,9 @@ from .visual_classes import DataCube, FitsFile
 
 
 class va:
+
+    # Plotting Functions
+    # ––––––––––––––––––
     @contextmanager
     def style(name):
         '''
@@ -924,6 +943,8 @@ class va:
     # –––– VISUALASTRO HELP ––––
 
     class help:
+        # Help
+        # ––––
         @staticmethod
         def colors(user_color=None):
             '''
