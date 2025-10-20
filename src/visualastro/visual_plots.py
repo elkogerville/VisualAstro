@@ -6,7 +6,10 @@ import numpy as np
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data
-from .plotting import imshow, panel_axes, plot_density_histogram, plot_histogram, plot_lines, scatter_plot
+from .plotting import (
+    imshow, plot_density_histogram,
+    plot_histogram, plot_lines, scatter_plot
+)
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
 from .visual_classes import DataCube, FitsFile
