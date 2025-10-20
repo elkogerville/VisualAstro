@@ -19,14 +19,19 @@ classifiers = [
 ]
 dependencies = [
     "astropy",
-    "numpy",
+    "dust_extinction",
     "matplotlib",
+    "numba",
+    "numpy",
     "regions",
     "scipy",
     "spectral_cube",
     "specutils",
     "tqdm",
 ]
+
+[project.urls]
+https://github.com/elkogerville/VisualAstro
 
 [tool.setuptools]
 include-package-data = true
