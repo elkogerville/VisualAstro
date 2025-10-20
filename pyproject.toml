@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = https://github.com/elkogerville/VisualAstro
+Homepage = "https://github.com/elkogerville/VisualAstro"
 
 [tool.setuptools]
 include-package-data = true
