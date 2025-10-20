@@ -185,37 +185,37 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5]
 
         Supported keywords:
 
-        title : bool, default=False
+        - `title` : bool, default=False
             If True, display spectral slice label as plot title.
-        emission_line : str or None, default=None
+        - `emission_line` : str or None, default=None
             Optional emission line label to display instead of slice value.
-        text_loc : list of float, default=[0.03, 0.03]
+        - `text_loc` : list of float, default=[0.03, 0.03]
             Relative axes coordinates for overlay text placement.
-        text_color : str, default='k'
+        - `text_color` : str, default='k'
             Color of overlay text.
-        colorbar : bool, default=True
+        - `colorbar` : bool, default=True
             Whether to add a colorbar.
-        cbar_width : float, default=0.03
+        - `cbar_width` : float, default=0.03
             Width of the colorbar.
-        cbar_pad : float, default=0.015
+        - `cbar_pad` : float, default=0.015
             Padding between axes and colorbar.
-        clabel : str, bool, or None, default=True
+        - `clabel` : str, bool, or None, default=True
             Label for colorbar. If True, automatically generate from cube unit.
-        xlabel, ylabel : str, default='Right Ascension', 'Declination'
+        - `xlabel`, `ylabel` : str, default='Right Ascension', 'Declination'
             Axes labels.
-        spectral_label : bool, default=True
+        - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
-        highlight : bool, default=True
+        - `highlight` : bool, default=True
             Whether to highlight interactive ellipse if plotted.
-        ellipses : list or None, default=None
+        - `ellipses` : list or None, default=None
             Ellipse objects to overlay on the image.
-        plot_ellipse : bool, default=False
+        - `plot_ellipse` : bool, default=False
             If True, plot a default or interactive ellipse.
-        center : list of two ints, default=[Nx//2, Ny//2]
+        - `center` : list of two ints, default=[Nx//2, Ny//2]
             Center of default ellipse.
-        w, h : float, default=X//5, Y//5
+        - `w`, `h` : float, default=X//5, Y//5
             Width and height of default ellipse.
-        angle : float or None, default=None
+        - `angle` : float or None, default=None
             Angle of ellipse in degrees.
     Notes
     –––––

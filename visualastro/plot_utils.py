@@ -4,7 +4,7 @@ from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 from matplotlib import colors as mcolors
-from matplotlib.colors import LogNorm
+from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 from matplotlib.patches import Circle, Ellipse
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
@@ -181,7 +181,7 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
 
 # Imshow Stretch Functions
 # ––––––––––––––––––––––––
-def return_imshow_norm(vmin, vmax, norm):
+def return_imshow_norm(vmin, vmax, norm, **kwargs):
     '''
     Return a matplotlib or astropy normalization object for image display.
     Parameters
@@ -192,14 +192,30 @@ def return_imshow_norm(vmin, vmax, norm):
         Maximum value for normalization.
     norm : str or None
         Normalization algorithm for colormap scaling.
-        - 'asinh' -> AsinhStretch using 'ImageNormalize'
+        - 'asinh' -> asinh stretch using 'ImageNormalize'
+        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
         - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'none' or None -> no normalization applied
+
+    **kwargs : dict, optional
+        Additional parameters.
+
+        Supported keywords:
+
+        - `linear_width` : float, optional, default=1
+            The effective width of the linear region, beyond
+            which the transformation becomes asymptotically logarithmic.
+            Only used in 'asinhnorm'.
+        - `gamma` : float, optional, default=0.5
+            Power law exponent.
     Returns
     –––––––
     norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
         Normalization object to pass to `imshow`. None if `norm` is 'none'.
     '''
+    linear_width = kwargs.get('linear_width', 1)
+    gamma = kwargs.get('gamma', 0.5)
     # ensure norm is a string
     norm = 'none' if norm is None else norm
     # ensure case insensitivity
@@ -207,7 +223,9 @@ def return_imshow_norm(vmin, vmax, norm):
     # dict containing possible stretch algorithms
     norm_map = {
         'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
+        'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
         'log': LogNorm(vmin=vmin, vmax=vmax),
+        'powernorm': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
         'none': None
     }
     if norm not in norm_map:
