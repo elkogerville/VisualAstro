@@ -1,5 +1,5 @@
 # Core Classes
-from .visual_classes import DataCube, ExtractedSpectrum
+from .visual_classes import DataCube, ExtractedSpectrum, FitsFile
 
 # Submodules
 from .data_cube import *

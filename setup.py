@@ -8,30 +8,30 @@ setup(
     author='Elko Gerville-Reache',
     author_email='elkogerville@gmail.com',
     license='MIT',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
-    include_package_data=True,
-    packages=find_packages(exclude=[
+    packages=find_packages(where="src", exclude=[
         'ANIMATIONS*',
         'DOCUMENTATION*',
         'Initial_Conditions*',
         'Tests*',
-	'MSG_Nbody.egg-info*',
         '*.egg-info*',
         'build*',
         'dist*',
     ]),
+    package_dir={'': 'src'},
+    include_package_data=True,
     package_data={
         'visualastro': ['stylelib/*.mplstyle'],
     },
     install_requires=[
-        'astropy'
+        'astropy',
         'numpy',
         'matplotlib',
         'regions',
         'scipy',
-        'spectral_cube'
-        'specutils'
+        'spectral_cube',
+        'specutils',
         'tqdm',
     ],
     classifiers=[
