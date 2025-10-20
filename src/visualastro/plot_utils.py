@@ -1,4 +1,5 @@
 import os
+import warnings
 from functools import partial
 from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib.pyplot as plt
@@ -17,13 +18,20 @@ from .numerical_utils import check_is_array, get_data, return_array_values
 def return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
-    consistent plotting parameters. Matplotlib styles are
-    also allowed (ex: 'classic').
+    consistent plotting parameters.
+    Avaliable styles:
+        - 'astro'
+        - 'default'
+        - 'latex'
+        - 'minimal'
+
+    Matplotlib styles are also allowed (ex: 'classic').
 
     To add custom user defined mpl sheets, add files in:
     VisualAstro/visualastro/stylelib/
     Ensure the stylesheet follows the naming convention:
         mystylesheet.mplstyle
+
     Parameters
     ––––––––––
     style : str
@@ -38,11 +46,22 @@ def return_stylename(style):
     if style in mplstyle.available:
         return style
     # if style is a visualastro stylesheet
-    else:
-        style = style + '.mplstyle'
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        style_path = os.path.join(dir_path, 'stylelib', style)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    style_path = os.path.join(dir_path, 'stylelib', f'{style}.mplstyle')
+    # ensure that style works on computer, otherwise return default style
+    try:
+        warnings.filterwarnings("ignore", category=UserWarning)
+        with plt.style.context(style_path):
+            # pass if can load style successfully on computer
+            pass
         return style_path
+    except Exception as e:
+        warnings.warn(
+            f"[visualastro] Could not apply style '{style}' ({e}). "
+            "Falling back to 'default' style."
+        )
+        fallback = os.path.join(dir_path, "stylelib", "default.mplstyle")
+        return fallback
 
 
 def lighten_color(color, mix=0.5):
