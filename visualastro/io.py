@@ -182,7 +182,7 @@ def get_kwargs(kwargs, *names, default=None):
     return default
 
 
-def save_figure_2_disk(dpi=600, pdf_compression=6):
+def save_figure_2_disk(dpi=600, pdf_compression=6, transparent=False, bbox_inches='tight', **kwargs):
     '''
     Saves current figure to disk as a
     eps, pdf, png, or svg, and prompts
@@ -195,7 +195,30 @@ def save_figure_2_disk(dpi=600, pdf_compression=6):
         'Pdf.compression' value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
         compression.
+    transparent : bool, optional, default=False
+        If True, the Axes patches will all be transparent;
+        the Figure patch will also be transparent unless
+        facecolor and/or edgecolor are specified via kwargs.
+    bbox_inches : str or Bbox, default='tight'
+        Bounding box in inches: only the given portion of the
+        figure is saved. If 'tight', try to figure out the
+        tight bbox of the figure.
+
+    **kwargs : dict, optional
+        Additional parameters.
+
+        Supported keyword arguments include:
+
+        - `facecolorcolor` : str, default='auto'
+            The facecolor of the figure. If 'auto',
+            use the current figure facecolor.
+        - `edgecolorcolor` : str, default='auto'
+            The edgecolor of the figure. If 'auto',
+            use the current figure edgecolor.
     '''
+    # –––– KWARGS ––––
+    facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
+    edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
     allowed_formats = {'eps', 'pdf', 'png', 'svg'}
     # prompt user for filename, and extract extension
     filename = input("Input filename for image (ex: myimage.pdf): ").strip()
@@ -216,6 +239,13 @@ def save_figure_2_disk(dpi=600, pdf_compression=6):
     filename = f"{basename}.{extension}"
 
     with plt.rc_context(rc={'pdf.compression': int(pdf_compression)} if extension == 'pdf' else {}):
-        plt.rcParams['pdf.compression'] = pdf_compression
-    # save figure
-    plt.savefig(filename, format=extension, bbox_inches="tight", dpi=dpi)
+        # save figure
+        plt.savefig(
+            fname=filename,
+            format=extension,
+            transparent=transparent,
+            bbox_inches=bbox_inches,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            dpi=dpi
+        )
