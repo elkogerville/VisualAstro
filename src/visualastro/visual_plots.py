@@ -11,7 +11,7 @@ Dependencies:
 Module Structure:
     - Plotting Functions
         Publication ready plots.
-    - Help
+    - VisualAstro Help
         VisualAstro user help.
 '''
 from contextlib import contextmanager
@@ -32,7 +32,6 @@ from .visual_classes import DataCube, FitsFile
 
 
 class va:
-
     # Plotting Functions
     # ––––––––––––––––––
     @contextmanager
@@ -940,11 +939,8 @@ class va:
                 save_figure_2_disk(dpi)
             plt.show()
 
-    # –––– VISUALASTRO HELP ––––
-
+    # –––– VisualAstro Help ––––
     class help:
-        # Help
-        # ––––
         @staticmethod
         def colors(user_color=None):
             '''

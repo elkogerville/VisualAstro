@@ -32,6 +32,66 @@ from specutils.spectra import Spectrum1D
 # DataCube
 # ––––––––
 class DataCube:
+    '''
+    Lightweight wrapper for handling 3D spectral_cubes
+    or arrays with optional headers and error arrays.
+    This class supports both `numpy.ndarray` and `SpectralCube`
+    inputs and provides convenient access to cube statistics,
+    metadata, and visualization methods.
+
+    Parameters
+    ––––––––––
+    data : np.ndarray or SpectralCube
+        The input data cube. Must be 3-dimensional (T, N, M).
+    headers : fits.Header or array-like of fits.Header, optional, default=None
+        Header(s) associated with the data cube. If provided as a list or array,
+        its length must match the cube’s first dimension.
+    errors : np.ndarray, optional, default=None
+        Array of uncertainties with the same shape as `data`.
+
+    Attributes
+    ––––––––––
+    data : np.ndarray or SpectralCube
+        Original data object.
+    header : array-like of fits.Header or fits.Header
+        Header(s) associated with the data cube.
+    error : np.ndarray or None
+        Error array if provided, else None.
+    value : np.ndarray
+        Raw numpy array of the cube values.
+    unit : astropy.units.Unit or None
+        Physical unit of the data if available.
+    shape : tuple
+        Shape of the cube (T, N, M).
+    size : int
+        Total number of elements in the cube.
+    ndim : int
+        Number of dimensions.
+    dtype : np.dtype
+        Data type of the array.
+    len : int
+        Length of the first axis (T dimension).
+    has_nan : bool
+        True if any element in the cube is NaN.
+    itemsize : int
+        Size of one array element in bytes.
+    nbytes : int
+        Total memory footprint of the data in bytes.
+
+    Raises
+    ––––––
+    TypeError
+        If `data` or `headers` are not of an expected type.
+    ValueError
+        If `data` is not 3D, or if the dimensions of `headers` or `errors` do not match `data`.
+
+    Examples
+    ––––––––
+    Load DataCube from fits file
+    >>> cube = load_fits(path)
+    >>> cube.header
+    >>> cube.inspect()
+    '''
     def __init__(self, data, headers=None, errors=None):
         # type checks
         if not isinstance(data, (np.ndarray, SpectralCube)):
@@ -39,10 +99,10 @@ class DataCube:
                 f"'data' must be a numpy array or SpectralCube, got {type(data).__name__}."
             )
         if headers is not None and not isinstance(
-            headers, (list, np.ndarray, fits.Header)
+            headers, (list, fits.Header, np.ndarray, tuple)
         ):
             raise TypeError(
-                f"'headers' must be a list, array or fits.Header, got {type(headers).__name__}."
+                f"'headers' must be a fits.Header or array-like of fits.header, got {type(headers).__name__}."
             )
 
         # extract array view for validation
@@ -102,34 +162,117 @@ class DataCube:
 
     # support slicing
     def __getitem__(self, key):
+        '''
+        Return a slice or sub-cube from the data.
+        Parameters
+        ––––––––––
+        key : slice or tuple
+            Index or slice to apply to the cube.
+        Returns
+        –––––––
+        slice : same type as `data`
+            The corresponding subset of the cube.
+        '''
         return self.data[key]
+
     # support reshaping
     def reshape(self, *shape):
-            return self.value.reshape(*shape)
+        '''
+        Return a reshaped view of the cube data.
+        Parameters
+        ––––––––––
+        *shape : int
+            New shape for the data array.
+        Returns
+        –––––––
+        np.ndarray
+            Reshaped data array.
+        '''
+        return self.value.reshape(*shape)
+
     # support len()
     def __len__(self):
+        '''
+        Return the number of spectral slices along the first axis.
+        Returns
+        –––––––
+        int
+            Length of the first dimension (T).
+        '''
         return len(self.value)
+
     # support numpy operations
     def __array__(self):
+        '''
+        Return the underlying data as a NumPy array.
+        Returns
+        –––––––
+        np.ndarray
+            The underlying 3D array representation.
+        '''
         return self.value
 
     def header_get(self, key):
-        if isinstance(self.header, (list, tuple)):
+        '''
+        Retrieve a header value by key from one or multiple headers.
+        Parameters
+        ––––––––––
+        key : str
+            FITS header keyword to retrieve.
+        Returns
+        –––––––
+        value : list or str
+            Header value(s) corresponding to `key`.
+        Raises
+        ––––––
+        ValueError
+            If headers are of an unsupported type or `key` is not found.
+        '''
+        if isinstance(self.header, (list, np.ndarray, tuple)):
             return [h[key] for h in self.header]
         elif isinstance(self.header, Header):
-            return self.header[key]
+            return self.header[key] # type: ignore
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
     def with_mask(self, mask):
+        '''
+        Apply a boolean mask to the cube and return the masked data.
+        Parameters
+        ––––––––––
+        mask : np.ndarray or Mask
+            Boolean mask to apply. Must match the cube shape.
+        Returns
+        –––––––
+        masked_data : same type as `data`
+            Masked version of the data.
+        Raises
+        ––––––
+        TypeError
+            If masking is unsupported for the data type.
+        '''
         if isinstance(self.data, SpectralCube):
-            return self.data.with_mask(mask)
+            return self.data.with_mask(mask) # type: ignore
         elif isinstance(self.data, (np.ndarray, Quantity)):
             return self.data[mask]
         else:
             raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
 
     def inspect(self, figsize=(8,4), style='astro'):
+        '''
+        Plot the mean and standard deviation across each cube slice.
+        Useful for quickly identifying slices of interest in the cube.
+        Parameters
+        ––––––––––
+        figsize : tuple, optional
+            Size of the output figure. Default = (8, 4).
+        style : str, optional
+            Matplotlib style to use for plotting. Default = 'astro'.
+        Notes
+        –––––
+        This method visualizes the mean and standard deviation of flux across
+        each 2D slice of the cube as a function of slice index.
+        '''
         cube = self.value
         # compute mean and std across wavelengths
         mean_flux = np.nanmean(cube, axis=(1, 2))
@@ -151,22 +294,46 @@ class DataCube:
 
             plt.show()
 
-
     # physical properties / statistics
     @property
     def max(self):
+        '''
+        Returns
+        –––––––
+        float : Maximum value in the cube (ignoring NaNs).
+        '''
         return np.nanmax(self.value)
     @property
     def min(self):
+        '''
+        Returns
+        –––––––
+        float : Minimum value in the cube (ignoring NaNs).
+        '''
         return np.nanmin(self.value)
     @property
     def mean(self):
+        '''
+        Returns
+        –––––––
+        float : Mean of all values in the cube (ignoring NaNs).
+        '''
         return np.nanmean(self.value)
     @property
     def median(self):
+        '''
+        Returns
+        –––––––
+        float : Median of all values in the cube (ignoring NaNs).
+        '''
         return np.nanmedian(self.value)
     @property
     def std(self):
+        '''
+        Returns
+        –––––––
+        float : Standard deviation of all values in the cube (ignoring NaNs).
+        '''
         return np.nanstd(self.value)
 
 
