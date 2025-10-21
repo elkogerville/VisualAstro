@@ -26,15 +26,17 @@ import os
 import warnings
 from functools import partial
 from astropy.visualization import AsinhStretch, ImageNormalize
-import matplotlib.pyplot as plt
-import matplotlib.style as mplstyle
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 from matplotlib.patches import Circle, Ellipse
+import matplotlib.pyplot as plt
+import matplotlib.style as mplstyle
+import matplotlib.ticker as ticker
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import check_is_array, get_data, return_array_values
+from .va_config import va_config
 
 
 # Plot Style and Color Functions
@@ -74,7 +76,6 @@ def return_stylename(style):
     style_path = os.path.join(dir_path, 'stylelib', f'{style}.mplstyle')
     # ensure that style works on computer, otherwise return default style
     try:
-        warnings.filterwarnings("ignore", category=UserWarning)
         with plt.style.context(style_path):
             # pass if can load style successfully on computer
             pass
@@ -84,7 +85,7 @@ def return_stylename(style):
             f"[visualastro] Could not apply style '{style}' ({e}). "
             "Falling back to 'default' style."
         )
-        fallback = os.path.join(dir_path, "stylelib", "default.mplstyle")
+        fallback = os.path.join(dir_path, 'stylelib', va_config.style_fallback)
         return fallback
 
 
@@ -109,7 +110,7 @@ def lighten_color(color, mix=0.5):
     return mcolors.to_hex(mixed)
 
 
-def sample_cmap(N, cmap='turbo', return_hex=False):
+def sample_cmap(N, cmap=va_config.cmap, return_hex=False):
     '''
     Sample N distinct colors from a given matplotlib colormap
     returned as RGBA tuples in an array of shape (N,4).
@@ -133,7 +134,7 @@ def sample_cmap(N, cmap='turbo', return_hex=False):
     return colors
 
 
-def set_plot_colors(user_colors=None, cmap='turbo'):
+def set_plot_colors(user_colors=None, cmap=va_config.cmap):
     '''
     Returns plot and model colors based on predefined palettes or user input.
     Parameters
@@ -188,7 +189,7 @@ def set_plot_colors(user_colors=None, cmap='turbo'):
         }
     }
 
-    default_palette = 'ibm_contrast'
+    default_palette = va_config.default_palette
     # default case
     if user_colors is None:
         palette = palettes[default_palette]
@@ -257,8 +258,8 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
     norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
         Normalization object to pass to `imshow`. None if `norm` is 'none'.
     '''
-    linear_width = kwargs.get('linear_width', 1)
-    gamma = kwargs.get('gamma', 0.5)
+    linear_width = kwargs.get('linear_width', va_config.linear_width)
+    gamma = kwargs.get('gamma', va_config.gamma)
     # ensure norm is a string
     norm = 'none' if norm is None else norm
     # ensure case insensitivity
@@ -280,7 +281,7 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
     return norm_map[norm]
 
 
-def set_vmin_vmax(data, percentile=[1,99], vmin=None, vmax=None):
+def set_vmin_vmax(data, percentile=va_config.percentile, vmin=None, vmax=None):
     '''
     Compute vmin and vmax for image display. By default uses the
     percentile range [1,99], but optionally vmin and/or vmax can
@@ -363,9 +364,10 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
 
 # Axes Labels, Format, and Styling
 # ––––––––––––––––––––––––––––––––
-def make_plot_grid(nrows=1, ncols=2, figsize=(6,6), sharex=False, sharey=False,
-                   hspace=None, wspace=None, width_ratios=None, height_ratios=None,
-                   fancy_axes=False, Nticks=4, aspect=1):
+def make_plot_grid(nrows=va_config.nrows, ncols=va_config.ncols, figsize=va_config.figsize,
+                   sharex=va_config.sharex, sharey=va_config.sharey, hspace=va_config.hspace,
+                   wspace=va_config.wspace, width_ratios=None, height_ratios=None,
+                   fancy_axes=False, Nticks=va_config.Nticks, aspect=va_config.aspect):
     '''
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
@@ -432,9 +434,9 @@ def make_plot_grid(nrows=1, ncols=2, figsize=(6,6), sharex=False, sharey=False,
             if fancy_axes:
                 ax.minorticks_on()
                 ax.tick_params(axis='both', length=2, direction='in',
-                            which='both', labeltop=labeltop[i][j],
-                            labelright=labelright[i][j],
-                            right=True, top=True)
+                               which='both', labeltop=labeltop[i][j],
+                               labelright=labelright[i][j],
+                               right=True, top=True)
             ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
             ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
             ax.set_box_aspect(aspect)
@@ -442,7 +444,8 @@ def make_plot_grid(nrows=1, ncols=2, figsize=(6,6), sharex=False, sharey=False,
     return fig, axs
 
 
-def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
+def add_colorbar(im, ax, cbar_width=va_config.cbar_width,
+                 cbar_pad=va_config.cbar_pad, clabel=None):
     '''
     Add a colorbar next to an Axes.
     Parameters
@@ -468,7 +471,7 @@ def add_colorbar(im, ax, cbar_width=0.03, cbar_pad=0.015, clabel=None):
     # add colorbar
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
     # formatting and label
-    cbar.ax.tick_params(which='both', direction='out')
+    cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
 
@@ -500,8 +503,8 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
                 xmax/min ±= xpad * (xmax - xmin)
                 ymax/min ±= ypad * (ymax - ymin)
     '''
-    xpad = kwargs.get('xpad', 0.0)
-    ypad = kwargs.get('ypad', 0.05)
+    xpad = kwargs.get('xpad', va_config.xpad)
+    ypad = kwargs.get('ypad', va_config.ypad)
 
     if xdata is not None:
         # concatenate list of data into single array
@@ -542,7 +545,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     ax.set_ylim(ylim)
 
 
-def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=False):
+def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=va_config.use_brackets):
     '''
     Automatically format labels including units for any plot involving intensity as
     a function of spectral type.
@@ -644,7 +647,10 @@ def set_unit_labels(unit):
 
 # Plot Matplotlib Patches and Shapes
 # ––––––––––––––––––––––––––––––––––
-def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'):
+def plot_circles(circles, ax, colors=None,
+                 linewidth=va_config.circle_linewidth,
+                 fill=va_config.circle_fill,
+                 cmap=va_config.cmap):
     '''
     Plot one or more circles on a Matplotlib axis with customizable style.
     Parameters
@@ -678,7 +684,7 @@ def plot_circles(circles, ax, colors=None, linewidth=2, fill=False, cmap='turbo'
         N = circles.shape[0]
         # set circle colors
         if colors is None:
-            colors = ['r', 'mediumvioletred', 'magenta'] if N<=3 else sample_cmap(N)
+            colors = ['r', 'mediumvioletred', 'magenta'] if N<=3 else sample_cmap(N, cmap=cmap)
         if isinstance(colors, str):
             colors = [colors]
 
@@ -734,9 +740,9 @@ def plot_ellipses(ellipses, ax):
 
 
 def plot_interactive_ellipse(center, w, h, ax,
-                             text_loc=[0.03,0.03],
-                             text_color='k',
-                             highlight=True):
+                             text_loc=va_config.ellipse_label_loc,
+                             text_color=va_config.text_color,
+                             highlight=va_config.highlight):
     '''
     Create an interactive ellipse selector on an Axes
     along with an interactive text window displaying
@@ -773,12 +779,12 @@ def plot_interactive_ellipse(center, w, h, ax,
     ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]),
                                         width=w, height=h)
     # define interactive ellipse
-    selector = ellipse_region.as_mpl_selector(ax, callback=partial(update_ellipse_region, text=text))
+    selector = ellipse_region.as_mpl_selector(ax, callback=partial(_update_ellipse_region, text=text))
     # bind ellipse to axes
     ax._ellipse_selector = selector
 
 
-def update_ellipse_region(region, text):
+def _update_ellipse_region(region, text):
     '''
     Update ellipse information text when the
     interactive region is modified.

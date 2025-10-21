@@ -28,6 +28,7 @@ from .plotting import (
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
+from .va_config import va_config
 from .visual_classes import DataCube, FitsFile
 
 
@@ -63,9 +64,9 @@ class va:
 
 
     @staticmethod
-    def imshow(datas, idx=None, vmin=None, vmax=None, norm='asinh',
-               percentile=[3,99.5], origin='lower', wcs_input=None,
-               invert_wcs=False, cmap='turbo', aspect=None, **kwargs):
+    def imshow(datas, idx=None, vmin=va_config.vmin, vmax=va_config.vmax, norm=va_config.norm,
+               percentile=va_config.percentile, origin=va_config.origin, wcs_input=None,
+               invert_wcs=False, cmap=va_config.cmap, aspect=va_config.aspect, **kwargs):
 
         '''
         Convenience wrapper for `imshow`, which displays a
@@ -178,11 +179,11 @@ class va:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
         # by default plot WCS if available
         wcs = None
         if wcs_input is not False:
@@ -225,8 +226,9 @@ class va:
 
 
     @staticmethod
-    def plot_spectral_cube(cubes, idx, vmin=None, vmax=None, percentile=[3,99.5],
-                           norm='asinh', radial_vel=None, unit=None, **kwargs):
+    def plot_spectral_cube(cubes, idx, vmin=va_config.vmin, vmax=va_config.vmax,
+                           percentile=va_config.percentile, norm=va_config.norm,
+                           radial_vel=None, unit=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
         along a given slice.
@@ -305,11 +307,11 @@ class va:
         - If multiple cubes are provided, they are overplotted in sequence.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         cubes = cubes if isinstance(cubes, (list, np.ndarray, tuple)) else [cubes]
 
@@ -334,7 +336,7 @@ class va:
     @staticmethod
     def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=False,
                       plot_continuum_fit=False, emission_line=None, wavelength=None,
-                      flux=None, continuum_fit=None, colors=None, **kwargs):
+                      flux=None, continuum_fit=None, colors=va_config.colors, **kwargs):
         '''
         Convenience wrapper for `plot_spectrum`, which visualizes extracted
         spectra with optional continuum fits and emission-line overlays.
@@ -411,11 +413,11 @@ class va:
         '''
 
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         # set plot style
         style = return_stylename(style)
@@ -522,11 +524,11 @@ class va:
         wavelength interval before plotting.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         # set plot style
         style = return_stylename(style)
@@ -553,10 +555,11 @@ class va:
 
 
     @staticmethod
-    def plot_density_histogram(X, Y, bins='auto', xlog=False, ylog=False,
-                             xlog_hist=True, ylog_hist=True, sharex=False,
-                             sharey=False, histtype='step', normalize=True,
-                             colors=None, **kwargs):
+    def plot_density_histogram(X, Y, bins='auto', xlog=va_config.xlog,
+                               ylog=va_config.ylog, xlog_hist=va_config.xlog_hist,
+                               ylog_hist=va_config.ylog_hist, sharex=va_config.sharex,
+                               sharey=va_config.sharey, histtype=va_config.histtype,
+                               normalize=True, colors=va_config.colors, **kwargs):
         '''
         Convenience wrapper for `plot_density_histogram`, to plot 2D scatter
         distributions with normalizable histograms of the distributions.
@@ -632,11 +635,11 @@ class va:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -663,8 +666,9 @@ class va:
 
 
     @staticmethod
-    def plot_histogram(datas, bins='auto', xlog=False, ylog=False,
-                      histtype='step', colors=None, **kwargs):
+    def plot_histogram(datas, bins=va_config.bins, xlog=va_config.xlog,
+                       ylog=va_config.ylog, histtype=va_config.histtype,
+                       colors=va_config.colors, **kwargs):
         '''
         Convenience wrapper for `plot_histogram`, to plot one or
         more histograms.
@@ -723,11 +727,11 @@ class va:
         '''
         # –––– KWARGS ––––
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -743,10 +747,13 @@ class va:
 
     @staticmethod
     def plot(X, Y, normalize=False,
-             xlog=False, ylog=False,
-             colors=None, linestyle='-',
-             linewidth=0.8, alpha=1,
-             zorder=None, **kwargs):
+             xlog=va_config.xlog,
+             ylog=va_config.ylog,
+             colors=va_config.colors,
+             linestyle=va_config.linestyle,
+             linewidth=va_config.linewidth,
+             alpha=va_config.alpha, zorder=None,
+             **kwargs):
         '''
         Convenience wrapper for `plot_lines`, to plot one or more lines.
 
@@ -822,11 +829,11 @@ class va:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -844,9 +851,10 @@ class va:
 
     @staticmethod
     def scatter(X, Y, xerr=None, yerr=None, normalize=False,
-                xlog=False, ylog=False, colors=None, size=10,
-                marker='o', alpha=1, edgecolors='face',
-                **kwargs):
+                xlog=va_config.xlog, ylog=va_config.ylog,
+                colors=va_config.colors, size=va_config.scatter_size,
+                marker=va_config.marker, alpha=va_config.alpha,
+                edgecolors=va_config.edgecolors, **kwargs):
 
         '''
         Convenience wrapper for `scatter_plot`, to scatter plot one or more distributions.
@@ -921,11 +929,11 @@ class va:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', (6,6))
-        style = kwargs.get('style', 'astro')
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
         # savefig
-        savefig = kwargs.get('savefig', False)
-        dpi = kwargs.get('dpi', 600)
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):

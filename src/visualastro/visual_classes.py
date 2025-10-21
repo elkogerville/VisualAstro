@@ -28,6 +28,7 @@ import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
+from .va_config import va_config
 
 # DataCube
 # ––––––––
@@ -258,7 +259,7 @@ class DataCube:
         else:
             raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
 
-    def inspect(self, figsize=(8,4), style='astro'):
+    def inspect(self, figsize=(8,4), style=va_config.style):
         '''
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.

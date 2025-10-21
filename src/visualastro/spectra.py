@@ -37,6 +37,7 @@ from .spectra_utils import (
     compute_continuum_fit,
     deredden_flux, gaussian,
     gaussian_continuum, gaussian_line,
+    va_config,
 )
 from .visual_classes import ExtractedSpectrum
 
@@ -137,16 +138,16 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     # doppler convention
     convention = kwargs.get('convention', None)
     # dereddening parameters
-    Rv = kwargs.get('Rv', 3.1)
-    Ebv = kwargs.get('Ebv', 0.19)
-    deredden_method = kwargs.get('deredden_method', 'WD01')
-    deredden_region = kwargs.get('deredden_region', 'LMCAvg')
+    Rv = kwargs.get('Rv', va_config.Rv)
+    Ebv = kwargs.get('Ebv', va_config.Ebv)
+    deredden_method = kwargs.get('deredden_method', va_config.deredden_method)
+    deredden_region = kwargs.get('deredden_region', va_config.deredden_region)
     # figure params
-    figsize = kwargs.get('figsize', (6,6))
-    style = kwargs.get('style', 'astro')
+    figsize = kwargs.get('figsize', va_config.figsize)
+    style = kwargs.get('style', va_config.style)
     # savefig
-    savefig = kwargs.get('savefig', False)
-    dpi = kwargs.get('dpi', 600)
+    savefig = kwargs.get('savefig', va_config.savefig)
+    dpi = kwargs.get('dpi', va_config.dpi)
 
     # ensure cubes are iterable
     cubes = check_units_consistency(cubes)
@@ -215,7 +216,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 # ––––––––––––––––––––––––––
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
-                  flux=None, continuum_fit=None, colors=None, **kwargs):
+                  flux=None, continuum_fit=None, colors=va_config.colors, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
     Parameters
@@ -280,21 +281,21 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     # –––– KWARGS ––––
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=0.8)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=va_config.linestyle)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=va_config.linewidth)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=va_config.alpha)
     zorder = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
-    cmap = kwargs.get('cmap', 'turbo')
+    cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', 'best')
+    loc = kwargs.get('loc', va_config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    text_loc = kwargs.get('text_loc', [0.025, 0.95])
-    use_brackets = kwargs.get('use_brackets', False)
+    text_loc = kwargs.get('text_loc', va_config.plot_spectrum_text_loc)
+    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
 
     # ensure an axis is passed
     if ax is None:
@@ -377,7 +378,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                           concatenate=False, return_spectra=False,
                           plot_normalize=False, use_samecolor=True,
-                          colors=None, **kwargs):
+                          colors=va_config.colors, **kwargs):
     '''
     Allows for easily plotting multiple spectra and stiching them together into
     one `ExtractedSpectrum` object.
@@ -456,16 +457,16 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     ylim = kwargs.get('ylim', None)
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=0.8)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
-    cmap = kwargs.get('cmap', 'turbo')
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=va_config.linestyle)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=va_config.linewidth)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=va_config.alpha)
+    cmap = kwargs.get('cmap', va_config.cmap)
     # labels
     label = kwargs.get('label', None)
-    loc = kwargs.get('loc', 'best')
+    loc = kwargs.get('loc', va_config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    use_brackets = kwargs.get('use_brackets', False)
+    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
 
     # ensure units match and that extracted_spectra is a list
     extracted_spectra = check_units_consistency(extracted_spectra)
@@ -630,19 +631,19 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     '''
     # –––– KWARGS ––––
     # figure params
-    figsize = kwargs.get('figsize', (6,6))
-    style = kwargs.get('style', 'astro')
+    figsize = kwargs.get('figsize', va_config.figsize)
+    style = kwargs.get('style', va_config.style)
     xlim = kwargs.get('xlim', None)
     plot_type = kwargs.get('plot_type', 'plot')
     # labels
     label = kwargs.get('label', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = kwargs.get('colors', None)
-    use_brackets = kwargs.get('use_brackets', False)
+    colors = kwargs.get('colors', va_config.colors)
+    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
     # savefig
-    savefig = kwargs.get('savefig', False)
-    dpi = kwargs.get('dpi', 600)
+    savefig = kwargs.get('savefig', va_config.savefig)
+    dpi = kwargs.get('dpi', va_config.dpi)
 
     # ensure arrays are not quantity objects
     wave_unit = extracted_spectrum.wavelength.unit
@@ -796,7 +797,8 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
         return [integrated_flux, FWHM, mu], [flux_error, FWHM_error, mu_error]
 
 def gaussian_levmarLSQ(spectra_dict, p0, wave_range, N_samples=1000, subtract_continuum=False,
-                       interp_method='cubic_spline', colors=None, style='astro', figsize=(6,6), xlim=None):
+                       interp_method='cubic_spline', colors=va_config.colors, style=va_config.style,
+                       figsize=va_config.figsize, xlim=None):
 
     wavelength = spectra_dict.wavelength
     flux = spectra_dict.flux.copy()

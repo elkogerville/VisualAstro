@@ -10,4 +10,5 @@ from .plotting import *
 from .plot_utils import *
 from .spectra import *
 from .spectra_utils import *
+from .va_config import va_config
 from .visual_plots import *

@@ -14,8 +14,6 @@ Module Structure:
 '''
 
 from astropy.visualization.wcsaxes.core import WCSAxes
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
@@ -24,15 +22,15 @@ from .plot_utils import (
     add_colorbar, plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
     return_imshow_norm, set_axis_limits,
-    set_plot_colors, set_unit_labels, set_vmin_vmax,
+    set_plot_colors, set_unit_labels, set_vmin_vmax, va_config,
 )
 
 
 # Plotting Functions
 # ––––––––––––––––––
-def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
-           percentile=[3,99.5], origin='lower', cmap='turbo',
-           aspect=None, **kwargs):
+def imshow(datas, ax, idx=None, vmin=va_config.vmin, vmax=va_config.vmax,
+           norm=None, percentile=va_config.percentile, origin=va_config.origin,
+           cmap=va_config.cmap, aspect=va_config.aspect, **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
     Parameters
@@ -117,14 +115,14 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
     invert_xaxis = kwargs.get('invert_xaxis', False)
     invert_yaxis = kwargs.get('invert_yaxis', False)
     # labels
-    text_loc = kwargs.get('text_loc', [0.03,0.03])
-    text_color = kwargs.get('text_color', 'k')
+    text_loc = kwargs.get('text_loc', va_config.text_loc)
+    text_color = kwargs.get('text_color', va_config.text_color)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colorbar = kwargs.get('colorbar', True)
-    clabel = kwargs.get('clabel', True)
-    cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_pad = kwargs.get('cbar_pad', 0.015)
+    colorbar = kwargs.get('colorbar', va_config.cbar)
+    clabel = kwargs.get('clabel', va_config.clabel)
+    cbar_width = kwargs.get('cbar_width', va_config.cbar_width)
+    cbar_pad = kwargs.get('cbar_pad', va_config.cbar_pad)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -204,10 +202,10 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None, norm=None,
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 
 
-def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
+def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=va_config.bins,
                            xlog=False, ylog=False, xlog_hist=False,
-                           ylog_hist=False, histtype='step', normalize=True,
-                           colors=None, **kwargs):
+                           ylog_hist=False, histtype=va_config.histtype,
+                           normalize=True, colors=va_config.colors, **kwargs):
     '''
     Plot a 2D scatter distribution with normalized density histograms.
     This function creates a scatter plot of `X` vs. `Y` along
@@ -274,21 +272,21 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     # scatter params
-    sizes = get_kwargs(kwargs, 'size', 's', default=10)
-    markers = get_kwargs(kwargs, 'marker', 'm', default='o')
-    alphas = get_kwargs(kwargs, 'alpha', 'a', default=1)
-    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=None)
+    sizes = get_kwargs(kwargs, 'size', 's', default=va_config.scatter_size)
+    markers = get_kwargs(kwargs, 'marker', 'm', default=va_config.marker)
+    alphas = get_kwargs(kwargs, 'alpha', 'a', default=va_config.alpha)
+    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=va_config.edgecolors)
     # line params
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default='-')
-    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=0.8)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=va_config.linestyle)
+    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=va_config.linewidth)
     zorders = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
-    cmap = kwargs.get('cmap', 'turbo')
+    cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', 'best')
+    loc = kwargs.get('loc', va_config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
 
@@ -371,8 +369,9 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins='auto',
         ax.legend(loc=loc)
 
 
-def plot_histogram(datas, ax, bins='auto', xlog=False,
-                   ylog=False, histtype='step', colors=None, **kwargs):
+def plot_histogram(datas, ax, bins=va_config.bins, xlog=False,
+                   ylog=False, histtype=va_config.histtype,
+                   colors=va_config.colors, **kwargs):
     '''
     Plot one or more histograms on a given Axes object.
     Parameters
@@ -418,13 +417,13 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    cmap = kwargs.get('cmap', 'turbo')
+    cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', 'best')
+    loc = kwargs.get('loc', va_config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
 
@@ -461,8 +460,11 @@ def plot_histogram(datas, ax, bins='auto', xlog=False,
 
 
 def plot_lines(X, Y, ax, normalize=False, xlog=False,
-               ylog=False, colors=None, linestyle='-',
-               linewidth=0.8, alpha=1, zorder=None, **kwargs):
+               ylog=False, colors=va_config.colors,
+               linestyle=va_config.linestyle,
+               linewidth=va_config.linewidth,
+               alpha=va_config.alpha,
+               zorder=None, **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
     Parameters
@@ -529,8 +531,8 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=linewidth)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=1)
-    cmap = kwargs.get('cmap', 'turbo')
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=va_config.alpha)
+    cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
@@ -587,8 +589,9 @@ def plot_lines(X, Y, ax, normalize=False, xlog=False,
 
 
 def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
-                 xlog=False, ylog=False, colors=None, size=10,
-                 marker='o', alpha=1, edgecolors='face', **kwargs):
+                 xlog=False, ylog=False, colors=va_config.colors,
+                 size=va_config.scatter_size, marker=va_config.marker,
+                 alpha=va_config.alpha, edgecolors=va_config.edgecolors, **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
     Parameters
@@ -656,21 +659,21 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
     markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
-    cmap = kwargs.get('cmap', 'turbo')
+    cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', 'best')
+    loc = kwargs.get('loc', va_config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     # errorbars
-    ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=None)
-    elinewidth = kwargs.get('elinewidth', 1)
-    capsize = kwargs.get('capsize', 1)
-    capthick = kwargs.get('capthick', 1)
-    barsabove = kwargs.get('barsabove', False)
+    ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=va_config.ecolors)
+    elinewidth = kwargs.get('elinewidth', va_config.elinewidth)
+    capsize = kwargs.get('capsize', va_config.capsize)
+    capthick = kwargs.get('capthick', va_config.capthick)
+    barsabove = kwargs.get('barsabove', va_config.barsabove)
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)
@@ -721,7 +724,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=False,
         if yerr is not None:
             yerror = yerr[i%len(yerr)]
 
-        ax.errorbar(x, y, yerror, xerror, fmt='None', ecolor=ecolor, elinewidth=elinewidth,
+        ax.errorbar(x, y, yerror, xerror, fmt=va_config.eb_fmt, ecolor=ecolor, elinewidth=elinewidth,
                     capsize=capsize, capthick=capthick, barsabove=barsabove)
 
     # set axes labels

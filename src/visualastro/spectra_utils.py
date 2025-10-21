@@ -24,8 +24,9 @@ from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from specutils.fitting import fit_generic_continuum, fit_continuum
-from .visual_classes import ExtractedSpectrum
 from .numerical_utils import mask_within_range, return_array_values
+from .visual_classes import ExtractedSpectrum
+from .va_config import va_config
 
 
 # Science Spectrum Functions
@@ -80,8 +81,9 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     return continuum_fit
 
 
-def deredden_flux(wavelength, flux, Rv=3.1, Ebv=0.19,
-                  deredden_method='WD01', region='LMCAvg'):
+def deredden_flux(wavelength, flux, Rv=va_config.Rv, Ebv=va_config.Ebv,
+                  deredden_method=va_config.deredden_method,
+                  region=va_config.deredden_region):
     '''
     Apply extinction correction (dereddening) to a spectrum.
     Default values are for LMC parameters.
