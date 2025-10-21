@@ -109,6 +109,7 @@ class VAConfig:
 
         # Science Params
         # ––––––––––––––
+
         # plot_spectrum params
         self.plot_spectrum_text_loc = [0.025, 0.95]
 
