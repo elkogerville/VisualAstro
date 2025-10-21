@@ -22,6 +22,7 @@ import numpy as np
 from tqdm import tqdm
 from .numerical_utils import check_is_array
 from .visual_classes import FitsFile
+from .va_config import va_config
 
 
 # Fits File I/O Operations
@@ -46,7 +47,8 @@ def load_fits(filepath, header=True, error=True,
         If True, transpose the data array before returning.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
-        determines the dtype from the data.
+        determines the dtype from the data. Will convert to
+        np.float64 if not floating.
     Returns
     –––––––
     FitsFile
@@ -78,7 +80,7 @@ def load_fits(filepath, header=True, error=True,
         return data
 
 
-def get_dtype(data, dtype=None, default_dtype=np.float64):
+def get_dtype(data, dtype=None, default_dtype=va_config.default_unit):
     '''
     Returns the dtype from the provided data. Promotes
     integers to floats if needed.
@@ -199,7 +201,8 @@ def get_kwargs(kwargs, *names, default=None):
     return default
 
 
-def save_figure_2_disk(dpi=600, pdf_compression=6, transparent=False, bbox_inches='tight', **kwargs):
+def save_figure_2_disk(dpi=va_config.dpi, pdf_compression=va_config.pdf_compression,
+                       transparent=False, bbox_inches=va_config.bbox_inches, **kwargs):
     '''
     Saves current figure to disk as a
     eps, pdf, png, or svg, and prompts
@@ -236,7 +239,7 @@ def save_figure_2_disk(dpi=600, pdf_compression=6, transparent=False, bbox_inche
     # –––– KWARGS ––––
     facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
     edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
-    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
+    allowed_formats = va_config.allowed_formats
     # prompt user for filename, and extract extension
     filename = input("Input filename for image (ex: myimage.pdf): ").strip()
     basename, *extension = filename.rsplit(".", 1)

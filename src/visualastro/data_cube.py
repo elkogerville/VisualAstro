@@ -8,7 +8,6 @@ Dependencies:
     - astropy
     - matplotlib
     - numpy
-    - regions
     - spectral_cube
     - tqdm
 Module Structure:
@@ -25,7 +24,6 @@ import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from matplotlib.patches import Ellipse
 import numpy as np
-from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from tqdm import tqdm
 from .data_cube_utils import get_spectral_slice_value, slice_cube
@@ -36,17 +34,18 @@ from .numerical_utils import (
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
-    return_imshow_norm, set_unit_labels, set_vmin_vmax,
+    return_imshow_norm, set_unit_labels, set_vmin_vmax, va_config,
 )
-from .visual_classes import DataCube, FitsFile
+from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
 # Datacube I/O Functions
 # ––––––––––––––––––––––
-def load_data_cube(filepath, error=True, hdu=0, dtype=None,
-                   print_info=True, transpose=False):
+def load_data_cube(filepath, error=True, hdu=va_config.hdu_idx,
+                   dtype=None, print_info=va_config.print_info,
+                   transpose=va_config.transpose):
     '''
     Load a sequence of FITS files into a 3D data cube.
     This function searches for all FITS files matching a given path pattern,
@@ -125,7 +124,7 @@ def load_data_cube(filepath, error=True, hdu=0, dtype=None,
     return DataCube(datacube, headers, error_array)
 
 
-def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=False):
+def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=va_config.print_info):
     '''
     Load a spectral cube from a FITS file, optionally including errors and header.
     Parameters
@@ -180,8 +179,9 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
 
 # Cube Plotting Functions
 # –––––––––––––––––––––––
-def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5],
-                        norm='asinh', radial_vel=None, unit=None, cmap='turbo', **kwargs):
+def plot_spectral_cube(cubes, idx, ax, vmin=va_config.vmin, vmax=va_config.vmax,
+                       percentile=va_config.percentile, norm=va_config.norm,
+                       radial_vel=None, unit=None, cmap=va_config.cmap, **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
@@ -252,14 +252,14 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None, vmax=None, percentile=[3,99.5]
     # labels
     title = kwargs.get('title', False)
     emission_line = kwargs.get('emission_line', None)
-    text_loc = kwargs.get('text_loc', [0.03, 0.03])
-    text_color = kwargs.get('text_color', 'k')
-    colorbar = kwargs.get('colorbar', True)
-    cbar_width = kwargs.get('cbar_width', 0.03)
-    cbar_pad = kwargs.get('cbar_pad', 0.015)
-    clabel = kwargs.get('clabel', True)
-    xlabel = kwargs.get('xlabel', 'Right Ascension')
-    ylabel = kwargs.get('ylabel', 'Declination')
+    text_loc = kwargs.get('text_loc', va_config.text_loc)
+    text_color = kwargs.get('text_color', va_config.text_color)
+    colorbar = kwargs.get('colorbar', va_config.cbar)
+    cbar_width = kwargs.get('cbar_width', va_config.cbar_width)
+    cbar_pad = kwargs.get('cbar_pad', va_config.cbar_pad)
+    clabel = kwargs.get('clabel', va_config.clabel)
+    xlabel = kwargs.get('xlabel', va_config.right_ascension)
+    ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
     highlight = kwargs.get('highlight', True)
     # plot ellipse

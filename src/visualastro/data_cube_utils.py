@@ -6,6 +6,8 @@ Description:
     Utility functions for DataCube manipulations.
 Dependencies:
     - astropy
+    - numpy
+    - regions
 Module Structure:
     - Cube Manipulation Functions
         Utility functions used when manipulating datacubes numerically.
@@ -15,7 +17,10 @@ Module Structure:
 
 import astropy.units as u
 from astropy.units import spectral
+import numpy as np
+from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from .numerical_utils import get_data
+from .visual_classes import DataCube, FitsFile
 
 
 # Cube Manipulation Functions
@@ -222,7 +227,7 @@ def mask_image(image, ellipse_region=None, region=None,
     if region is not None:
         if region.lower() == 'annulus':
             region_obj = EllipseAnnulusPixelRegion(
-                center=PixCoord(center[0], center[1]),
+                center=PixCoord(center[0], center[1]), # type: ignore
                 inner_width=2*(a - tolerance),
                 inner_height=2*(b - tolerance),
                 outer_width=2*(a + tolerance),
@@ -231,7 +236,7 @@ def mask_image(image, ellipse_region=None, region=None,
             )
         elif region.lower() == 'ellipse':
             region_obj = EllipsePixelRegion(
-                center=PixCoord(center[0], center[1]),
+                center=PixCoord(center[0], center[1]), # type: ignore
                 width=2*a,
                 height=2*b,
                 angle=angle * u.deg
