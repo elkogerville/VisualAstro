@@ -40,7 +40,7 @@ from .spectra_utils import (
     gaussian_continuum, gaussian_line,
     get_config_value
 )
-from .va_config import va_config
+from .va_config import get_config_value, va_config
 from .visual_classes import ExtractedSpectrum
 
 
@@ -48,7 +48,8 @@ from .visual_classes import ExtractedSpectrum
 # ––––––––––––––––––––––––––––
 def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
                          fit_method='fit_continuum', region=None, radial_vel=None,
-                         rest_freq=None, deredden=False, unit=None, emission_line=None, **kwargs):
+                         rest_freq=None, deredden=False, unit=None, emission_line=None,
+                         flux_extract_method=None, **kwargs):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
@@ -82,6 +83,9 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         units if possible.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
+    flux_extract_method : {'mean', 'median', 'sum'} or None, optional, default=None
+        Method for extracting the flux. If None, uses the default
+        value set by `va_config.flux_extract_method`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -147,6 +151,20 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     savefig = kwargs.get('savefig', va_config.savefig)
     dpi = kwargs.get('dpi', va_config.dpi)
 
+    # get default va_config values
+    methods = {
+        'mean': np.nanmean,
+        'median': np.nanmedian,
+        'sum': np.nansum
+    }
+    flux_extract_method = get_config_value(flux_extract_method, 'flux_extract_method')
+    extract_method = methods.get(flux_extract_method.lower())
+    if extract_method is None:
+        raise ValueError(
+            f"Invalid flux_extract_method '{flux_extract_method}'. "
+            f'Choose from {list(methods.keys())}.'
+        )
+
     # ensure cubes are iterable
     cubes = check_units_consistency(cubes)
     # set plot style and colors
@@ -159,7 +177,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
 
         # extract spectrum flux
-        flux = cube.mean(axis=(1,2))
+        flux = extract_method(cube, axis=(1,2))
 
         # derreden
         if deredden:

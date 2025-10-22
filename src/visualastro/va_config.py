@@ -115,6 +115,9 @@ class VAConfig:
         # Science Params
         # ––––––––––––––
 
+        # extract_cube_spectrum params
+        self.flux_extract_method = 'mean'
+
         # plot_spectrum params
         self.plot_spectrum_text_loc = [0.025, 0.95]
 
