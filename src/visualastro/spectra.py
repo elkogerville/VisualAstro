@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2025-10-19
+Date Modified: 2025-10-22
 Description:
     Spectra science functions.
 Dependencies:
@@ -19,6 +19,7 @@ Module Structure:
         Fitting routines for spectra.
 '''
 
+from types import NoneType
 from astropy.modeling import models, fitting
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,8 +38,9 @@ from .spectra_utils import (
     compute_continuum_fit,
     deredden_flux, gaussian,
     gaussian_continuum, gaussian_line,
-    va_config,
+    get_config_value
 )
+from .va_config import va_config
 from .visual_classes import ExtractedSpectrum
 
 
@@ -88,21 +90,21 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         - `convention` : str, optional
             Doppler convention.
-        - `Rv` : float, optional, default=3.1
+        - `Rv` : float, optional, default=`va_config.Rv`
             Dereddening parameter.
-        - `Ebv` : float, optional, default=0.19
+        - `Ebv` : float, optional, default=`va_config.Ebv`
             Dereddening parameter.
-        - `deredden_method` : str, optional, default='WD01'
+        - `deredden_method` : str, optional, default=`va_config.deredden_method`
             Extinction law to use.
-        - `deredden_region` : str, optional, default='LMCAvg'
+        - `deredden_region` : str, optional, default=`va_config.deredden_region`
             Region/environment for WD01 extinction law.
-        - `figsize` : tuple, optional, default=(6, 6)
+        - `figsize` : tuple, optional, default=`va_config.figsize`
             Figure size for plotting.
-        - `style` : str, optional, default='astro'
+        - `style` : str, optional, default=`va_config.style`
             Plotting style.
-        - `savefig` : bool, optional, default=False
+        - `savefig` : bool, optional, default=`va_config.savefig`
             Whether to save the figure to disk.
-        - `dpi` : int, optional, default=600
+        - `dpi` : int, optional, default=`va_config.dpi`
             Figure resolution for saving.
         - `xlim` : tuple, optional
             Wavelength range to display.
@@ -110,25 +112,21 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default='best'
+        - `loc` : str, default=`va_config.loc`
             Location of legend.
-        - `xlabel` : str, optional
+        - `xlabel` : str, optional, default=None
             Label for the x-axis.
-        - `ylabel` : str, optional
+        - `ylabel` : str, optional, default=None
             Label for the y-axis.
         - `colors`, `color` or `c` : list of colors or None, optional, default=None
             Colors to use for each dataset. If None, default
             color cycle is used.
-        - `cmap` : str, optional, default='turbo'
+        - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
-        - `text_loc` : list of float, optional, default=[0.025, 0.95]
+        - `text_loc` : list of float, optional, default=`va_config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=False
+        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
-        - `xlim` : tuple, optional
-            Wavelength range to display.
-        - `ylim` : tuple, optional
-            Flux range to display.
     Returns
     –––––––
     ExtractedSpectrum or list of ExtractedSpectrum
@@ -216,7 +214,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 # ––––––––––––––––––––––––––
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
-                  flux=None, continuum_fit=None, colors=va_config.colors, **kwargs):
+                  flux=None, continuum_fit=None, colors=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
     Parameters
@@ -238,9 +236,10 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         Flux array (required if `extracted_spectrums` is None).
     continuum_fit : array-like, optional, default=None
         Fitted continuum array.
-    colors : list of colors or None, optional, default=None
-        Colors to use for each dataset. If None, default
-        color cycle is used.
+    colors : list of colors, str, or None, optional, default=None
+        Colors to use for each scatter group or dataset.
+        If None, uses the default color palette from
+        `va_config.default_palette`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -250,40 +249,40 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         - `colors`, `color` or `c` : list of colors or None, optional, default=None
             Colors to use for each dataset. If None, default
             color cycle is used.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, {'-', '--', '-.', ':', ''}, default='-'
-            Line style of plotted lines.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=0.8
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
             Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float default=None
+        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-        ` `zorders`, `zorder` : float, default=None
+        - `zorders`, `zorder` : float, default=None
             Order of line placement. If None, will increment by 1 for
             each additional line plotted.
-        - `cmap` : str, optional, default='turbo'
+        - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional
+        - `xlim` : tuple, optional, default=None
             Wavelength range to display.
         - `ylim` : tuple, optional
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default='best'
+        - `loc` : str, default=`va_config.loc`
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
             Label for the y-axis.
-        - `text_loc` : list of float, optional, default=[0.025, 0.95]
+        - `text_loc` : list of float, optional, default=`va_config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=False
+        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
     '''
     # –––– KWARGS ––––
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=va_config.linestyle)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=va_config.linewidth)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=va_config.alpha)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
     zorder = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
@@ -296,6 +295,12 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     ylabel = kwargs.get('ylabel', None)
     text_loc = kwargs.get('text_loc', va_config.plot_spectrum_text_loc)
     use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
+
+    # get default va_config values
+    colors = get_config_value(colors, 'colors')
+    linestyles = get_config_value(linestyles, 'linestyle')
+    linewidths = get_config_value(linewidths, 'linewidth')
+    alphas = get_config_value(alphas, 'alpha')
 
     # ensure an axis is passed
     if ax is None:
@@ -378,7 +383,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                           concatenate=False, return_spectra=False,
                           plot_normalize=False, use_samecolor=True,
-                          colors=va_config.colors, **kwargs):
+                          colors=None, **kwargs):
     '''
     Allows for easily plotting multiple spectra and stiching them together into
     one `ExtractedSpectrum` object.
@@ -412,9 +417,10 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     use_samecolor : bool, optional, default=True
         If True, use the same color for all spectra. If `concatenate` is True,
         `use_samecolor` is also set to True.
-    colors : list of colors or None, optional, default=None
-        Colors to use for each dataset. If None, default
-        color cycle is used.
+    colors : list of colors, str, or None, optional, default=None
+        Colors to use for each scatter group or dataset.
+        If None, uses the default color palette from
+        `va_config.default_palette`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -423,21 +429,24 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
         - ylim : tuple, optional, default=None
             y-axis limits as (ymin, ymax).
-        - linestyles : str, optional, default='-'
-            Line style (e.g., '-', '--', ':').
-        - linewidths : float, optional, default=0.8
-            Line width in points.
-        - alphas : float, optional, default=1
-            Line transparency (0–1).
-        - cmap : str, optional, default='turbo'
+        - `colors`, `color` or `c` : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - cmap : str, optional, default=`va_config.cmap`
             Colormap name for generating colors.
         - label : str, optional, default=None.
             Label for the plotted spectrum.
-        - loc : str, optional, default='best'
+        - loc : str, optional, default=`va_config.loc`
             Legend location (e.g., 'best', 'upper right').
         - xlabel, ylabel : str, optional, default=None
             Axis labels.
-        - use_brackets : bool, optional, default=False
+        - use_brackets : bool, optional, default=`va_config.use_brackets`
             If True, format axis labels with units in brackets instead of parentheses.
 
     Returns
@@ -457,9 +466,9 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     ylim = kwargs.get('ylim', None)
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=va_config.linestyle)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=va_config.linewidth)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=va_config.alpha)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
     cmap = kwargs.get('cmap', va_config.cmap)
     # labels
     label = kwargs.get('label', None)
@@ -467,6 +476,12 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
+
+    # get default va_config values
+    colors = get_config_value(colors, 'color')
+    linestyles = get_config_value(linestyles, 'linestyle')
+    linewidths = get_config_value(linewidths, 'linewidth')
+    alphas = get_config_value(alphas, 'alpha')
 
     # ensure units match and that extracted_spectra is a list
     extracted_spectra = check_units_consistency(extracted_spectra)

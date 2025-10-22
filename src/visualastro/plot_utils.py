@@ -160,8 +160,8 @@ def set_plot_colors(user_colors=None, cmap=None):
             * An integer specifying how many colors to sample from a matplolib cmap
               using sample_cmap(). By default uses 'turbo'.
     cmap : str, list of str, or None, default=None
-        Matplotlib colormap name. If None,
-        uses the default value in `va_config.cmap`.
+        Matplotlib colormap name. If None, uses
+        the default value in `va_config.cmap`.
     Returns
     –––––––
     plot_colors : list of str
@@ -331,13 +331,14 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     if data.dtype == bool:
         return 0, 1
 
-    # by default use percentile range. if vmin or vmax is provided
-    # overide and use those instead
+    # by default use percentile range
     if percentile is not None:
-        vmin = np.nanpercentile(data, percentile[0]) if vmin is None else vmin
-        vmax = np.nanpercentile(data, percentile[1]) if vmax is None else vmax
-    # if percentile is None return None for vmin and vmax
-    else:
+        if vmin is None:
+            vmin = np.nanpercentile(data, percentile[0])
+        if vmax is None:
+            vmax = np.nanpercentile(data, percentile[1])
+    # if vmin or vmax is provided overide and use those instead
+    elif vmin is None and vmax is None:
         vmin = None
         vmax = None
 
@@ -616,7 +617,7 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
         Custom label for the x-axis. If None, the label is inferred from 'X'.
     ylabel : str or None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from 'Y'.
-    use_brackets : bool or None, optional, default=False
+    use_brackets : bool or None, optional, default=None
         If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
         If None, uses the default value set in `va_config.use_brackets`.
     Notes
@@ -829,10 +830,10 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     text_loc : list of float or None, optional, default=None
         Position of the text label in Axes coordinates, given as [x, y].
         If None, uses the default value set in `va_config.text_loc`.
-    text_color : str, optional, default=None
+    text_color : str or None, optional, default=None
         Color of the annotation text. If None, uses
         the default value set in `va_config.text_color`.
-    highlight : bool, optional, default=None
+    highlight : bool or None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses the default value set in `va_config.highlight`.
     Notes

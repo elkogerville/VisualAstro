@@ -29,9 +29,10 @@ from .va_config import get_config_value, va_config, _default_flag
 
 # Plotting Functions
 # ––––––––––––––––––
-def imshow(datas, ax, idx=None, vmin=None, vmax=None,
-           norm=_default_flag, percentile=_default_flag,
-           origin=None, cmap=None, aspect=_default_flag, **kwargs):
+def imshow(datas, ax, idx=None, vmin=_default_flag,
+           vmax=_default_flag, norm=_default_flag,
+           percentile=_default_flag, origin=None,
+           cmap=None, aspect=_default_flag, **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
     Parameters
@@ -50,14 +51,14 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None,
         If 'datas' is a list of cubes, you may also pass a list of
         indeces.
         ex: passing indeces for 2 cubes-> [[i,j], k].
-    vmin : float or None, optional, default=None
-        Lower limit for colormap scaling. If not provided,
-        values are determined from `percentile`. If None,
-        uses the default value in `va_config.vmin`.
-    vmax : float or None, optional, default=None
-        Upper limit for colormap scaling. If not provided,
-        values are determined from `percentile`. If None,
-        uses the default value in `va_config.vmax`.
+    vmin : float or None, optional, default=`_default_flag`
+        Lower limit for colormap scaling; overides `percentile[0]`.
+        If None, values are determined from `percentile[0]`.
+        If `_default_flag`, uses the default value in `va_config.vmin`.
+    vmax : float or None, optional, default=`_default_flag`
+        Upper limit for colormap scaling; overides `percentile[1]`.
+        If None, values are determined from `percentile[1]`.
+        If `_default_flag`, uses the default value in `va_config.vmax`.
     norm : str or None, optional, default=`_default_flag`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -66,7 +67,7 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None,
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
         If `_default_flag`, uses the default value in `va_config.norm`.
-    percentile : list of float or None, default=`_default_flag`
+    percentile : list or tuple of two floats, or None, default=`_default_flag`
         Default percentile range used to determine 'vmin' and 'vmax'.
         If `_default_flag`, uses default value from `va_config.percentile`.
         If None, use no percentile stretch.
@@ -155,8 +156,8 @@ def imshow(datas, ax, idx=None, vmin=None, vmax=None,
     h = kwargs.get('h', Y//5)
 
     # get default va_config values
-    vmin = get_config_value(vmin, 'vmin')
-    vmax = get_config_value(vmax, 'vmax')
+    vmin = va_config.vmin if vmin is _default_flag else vmin
+    vmax = va_config.vmax if vmax is _default_flag else vmax
     norm = va_config.norm if norm is _default_flag else norm
     percentile = va_config.percentile if percentile is _default_flag else percentile
     origin = get_config_value(origin, 'origin')
@@ -761,15 +762,15 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
             Label for the x-axis.
         - `ylabel` : str or None
             Label for the y-axis.
-        - `ecolors`, `ecolor` : color or list of color, optional, default=va_config.ecolors
+        - `ecolors`, `ecolor` : color or list of color, optional, default=`va_config.ecolors`
             Color(s) of the error bars.
-        - `elinewidth` : float, default=va_config.elinewidth
+        - `elinewidth` : float, default=`va_config.elinewidth`
             Line width of the error bars.
-        - `capsize` : float, default=va_config.capsize
+        - `capsize` : float, default=`va_config.capsize`
             Length of the error bar caps in points.
-        - `capthick` : float, default=va_config.capthick
+        - `capthick` : float, default=`va_config.capthick`
             Thickness of the error bar caps in points.
-        - `barsabove` : bool, default=va_config.barsabove
+        - `barsabove` : bool, default=`va_config.barsabove`
             If True, draw error bars above the plot symbols; otherwise, below.
     '''
     # –––– KWARGS ––––
@@ -789,7 +790,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     # errorbars
-    ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=va_config.ecolors)
+    ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=None)
     elinewidth = kwargs.get('elinewidth', va_config.elinewidth)
     capsize = kwargs.get('capsize', va_config.capsize)
     capthick = kwargs.get('capthick', va_config.capthick)
@@ -803,6 +804,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
     edgecolors = va_config.edgecolor if edgecolors is _default_flag else edgecolors
+    ecolors = get_config_value(ecolors, 'ecolors')
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)

@@ -16,7 +16,7 @@ class VAConfig:
         # I/O params
         self.default_unit = np.float64
         self.hdu_idx = 0
-        self.print_info = True
+        self.print_info = False
         self.transpose = False
 
         # figure params

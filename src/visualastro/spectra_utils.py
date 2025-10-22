@@ -26,7 +26,7 @@ import numpy as np
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from .numerical_utils import mask_within_range, return_array_values
 from .visual_classes import ExtractedSpectrum
-from .va_config import va_config
+from .va_config import get_config_value
 
 
 # Science Spectrum Functions
@@ -81,9 +81,8 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     return continuum_fit
 
 
-def deredden_flux(wavelength, flux, Rv=va_config.Rv, Ebv=va_config.Ebv,
-                  deredden_method=va_config.deredden_method,
-                  region=va_config.deredden_region):
+def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
+                  deredden_method=None, region=None):
     '''
     Apply extinction correction (dereddening) to a spectrum.
     Default values are for LMC parameters.
@@ -95,23 +94,33 @@ def deredden_flux(wavelength, flux, Rv=va_config.Rv, Ebv=va_config.Ebv,
     flux : array-like
         Observed flux values at the corresponding wavelengths. Must be in
         linear units (e.g., erg/s/cm^2/Å, Jy).
-    Rv : float, optional, default=3.1
+    Rv : float or None, optional, default=None
         Ratio of total-to-selective extinction (A_V / E(B-V)).
-    Ebv : float, optional, default=0.19
+        If None, uses default value set by `va_config.Rv`.
+    Ebv : float or None, optional, default=None
         Color excess E(B-V), representing the amount of reddening.
-    deredden_method : str, {'G23', 'WD01', 'M14'}, optional, default='WD01'
+        If None, uses default value set by `va_config.Ebv`.
+    deredden_method : {'G23', 'WD01', 'M14'} or None, optional, default=None
         Choice of extinction law:
         - 'G23' : Gordon et al. (2023)
         - 'WD01': Weingartner & Draine (2001)
         - 'M14' : Maíz Apellániz et al. (2014)
-    region : str, optional, default='LMCAvg'
+        If None, uses default value set by `va_config.deredden_method`.
+    region : str or None, optional, default=None
         For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
         'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
+        If None, uses default value set by `va_config.deredden_region`.
     Returns
     –––––––
     deredden_flux : array-like
         Flux array corrected for extinction.
     '''
+    # get default va_config values
+    Rv = get_config_value(Rv, 'Rv')
+    Ebv = get_config_value(Ebv, 'Ebv')
+    deredden_method = get_config_value(deredden_method, 'deredden_method')
+    region = get_config_value(region, 'deredden_region')
+
     # select appropriate dereddening method
     methods = {
         'G23': G23,
