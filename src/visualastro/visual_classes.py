@@ -28,7 +28,7 @@ import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
-from .va_config import get_config_value, va_config
+from .va_config import get_config_value
 
 # DataCube
 # ––––––––
