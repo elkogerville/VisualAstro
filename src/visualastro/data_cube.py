@@ -36,7 +36,7 @@ from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
     return_imshow_norm, set_unit_labels, set_vmin_vmax
 )
-from .va_config import get_config_value, va_config
+from .va_config import get_config_value, va_config, _default_flag
 from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -46,7 +46,7 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 # ––––––––––––––––––––––
 def load_data_cube(filepath, error=True, hdu=None,
                    dtype=None, print_info=None,
-                   transpose=va_config.transpose):
+                   transpose=None):
     '''
     Load a sequence of FITS files into a 3D data cube.
     This function searches for all FITS files matching a given path pattern,
@@ -57,16 +57,19 @@ def load_data_cube(filepath, error=True, hdu=None,
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
         Example: 'Spectro-Module/raw/HARPS*.fits'
-    hdu : int, default=0
-        Hdu extension to use.
+    hdu : int or None, default=None
+        Hdu extension to use. If None, uses the
+        default value set by `va_config.hdu_idx`.
     dtype : numpy.dtype, optional, default=None
         Data type for the loaded FITS data. If None, will use
         the dtype of the provided data, promoting integer or
         unsigned to `np.float64`.
-    print_info : bool, optional, default=True
+    print_info : bool or None, optional, default=None
         If True, print summary information about the loaded cube.
-    transpose : bool, optional, default=False
+        If None, uses the default value set by `va_config.print_info`.
+    transpose : bool or None, optional, default=None
         If True, transpose each 2D image before stacking into the cube.
+        If None, uses the default value set by `va_config.transpose`.
     Returns
     –––––––
     cube : DataCube
@@ -132,7 +135,9 @@ def load_data_cube(filepath, error=True, hdu=None,
     return DataCube(datacube, headers, error_array)
 
 
-def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=None):
+def load_spectral_cube(filepath, hdu, error=True,
+                       header=True, dtype=None,
+                       print_info=None):
     '''
     Load a spectral cube from a FITS file, optionally including errors and header.
     Parameters
@@ -148,8 +153,9 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
     dtype : data-type, optional, default=None
         Desired NumPy dtype for the error array. If None, inferred
         from FITS data, promoting integer and unsigned to `np.float64`.
-    print_info : bool, optional, default=False
+    print_info : bool or None, optional, default=None
         If True, print FITS file info to the console.
+        If None, uses default value set by `va_config.print_info`.
     Returns
     –––––––
     DataCube
@@ -189,10 +195,9 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
 
 # Cube Plotting Functions
 # –––––––––––––––––––––––
-def plot_spectral_cube(cubes, idx, ax, vmin=None,
-                       vmax=None, percentile=None,
-                       norm=None, radial_vel=None,
-                       unit=None, cmap=None, **kwargs):
+def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
+                       norm=_default_flag, percentile=_default_flag,
+                       radial_vel=None, unit=None, cmap=None, **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
@@ -203,18 +208,33 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None,
         Index along the spectral axis corresponding to the slice to plot.
     ax : matplotlib.axes.Axes
         The axes on which to draw the slice.
-    vmin, vmax : float, optional, default=None
-        Minimum and maximum values for image scaling. Overrides percentile if provided.
-    percentile : list of two floats, default=[3, 99.5]
-        Percentile values for automatic scaling if vmin/vmax are not specified.
-    norm : str or None, default='asinh'
-        Normalization type for `imshow`. Use 'None' for linear scaling.
+    vmin : float or None, optional, default=`_default_flag`
+        Lower limit for colormap scaling; overides `percentile[0]`.
+        If None, values are determined from `percentile[0]`.
+        If `_default_flag`, uses the default value in `va_config.vmin`.
+    vmax : float or None, optional, default=`_default_flag`
+        Upper limit for colormap scaling; overides `percentile[1]`.
+        If None, values are determined from `percentile[1]`.
+        If `_default_flag`, uses the default value in `va_config.vmax`.
+    norm : str or None, optional, default=`_default_flag`
+        Normalization algorithm for colormap scaling.
+        - 'asinh' -> asinh stretch using 'ImageNormalize'
+        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
+        - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'powernorm' -> power-law normalization using 'PowerNorm'
+        - 'linear', 'none', or None -> no normalization applied
+        If `_default_flag`, uses the default value in `va_config.norm`.
+    percentile : list or tuple of two floats, or None, default=`_default_flag`
+        Default percentile range used to determine `vmin` and `vmax`.
+        If None, use no percentile stretch (as long as vmin/vmax are None).
+        If `_default_flag`, uses default value from `va_config.percentile`.
     radial_vel : float or astropy.units.Quantity, optional, default=None
         Radial velocity to shift spectral axis to the rest frame.
     unit : astropy.units.Unit or str, optional, default=None
         Desired spectral axis unit for labeling.
-    cmap : str, list, or tuple, default='turbo'
-        Colormap(s) to use for plotting.
+    cmap : str, list or tuple of str, or None, default=None
+        Colormap(s) to use for plotting. If None,
+        uses the default value set by `va_config.cmap`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -225,23 +245,25 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None,
             If True, display spectral slice label as plot title.
         - `emission_line` : str or None, default=None
             Optional emission line label to display instead of slice value.
-        - `text_loc` : list of float, default=[0.03, 0.03]
+        - `text_loc` : list of float, default=`va_config.text_loc`
             Relative axes coordinates for overlay text placement.
-        - `text_color` : str, default='k'
+        - `text_color` : str, default=`va_config.text_color`
             Color of overlay text.
-        - `colorbar` : bool, default=True
+        - `colorbar` : bool, default=`va_config.cbar`
             Whether to add a colorbar.
-        - `cbar_width` : float, default=0.03
+        - `cbar_width` : float, default=`va_config.cbar_width`
             Width of the colorbar.
-        - `cbar_pad` : float, default=0.015
+        - `cbar_pad` : float, default=`va_config.cbar_pad`
             Padding between axes and colorbar.
-        - `clabel` : str, bool, or None, default=True
+        - `clabel` : str, bool, or None, default=`va_config.clabel`
             Label for colorbar. If True, automatically generate from cube unit.
-        - `xlabel`, `ylabel` : str, default='Right Ascension', 'Declination'
-            Axes labels.
+        - `xlabel` : str, default=`va_config.right_ascension`
+            X axis label.
+        - `ylabel` : str, default=`va_config.declination`
+            Y axis label.
         - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
-        - `highlight` : bool, default=True
+        - `highlight` : bool, default=`va_config.highlight`
             Whether to highlight interactive ellipse if plotted.
         - `ellipses` : list or None, default=None
             Ellipse objects to overlay on the image.
@@ -273,14 +295,6 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None,
     ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
     highlight = kwargs.get('highlight', va_config.highlight)
-
-    # get default config values
-    vmin = get_config_value(vmin, 'vmin')
-    vmax = get_config_value(vmax, 'vmax')
-    percentile = get_config_value(percentile, 'percentile')
-    norm = get_config_value(norm, 'norm')
-    cmap = get_config_value(cmap, 'cmap')
-
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = (
@@ -291,6 +305,13 @@ def plot_spectral_cube(cubes, idx, ax, vmin=None,
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
     angle = kwargs.get('angle', None)
+
+    # get default va_config values
+    vmin = va_config.vmin if vmin is _default_flag else vmin
+    vmax = va_config.vmax if vmax is _default_flag else vmax
+    norm = va_config.norm if norm is _default_flag else norm
+    percentile = va_config.percentile if percentile is _default_flag else percentile
+    cmap = get_config_value(cmap, 'cmap')
 
     for cube in cubes:
         # extract data component
