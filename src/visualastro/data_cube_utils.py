@@ -16,7 +16,6 @@ Module Structure:
 '''
 
 import astropy.units as u
-from astropy.units import spectral
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from .numerical_utils import get_data
@@ -25,35 +24,6 @@ from .visual_classes import DataCube, FitsFile
 
 # Cube Manipulation Functions
 # –––––––––––––––––––––––––––
-def extract_spectral_axis(cube, unit=None):
-    '''
-    Extract the spectral axis from a data cube and optionally
-    convert it to a specified unit.
-    Parameters
-    ––––––––––
-    cube : SpectralCube
-        The input spectral data cube.
-    unit : astropy.units.Unit, optional
-        Desired unit for the spectral axis. If None, the axis
-        is returned in its native units.
-    Returns
-    –––––––
-    spectral_axis : Quantity
-        The spectral axis of the cube, optionally converted
-        to the specified unit.
-    '''
-    axis = cube.spectral_axis
-    # return axis if unit is None
-    if unit is None:
-        return axis
-    # if a unit is specified, attempt to
-    # convert axis to those units
-    try:
-        return axis.to(unit, equivalencies=spectral())
-    except u.UnitConversionError:
-        raise ValueError(f"Cannot convert spectral axis from {axis.unit} to {unit}")
-
-
 def slice_cube(cube, idx):
     '''
     Return a slice of a data cube along the first axis.
