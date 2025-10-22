@@ -22,7 +22,7 @@ import numpy as np
 from tqdm import tqdm
 from .numerical_utils import check_is_array
 from .visual_classes import FitsFile
-from .va_config import va_config
+from .va_config import get_config_value, va_config, _default_flag
 
 
 # Fits File I/O Operations
@@ -80,7 +80,7 @@ def load_fits(filepath, header=True, error=True,
         return data
 
 
-def get_dtype(data, dtype=None, default_dtype=va_config.default_unit):
+def get_dtype(data, dtype=None, default_dtype=None):
     '''
     Returns the dtype from the provided data. Promotes
     integers to floats if needed.
@@ -92,14 +92,18 @@ def get_dtype(data, dtype=None, default_dtype=va_config.default_unit):
         If provided, this dtype is returned directly.
         If None, returns `data.dtype` if floating or
         `np.float64` if integer or unsigned.
-    default_dtype : data-type, optional, default=np.float64
+    default_dtype : data-type, optional, default=None
         Float type to use if `data` is integer or unsigned.
+        If None, uses the default unit set in `va_config.default_dtype`.
     Returns
     –––––––
     dtype : np.dtype
         NumPy dtype object: user dtype if given, otherwise the array's
         float dtype or `default_dtype` if array is integer/unsigned.
     '''
+    # get default va_config values
+    default_dtype = get_config_value(default_dtype, 'default_unit')
+
     # return user dtype if passed in
     if dtype is not None:
         return np.dtype(dtype)
@@ -201,28 +205,36 @@ def get_kwargs(kwargs, *names, default=None):
     return default
 
 
-def save_figure_2_disk(dpi=va_config.dpi, pdf_compression=va_config.pdf_compression,
-                       transparent=False, bbox_inches=va_config.bbox_inches, **kwargs):
+def save_figure_2_disk(
+    dpi=None,
+    pdf_compression=None,
+    transparent=False,
+    bbox_inches=_default_flag,
+    **kwargs
+):
     '''
     Saves current figure to disk as a
     eps, pdf, png, or svg, and prompts
     user for a filename and format.
     Parameters
     ––––––––––
-    dpi : float or int, optional, default=600
-        Resolution in dots per inch.
-    pdf_compression : int, optional, default=False
+    dpi : float, int, or None, optional, default=None
+        Resolution in dots per inch. If None, uses
+        the default value set by `va_config.dpi`.
+    pdf_compression : int or None, optional, default=False
         'Pdf.compression' value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
-        compression.
+        compression. If None, uses the default value
+        set by `va_config.pdf_compression`.
     transparent : bool, optional, default=False
         If True, the Axes patches will all be transparent;
         the Figure patch will also be transparent unless
         facecolor and/or edgecolor are specified via kwargs.
-    bbox_inches : str or Bbox, default='tight'
+    bbox_inches : str, Bbox, or None, default=`_default_flag`
         Bounding box in inches: only the given portion of the
         figure is saved. If 'tight', try to figure out the
-        tight bbox of the figure.
+        tight bbox of the figure. If `_default_flag`, uses
+        the default value set by `va_config.bbox_inches`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -239,6 +251,12 @@ def save_figure_2_disk(dpi=va_config.dpi, pdf_compression=va_config.pdf_compress
     # –––– KWARGS ––––
     facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
     edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
+
+    # get default va_config values
+    dpi = get_config_value(dpi, 'dpi')
+    pdf_compression = get_config_value(pdf_compression, 'pdf_compression')
+    bbox_inches = va_config.bbox_inches if bbox_inches is _default_flag else bbox_inches
+
     allowed_formats = va_config.allowed_formats
     # prompt user for filename, and extract extension
     filename = input("Input filename for image (ex: myimage.pdf): ").strip()
