@@ -28,7 +28,7 @@ from .plotting import (
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
-from .va_config import va_config
+from .va_config import get_config_value, va_config, _default_flag
 from .visual_classes import DataCube, FitsFile
 
 
@@ -64,10 +64,9 @@ class va:
 
 
     @staticmethod
-    def imshow(datas, idx=None, vmin=va_config.vmin, vmax=va_config.vmax, norm=va_config.norm,
-               percentile=va_config.percentile, origin=va_config.origin, wcs_input=None,
-               invert_wcs=False, cmap=va_config.cmap, aspect=va_config.aspect, **kwargs):
-
+    def imshow(datas, idx=None, vmin=None, vmax=None, norm=_default_flag,
+               percentile=_default_flag, origin=None, wcs_input=None,
+               invert_wcs=False, cmap=None, aspect=_default_flag, **kwargs):
         '''
         Convenience wrapper for `imshow`, which displays a
         2D image with optional visual customization.
@@ -91,41 +90,40 @@ class va:
             If 'datas' is a list of cubes, you may also pass a list of
             indeces.
             ex: passing indeces for 2 cubes-> [[i,j], k].
-        vmin, vmax : float, optional, default=None
-            Lower and upper limits for colormap scaling. If not provided,
-            values are determined from 'percentile'.
-        norm : str, optional, default=None
+        vmin : float or None, optional, default=None
+            Lower limit for colormap scaling. If not provided,
+            values are determined from `percentile`. If None,
+            uses the default value in `va_config.vmin`.
+        vmax : float or None, optional, default=None
+            Upper limit for colormap scaling. If not provided,
+            values are determined from `percentile`. If None,
+            uses the default value in `va_config.vmax`.
+        norm : str or None, optional, default=`_default_flag`
             Normalization algorithm for colormap scaling.
-            - 'asinh' -> AsinhStretch using 'ImageNormalize'
+            - 'asinh' -> asinh stretch using 'ImageNormalize'
+            - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
             - 'log' -> logarithmic scaling using 'LogNorm'
-            - 'none' or None -> no normalization applied
-        percentile : list of float, default=[3, 99.5]
+            - 'powernorm' -> power-law normalization using 'PowerNorm'
+            - 'linear', 'none', or None -> no normalization applied
+            If `_default_flag`, uses the default value in `va_config.norm`.
+        percentile : list of float or None, default=`_default_flag`
             Default percentile range used to determine 'vmin' and 'vmax'.
-        origin : str, {'upper', 'lower'}, default='lower'
-            Pixel origin convention for imshow.
-        wcs_input : `astropy.wcs.WCS`, `astropy.io.fits.Header`, list, tuple, or bool, optional
-            World Coordinate System (WCS) definition for the input data. If `None`,
-            the method will attempt to infer a WCS from the provided data if it is a
-            `DataCube` or `FitsFile` instance. If `False`, no WCS projection is used
-            and a standard Matplotlib axis is created.
-
-            Supported types:
-                - `WCS` : a pre-constructed WCS object.
-                - `Header` : a FITS header from which a WCS can be constructed.
-                - `list` or `tuple` : sequence of headers, in which case the first
-                    element is used to build the WCS.
-                - `None` : attempt automatic inference, or fall back to default axes.
-            Invalid types will raise a `TypeError`.
-        invert_wcs : bool, optional
-            If `True`, swaps the WCS axes (i.e., RA and DEC) using `WCS.swapaxes(0, 1)`.
-            Useful for correcting coordinate orientation in cases where the FITS header
-            or image orientation is flipped. Ignored if no valid WCS is present.
-        cmap : str or list of str, default='turbo'
+            If `_default_flag`, uses default value from `va_config.percentile`.
+            If None, use no percentile stretch.
+        origin : {'upper', 'lower'} or None, default=None
+            Pixel origin convention for imshow. If None,
+            uses the default value from `va_config.origin`.
+        cmap : str, list of str or None, default=None
             Matplotlib colormap name or list of colormaps, cycled across images.
+            If None, uses the default value from `va_config.cmap`.
             ex: ['turbo', 'RdPu_r']
-        aspect : str, {'auto', 'equal'} or float, optional, default=None
-            Aspect ratio passed to imshow.
-
+        aspect : {'auto', 'equal'}, float, or None, optional, default=`_default_flag`
+            Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
+            results in fixed axes with the aspect adjusted to fit the axes. 'equal`
+            sets an aspect ratio of 1. None defaults to 'equal', however, if the
+            image uses a transform that does not contain the axes data transform,
+            then None means to not modify the axes aspect at all. If `_default_flag`,
+            uses the default value from `va_config.aspect`.
         **kwargs : dict, optional
             Additional plotting parameters.
 
@@ -135,21 +133,22 @@ class va:
                 Invert the x-axis if True.
             - `invert_yaxis` : bool, optional, default=False
                 Invert the y-axis if True.
-            - `text_loc` : list of float, optional, default=[0.03, 0.03]
-                Relative axes coordinates for text placement when plotting interactive ellipses.
-            - `text_color` : str, optional, default='k'
+            - `text_loc` : list of float, optional, default=`va_config.text_loc`
+                Relative axes coordinates for text placement when
+                plotting interactive ellipses.
+            - `text_color` : str, optional, default=`va_config.text_color`
                 Color of the ellipse annotation text.
             - `xlabel` : str, optional, default=None
                 X-axis label.
             - `ylabel` : str, optional, default=None
                 Y-axis label.
-            - `colorbar` : bool, optional, default=True
+            - `colorbar` : bool, optional, default=`va_config.cbar`
                 Add colorbar if True.
-            - `clabel` : str or bool, optional, default=True
+            - `clabel` : str or bool, optional, default=`va_config.clabel`
                 Colorbar label. If True, use default label; if None or False, no label.
-            - `cbar_width` : float, optional, default=0.03
+            - `cbar_width` : float, optional, default=`va_config.cbar_width`
                 Width of the colorbar.
-            - `cbar_pad` : float, optional, default=0.015
+            - `cbar_pad` : float, optional, default=`va_config.cbar_pad`
                 Padding between plot and colorbar.
             - `circles` : list, optional, default=None
                 List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
@@ -178,12 +177,14 @@ class va:
             - `dpi` : int, default=600
                 Resolution (dots per inch) for saved figure.
         '''
+        # –––– KWARGS ––––
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
         # savefig
         savefig = kwargs.get('savefig', va_config.savefig)
         dpi = kwargs.get('dpi', va_config.dpi)
+
         # by default plot WCS if available
         wcs = None
         if wcs_input is not False:
@@ -226,9 +227,10 @@ class va:
 
 
     @staticmethod
-    def plot_spectral_cube(cubes, idx, vmin=va_config.vmin, vmax=va_config.vmax,
-                           percentile=va_config.percentile, norm=va_config.norm,
-                           radial_vel=None, unit=None, **kwargs):
+    def plot_spectral_cube(cubes, idx, vmin=None,
+                           vmax=None, percentile=None,
+                           norm=None, radial_vel=None,
+                           unit=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
         along a given slice.
@@ -306,6 +308,7 @@ class va:
         –––––
         - If multiple cubes are provided, they are overplotted in sequence.
         '''
+        # –––– KWARGS ––––
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
@@ -336,7 +339,7 @@ class va:
     @staticmethod
     def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=False,
                       plot_continuum_fit=False, emission_line=None, wavelength=None,
-                      flux=None, continuum_fit=None, colors=va_config.colors, **kwargs):
+                      flux=None, continuum_fit=None, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectrum`, which visualizes extracted
         spectra with optional continuum fits and emission-line overlays.
@@ -418,6 +421,8 @@ class va:
         # savefig
         savefig = kwargs.get('savefig', va_config.savefig)
         dpi = kwargs.get('dpi', va_config.dpi)
+
+        colors = get_config_value(colors, 'colors')
 
         # set plot style
         style = return_stylename(style)
@@ -555,11 +560,9 @@ class va:
 
 
     @staticmethod
-    def plot_density_histogram(X, Y, bins='auto', xlog=va_config.xlog,
-                               ylog=va_config.ylog, xlog_hist=va_config.xlog_hist,
-                               ylog_hist=va_config.ylog_hist, sharex=va_config.sharex,
-                               sharey=va_config.sharey, histtype=va_config.histtype,
-                               normalize=True, colors=va_config.colors, **kwargs):
+    def plot_density_histogram(X, Y, bins='auto', xlog=None, ylog=None, xlog_hist=None,
+                               ylog_hist=None, sharex=None, sharey=None, histtype=None,
+                               normalize=True, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_density_histogram`, to plot 2D scatter
         distributions with normalizable histograms of the distributions.
@@ -641,6 +644,9 @@ class va:
         savefig = kwargs.get('savefig', va_config.savefig)
         dpi = kwargs.get('dpi', va_config.dpi)
 
+        sharex = get_config_value(sharex, 'sharex')
+        sharey = get_config_value(sharey, 'sharey')
+
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
@@ -666,9 +672,9 @@ class va:
 
 
     @staticmethod
-    def plot_histogram(datas, bins=va_config.bins, xlog=va_config.xlog,
-                       ylog=va_config.ylog, histtype=va_config.histtype,
-                       colors=va_config.colors, **kwargs):
+    def plot_histogram(datas, bins=None, xlog=None,
+                       ylog=None, histtype=None,
+                       colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_histogram`, to plot one or
         more histograms.
@@ -746,13 +752,15 @@ class va:
 
 
     @staticmethod
-    def plot(X, Y, normalize=False,
-             xlog=va_config.xlog,
-             ylog=va_config.ylog,
-             colors=va_config.colors,
-             linestyle=va_config.linestyle,
-             linewidth=va_config.linewidth,
-             alpha=va_config.alpha, zorder=None,
+    def plot(X, Y,
+             normalize=False,
+             xlog=None,
+             ylog=None,
+             colors=None,
+             linestyle=None,
+             linewidth=None,
+             alpha=None,
+             zorder=None,
              **kwargs):
         '''
         Convenience wrapper for `plot_lines`, to plot one or more lines.
@@ -851,11 +859,8 @@ class va:
 
     @staticmethod
     def scatter(X, Y, xerr=None, yerr=None, normalize=False,
-                xlog=va_config.xlog, ylog=va_config.ylog,
-                colors=va_config.colors, size=va_config.scatter_size,
-                marker=va_config.marker, alpha=va_config.alpha,
-                edgecolors=va_config.edgecolors, **kwargs):
-
+                xlog=None, ylog=None, colors=None, size=None,
+                marker=None, alpha=None, edgecolors=None, **kwargs):
         '''
         Convenience wrapper for `scatter_plot`, to scatter plot one or more distributions.
 

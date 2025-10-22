@@ -28,7 +28,7 @@ import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
-from .va_config import va_config
+from .va_config import get_config_value, va_config
 
 # DataCube
 # ––––––––
@@ -259,21 +259,25 @@ class DataCube:
         else:
             raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
 
-    def inspect(self, figsize=(8,4), style=va_config.style):
+    def inspect(self, figsize=(10,6), style=None):
         '''
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
         Parameters
         ––––––––––
-        figsize : tuple, optional
-            Size of the output figure. Default = (8, 4).
-        style : str, optional
-            Matplotlib style to use for plotting. Default = 'astro'.
+        figsize : tuple, optional, default=(8,4)
+            Size of the output figure.
+        style : str or None, optional, default=None
+            Matplotlib style to use for plotting. If None,
+            uses the default value set by `va_config.style`.
         Notes
         –––––
         This method visualizes the mean and standard deviation of flux across
         each 2D slice of the cube as a function of slice index.
         '''
+        # get default va_config values
+        style = get_config_value(style, 'style')
+
         cube = self.value
         # compute mean and std across wavelengths
         mean_flux = np.nanmean(cube, axis=(1, 2))

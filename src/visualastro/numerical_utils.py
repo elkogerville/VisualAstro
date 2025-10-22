@@ -128,7 +128,7 @@ def get_units(obj):
     data = get_data(obj)
     # check if unit extension exists
     if isinstance(data, (DataCube, FitsFile, Quantity, SpectralCube)):
-        return data.unit
+        return data.unit # type: ignore
     if isinstance(obj, ExtractedSpectrum):
         try:
             return obj.spectrum1d.unit

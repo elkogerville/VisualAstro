@@ -34,8 +34,9 @@ from .numerical_utils import (
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses, plot_interactive_ellipse,
-    return_imshow_norm, set_unit_labels, set_vmin_vmax, va_config,
+    return_imshow_norm, set_unit_labels, set_vmin_vmax
 )
+from .va_config import get_config_value, va_config
 from .visual_classes import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -43,8 +44,8 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 
 # Datacube I/O Functions
 # ––––––––––––––––––––––
-def load_data_cube(filepath, error=True, hdu=va_config.hdu_idx,
-                   dtype=None, print_info=va_config.print_info,
+def load_data_cube(filepath, error=True, hdu=None,
+                   dtype=None, print_info=None,
                    transpose=va_config.transpose):
     '''
     Load a sequence of FITS files into a 3D data cube.
@@ -56,6 +57,8 @@ def load_data_cube(filepath, error=True, hdu=va_config.hdu_idx,
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
         Example: 'Spectro-Module/raw/HARPS*.fits'
+    hdu : int, default=0
+        Hdu extension to use.
     dtype : numpy.dtype, optional, default=None
         Data type for the loaded FITS data. If None, will use
         the dtype of the provided data, promoting integer or
@@ -75,6 +78,11 @@ def load_data_cube(filepath, error=True, hdu=va_config.hdu_idx,
     Search for all fits files starting with 'HARPS' with .fits extention and load them.
         filepath = 'Spectro-Module/raw/HARPS.*.fits'
     '''
+    # get default config values
+    hdu = get_config_value(hdu, 'hdu_idx')
+    print_info = get_config_value(print_info, 'print_info')
+    transpose = get_config_value(transpose, 'transpose')
+
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
     # allocate ixMxN data cube array and header array
@@ -124,7 +132,7 @@ def load_data_cube(filepath, error=True, hdu=va_config.hdu_idx,
     return DataCube(datacube, headers, error_array)
 
 
-def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=va_config.print_info):
+def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print_info=None):
     '''
     Load a spectral cube from a FITS file, optionally including errors and header.
     Parameters
@@ -157,6 +165,8 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
         Ex:
         data = cube.data
     '''
+    print_info = get_config_value(print_info, 'print_info')
+
     # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects
@@ -179,9 +189,10 @@ def load_spectral_cube(filepath, hdu, error=True, header=True, dtype=None, print
 
 # Cube Plotting Functions
 # –––––––––––––––––––––––
-def plot_spectral_cube(cubes, idx, ax, vmin=va_config.vmin, vmax=va_config.vmax,
-                       percentile=va_config.percentile, norm=va_config.norm,
-                       radial_vel=None, unit=None, cmap=va_config.cmap, **kwargs):
+def plot_spectral_cube(cubes, idx, ax, vmin=None,
+                       vmax=None, percentile=None,
+                       norm=None, radial_vel=None,
+                       unit=None, cmap=None, **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
@@ -197,7 +208,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=va_config.vmin, vmax=va_config.vmax,
     percentile : list of two floats, default=[3, 99.5]
         Percentile values for automatic scaling if vmin/vmax are not specified.
     norm : str or None, default='asinh'
-        Normalization type for `imshow`. Use None for linear scaling.
+        Normalization type for `imshow`. Use 'None' for linear scaling.
     radial_vel : float or astropy.units.Quantity, optional, default=None
         Radial velocity to shift spectral axis to the rest frame.
     unit : astropy.units.Unit or str, optional, default=None
@@ -261,7 +272,15 @@ def plot_spectral_cube(cubes, idx, ax, vmin=va_config.vmin, vmax=va_config.vmax,
     xlabel = kwargs.get('xlabel', va_config.right_ascension)
     ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
-    highlight = kwargs.get('highlight', True)
+    highlight = kwargs.get('highlight', va_config.highlight)
+
+    # get default config values
+    vmin = get_config_value(vmin, 'vmin')
+    vmax = get_config_value(vmax, 'vmax')
+    percentile = get_config_value(percentile, 'percentile')
+    norm = get_config_value(norm, 'norm')
+    cmap = get_config_value(cmap, 'cmap')
+
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = (
