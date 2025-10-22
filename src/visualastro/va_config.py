@@ -23,25 +23,30 @@ class VAConfig:
         self.style = 'astro' # default style
         self.style_fallback = 'default.mplstyle' # style if default style fails
         self.figsize = (6, 6)
-        self.colors = None # if None, defaults to default_palette. To define a custom default palette,
-                           # define it in set_plot_colors and change the default_palette
-        self.default_palette = 'ibm_contrast' # see set_plot_colors()
+        self.grid_figsize = (12, 6)
+        self.colors = None # if None, defaults to `self.default_palette`. To define a custom default palette,
+                           # define it in `set_plot_colors` and change the `default_palette`.
+        self.default_palette = 'ibm_contrast' # see `set_plot_colors` in plot_utils.py
         self.alpha = 1
         self.nrows = 1 # make_grid_plot() nrows
         self.ncols = 2 # make_grid_plot() ncols
 
+        # data params
+        self.normalize_data = False
+
         # histogram params
         self.histtype = 'step'
         self.bins = 'auto'
+        self.normalize_hist = True
 
         # line2D params
         self.linestyle = '-'
         self.linewidth = 0.8
 
         # scatter params
-        self.scatter_size = 100
+        self.scatter_size = 10
         self.marker = 'o'
-        self.edgecolors = 'face'
+        self.edgecolor = 'face'
 
         # errorbar params
         self.eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
@@ -63,7 +68,7 @@ class VAConfig:
         self.aspect = None
 
         # axes params
-        self.xpad = 0.0 # set_axis_limits() xpad
+        self.xpad = 0.0  # set_axis_limits() xpad
         self.ypad = 0.05 # set_axis_limits() ypad
         self.xlog = False
         self.ylog = False
@@ -73,8 +78,8 @@ class VAConfig:
         self.sharey = False
         self.hspace = None
         self.wspace = None
-        self.Nticks = 5
-        self.aspect = 1
+        self.Nticks = None
+        self.aspect = None
 
         # cbar params
         self.cbar = True
@@ -119,4 +124,14 @@ class VAConfig:
         self.deredden_method = 'WD01'
         self.deredden_region = 'LMCAvg'
 
+    def reset_defaults(self):
+        self.__init__()
+
+
 va_config = VAConfig()
+_default_flag = object()
+
+def get_config_value(var, attribute):
+    if var is None:
+        return getattr(va_config, attribute)
+    return var

@@ -36,7 +36,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import check_is_array, get_data, return_array_values
-from .va_config import va_config
+from .va_config import get_config_value, va_config, _default_flag
 
 
 # Plot Style and Color Functions
@@ -57,6 +57,9 @@ def return_stylename(style):
     VisualAstro/visualastro/stylelib/
     Ensure the stylesheet follows the naming convention:
         mystylesheet.mplstyle
+
+    If a style is unable to load due to missing fonts
+    or other errors, `va_config.style_fallback` is used.
 
     Parameters
     ––––––––––
@@ -110,7 +113,7 @@ def lighten_color(color, mix=0.5):
     return mcolors.to_hex(mixed)
 
 
-def sample_cmap(N, cmap=va_config.cmap, return_hex=False):
+def sample_cmap(N, cmap=None, return_hex=False):
     '''
     Sample N distinct colors from a given matplotlib colormap
     returned as RGBA tuples in an array of shape (N,4).
@@ -118,8 +121,9 @@ def sample_cmap(N, cmap=va_config.cmap, return_hex=False):
     ––––––––––
     N : int
         Number of colors to sample.
-    cmap : str or Colormap, optional, default='turbo'
-        Name of the matplotlib colormap.
+    cmap : str, Colormap, or None, optional, default=None
+        Name of the matplotlib colormap. If None,
+        uses the default value in `va_config.cmap`.
     return_hex : bool, optional, default=False
         If True, return colors as hex strings.
     Returns
@@ -127,6 +131,9 @@ def sample_cmap(N, cmap=va_config.cmap, return_hex=False):
     list of tuple
         A list of RGBA colors sampled evenly from the colormap.
     '''
+    # get default va_config values
+    cmap = get_config_value(cmap, 'cmap')
+
     colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
     if return_hex:
         colors = np.array([mcolors.to_hex(c) for c in colors])
@@ -134,13 +141,13 @@ def sample_cmap(N, cmap=va_config.cmap, return_hex=False):
     return colors
 
 
-def set_plot_colors(user_colors=None, cmap=va_config.cmap):
+def set_plot_colors(user_colors=None, cmap=None):
     '''
     Returns plot and model colors based on predefined palettes or user input.
     Parameters
     ––––––––––
-    user_colors : None, str, or list, optional, default=None
-        - None: returns the default palette ('ibm_contrast').
+    user_colors : str, list, or None, optional, default=None
+        - None: returns the default palette (`va_config.default_palette`).
         - str:
             * If the string matches a palette name, returns that palette.
             * If the string ends with '_r', returns the reversed version of the palette.
@@ -152,8 +159,9 @@ def set_plot_colors(user_colors=None, cmap=va_config.cmap):
         - int:
             * An integer specifying how many colors to sample from a matplolib cmap
               using sample_cmap(). By default uses 'turbo'.
-    cmap : str or list of str, default='turbo'
-        Matplotlib colormap name.
+    cmap : str, list of str, or None, default=None
+        Matplotlib colormap name. If None,
+        uses the default value in `va_config.cmap`.
     Returns
     –––––––
     plot_colors : list of str
@@ -188,8 +196,10 @@ def set_plot_colors(user_colors=None, cmap=va_config.cmap):
             'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#E45756']
         }
     }
-
+    # get default va_config values
+    cmap = get_config_value(cmap, 'cmap')
     default_palette = va_config.default_palette
+
     # default case
     if user_colors is None:
         palette = palettes[default_palette]
@@ -238,20 +248,21 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
         - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
+        - 'linear' -> no normalization applied
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
-        - 'none' or None -> no normalization applied
+        - 'none' -> no normalization applied
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `linear_width` : float, optional, default=1
+        - `linear_width` : float, optional, default=`va_config.linear_width`
             The effective width of the linear region, beyond
             which the transformation becomes asymptotically logarithmic.
             Only used in 'asinhnorm'.
-        - `gamma` : float, optional, default=0.5
+        - `gamma` : float, optional, default=`va_config.gamma`
             Power law exponent.
     Returns
     –––––––
@@ -260,6 +271,11 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
     '''
     linear_width = kwargs.get('linear_width', va_config.linear_width)
     gamma = kwargs.get('gamma', va_config.gamma)
+
+    # use linear stretch if plotting boolean array
+    if vmin==0 and vmax==1:
+        return None
+
     # ensure norm is a string
     norm = 'none' if norm is None else norm
     # ensure case insensitivity
@@ -270,31 +286,33 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
         'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
         'log': LogNorm(vmin=vmin, vmax=vmax),
         'powernorm': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
+        'linear': None,
         'none': None
     }
     if norm not in norm_map:
-        raise ValueError(f"ERROR: unsupported norm: {norm}")
-    # use linear stretch if plotting boolean array
-    if vmin==0 and vmax==1:
-        return None
+        raise ValueError(
+            f'ERROR: unsupported norm: {norm}. '
+            f'\nsupported norms are {list(norm_map.keys())}'
+        )
 
     return norm_map[norm]
 
 
-def set_vmin_vmax(data, percentile=va_config.percentile, vmin=None, vmax=None):
+def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     '''
     Compute vmin and vmax for image display. By default uses the
-    percentile range [1,99], but optionally vmin and/or vmax can
-    be set by the user. Setting percentile to None results in no
-    stretch. Passing in a boolean array uses vmin=0, vmax=1. This
+    data nanpercentile using `percentile`, but optionally vmin and/or
+    vmax can be set by the user. Setting percentile to None results in
+    no stretch. Passing in a boolean array uses vmin=0, vmax=1. This
     function is used internally by plotting functions.
     Parameters
     ––––––––––
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, default=[1,99]
+    percentile : list or tuple of two floats, or None, default=`_default_flag`
         Percentile range '[pmin, pmax]' to compute vmin and vmax.
-        If None, sets vmin and vmax to None.
+        If None, sets vmin and vmax to None. If `_default_flag`, uses
+        default value from `va_config.percentile`.
     vmin : float or None, default=None
         If provided, overrides the computed vmin.
     vmax : float or None, default=None
@@ -306,11 +324,13 @@ def set_vmin_vmax(data, percentile=va_config.percentile, vmin=None, vmax=None):
     vmax : float or None
         Maximum value for image scaling.
     '''
+    percentile = va_config.percentile if percentile is _default_flag else percentile
     # check if data is an array
     data = check_is_array(data)
     # check if data is boolean
-    if data.dtype == bool:  # special case for boolean arrays
+    if data.dtype == bool:
         return 0, 1
+
     # by default use percentile range. if vmin or vmax is provided
     # overide and use those instead
     if percentile is not None:
@@ -364,28 +384,40 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
 
 # Axes Labels, Format, and Styling
 # ––––––––––––––––––––––––––––––––
-def make_plot_grid(nrows=va_config.nrows, ncols=va_config.ncols, figsize=va_config.figsize,
-                   sharex=va_config.sharex, sharey=va_config.sharey, hspace=va_config.hspace,
-                   wspace=va_config.wspace, width_ratios=None, height_ratios=None,
-                   fancy_axes=False, Nticks=va_config.Nticks, aspect=va_config.aspect):
+def make_plot_grid(nrows=None, ncols=None, figsize=None,
+                   sharex=None, sharey=None, hspace=_default_flag,
+                   wspace=_default_flag, width_ratios=None, height_ratios=None,
+                   fancy_axes=False, Nticks=_default_flag, aspect=None):
     '''
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
     Parameters
     ––––––––––
-    nrows : int, default=1
-        Number of subplot rows.
-    ncols : int, default=2
-        Number of subplot columns.
-    figsize : tuple of float, default=(6, 6)
-        Figure size in inches as (width, height).
-    sharex : bool, default=False
-        If True, share the x-axis among all subplots.
-    sharey : bool, default=False
-        If True, share the y-axis among all subplots.
-    hspace : float or None, default=None
-        Height padding between subplots. If None, Matplotlib’s default spacing is used.
-    wspace : float or None, default=None
+    nrows : int or None, default=None
+        Number of subplot rows. If None, uses
+        the default value set in `va_config.nrows`.
+    ncols : int or None, default=None
+        Number of subplot columns. If None, uses
+        the default value set in `va_config.ncols`.
+    figsize : tuple of float or None, default=None
+        Figure size in inches as (width, height). If None,
+        uses the default value set in `va_config.grid_figsize`.
+    sharex : bool or None, default=None
+        If True, share the x-axis among all subplots. If None,
+        uses the default value set in `va_config.sharex`.
+    sharey : bool or None, default=None
+        If True, share the y-axis among all subplots. If None,
+        uses the default value set in `va_config.sharey`.
+    hspace : float or None, default=`_default_flag`
+        Height padding between subplots. If None,
+        Matplotlib’s default spacing is used. If
+        `_default_flag`, uses the default value set in
+        `va_config.hspace`.
+    wspace : float or None, default=`_default_flag`
+        Width padding between subplots. If None,
+        Matplotlib’s default spacing is used. If
+        `_default_flag`, uses the default value set in
+        `va_config.wspace`.
     width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
         Defines the relative widths of the columns. Each column gets a relative width
@@ -399,10 +431,16 @@ def make_plot_grid(nrows=va_config.nrows, ncols=va_config.ncols, figsize=va_conf
         - inward ticks on all sides
         - axes labels on outer grid axes
         - h/wspace = 0.0
-    Nticks : int, default=4
-        Maximum number of major ticks per axis.
-    aspect : float, default=1
-        Aspect ratio for each subplot (e.g., 1 for square panels).
+    Nticks : int or None, default=`_default_flag`
+        Maximum number of major ticks per axis. If None,
+        uses the default matplotlib settings. If `_default_flag`,
+        uses the default value set in `va_config.Nticks`.
+    aspect : float or None, default=None
+        Changes the physical dimensions of the Axes,
+        such that the ratio of the Axes height to the
+        Axes width in physical units is equal to aspect.
+        None will disable a fixed box aspect so that height
+        and width of the Axes are chosen independently.
     Returns
     –––––––
     fig : `~matplotlib.figure.Figure`
@@ -410,6 +448,15 @@ def make_plot_grid(nrows=va_config.nrows, ncols=va_config.ncols, figsize=va_conf
     axs : ndarray of `~matplotlib.axes.Axes`
         Flattened array of Axes objects, ordered row-wise.
     '''
+    # get default va_config values
+    nrows = get_config_value(nrows, 'nrows')
+    ncols = get_config_value(ncols, 'ncols')
+    figsize = get_config_value(figsize, 'grid_figsize')
+    sharex = get_config_value(sharex, 'sharex')
+    sharey = get_config_value(sharey, 'sharey')
+    hspace = va_config.hspace if hspace is _default_flag else hspace
+    wspace = va_config.wspace if wspace is _default_flag else wspace
+    Nticks = va_config.Nticks if Nticks is _default_flag else Nticks
 
     Nx = nrows
     Ny = ncols
@@ -437,15 +484,16 @@ def make_plot_grid(nrows=va_config.nrows, ncols=va_config.ncols, figsize=va_conf
                                which='both', labeltop=labeltop[i][j],
                                labelright=labelright[i][j],
                                right=True, top=True)
-            ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
-            ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
+            if Nticks is not None:
+                ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
+                ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
             ax.set_box_aspect(aspect)
 
     return fig, axs
 
 
-def add_colorbar(im, ax, cbar_width=va_config.cbar_width,
-                 cbar_pad=va_config.cbar_pad, clabel=None):
+def add_colorbar(im, ax, cbar_width=None,
+                 cbar_pad=None, clabel=None):
     '''
     Add a colorbar next to an Axes.
     Parameters
@@ -455,14 +503,20 @@ def add_colorbar(im, ax, cbar_width=va_config.cbar_width,
         a plotting function (e.g., 'imshow', 'scatter', etc...).
     ax : matplotlib.axes.Axes
         The axes to which the colorbar will be attached.
-    cbar_width : float, optional, default=0.03
+    cbar_width : float or None, optional, default=None
         Width of the colorbar in figure coordinates.
-    cbar_pad : float, optional, default=0.015
+        If None, uses the default value set in `va_config.cbar_width`.
+    cbar_pad : float or None, optional, default=None
         Padding between the main axes and the colorbar
-        in figure coordinates.
+        in figure coordinates. If None, uses the default
+        value set in `va_config.cbar_pad`.
     clabel : str, optional
         Label for the colorbar. If None, no label is set.
     '''
+    # get default va_config values
+    cbar_width = get_config_value(cbar_width, 'cbar_width')
+    cbar_pad = get_config_value(cbar_pad, 'cbar_pad')
+
     # extract figure from axes
     fig = ax.figure
     # add colorbar axes
@@ -497,12 +551,13 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
 
         Supported keywords:
 
-        - `xpad`/`ypad` : float
-            padding along x and y axis used when computing
-            axis limits. Defined as:
+        - `xpad`/`ypad` : float, optional, default=`va_config.xpad`/`va_config.ypad`
+            Padding along x and y axis used when computing axis limits.
+            Defined as:
                 xmax/min ±= xpad * (xmax - xmin)
                 ymax/min ±= ypad * (ymax - ymin)
     '''
+    # –––– KWARGS ––––
     xpad = kwargs.get('xpad', va_config.xpad)
     ypad = kwargs.get('ypad', va_config.ypad)
 
@@ -545,7 +600,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     ax.set_ylim(ylim)
 
 
-def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=va_config.use_brackets):
+def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
     '''
     Automatically format labels including units for any plot involving intensity as
     a function of spectral type.
@@ -561,14 +616,18 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=va_config.u
         Custom label for the x-axis. If None, the label is inferred from 'X'.
     ylabel : str or None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from 'Y'.
-    use_brackets : bool, optional, default=False
+    use_brackets : bool or None, optional, default=False
         If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
+        If None, uses the default value set in `va_config.use_brackets`.
     Notes
     –––––
     - Units are formatted using 'set_unit_labels', which provides LaTeX-friendly labels.
     - If units are not recognized, only the axis type (e.g., 'Spectral Axis', 'Intensity')
       is displayed without units.
     '''
+    # get default va_config values
+    use_brackets = get_config_value(use_brackets, 'use_brackets')
+
     # determine spectral type of data (frequency, length, or velocity)
     spectral_type = {
         'frequency': 'Frequency',
@@ -647,10 +706,14 @@ def set_unit_labels(unit):
 
 # Plot Matplotlib Patches and Shapes
 # ––––––––––––––––––––––––––––––––––
-def plot_circles(circles, ax, colors=None,
-                 linewidth=va_config.circle_linewidth,
-                 fill=va_config.circle_fill,
-                 cmap=va_config.cmap):
+def plot_circles(
+    circles,
+    ax,
+    colors=None,
+    linewidth=None,
+    fill=None,
+    cmap=None
+):
     '''
     Plot one or more circles on a Matplotlib axis with customizable style.
     Parameters
@@ -661,18 +724,26 @@ def plot_circles(circles, ax, colors=None,
         If None, no circles are plotted.
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the circles.
-    colors : list of str or None, optional, default=None
-        List of colors to cycle through for each circle. Defaults to
-        ['r', 'mediumvioletred', 'magenta']. A single color can also
+    colors : list of colors, str, or None, optional, default=None
+        List of colors to cycle through for each circle. None defaults
+        to ['r', 'mediumvioletred', 'magenta']. A single color can also
         be passed. If there are more circles than colors, colors are
-        sampled from a colormap using sample_cmap().
-    linewidth : float, optional, default=2
-        Width of the circle edge lines.
-    fill : bool, optional, default=False
-        Whether the circles are filled.
-    cmap : str, optional, default='turbo'
+        sampled from a colormap using sample_cmap(cmap=`cmap`).
+    linewidth : float or None, optional, default=None
+        Width of the circle edge lines. If None,
+        uses the default value set in `va_config.linewidth`.
+    fill : bool or None, optional, default=None
+        Whether the circles are filled. If None,
+        uses the default value set in `va_config.circle_fill`.
+    cmap : str or None, optional, default=None
         matplolib cmap used to sample default circle colors.
+        If None, uses the default value set in `va_config.cmap`.
     '''
+    # get default va_config values
+    linewidth = get_config_value(linewidth, 'linewidth')
+    fill = get_config_value(fill, 'circle_fill')
+    cmap = get_config_value(cmap, 'cmap')
+
     if circles is not None:
         # ensure circles is list [x,y,r] or list of list [[x,y,r],[x,y,r]...]
         circles = np.atleast_2d(circles)
@@ -739,10 +810,8 @@ def plot_ellipses(ellipses, ax):
             ax.add_patch(copy_ellipse(ellipse))
 
 
-def plot_interactive_ellipse(center, w, h, ax,
-                             text_loc=va_config.ellipse_label_loc,
-                             text_color=va_config.text_color,
-                             highlight=va_config.highlight):
+def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
+                             text_color=None, highlight=None):
     '''
     Create an interactive ellipse selector on an Axes
     along with an interactive text window displaying
@@ -757,17 +826,25 @@ def plot_interactive_ellipse(center, w, h, ax,
         Height of the ellipse.
     ax : matplotlib.axes.Axes
         The Axes on which to draw the ellipse selector.
-    text_loc : list of float, optional, default=[0.03,0.03]
+    text_loc : list of float or None, optional, default=None
         Position of the text label in Axes coordinates, given as [x, y].
-    text_color : str, optional, default='k'
-        Color of the annotation text.
-    highlight : bool, optional, default=True
-        If True, adds a bbox to highlight the text.
+        If None, uses the default value set in `va_config.text_loc`.
+    text_color : str, optional, default=None
+        Color of the annotation text. If None, uses
+        the default value set in `va_config.text_color`.
+    highlight : bool, optional, default=None
+        If True, adds a bbox to highlight the text. If None,
+        uses the default value set in `va_config.highlight`.
     Notes
     –––––
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     '''
+    # get default va_config values
+    text_loc = get_config_value(text_loc, 'ellipse_label_loc')
+    text_color = get_config_value(text_color, 'text_color')
+    highlight = get_config_value(highlight, 'highlight')
+
     # define text for ellipse data display
     facecolor = 'k' if text_color == 'w' else 'w'
     bbox = dict(facecolor=facecolor, alpha=0.6, edgecolor="none") if highlight else None
