@@ -32,7 +32,8 @@ from .va_config import get_config_value, va_config, _default_flag
 def imshow(datas, ax, idx=None, vmin=_default_flag,
            vmax=_default_flag, norm=_default_flag,
            percentile=_default_flag, origin=None,
-           cmap=None, aspect=_default_flag, **kwargs):
+           cmap=None, aspect=_default_flag,
+           mask_non_pos=None, **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
     Parameters
@@ -85,6 +86,11 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         image uses a transform that does not contain the axes data transform,
         then None means to not modify the axes aspect at all. If `_default_flag`,
         uses the default value from `va_config.aspect`.
+    mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+        If True, mask out non-positive data values. Useful for displaying
+        log scaling of images with non-positive values. If None, uses the
+        default value set by `va_config.mask_non_positive`.
+
     **kwargs : dict, optional
         Additional plotting parameters.
 
@@ -111,6 +117,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
             Width of the colorbar.
         - `cbar_pad` : float, optional, default=`va_config.cbar_pad`
             Padding between plot and colorbar.
+        - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
+            Value to use when masking out non-positive values.
+            Ex: np.nan, 1e-6, np.inf
         - `circles` : list, optional, default=None
             List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
         - `ellipses` : list, optional, default=None
@@ -142,6 +151,8 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     clabel = kwargs.get('clabel', va_config.clabel)
     cbar_width = kwargs.get('cbar_width', va_config.cbar_width)
     cbar_pad = kwargs.get('cbar_pad', va_config.cbar_pad)
+    # mask out value
+    mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -163,6 +174,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     origin = get_config_value(origin, 'origin')
     cmap = get_config_value(cmap, 'cmap')
     aspect = va_config.aspect if aspect is _default_flag else aspect
+    mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
 
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
@@ -182,6 +194,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         # slice data with index if provided
         if idx is not None:
             data = slice_cube(data, idx[i%len(idx)])
+
+        if mask_non_pos:
+            data = np.where(data > 0.0, data, mask_out_val)
 
         # set image stretch
         vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)

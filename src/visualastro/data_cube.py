@@ -197,7 +197,8 @@ def load_spectral_cube(filepath, hdu, error=True,
 # –––––––––––––––––––––––
 def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                        norm=_default_flag, percentile=_default_flag,
-                       radial_vel=None, unit=None, cmap=None, **kwargs):
+                       radial_vel=None, unit=None, cmap=None, mask_non_pos=None,
+                       **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
@@ -235,6 +236,10 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     cmap : str, list or tuple of str, or None, default=None
         Colormap(s) to use for plotting. If None,
         uses the default value set by `va_config.cmap`.
+    mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+        If True, mask out non-positive data values. Useful for displaying
+        log scaling of images with non-positive values. If None, uses the
+        default value set by `va_config.mask_non_positive`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -265,6 +270,9 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Whether to draw spectral slice value as a label.
         - `highlight` : bool, default=`va_config.highlight`
             Whether to highlight interactive ellipse if plotted.
+        - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
+            Value to use when masking out non-positive values.
+            Ex: np.nan, 1e-6, np.inf
         - `ellipses` : list or None, default=None
             Ellipse objects to overlay on the image.
         - `plot_ellipse` : bool, default=False
@@ -295,6 +303,8 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
     highlight = kwargs.get('highlight', va_config.highlight)
+    # mask out value
+    mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = (
@@ -312,6 +322,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     norm = va_config.norm if norm is _default_flag else norm
     percentile = va_config.percentile if percentile is _default_flag else percentile
     cmap = get_config_value(cmap, 'cmap')
+    mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
 
     for cube in cubes:
         # extract data component
@@ -320,6 +331,9 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         # return data cube slices
         cube_slice = slice_cube(cube, idx)
         data = cube_slice.value
+
+        if mask_non_pos:
+            data = np.where(data > 0.0, data, mask_out_val)
 
         # compute imshow stretch
         vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)

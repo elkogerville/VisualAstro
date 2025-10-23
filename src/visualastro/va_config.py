@@ -18,6 +18,8 @@ class VAConfig:
         self.hdu_idx = 0
         self.print_info = False
         self.transpose = False
+        self.mask_non_positive = False
+        self.mask_out_value = np.nan
 
         # figure params
         self.style = 'astro' # default style
