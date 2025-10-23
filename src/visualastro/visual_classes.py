@@ -23,6 +23,7 @@ import os
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
+from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import numpy as np
@@ -100,7 +101,7 @@ class DataCube:
                 f"'data' must be a numpy array or SpectralCube, got {type(data).__name__}."
             )
         if headers is not None and not isinstance(
-            headers, (list, fits.Header, np.ndarray, tuple)
+            headers, (list, Header, np.ndarray, tuple)
         ):
             raise TypeError(
                 f"'headers' must be a fits.Header or array-like of fits.header, got {type(headers).__name__}."
@@ -117,6 +118,7 @@ class DataCube:
             array = data
             unit = None
 
+        # shape validation
         if array.ndim != 3:
             raise ValueError(f"'data' must be 3D (T, N, M), got shape {array.shape}.")
 
@@ -132,17 +134,37 @@ class DataCube:
                 f"'errors' must match shape of 'data', got {errors.shape} vs {array.shape}."
             )
 
-        # try extracting unit from headers
-        if isinstance(headers, Header) and 'BUNIT' in headers:
+        if isinstance(headers, Header):
+            header = headers
+        elif isinstance(headers, (list, tuple, np.ndarray)) and len(headers) > 0:
+            header = headers[0]
+        else:
+            header = None
+
+        # try extracting unit from headers if not found earlier
+        if unit is None and header is not None and 'BUNIT' in header:
             try:
-                unit = Unit(headers['BUNIT'])
+                unit = Unit(header['BUNIT'])
             except Exception:
                 pass
-        if isinstance(headers, list) and 'BUNIT' in headers[0]:
+
+        # try extracting WCS
+        wcs = None
+        if isinstance(headers, Header):
             try:
-                unit = Unit(headers[0]['BUNIT'])
+                wcs = WCS(headers)
             except Exception:
                 pass
+        elif isinstance(headers, (list, np.ndarray, tuple)):
+            wcs = []
+            for h in headers:
+                if not isinstance(h, Header):
+                    wcs.append(None)
+                    continue
+                try:
+                    wcs.append(WCS(h))
+                except Exception:
+                    wcs.append(None)
 
         # assign
         self.data = data
@@ -150,6 +172,7 @@ class DataCube:
         self.error = errors
         self.value = array
         self.unit = unit
+        self.wcs = wcs
 
         # data attributes
         self.shape = array.shape
@@ -400,10 +423,19 @@ class FitsFile:
             except:
                 pass
 
+         # try extracting WCS
+        wcs = None
+        if isinstance(header, Header):
+            try:
+                wcs = WCS(header)
+            except Exception:
+                pass
+
         self.data = data
         self.header = header
         self.error = error
         self.unit = unit
+        self.wcs = wcs
 
         # data attributes
         self.shape = data.shape

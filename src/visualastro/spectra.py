@@ -27,7 +27,7 @@ from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum1D
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    check_units_consistency, convert_units, interpolate_arrays,
+    check_units_consistency, convert_units, get_units, interpolate_arrays,
     mask_within_range, return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
@@ -153,12 +153,12 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
     # get default va_config values
     methods = {
-        'mean': np.nanmean,
-        'median': np.nanmedian,
-        'sum': np.nansum
+        'mean': lambda cube: cube.mean(axis=(1, 2)),
+        'median': lambda cube: cube.median(axis=(1, 2)),
+        'sum': lambda cube: cube.sum(axis=(1, 2))
     }
-    flux_extract_method = get_config_value(flux_extract_method, 'flux_extract_method')
-    extract_method = methods.get(flux_extract_method.lower())
+    flux_extract_method = str(get_config_value(flux_extract_method, 'flux_extract_method')).lower()
+    extract_method = methods.get(flux_extract_method)
     if extract_method is None:
         raise ValueError(
             f"Invalid flux_extract_method '{flux_extract_method}'. "
@@ -173,11 +173,11 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     extracted_spectra = []
     for cube in cubes:
 
-        # extract spectral axis converted to user specified units
+        # shift by radial velocity
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
 
         # extract spectrum flux
-        flux = extract_method(cube, axis=(1,2))
+        flux = extract_method(cube)
 
         # derreden
         if deredden:
@@ -211,6 +211,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             normalized=flux_normalized.flux,
             continuum_fit=continuum_fit
         ))
+
     # plot spectrum
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)

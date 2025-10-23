@@ -28,7 +28,7 @@ from .va_config import get_config_value, va_config, _default_flag
 # Fits File I/O Operations
 # ––––––––––––––––––––––––
 def load_fits(filepath, header=True, error=True,
-              print_info=True, transpose=False, dtype=None):
+              print_info=None, transpose=None, dtype=None):
     '''
     Load a FITS file and return its data and optional header.
     Parameters
@@ -41,10 +41,12 @@ def load_fits(filepath, header=True, error=True,
         If False, only the data is returned.
     error : bool, default=True
         If True, return the 'ERR' extention of the fits file.
-    print_info : bool, default=True
+    print_info : bool or None, default=None
         If True, print HDU information using 'hdul.info()'.
-    transpose : bool, default=False
+        If None, uses the default value set by `va_config.print_info`.
+    transpose : bool or None, default=None
         If True, transpose the data array before returning.
+        If None, uses the default value set by `va_config.transpose`.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
@@ -58,6 +60,10 @@ def load_fits(filepath, header=True, error=True,
     data : np.ndarray
         If header is False, returns just the data component.
     '''
+    # get default va_config values
+    print_info = get_config_value(print_info, 'print_info')
+    transpose = get_config_value(transpose, 'transpose')
+
     # print fits file info
     with fits.open(filepath) as hdul:
         if print_info:

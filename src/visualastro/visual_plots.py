@@ -67,7 +67,7 @@ class va:
     def imshow(datas, idx=None, vmin=_default_flag, vmax=_default_flag,
                norm=_default_flag, percentile=_default_flag, origin=None,
                wcs_input=None, invert_wcs=False, cmap=None, aspect=_default_flag,
-               **kwargs):
+               mask_non_pos=None, **kwargs):
         '''
         Convenience wrapper for `imshow`, which displays a
         2D image with optional visual customization.
@@ -142,6 +142,11 @@ class va:
             image uses a transform that does not contain the axes data transform,
             then None means to not modify the axes aspect at all. If `_default_flag`,
             uses the default value from `va_config.aspect`.
+        mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+            If True, mask out non-positive data values. Useful for displaying
+            log scaling of images with non-positive values. If None, uses the
+            default value set by `va_config.mask_non_positive`.
+
         **kwargs : dict, optional
             Additional plotting parameters.
 
@@ -237,7 +242,7 @@ class va:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             imshow(datas, ax, idx, vmin, vmax, norm, percentile,
-                   origin, cmap, aspect, **kwargs)
+                   origin, cmap, aspect, mask_non_pos, **kwargs)
 
             if savefig:
                     save_figure_2_disk(dpi)
@@ -248,7 +253,7 @@ class va:
     def plot_spectral_cube(cubes, idx, vmin=_default_flag,
                            vmax=_default_flag, norm=_default_flag,
                            percentile=_default_flag, radial_vel=None,
-                           unit=None, cmap=None, **kwargs):
+                           unit=None, cmap=None, mask_non_pos=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
         along a given slice.
@@ -290,6 +295,10 @@ class va:
         cmap : str, list or tuple of str, or None, default=None
             Colormap(s) to use for plotting. If None,
             uses the default value set by `va_config.cmap`.
+        mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+            If True, mask out non-positive data values. Useful for displaying
+            log scaling of images with non-positive values. If None, uses the
+            default value set by `va_config.mask_non_positive`.
 
         **kwargs : dict, optional
             Additional plotting parameters.
@@ -364,7 +373,8 @@ class va:
                 ax.coords['dec'].set_ticks_position('bl')
 
             plot_spectral_cube(cubes, idx, ax, vmin, vmax, norm,
-                               percentile, radial_vel, unit, cmap, **kwargs)
+                               percentile, radial_vel, unit, cmap,
+                               mask_non_pos, **kwargs)
             if savefig:
                 save_figure_2_disk(dpi)
 
