@@ -306,8 +306,9 @@ class DataCube:
         '''
         cube = self.value
         data = _slice_cube(cube, idx)
+        clabel = self.unit
 
-        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize)
+        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize, clabel)
 
     def with_mask(self, mask):
         '''
@@ -778,7 +779,8 @@ class FitsFile:
             `va_config.figsize`.
         '''
         data = self.data
-        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize)
+        clabel = self.unit
+        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize, clabel)
 
     def __repr__(self):
         '''
@@ -871,7 +873,7 @@ def _return_stylename(style):
 
 def _view(data, vmin=_default_flag, vmax=_default_flag,
           norm=_default_flag, percentile=_default_flag,
-          cmap=None, style=None, figsize=None):
+          cmap=None, style=None, figsize=None, clabel=None):
     '''
     Display a 2D data array using matplotlib's imshow with configurable
     normalization, percentile clipping, and style context.
@@ -901,6 +903,8 @@ def _view(data, vmin=_default_flag, vmax=_default_flag,
     figsize : array-like of two floats or None, default=None
         Figure size `(width, height)` in inches. If `None`, uses
         `va_config.figsize`.
+    clabel : str or None, default=None
+        Colorbar label.
     '''
     # get default va_config values
     vmin = va_config.vmin if vmin is _default_flag else vmin
@@ -929,6 +933,8 @@ def _view(data, vmin=_default_flag, vmax=_default_flag,
         cbar = fig.colorbar(im, cax=cax, pad=0.04)
         # formatting and label
         cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
+        if clabel is not None:
+            cbar.set_label(fr'{clabel}')
 
         plt.show()
 
