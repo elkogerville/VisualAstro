@@ -1089,6 +1089,11 @@ class va:
             # visualastro default color schemes
             color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r']
             if user_color is None:
+                print(
+                    'Visualastro includes many built-in color palettes.\n'
+                    'Each palette also has a matching *model palette* — '
+                    'a complementary set of colors designed to pair well with the original.'
+                )
                 with plt.style.context(style):
                     fig, ax = plt.subplots(figsize=(8, len(color_map)))
                     ax.axis("off")
@@ -1129,6 +1134,10 @@ class va:
                     plt.tight_layout()
                     plt.show()
             else:
+                print(
+                    'Visualastro will automatically generate a set of *model colors* from any\n'
+                    'input color or list of colors. It will take the original color and lighten it.\n'
+                )
                 color_palettes = set_plot_colors(user_color)
                 label = ['plot colors', 'model colors']
                 fig, ax = plt.subplots(figsize=(8, 2))
@@ -1168,17 +1177,22 @@ class va:
             Display a matplotlib or visualastro plotting style:
             >>> va.help.styles('classic')
             '''
-            style_names = ['astro', 'latex', 'minimal'] if style_name is None else [style_name]
-            for style_name in style_names:
+            style_names = ['astro', 'latex', 'minimal', 'default'] if style_name is None else [style_name]
+            colors = ['darkslateblue', 'slateblue', 'palevioletred', '#D81B60']
+            print(
+                'Here are sample plot made with the available visualastro plot styles. '
+                '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
+            )
+            for i, style_name in enumerate(style_names):
                 style = return_stylename(style_name)
                 with plt.style.context(style):
                     print(fr"Style : '{style_name}'")
-                    fig, ax = plt.subplots(figsize=(6,6))
+                    fig, ax = plt.subplots(figsize=(7,2))
                     ax.set_xscale('log')
 
                     x = np.logspace(1, 9, 100)
                     y = (0.8 + 0.4 * np.random.uniform(size=100)) * np.log10(x)**2
-                    ax.scatter(x, y, color='darkslateblue')
+                    ax.scatter(x, y, color=colors[i%len(colors)], s=8)
 
                     ax.set_xlabel('Frequency [Hz]')
                     ax.set_ylabel('Counts')
