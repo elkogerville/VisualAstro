@@ -225,10 +225,10 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
     # rotate tick labels
     if isinstance(ax, WCSAxes):
-        ax.coords['ra'].set_axislabel('RA')
+        ax.coords['ra'].set_axislabel(va_config.right_ascension)
         ax.coords['ra'].set_axislabel_position('b')
         ax.coords['ra'].set_ticklabel(rotation=0)
-        ax.coords['dec'].set_axislabel('DEC')
+        ax.coords['dec'].set_axislabel(va_config.declination)
         ax.coords['dec'].set_axislabel_position('l')
         ax.coords['dec'].set_ticklabel(rotation=90)
 
@@ -371,8 +371,8 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     if ylim: ax.set_ylim(ylim)
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
-    if xlog_hist: ax_histx.set_xscale('log')
-    if ylog_hist: ax_histy.set_yscale('log')
+    if xlog_hist: ax_histx.set_yscale('log')
+    if ylog_hist: ax_histy.set_xscale('log')
 
     ax.minorticks_on()
     # tick parameters for main plot
