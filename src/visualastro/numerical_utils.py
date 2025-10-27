@@ -300,6 +300,6 @@ def mask_within_range(x, xlim=None):
 
     xmin = xlim[0] if xlim is not None else np.nanmin(x)
     xmax = xlim[1] if xlim is not None else np.nanmax(x)
-    mask = (x > xmin) & (x < xmax)
+    mask = (x >= xmin) & (x <= xmax)
 
     return mask
