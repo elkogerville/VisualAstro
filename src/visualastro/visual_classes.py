@@ -17,19 +17,23 @@ Module Structure:
         Data class for extracted spectra.
     - FitsFile
         Lightweight data class for fits files.
+    - Utility Functions
+        Functions used by all classes.
 '''
 
 import os
-from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
+from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.wcs import WCS
+from matplotlib import cm
+from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
 from specutils.spectra import Spectrum1D
-from .va_config import get_config_value
+from .va_config import get_config_value, va_config, _default_flag
 
 # DataCube
 # ––––––––
@@ -86,7 +90,6 @@ class DataCube:
         If `data` or `headers` are not of an expected type.
     ValueError
         If `data` is not 3D, or if the dimensions of `headers` or `errors` do not match `data`.
-
     Examples
     ––––––––
     Load DataCube from fits file
@@ -166,7 +169,7 @@ class DataCube:
                 except Exception:
                     wcs.append(None)
 
-        # assign
+        # assign core attributes
         self.data = data
         self.header = headers
         self.error = errors
@@ -259,6 +262,53 @@ class DataCube:
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
+    def view(self, idx, vmin=_default_flag, vmax=_default_flag,
+             norm=_default_flag, percentile=_default_flag,
+             cmap=None, style=None, figsize=None):
+        '''
+        Display a 3D data array using matplotlib's imshow with configurable
+        normalization, percentile clipping, and style context.
+        Parameters
+        ––––––––––
+        data : array-like
+            2D array of image data to display.
+        idx : int or list of int, optional, default=None
+            Index for slicing along the first axis if 'datas'
+            contains a cube.
+            - i -> returns cube[i]
+            - [i] -> returns cube[i]
+            - [i, j] -> returns the sum of cube[i:j+1] along axis 0
+            If 'datas' is a list of cubes, you may also pass a list of
+            indeces.
+            ex: passing indeces for 2 cubes-> [[i,j], k].
+        vmin : float or None, default=`_default_flag`
+            Lower bound of the display range. If `_default_flag`, uses
+            `va_config.vmin`. If both `vmin` and `percentile` are specified,
+            `vmin` takes precedence.
+        vmax : float or None, default=`_default_flag`
+            Upper bound of the display range. If `_default_flag`, uses
+            `va_config.vmax`. If both `vmax` and `percentile` are specified,
+            `vmax` takes precedence.
+        norm : str or matplotlib.colors.Normalize, default=`_default_flag`
+            Normalization to apply to the image (e.g., 'linear', 'log',
+            'asinh'). If `_default_flag`, uses `va_config.norm`.
+        percentile : tuple of two floats or None, default=`_default_flag`
+            Percentile range `(low, high)` used to set `vmin` and `vmax`
+            automatically. If `_default_flag`, uses `va_config.percentile`.
+        cmap : str or matplotlib colormap, default=None
+            Colormap to use. If `None`, uses `va_config.cmap`.
+        style : str or None, default=None
+            Matplotlib style to apply (e.g., 'astro', 'dark_background').
+            If `None`, uses `va_config.style`.
+        figsize : array-like of two floats or None, default=None
+            Figure size `(width, height)` in inches. If `None`, uses
+            `va_config.figsize`.
+        '''
+        cube = self.value
+        data = _slice_cube(cube, idx)
+
+        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize)
+
     def with_mask(self, mask):
         '''
         Apply a boolean mask to the cube and return the masked data.
@@ -322,13 +372,23 @@ class DataCube:
 
             plt.show()
 
+    def __repr__(self):
+        '''
+        Returns
+        –––––––
+        str : String representation of `DataCube`.
+        '''
+        return (
+            f'<DataCube: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
+        )
+
     # physical properties / statistics
     @property
     def max(self):
         '''
         Returns
         –––––––
-        float : Maximum value in the cube (ignoring NaNs).
+        float : Maximum value in the cube, ignoring NaNs.
         '''
         return np.nanmax(self.value)
     @property
@@ -336,7 +396,7 @@ class DataCube:
         '''
         Returns
         –––––––
-        float : Minimum value in the cube (ignoring NaNs).
+        float : Minimum value in the cube, ignoring NaNs.
         '''
         return np.nanmin(self.value)
     @property
@@ -344,7 +404,7 @@ class DataCube:
         '''
         Returns
         –––––––
-        float : Mean of all values in the cube (ignoring NaNs).
+        float : Mean of all values in the cube, ignoring NaNs.
         '''
         return np.nanmean(self.value)
     @property
@@ -352,7 +412,7 @@ class DataCube:
         '''
         Returns
         –––––––
-        float : Median of all values in the cube (ignoring NaNs).
+        float : Median of all values in the cube, ignoring NaNs.
         '''
         return np.nanmedian(self.value)
     @property
@@ -360,7 +420,7 @@ class DataCube:
         '''
         Returns
         –––––––
-        float : Standard deviation of all values in the cube (ignoring NaNs).
+        float : Standard deviation of all values in the cube, ignoring NaNs.
         '''
         return np.nanstd(self.value)
 
@@ -368,6 +428,40 @@ class DataCube:
 # ExtractedSpectrum
 # –––––––––––––––––
 class ExtractedSpectrum:
+    '''
+    Lightweight container class for extracted 1D spectra with associated metadata.
+
+    Parameters
+    ––––––––––
+    wavelength : array-like or `~astropy.units.Quantity`, optional
+        Wavelength array corresponding to the spectral axis.
+    flux : array-like or `~astropy.units.Quantity`, optional
+        Flux values of the spectrum. Units are inferred if possible.
+    spectrum1d : `~specutils.Spectrum1D`, optional
+        Spectrum object containing wavelength, flux, and unit information.
+        Used as an alternative input to `wavelength` and `flux`.
+    normalized : array-like or `~astropy.units.Quantity`, optional
+        Normalized flux values of the spectrum, if available.
+    continuum_fit : array-like or callable, optional
+        Continuum fit to the spectrum or a callable used to generate it.
+
+    Attributes
+    ––––––––––
+    wavelength : array-like or `~astropy.units.Quantity`
+        Wavelength values of the spectrum.
+    flux : array-like or `~astropy.units.Quantity`
+        Flux values of the spectrum.
+    spectrum1d : `~specutils.Spectrum1D` or None
+        Original Spectrum1D object, if provided.
+    normalized : array-like or None
+        Normalized flux array, if available.
+    continuum_fit : array-like or callable or None
+        Continuum fit data or fitting function.
+    unit : `~astropy.units.Unit` or None
+        Flux unit inferred from `flux` or `spectrum1d`.
+    wave_unit : `~astropy.units.Unit` or None
+        Wavelength unit inferred from `wavelength` or `spectrum1d`.
+    '''
     def __init__(self, wavelength=None, flux=None, spectrum1d=None,
                  normalized=None, continuum_fit=None):
         self.wavelength = wavelength
@@ -376,8 +470,44 @@ class ExtractedSpectrum:
         self.normalized = normalized
         self.continuum_fit = continuum_fit
 
+        # assign attributes
+        unit = None
+        for candidate in (getattr(flux, "unit", None),
+                          getattr(spectrum1d, "unit", None)):
+            if candidate is not None:
+                unit = candidate
+                break
+
+        wave_unit = None
+        for candidate in (getattr(wavelength, "unit", None),
+                          getattr(getattr(spectrum1d, "spectral_axis", None), "unit", None)):
+            if candidate is not None:
+                wave_unit = candidate
+                break
+        self.unit = unit
+        self.wave_unit = wave_unit
+
     # support slicing
     def __getitem__(self, key):
+        '''
+        Return a sliced view of the `ExtractedSpectrum` object.
+        Parameters
+        ––––––––––
+        key : int, slice, or array-like
+            Index or slice used to select specific elements from
+            the wavelength, flux, and other stored arrays.
+        Returns
+        –––––––
+        ExtractedSpectrum
+            A new `ExtractedSpectrum` instance containing the sliced
+            wavelength, flux, normalized flux, continuum fit, and
+            `Spectrum1D` object (if present).
+        Notes
+        –––––
+        - Metadata such as `rest_value` and `velocity_convention` are
+            preserved when slicing `spectrum1d`.
+        - Attributes that are `None` remain `None` in the returned object.
+        '''
         wavelength = None
         flux = None
         spectrum1d = None
@@ -408,10 +538,106 @@ class ExtractedSpectrum:
             continuum_fit
         )
 
+    def view(self, color=None, style=None, figsize=None):
+        '''
+        Plot the spectrum flux versus wavelength.
+        Parameters
+        ––––––––––
+        color : str or None, default=None
+            Line color used for plotting the spectrum. If `None`,
+            defaults to 'darkslateblue'.
+        style : str or None, default=None
+            Matplotlib style to apply (e.g., 'astro', 'dark_background').
+            If `None`, uses the default style set by `va_config.style`.
+        figsize : array-like of two floats or None, default=None
+            Figure size `(width, height)` in inches. If `None`, uses
+            the default value set by `va_config.figsize`.
+        '''
+        color = 'darkslateblue' if color is None else color
+        style = get_config_value(style, 'style')
+        figsize = get_config_value(figsize, 'figsize')
+
+        style = _return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            wavelength = self.wavelength
+            wavelength = wavelength.value if isinstance(wavelength, Quantity) else wavelength
+            flux = self.flux
+            flux = flux.value if isinstance(flux, Quantity) else flux
+
+            ax.plot(wavelength, flux, c=color)
+
+            ax.set_xlim(np.nanmin(wavelength), np.nanmax(wavelength))
+
+            wave_unit = f' [{self.wave_unit}]' if self.wave_unit is not None else ''
+            unit = f' [{self.unit}]' if self.unit is not None else ''
+            ax.set_xlabel(f'Wavelength{wave_unit}')
+            ax.set_ylabel(f'Flux{unit}')
+
+            plt.show()
+
+    def __repr__(self):
+        '''
+        Returns
+        –––––––
+        str : String representation of `ExtractedSpectrum`.
+        '''
+        return (
+            f'<ExtractedSpectrum: wave_unit={self.wave_unit}, flux_unit={self.unit}, len={len(self.wavelength)}>'
+        )
+
 
 # FitsFile
 # ––––––––
 class FitsFile:
+    '''
+    Lightweight container for FITS image data and metadata.
+
+    Parameters
+    ––––––––––
+    data : array-like or `~astropy.units.Quantity`
+        The primary image data. Can be a NumPy array or an
+        `astropy.units.Quantity` object.
+    header : `~astropy.io.fits.Header`, optional
+        FITS header associated with the data. Used to extract
+        WCS information and physical units if available.
+    error : array-like, optional
+        Optional uncertainty or error map associated with the data.
+
+    Attributes
+    ––––––––––
+    data : ndarray
+        The numerical data array (converted from `Quantity` if needed).
+    header : `~astropy.io.fits.Header` or None
+        The FITS header provided at initialization.
+    error : ndarray or None
+        Associated error data, if provided.
+    value : ndarray
+        Alias for `.data`.
+    unit : `~astropy.units.Unit` or None
+        The physical unit of the data. Inferred from the input
+        `Quantity` or from the FITS header keyword ``BUNIT``.
+    wcs : `~astropy.wcs.WCS` or None
+        The WCS transformation extracted from the header, if valid.
+
+    shape : tuple
+        Shape of the data array.
+    size : int
+        Total number of elements in the data array.
+    ndim : int
+        Number of dimensions.
+    dtype : numpy.dtype
+        Data type of the array elements.
+    len : int
+        Length of the first axis.
+    has_nan : bool
+        True if the data contains any NaN values.
+    itemsize : int
+        Size in bytes of each array element.
+    nbytes : int
+        Total memory footprint of the array in bytes.
+    '''
     def __init__(self, data, header=None, error=None):
         data = np.asarray(data)
         unit = None
@@ -434,6 +660,7 @@ class FitsFile:
         self.data = data
         self.header = header
         self.error = error
+        self.value = data
         self.unit = unit
         self.wcs = wcs
 
@@ -449,34 +676,165 @@ class FitsFile:
 
     # magic functions for FitsFile to behave like a np.ndarray
     def __getitem__(self, key):
+        '''
+        Return a slice of the data.
+        Parameters
+        ––––––––––
+        key : slice or tuple
+            Index or slice to apply to the data.
+        Returns
+        –––––––
+        slice : same type as `data`
+            The corresponding subset of the data.
+        '''
         return self.data[key]
 
     def reshape(self, *shape):
-            return self.data.reshape(*shape)
+        '''
+        Return a reshaped view of the data.
+        Parameters
+        ––––––––––
+        *shape : int
+            New shape for the data array.
+        Returns
+        –––––––
+        np.ndarray
+            Reshaped data array.
+        '''
+        return self.data.reshape(*shape)
 
     def __len__(self):
+        '''
+        Return the number of spectral slices along the first axis.
+        Returns
+        –––––––
+        int
+            Length of the first dimension.
+        '''
         return len(self.data)
 
     def __array__(self):
+        '''
+        Return the underlying data as a NumPy array.
+        Returns
+        –––––––
+        np.ndarray
+            The underlying 2D array representation.
+        '''
         return self.data
+
+    def header_get(self, key):
+        '''
+        Retrieve a header value by key from a header.
+        Parameters
+        ––––––––––
+        key : str
+            FITS header keyword to retrieve.
+        Returns
+        –––––––
+        value : list or str
+            Header values corresponding to `key`.
+        Raises
+        ––––––
+        ValueError
+            If headers are of an unsupported type or `key` is not found.
+        '''
+        if isinstance(self.header, Header):
+            return self.header[key] # type: ignore
+        else:
+            raise ValueError(f"Unsupported header type or key '{key}' not found.")
+
+    def view(self, vmin=_default_flag, vmax=_default_flag,
+             norm=_default_flag, percentile=_default_flag,
+             cmap=None, style=None, figsize=None):
+        '''
+        Display a 2D data array using matplotlib's imshow with configurable
+        normalization, percentile clipping, and style context.
+        Parameters
+        ––––––––––
+        data : array-like
+            2D array of image data to display.
+        vmin : float or None, default=`_default_flag`
+            Lower bound of the display range. If `_default_flag`, uses
+            `va_config.vmin`. If both `vmin` and `percentile` are specified,
+            `vmin` takes precedence.
+        vmax : float or None, default=`_default_flag`
+            Upper bound of the display range. If `_default_flag`, uses
+            `va_config.vmax`. If both `vmax` and `percentile` are specified,
+            `vmax` takes precedence.
+        norm : str or matplotlib.colors.Normalize, default=`_default_flag`
+            Normalization to apply to the image (e.g., 'linear', 'log',
+            'asinh'). If `_default_flag`, uses `va_config.norm`.
+        percentile : tuple of two floats or None, default=`_default_flag`
+            Percentile range `(low, high)` used to set `vmin` and `vmax`
+            automatically. If `_default_flag`, uses `va_config.percentile`.
+        cmap : str or matplotlib colormap, default=None
+            Colormap to use. If `None`, uses `va_config.cmap`.
+        style : str or None, default=None
+            Matplotlib style to apply (e.g., 'astro', 'dark_background').
+            If `None`, uses `va_config.style`.
+        figsize : array-like of two floats or None, default=None
+            Figure size `(width, height)` in inches. If `None`, uses
+            `va_config.figsize`.
+        '''
+        data = self.data
+        _view(data, vmin, vmax, norm, percentile, cmap, style, figsize)
+
+    def __repr__(self):
+        '''
+        Returns
+        –––––––
+        str : String representation of `FitsFile`.
+        '''
+        return (
+            f'<FitsFile: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
+        )
 
     # physical properties / statistics
     @property
     def max(self):
+        '''
+        Returns
+        –––––––
+        float : Maximum value in the data, ignoring NaNs.
+        '''
         return np.nanmax(self.data)
     @property
     def min(self):
+        '''
+        Returns
+        –––––––
+        float : Minimum value in the data, ignoring NaNs.
+        '''
         return np.nanmin(self.data)
     @property
     def mean(self):
+        '''
+        Returns
+        –––––––
+        float : Mean of all values in the data, ignoring NaNs.
+        '''
         return np.nanmean(self.data)
     @property
     def median(self):
+        '''
+        Returns
+        –––––––
+        float : Median of all values in the data, ignoring NaNs.
+        '''
         return np.nanmedian(self.data)
     @property
     def std(self):
+        '''
+        Returns
+        –––––––
+        float : Standard deviation of all values in the data, ignoring NaNs.
+        '''
         return np.nanstd(self.data)
 
+
+# Utility Functions
+# –––––––––––––––––
 def _return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
@@ -510,3 +868,237 @@ def _return_stylename(style):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         style_path = os.path.join(dir_path, 'stylelib', style)
         return style_path
+
+def _view(data, vmin=_default_flag, vmax=_default_flag,
+          norm=_default_flag, percentile=_default_flag,
+          cmap=None, style=None, figsize=None):
+    '''
+    Display a 2D data array using matplotlib's imshow with configurable
+    normalization, percentile clipping, and style context.
+    Parameters
+    ––––––––––
+    data : array-like
+        2D array of image data to display.
+    vmin : float or None, default=`_default_flag`
+        Lower bound of the display range. If `_default_flag`, uses
+        `va_config.vmin`. If both `vmin` and `percentile` are specified,
+        `vmin` takes precedence.
+    vmax : float or None, default=`_default_flag`
+        Upper bound of the display range. If `_default_flag`, uses
+        `va_config.vmax`. If both `vmax` and `percentile` are specified,
+        `vmax` takes precedence.
+    norm : str or matplotlib.colors.Normalize, default=`_default_flag`
+        Normalization to apply to the image (e.g., 'linear', 'log',
+        'asinh'). If `_default_flag`, uses `va_config.norm`.
+    percentile : tuple of two floats or None, default=`_default_flag`
+        Percentile range `(low, high)` used to set `vmin` and `vmax`
+        automatically. If `_default_flag`, uses `va_config.percentile`.
+    cmap : str or matplotlib colormap, default=None
+        Colormap to use. If `None`, uses `va_config.cmap`.
+    style : str or None, default=None
+        Matplotlib style to apply (e.g., 'astro', 'dark_background').
+        If `None`, uses `va_config.style`.
+    figsize : array-like of two floats or None, default=None
+        Figure size `(width, height)` in inches. If `None`, uses
+        `va_config.figsize`.
+    '''
+    # get default va_config values
+    vmin = va_config.vmin if vmin is _default_flag else vmin
+    vmax = va_config.vmax if vmax is _default_flag else vmax
+    norm = va_config.norm if norm is _default_flag else norm
+    percentile = va_config.percentile if percentile is _default_flag else percentile
+    cmap = get_config_value(cmap, 'cmap')
+    style = get_config_value(style, 'style')
+    figsize = get_config_value(figsize, 'figsize')
+    cbar_width = va_config.cbar_width
+    cbar_pad = va_config.cbar_pad
+
+    vmin, vmax = _set_vmin_vmax(data, percentile, vmin, vmax)
+    img_norm = _return_imshow_norm(vmin, vmax, norm)
+
+    style = _return_stylename(style)
+    with plt.style.context(style):
+        fig, ax = plt.subplots(figsize=figsize)
+
+        im = ax.imshow(data, norm=img_norm, cmap=cmap)
+
+        # add colorbar axes
+        cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
+                            cbar_width, ax.get_position().height])
+        # add colorbar
+        cbar = fig.colorbar(im, cax=cax, pad=0.04)
+        # formatting and label
+        cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
+
+        plt.show()
+
+def _return_imshow_norm(vmin, vmax, norm, **kwargs):
+    '''
+    Return a matplotlib or astropy normalization object for image display.
+    Parameters
+    ––––––––––
+    vmin : float or None
+        Minimum value for normalization.
+    vmax : float or None
+        Maximum value for normalization.
+    norm : str or None
+        Normalization algorithm for colormap scaling.
+        - 'asinh' -> asinh stretch using 'ImageNormalize'
+        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
+        - 'linear' -> no normalization applied
+        - 'log' -> logarithmic scaling using 'LogNorm'
+        - 'powernorm' -> power-law normalization using 'PowerNorm'
+        - 'none' -> no normalization applied
+
+    **kwargs : dict, optional
+        Additional parameters.
+
+        Supported keywords:
+
+        - `linear_width` : float, optional, default=`va_config.linear_width`
+            The effective width of the linear region, beyond
+            which the transformation becomes asymptotically logarithmic.
+            Only used in 'asinhnorm'.
+        - `gamma` : float, optional, default=`va_config.gamma`
+            Power law exponent.
+    Returns
+    –––––––
+    norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
+        Normalization object to pass to `imshow`. None if `norm` is 'none'.
+    '''
+    linear_width = kwargs.get('linear_width', va_config.linear_width)
+    gamma = kwargs.get('gamma', va_config.gamma)
+
+    # use linear stretch if plotting boolean array
+    if vmin==0 and vmax==1:
+        return None
+
+    # ensure norm is a string
+    norm = 'none' if norm is None else norm
+    # ensure case insensitivity
+    norm = norm.lower()
+    # dict containing possible stretch algorithms
+    norm_map = {
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
+        'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
+        'log': LogNorm(vmin=vmin, vmax=vmax),
+        'powernorm': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
+        'linear': None,
+        'none': None
+    }
+    if norm not in norm_map:
+        raise ValueError(
+            f'ERROR: unsupported norm: {norm}. '
+            f'\nsupported norms are {list(norm_map.keys())}'
+        )
+
+    return norm_map[norm]
+
+def _set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
+    '''
+    Compute vmin and vmax for image display. By default uses the
+    data nanpercentile using `percentile`, but optionally vmin and/or
+    vmax can be set by the user. Setting percentile to None results in
+    no stretch. Passing in a boolean array uses vmin=0, vmax=1. This
+    function is used internally by plotting functions.
+    Parameters
+    ––––––––––
+    data : array-like
+        Input data array (e.g., 2D image) for which to compute vmin and vmax.
+    percentile : list or tuple of two floats, or None, default=`_default_flag`
+        Percentile range '[pmin, pmax]' to compute vmin and vmax.
+        If None, sets vmin and vmax to None. If `_default_flag`, uses
+        default value from `va_config.percentile`.
+    vmin : float or None, default=None
+        If provided, overrides the computed vmin.
+    vmax : float or None, default=None
+        If provided, overrides the computed vmax.
+    Returns
+    –––––––
+    vmin : float or None
+        Minimum value for image scaling.
+    vmax : float or None
+        Maximum value for image scaling.
+    '''
+    percentile = va_config.percentile if percentile is _default_flag else percentile
+    # check if data is an array
+    data = _check_is_array(data)
+    # check if data is boolean
+    if data.dtype == bool:
+        return 0, 1
+
+    # by default use percentile range
+    if percentile is not None:
+        if vmin is None:
+            vmin = np.nanpercentile(data, percentile[0])
+        if vmax is None:
+            vmax = np.nanpercentile(data, percentile[1])
+    # if vmin or vmax is provided overide and use those instead
+    elif vmin is None and vmax is None:
+        vmin = None
+        vmax = None
+
+    return vmin, vmax
+
+def _check_is_array(data, keep_units=False):
+    '''
+    Ensure array input is np.ndarray.
+    Parameters
+    ––––––––––
+    data : np.ndarray, DataCube, FitsFile, or Quantity
+        Array or DataCube object.
+    keep_inits : bool, optional, default=False
+        If True, keep astropy units attached if present.
+    Returns
+    –––––––
+    data : np.ndarray
+        Array or 'data' component of DataCube.
+    '''
+    if isinstance(data, DataCube):
+        data = data.value
+    elif isinstance(data, FitsFile):
+        data = data.data
+    if isinstance(data, Quantity):
+        if keep_units:
+            return data
+        else:
+            data = data.value
+
+    return np.asarray(data)
+
+def _slice_cube(cube, idx):
+    '''
+    Return a slice of a data cube along the first axis.
+    Parameters
+    ––––––––––
+    cube : np.ndarray
+        Input data cube, typically with shape (T, N, ...) where T is the first axis.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns 'cube[i]'
+        - [i] -> returns 'cube[i]'
+        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
+    Returns
+    –––––––
+    cube : np.ndarray
+        Sliced cube with shape (N, ...).
+    '''
+    if isinstance(cube, DataCube):
+        cube = cube.data
+    elif isinstance(cube, FitsFile):
+        cube = cube.data
+
+    # if index is integer
+    if isinstance(idx, int):
+        return cube[idx]
+    # if index is list of integers
+    elif isinstance(idx, list):
+        # list of len 1
+        if len(idx) == 1:
+            return cube[idx[0]]
+        # list of len 2
+        elif len(idx) == 2:
+            start, end = idx
+            return cube[start:end+1].sum(axis=0)
+
+    raise ValueError("'idx' must be an int or a list of one or two integers")

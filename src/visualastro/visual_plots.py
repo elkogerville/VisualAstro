@@ -14,6 +14,7 @@ Module Structure:
     - VisualAstro Help
         VisualAstro user help.
 '''
+
 from contextlib import contextmanager
 from astropy.io.fits import Header
 from astropy.wcs import WCS
@@ -710,8 +711,8 @@ class va:
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
             # adjust grid layout to prevent overlap
-            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2),
-                                    height_ratios=(1.2, 4),
+            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.6),
+                                    height_ratios=(1.6, 4),
                                     left=0.15, right=0.9, bottom=0.15,
                                     top=0.9, wspace=0.09, hspace=0.09)
             # create subplots

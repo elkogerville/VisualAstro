@@ -1,3 +1,18 @@
+'''
+Author: Elko Gerville-Reache
+Date Created: 2025-10-20
+Date Modified: 2025-10-27
+Description:
+    Visualastro configuration interface to update function defaults.
+Dependencies:
+    - numpy
+Module Structure:
+    - Plotting Params
+        Confguration parameters related to plotting functions.
+    - Science Params
+        Configuration parameters related to science functions.
+'''
+
 import numpy as np
 
 
@@ -132,8 +147,12 @@ class VAConfig:
     def reset_defaults(self):
         self.__init__()
 
-
+# instantiate va_config class
 va_config = VAConfig()
+# placeholder flag for default values by
+# default, the placeholder flag is `None`,
+# but when an argument can also take in
+# `None`, `_default_flag` should be used.
 _default_flag = object()
 
 def get_config_value(var, attribute):
