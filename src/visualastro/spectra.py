@@ -19,15 +19,14 @@ Module Structure:
         Fitting routines for spectra.
 '''
 
-from types import NoneType
-from astropy.modeling import models, fitting
+from collections import namedtuple
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum1D
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    check_units_consistency, convert_units, get_units, interpolate_arrays,
+    check_units_consistency, convert_units, interpolate_arrays,
     mask_within_range, return_array_values, shift_by_radial_vel
 )
 from .plot_utils import (
@@ -216,8 +215,8 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
 
-        plot_spectrum(extracted_spectra, ax, normalize_continuum,
-                        plot_continuum_fit, emission_line, **kwargs)
+        _ = plot_spectrum(extracted_spectra, ax, normalize_continuum,
+                          plot_continuum_fit, emission_line, **kwargs)
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
@@ -295,6 +294,22 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             Location for emission line annotation text in axes coordinates.
         - `use_brackets` : bool, optional, default=`va_config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
+
+    Returns
+    –––––––
+    lines : Line2D or list of Line2D, or PlotSpectrum
+        The plotted line object(s) created by `Axes.plot`.
+
+        - If `plot_continuum_fit` is False, returns a single `Line2D` object
+          or a list of `Line2D` objects corresponding to the main spectrum.
+        - If `plot_continuum_fit` is True, returns a `PlotSpectrum` named tuple
+          with the following fields:
+
+            * `line` : Line2D or list of Line2D
+              The plotted spectrum line(s).
+
+            * `continuum_line` : Line2D or list of Line2D
+              The plotted continuum fit line(s), if available.
     '''
     # –––– KWARGS ––––
     # line params
@@ -355,7 +370,10 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     if emission_line is not None:
         ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
 
+    lines = []
+    fit_lines = []
     wavelength_list = []
+
     # loop through each spectrum
     for i, extracted_spectrum in enumerate(extracted_spectra):
 
@@ -368,7 +386,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
         # mask wavelength within data range
         mask = mask_within_range(wavelength, xlim=xlim)
-        wavelength_list.append(wavelength[mask])
+        wavelength_list.append(wavelength[mask]) # type: ignore
 
         # define plot params
         color = colors[i%len(colors)]
@@ -380,8 +398,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         # plot spectrum
-        ax.plot(wavelength[mask], flux[mask], c=color, ls=linestyle,
-                lw=linewidth, alpha=alpha, zorder=zorder, label=label)
+        l = ax.plot(wavelength[mask], flux[mask], c=color, ls=linestyle, # type: ignore
+                    lw=linewidth, alpha=alpha, zorder=zorder, label=label)
         # plot continuum fit
         if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
             if plot_norm_continuum:
@@ -389,8 +407,13 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                 continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
             else:
                 continuum_fit = extracted_spectrum.continuum_fit
-            ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color,
-                    ls=linestyle, lw=linewidth, alpha=alpha)
+            fl = ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color, # type: ignore
+                         ls=linestyle, lw=linewidth, alpha=alpha)
+
+            fit_lines.append(fl)
+
+        lines.append(l)
+
 
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
@@ -398,6 +421,16 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                     xlabel, ylabel, use_brackets=use_brackets)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    lines = lines[0] if len(lines) == 1 else lines
+    if plot_continuum_fit:
+        PlotHandles = namedtuple('PlotSpectrum', ['line', 'continuum_line'])
+        fit_lines = fit_lines[0] if len(fit_lines) == 1 else fit_lines
+
+        return PlotHandles(lines, fit_lines)
+
+    return lines
+
 
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                           concatenate=False, return_spectra=False,
