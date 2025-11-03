@@ -23,6 +23,7 @@ from astropy import units as u
 from astropy.io.fits import Header
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
+from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
 from .visual_classes import DataCube, ExtractedSpectrum, FitsFile
@@ -172,6 +173,60 @@ def return_array_values(array):
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––
+def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
+    '''
+    Estimate the 2D density of a set of particles using a Gaussian KDE.
+    Parameters
+    ––––––––––
+    x : np.ndarray
+        1D array of x-coordinates of shape (N,).
+    y : np.ndarray
+        1D array of y-coordinates of shape (N,).
+    bw_method : str, scalar or callable, optional, default='scott'
+        The method used to calculate the bandwidth factor for the Gaussian KDE.
+        Can be one of:
+        - 'scott' or 'silverman': use standard rules of thumb.
+        - a scalar constant: directly used as the bandwidth factor.
+        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
+            sole argument and return a scalar bandwidth factor.
+    resolution : int, optional, default=200
+        Grid resolution for the KDE.
+    padding : float, optional, default=0.2
+        Fractional padding applied to the data range when generating
+        the evaluation grid, expressed as a fraction of the total span
+        along each axis. For example, a value of `0.2` expands the grid
+        limits by 20% beyond the minimum and maximum of the data in both
+        `x` and `y` directions. This helps capture the tails of the
+        Gaussian kernel near the plot boundaries.
+    Returns
+    –––––––
+    xgrid : np.ndarray
+        2D array of x-coordinates for the evaluation grid (shape res×res).
+    ygrid : np.ndarray
+        2D array of y-coordinates for the evaluation grid (shape res×res).
+    Z : np.ndarray
+        2D array of estimated density values on the grid (shape res×res).
+    '''
+    # compute bounds with 20% padding
+    xmin, xmax = np.nanmin(x), np.nanmax(x)
+    ymin, ymax = np.nanmin(y), np.nanmax(y)
+    padding_x = (xmax - xmin) * padding
+    padding_y = (ymax - ymin) * padding
+
+    # generate grid
+    xgrid, ygrid = np.mgrid[
+        (xmin - padding_x):(xmax + padding_x):complex(resolution),
+        (ymin - padding_y):(ymax + padding_y):complex(resolution)
+    ]
+    # KDE evaluation
+    values = np.vstack([x, y])
+    grid = np.vstack([xgrid.ravel(), ygrid.ravel()])
+    kernel = stats.gaussian_kde(values, bw_method=bw_method)
+    Z = np.reshape(kernel(grid), xgrid.shape)
+
+    return xgrid, ygrid, Z
+
+
 def convert_units(quantity, unit):
     '''
     Convert an Astropy Quantity to a specified unit, with a fallback if conversion fails.
