@@ -1224,13 +1224,10 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_minor_locator(AutoMinorLocator())
         ax.tick_params(which='minor', direction='in', length=2, width=0.5)
-
     else:
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_minor_locator(NullLocator())
     if axes_off: ax.set_axis_off()
-
-
 
     scatters = scatters[0] if len(scatters) == 1 else scatters
 
