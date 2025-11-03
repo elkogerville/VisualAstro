@@ -108,6 +108,7 @@ class VAConfig:
         self.clabel = True
 
         # text params
+        self.fontsize = 10
         self.text_color = 'k'
         self.text_loc = [0.03, 0.03]
 
