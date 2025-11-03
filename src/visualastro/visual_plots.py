@@ -373,9 +373,9 @@ class va:
                 ax.coords['ra'].set_ticks_position('bl')
                 ax.coords['dec'].set_ticks_position('bl')
 
-            plot_spectral_cube(cubes, idx, ax, vmin, vmax, norm,
-                               percentile, radial_vel, unit, cmap,
-                               mask_non_pos, **kwargs)
+            _ = plot_spectral_cube(cubes, idx, ax, vmin, vmax, norm,
+                                   percentile, radial_vel, unit, cmap,
+                                   mask_non_pos, **kwargs)
             if savefig:
                 save_figure_2_disk(dpi)
 
@@ -475,9 +475,9 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            plot_spectrum(extracted_spectrums, ax, plot_norm_continuum,
-                          plot_continuum_fit, emission_line, wavelength,
-                          flux, continuum_fit, colors, **kwargs)
+            _ = plot_spectrum(extracted_spectrums, ax, plot_norm_continuum,
+                              plot_continuum_fit, emission_line, wavelength,
+                              flux, continuum_fit, colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
