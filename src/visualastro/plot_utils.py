@@ -35,7 +35,9 @@ import matplotlib.ticker as ticker
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
-from .numerical_utils import check_is_array, get_data, return_array_values
+from .numerical_utils import (
+    check_is_array, compute_density_kde, get_data, return_array_values
+)
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -529,6 +531,99 @@ def add_colorbar(im, ax, cbar_width=None,
     cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
+
+
+def add_contours(x, y, ax, levels=20, contour_method='contour',
+                 bw_method='scott', resolution=200, padding=0.2,
+                 cslabel=False, zdir=None, offset=None, cmap=None,
+                 **kwargs):
+    '''
+    Add 2D or 3D Gaussian KDE density contours to an axis.
+    This function computes a 2D Gaussian kernel density estimate (KDE)
+    from input data (`x`, `y`) using `compute_density_kde` and plots
+    contour lines or filled contours using either `ax.contour` or
+    `ax.contourf`. If `zdir` and `offset` are provided, the contours
+    are projected onto a plane in 3D space.
+    Parameters
+    ––––––––––
+    x : array-like
+        1D array of x-values for the dataset.
+    y : array-like
+        1D array of y-values for the dataset.
+    ax : matplotlib.axes.Axes or mpl_toolkits.mplot3d.axes3d.Axes3D
+        Axis on which to draw the contours.
+    levels : int or array-like, default=20
+        Number or list of contour levels to draw.
+    contour_method : {'contour', 'contourf'}, default='contour'
+        Method used to draw contours. 'contour' draws lines, while
+        'contourf' draws filled contours.
+    bw_method : str, scalar or callable, optional, default='scott'
+        The method used to calculate the bandwidth factor for the Gaussian KDE.
+        Can be one of:
+        - 'scott' or 'silverman': use standard rules of thumb.
+        - a scalar constant: directly used as the bandwidth factor.
+        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
+            sole argument and return a scalar bandwidth factor.
+    resolution : int, default=200
+        Number of grid points used per axis for density estimation.
+    padding : float, default=0.2
+        Fractional padding applied to the data range when generating
+        the KDE grid.
+    cslabel : bool, default=False
+        If True, label contour levels with their corresponding values.
+        Only works in 2D plots.
+    zdir : {'x', 'y', 'z'} or None, default=None
+        Direction normal to the plane where contours are drawn.
+        If None, contours are plotted in 2D.
+    offset : float or None, default=None
+        Offset along the `zdir` direction for projecting contours in 3D space.
+    cmap : str, optional, default=`va_config.cmap`
+        Colormap used for plotting contours.
+
+    **kwargs : dict, optional
+        Additional plotting parameters.
+
+        Supported keywords:
+
+        - `fontsize` : float, default=`va_config.fontsize`
+            Fontsize of contour labels.
+
+    Returns
+    –––––––
+    cs : matplotlib.contour.QuadContourSet or mpl_toolkits.mplot3d.art3d.QuadContourSet3D
+        The contour set object created by Matplotlib.
+    '''
+    # –––– KWARGS ––––
+    fontsize = kwargs.get('fontsize', va_config.fontsize)
+    # get default va_config values
+    cmap = get_config_value(cmap, 'cmap')
+    # get contour plotting method
+    contour_method = {
+        'contour': ax.contour,
+        'contourf': ax.contourf
+    }.get(contour_method.lower(), ax.contour)
+
+    # compute kde density
+    X, Y, Z = compute_density_kde(x, y, bw_method=bw_method, resolution=resolution, padding=padding)
+
+    # plot contours as either 3D projections or a simple 2D plot
+    valid_zdirs = {'x', 'y', 'z'}
+    zdir = zdir.lower() if isinstance(zdir, str) else None
+    if zdir in valid_zdirs and offset is not None:
+        if zdir == 'z':
+            cs = contour_method(X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+        elif zdir == 'y':
+            cs = contour_method(X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+        else:
+            cs = contour_method(Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+    else:
+        cs = contour_method(X, Y, Z, levels=levels, cmap=cmap)
+
+    # add labels
+    if cslabel:
+        ax.clabel(cs, fontsize=fontsize)
+
+    return cs
 
 
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
