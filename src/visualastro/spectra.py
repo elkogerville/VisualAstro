@@ -325,10 +325,10 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         - If `plot_continuum_fit` is True, returns a `PlotSpectrum` named tuple
           with the following fields:
 
-            * `line` : Line2D or list of Line2D
+            * `lines` : Line2D or list of Line2D
               The plotted spectrum line(s).
 
-            * `continuum_line` : Line2D or list of Line2D
+            * `continuum_lines` : Line2D or list of Line2D
               The plotted continuum fit line(s), if available.
     '''
     # –––– KWARGS ––––
@@ -437,7 +437,6 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
         lines.append(l)
 
-
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
@@ -447,7 +446,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
     lines = lines[0] if len(lines) == 1 else lines
     if plot_continuum_fit:
-        PlotHandles = namedtuple('PlotSpectrum', ['line', 'continuum_line'])
+        PlotHandles = namedtuple('PlotSpectrum', ['lines', 'continuum_lines'])
         fit_lines = fit_lines[0] if len(fit_lines) == 1 else fit_lines
 
         return PlotHandles(lines, fit_lines)
@@ -502,6 +501,11 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - ylim : tuple, optional, default=None
             y-axis limits as (ymin, ymax).
         - `colors`, `color` or `c` : list of colors or None, optional, default=None
@@ -538,6 +542,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     '''
     # –––– KWARGS ––––
     # figure params
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     ylim = kwargs.get('ylim', None)
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
@@ -599,14 +604,19 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             flux_list.append(flux)
         # plot spectrum if not concatenating
         else:
-            ax.plot(wavelength, flux, color=c, label=l,
-                    ls=linestyles, lw=linewidths, alpha=alphas)
+            ax.plot(wavelength, flux, color=c,
+                    label=l, ls=linestyles,
+                    lw=linewidths, alpha=alphas,
+                    rasterized=rasterized)
     # plot entire spectrum if concatenate
     if concatenate:
         wavelength = np.concatenate(wave_list)
         flux = np.concatenate(flux_list)
-        ax.plot(return_array_values(wavelength), return_array_values(flux),
-                color=c, label=l, ls=linestyles, lw=linewidths, alpha=alphas)
+        ax.plot(return_array_values(wavelength),
+                return_array_values(flux),
+                color=c, label=l, ls=linestyles,
+                lw=linewidths, alpha=alphas,
+                rasterized=rasterized)
 
     set_axis_labels(wavelength, flux, ax, xlabel, ylabel, use_brackets)
 
