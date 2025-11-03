@@ -97,6 +97,11 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `invert_xaxis` : bool, optional, default=False
             Invert the x-axis if True.
         - `invert_yaxis` : bool, optional, default=False
@@ -146,6 +151,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     '''
     # –––– KWARGS ––––
     # figure params
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     invert_xaxis = kwargs.get('invert_xaxis', False)
     invert_yaxis = kwargs.get('invert_yaxis', False)
     # labels
@@ -212,11 +218,18 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
         # imshow image
         if img_norm is None:
-            im = ax.imshow(data, origin=origin, vmin=vmin, vmax=vmax,
-                           cmap=cmap[i%len(cmap)], aspect=aspect)
+            im = ax.imshow(data, origin=origin, vmin=vmin,
+                           vmax=vmax, cmap=cmap[i%len(cmap)],
+                           aspect=aspect, rasterized=rasterized)
         else:
-            im = ax.imshow(data, origin=origin, norm=img_norm,
-                           cmap=cmap[i%len(cmap)], aspect=aspect)
+            im = ax.imshow(
+                data,
+                origin=origin,
+                norm=img_norm,
+                cmap=cmap[i%len(cmap)],
+                aspect=aspect,
+                rasterized=rasterized
+            )
 
         images.append(im)
 

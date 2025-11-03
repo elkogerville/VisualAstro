@@ -153,6 +153,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `invert_xaxis` : bool, optional, default=False
                 Invert the x-axis if True.
             - `invert_yaxis` : bool, optional, default=False
@@ -306,6 +311,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `title` : bool, default=False
                 If True, display spectral slice label as plot title.
             - `emission_line` : str or None, default=None

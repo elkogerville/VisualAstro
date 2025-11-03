@@ -246,6 +246,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `title` : bool, default=False
             If True, display spectral slice label as plot title.
         - `emission_line` : str or None, default=None
@@ -270,11 +275,6 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Whether to draw spectral slice value as a label.
         - `highlight` : bool, default=`va_config.highlight`
             Whether to highlight interactive ellipse if plotted.
-        - `rasterized` : bool, default=`va_config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
         - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
             Value to use when masking out non-positive values.
             Ex: np.nan, 1e-6, np.inf
@@ -301,6 +301,8 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     # check cube units match and ensure cubes is iterable
     cubes = check_units_consistency(cubes)
     # –––– Kwargs ––––
+    # fig params
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     # labels
     title = kwargs.get('title', False)
     emission_line = kwargs.get('emission_line', None)
@@ -314,7 +316,6 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
     highlight = kwargs.get('highlight', va_config.highlight)
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
     # mask out value
     mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
     # plot ellipse
