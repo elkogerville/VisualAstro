@@ -431,6 +431,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `colors`, `color` or `c` : list of colors or None, optional, default=None
                 Colors to use for each dataset. If None, default
                 color cycle is used.
@@ -545,6 +550,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - ylim : tuple, optional, default=None
                 y-axis limits as (ymin, ymax).
             - `colors`, `color` or `c` : list of colors or None, optional, default=None
@@ -669,6 +679,11 @@ class va:
 
             Supported keyword arguments include:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
                 Marker size(s) for scatter points.
             - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
@@ -778,6 +793,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
                 Colors to use for each line. If None, default color cycle is used.
             - `cmap` : str, optional, default=`va_config.cmap`

@@ -324,6 +324,11 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
         Supported keyword arguments include:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
             Marker size(s) for scatter points.
         - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
@@ -366,6 +371,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         object or tuple instead of a list.
     '''
     # –––– KWARGS ––––
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     # scatter params
     sizes = get_kwargs(kwargs, 'size', 's', default=None)
@@ -467,16 +473,18 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         sc = ax.scatter(x, y, c=color, s=size, marker=marker,
-                        alpha=alpha, edgecolors=edgecolor, label=label)
+                        alpha=alpha, edgecolors=edgecolor,
+                        label=label, rasterized=rasterized)
         # top histogram (x-axis)
         hx = ax_histx.hist(x, bins=bins, color=color, histtype=histtype,
                            ls=linestyle, lw=linewidth, alpha=alpha,
-                           zorder=zorder, density=normalize)
+                           zorder=zorder, density=normalize,
+                           rasterized=rasterized)
         # right histogram (y-axis)
         hy = ax_histy.hist(y, bins=bins, orientation='horizontal',
                            color=color, histtype=histtype, ls=linestyle,
                            lw=linewidth, alpha=alpha, zorder=zorder,
-                           density=normalize)
+                           density=normalize, rasterized=rasterized)
 
         scatters.append(sc)
         histx.append(hx)
@@ -543,6 +551,11 @@ def plot_histogram(datas, ax,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
             Colors to use for each line. If None, default color cycle is used.
         - `cmap` : str, optional, default=`va_config.cmap`
@@ -578,6 +591,7 @@ def plot_histogram(datas, ax,
         it is a list of tuples.
     '''
     # –––– KWARGS ––––
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
@@ -627,7 +641,8 @@ def plot_histogram(datas, ax,
             color=color,
             histtype=histtype,
             density=normalize,
-            label=label
+            label=label,
+            rasterized=rasterized
         )
 
         hists.append(h)
