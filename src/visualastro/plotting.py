@@ -706,7 +706,12 @@ def plot_lines(X, Y, ax, normalize=None,
 
         Supported keywords:
 
-        - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
+         `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
             Colors to use for each line. If None, default color cycle is used.
         - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
             Line style of plotted lines.
@@ -743,6 +748,7 @@ def plot_lines(X, Y, ax, normalize=None,
         otherwise, it is a list of `Line2D` objects.
     '''
     # –––– KWARGS ––––
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=linewidth)
@@ -803,8 +809,10 @@ def plot_lines(X, Y, ax, normalize=None,
             y = y / np.nanmax(y)
         y_list.append(y)
 
-        l = ax.plot(x, y, c=color, ls=linestyle, lw=linewidth,
-                    alpha=alpha, zorder=zorder, label=label)
+        l = ax.plot(x, y, c=color, ls=linestyle,
+                    lw=linewidth, alpha=alpha,
+                    zorder=zorder, label=label,
+                    rasterized=rasterized)
 
         lines.append(l)
 
@@ -871,6 +879,11 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
             Colors to use for each line. If None, default color cycle is used.
         - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
@@ -915,6 +928,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     '''
     # –––– KWARGS ––––
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     # scatter params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'sizes', 'size', 's', default=size)
@@ -991,7 +1005,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             y = y / np.nanmax(y)
 
         s = ax.scatter(x, y, c=color, s=size, marker=marker,
-                       alpha=alpha, edgecolors=edgecolor, label=label)
+                       alpha=alpha, edgecolors=edgecolor,
+                       label=label, rasterized=rasterized)
 
         scatters.append(s)
 

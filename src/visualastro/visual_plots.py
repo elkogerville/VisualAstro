@@ -904,6 +904,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
                 Colors to use for each line. If None, default color cycle is used.
             - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
@@ -1019,6 +1024,11 @@ class va:
 
             Supported keywords:
 
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
             - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
                 Colors to use for each line. If None, default color cycle is used.
             - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
