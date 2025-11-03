@@ -227,7 +227,7 @@ def save_figure_2_disk(
     dpi : float, int, or None, optional, default=None
         Resolution in dots per inch. If None, uses
         the default value set by `va_config.dpi`.
-    pdf_compression : int or None, optional, default=False
+    pdf_compression : int or None, optional, default=None
         'Pdf.compression' value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
         compression. If None, uses the default value
