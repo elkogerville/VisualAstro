@@ -25,7 +25,8 @@ from .io import save_figure_2_disk
 from .numerical_utils import get_data
 from .plotting import (
     imshow, plot_density_histogram,
-    plot_histogram, plot_lines, plot_scatter
+    plot_histogram, plot_lines,
+    plot_scatter, scatter3D
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
@@ -1091,6 +1092,146 @@ class va:
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()
+
+
+    @staticmethod
+    def scatter3D(X, Y, Z, elev=90, azim=-90, roll=0,
+                  scale=None, axes_off=False, grid_lines=False,
+                  colors=None, size=None, marker=None, alpha=None,
+                  edgecolors=_default_flag, **kwargs):
+        '''
+        Convenience wrapper for `scatter3D`, to scatter plot one or more
+        distributions in 3-Dimensional space.
+
+        Initializes a Matplotlib figure and axis using the specified plotting
+        style, then calls the core `plot_scatter` routine with the provided
+        parameters. This method is intended for rapid visualization and consistent
+        figure formatting, while preserving full configurability through **kwargs.
+        Parameters
+        ––––––––––
+        X, Y, Z : array-like or list of array-like
+            Coordinates of the data points. Each of `X`, `Y`, and `Z`
+            may be a single array or a list of arrays for plotting
+            multiple groups. All three must have the same number of arrays.
+        elev : float, default=90
+            Elevation angle in degrees (rotation around camera x-axis).
+        azim : float, default=-90
+            Azimuth angle in degrees (rotation around the z-axis).
+        roll : float, default=0
+            Roll angle in degrees (rotation around the view direction).
+        scale : float or None, default=None
+            If given, sets symmetric limits for all axes as `[-scale, scale]`.
+        axes_off : bool, default=False
+            If True, hides all axes spines, ticks, and labels.
+        grid_lines : bool, default=False
+            If False, disables gridlines on the 3D plot.
+        colors : list of colors, str, or None, optional, default=None
+            Colors to use for each scatter group or dataset.
+            If None, uses the default color palette from
+            `va_config.default_palette`.
+        size : float, list of float, or None, optional, default=None
+            Size of scatter dots. If None, uses the default
+            value in `va_config.scatter_size`.
+        marker : str, list of str, or None, optional, default=None
+            Marker style for scatter dots. If None, uses the
+            default value in `va_config.marker`.
+        alpha : float, list of float, or None, default=None
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+            If None, uses the default value from `va_config.alpha`.
+        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+            The edge color of the marker. Possible values:
+            - 'face': The edge color will always be the same as the face color.
+            - 'none': No patch boundary will be drawn.
+            - A color or sequence of colors.
+            If `_default_flag`, uses the default value in `va_config.edgecolor`.
+
+        **kwargs : dict, optional
+            Additional plotting parameters.
+
+            Supported keywords:
+
+            - `rasterized` : bool, default=`va_config.rasterized`
+                Whether to rasterize plot artists. Rasterization
+                converts the artist to a bitmap when saving to
+                vector formats (e.g., PDF, SVG), which can
+                significantly reduce file size for complex plots.
+            - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+                Colors to use for each line. If None, default color cycle is used.
+            - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+                Size of scatter dots.
+            - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
+                Marker style for scatter dots.
+            - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+                The alpha blending value, between 0 (transparent) and 1 (opaque).
+            - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+                The edge color of the marker.
+            - `cmap` : str, optional, default=`va_config.cmap`
+                Colormap to use if `colors` is not provided.
+            - `xlim` : tuple of two floats or None
+                Limits for the x-axis.
+            - `ylim` : tuple of two floats or None
+                Limits for the y-axis.
+            - `zlim` : tuple of two floats or None
+                Limits for the z-axis.
+            - `xlabel` : str or None
+                Label for the x-axis.
+            - `ylabel` : str or None
+                Label for the y-axis.
+            - `zlabel` : str or None
+                Label for the z-axis.
+            - `minor_ticks` : bool, default=False
+                If True, sets minor ticks for all axes.
+            - `figsize` : tuple of float, default=`va_config.figsize`
+                Figure size in inches.
+            - `style` : str, default=`va_config.style`
+                Matplotlib or visualastro style name to apply during plotting.
+                Ex: 'astro', 'classic', etc...
+            - `savefig` : bool, default=`va_config.savefig`
+                If True, saves the figure to disk using `save_figure_2_disk`.
+            - `dpi` : int, default=`va_config.dpi`
+                Resolution (dots per inch) for saved figure.
+
+        Returns
+        –––––––
+        scatter : `matplotlib.collections.Path3DCollection` or list of them
+            The created scatter artist(s). Returns a single object
+            if only one dataset is plotted.
+
+        Raises
+        ––––––
+        ValueError
+            If `X`, `Y`, and `Z` do not have the same number of arrays
+            after unit consistency checks.
+
+        Notes
+        –––––
+        - The function cycles through `colors`, `sizes`, `markers`,
+          `alphas`, and `edgecolors` if fewer values are given than
+          datasets.
+        - Pane backgrounds are set to white (`(1, 1, 1, 1)`).
+        - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
+          and finally `scale` if provided.
+        '''
+        # figure params
+        figsize = kwargs.get('figsize', va_config.figsize)
+        style = kwargs.get('style', va_config.style)
+        # savefig
+        savefig = kwargs.get('savefig', va_config.savefig)
+        dpi = kwargs.get('dpi', va_config.dpi)
+
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig = plt.figure(figsize=figsize)
+            ax = fig.add_subplot(111, projection='3d')
+
+            _ = scatter3D(X, Y, Z, ax, elev, azim, roll,
+                          scale, axes_off, grid_lines,
+                          colors, size, marker, alpha,
+                          edgecolors, **kwargs)
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
 
     # –––– VisualAstro Help ––––
     class help:

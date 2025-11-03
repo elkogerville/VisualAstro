@@ -15,6 +15,7 @@ Module Structure:
 
 from collections import namedtuple
 from astropy.visualization.wcsaxes.core import WCSAxes
+from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
@@ -1023,6 +1024,213 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    scatters = scatters[0] if len(scatters) == 1 else scatters
+
+    return scatters
+
+
+def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
+              scale=None, axes_off=False, grid_lines=False,
+              colors=None, size=None, marker=None, alpha=None,
+              edgecolors=_default_flag, **kwargs):
+    '''
+    Scatter plot in 3D with support for multiple datasets.
+    Parameters
+    ––––––––––
+    X, Y, Z : array-like or list of array-like
+        Coordinates of the data points. Each of `X`, `Y`, and `Z`
+        may be a single array or a list of arrays for plotting
+        multiple groups. All three must have the same number of arrays.
+    ax : `matplotlib.axes._subplots.Axes3DSubplot`
+        The 3D axes object on which to draw the scatter plot.
+    elev : float, default=90
+        Elevation angle in degrees (rotation around camera x-axis).
+    azim : float, default=-90
+        Azimuth angle in degrees (rotation around the z-axis).
+    roll : float, default=0
+        Roll angle in degrees (rotation around the view direction).
+    scale : float or None, default=None
+        If given, sets symmetric limits for all axes as `[-scale, scale]`.
+    axes_off : bool, default=False
+        If True, hides all axes spines, ticks, and labels.
+    grid_lines : bool, default=False
+        If False, disables gridlines on the 3D plot.
+    colors : list of colors, str, or None, optional, default=None
+        Colors to use for each scatter group or dataset.
+        If None, uses the default color palette from
+        `va_config.default_palette`.
+    size : float, list of float, or None, optional, default=None
+        Size of scatter dots. If None, uses the default
+        value in `va_config.scatter_size`.
+    marker : str, list of str, or None, optional, default=None
+        Marker style for scatter dots. If None, uses the
+        default value in `va_config.marker`.
+    alpha : float, list of float, or None, default=None
+        The alpha blending value, between 0 (transparent) and 1 (opaque).
+        If None, uses the default value from `va_config.alpha`.
+    edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+        The edge color of the marker. Possible values:
+        - 'face': The edge color will always be the same as the face color.
+        - 'none': No patch boundary will be drawn.
+        - A color or sequence of colors.
+        If `_default_flag`, uses the default value in `va_config.edgecolor`.
+
+    **kwargs : dict, optional
+        Additional plotting parameters.
+
+        Supported keywords:
+
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
+        - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            Colors to use for each line. If None, default color cycle is used.
+        - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+            Size of scatter dots.
+        - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
+            Marker style for scatter dots.
+        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+            The edge color of the marker.
+        - `cmap` : str, optional, default=`va_config.cmap`
+            Colormap to use if `colors` is not provided.
+        - `xlim` : tuple of two floats or None
+            Limits for the x-axis.
+        - `ylim` : tuple of two floats or None
+            Limits for the y-axis.
+        - `zlim` : tuple of two floats or None
+            Limits for the z-axis.
+        - `xlabel` : str or None
+            Label for the x-axis.
+        - `ylabel` : str or None
+            Label for the y-axis.
+        - `zlabel` : str or None
+            Label for the z-axis.
+        - `minor_ticks` : bool, default=False
+            If True, sets minor ticks for all axes.
+
+    Returns
+    –––––––
+    scatter : `matplotlib.collections.Path3DCollection` or list of them
+        The created scatter artist(s). Returns a single object
+        if only one dataset is plotted.
+
+    Raises
+    ––––––
+    ValueError
+        If `X`, `Y`, and `Z` do not have the same number of arrays
+        after unit consistency checks.
+
+    Notes
+    –––––
+    - The function cycles through `colors`, `sizes`, `markers`,
+      `alphas`, and `edgecolors` if fewer values are given than
+      datasets.
+    - Pane backgrounds are set to white (`(1, 1, 1, 1)`).
+    - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
+      and finally `scale` if provided.
+    '''
+    # –––– KWARGS ––––
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    # scatter params
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    sizes = get_kwargs(kwargs, 'sizes', 'size', 's', default=size)
+    markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
+    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
+    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
+    cmap = kwargs.get('cmap', va_config.cmap)
+    # figure params
+    xlim = kwargs.get('xlim', None)
+    ylim = kwargs.get('ylim', None)
+    zlim = kwargs.get('zlim', None)
+    # labels
+    xlabel = kwargs.get('xlabel', 'X')
+    ylabel = kwargs.get('ylabel', 'Y')
+    zlabel = kwargs.get('zlabel', 'Z')
+    # ticks
+    minor_ticks = kwargs.get('minor_ticks', False)
+
+    # get default va_config values
+    colors = get_config_value(colors, 'colors')
+    sizes = get_config_value(sizes, 'scatter_size')
+    markers = get_config_value(markers, 'marker')
+    alphas = get_config_value(alphas, 'alpha')
+    edgecolors = va_config.edgecolor if edgecolors is _default_flag else edgecolors
+
+    X = check_units_consistency(X)
+    Y = check_units_consistency(Y)
+    Z = check_units_consistency(Z)
+
+    if not (len(X) == len(Y) == len(Z)):
+        raise ValueError(
+            f'`x`, `y`, and `z` must have the same number of arrays '
+            f'\n(got {len(X)}, {len(Y)}, and {len(Z)}).'
+        )
+
+    colors, _ = set_plot_colors(colors, cmap=cmap)
+    sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
+    markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
+    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
+    edgecolors = edgecolors if isinstance(edgecolors, (list, np.ndarray, tuple)) else [edgecolors]
+
+    ax.view_init(elev=elev, azim=azim, roll=roll)
+
+    # set axes
+    if xlim: ax.set_xlim(xlim)
+    if ylim: ax.set_ylim(ylim)
+    if zlim: ax.set_zlim(zlim)
+    if scale is not None:
+        ax.set_xlim(-scale, scale)
+        ax.set_ylim(-scale, scale)
+        ax.set_zlim(-scale, scale)
+
+    scatters = []
+
+    for i in range(len(X)):
+        x = X[i%len(X)]
+        y = Y[i%len(Y)]
+        z = Z[i%len(Z)]
+
+        color = colors[i%len(colors)]
+        size = sizes[i%len(sizes)]
+        marker = markers[i%len(markers)]
+        alpha = alphas[i%len(alphas)]
+        edgecolor = edgecolors[i%len(edgecolors)]
+
+        sc = ax.scatter3D(x, y, z, c=color, s=size,
+                          marker=marker, alpha=alpha,
+                          edgecolors=edgecolor,
+                          rasterized=rasterized)
+        scatters.append(sc)
+
+    # set labels
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+
+    # set border color
+    border_color = (1.0, 1.0, 1.0, 1.0)
+    ax.xaxis.set_pane_color(border_color)
+    ax.yaxis.set_pane_color(border_color)
+    ax.zaxis.set_pane_color(border_color)
+
+    # hide gridlines
+    if not grid_lines: ax.grid(False)
+    if minor_ticks:
+        for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+            axis.set_minor_locator(AutoMinorLocator())
+        ax.tick_params(which='minor', direction='in', length=2, width=0.5)
+
+    else:
+        for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+            axis.set_minor_locator(NullLocator())
+    if axes_off: ax.set_axis_off()
+
+
 
     scatters = scatters[0] if len(scatters) == 1 else scatters
 
