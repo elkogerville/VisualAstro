@@ -109,7 +109,26 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Whether to save the figure to disk.
         - `dpi` : int, optional, default=`va_config.dpi`
             Figure resolution for saving.
-        - `xlim` : tuple, optional
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
+        - `colors`, `color` or `c` : list of colors or None, optional, default=None
+            Colors to use for each dataset. If None, default
+            color cycle is used.
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `zorders`, `zorder` : float, default=None
+            Order of line placement. If None, will increment by 1 for
+            each additional line plotted.
+        - `cmap` : str, optional, default=`va_config.cmap`
+            Colormap to use if `colors` is not provided.
+        - `xlim` : tuple, optional, default=None
             Wavelength range to display.
         - `ylim` : tuple, optional
             Flux range to display.
@@ -117,19 +136,15 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             Legend labels.
         - `loc` : str, default=`va_config.loc`
             Location of legend.
-        - `xlabel` : str, optional, default=None
+        - `xlabel` : str, optional
             Label for the x-axis.
-        - `ylabel` : str, optional, default=None
+        - `ylabel` : str, optional
             Label for the y-axis.
-        - `colors`, `color` or `c` : list of colors or None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
-        - `cmap` : str, optional, default=`va_config.cmap`
-            Colormap to use if `colors` is not provided.
         - `text_loc` : list of float, optional, default=`va_config.text_loc`
             Location for emission line annotation text in axes coordinates.
         - `use_brackets` : bool, optional, default=`va_config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
+
     Returns
     –––––––
     ExtractedSpectrum or list of ExtractedSpectrum
@@ -264,6 +279,11 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
         Supported keywords:
 
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `colors`, `color` or `c` : list of colors or None, optional, default=None
             Colors to use for each dataset. If None, default
             color cycle is used.
@@ -312,6 +332,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
               The plotted continuum fit line(s), if available.
     '''
     # –––– KWARGS ––––
+    # fig params
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     # line params
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
@@ -398,8 +420,9 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         # plot spectrum
-        l = ax.plot(wavelength[mask], flux[mask], c=color, ls=linestyle, # type: ignore
-                    lw=linewidth, alpha=alpha, zorder=zorder, label=label)
+        l = ax.plot(wavelength[mask], flux[mask], c=color, # type: ignore
+                    ls=linestyle, lw=linewidth, alpha=alpha,
+                    zorder=zorder, label=label, rasterized=rasterized)
         # plot continuum fit
         if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
             if plot_norm_continuum:
@@ -408,7 +431,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             else:
                 continuum_fit = extracted_spectrum.continuum_fit
             fl = ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color, # type: ignore
-                         ls=linestyle, lw=linewidth, alpha=alpha)
+                         ls=linestyle, lw=linewidth, alpha=alpha, rasterized=rasterized)
 
             fit_lines.append(fl)
 
