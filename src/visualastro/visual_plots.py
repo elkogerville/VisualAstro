@@ -922,10 +922,10 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            plot_lines(X, Y, ax, normalize=normalize,
-                       xlog=xlog, ylog=ylog, colors=colors,
-                       linestyle=linestyle, linewidth=linewidth,
-                       alpha=alpha, zorder=zorder, **kwargs)
+            _ = plot_lines(X, Y, ax, normalize=normalize,
+                           xlog=xlog, ylog=ylog, colors=colors,
+                           linestyle=linestyle, linewidth=linewidth,
+                           alpha=alpha, zorder=zorder, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
@@ -1044,9 +1044,9 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            scatter_plot(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
-                         xlog=xlog, ylog=ylog, colors=colors, size=size,
-                         marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
+            _ = scatter_plot(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
+                             xlog=xlog, ylog=ylog, colors=colors, size=size,
+                             marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
