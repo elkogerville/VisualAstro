@@ -242,8 +242,8 @@ class va:
             plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
-            imshow(datas, ax, idx, vmin, vmax, norm, percentile,
-                   origin, cmap, aspect, mask_non_pos, **kwargs)
+            _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile,
+                       origin, cmap, aspect, mask_non_pos, **kwargs)
 
             if savefig:
                     save_figure_2_disk(dpi)
@@ -610,8 +610,8 @@ class va:
 
 
     @staticmethod
-    def plot_density_histogram(X, Y, bins=None, xlog=None, ylog=None, xlog_hist=None,
-                               ylog_hist=None, sharex=None, sharey=None, histtype=None,
+    def plot_density_histogram(X, Y, bins=None, xlog=None, ylog=None,
+                               xlog_hist=None, ylog_hist=None, histtype=None,
                                normalize=True, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_density_histogram`, to plot 2D scatter
@@ -645,10 +645,6 @@ class va:
         ylog_hist : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the right histogram.
             If None, uses the default value from `va_config.ylog_hist`.
-        sharex : bool, default=False
-            If True, share the x-axis among all subplots.
-        sharey : bool, default=False
-            If True, share the y-axis among all subplots.
         histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
             Type of histogram to draw. If None, uses the default value from `va_config.histtype`.
         normalize : bool, optional, default=None
@@ -704,9 +700,6 @@ class va:
         savefig = kwargs.get('savefig', va_config.savefig)
         dpi = kwargs.get('dpi', va_config.dpi)
 
-        sharex = get_config_value(sharex, 'sharex')
-        sharey = get_config_value(sharey, 'sharey')
-
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
@@ -717,14 +710,12 @@ class va:
                                     top=0.9, wspace=0.09, hspace=0.09)
             # create subplots
             ax = fig.add_subplot(gs[1, 0])
-            sharex = ax if sharex is True else None
-            sharey = ax if sharey is True else None
-            ax_histx = fig.add_subplot(gs[0, 0], sharex=sharex)
-            ax_histy = fig.add_subplot(gs[1, 1], sharey=sharey)
+            ax_histx = fig.add_subplot(gs[0, 0])
+            ax_histy = fig.add_subplot(gs[1, 1])
 
-            plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins,
-                                   xlog, ylog, xlog_hist, ylog_hist,
-                                   histtype, normalize, colors, **kwargs)
+            _ = plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins,
+                                       xlog, ylog, xlog_hist, ylog_hist,
+                                       histtype, normalize, colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)

@@ -13,7 +13,9 @@ Module Structure:
         Functions for general plots.
 '''
 
+from collections import namedtuple
 from astropy.visualization.wcsaxes.core import WCSAxes
+import matplotlib.ticker as ticker
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
@@ -137,6 +139,11 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
             Width of the default interactive ellipse.
         - `h` : float, optional, default=Y//5
             Height of the default interactive ellipse.
+    Returns
+    –––––––
+    images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
+            Image object if a single array is provided, otherwise a list of image
+            objects created by `imshow`.
     '''
     # –––– KWARGS ––––
     # figure params
@@ -187,6 +194,8 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         origin = 'lower'
         invert_yaxis = True
 
+    images = []
+
     # loop over data list
     for i, data in enumerate(datas):
         # ensure data is an array
@@ -209,6 +218,8 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         else:
             im = ax.imshow(data, origin=origin, norm=img_norm,
                            cmap=cmap[i%len(cmap)], aspect=aspect)
+
+        images.append(im)
 
     # overplot
     plot_circles(circles, ax)
@@ -243,6 +254,10 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         clabel = f'${cbar_unit}$' if cbar_unit is not None else None
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
+
+    images = images[0] if len(images) == 1 else images
+
+    return images
 
 
 def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
@@ -321,6 +336,22 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
             Legend location.
         - `xlabel`, `ylabel` : str, optional, default=None
             Axis labels for the scatter plot.
+    Returns
+    –––––––
+    handles : DensityHistogram
+        A named tuple containing the created Matplotlib objects:
+
+        - `scatter` : matplotlib.collections.PathCollection or list of PathCollection
+            The scatter plot object(s) created on the main axis.
+        - `histx` : tuple or list of tuple
+            The result(s) from the top histograms, where each tuple is
+            `(n, bins, patches)` as returned by `Axes.hist`.
+        - `histy` : tuple or list of tuple
+            The result(s) from the right-side histograms, with the same format
+            as `histx`.
+
+        If only a single dataset is provided, each field contains a single
+        object or tuple instead of a list.
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
@@ -369,6 +400,8 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     # configure scales and ticks
     if xlim: ax.set_xlim(xlim)
     if ylim: ax.set_ylim(ylim)
+    ax_histx.set_xlim(ax.get_xlim())
+    ax_histy.set_ylim(ax.get_ylim())
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
     if xlog_hist: ax_histx.set_yscale('log')
@@ -383,13 +416,14 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
                             labelbottom=False, bottom=True)
     ax_histx.tick_params(axis='y', direction = 'in', which='both',
                             left=True, right=True, labelleft=True, pad=5)
-    ax_histx.yaxis.set_label_position("left")
+    ax_histx.yaxis.set_label_position('left')
     # tick parameters for right histogram (y-axis)
     ax_histy.tick_params(axis='y', direction='in', which='both',
                             labelleft=False, left=True)
     ax_histy.tick_params(axis='x', direction = 'in', which='both',
                             bottom=True, top=True, labelbottom=True, pad=5)
-    ax_histy.xaxis.set_label_position("bottom")
+    ax_histy.xaxis.set_label_position('bottom')
+
     # set plot colors
     colors, _ = set_plot_colors(colors, cmap=cmap)
 
@@ -402,6 +436,10 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     linewidths = linewidths if isinstance(linewidths, (list, np.ndarray, tuple)) else [linewidths]
     zorders = zorders if isinstance(zorders, (list, np.ndarray, tuple)) else [zorders]
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
+
+    scatters = []
+    histx = []
+    histy = []
 
     for i in range(len(Y)):
         x = X[i%len(X)]
@@ -416,17 +454,21 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
-        ax.scatter(x, y, c=color, s=size, marker=marker,
-                   alpha=alpha, edgecolors=edgecolor, label=label)
+        sc = ax.scatter(x, y, c=color, s=size, marker=marker,
+                        alpha=alpha, edgecolors=edgecolor, label=label)
         # top histogram (x-axis)
-        ax_histx.hist(x, bins=bins, color=color, histtype=histtype,
-                      ls=linestyle, lw=linewidth, alpha=alpha,
-                      zorder=zorder, density=normalize)
+        hx = ax_histx.hist(x, bins=bins, color=color, histtype=histtype,
+                           ls=linestyle, lw=linewidth, alpha=alpha,
+                           zorder=zorder, density=normalize)
         # right histogram (y-axis)
-        ax_histy.hist(y, bins=bins, orientation='horizontal',
-                      color=color, histtype=histtype, ls=linestyle,
-                      lw=linewidth, alpha=alpha, zorder=zorder,
-                      density=normalize)
+        hy = ax_histy.hist(y, bins=bins, orientation='horizontal',
+                           color=color, histtype=histtype, ls=linestyle,
+                           lw=linewidth, alpha=alpha, zorder=zorder,
+                           density=normalize)
+
+        scatters.append(sc)
+        histx.append(hx)
+        histy.append(hy)
 
     if xlog_hist:
         ax_histx.set_ylabel('[Log]', labelpad=10)
@@ -436,6 +478,14 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    # create return obect
+    PlotHandles = namedtuple('DensityHistogram', ['scatter', 'histx', 'histy'])
+    scatters = scatters[0] if len(scatters) == 1 else scatters
+    histx = histx[0] if len(histx) == 1 else histx
+    histy = histy[0] if len(histy) == 1 else histy
+
+    return PlotHandles(scatters, histx, histy)
 
 
 def plot_histogram(datas, ax,
