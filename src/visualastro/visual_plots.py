@@ -25,7 +25,7 @@ from .io import save_figure_2_disk
 from .numerical_utils import get_data
 from .plotting import (
     imshow, plot_density_histogram,
-    plot_histogram, plot_lines, scatter_plot
+    plot_histogram, plot_lines, plot_scatter
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
@@ -937,10 +937,10 @@ class va:
                 xlog=None, ylog=None, colors=None, size=None,
                 marker=None, alpha=None, edgecolors=_default_flag, **kwargs):
         '''
-        Convenience wrapper for `scatter_plot`, to scatter plot one or more distributions.
+        Convenience wrapper for `plot_scatter`, to scatter plot one or more distributions.
 
         Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `scatter_plot` routine with the provided
+        style, then calls the core `plot_scatter` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
         Parameters
@@ -1044,7 +1044,7 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = scatter_plot(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
+            _ = plot_scatter(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
                              xlog=xlog, ylog=ylog, colors=colors, size=size,
                              marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
 
