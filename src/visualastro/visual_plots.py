@@ -806,9 +806,9 @@ class va:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            plot_histogram(datas, ax, bins, xlog,
-                           ylog, histtype, normalize,
-                           colors, **kwargs)
+            _ = plot_histogram(datas, ax, bins, xlog,
+                               ylog, histtype, normalize,
+                               colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
