@@ -547,6 +547,23 @@ def plot_histogram(datas, ax,
             Label for the x-axis.
         - `ylabel` : str or None, optional
             Label for the y-axis.
+
+    Returns
+    –––––––
+    hists : tuple or list of tuple
+        The result(s) returned by `Axes.hist`. Each tuple has the form
+        `(n, bins, patches)`, where:
+
+        - `n` : ndarray
+          The values of the histogram (counts or densities).
+        - `bins` : ndarray
+          The edges of the bins (length = len(n) + 1).
+        - `patches` : list or list-like of Patch
+          The artists created by the histogram (e.g., `Rectangle` or `Polygon`
+          objects depending on `histtype`).
+
+        If only one histogram is created, `hists` is a single tuple; otherwise,
+        it is a list of tuples.
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
@@ -581,6 +598,8 @@ def plot_histogram(datas, ax,
     if xlim: ax.set_xlim(xlim)
     if ylim: ax.set_ylim(ylim)
 
+    hists = []
+
     # loop over data list
     for i, data in enumerate(datas):
         color = colors[i%len(colors)]
@@ -590,7 +609,7 @@ def plot_histogram(datas, ax,
         if data.ndim == 2:
             data = data.flatten()
         data_list.append(data)
-        ax.hist(
+        h = ax.hist(
             data,
             bins=bins,
             color=color,
@@ -599,11 +618,17 @@ def plot_histogram(datas, ax,
             label=label
         )
 
+        hists.append(h)
+
     # set axes labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    hists = hists[0] if len(hists) == 1 else hists
+
+    return hists
 
 
 def plot_lines(X, Y, ax, normalize=None,
