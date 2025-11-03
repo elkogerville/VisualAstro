@@ -353,7 +353,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     handles : DensityHistogram
         A named tuple containing the created Matplotlib objects:
 
-        - `scatter` : matplotlib.collections.PathCollection or list of PathCollection
+        - `scatters` : matplotlib.collections.PathCollection or list of PathCollection
             The scatter plot object(s) created on the main axis.
         - `histx` : tuple or list of tuple
             The result(s) from the top histograms, where each tuple is
@@ -492,7 +492,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         ax.legend(loc=loc)
 
     # create return obect
-    PlotHandles = namedtuple('DensityHistogram', ['scatter', 'histx', 'histy'])
+    PlotHandles = namedtuple('DensityHistogram', ['scatters', 'histx', 'histy'])
     scatters = scatters[0] if len(scatters) == 1 else scatters
     histx = histx[0] if len(histx) == 1 else histx
     histy = histy[0] if len(histy) == 1 else histy
