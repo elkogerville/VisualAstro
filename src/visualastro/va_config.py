@@ -47,6 +47,7 @@ class VAConfig:
         self.alpha = 1
         self.nrows = 1 # make_grid_plot() nrows
         self.ncols = 2 # make_grid_plot() ncols
+        self.rasterized = False # rasterize plot artists wherever possible
 
         # data params
         self.normalize_data = False
