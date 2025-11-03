@@ -706,6 +706,14 @@ def plot_lines(X, Y, ax, normalize=None,
             axis limits. Defined as:
                 xmax/min ±= xpad * (xmax - xmin)
                 ymax/min ±= ypad * (ymax - ymin)
+
+    Returns
+    –––––––
+    lines : Line2D or list of Line2D
+        The line object(s) created by `Axes.plot`. Each element is a
+        `matplotlib.lines.Line2D` instance representing one plotted line.
+        If only one line is created, `lines` is a single `Line2D` object;
+        otherwise, it is a list of `Line2D` objects.
     '''
     # –––– KWARGS ––––
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
@@ -751,7 +759,9 @@ def plot_lines(X, Y, ax, normalize=None,
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
 
+    lines = []
     y_list = []
+
     for i in range(len(Y)):
         x = X[i%len(X)]
         y = Y[i%len(Y)]
@@ -766,8 +776,10 @@ def plot_lines(X, Y, ax, normalize=None,
             y = y / np.nanmax(y)
         y_list.append(y)
 
-        ax.plot(x, y, c=color, ls=linestyle, lw=linewidth,
-                alpha=alpha, zorder=zorder, label=label)
+        l = ax.plot(x, y, c=color, ls=linestyle, lw=linewidth,
+                    alpha=alpha, zorder=zorder, label=label)
+
+        lines.append(l)
 
     # set axes parameters
     set_axis_limits(X, y_list, ax, xlim, ylim, xpad=xpad, ypad=ypad)
@@ -775,6 +787,10 @@ def plot_lines(X, Y, ax, normalize=None,
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    lines = lines[0] if len(lines) == 1 else lines
+
+    return lines
 
 
 def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
@@ -862,6 +878,14 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
             Thickness of the error bar caps in points.
         - `barsabove` : bool, default=`va_config.barsabove`
             If True, draw error bars above the plot symbols; otherwise, below.
+
+    Returns
+    –––––––
+    lines : PathCollection or list of PathCollection
+        The scatter plot object(s) created by `Axes.scatter`. Each element
+        is a `matplotlib.collections.PathCollection` instance representing
+        one scatter plot. If only one scatter is created, `lines` is a single
+        `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     '''
     # –––– KWARGS ––––
     # scatter params
@@ -923,6 +947,8 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
     if xlim: ax.set_xlim(xlim)
     if ylim: ax.set_ylim(ylim)
 
+    scatters = []
+
     for i in range(len(Y)):
         x = X[i%len(X)]
         y = Y[i%len(Y)]
@@ -937,8 +963,10 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
         if normalize:
             y = y / np.nanmax(y)
 
-        ax.scatter(x, y, c=color, s=size, marker=marker,
-                   alpha=alpha, edgecolors=edgecolor, label=label)
+        s = ax.scatter(x, y, c=color, s=size, marker=marker,
+                       alpha=alpha, edgecolors=edgecolor, label=label)
+
+        scatters.append(s)
 
         if xerr is not None:
             xerror = xerr[i%len(xerr)]
@@ -953,3 +981,7 @@ def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
     ax.set_ylabel(ylabel)
     if labels[0] is not None:
         ax.legend(loc=loc)
+
+    scatters = scatters[0] if len(scatters) == 1 else scatters
+
+    return scatters
