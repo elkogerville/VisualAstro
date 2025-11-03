@@ -270,6 +270,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Whether to draw spectral slice value as a label.
         - `highlight` : bool, default=`va_config.highlight`
             Whether to highlight interactive ellipse if plotted.
+        - `rasterized` : bool, default=`va_config.rasterized`
+            Whether to rasterize plot artists. Rasterization
+            converts the artist to a bitmap when saving to
+            vector formats (e.g., PDF, SVG), which can
+            significantly reduce file size for complex plots.
         - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
             Value to use when masking out non-positive values.
             Ex: np.nan, 1e-6, np.inf
@@ -283,6 +288,12 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Width and height of default ellipse.
         - `angle` : float or None, default=None
             Angle of ellipse in degrees.
+
+    Returns
+    –––––––
+    images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
+            Image object if a single array is provided, otherwise a list of image
+            objects created by `ax.imshow`.
     Notes
     –––––
     - If multiple cubes are provided, they are overplotted in sequence.
@@ -303,6 +314,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ylabel = kwargs.get('ylabel', va_config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
     highlight = kwargs.get('highlight', va_config.highlight)
+    rasterized = kwargs.get('rasterized', va_config.rasterized)
     # mask out value
     mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
     # plot ellipse
@@ -324,6 +336,8 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     cmap = get_config_value(cmap, 'cmap')
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
 
+    images = []
+
     for cube in cubes:
         # extract data component
         cube = get_data(cube)
@@ -341,9 +355,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
 
         # imshow data
         if norm is None:
-            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap)
+            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap, rasterized=rasterized)
         else:
-            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm)
+            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm, rasterized=rasterized)
+
+        images.append(im)
 
     # determine unit of colorbar
     cbar_unit = set_unit_labels(cube.unit)
@@ -396,3 +412,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.coords['dec'].set_ticklabel(rotation=90)
+
+    images = images[0] if len(images) == 1 else images
+
+    return images
