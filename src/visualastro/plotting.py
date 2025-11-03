@@ -793,7 +793,7 @@ def plot_lines(X, Y, ax, normalize=None,
     return lines
 
 
-def scatter_plot(X, Y, ax, xerr=None, yerr=None, normalize=None,
+def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
                  xlog=None, ylog=None, colors=None, size=None,
                  marker=None, alpha=None, edgecolors=_default_flag, **kwargs):
     '''
