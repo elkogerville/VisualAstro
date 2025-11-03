@@ -15,7 +15,6 @@ Module Structure:
 
 from collections import namedtuple
 from astropy.visualization.wcsaxes.core import WCSAxes
-import matplotlib.ticker as ticker
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
