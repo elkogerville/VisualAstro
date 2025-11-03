@@ -724,10 +724,21 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
         perr : np.ndarray
             Uncertainties of fit parameters including flux and FWHM errors.
     Else:
-        list
-            [integrated_flux, FWHM, mu]
-        list
-            [flux_error, FWHM_error, mu_error]
+        PlotHandles : namedtuple
+            A `namedtuple` with the following fields:
+
+            - `flux` : float
+              Integrated flux of the fitted Gaussian.
+            - `FWHM` : float
+              Full width at half maximum of the fitted Gaussian.
+            - `mu` : float
+              Mean (central wavelength or position) of the fitted Gaussian.
+            - `flux_error` : float
+              1σ uncertainty on the integrated flux.
+            - `FWHM_error` : float
+              1σ uncertainty on the FWHM.
+            - `mu_error` : float
+              1σ uncertainty on the mean position.
     '''
     # –––– KWARGS ––––
     # figure params
@@ -887,11 +898,16 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     if len(popt) > 3:
         fitted_params.extend(popt[3:])
         fitted_errors.extend(perr[3:])
-    # added computed valuesn and errors
+    # added computed values and errors
     fitted_params += [integrated_flux, FWHM]
     fitted_errors += [flux_error, FWHM_error]
 
     if return_fit_params:
         return fitted_params, fitted_errors
     else:
-        return [integrated_flux, FWHM, mu], [flux_error, FWHM_error, mu_error]
+        PlotHandles = namedtuple(
+            'DefaultGaussianSpectrumFit',
+            ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
+        )
+
+        return PlotHandles(integrated_flux, FWHM, mu, flux_error, FWHM_error, mu_error)
