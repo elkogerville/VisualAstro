@@ -693,9 +693,9 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
 
         Supported keywords:
 
-        - `figsize` : list or tuple, optional, default=(6, 6)
+        - `figsize` : list or tuple, optional, default=`va_config.figsize`
             Figure size.
-        - `style` : str or {'astro', 'latex', 'minimal'}, optional, default='astro'
+        - `style` : str or {'astro', 'latex', 'minimal', 'default'}, optional, default=`va_config.style`
             Plot style used. Can either be a matplotlib mplstyle
             or an included visualastro style.
         - `xlim` : tuple, optional, default=None
@@ -708,13 +708,13 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
             Plot x-axis label.
         - `ylabel` : str, optional, default=None
             Plot y-axis label.
-        - `colors` : str or list, optional, default=None
+        - `colors` : str or list, optional, default=`va_config.colors`
             Plot colors. If None, will use default visualastro color palette.
-        - `use_brackets` : bool, optional, default=False
+        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
             If True, use square brackets for plot units. If False, use parentheses.
-        - `savefig` : bool, optional, default=False
+        - `savefig` : bool, optional, default=`va_config.savefig`
             If True, save current figure to disk.
-        - `dpi` : float or int, optional, default=600
+        - `dpi` : float or int, optional, default=`va_config.dpi`
             Resolution in dots per inch.
     Returns
     –––––––
@@ -891,23 +891,35 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
 
             print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
 
-    # concatenate computed values and errors
-    fitted_params = [amplitude, mu, sigma]
-    fitted_errors = [amplitude_error, mu_error, sigma_error]
-    # add any extra fitting params
-    if len(popt) > 3:
-        fitted_params.extend(popt[3:])
-        fitted_errors.extend(perr[3:])
-    # added computed values and errors
-    fitted_params += [integrated_flux, FWHM]
-    fitted_errors += [flux_error, FWHM_error]
+    GAUSSIAN_FIELDS = ['amplitude', 'mu', 'sigma', 'flux', 'FWHM',
+                       'amplitude_error', 'mu_error', 'sigma_error', 'flux_error', 'FWHM_error']
+    GAUSSIAN_LINE_FIELDS = ['amplitude', 'mu', 'sigma', 'm', 'b', 'flux', 'FWHM',
+                            'amplitude_error', 'mu_error', 'sigma_error', 'm_error', 'b_error', 'flux_error', 'FWHM_error']
+    GAUSSIAN_CONT_FIELDS = GAUSSIAN_FIELDS[:]
+    DEFAULT_FIELDS = ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
+    return_handle = {
+        'gaussian': namedtuple('Gaussian', GAUSSIAN_FIELDS),
+        'gaussian_line': namedtuple('GaussianLine', GAUSSIAN_LINE_FIELDS),
+        'gaussian_continuum': namedtuple('GaussianContinuum', GAUSSIAN_CONT_FIELDS),
+        'default': namedtuple('DefaultGaussian', DEFAULT_FIELDS)
+    }
+    model = model.lower() if return_fit_params else 'default'
+    PlotHandles = return_handle[model.lower()]
 
     if return_fit_params:
-        return fitted_params, fitted_errors
-    else:
-        PlotHandles = namedtuple(
-            'DefaultGaussianSpectrumFit',
-            ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
-        )
+        # concatenate computed values and errors
+        fitted_params = [amplitude, mu, sigma]
+        fitted_errors = [amplitude_error, mu_error, sigma_error]
+        # add any extra fitting params
+        if len(popt) > 3:
+            fitted_params.extend(popt[3:])
+            fitted_errors.extend(perr[3:])
 
+        # added computed values and errors
+        fitted_params += [integrated_flux, FWHM]
+        fitted_errors += [flux_error, FWHM_error]
+
+        return PlotHandles(*(fitted_params + fitted_errors))
+
+    else:
         return PlotHandles(integrated_flux, FWHM, mu, flux_error, FWHM_error, mu_error)
