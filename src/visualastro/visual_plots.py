@@ -1098,7 +1098,7 @@ class va:
     def scatter3D(X, Y, Z, elev=90, azim=-90, roll=0,
                   scale=None, axes_off=False, grid_lines=False,
                   colors=None, size=None, marker=None, alpha=None,
-                  edgecolors=_default_flag, **kwargs):
+                  edgecolors=_default_flag, plot_contours=None, **kwargs):
         '''
         Convenience wrapper for `scatter3D`, to scatter plot one or more
         distributions in 3-Dimensional space.
@@ -1113,9 +1113,9 @@ class va:
             Coordinates of the data points. Each of `X`, `Y`, and `Z`
             may be a single array or a list of arrays for plotting
             multiple groups. All three must have the same number of arrays.
-        elev : float, default=90
+        elev : float, default=30
             Elevation angle in degrees (rotation around camera x-axis).
-        azim : float, default=-90
+        azim : float, default=45
             Azimuth angle in degrees (rotation around the z-axis).
         roll : float, default=0
             Roll angle in degrees (rotation around the view direction).
@@ -1144,6 +1144,14 @@ class va:
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
             If `_default_flag`, uses the default value in `va_config.edgecolor`.
+        plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
+            Specifies which contour projections to draw onto the side planes of the 3D axes.
+            Each entry indicates the axis *normal* to the projection plane:
+            - 'x' : Project onto the **YZ** plane at a fixed X offset.
+            - 'y' : Project onto the **XZ** plane at a fixed Y offset.
+            - 'z' : Project onto the **XY** plane at a fixed Z offset.
+            - 'all' : Equivalent to `['x', 'y', 'z']`.
+            If None, no contour projections are drawn.
 
         **kwargs : dict, optional
             Additional plotting parameters.
@@ -1173,6 +1181,14 @@ class va:
                 Limits for the y-axis.
             - `zlim` : tuple of two floats or None
                 Limits for the z-axis.
+            - `plot_contour_offset` : float or sequence of float, optional, default=None
+                Manual positional offsets for the contour projection planes.
+                If a single float is given, the same offset is used for all projections.
+                If a sequence is given (e.g., array-like), its length must match
+                the number of entries in `plot_contours`, providing one offset per projection
+                in the same order. If None, offsets are automatically chosen based
+                on current axis limits (i.e., `ax.get_xlim()[0]`, `ax.get_ylim()[0]`,
+                `ax.get_zlim()[0]`).
             - `xlabel` : str or None
                 Label for the x-axis.
             - `ylabel` : str or None
@@ -1181,11 +1197,13 @@ class va:
                 Label for the z-axis.
             - `minor_ticks` : bool, default=False
                 If True, sets minor ticks for all axes.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`va_config.figsize3d`
                 Figure size in inches.
             - `style` : str, default=`va_config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
+            - `tight_layout` : bool, optional, default=True
+                If True, uses `plt.tight_layout()`.
             - `savefig` : bool, default=`va_config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
             - `dpi` : int, default=`va_config.dpi`
@@ -1213,8 +1231,9 @@ class va:
           and finally `scale` if provided.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
+        figsize = kwargs.get('figsize', va_config.figsize3d)
         style = kwargs.get('style', va_config.style)
+        tight_layout = kwargs.get('tight_layout', True)
         # savefig
         savefig = kwargs.get('savefig', va_config.savefig)
         dpi = kwargs.get('dpi', va_config.dpi)
@@ -1227,7 +1246,11 @@ class va:
             _ = scatter3D(X, Y, Z, ax, elev, azim, roll,
                           scale, axes_off, grid_lines,
                           colors, size, marker, alpha,
-                          edgecolors, **kwargs)
+                          edgecolors, plot_contours, **kwargs)
+
+            if tight_layout:
+                plt.tight_layout()
+
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()

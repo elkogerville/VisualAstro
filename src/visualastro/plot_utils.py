@@ -379,8 +379,8 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     data = slice_cube(cube, slice_idx)
     data = return_array_values(data)
     # compute vmin and vmax
-    vmin = np.nanpercentile(data, vmin)
-    vmax = np.nanpercentile(data, vmax)
+    vmin = np.nanpercentile(data, vmin) #type: ignore
+    vmax = np.nanpercentile(data, vmax) #type: ignore
 
     return vmin, vmax
 
@@ -495,7 +495,13 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     return fig, axs
 
 
-def add_subplot(shape=111, fig=None, figsize=None, projection=None, return_fig=False):
+def add_subplot(
+    shape=111,
+    fig=None,
+    figsize=None,
+    projection=None,
+    return_fig=False,
+    **kwargs):
     '''
     Add a subplot to a figure, optionally creating a new figure.
     Parameters
@@ -513,9 +519,16 @@ def add_subplot(shape=111, fig=None, figsize=None, projection=None, return_fig=F
     projection : str or None, optional, default=None
         Projection type for the subplot. Examples include WCSAxes or
         {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
-        'rectilinear', str}.
+        'rectilinear', str}. If None, defaults to 'rectilinear'.
     return_fig : bool, optional, default=False
         If True, return both `(fig, ax)`. Otherwise return only `ax`.
+
+    **kwargs
+        Additional keyword arguments passed directly to
+        `matplotlib.figure.Figure.add_subplot`. This allows supplying any
+        subplot or axes-related parameters supported by Matplotlib (e.g.,
+        `aspect`, `facecolor`, etc.).
+
     Returns
     –––––––
     ax : matplotlib.axes.Axes
@@ -536,12 +549,13 @@ def add_subplot(shape=111, fig=None, figsize=None, projection=None, return_fig=F
     Create a 3D subplot:
     >>> fig, ax = add_subplot(projection='3d', return_fig=True)
     '''
+    # get default va_config values
     figsize = get_config_value(figsize, 'figsize')
-
+    # create figure if not passed in
     if fig is None:
         fig = plt.figure(figsize=figsize)
-
-    ax = fig.add_subplot(shape, projection=projection)
+    # add desired subplot with projection
+    ax = fig.add_subplot(shape, projection=projection, **kwargs)
 
     return (fig, ax) if return_fig else ax
 
