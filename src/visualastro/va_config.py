@@ -41,6 +41,7 @@ class VAConfig:
         self.style_fallback = 'default.mplstyle' # style if default style fails
         self.figsize = (6, 6)
         self.grid_figsize = (12, 6)
+        self.figsize3d = (10, 10)
         self.colors = None # if None, defaults to `self.default_palette`. To define a custom default palette,
                            # define it in `set_plot_colors` and change the `default_palette`.
         self.default_palette = 'ibm_contrast' # see `set_plot_colors` in plot_utils.py

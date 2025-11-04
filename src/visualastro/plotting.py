@@ -21,7 +21,7 @@ from .data_cube import slice_cube
 from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
-    add_colorbar, plot_circles, plot_ellipses,
+    add_colorbar, add_contours, plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_unit_labels, set_vmin_vmax
@@ -1030,10 +1030,10 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     return scatters
 
 
-def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
+def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
               scale=None, axes_off=False, grid_lines=False,
               colors=None, size=None, marker=None, alpha=None,
-              edgecolors=_default_flag, **kwargs):
+              edgecolors=_default_flag, plot_contours=None, **kwargs):
     '''
     Scatter plot in 3D with support for multiple datasets.
     Parameters
@@ -1044,9 +1044,9 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
         multiple groups. All three must have the same number of arrays.
     ax : `matplotlib.axes._subplots.Axes3DSubplot`
         The 3D axes object on which to draw the scatter plot.
-    elev : float, default=90
+    elev : float, default=30
         Elevation angle in degrees (rotation around camera x-axis).
-    azim : float, default=-90
+    azim : float, default=45
         Azimuth angle in degrees (rotation around the z-axis).
     roll : float, default=0
         Roll angle in degrees (rotation around the view direction).
@@ -1075,6 +1075,14 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
         If `_default_flag`, uses the default value in `va_config.edgecolor`.
+    plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
+        Specifies which contour projections to draw onto the side planes of the 3D axes.
+        Each entry indicates the axis *normal* to the projection plane:
+        - 'x' : Project onto the **YZ** plane at a fixed X offset.
+        - 'y' : Project onto the **XZ** plane at a fixed Y offset.
+        - 'z' : Project onto the **XY** plane at a fixed Z offset.
+        - 'all' : Equivalent to `['x', 'y', 'z']`.
+        If None, no contour projections are drawn.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -1104,6 +1112,14 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
             Limits for the y-axis.
         - `zlim` : tuple of two floats or None
             Limits for the z-axis.
+        - `plot_contour_offset` : float or sequence of float, optional, default=None
+            Manual positional offsets for the contour projection planes.
+            If a single float is given, the same offset is used for all projections.
+            If a sequence is given (e.g., array-like), its length must match
+            the number of entries in `plot_contours`, providing one offset per projection
+            in the same order. If None, offsets are automatically chosen based
+            on current axis limits (i.e., `ax.get_xlim()[0]`, `ax.get_ylim()[0]`,
+            `ax.get_zlim()[0]`).
         - `xlabel` : str or None
             Label for the x-axis.
         - `ylabel` : str or None
@@ -1147,6 +1163,7 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     zlim = kwargs.get('zlim', None)
+    plot_contour_offset = kwargs.get('contour_offset', None)
     # labels
     xlabel = kwargs.get('xlabel', 'X')
     ylabel = kwargs.get('ylabel', 'Y')
@@ -1206,6 +1223,38 @@ def scatter3D(X, Y, Z, ax, elev=90, azim=-90, roll=0,
                           edgecolors=edgecolor,
                           rasterized=rasterized)
         scatters.append(sc)
+
+        # plot contours
+        pairs = {
+            'x': (Y, Z, 'x', lambda ax: ax.get_xlim()[0]),
+            'y': (X, Z, 'y', lambda ax: ax.get_ylim()[0]),
+            'z': (X, Y, 'z', lambda ax: ax.get_zlim()[0]),
+        }
+        if plot_contours is not None:
+            if plot_contours.lower() == 'all': # type: ignore
+                plot_contours = ['x', 'y', 'z']
+            else:
+                plot_contours = [c.lower() for c in plot_contours]
+
+            if isinstance(plot_contour_offset, (list, tuple, np.ndarray)):
+                if len(plot_contours) != len(plot_contour_offset):
+                    raise ValueError(
+                        'If `plot_contour_offset` is provided, it must have exactly '
+                        'one offset per contour direction.'
+                    )
+            elif isinstance(plot_contour_offset, (float, int)):
+                plot_contour_offset = [plot_contour_offset]*len(plot_contours)
+            for i, zdir in enumerate(plot_contours):
+                try:
+                    data1, data2, axis_name, offset_fn = pairs[zdir.lower()]
+                except KeyError:
+                    raise ValueError(
+                        f"Invalid contour projection '{zdir}'. "
+                        "Use 'x', 'y', 'z', or 'all'."
+                    )
+
+                offset = offset_fn(ax) if plot_contour_offset is None else plot_contour_offset[i]
+                add_contours(data1, data2, ax, zdir=axis_name, offset=offset)
 
     # set labels
     ax.set_xlabel(xlabel)
