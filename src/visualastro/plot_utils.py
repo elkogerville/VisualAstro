@@ -495,6 +495,56 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     return fig, axs
 
 
+def add_subplot(shape=111, fig=None, figsize=None, projection=None, return_fig=False):
+    '''
+    Add a subplot to a figure, optionally creating a new figure.
+    Parameters
+    ––––––––––
+    shape : int or tuple, default: 111
+        The subplot specification. Can be given as a three-digit integer
+        (e.g., 211 means 2 rows, 1 column, subplot index 1) or a tuple
+        `(nrows, ncols, index)`.
+    fig : matplotlib.figure.Figure or None, optional, default=None
+        Existing figure to add the subplot to. If None,
+        a new figure is created.
+    figsize : tuple of float, optional, default=None
+        Figure size in inches. If None, uses the
+        default value set by `va_config.figsize`.
+    projection : str or None, optional, default=None
+        Projection type for the subplot. Examples include {None, '3d', 'aitoff',
+        'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear', str}.
+    return_fig : bool, optional, default=False
+        If True, return both `(fig, ax)`. Otherwise return only `ax`.
+    Returns
+    –––––––
+    ax : matplotlib.axes.Axes
+        The created or retrieved subplot axes.
+    fig : matplotlib.figure.Figure, optional
+        The figure object containing the subplot.
+        Returned only if `return_fig=True`.
+
+    Examples
+    ––––––––
+    Create a new figure and subplot:
+    >>> fig, ax = add_subplot(return_fig=True)
+
+    Add a subplot to an existing figure:
+    >>> fig = plt.figure()
+    >>> ax = add_subplot(fig=fig, shape=121)
+
+    Create a 3D subplot:
+    >>> fig, ax = add_subplot(projection='3d', return_fig=True)
+    '''
+    figsize = get_config_value(figsize, 'figsize')
+
+    if fig is None:
+        fig = plt.figure(figsize=figsize)
+
+    ax = fig.add_subplot(shape, projection=projection)
+
+    return (fig, ax) if return_fig else ax
+
+
 def add_colorbar(im, ax, cbar_width=None,
                  cbar_pad=None, clabel=None):
     '''
