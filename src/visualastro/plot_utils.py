@@ -511,8 +511,9 @@ def add_subplot(shape=111, fig=None, figsize=None, projection=None, return_fig=F
         Figure size in inches. If None, uses the
         default value set by `va_config.figsize`.
     projection : str or None, optional, default=None
-        Projection type for the subplot. Examples include {None, '3d', 'aitoff',
-        'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear', str}.
+        Projection type for the subplot. Examples include WCSAxes or
+        {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
+        'rectilinear', str}.
     return_fig : bool, optional, default=False
         If True, return both `(fig, ax)`. Otherwise return only `ax`.
     Returns
