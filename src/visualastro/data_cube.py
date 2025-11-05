@@ -229,8 +229,10 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         Default percentile range used to determine `vmin` and `vmax`.
         If None, use no percentile stretch (as long as vmin/vmax are None).
         If `_default_flag`, uses default value from `va_config.percentile`.
-    radial_vel : float or astropy.units.Quantity, optional, default=None
-        Radial velocity to shift spectral axis to the rest frame.
+    radial_vel : float or None, optional, default=None
+        Radial velocity in km/s to shift the spectral axis.
+        Astropy units are optional. If None, uses the default
+        value set by `va_config.radial_velocity`.
     unit : astropy.units.Unit or str, optional, default=None
         Desired spectral axis unit for labeling.
     cmap : str, list or tuple of str, or None, default=None
@@ -334,6 +336,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     vmax = va_config.vmax if vmax is _default_flag else vmax
     norm = va_config.norm if norm is _default_flag else norm
     percentile = va_config.percentile if percentile is _default_flag else percentile
+    radial_vel = get_config_value(radial_vel, 'radial_velocity')
     cmap = get_config_value(cmap, 'cmap')
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
 
@@ -388,10 +391,10 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     # plot wavelength/frequency of current spectral slice, and emission line
     if draw_spectral_label:
         # compute spectral axis value of slice for label
-        spectral_axis = convert_units(cube.spectral_axis, unit)
+        spectral_axis = convert_units(cube.spectral_axis, unit) # type: ignore
         spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
         spectral_value = get_spectral_slice_value(spectral_axis, idx)
-        unit_label = set_unit_labels(spectral_axis.unit)
+        unit_label = set_unit_labels(spectral_axis.unit) # type: ignore
 
         # lambda for wavelength, f for frequency
         spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '

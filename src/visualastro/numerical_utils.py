@@ -38,7 +38,7 @@ def check_is_array(data, keep_units=False):
     ––––––––––
     data : np.ndarray, DataCube, FitsFile, or Quantity
         Array or DataCube object.
-    keep_inits : bool, optional, default=False
+    keep_units : bool, optional, default=False
         If True, keep astropy units attached if present.
     Returns
     –––––––
@@ -46,9 +46,15 @@ def check_is_array(data, keep_units=False):
         Array or 'data' component of DataCube.
     '''
     if isinstance(data, DataCube):
-        data = data.value
+        if keep_units:
+            return data.value * data.unit
+        else:
+            data = data.value
     elif isinstance(data, FitsFile):
-        data = data.data
+        if keep_units:
+            return data.data * data.unit
+        else:
+            data = data.data
     if isinstance(data, Quantity):
         if keep_units:
             return data
@@ -170,6 +176,33 @@ def return_array_values(array):
 
     return array
 
+
+def non_nan(obj, keep_units=False):
+    '''
+    Return the input data with all NaN values removed.
+    Parameters
+    ––––––––––
+    obj : array_like
+        Input array or array-like object. This may be a NumPy
+        array, list, DataCube, FitsFile, or Quantity.
+    keep_units : bool, optional, default=False
+        If True, keep astropy units attached if present.
+    Returns
+    –––––––
+    ndarray
+        A 1-D array containing only the non-NaN elements from `obj`.
+
+    Notes
+    –––––
+    This function converts the input to a NumPy array using
+    `check_is_array(obj)`, then removes entries where the value is NaN.
+    If the input contains units (e.g., an `astropy.units.Quantity`),
+    the returned object will retain the original units.
+    '''
+    data = check_is_array(obj, keep_units)
+    non_nans = ~np.isnan(data)
+
+    return data[non_nans]
 
 # Science Operation Functions
 # –––––––––––––––––––––––––––

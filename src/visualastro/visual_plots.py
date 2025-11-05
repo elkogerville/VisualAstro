@@ -295,8 +295,10 @@ class va:
             Default percentile range used to determine `vmin` and `vmax`.
             If None, use no percentile stretch (as long as vmin/vmax are None).
             If `_default_flag`, uses default value from `va_config.percentile`.
-        radial_vel : float or astropy.units.Quantity, optional, default=None
-            Radial velocity to shift spectral axis to the rest frame.
+        radial_vel : float or None, optional, default=None
+            Radial velocity in km/s to shift the spectral axis.
+            Astropy units are optional. If None, uses the default
+            value set by `va_config.radial_velocity`.
         unit : astropy.units.Unit or str, optional, default=None
             Desired spectral axis unit for labeling.
         cmap : str, list or tuple of str, or None, default=None

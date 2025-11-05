@@ -134,6 +134,7 @@ class VAConfig:
 
         # Science Params
         # ––––––––––––––
+        self.radial_velocity = None
 
         # extract_cube_spectrum params
         self.flux_extract_method = 'mean'
