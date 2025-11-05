@@ -22,6 +22,7 @@ Module Structure:
 '''
 
 import os
+import warnings
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
 from astropy.visualization import AsinhStretch, ImageNormalize
@@ -32,6 +33,7 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import numpy as np
 from spectral_cube import SpectralCube
+from specutils.fitting import fit_generic_continuum, fit_continuum
 from specutils.spectra import Spectrum1D
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -542,7 +544,8 @@ class ExtractedSpectrum:
     def update(self, **kwargs):
         '''
         Update the spectrum attributes (wavelength, flux, or spectrum1d) and keep
-        all stored representations consistent.
+        all stored representations consistent. The continuum fit and normalized
+        spectrum is automatically recomputed.
         Parameters
         ––––––––––
         wavelength : `~astropy.units.Quantity`, optional
@@ -564,12 +567,18 @@ class ExtractedSpectrum:
         - If `spectrum1d` is passed, it takes precedence and replaces `wavelength`
           and `flux`.
         '''
+        fit_method = kwargs.get('fit_method', None)
+        region = kwargs.get('region', None)
+        # get default va_config values
+        fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
 
         # use spectrum1d to update ExtractedSpectrum if provided
         if 'spectrum1d' in kwargs:
             self.spectrum1d = kwargs['spectrum1d']
             self.wavelength = self.spectrum1d.spectral_axis
             self.flux = self.spectrum1d.flux
+            self.continuum_fit = _compute_continuum_fit(self.spectrum1d, fit_method, region)
+            self.normalized = (self.spectrum1d / self.continuum_fit).flux
             return None
 
         # update wavelength and/or flux
@@ -586,6 +595,9 @@ class ExtractedSpectrum:
                 rest_value=self.spectrum1d.rest_value,
                 velocity_convention=self.spectrum1d.velocity_convention
             )
+            self.continuum_fit = _compute_continuum_fit(self.spectrum1d, fit_method, region)
+            self.normalized = (self.spectrum1d / self.continuum_fit).flux
+
 
         return None
 
@@ -887,6 +899,60 @@ class FitsFile:
 
 # Utility Functions
 # –––––––––––––––––
+def _compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
+    '''
+    Fit the continuum of a 1D spectrum using a specified method.
+    Parameters
+    ––––––––––
+    spectrum1d : Spectrum1D or ExtractedSpectrum
+        Input 1D spectrum object containing flux and spectral_axis.
+        ExtractedSpectrum is supported only if it contains a
+        spectrum1d object.
+    fit_method : str, optional, default='generic'
+        Method used for fitting the continuum.
+        - 'fit_continuum': uses `fit_continuum` with a specified window
+        - 'generic'      : uses `fit_generic_continuum`
+    region : array-like, optional, default=None
+        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
+        Ignored for other methods. This allows the user to specify which
+        regions to include in the fit. Removing strong peaks is preferable to
+        avoid skewing the fit up or down.
+        Ex: Remove strong emission peak at 7um from fit
+        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+    Returns
+    –––––––
+    continuum_fit : np.ndarray
+        Continuum flux values evaluated at `spectrum1d.spectral_axis`.
+    Notes
+    –––––
+    - Warnings during the fitting process are suppressed.
+    '''
+    # if input spectrum is ExtractedSpectrum object
+    # extract the spectrum1d attribute
+    if isinstance(spectrum1d, ExtractedSpectrum):
+        spectrum1d = spectrum1d.spectrum1d
+    # extract spectral axis
+    spectral_axis = spectrum1d.spectral_axis
+    # suppress warnings during continuum fitting
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        # fit continuum with selected method
+        if fit_method=='fit_continuum':
+            # convert region to default units
+            if region is not None:
+                # extract unit
+                unit = spectral_axis.unit
+                # convert each element to spectral axis units
+                region = [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
+            fit = fit_continuum(spectrum1d, window=region)
+        else:
+            fit = fit_generic_continuum(spectrum1d)
+    # fit the continuum of the provided spectral axis
+    continuum_fit = fit(spectral_axis)
+
+    return continuum_fit
+
+
 def _return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
