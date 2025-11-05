@@ -134,10 +134,17 @@ class VAConfig:
 
         # Science Params
         # ––––––––––––––
+        # data params
+        self.wavelength_unit = None
         self.radial_velocity = None
 
         # extract_cube_spectrum params
+        self.spectra_rest_frequency = None
         self.flux_extract_method = 'mean'
+        self.spectrum_continuum_fit_method = 'fit_continuum'
+        self.deredden_spectrum = False
+        self.plot_normalized_continuum = False
+        self.plot_continuum_fit = False
 
         # plot_spectrum params
         self.plot_spectrum_text_loc = [0.025, 0.95]
@@ -147,6 +154,17 @@ class VAConfig:
         self.Ebv = 0.19
         self.deredden_method = 'WD01'
         self.deredden_region = 'LMCAvg'
+
+        # gaussian fitting params
+        self.gaussian_model = 'gaussian'
+        self.interpolate = False
+        self.return_gaussian_fit_parameters = False
+        self.print_gaussian_values = True
+
+        # numerical parameters
+        self.interpolation_samples = 10000
+        self.interpolation_method = 'cubic_spline'
+        self.error_interpolation_method = 'cubic_spline'
 
     def reset_defaults(self):
         self.__init__()
