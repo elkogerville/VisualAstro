@@ -20,6 +20,7 @@ Module Structure:
 '''
 
 from collections import namedtuple
+from copy import error
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -39,16 +40,16 @@ from .spectra_utils import (
     gaussian_continuum, gaussian_line,
     get_config_value
 )
-from .va_config import get_config_value, va_config
+from .va_config import get_config_value, va_config, _default_flag
 from .visual_classes import ExtractedSpectrum
 
 
 # Spectra Extraction Functions
 # ––––––––––––––––––––––––––––
-def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=False,
-                         fit_method='fit_continuum', region=None, radial_vel=None,
-                         rest_freq=None, deredden=False, unit=None, emission_line=None,
-                         flux_extract_method=None, **kwargs):
+def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, region=None,
+                         radial_vel=_default_flag, rest_freq=_default_flag, deredden=None,
+                         unit=_default_flag, emission_line=None, plot_continuum_fit=None,
+                         plot_norm_continuum=None, **kwargs):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
@@ -57,12 +58,12 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     cubes : DataCube, SpectralCube, or list of cubes
         Input cube(s) from which to extract spectra. The data must either be
         a SpectralCube, or a DataCube containing a SpectralCube.
-    normalize_continuum : bool, optional, default=False
-        Whether to normalize extracted spectra by a computed continuum fit
-    plot_continuum_fit : bool, optional, default=False
-        Whether to overplot the continuum fit.
-    fit_method : str, {'fit_continuum', 'generic'}, optional, default='fit_continuum'
-        Method used to fit the continuum.
+    flux_extract_method : {'mean', 'median', 'sum'} or None, optional, default=None
+        Method for extracting the flux. If None, uses the default
+        value set by `va_config.flux_extract_method`.
+    fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
+        Method used to fit the continuum. If None, uses the default
+        value set by `va_config.spectrum_continuum_fit_method`.
     region : array-like or None, optional, default=None
         Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
         Ignored for other methods. This allows the user to specify which
@@ -70,22 +71,29 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         avoid skewing the fit up or down.
         Ex: Remove strong emission peak at 7um from fit
         region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    radial_vel : float or None, optional, default=None
+    radial_vel : float or None, optional, default=`_default_flag`
         Radial velocity in km/s to shift the spectral axis.
-        Astropy units are optional. If None, uses the default
-        value set by `va_config.radial_velocity`.
-    rest_freq : float or None, optional, default=None
-        Rest-frame frequency or wavelength of the spectrum.
-    deredden : bool, optional, default=False
+        Astropy units are optional. If None, ignores the radial velocity.
+        If `_default_flag`, uses the default value set by `va_config.radial_velocity`.
+    rest_freq : float or None, optional, default=`_default_flag`
+        Rest-frame frequency or wavelength of the spectrum. If None,
+        ignores the rest frequency for unit conversions. If `_default_flag`,
+        uses the default value set by `va_config.spectra_rest_frequency`.
+    deredden : bool or None, optional, default=None
         Whether to apply dereddening to the flux using deredden_flux().
-    unit : str, astropy.units.Unit, or None, optional, default=None
+        If None, uses the default value set by `va_config.deredden_spectrum`.
+    unit : str, astropy.units.Unit, or None, optional, default=`_default_flag`
         Desired units for the wavelength axis. Converts the default
-        units if possible.
+        units if possible. If None, does not try and convert. If `_default_flag`,
+        uses the default value set by `va_config.wavelength_unit`.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
-    flux_extract_method : {'mean', 'median', 'sum'} or None, optional, default=None
-        Method for extracting the flux. If None, uses the default
-        value set by `va_config.flux_extract_method`.
+    plot_continuum_fit : bool or None, optional, default=None
+        Whether to overplot the continuum fit. If None, uses the
+        default value set by `va_config.plot_continuum_fit`.
+    plot_norm_continuum : bool or None, optional, default=None
+        Whether to plot the normalized extracted spectra. If None,
+        uses the default value set by `va_config.plot_normalized_continuum`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -167,7 +175,6 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     dpi = kwargs.get('dpi', va_config.dpi)
 
     # get default va_config values
-    radial_vel = get_config_value(radial_vel, 'radial_velocity')
     methods = {
         'mean': lambda cube: cube.mean(axis=(1, 2)),
         'median': lambda cube: cube.median(axis=(1, 2)),
@@ -180,6 +187,13 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
             f"Invalid flux_extract_method '{flux_extract_method}'. "
             f'Choose from {list(methods.keys())}.'
         )
+    fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
+    radial_vel = va_config.radial_velocity if radial_vel is _default_flag else radial_vel
+    rest_freq = va_config.spectra_rest_frequency if rest_freq is _default_flag else rest_freq
+    deredden = get_config_value(deredden, 'deredden_spectrum')
+    unit = va_config.wavelength_unit if unit is _default_flag else unit
+    plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
+    plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 
     # ensure cubes are iterable
     cubes = check_units_consistency(cubes)
@@ -220,6 +234,13 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         wavelength = spectrum1d.spectral_axis
         # convert wavelength to desired units
         wavelength = convert_units(wavelength, unit)
+        # rebuild spectrum1d after unit change
+        spectrum1d = Spectrum1D(
+            spectral_axis=wavelength,
+            flux=flux,
+            rest_value=rest_freq,
+            velocity_convention=convention
+        )
 
         # save computed spectrum
         extracted_spectra.append(ExtractedSpectrum(
@@ -234,7 +255,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
 
-        _ = plot_spectrum(extracted_spectra, ax, normalize_continuum,
+        _ = plot_spectrum(extracted_spectra, ax, plot_norm_continuum,
                           plot_continuum_fit, emission_line, **kwargs)
         if savefig:
             save_figure_2_disk(dpi)
@@ -646,10 +667,10 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
 # Spectra Fitting Functions
 # –––––––––––––––––––––––––
-def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=None,
-                        interpolate=True, interp_method='cubic_spline', yerror=None,
-                        error_method='cubic_spline', samples=1000, return_fit_params=False,
-                        plot_interp=False, print_vals=True, **kwargs):
+def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
+                        interpolate=None, interp_method=None, yerror=None,
+                        error_method=None, samples=None, return_fit_params=None,
+                        plot_interp=False, print_vals=None, **kwargs):
     '''
     Fit a Gaussian or Gaussian variant to a 1D spectrum, optionally including a continuum.
     Parameters
@@ -661,37 +682,45 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
         This should match the input arguments of the
         gaussian model (excluding the first argument
         which is wavelength).
-    model : str, default='gaussian'
+    model : str or None, default=None
         Type of Gaussian model to fit:
         - 'gaussian' : standard Gaussian
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
         The continuum can be computed with compute_continuum_fit().
+        If None, uses the default value set by `va_config.gaussian_model`.
     wave_range : tuple or list, optional, default=None
         (min, max) wavelength range to restrict the fit.
         If None, computes the min and max from the wavelength.
-    interpolate : bool, default=True
+    interpolate : bool or None, default=None
         Whether to interpolate the spectrum over
         a regular wavelength grid. The number of
-        samples is controlled by `samples`.
-    interp_method : str, {'cubic', 'cubic_spline', 'linear'} default='cubic_spline'
-        Interpolation method used.
-    yerror : array-like, optional, default=None
-        Flux uncertainties.
-    error_method : str, {'cubic', 'cubic_spline', 'linear'}, default='cubic_spline'
-        Method to interpolate yerror if provided.
-    samples : int, default=1000
-        Number of points in interpolated wavelength grid.
-    return_fit_params : bool, default=False
+        samples is controlled by `samples`. If None,
+        uses the default value set by `va_config.interpolate`.
+    interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
+        Interpolation method used. If None, uses the default
+        value set by `va_config.interpolation_method`.
+    yerror : array-like or None, optional, default=None
+        Flux uncertainties to be used in the fit. If None,
+        uncertainties are ignored when computing the fit.
+    error_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
+        Method to interpolate yerror if provided. If None, uses
+        the default value set by `va_config.error_interpolation_method`.
+    samples : int or None, default=None
+        Number of points in interpolated wavelength grid. If
+        None, uses the default value set by `va_config.interpolation_samples`.
+    return_fit_params : bool or None, default=None
         If True, return full computed best-fit parameters
         including derived flux and FWHM. If False, return
-        only Flux, FWHM, and mu.
+        only Flux, FWHM, and mu. If None, uses the default
+        value set by `va_config.return_gaussian_fit_parameters`.
     plot_interp : bool, default=False
         If True, plot the interpolated spectrum. This is
         provided for debugging purposes.
-    print_vals : bool, default=True
+    print_vals : bool or None, default=None
         If True, print a table of best-fit parameters,
-        errors, and computed quantities.
+        errors, and computed quantities. If None, uses the
+        default value set by `va_config.print_gaussian_values`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -721,6 +750,7 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
             If True, save current figure to disk.
         - `dpi` : float or int, optional, default=`va_config.dpi`
             Resolution in dots per inch.
+
     Returns
     –––––––
     If return_fit_params:
@@ -755,11 +785,21 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model='gaussian', wave_range=Non
     label = kwargs.get('label', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = kwargs.get('colors', va_config.colors)
+    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=None)
     use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
     # savefig
     savefig = kwargs.get('savefig', va_config.savefig)
     dpi = kwargs.get('dpi', va_config.dpi)
+
+    # get default va_config values
+    colors = get_config_value(colors, 'colors')
+    model = get_config_value(model, 'gaussian_model')
+    interpolate = get_config_value(interpolate, 'interpolate')
+    interp_method = get_config_value(interp_method, 'interpolation_method')
+    error_method = get_config_value(error_method, 'error_interpolation_method')
+    samples = get_config_value(samples, 'interpolation_samples')
+    return_fit_params = get_config_value(return_fit_params, 'return_gaussian_fit_parameters')
+    print_vals = get_config_value(print_vals, 'print_gaussian_values')
 
     # ensure arrays are not quantity objects
     wave_unit = extracted_spectrum.wavelength.unit
