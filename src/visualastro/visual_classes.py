@@ -539,6 +539,56 @@ class ExtractedSpectrum:
             continuum_fit
         )
 
+    def update(self, **kwargs):
+        '''
+        Update the spectrum attributes (wavelength, flux, or spectrum1d) and keep
+        all stored representations consistent.
+        Parameters
+        ––––––––––
+        wavelength : `~astropy.units.Quantity`, optional
+            New spectral axis array to assign to the spectrum. If provided,
+            the stored `Spectrum1D` object will be rebuilt (if it exists).
+        flux : `~astropy.units.Quantity`, optional
+            New flux array to assign to the spectrum. If provided,
+            the stored `Spectrum1D` object will be rebuilt (if it exists).
+        spectrum1d : `~specutils.Spectrum1D`, optional
+            A full Spectrum1D object to replace the internal representation.
+            If passed, this overrides both `wavelength` and `flux`, and no
+            further updates are applied.
+        Returns
+        –––––––
+        None
+
+        Notes
+        –––––
+        - If `spectrum1d` is passed, it takes precedence and replaces `wavelength`
+          and `flux`.
+        '''
+
+        # use spectrum1d to update ExtractedSpectrum if provided
+        if 'spectrum1d' in kwargs:
+            self.spectrum1d = kwargs['spectrum1d']
+            self.wavelength = self.spectrum1d.spectral_axis
+            self.flux = self.spectrum1d.flux
+            return None
+
+        # update wavelength and/or flux
+        if 'wavelength' in kwargs:
+            self.wavelength = kwargs['wavelength']
+        if 'flux' in kwargs:
+            self.flux = kwargs['flux']
+
+        # rebuild spectrum1d if it was affected
+        if self.spectrum1d is not None and ('wavelength' in kwargs or 'flux' in kwargs):
+            self.spectrum1d = Spectrum1D(
+                spectral_axis=self.wavelength,
+                flux=self.flux,
+                rest_value=self.spectrum1d.rest_value,
+                velocity_convention=self.spectrum1d.velocity_convention
+            )
+
+        return None
+
     def view(self, color=None, style=None, figsize=None):
         '''
         Plot the spectrum flux versus wavelength.

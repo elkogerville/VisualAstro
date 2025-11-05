@@ -63,21 +63,22 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
         Whether to overplot the continuum fit.
     fit_method : str, {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used to fit the continuum.
-    region : array-like, optional, default=None
+    region : array-like or None, optional, default=None
         Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
         Ignored for other methods. This allows the user to specify which
         regions to include in the fit. Removing strong peaks is preferable to
         avoid skewing the fit up or down.
         Ex: Remove strong emission peak at 7um from fit
         region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    radial_vel : float, optional, default=None
+    radial_vel : float or None, optional, default=None
         Radial velocity in km/s to shift the spectral axis.
-        Astropy units are optional.
-    rest_freq : float, optional, default=None
+        Astropy units are optional. If None, uses the default
+        value set by `va_config.radial_velocity`.
+    rest_freq : float or None, optional, default=None
         Rest-frame frequency or wavelength of the spectrum.
     deredden : bool, optional, default=False
         Whether to apply dereddening to the flux using deredden_flux().
-    unit : str or astropy.units.Unit, optional, default=None
+    unit : str, astropy.units.Unit, or None, optional, default=None
         Desired units for the wavelength axis. Converts the default
         units if possible.
     emission_line : str, optional, default=None
@@ -166,6 +167,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
     dpi = kwargs.get('dpi', va_config.dpi)
 
     # get default va_config values
+    radial_vel = get_config_value(radial_vel, 'radial_velocity')
     methods = {
         'mean': lambda cube: cube.mean(axis=(1, 2)),
         'median': lambda cube: cube.median(axis=(1, 2)),
@@ -192,6 +194,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         # extract spectrum flux
         flux = extract_method(cube)
+        # convert to Quantity
         flux = flux.value * flux.unit
 
         # derreden
