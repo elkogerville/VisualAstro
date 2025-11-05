@@ -192,6 +192,7 @@ def extract_cube_spectra(cubes, normalize_continuum=False, plot_continuum_fit=Fa
 
         # extract spectrum flux
         flux = extract_method(cube)
+        flux = flux.value * flux.unit
 
         # derreden
         if deredden:
@@ -558,7 +559,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
 
     # get default va_config values
-    colors = get_config_value(colors, 'color')
+    colors = get_config_value(colors, 'colors')
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -612,6 +613,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     if concatenate:
         wavelength = np.concatenate(wave_list)
         flux = np.concatenate(flux_list)
+
         ax.plot(return_array_values(wavelength),
                 return_array_values(flux),
                 color=c, label=l, ls=linestyles,
