@@ -831,7 +831,8 @@ def plot_lines(X, Y, ax, normalize=None,
 
 def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
                  xlog=None, ylog=None, colors=None, size=None,
-                 marker=None, alpha=None, edgecolors=_default_flag, **kwargs):
+                 marker=None, alpha=None, edgecolors=_default_flag,
+                 facecolors=_default_flag, **kwargs):
     '''
     Plot a scatter plot (optionally with error bars) on a given Axes object.
     Parameters
@@ -868,12 +869,19 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     alpha : float, list of float, or None, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
         If None, uses the default value from `va_config.alpha`.
-    edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+    edgecolors : {'face', 'none'}, color, list of color, or None, default=`_default_flag`
         The edge color of the marker. Possible values:
         - 'face': The edge color will always be the same as the face color.
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
+        - None: no edgecolor is set (edgecolor is set to marker color).
         If `_default_flag`, uses the default value in `va_config.edgecolor`.
+    facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
+        The face color of the marker. Possible values:
+        - 'none': Sets the face color to transparent
+        - A color or sequence of colors
+        - None: No facecolor is set (facecolor is set to marker color).
+        If `_default_flag`, uses the default value in `va_config.facecolor`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -895,6 +903,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             The alpha blending value, between 0 (transparent) and 1 (opaque).
         - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
             The edge color of the marker.
+        - `facecolors`, `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+            The face color of the marker.
         - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
@@ -936,6 +946,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
+    facecolors = get_kwargs(kwargs, 'facecolors', 'facecolor', 'fc', default=facecolors)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -960,6 +971,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
     edgecolors = va_config.edgecolor if edgecolors is _default_flag else edgecolors
+    facecolors = va_config.facecolor if facecolors is _default_flag else facecolors
     ecolors = get_config_value(ecolors, 'ecolors')
 
     X = check_units_consistency(X)
@@ -980,6 +992,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
     alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
     edgecolors = edgecolors if isinstance(edgecolors, (list, np.ndarray, tuple)) else [edgecolors]
+    facecolors = facecolors if isinstance(facecolors, (list, np.ndarray, tuple)) else [facecolors]
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
     ecolors = ecolors if isinstance(ecolors, (list, np.ndarray, tuple)) else [ecolors]
 
@@ -999,15 +1012,19 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         marker = markers[i%len(markers)]
         alpha = alphas[i%len(alphas)]
         edgecolor = edgecolors[i%len(edgecolors)]
+        facecolor = facecolors[i%len(facecolors)]
         ecolor = ecolors[i%len(ecolors)]
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
+        if facecolor == 'none' and edgecolor is None:
+            edgecolor = color
+
         if normalize:
             y = y / np.nanmax(y)
-
-        s = ax.scatter(x, y, c=color, s=size, marker=marker,
+        s = ax.scatter(x, y, color=color, s=size, marker=marker,
                        alpha=alpha, edgecolors=edgecolor,
-                       label=label, rasterized=rasterized)
+                       facecolors=facecolor, label=label,
+                       rasterized=rasterized)
 
         scatters.append(s)
 

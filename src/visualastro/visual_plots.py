@@ -973,7 +973,8 @@ class va:
     @staticmethod
     def scatter(X, Y, xerr=None, yerr=None, normalize=False,
                 xlog=None, ylog=None, colors=None, size=None,
-                marker=None, alpha=None, edgecolors=_default_flag, **kwargs):
+                marker=None, alpha=None, edgecolors=_default_flag,
+                facecolors=_default_flag, **kwargs):
         '''
         Convenience wrapper for `plot_scatter`, to scatter plot one or more distributions.
 
@@ -1021,6 +1022,12 @@ class va:
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
             If `_default_flag`, uses the default value in `va_config.edgecolor`.
+        facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
+            The face color of the marker. Possible values:
+            - 'none': Sets the face color to transparent
+            - A color or sequence of colors
+            - None: No face color is set (facecolor is set to marker color).
+            If `_default_flag`, uses the default value in `va_config.facecolor`.
 
         **kwargs : dict, optional
             Additional plotting parameters.
@@ -1042,6 +1049,8 @@ class va:
                 The alpha blending value, between 0 (transparent) and 1 (opaque).
             - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
                 The edge color of the marker.
+            - `facecolors`, `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+                The face color of the marker.
             - `cmap` : str, optional, default=`va_config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
@@ -1089,7 +1098,8 @@ class va:
 
             _ = plot_scatter(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
                              xlog=xlog, ylog=ylog, colors=colors, size=size,
-                             marker=marker, alpha=alpha, edgecolors=edgecolors, **kwargs)
+                             marker=marker, alpha=alpha, edgecolors=edgecolors,
+                             facecolors=facecolors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)
