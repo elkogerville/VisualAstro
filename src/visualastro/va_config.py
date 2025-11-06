@@ -65,7 +65,8 @@ class VAConfig:
         # scatter params
         self.scatter_size = 10
         self.marker = 'o'
-        self.edgecolor = 'face'
+        self.edgecolor = None
+        self.facecolor = None
 
         # errorbar params
         self.eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.

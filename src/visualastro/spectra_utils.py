@@ -144,27 +144,50 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
     return dereddened_flux
 
 
-def propagate_flux_errors(errors):
+def propagate_flux_errors(errors, method=None):
     '''
     Compute propagated flux errors from individual pixel errors in a spectrum.
     Parameters
     ––––––––––
     errors : np.ndarray
-        2D array of individual pixel errors, with shape (N_spectra, N_pixels).
-        N_spectra represents the wavelength axis of a data cube. The pixel
-        errors should have physical units (not counts). NaN values are ignored
-        in the computation.
+        Either:
+        - 2D array with shape (N_spectra, N_pixels), or
+        - 1D array with shape (N_pixels,) for a single spectrum.
+    method : {'mean', 'sum', 'median'} or None, optional
+        Flux extraction method.
+        If None, falls back to va_config.flux_extract_method.
+
     Returns
     –––––––
     flux_errors : np.ndarray
-        1D array of propagated flux errors for each spectrum (shape N_spectra),
-        computed as the quadrature sum of pixel errors divided by the number
-        of valid pixels:
-
-            flux_error[i] = sqrt(sum_j(errors[i,j]^2)) / N_valid_pixels
+        1D array of propagated flux errors (shape N_spectra).
     '''
+    # get default va_config value
+    method = get_config_value(method, 'flux_extract_method').lower()
+
+    # ensure errors are 2-dimensional
+    if errors.ndim == 1:
+        errors = errors[np.newaxis, :]
+
+    # number of valid (non-NaN) pixels per spectrum
     N = np.sum(~np.isnan(errors), axis=1)
-    flux_errors = np.sqrt( np.nansum(errors**2, axis=1) ) / N
+
+    # quadratic sum per spectrum
+    quad_sum = np.sqrt( np.nansum(errors**2, axis=1) )
+
+    # propagation method based on flux extraction method
+    if method == 'mean':
+        flux_errors = quad_sum / N
+
+    elif method == 'sum':
+        flux_errors = quad_sum
+
+    elif method == 'median':
+        # statistically correct median error scaling
+        flux_errors = 1.253 * (quad_sum / N)
+
+    else:
+        raise ValueError(f"Unknown flux extraction method '{method}'.")
 
     return flux_errors
 
