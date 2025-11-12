@@ -35,7 +35,8 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
            vmax=_default_flag, norm=_default_flag,
            percentile=_default_flag, origin=None,
            cmap=None, aspect=_default_flag,
-           mask_non_pos=None, **kwargs):
+           mask_non_pos=None, wcs_grid=None,
+           **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
     Parameters
@@ -92,6 +93,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
         default value set by `va_config.mask_non_positive`.
+    wcs_grid : bool or None, optional, default=`va_config.wcs_grid`
+        If True, display WCS grid ontop of plot. If None,
+        uses the default value set by `va_config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -188,6 +192,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     cmap = get_config_value(cmap, 'cmap')
     aspect = va_config.aspect if aspect is _default_flag else aspect
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
+    wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
     # ensure inputs are iterable or conform to standard
     datas = check_units_consistency(datas)
@@ -247,7 +252,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     if invert_yaxis:
         ax.invert_yaxis()
 
-    # rotate tick labels
+    # rotate tick labels and set optional grid
     if isinstance(ax, WCSAxes):
         for coord in ax.coords:
             # longitude (RA) or latitude (DEC)
@@ -265,6 +270,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
                 coord.set_ticklabel(rotation=90)
             if coord_index == 1:
                 coord.set_ticklabel(rotation=0)
+
+        if wcs_grid:
+            ax.coords.grid(True, color='white', ls='dotted')
 
     # set axes labels
     if isinstance(xlabel, str):
