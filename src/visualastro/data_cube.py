@@ -69,6 +69,9 @@ def load_data_cube(filepath, error=True, hdu=None,
         If None, uses the default value set by `va_config.print_info`.
     transpose : bool or None, optional, default=None
         If True, transpose each 2D image before stacking into the cube.
+        This will also transpose each error array if available and
+        swap the WCS axes for consistency. The swapping of the WCS
+        can be disabled by `va_config.invert_wcs_if_transpose`.
         If None, uses the default value set by `va_config.transpose`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
