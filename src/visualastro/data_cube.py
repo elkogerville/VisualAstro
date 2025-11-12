@@ -442,8 +442,8 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                     transform=ax.transAxes, color=text_color)
 
     # set axes labels
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    ax.coords['ra'].set_axislabel(xlabel)
+    ax.coords['dec'].set_axislabel(ylabel)
     ax.coords['dec'].set_ticklabel(rotation=90)
 
     images = images[0] if len(images) == 1 else images
