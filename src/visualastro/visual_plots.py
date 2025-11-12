@@ -69,7 +69,7 @@ class va:
     def imshow(datas, idx=None, vmin=_default_flag, vmax=_default_flag,
                norm=_default_flag, percentile=_default_flag, origin=None,
                wcs_input=None, invert_wcs=False, cmap=None, aspect=_default_flag,
-               mask_non_pos=None, **kwargs):
+               mask_non_pos=None, wcs_grid=None, **kwargs):
         '''
         Convenience wrapper for `imshow`, which displays a
         2D image with optional visual customization.
@@ -148,6 +148,9 @@ class va:
             If True, mask out non-positive data values. Useful for displaying
             log scaling of images with non-positive values. If None, uses the
             default value set by `va_config.mask_non_positive`.
+        wcs_grid : bool or None, optional, default=`va_config.wcs_grid`
+            If True, display WCS grid ontop of plot. If None,
+            uses the default value set by `va_config.wcs_grid`.
 
         **kwargs : dict, optional
             Additional plotting parameters.
@@ -262,7 +265,7 @@ class va:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
             _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile,
-                       origin, cmap, aspect, mask_non_pos, **kwargs)
+                       origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs)
 
             if savefig:
                     save_figure_2_disk(dpi)
