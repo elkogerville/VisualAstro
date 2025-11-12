@@ -249,12 +249,22 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
     # rotate tick labels
     if isinstance(ax, WCSAxes):
-        ax.coords['ra'].set_axislabel(va_config.right_ascension)
-        ax.coords['ra'].set_axislabel_position('b')
-        ax.coords['ra'].set_ticklabel(rotation=0)
-        ax.coords['dec'].set_axislabel(va_config.declination)
-        ax.coords['dec'].set_axislabel_position('l')
-        ax.coords['dec'].set_ticklabel(rotation=90)
+        for coord in ax.coords:
+            # longitude (RA) or latitude (DEC)
+            coord_type = coord.coord_type
+            coord_index = coord.coord_index
+            # set label based on coordinate type
+            if coord_type == 'longitude':
+                coord.set_axislabel(va_config.right_ascension)
+            if coord_type == 'latitude':
+                coord.set_axislabel(va_config.declination)
+            # set label rotation
+            # x axis should be horizontal
+            # y axis should be vertical
+            if coord_index == 0:
+                coord.set_ticklabel(rotation=90)
+            if coord_index == 1:
+                coord.set_ticklabel(rotation=0)
 
     # set axes labels
     if isinstance(xlabel, str):
