@@ -219,27 +219,40 @@ class va:
         wcs = None
         if wcs_input is not False:
             if wcs_input is None:
-                # if provided data is a DataCube or FitsFile, use the header
+                # if provided data is a DataCube or FitsFile, use the wcs or header
                 if isinstance(datas, (DataCube, FitsFile)):
-                    wcs_input = datas.header[0] if isinstance(datas.header, list) else datas.header
+                    for attr in ('wcs', 'header'):
+                        value = getattr(datas, attr, None)
+                        if value is not None:
+                            if isinstance(value, (list, np.ndarray, tuple)):
+                                value = value[0]
+                            wcs_input = value
+                            break
                 else:
-                    # fall back to default axes
+                    # no wcs data; fall back to default axes
                     wcs_input = None
+
             # create wcs object if provided
             if isinstance(wcs_input, Header):
                 try:
                     wcs = WCS(wcs_input)
-                except:
+                except Exception as e:
+                    warnings.warn(f'Failed to create WCS from Header: {e}')
                     wcs_input = None
+
             elif isinstance(wcs_input, (list, np.ndarray, tuple)):
                 try:
                     wcs = WCS(wcs_input[0])
-                except:
+                except Exception as e:
+                    warnings.warn(f'Failed to create WCS from array-like: {e}')
                     wcs_input = None
+
             elif isinstance(wcs_input, WCS):
                 wcs = wcs_input
+
             elif wcs_input is not None:
                 raise TypeError(f'Unsupported wcs_input type: {type(wcs_input)}')
+
             if invert_wcs and isinstance(wcs, WCS):
                 wcs = wcs.swapaxes(0, 1) # type: ignore
 
