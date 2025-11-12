@@ -50,8 +50,9 @@ def load_fits(filepath, header=True, error=True,
     transpose : bool or None, default=None
         If True, transpose the data array before returning.
         This will also transpose the error array and swap
-        the WCS axes for consistency. If None, uses the
-        default value set by `va_config.transpose`.
+        the WCS axes for consistency. The swapping of the WCS
+        can be disabled by `va_config.invert_wcs_if_transpose`.
+        If None, uses the default value set by `va_config.transpose`.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
