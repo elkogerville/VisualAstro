@@ -20,8 +20,8 @@ Module Structure:
 import glob
 import warnings
 from astropy.io import fits
-import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
+from astropy.wcs import WCS
 from matplotlib.patches import Ellipse
 import numpy as np
 from spectral_cube import SpectralCube
@@ -46,12 +46,12 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 # ––––––––––––––––––––––
 def load_data_cube(filepath, error=True, hdu=None,
                    dtype=None, print_info=None,
-                   transpose=None):
+                   transpose=None, invert_wcs=None):
     '''
-    Load a sequence of FITS files into a 3D data cube.
-    This function searches for all FITS files matching a given path pattern,
-    loads them into a NumPy array of shape (T, M, N), and bundles the data
-    and headers into a `DataCube` object.
+    Load a sequence of FITS files into a 3D data cube. This function searches
+    for all FITS files matching a given path pattern, loads them into a NumPy
+    array of shape (T, M, N), and bundles the data, headers, errors, and WCS
+    into a `DataCube` object.
     Parameters
     ––––––––––
     filepath : str
@@ -70,12 +70,17 @@ def load_data_cube(filepath, error=True, hdu=None,
     transpose : bool or None, optional, default=None
         If True, transpose each 2D image before stacking into the cube.
         If None, uses the default value set by `va_config.transpose`.
+    invert_wcs : bool or None, optional, default=None
+        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
+        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
     Returns
     –––––––
     cube : DataCube
         A DataCube object containing:
-        - 'cube.data' : np.ndarray of shape (T, M, N)
-        - 'cube.headers' : list of astropy.io.fits.Header objects
+        - `cube.data` : np.ndarray of shape (T, M, N)
+        - `cube.header` : list of astropy.io.fits.Header objects
+        - `cube.error` : np.ndarray of shape (T, M, N)
+        - `cube.wcs` : list of `astropy.wcs.wcs.WCS`
     Example
     –––––––
     Search for all fits files starting with 'HARPS' with .fits extention and load them.
@@ -85,9 +90,12 @@ def load_data_cube(filepath, error=True, hdu=None,
     hdu = get_config_value(hdu, 'hdu_idx')
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
+    invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
 
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
+    if not fits_files:
+        raise FileNotFoundError(f'No FITS files found for pattern: {filepath}')
     # allocate ixMxN data cube array and header array
     n_files = len(fits_files)
 
@@ -102,8 +110,15 @@ def load_data_cube(filepath, error=True, hdu=None,
 
     dt = get_dtype(data, dtype)
 
+    try:
+        wcs = WCS(header)
+    except ValueError:
+        wcs = None
+
     if transpose:
         data = data.T
+        if wcs is not None and invert_wcs:
+            wcs = wcs.swapaxes(0,1)
         if err is not None:
             err = err.T
 
@@ -112,6 +127,8 @@ def load_data_cube(filepath, error=True, hdu=None,
     datacube[0] = data.astype(dt)
     headers = [None] * n_files
     headers[0] = header
+    wcs_list = [None] * n_files
+    wcs_list[0] = wcs
     # preallocate error array if needed and error exists
     error_array = None
     if error and err is not None:
@@ -124,22 +141,31 @@ def load_data_cube(filepath, error=True, hdu=None,
             data = hdul[hdu].data
             headers[i+1] = hdul[hdu].header
             err = get_errors(hdul, dt)
+            try:
+                wcs = WCS(headers[i+1])
+            except ValueError:
+                wcs = None
+
         if transpose:
             data = data.T
+            if wcs is not None and invert_wcs:
+                wcs = wcs.swapaxes(0,1)
             if err is not None:
                 err = err.T
         datacube[i+1] = data.astype(dt)
         if error_array is not None and err is not None:
             error_array[i+1] = err.astype(dt)
+        wcs_list[i+1] = wcs
 
-    return DataCube(datacube, headers, error_array)
+    return DataCube(datacube, headers, error_array, wcs_list)
 
 
 def load_spectral_cube(filepath, hdu, error=True,
                        header=True, dtype=None,
                        print_info=None):
     '''
-    Load a spectral cube from a FITS file, optionally including errors and header.
+    Load a spectral cube from a FITS file,
+    optionally including errors and header.
     Parameters
     ––––––––––
     filepath : str
