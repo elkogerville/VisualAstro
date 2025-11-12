@@ -17,6 +17,7 @@ Module Structure:
 '''
 
 from astropy.io import fits
+from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
@@ -28,9 +29,11 @@ from .va_config import get_config_value, va_config, _default_flag
 # Fits File I/O Operations
 # ––––––––––––––––––––––––
 def load_fits(filepath, header=True, error=True,
-              print_info=None, transpose=None, dtype=None):
+              print_info=None, transpose=None,
+              dtype=None, invert_wcs=None):
     '''
     Load a FITS file and return its data and optional header.
+    The WCS is also extracted if possible.
     Parameters
     ––––––––––
     filepath : str
@@ -46,42 +49,61 @@ def load_fits(filepath, header=True, error=True,
         If None, uses the default value set by `va_config.print_info`.
     transpose : bool or None, default=None
         If True, transpose the data array before returning.
-        If None, uses the default value set by `va_config.transpose`.
+        This will also transpose the error array and swap
+        the WCS axes for consistency. If None, uses the
+        default value set by `va_config.transpose`.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
         np.float64 if not floating.
+    invert_wcs : bool or None, optional, default=None
+        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
+        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
     Returns
     –––––––
     FitsFile
-        If header is True, returns an object containing:
-        - data: 'np.ndarray' of the FITS data
-        - header: 'astropy.io.fits.Header' if 'header=True', else 'None'
+        If header or error is True, returns an object containing:
+        - data: `np.ndarray` of the FITS data
+        - header: `astropy.io.fits.Header` if `header=True` else None
+        - error: `np.ndarray` of the FITS error if `error=True` else None
+        - wcs: `astropy.wcs.wcs.WCS` if `header=True` else None
     data : np.ndarray
         If header is False, returns just the data component.
     '''
     # get default va_config values
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
+    invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
 
     # print fits file info
     with fits.open(filepath) as hdul:
         if print_info:
             hdul.info()
+
         # extract data and optionally the header from the file
         # if header is not requested, return None
         result = fits.getdata(filepath, header=header)
         data, fits_header = result if isinstance(result, tuple) else (result, None)
+        # try extracting WCS from header
+        wcs = None
+        if fits_header is not None:
+            try:
+                wcs = WCS(fits_header)
+            except Exception:
+                wcs = None
 
         dt = get_dtype(data, dtype)
-        data = data.astype(dt, copy=False)
+        data = data.astype(dt, copy=False) # type: ignore
+
         if transpose:
             data = data.T
+            if wcs is not None and invert_wcs:
+                wcs = wcs.swapaxes(0, 1)
 
         errors = get_errors(hdul, dt, transpose)
 
     if header or error:
-        return FitsFile(data, fits_header, errors)
+        return FitsFile(data, fits_header, errors, wcs)
     else:
         return data
 
