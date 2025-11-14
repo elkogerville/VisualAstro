@@ -227,7 +227,7 @@ def load_spectral_cube(filepath, hdu, error=True,
 def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                        norm=_default_flag, percentile=_default_flag,
                        radial_vel=None, unit=None, cmap=None, mask_non_pos=None,
-                       **kwargs):
+                       wcs_grid=None, **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
@@ -236,7 +236,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         One or more spectral cubes to plot. All cubes should have consistent units.
     idx : int
         Index along the spectral axis corresponding to the slice to plot.
-    ax : matplotlib.axes.Axes
+    ax : matplotlib.axes.Axes or WCSAxes
         The axes on which to draw the slice.
     vmin : float or None, optional, default=`_default_flag`
         Lower limit for colormap scaling; overides `percentile[0]`.
@@ -267,10 +267,14 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     cmap : str, list or tuple of str, or None, default=None
         Colormap(s) to use for plotting. If None,
         uses the default value set by `va_config.cmap`.
-    mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+    mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
         default value set by `va_config.mask_non_positive`.
+    wcs_grid : bool or None, optional, default=None
+        If True, display WCS grid ontop of plot. Requires
+        using WCSAxes for `ax`. If None, uses the default
+        value set by `va_config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
@@ -368,6 +372,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     radial_vel = get_config_value(radial_vel, 'radial_velocity')
     cmap = get_config_value(cmap, 'cmap')
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
+    wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
     images = []
 
@@ -445,6 +450,8 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ax.coords['ra'].set_axislabel(xlabel)
     ax.coords['dec'].set_axislabel(ylabel)
     ax.coords['dec'].set_ticklabel(rotation=90)
+    if wcs_grid:
+        ax.coords.grid(True, color='white', ls='dotted')
 
     images = images[0] if len(images) == 1 else images
 

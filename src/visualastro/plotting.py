@@ -89,13 +89,14 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         image uses a transform that does not contain the axes data transform,
         then None means to not modify the axes aspect at all. If `_default_flag`,
         uses the default value from `va_config.aspect`.
-    mask_non_pos : bool or None, optional, default=`va_config.mask_non_positive`.
+    mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
         default value set by `va_config.mask_non_positive`.
-    wcs_grid : bool or None, optional, default=`va_config.wcs_grid`
-        If True, display WCS grid ontop of plot. If None,
-        uses the default value set by `va_config.wcs_grid`.
+    wcs_grid : bool or None, optional, default=None
+        If True, display WCS grid ontop of plot. Requires
+        using WCSAxes for `ax`. If None, uses the default
+        value set by `va_config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional plotting parameters.
