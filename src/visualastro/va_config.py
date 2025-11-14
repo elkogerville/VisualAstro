@@ -169,6 +169,11 @@ class VAConfig:
         self.interpolation_method = 'cubic_spline'
         self.error_interpolation_method = 'cubic_spline'
 
+        # reprojection parameters
+        self.reproject_method = 'interp'
+        self.return_footprint = False
+        self.reproject_block_size = None
+
     def reset_defaults(self):
         self.__init__()
 
