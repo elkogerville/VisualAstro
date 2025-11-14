@@ -923,16 +923,16 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
         computed_labels = ['Flux', 'FWHM', '', '', '']
         for i in range(len(popt)):
             # format best fit values
-            fit_str = f'{params[i]+':':<2} {popt[i]:>15.6f}'
+            fit_str = f'{params[i]+":":<2} {popt[i]:>15.6f}'
             # format best fit errors
-            fit_err = f'{params[i]+'δ':<2}: {perr[i]:>14.8f}'
+            fit_err = f'{params[i]+"δ":<2}: {perr[i]:>14.8f}'
             # format computed values if value exists
             if computed_vals[i]:
-                comp_str = f'{computed_labels[i]+':':<6} {computed_vals[i]:>10.9f}'
-                comp_err = f'{computed_labels[i]+'δ:':<6} {computed_errors[i]:>11.8f}'
+                comp_str = f'{computed_labels[i]+":":<6} {computed_vals[i]:>10.9f}'
+                comp_err = f'{computed_labels[i]+"δ:":<6} {computed_errors[i]:>11.8f}'
             else:
-                comp_str = f'{computed_labels[i]:<6} {'':>11}'
-                comp_err = f'{computed_labels[i]:<6} {'':>11}'
+                comp_str = f"{computed_labels[i]:<6} {'':>11}"
+                comp_err = f"{computed_labels[i]:<6} {'':>11}"
 
             print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
 

@@ -30,7 +30,6 @@ import astropy.units as u
 from astropy.units import Quantity, Unit
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.wcs import WCS
-from matplotlib import cm
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
