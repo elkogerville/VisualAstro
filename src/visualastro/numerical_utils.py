@@ -23,10 +23,12 @@ from astropy import units as u
 from astropy.io.fits import Header
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
+from reproject import reproject_interp, reproject_exact
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
-from .visual_classes import DataCube, ExtractedSpectrum, FitsFile
+from .visual_classes import DataCube, ExtractedSpectrum, FitsFile, va_config
+from .va_config import get_config_value, _default_flag
 
 
 # Type Checking Arrays and Objects
@@ -292,6 +294,133 @@ def convert_units(quantity, unit):
             f'Defaulting to unit: {quantity.unit}.'
             )
         return quantity
+
+
+def reproject_wcs(
+    input_data,
+    reference_wcs,
+    method=None,
+    return_footprint=None,
+    parallel=None,
+    block_size=_default_flag
+):
+    '''
+    Reproject data arrays or DataCubes/FitsFile objects onto a reference WCS.
+
+    Parameters
+    ––––––––––
+    input_data : array-like, DataCube, FitsFile, list, or tuple
+        The input data to be reprojected. May be:
+        - A HDUList object
+        - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
+        - A `DataCube` or `FitsFile` object containing `.value` and either `.wcs` or `.header`
+    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+        The target WCS or FITS header to which `input_data` will be reprojected.
+    method : {'interp', 'exact'} or None, default=None
+        Reprojection method:
+        - 'interp' : use `reproject_interp`
+        - 'exact' : use `reproject_exact`
+        If None, uses the default value
+        set by `va_config.reproject_method`.
+    return_footprint : bool or None, optional, default=None
+        If True, return both reprojected data and reprojection
+        footprints. If False, return only the reprojected data.
+        If None, uses the default value set by `va_config.return_footprint`.
+    parallel : bool, int, str, or None, optional, default=None
+        If True, the reprojection is carried out in parallel,
+        and if a positive integer, this specifies the number
+        of threads to use. The reprojection will be parallelized
+        over output array blocks specified by `block_size` (if the
+        block size is not set, it will be determined automatically).
+        If None, uses the default value set by `va_config.reproject_parallel`.
+    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+        The size of blocks in terms of output array pixels that each block
+        will handle reprojecting. Extending out from (0,0) coords positively,
+        block sizes are clamped to output space edges when a block would extend
+        past edge. Specifying 'auto' means that reprojection will be done in
+        blocks with the block size automatically determined. If `block_size` is
+        not specified or set to None, the reprojection will not be carried out in blocks.
+        If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+
+    Returns
+    –––––––
+    reprojected : ndarray or list of ndarray
+        The reprojected data array(s). If `input_data` contains
+        multiple items, the output is a list; otherwise a single array.
+    footprint : ndarray or list of ndarray
+        The reprojection footprint(s). Only returned if `return_footprint=True`.
+        If `input_data` contains multiple items, the output is a list;
+        otherwise a single array.
+
+    Raises
+    ––––––
+    ValueError
+        If a `DataCube` or `FitsFile` object has neither `.wcs` nor `.header`
+        attribute available.
+
+    Examples
+    ––––––––
+    Reproject a single array:
+
+    >>> reproject_wcs((data, wcs), reference_wcs)
+
+    Reproject a list of DataCube objects:
+
+    >>> reproject_wcs([cube1, cube2], reference_wcs, method='exact')
+    '''
+    method = get_config_value(method, 'reproject_method')
+    return_footprint = get_config_value(return_footprint, 'return_footprint')
+    block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
+
+    # Normalize input into a list
+    input_list = input_data if isinstance(input_data, (list, tuple)) else [input_data]
+
+    # Select reproject function
+    reproject_method = {
+        'interp': reproject_interp,
+        'exact': reproject_exact
+    }.get(method, reproject_interp)
+
+    reprojected_data = []
+    footprints = []
+
+    for i, data in enumerate(input_list):
+
+        # Extract (value, wcs/header) from custom objects
+        if isinstance(data, (DataCube, FitsFile)):
+
+            # priority: wcs > header
+            for attr in ('wcs', 'header'):
+                if hasattr(data, attr):
+                    wcs = getattr(data, attr)
+                    break
+            else:
+                wcs = None
+
+            if wcs is None:
+                if len(input_list) == 1:
+                    raise ValueError("input_data has no wcs/header information!")
+                else:
+                    raise ValueError(f"input_data[{i}] has no wcs/header information!")
+
+            data = (data.value, wcs)
+
+        # Run reprojection
+        reprojected, footprint = reproject_method(
+                                            data,
+                                            reference_wcs,
+                                            parallel=parallel,
+                                            block_size=block_size)
+
+        reprojected_data.append(reprojected)
+        footprints.append(footprint)
+
+    # Unwrap single-element lists
+    if len(reprojected_data) == 1:
+        reprojected_data = reprojected_data[0]
+        footprints = footprints[0]
+
+    return (reprojected_data, footprints) if return_footprint else reprojected_data
 
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
