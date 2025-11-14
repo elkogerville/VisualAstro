@@ -256,21 +256,40 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     # rotate tick labels and set optional grid
     if isinstance(ax, WCSAxes):
         for coord in ax.coords:
-            # longitude (RA) or latitude (DEC)
             coord_type = coord.coord_type
             coord_index = coord.coord_index
+
             # set label based on coordinate type
             if coord_type == 'longitude':
                 coord.set_axislabel(va_config.right_ascension)
-            if coord_type == 'latitude':
+            elif coord_type == 'latitude':
                 coord.set_axislabel(va_config.declination)
-            # set label rotation
-            # x axis should be horizontal
-            # y axis should be vertical
-            if coord_index == 0:
-                coord.set_ticklabel(rotation=90)
-            if coord_index == 1:
-                coord.set_ticklabel(rotation=0)
+
+            # determine which pixel axis this world coordinate
+            # primarily affects by checking the PC/CD matrix
+            wcs = ax.wcs
+            if hasattr(wcs, 'pixel_to_world_values'):
+                # check which pixel axis (0=x, 1=y) this world axis varies most with
+                # look at the absolute values in the transformation matrix
+                if hasattr(wcs.wcs, 'pc'):
+                    pc_matrix = wcs.wcs.pc
+                elif hasattr(wcs.wcs, 'cd'):
+                    pc_matrix = wcs.wcs.cd
+                else:
+                    pc_matrix = None
+
+                if pc_matrix is not None:
+                    # for this world axis, see which pixel axis it affects most
+                    world_axis_row = pc_matrix[coord_index, :]
+                    dominant_pixel_axis = abs(world_axis_row).argmax()
+
+                    # dominant_pixel_axis: 0 = x-axis (horizontal), 1 = y-axis (vertical)
+                    if dominant_pixel_axis == 0:
+                        coord.set_axislabel_position('b')
+                        coord.set_ticklabel(rotation=0)
+                    elif dominant_pixel_axis == 1:
+                        coord.set_axislabel_position('l')
+                        coord.set_ticklabel(rotation=90)
 
         if wcs_grid:
             ax.coords.grid(True, color='white', ls='dotted')
