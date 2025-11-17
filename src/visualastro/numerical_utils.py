@@ -20,6 +20,7 @@ Module Structure:
 
 import warnings
 from astropy import units as u
+from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.units import Quantity, spectral, Unit, UnitConversionError
 import numpy as np
@@ -314,6 +315,10 @@ def reproject_wcs(
         - A HDUList object
         - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
         - A `DataCube` or `FitsFile` object containing `.value` and either `.wcs` or `.header`
+        - A list containing any of the above inputs
+        Note:
+            - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
+            - [(np.ndarray, WCS), DataCube, FitsFile] is a valid input.
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
     method : {'interp', 'exact'} or None, default=None
@@ -370,10 +375,14 @@ def reproject_wcs(
     '''
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')
+    parallel = get_config_value(parallel, 'reproject_parallel')
     block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
 
-    # Normalize input into a list
-    input_list = input_data if isinstance(input_data, (list, tuple)) else [input_data]
+    # normalize input into a list
+    if isinstance(input_data, list):
+        input_list = [_normalize_reproject_input(item) for item in input_data]
+    else:
+        input_list = [_normalize_reproject_input(input_data)]
 
     # Select reproject function
     reproject_method = {
@@ -391,8 +400,8 @@ def reproject_wcs(
 
             # priority: wcs > header
             for attr in ('wcs', 'header'):
-                if hasattr(data, attr):
-                    wcs = getattr(data, attr)
+                wcs = getattr(data, attr, None)
+                if wcs is not None:
                     break
             else:
                 wcs = None
@@ -421,6 +430,40 @@ def reproject_wcs(
         footprints = footprints[0]
 
     return (reprojected_data, footprints) if return_footprint else reprojected_data
+
+
+def _normalize_reproject_input(input_data):
+    '''
+    Ensures that the reprojection inputs are one of the accepted types.
+    Parameters
+    ––––––––––
+    input_data : fits.HDUList, tuple, or object
+        Input data to be reprojected. Must follow one of the formats:
+            - fits.HDUList : hdul object containing data and header
+            - tuple : tuple containing (data, header/WCS)
+            - object : object containing a `.value` and `.header`/.`wcs` attribute
+
+    Returns
+    –––––––
+    input_data : fits.HDUList, tuple, or object
+        The exact same input_data object
+
+    Raises
+    ––––––
+    TypeError
+        If `input_data` is not an accepted type/format.
+    '''
+    if isinstance(input_data, fits.HDUList):
+        return input_data
+    elif isinstance(input_data, tuple) and len(input_data) == 2:
+        return input_data
+    elif hasattr(input_data, 'value') and (hasattr(input_data, 'wcs') or hasattr(input_data, 'header')):
+        return input_data
+    else:
+        raise TypeError(
+            'Each input must be an HDUList, a (data, header/WCS) tuple, '
+            'or an object with `.value` and `.wcs` or `.header`.'
+        )
 
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
