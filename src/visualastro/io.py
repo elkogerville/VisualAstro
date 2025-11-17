@@ -35,8 +35,9 @@ def load_fits(filepath, header=True, error=True,
               dtype=None, invert_wcs=None,
               target_wcs=None, **kwargs):
     '''
-    Load a FITS file and return its data and optional header.
-    The WCS is also extracted if possible.
+    Load a FITS file and return its data, header, and errors.
+    The WCS is also extracted if possible. Optionally, the
+    data and errors can be reprojected onto a target wcs.
     Parameters
     ––––––––––
     filepath : str
@@ -103,6 +104,8 @@ def load_fits(filepath, header=True, error=True,
         - header: `astropy.io.fits.Header` if `header=True` else None
         - error: `np.ndarray` of the FITS error if `error=True` else None
         - wcs: `astropy.wcs.wcs.WCS` if `header=True` else None
+            By default, is extracted from the header.
+            If a `target_wcs` is passed in, will override the default header.
     data : np.ndarray
         If header is False, returns just the data component.
     '''
