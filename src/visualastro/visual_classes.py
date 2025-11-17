@@ -475,6 +475,9 @@ class ExtractedSpectrum:
     '''
     def __init__(self, wavelength=None, flux=None, spectrum1d=None,
                  normalized=None, continuum_fit=None):
+        self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
+
+    def _initialize(self, wavelength, flux, spectrum1d, normalized, continuum_fit):
         self.wavelength = wavelength
         self.flux = flux
         self.spectrum1d = spectrum1d
@@ -483,15 +486,15 @@ class ExtractedSpectrum:
 
         # assign attributes
         unit = None
-        for candidate in (getattr(flux, "unit", None),
-                          getattr(spectrum1d, "unit", None)):
+        for candidate in (getattr(flux, 'unit', None),
+                          getattr(spectrum1d, 'unit', None)):
             if candidate is not None:
                 unit = candidate
                 break
 
         wave_unit = None
-        for candidate in (getattr(wavelength, "unit", None),
-                          getattr(getattr(spectrum1d, "spectral_axis", None), "unit", None)):
+        for candidate in (getattr(wavelength, 'unit', None),
+                          getattr(getattr(spectrum1d, 'spectral_axis', None), 'unit', None)):
             if candidate is not None:
                 wave_unit = candidate
                 break
@@ -549,11 +552,13 @@ class ExtractedSpectrum:
             continuum_fit
         )
 
-    def update(self, **kwargs):
+    def update(self, wavelength=None, flux=None, spectrum1d=None, normalized=None, continuum_fit=None, **kwargs):
         '''
-        Update the spectrum attributes (wavelength, flux, or spectrum1d) and keep
-        all stored representations consistent. The continuum fit and normalized
-        spectrum is automatically recomputed.
+        Update one or more attributes of the ExtractedSpectrum object.
+        Any argument provided to this method overrides the existing value.
+        Arguments left as None will retain the current stored values.
+        Dependent attributes are automatically recomputed using the newest available
+        inputs, falling back to the previously stored values when needed.
         Parameters
         ––––––––––
         wavelength : `~astropy.units.Quantity`, optional
@@ -575,37 +580,59 @@ class ExtractedSpectrum:
         - If `spectrum1d` is passed, it takes precedence and replaces `wavelength`
           and `flux`.
         '''
+        # –––– KWARGS ––––
+        rest_value = kwargs.get('rest_value', None)
+        velocity_convention = kwargs.get('velocity_convention', None)
         fit_method = kwargs.get('fit_method', None)
         region = kwargs.get('region', None)
+
         # get default va_config values
         fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
 
         # use spectrum1d to update ExtractedSpectrum if provided
-        if 'spectrum1d' in kwargs:
-            self.spectrum1d = kwargs['spectrum1d']
-            self.wavelength = self.spectrum1d.spectral_axis
-            self.flux = self.spectrum1d.flux
-            self.continuum_fit = _compute_continuum_fit(self.spectrum1d, fit_method, region)
-            self.normalized = (self.spectrum1d / self.continuum_fit).flux
+        if spectrum1d is not None:
+            wavelength = spectrum1d.spectral_axis
+            flux = spectrum1d.flux
+            continuum_fit = _compute_continuum_fit(spectrum1d, fit_method, region)
+            normalized = (spectrum1d / continuum_fit).flux
+
+            self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
+
             return None
 
-        # update wavelength and/or flux
-        if 'wavelength' in kwargs:
-            self.wavelength = kwargs['wavelength']
-        if 'flux' in kwargs:
-            self.flux = kwargs['flux']
+        wavelength = self.wavelength if wavelength is None else wavelength
+        flux = self.flux if flux is None else flux
 
-        # rebuild spectrum1d if it was affected
-        if self.spectrum1d is not None and ('wavelength' in kwargs or 'flux' in kwargs):
-            self.spectrum1d = Spectrum1D(
-                spectral_axis=self.wavelength,
-                flux=self.flux,
-                rest_value=self.spectrum1d.rest_value,
-                velocity_convention=self.spectrum1d.velocity_convention
-            )
-            self.continuum_fit = _compute_continuum_fit(self.spectrum1d, fit_method, region)
-            self.normalized = (self.spectrum1d / self.continuum_fit).flux
+        # rebuild spectrum1d if wavelength or flux is passed in
+        if not _allclose(wavelength, self.wavelength) or not _allclose(flux, self.flux):
 
+            # rest value and velocity convention defaults are set
+            # by the previous spectrum1d values if they existed
+            if self.spectrum1d is not None:
+                rest_value = self.spectrum1d.rest_value if rest_value is None else rest_value
+                velocity_convention = (
+                                self.spectrum1d.velocity_convention
+                                if velocity_convention is None else velocity_convention
+                            )
+
+            spectrum1d = Spectrum1D(
+                    spectral_axis=wavelength,
+                    flux=flux,
+                    rest_value=rest_value,
+                    velocity_convention=velocity_convention
+                )
+            # recompute continuum fit and normalized flux if not passed in
+            if continuum_fit is None:
+                continuum_fit = _compute_continuum_fit(spectrum1d, fit_method, region)
+            if normalized is None:
+                normalized = (spectrum1d / continuum_fit).flux
+
+        # use previous values unless provided / recomputed
+        spectrum1d = self.spectrum1d if spectrum1d is None else spectrum1d
+        normalized = self.normalized if normalized is None else normalized
+        continuum_fit = self.continuum_fit if continuum_fit is None else continuum_fit
+
+        self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
 
         return None
 
@@ -714,10 +741,13 @@ class FitsFile:
         Total memory footprint of the array in bytes.
     '''
     def __init__(self, data, header=None, error=None, wcs=None):
+        self._initialize(data, header, error, wcs)
+
+    def _initialize(self, data, header, error, wcs):
         data = np.asarray(data)
         unit = None
         if isinstance(data, Quantity):
-            unit = data.unit
+            unit = data.unit # type: ignore
         elif isinstance(header, Header) and 'BUNIT' in header:
             try:
                 unit = Unit(header['BUNIT'])
@@ -738,6 +768,7 @@ class FitsFile:
         self.value = data
         self.unit = unit
         self.wcs = wcs
+        self.footprint = None
 
         # data attributes
         self.shape = data.shape
@@ -818,6 +849,38 @@ class FitsFile:
             return self.header[key] # type: ignore
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
+
+    def update(self, data=None, header=None, error=None, wcs=None):
+        '''
+        Update any of the FitsFile attributes. All internally stored
+        values are recomputed.
+        Parameters
+        ––––––––––
+        data : array-like or `~astropy.units.Quantity`
+            The primary image data. Can be a NumPy array or an
+            `astropy.units.Quantity` object.
+        header : `~astropy.io.fits.Header`, optional
+            FITS header associated with the data. Used to extract
+            WCS information and physical units if available.
+        error : array-like, optional
+            Optional uncertainty or error map associated with the data.
+        wcs : astropy.wcs.wcs.WCS or None, optional, default=None
+            WCS information associated with the data extension.
+            If None, FitsFile will attempt to extract the WCS
+            from the header attribute.
+
+        Returns
+        –––––––
+        None
+        '''
+        data = self.data if data is None else data
+        header = self.header if header is None else header
+        error = self.error if error is None else error
+        wcs = self.wcs if wcs is None else wcs
+
+        self._initialize(data, header, error, wcs)
+
+        return None
 
     def view(self, vmin=_default_flag, vmax=_default_flag,
              norm=_default_flag, percentile=_default_flag,
@@ -1363,3 +1426,59 @@ def _slice_cube(cube, idx):
             return cube[start:end+1].sum(axis=0)
 
     raise ValueError("'idx' must be an int or a list of one or two integers")
+
+
+def _allclose(a, b):
+    '''
+    Determine whether two array-like objects are equal within a tolerance,
+    with additional handling for `astropy.units.Quantity` and None.
+    This function behaves like `numpy.allclose`, but adds logic to safely
+    compare Quantities (ensuring matching units) and to treat None as
+    a valid sentinel value.
+    Parameters
+    ––––––––––
+    a, b : array-like, `~astropy.units.Quantity`, scalar, or None
+        The inputs to compare. Inputs may be numerical arrays, scalars, or
+        `Quantity` objects with units. If one argument is None, the result is
+        False unless both are None.
+
+    Returns
+    –––––––
+    bool
+        True if the inputs are considered equal, False otherwise.
+        Equality rules:
+        - Both None → True
+        - One None → False
+        - Quantities with mismatched units → False
+        - Quantities with identical units → value arrays compared via
+            `numpy.allclose`
+        - Non-Quantity arrays/scalars → compared via `numpy.allclose`
+
+    Notes
+    –––––
+    - Unlike `numpy.allclose`, this function does **not** attempt unit
+        conversion. Quantities must already share identical units.
+    - This function exists to support `.update()` logic where user-supplied
+        wavelength/flux arrays should only trigger recomputation if they
+        differ from stored values.
+    '''
+    # case 1: both are None → equal
+    if a is None and b is None:
+        return True
+
+    # case 2: only one is None → different
+    if a is None or b is None:
+        return False
+
+    # case 3: one is Quantity, one is not
+    if isinstance(a, Quantity) != isinstance(b, Quantity):
+        return False
+
+    # case 4: both Quantities
+    if isinstance(a, Quantity) and isinstance(b, Quantity):
+        if a.unit != b.unit:
+            return False
+        return np.allclose(a.value, b.value)
+
+    # case 5: both unitless arrays/scalars
+    return np.allclose(a, b)
