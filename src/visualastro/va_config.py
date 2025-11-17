@@ -173,6 +173,7 @@ class VAConfig:
         self.reproject_method = 'interp'
         self.return_footprint = False
         self.reproject_block_size = None
+        self.reproject_parallel = False
 
     def reset_defaults(self):
         self.__init__()
