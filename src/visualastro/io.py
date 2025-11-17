@@ -16,12 +16,14 @@ Module Structure:
         Functions to handle matplotlib figure I/O operations.
 '''
 
+import warnings
 from astropy.io import fits
+from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-from .numerical_utils import check_is_array
+from .numerical_utils import check_is_array, reproject_wcs
 from .visual_classes import FitsFile
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -30,7 +32,8 @@ from .va_config import get_config_value, va_config, _default_flag
 # ––––––––––––––––––––––––
 def load_fits(filepath, header=True, error=True,
               print_info=None, transpose=None,
-              dtype=None, invert_wcs=None):
+              dtype=None, invert_wcs=None,
+              target_wcs=None, **kwargs):
     '''
     Load a FITS file and return its data and optional header.
     The WCS is also extracted if possible.
@@ -60,6 +63,38 @@ def load_fits(filepath, header=True, error=True,
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
         If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
+    target_wcs : Header, WCS or None, optional, default=None
+        Reproject the input data onto the WCS of another
+        data set. Input data must have a valid header
+        to extract WCS from. If None, will not reproject
+        the input data.
+
+    **kwargs : dict, optional
+        Additional parameters.
+
+        Supported keywords:
+
+        - `reproject_method` : {'interp', 'exact'} or None, default=`va_config.reproject_method`
+            Reprojection method:
+            - 'interp' : use `reproject_interp`
+            - 'exact' : use `reproject_exact`
+        - `return_footprint` : bool or None, optional, default=`va_config.return_footprint`
+            If True, return both reprojected data and reprojection
+            footprints. If False, return only the reprojected data.
+        - `parallel` : bool, int, str, or None, optional, default=`va_config.reproject_parallel`
+            If True, the reprojection is carried out in parallel,
+            and if a positive integer, this specifies the number
+            of threads to use. The reprojection will be parallelized
+            over output array blocks specified by `block_size` (if the
+            block size is not set, it will be determined automatically).
+        - `block_size` : tuple, ‘auto’, or None, optional, default=`va_config.reproject_block_size`
+            The size of blocks in terms of output array pixels that each block
+            will handle reprojecting. Extending out from (0,0) coords positively,
+            block sizes are clamped to output space edges when a block would extend
+            past edge. Specifying 'auto' means that reprojection will be done in
+            blocks with the block size automatically determined. If `block_size` is
+            not specified or set to None, the reprojection will not be carried out in blocks.
+
     Returns
     –––––––
     FitsFile
@@ -71,10 +106,27 @@ def load_fits(filepath, header=True, error=True,
     data : np.ndarray
         If header is False, returns just the data component.
     '''
+    # –––– KWARGS ––––
+    reproject_method = kwargs.get('reproject_method', va_config.reproject_method)
+    return_footprint = kwargs.get('return_footprint', va_config.return_footprint)
+    parallel = kwargs.get('parallel', va_config.reproject_parallel)
+    block_size = kwargs.get('block_size', va_config.reproject_block_size)
+
     # get default va_config values
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
     invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
+
+    # disable transpose if reprojecting
+    if target_wcs is not None and transpose:
+        warnings.warn('`transpose=True` ignored because `target_wcs` was provided.')
+        transpose = False
+
+    data = None
+    fits_header = None
+    errors = None
+    wcs = None
+    footprint = None
 
     # print fits file info
     with fits.open(filepath) as hdul:
@@ -83,28 +135,64 @@ def load_fits(filepath, header=True, error=True,
 
         # extract data and optionally the header from the file
         # if header is not requested, return None
-        result = fits.getdata(filepath, header=header)
-        data, fits_header = result if isinstance(result, tuple) else (result, None)
-        # try extracting WCS from header
-        wcs = None
-        if fits_header is not None:
-            try:
-                wcs = WCS(fits_header)
-            except Exception:
-                wcs = None
+        for hdu in hdul:
+            if hdu.data is not None:
+                data = hdu.data
+                fits_header = hdu.header if header else None
+                break
+        if data is None:
+            raise ValueError(
+                f'No image HDU with data found in file: {filepath}!'
+            )
 
         dt = get_dtype(data, dtype)
         data = data.astype(dt, copy=False) # type: ignore
+        # get errors
+        if error:
+            errors = get_errors(hdul, dt, transpose)
+
+        # reproject wcs if user inputs a reference wcs or header
+        # otherwise try to extract wcs from fits header
+        if target_wcs is not None:
+            # ensure target_wcs has wcs information
+            if isinstance(target_wcs, Header):
+                wcs = WCS(target_wcs)
+            elif isinstance(target_wcs, WCS):
+                wcs = target_wcs
+            else:
+                raise ValueError(
+                    f'target_wcs must be Header or WCS, got {type(target_wcs)}'
+                )
+            input_wcs = WCS(fits_header).celestial
+            data, footprint = reproject_wcs((data, input_wcs), wcs,
+                                             method=reproject_method,
+                                             return_footprint=True,
+                                             parallel=parallel,
+                                             block_size=block_size)
+            if errors is not None:
+                errors = reproject_wcs((errors, input_wcs), wcs,
+                                        method=reproject_method,
+                                        return_footprint=False,
+                                        parallel=parallel,
+                                        block_size=block_size)
+        else:
+            # try extracting wcs from header
+            if fits_header is not None:
+                try:
+                    wcs = WCS(fits_header)
+                except Exception:
+                    wcs = None
 
         if transpose:
-            data = data.T
+            data = data.T # type: ignore
             if wcs is not None and invert_wcs:
                 wcs = wcs.swapaxes(0, 1)
 
-        errors = get_errors(hdul, dt, transpose)
-
     if header or error:
-        return FitsFile(data, fits_header, errors, wcs)
+        fitsfile = FitsFile(data, fits_header, errors, wcs)
+        fitsfile.footprint = footprint if return_footprint else None
+        return fitsfile
+
     else:
         return data
 
