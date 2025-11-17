@@ -32,8 +32,8 @@ from .va_config import get_config_value, va_config, _default_flag
 # ––––––––––––––––––––––––
 def load_fits(filepath, header=True, error=True,
               print_info=None, transpose=None,
-              dtype=None, invert_wcs=None,
-              target_wcs=None, **kwargs):
+              dtype=None, target_wcs=_default_flag,
+              invert_wcs=None, **kwargs):
     '''
     Load a FITS file and return its data, header, and errors.
     The WCS is also extracted if possible. Optionally, the
@@ -61,14 +61,15 @@ def load_fits(filepath, header=True, error=True,
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
         np.float64 if not floating.
-    invert_wcs : bool or None, optional, default=None
-        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
-        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
-    target_wcs : Header, WCS or None, optional, default=None
+    target_wcs : Header, WCS or None, optional, default=`_default_flag`
         Reproject the input data onto the WCS of another
         data set. Input data must have a valid header
         to extract WCS from. If None, will not reproject
-        the input data.
+        the input data. If `_default_flag`, uses the default
+        value set by `va_config.target_wcs`.
+    invert_wcs : bool or None, optional, default=None
+        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
+        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -118,6 +119,7 @@ def load_fits(filepath, header=True, error=True,
     # get default va_config values
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
+    target_wcs = va_config.target_wcs if target_wcs is _default_flag else target_wcs
     invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
 
     # disable transpose if reprojecting

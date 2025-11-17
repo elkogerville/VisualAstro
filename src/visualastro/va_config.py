@@ -36,6 +36,7 @@ class VAConfig:
         self.mask_non_positive = False
         self.mask_out_value = np.nan
         self.invert_wcs_if_transpose = True
+        self.target_wcs = None
 
         # figure params
         self.style = 'astro' # default style
