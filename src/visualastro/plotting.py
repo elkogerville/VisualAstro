@@ -302,7 +302,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     # add colorbar
     cbar_unit = set_unit_labels(get_units(datas[0]))
     if clabel is True:
-        clabel = f'${cbar_unit}$' if cbar_unit is not None else None
+        clabel = cbar_unit if cbar_unit is not None else None
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
 

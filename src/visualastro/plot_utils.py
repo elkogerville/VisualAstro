@@ -25,6 +25,7 @@ Module Structure:
 import os
 import warnings
 from functools import partial
+import astropy.units as u
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -802,7 +803,7 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
         'surface brightness': 'Flux'
     }.get(str(getattr(getattr(Y, 'unit', None), 'physical_type', None)), 'Intensity')
     # unit bracket type [] or ()
-    brackets = [r'[$',r'$]'] if use_brackets else [r'($',r'$)']
+    brackets = [r'[',r']'] if use_brackets else [r'(',r')']
     # if xlabel is not overidden by user
     if xlabel is None:
         # determine unit from data
@@ -843,26 +844,11 @@ def set_unit_labels(unit):
         A LaTeX-formatted unit label if the input is recognized.
         Returns None if the unit is not in the predefined mapping.
     '''
-    unit_label = {
-        'MJy / sr': r'\mathrm{MJy\ sr^{-1}}',
-        'MJy um / sr': r'\mathrm{MJy\ \mu m\ sr^{-1}}',
-        'Jy / beam': r'\mathrm{Jy\ beam^{-1}}',
-        'micron': r'\mathrm{\mu m}',
-        'um': r'\mathrm{\mu m}',
-        'nm': 'nm',
-        'nanometer': 'nm',
-        'Angstrom': r'\mathrm{\AA}',
-        'm': 'm',
-        'meter': 'm',
-        'Hz': 'Hz',
-        'kHz': 'kHz',
-        'MHz': 'MHz',
-        'GHz': 'GHz',
-        'electron': r'\mathrm{e^{-}}',
-        'km / s': r'\mathrm{km\ s^{-1}}',
-    }.get(str(unit), None)
 
-    return unit_label
+    try:
+        return u.Unit(unit).to_string('latex_inline')
+    except Exception:
+        return None
 
 
 # Plot Matplotlib Patches and Shapes

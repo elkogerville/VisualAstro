@@ -308,7 +308,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Y axis label.
         - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
-        - `highlight` : bool, default=`va_config.highlight`
+        - `highlight` : bool, optional, default=`va_config.highlight`
             Whether to highlight interactive ellipse or wavelength label if plotted.
         - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
             Value to use when masking out non-positive values.
@@ -406,7 +406,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     cbar_unit = set_unit_labels(cube.unit)
     # set colorbar label
     if clabel is True:
-        clabel = f'${cbar_unit}$' if cbar_unit is not None else None
+        clabel = cbar_unit if cbar_unit is not None else None
     # set colorbar
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
@@ -437,16 +437,16 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
         # replace spectral type with emission line if provided
         if emission_line is None:
-            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
+            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,{unit_label.strip("$")}$'
         else:
             # replace spaces with latex format
             emission_line = emission_line.replace(' ', r'\ ')
-            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,\mathrm{{{unit_label}}}$'
-        # display label as either a title or text in figure
+            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,{unit_label.strip("$")}$'
+            # display label as either a title or text in figure
         if title:
             ax.set_title(slice_label, color=text_color, loc='center')
         else:
-            bbox = dict(facecolor='white', edgecolor='k', linewidth=0.1) if highlight else None
+            bbox = dict(facecolor='white', edgecolor='w') if highlight else None
             ax.text(text_loc[0], text_loc[1], slice_label,
                     transform=ax.transAxes, color=text_color,
                     bbox=bbox)
