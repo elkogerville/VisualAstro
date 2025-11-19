@@ -20,7 +20,6 @@ from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
-from spectral_cube import SpectralCube
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data
@@ -32,8 +31,6 @@ from .plotting import (
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
 from .va_config import get_config_value, va_config, _default_flag
-from .visual_classes import DataCube, FitsFile
-
 
 class va:
     # Plotting Functions
