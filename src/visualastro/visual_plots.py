@@ -448,7 +448,7 @@ class va:
             `va_config.default_palette`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -457,9 +457,8 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `colors`, `color` or `c` : list of colors or None, optional, default=None
-                Colors to use for each dataset. If None, default
-                color cycle is used.
+            - `color` or `c` : list of colors or None, optional, default=None
+                Aliases for `colors`.
             - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
                 Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
             - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
@@ -578,9 +577,8 @@ class va:
                 significantly reduce file size for complex plots.
             - ylim : tuple, optional, default=None
                 y-axis limits as (ymin, ymax).
-            - `colors`, `color` or `c` : list of colors or None, optional, default=None
-                Colors to use for each dataset. If None, default
-                color cycle is used.
+            - `color` or `c` : list of colors or None, optional, default=None
+                Aliases for `colors`.
             - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
                 Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
             - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
@@ -705,6 +703,8 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
+            - `color`, `c` : list of colors, str, or None, optional, default=None
+                aliases for `colors`.
             - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
                 Marker size(s) for scatter points.
             - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
@@ -819,8 +819,8 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
-                Colors to use for each line. If None, default color cycle is used.
+            - `color`, `c` : list of colors, str, or None, optional, default=None
+                aliases for `colors`.
             - `cmap` : str, optional, default=`va_config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple, optional
@@ -930,14 +930,14 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-                Colors to use for each line. If None, default color cycle is used.
-            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
-                Line style of plotted lines.
-            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
-                Line width for the plotted lines.
-            - `alphas`, `alpha`, `a` : float or list of float, default=`va_config.alpha`
-                The alpha blending value, between 0 (transparent) and 1 (opaque).
+            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+                Aliases for `colors`.
+            - `linestyles`, `ls` : str or list of str, default=`va_config.linestyle`
+                Aliases for `linestyle`.
+            - `linewidths`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+                Aliases for `linewidth`.
+            - `alphas`, `a` : float or list of float, default=`va_config.alpha`
+                Aliases for `alpha`.
             - `cmap` : str, optional, default=`va_config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
@@ -1057,18 +1057,18 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-                Colors to use for each line. If None, default color cycle is used.
-            - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
-                Size of scatter dots.
-            - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
-                Marker style for scatter dots.
-            - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
-                The alpha blending value, between 0 (transparent) and 1 (opaque).
-            - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
-                The edge color of the marker.
-            - `facecolors`, `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
-                The face color of the marker.
+            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+                Aliases for `colors`.
+            - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+                Aliases for `size`.
+            - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+                Aliases for `marker`.
+            - `alphas`, `a` : float or list of float default=`va_config.alpha`
+                Aliases for `alpha`.
+            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+                Aliases for `edgecolors`.
+            - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+                Aliases for `facecolors`.
             - `cmap` : str, optional, default=`va_config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
@@ -1193,16 +1193,16 @@ class va:
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-                Colors to use for each line. If None, default color cycle is used.
-            - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
-                Size of scatter dots.
-            - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
-                Marker style for scatter dots.
-            - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
-                The alpha blending value, between 0 (transparent) and 1 (opaque).
-            - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
-                The edge color of the marker.
+            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+                Aliases for `colors`.
+            - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+                Aliases for `size`.
+            - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+                Aliases for `marker`.
+            - `alphas`, `a` : float or list of float default=`va_config.alpha`
+                Aliases for `alpha`.
+            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+                Aliases for `edgecolors`.
             - `cmap` : str, optional, default=`va_config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
