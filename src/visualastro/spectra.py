@@ -321,7 +321,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         `va_config.default_palette`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -330,9 +330,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `colors`, `color` or `c` : list of colors or None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
+        - `color` or `c` : list of colors or None, optional, default=None
+            Aliases for `colors`.
         - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
         - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
@@ -381,7 +380,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     # fig params
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # line params
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
@@ -581,9 +580,8 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             significantly reduce file size for complex plots.
         - ylim : tuple, optional, default=None
             y-axis limits as (ymin, ymax).
-        - `colors`, `color` or `c` : list of colors or None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
+        - `color` or `c` : list of colors or None, optional, default=None
+            Aliases for `colors`.
         - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
         - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
@@ -618,7 +616,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     ylim = kwargs.get('ylim', None)
     # line params
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
