@@ -646,7 +646,7 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         Colormap used for plotting contours.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -708,7 +708,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
         User-defined y-axis limits.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 

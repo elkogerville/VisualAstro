@@ -119,8 +119,9 @@ def mask_image(image, ellipse_region=None, region=None,
         If False, return only the unmasked pixels.
     existing_mask : ndarray of bool, optional, default=None
         An existing mask to combine (union) with the new mask.
+
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 

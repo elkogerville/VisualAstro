@@ -99,7 +99,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         value set by `va_config.wcs_grid`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -359,7 +359,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         default color palette from `va_config.default_palette`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keyword arguments include:
 
@@ -588,7 +588,7 @@ def plot_histogram(datas, ax,
         uses the default color palette from `va_config.default_palette`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -743,7 +743,7 @@ def plot_lines(X, Y, ax, normalize=None,
         the zorder by 1 for each subsequent line drawn.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -924,7 +924,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         If `_default_flag`, uses the default value in `va_config.facecolor`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -1142,7 +1142,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
         If None, no contour projections are drawn.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 

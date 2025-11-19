@@ -112,7 +112,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         uses the default value set by `va_config.plot_normalized_continuum`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -569,7 +569,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         `va_config.default_palette`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
@@ -769,7 +769,7 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
         default value set by `va_config.print_gaussian_values`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
