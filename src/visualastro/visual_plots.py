@@ -357,9 +357,9 @@ class va:
                 X axis label.
             - `ylabel` : str, default=`va_config.declination`
                 Y axis label.
-            - `spectral_label` : bool, default=True
+            - `spectral_label` : bool, optional, default=True
                 Whether to draw spectral slice value as a label.
-            - `highlight` : bool, default=`va_config.highlight`
+            - `highlight` : bool, optional, default=`va_config.highlight`
                 Whether to highlight interactive ellipse if plotted.
             - `ellipses` : list or None, default=None
                 Ellipse objects to overlay on the image.
