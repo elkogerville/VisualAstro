@@ -1118,13 +1118,20 @@ def use_inline():
     '''
     try:
         from IPython.core.getipython import get_ipython
-        ipython = get_ipython()
-        if ipython is not None:
-            ipython.run_line_magic("matplotlib", "inline")
-        else:
-            print("Not in an IPython environment.")
     except ImportError:
-        print("IPython is not installed. Install it to use this feature.")
+        raise ImportError(
+            'IPython is not installed. Install it to use this feature'
+        )
+
+    ipython = get_ipython()
+    if ipython is None:
+        print('Not inside an IPython environment')
+        return None
+
+    try:
+        ipython.run_line_magic('matplotlib', 'inline')
+    except Exception as e:
+        print(f'Unable to set inline backend: {e}')
 
 
 def use_interactive():
@@ -1132,16 +1139,28 @@ def use_interactive():
     Start an interactive IPython backend session.
     Allows for interactive plots in IPython sessions
     like Jupyter Notebook.
+    Ensure ipympl is installed:
+    >>> $ conda install -c conda-forge ipympl
     '''
     try:
         from IPython.core.getipython import get_ipython
-        ipython = get_ipython()
-        if ipython is not None:
-            ipython.run_line_magic("matplotlib", "ipympl")
-        else:
-            print("Not in an IPython environment.")
     except ImportError:
-        print("IPython is not installed. Install it to use this feature.")
+        raise ImportError(
+            'IPython is not installed. Install it to use this feature'
+        )
+
+    ipython = get_ipython()
+    if ipython is None:
+        print('Not inside an IPython environment')
+        return None
+
+    try:
+        ipython.run_line_magic('matplotlib', 'ipympl')
+    except Exception as e:
+        print(
+            f'ipympl backend unavailable: {e}. Please install with:\n'
+            f'$ conda install -c conda-forge ipympl'
+        )
 
 
 def plt_close():
