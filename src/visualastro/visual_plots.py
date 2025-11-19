@@ -20,6 +20,7 @@ from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from spectral_cube import SpectralCube
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data
@@ -222,15 +223,14 @@ class va:
         wcs = None
         if wcs_input is not False:
             if wcs_input is None:
-                # if provided data is a DataCube or FitsFile, use the wcs or header
-                if isinstance(datas, (DataCube, FitsFile)):
-                    for attr in ('wcs', 'header'):
-                        value = getattr(datas, attr, None)
-                        if value is not None:
-                            if isinstance(value, (list, np.ndarray, tuple)):
-                                value = value[0]
-                            wcs_input = value
-                            break
+                # if wcs or header is available, use that
+                for attr in ('wcs', 'header'):
+                    value = getattr(datas, attr, None)
+                    if value is not None:
+                        if isinstance(value, (list, np.ndarray, tuple)):
+                            value = value[0]
+                        wcs_input = value
+                        break
                 else:
                     # no wcs data; fall back to default axes
                     wcs_input = None
