@@ -20,7 +20,6 @@ Module Structure:
 '''
 
 from collections import namedtuple
-from copy import error
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -46,10 +45,10 @@ from .visual_classes import ExtractedSpectrum
 
 # Spectra Extraction Functions
 # ––––––––––––––––––––––––––––
-def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, region=None,
-                         radial_vel=_default_flag, rest_freq=_default_flag, deredden=None,
-                         unit=_default_flag, emission_line=None, plot_continuum_fit=None,
-                         plot_norm_continuum=None, **kwargs):
+def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=None,
+                         region=None, radial_vel=_default_flag, rest_freq=_default_flag,
+                         deredden=None, unit=_default_flag, emission_line=None,
+                         plot_continuum_fit=None, plot_norm_continuum=None, **kwargs):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
@@ -58,9 +57,25 @@ def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, regio
     cubes : DataCube, SpectralCube, or list of cubes
         Input cube(s) from which to extract spectra. The data must either be
         a SpectralCube, or a DataCube containing a SpectralCube.
-    flux_extract_method : {'mean', 'median', 'sum'} or None, optional, default=None
+    flux_extract_method : {'mean', 'median', 'sum'} or None, default=None
         Method for extracting the flux. If None, uses the default
         value set by `va_config.flux_extract_method`.
+    extract_mode : {'cube', 'slice', 'ray'} or None, default=None
+        Specifies how the spectral cube should be traversed during flux
+        extraction. This controls memory usage and performance for large cubes.
+            - 'cube' :
+                Load and operate on the entire cube in memory. This is the
+                simplest mode but may be slow or disabled for very large datasets
+                unless `cube.allow_huge_operations = True` is set.
+            - 'slice' :
+                Process the cube slice-by-slice along the spectral axis. This
+                avoids loading the full cube into memory and is recommended for
+                moderately large datasets.
+            - 'ray' :
+                Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
+                load at the cost of speed. Recommended for extremely large cubes
+                or low-memory environments.
+        If None, uses the default value set by `va_config.spectral_cube_extraction_mode`.
     fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
         Method used to fit the continuum. If None, uses the default
         value set by `va_config.spectrum_continuum_fit_method`.
@@ -100,6 +115,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, regio
 
         Supported keywords:
 
+        - `how` : str, optional, default=`va_config.spectral_cube_extraction_mode`
+            Alias for `extract_mode`.
         - `convention` : str, optional
             Doppler convention.
         - `Rv` : float, optional, default=`va_config.Rv`
@@ -160,6 +177,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, regio
         Single object if one cube is provided, list if multiple cubes are provided.
     '''
     # –––– KWARGS ––––
+    # spectra extraction memory mode
+    extract_mode = get_kwargs(kwargs, 'how', default=extract_mode)
     # doppler convention
     convention = kwargs.get('convention', None)
     # dereddening parameters
@@ -175,10 +194,11 @@ def extract_cube_spectra(cubes, flux_extract_method=None, fit_method=None, regio
     dpi = kwargs.get('dpi', va_config.dpi)
 
     # get default va_config values
+    extract_mode = get_config_value(extract_mode, 'spectral_cube_extraction_mode')
     methods = {
-        'mean': lambda cube: cube.mean(axis=(1, 2)),
-        'median': lambda cube: cube.median(axis=(1, 2)),
-        'sum': lambda cube: cube.sum(axis=(1, 2))
+        'mean': lambda cube: cube.mean(axis=(1, 2), how=extract_mode),
+        'median': lambda cube: cube.median(axis=(1, 2), how=extract_mode),
+        'sum': lambda cube: cube.sum(axis=(1, 2), how=extract_mode)
     }
     flux_extract_method = str(get_config_value(flux_extract_method, 'flux_extract_method')).lower()
     extract_method = methods.get(flux_extract_method)
