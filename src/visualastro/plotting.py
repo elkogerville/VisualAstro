@@ -368,6 +368,8 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
+        - `color`, `c` : list of colors, str, or None, optional, default=None
+            aliases for `colors`.
         - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
             Marker size(s) for scatter points.
         - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
@@ -411,7 +413,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     '''
     # –––– KWARGS ––––
     rasterized = kwargs.get('rasterized', va_config.rasterized)
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     # scatter params
     sizes = get_kwargs(kwargs, 'size', 's', default=None)
     markers = get_kwargs(kwargs, 'marker', 'm', default=None)
@@ -595,8 +597,8 @@ def plot_histogram(datas, ax,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
-            Colors to use for each line. If None, default color cycle is used.
+        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
+            Aliases for `colors`.
         - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional
@@ -631,7 +633,7 @@ def plot_histogram(datas, ax,
     '''
     # –––– KWARGS ––––
     rasterized = kwargs.get('rasterized', va_config.rasterized)
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -750,14 +752,14 @@ def plot_lines(X, Y, ax, normalize=None,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-         `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-            Colors to use for each line. If None, default color cycle is used.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
-            Line style of plotted lines.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
-            Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float, default=`va_config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            Aliases for `colors`.
+        - `linestyles`, `ls` : str or list of str, default=`va_config.linestyle`
+            Aliases for `linestyle`.
+        - `linewidths`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            Aliases for `linewidth`.
+        - `alphas`, `a` : float or list of float, default=`va_config.alpha`
+            Aliases for `alpha`.
         - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
@@ -788,10 +790,10 @@ def plot_lines(X, Y, ax, normalize=None,
     '''
     # –––– KWARGS ––––
     rasterized = kwargs.get('rasterized', va_config.rasterized)
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=linestyle)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=linewidth)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
+    linestyles = get_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
+    linewidths = get_kwargs(kwargs, 'linewidths', 'lw', default=linewidth)
+    alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -931,18 +933,18 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-            Colors to use for each line. If None, default color cycle is used.
-        - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
-            Size of scatter dots.
-        - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
-            Marker style for scatter dots.
-        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
-            The edge color of the marker.
-        - `facecolors`, `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
-            The face color of the marker.
+        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            Aliases for `colors`.
+        - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+            Aliases for `size`.
+        - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+            Aliases for `marker`.
+        - `alphas`, `a` : float or list of float default=`va_config.alpha`
+            Aliases for `alpha`.
+        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+            Aliases for `edgecolors`.
+        - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+            Aliases for `facecolors`.
         - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
@@ -979,12 +981,12 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     # –––– KWARGS ––––
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # scatter params
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    sizes = get_kwargs(kwargs, 'sizes', 'size', 's', default=size)
-    markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
-    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
-    facecolors = get_kwargs(kwargs, 'facecolors', 'facecolor', 'fc', default=facecolors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
+    sizes = get_kwargs(kwargs, 'sizes', 's', default=size)
+    markers = get_kwargs(kwargs, 'markers', 'm', default=marker)
+    alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
+    edgecolors = get_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
+    facecolors = get_kwargs(kwargs, 'facecolor', 'fc', default=facecolors)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
@@ -1149,16 +1151,16 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `colors`, `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
-            Colors to use for each line. If None, default color cycle is used.
-        - `sizes`, `size`, `s` : float or list of float, optional, default=`va_config.scatter_size`
-            Size of scatter dots.
-        - `markers`, `marker`, `m` : str or list of str, optional, default=`va_config.marker`
-            Marker style for scatter dots.
-        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `edgecolors`, `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
-            The edge color of the marker.
+        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            Aliases for `colors`.
+        - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+            Aliases for `size`.
+        - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+            Aliases for `marker`.
+        - `alphas`, `a` : float or list of float default=`va_config.alpha`
+            Aliases for `alpha`.
+        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+            Aliases for `edgecolors`.
         - `cmap` : str, optional, default=`va_config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
@@ -1208,11 +1210,11 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     # –––– KWARGS ––––
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # scatter params
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=colors)
-    sizes = get_kwargs(kwargs, 'sizes', 'size', 's', default=size)
-    markers = get_kwargs(kwargs, 'markers', 'marker', 'm', default=marker)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=alpha)
-    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=edgecolors)
+    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
+    sizes = get_kwargs(kwargs, 'sizes', 's', default=size)
+    markers = get_kwargs(kwargs, 'markers', 'm', default=marker)
+    alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
+    edgecolors = get_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
     cmap = kwargs.get('cmap', va_config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
