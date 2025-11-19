@@ -39,17 +39,18 @@ class va:
     # Plotting Functions
     # ––––––––––––––––––
     @contextmanager
-    def style(name):
+    def style(name=None):
         '''
         Context manager to temporarily apply a Matplotlib style.
 
         Parameters
         ––––––––––
-        name : str
+        name : str or None, optional, default=None
             Name of the Matplotlib or visualastro style to apply.
             The style name is passed to `return_stylename`, which
             returns the path to a visualastro mpl stylesheet.
             Matplotlib styles are also allowed (ex: 'classic').
+            If None, uses the default value set by `va_config.style`.
         Yields
         ––––––
         None
@@ -61,8 +62,9 @@ class va:
         ...     plt.plot(x, y)
         ...     plt.show()
         '''
+        name = get_config_value(name, 'style')
         style_name = return_stylename(name)
-        with plt.style.context(style_name):
+        with plt.style.context(style_name): # type: ignore
             yield
 
 
