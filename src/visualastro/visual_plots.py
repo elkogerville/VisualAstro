@@ -153,7 +153,7 @@ class va:
             uses the default value set by `va_config.wcs_grid`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -328,7 +328,7 @@ class va:
             uses the default value set by `va_config.wcs_grid`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -566,7 +566,7 @@ class va:
             `va_config.default_palette`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -694,7 +694,7 @@ class va:
             default color palette from `va_config.default_palette`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keyword arguments include:
 
@@ -810,7 +810,7 @@ class va:
             uses the default color palette from `va_config.default_palette`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -921,7 +921,7 @@ class va:
             the zorder by 1 for each subsequent line drawn.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -1048,7 +1048,7 @@ class va:
             If `_default_flag`, uses the default value in `va_config.facecolor`.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 
@@ -1184,7 +1184,7 @@ class va:
             If None, no contour projections are drawn.
 
         **kwargs : dict, optional
-            Additional plotting parameters.
+            Additional parameters.
 
             Supported keywords:
 

@@ -277,7 +277,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         value set by `va_config.wcs_grid`.
 
     **kwargs : dict, optional
-        Additional plotting parameters.
+        Additional parameters.
 
         Supported keywords:
 
