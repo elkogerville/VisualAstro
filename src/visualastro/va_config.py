@@ -145,6 +145,7 @@ class VAConfig:
         # extract_cube_spectrum params
         self.spectra_rest_frequency = None
         self.flux_extract_method = 'mean'
+        self.spectral_cube_extraction_mode = 'cube'
         self.spectrum_continuum_fit_method = 'fit_continuum'
         self.deredden_spectrum = False
         self.plot_normalized_continuum = False
