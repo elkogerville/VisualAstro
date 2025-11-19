@@ -20,6 +20,7 @@ Module Structure:
 '''
 
 from collections import namedtuple
+from astropy.units import Quantity
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -409,18 +410,45 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
 
     # construct ExtractedSpectrum if user passes in wavelenght and flux
     if extracted_spectra is None:
-        if None not in (wavelength, flux):
+
+        # disable normalization because the user provided raw arrays
+        plot_norm_continuum = False
+
+        # normalize continuum_fit into a list
+        if isinstance(continuum_fit, (list, tuple)):
+            continuum_fit_list = list(continuum_fit)
+        else:
+            continuum_fit_list = [continuum_fit]
+
+        # case 1: single wavelength/flux array
+        if (
+            isinstance(wavelength, (np.ndarray, Quantity)) and
+            isinstance(flux, (np.ndarray, Quantity))
+        ):
             extracted_spectra = ExtractedSpectrum(
                 wavelength=wavelength,
                 flux=flux,
-                continuum_fit=continuum_fit
+                continuum_fit=continuum_fit_list[0]
             )
-            # to avoid missing normalize attribute
-            plot_norm_continuum = False
+        # case 2: multiple arrays
+        elif (
+            isinstance(wavelength, (list, tuple)) and
+            isinstance(flux, (list, tuple)) and
+            len(wavelength) == len(flux)
+        ):
+            extracted_spectra = [
+                ExtractedSpectrum(
+                    wavelength=w,
+                    flux=f,
+                    continuum_fit=continuum_fit_list[i % len(continuum_fit_list)]
+                )
+                for i, (w, f) in enumerate(zip(wavelength, flux))
+            ]
         else:
             raise ValueError(
-                "Either `extracted_spectrums` must be provided, "
-                "or both `wavelength` and `flux` must be given."
+                'Either pass `extracted_spectra`, or provide matching '
+                '`wavelength` and `flux` arguments. \nFor multiple spectra, '
+                'use lists of wavelength and flux arrays with equal length.'
             )
 
     # ensure extracted_spectra is iterable
