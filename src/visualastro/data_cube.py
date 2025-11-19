@@ -446,7 +446,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         if title:
             ax.set_title(slice_label, color=text_color, loc='center')
         else:
-            bbox = dict(facecolor="white") if highlight else None
+            bbox = dict(facecolor='white', edgecolor='k', linewidth=0.1) if highlight else None
             ax.text(text_loc[0], text_loc[1], slice_label,
                     transform=ax.transAxes, color=text_color,
                     bbox=bbox)
