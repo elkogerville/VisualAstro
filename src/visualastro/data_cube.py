@@ -309,7 +309,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
         - `highlight` : bool, default=`va_config.highlight`
-            Whether to highlight interactive ellipse if plotted.
+            Whether to highlight interactive ellipse or wavelength label if plotted.
         - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
             Value to use when masking out non-positive values.
             Ex: np.nan, 1e-6, np.inf
@@ -375,8 +375,9 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
     images = []
+    cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
 
-    for cube in cubes:
+    for i, cube in enumerate(cubes):
         # extract data component
         cube = get_data(cube)
 
@@ -393,9 +394,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
 
         # imshow data
         if norm is None:
-            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax, cmap=cmap, rasterized=rasterized)
+            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax,
+                           cmap=cmap[i%len(cmap)], rasterized=rasterized)
         else:
-            im = ax.imshow(data, origin='lower', cmap=cmap, norm=cube_norm, rasterized=rasterized)
+            im = ax.imshow(data, origin='lower', cmap=cmap[i%len(cmap)],
+                           norm=cube_norm, rasterized=rasterized)
 
         images.append(im)
 
@@ -443,8 +446,10 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         if title:
             ax.set_title(slice_label, color=text_color, loc='center')
         else:
+            bbox = dict(facecolor="white") if highlight else None
             ax.text(text_loc[0], text_loc[1], slice_label,
-                    transform=ax.transAxes, color=text_color)
+                    transform=ax.transAxes, color=text_color,
+                    bbox=bbox)
 
     # set axes labels
     ax.coords['ra'].set_axislabel(xlabel)
