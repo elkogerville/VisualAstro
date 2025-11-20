@@ -155,10 +155,10 @@ class VAConfig:
         self.plot_spectrum_text_loc = [0.025, 0.95]
 
         # deredden spectra params
-        self.Rv = 3.1
+        self.Rv = 3.1 # Milky Way average
         self.Ebv = 0.19
-        self.deredden_method = 'WD01'
-        self.deredden_region = 'LMCAvg'
+        self.deredden_method = None
+        self.deredden_region = None
 
         # gaussian fitting params
         self.gaussian_model = 'gaussian'
