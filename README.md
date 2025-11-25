@@ -14,6 +14,21 @@
 
 **visualastro** is an astrophysical visualization system with convenient functions for easy visualization of common astronomical data. The package is developed with ease of use in mind, and making publication ready plots.
 
+## Installation
+Currently, the most stable version of python for visualastro is version 3.11.
+To install visualastro, it is advised to create a new conda environment if possible:
+```
+$ conda create envname -c conda-forge python=3.11
+```
+Then install the dependencies with:
+```
+$ conda install -c conda-forge astropy dust_extinction matplotlib numpy reproject regions scipy spectral-cube specutils tqdm
+```
+And finally run:
+```
+$ pip install visualastro
+```
+
 ## Compatible Data
 - 2D images
 - 3D spectral cubes
