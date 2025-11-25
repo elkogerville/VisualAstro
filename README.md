@@ -19,6 +19,7 @@ Currently, the most stable version of python for visualastro is version 3.11.
 To install visualastro, it is advised to create a new conda environment if possible:
 ```
 $ conda create envname -c conda-forge python=3.11
+$ conda activate envname
 ```
 Then install the dependencies with:
 ```
