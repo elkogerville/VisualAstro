@@ -23,7 +23,7 @@ $ conda activate envname
 ```
 Then install the dependencies with:
 ```
-$ conda install -c conda-forge astropy dust_extinction matplotlib numpy reproject regions scipy spectral-cube specutils tqdm
+$ conda install -c conda-forge astropy dust_extinction matplotlib numpy regions reproject scipy spectral-cube specutils tqdm
 ```
 And finally run:
 ```
@@ -47,4 +47,4 @@ The full documentation can be found on github at https://github.com/elkogerville
 ## Dependencies
 
 VisualAstro requires:
-astropy, matplotlib, scipy, numba, regions, spectral-cube, specutils, and tqdm.
+astropy, matplotlib, scipy, numba, regions, reproject, spectral-cube, specutils, and tqdm.
