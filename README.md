@@ -41,12 +41,6 @@ $ pip install visualastro
 - Custom matplotlib style sheets optimized for publication-quality figures
 - Full compatibility with WCS, FITS
 
-## Installation
-
-You can install visualastro via pip:
-```
-pip install visualastro
-```
 ## Documentation
 The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
 
