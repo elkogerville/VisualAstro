@@ -19,6 +19,7 @@ Module Structure:
 import warnings
 from astropy.io import fits
 from astropy.io.fits import Header
+import astropy.units as u
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
@@ -242,7 +243,8 @@ def get_dtype(data, dtype=None, default_dtype=None):
 def get_errors(hdul, dtype=None, transpose=False):
     '''
     Return the error array from an HDUList, falling back to square root
-    of variance if needed.
+    of variance if needed. If a unit is found from the header, return
+    the error array as a Quantity object instead.
     Parameters
     ––––––––––
     hdul : astropy.io.fits.HDUList
@@ -255,20 +257,45 @@ def get_errors(hdul, dtype=None, transpose=False):
         The error array if found, or None if no suitable extension is present.
     '''
     errors = None
+    error_unit = None
+
     for hdu in hdul[1:]:
         extname = hdu.header.get('EXTNAME', '').upper()
+
         if extname in {'ERR', 'ERROR', 'UNCERT'}:
             dt = get_dtype(hdu.data, dtype)
             errors = hdu.data.astype(dt, copy=False)
+
+            try:
+                error_unit = u.Unit(hdu.header.get('BUNIT'))
+                errors *= error_unit
+            except Exception:
+                warnings.warn(
+                    'Error extension has invalid BUNIT; returning errors without units.'
+                )
+
             break
+
     # fallback to variance if no explicit errors
     if errors is None:
         for hdu in hdul[1:]:
             extname = hdu.header.get('EXTNAME', '').upper()
+
             if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
                 dt = get_dtype(hdu.data, dtype)
-                errors = np.sqrt(hdu.data.astype(dtype, copy=False))
+                variance = hdu.data.astype(dt, copy=False)
+                errors = np.sqrt(variance)
+
+                try:
+                    var_unit = u.Unit(hdu.header.get('BUNIT'))
+                    error_unit = var_unit**0.5
+                except Exception:
+                    warnings.warn(
+                        'Variance extension has invalid BUNIT; returning errors without units.'
+                    )
+
                 break
+
     if transpose and errors is not None:
         errors = errors.T
 
