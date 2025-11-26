@@ -108,6 +108,7 @@ class DataCube:
     >>> cube.inspect()
     '''
     def __init__(self, data, headers=None, errors=None, wcs=None):
+
         # type checks
         if not isinstance(data, (np.ndarray, SpectralCube)):
             raise TypeError(
@@ -128,7 +129,7 @@ class DataCube:
             array = data.value
             unit = data.unit
         else:
-            array = data
+            array = np.asarray(data)
             unit = None
 
         # shape validation
@@ -178,6 +179,9 @@ class DataCube:
                         wcs.append(WCS(h))
                     except Exception:
                         wcs.append(None)
+
+        if not isinstance(data, Quantity) and unit is not None:
+            data = data * unit
 
         # assign core attributes
         self.data = data
@@ -744,28 +748,34 @@ class FitsFile:
         self._initialize(data, header, error, wcs)
 
     def _initialize(self, data, header, error, wcs):
-        data = np.asarray(data)
-        unit = None
+
+        array = np.asarray(data)
+
         if isinstance(data, Quantity):
             unit = data.unit # type: ignore
-        elif isinstance(header, Header) and 'BUNIT' in header:
-            try:
-                unit = Unit(header['BUNIT'])
-            except:
-                pass
-
-         # try extracting WCS
-        if wcs is None:
-            if isinstance(header, Header):
+        else:
+            unit = None
+            if isinstance(header, Header) and 'BUNIT' in header:
                 try:
-                    wcs = WCS(header)
+                    unit = Unit(header['BUNIT'])
                 except Exception:
                     pass
+
+        if not isinstance(data, Quantity):
+            if unit is not None:
+                data = data * unit
+
+         # try extracting WCS
+        if wcs is None and isinstance(header, Header):
+            try:
+                wcs = WCS(header)
+            except Exception:
+                pass
 
         self.data = data
         self.header = header
         self.error = error
-        self.value = data
+        self.value = array
         self.unit = unit
         self.wcs = wcs
         self.footprint = None
