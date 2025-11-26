@@ -180,7 +180,9 @@ class DataCube:
                     except Exception:
                         wcs.append(None)
 
-        if not isinstance(data, Quantity) and unit is not None:
+        if (not isinstance(data, Quantity)) and \
+           (not isinstance(data, SpectralCube)) and \
+           (unit is not None):
             data = data * unit
 
         # assign core attributes
