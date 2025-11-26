@@ -916,7 +916,7 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
     sigma_error = perr[2] * wave_unit
     # compute integrated flux, FWHM, and their errors
     integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
-    flux_error = np.sqrt(2*np.pi) * integrated_flux * (
+    flux_error = np.sqrt(2*np.pi) * (
         np.sqrt((amplitude_error/amplitude)**2 + (sigma_error/sigma)**2) )
     FWHM = 2*sigma * np.sqrt(2*np.log(2))
     FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
