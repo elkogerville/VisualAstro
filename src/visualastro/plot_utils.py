@@ -26,6 +26,8 @@ import os
 import warnings
 from functools import partial
 import astropy.units as u
+from astropy.units import physical, Quantity, UnitBase
+from astropy.units.typing import PhysicalTypeID
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -37,7 +39,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import (
-    check_is_array, compute_density_kde, get_data, return_array_values
+    check_is_array, compute_density_kde, get_data, get_units, return_array_values
 )
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -791,17 +793,31 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
     use_brackets = get_config_value(use_brackets, 'use_brackets')
 
     # determine spectral type of data (frequency, length, or velocity)
-    spectral_type = {
-        'frequency': 'Frequency',
-        'length': 'Wavelength',
-        'speed/velocity': 'Velocity',
-    }.get(str(getattr(getattr(X, 'unit', None), 'physical_type', None)), 'Spectral Axis')
+    spectral_pt = _get_physical_type(X)
+    if spectral_pt == physical.frequency:
+        spectral_type = 'Frequency'
+    elif spectral_pt == physical.length:
+        spectral_type = 'Wavelength'
+    elif spectral_pt == physical.speed:
+        spectral_type = 'Velocity'
+    else:
+        spectral_type = 'Spectral Axis'
+
     # determine intensity type of data (counts, flux)
-    flux_type = {
-        'count': 'Counts',
-        'flux density': 'Flux',
-        'surface brightness': 'Flux'
-    }.get(str(getattr(getattr(Y, 'unit', None), 'physical_type', None)), 'Intensity')
+    flux_pt = _get_physical_type(Y)
+    if flux_pt in {u.count.physical_type, u.electron.physical_type}:
+        flux_type = 'Counts'
+    elif flux_pt == u.adu.physical_type:
+        flux_type = 'ADU'
+    elif flux_pt == physical.surface_brightness:
+        flux_type = 'Surface Brightness'
+    elif flux_pt == physical.spectral_flux_density:
+        flux_type = 'Flux Density'
+    elif flux_pt == physical.power_density:
+        flux_type = 'Flux'
+    else:
+        flux_type = 'Intensity'
+
     # unit bracket type [] or ()
     brackets = [r'[',r']'] if use_brackets else [r'(',r')']
     # if xlabel is not overidden by user
@@ -827,6 +843,20 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
     # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+
+def _get_physical_type(obj):
+
+    if isinstance(obj, Quantity):
+        return obj.unit.physical_type # type: ignore
+    elif isinstance(obj, UnitBase):
+        return obj.physical_type
+    elif hasattr(obj, 'unit'):
+        return obj.unit.physical_type
+    else:
+        raise TypeError(
+            'Object must be a Quantity or a Unit to have a physical type.'
+        )
 
 
 def set_unit_labels(unit):
