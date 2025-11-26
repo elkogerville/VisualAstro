@@ -72,24 +72,27 @@ def check_units_consistency(datas):
     Check that all input objects have the same units and warn if they differ.
     Additionally ensure that the input is iterable by wrapping in a list.
     Parameters
-    ----------
+    ––––––––––
     datas : object or list/tuple of objects
         Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
+
     Returns
-    -------
+    –––––––
     datas : list
         The input objects as a list.
     '''
     datas = datas if isinstance(datas, (list, tuple)) else [datas]
 
     first_unit = get_units(datas[0])
+
     for i, obj in enumerate(datas[1:], start=1):
         unit = get_units(obj)
         if unit != first_unit:
             warnings.warn(
                 f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
-                f"at index 0."
+                f"at index 0. Values may be plotted incorrectly..."
             )
+
 
     return datas
 
@@ -134,19 +137,29 @@ def get_units(obj):
         The unit associated with the input object, if it exists.
         Returns None if the object has no unit or if the unit cannot be parsed.
     '''
-    # check if object is DataCube or FitsFile
-    data = get_data(obj)
-    # check if unit extension exists
-    if isinstance(data, (DataCube, FitsFile, Quantity, SpectralCube)):
-        return data.unit # type: ignore
+    # check if object has unit attribute
+    unit = getattr(obj, 'unit', None)
+    if unit is not None:
+        return unit
+
+    # try obj.data.unit
+    data = getattr(obj, 'data', None)
+    if data is not None:
+        unit = getattr(data, 'unit', None)
+        if unit is not None:
+            return unit
+
+    # check if ExtractedSpectrum
     if isinstance(obj, ExtractedSpectrum):
-        try:
-            return obj.spectrum1d.unit
-        except:
-            try:
-                return obj.flux.unit
-            except:
-                return None
+        for attr in ('spectrum1d', 'flux'):
+            unit = getattr(getattr(obj, attr, None), 'unit', None)
+            if unit is not None:
+                return unit
+        spectrum1d = getattr(obj, 'spectrum1d', None)
+        if spectrum1d is not None:
+            unit = getattr(getattr(spectrum1d, 'flux', None), 'unit', None)
+            if unit is not None:
+                return unit
 
     # try to extract unit from header
     # use either header extension or obj if obj is a header
@@ -158,6 +171,40 @@ def get_units(obj):
             return None
 
     return None
+
+
+def quantities_2_array(values):
+    '''
+    Convert a list of scalar Quantity objects into a single 1D Quantity array.
+    Guaranteed to return shape (N,) even if inputs have shape (1,).
+
+    Parameters
+    ----------
+    values : array-like of Quantity
+        An array-like object where each element is a Quantity.
+
+    Returns
+    -------
+    flattened_quantity : Quantity
+        A 1D Quantity array with shape (N,).
+    '''
+
+    flat = []
+    for v in values:
+        if not isinstance(v, Quantity):
+            raise TypeError(
+                'All elements must be astropy Quantity objects.'
+            )
+
+        arr = np.asarray(v)
+
+        # flatten if shape is (1,)
+        if arr.shape == (1,):
+            flat.append(arr[0] * v.unit)
+        else:
+            flat.append(v)
+
+    return u.Quantity(flat)
 
 
 def return_array_values(array):
