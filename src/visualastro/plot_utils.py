@@ -846,6 +846,24 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
 
 
 def _get_physical_type(obj):
+    '''
+    Extract the physical_type attribute from an object with
+    a unit attribute.
+    Parameters
+    ––––––––––
+    obj : Quantity or Unit
+        Object with a .unit attribute. Custom data types
+        are permitted as long as the .unit is a Astropy Unit.
+
+    Returns
+    –––––––
+    physical_type : astropy.units.physical.PhysicalType
+        Physical type of the unit.
+
+    Raises
+    ––––––
+    TypeError : If object has no valid unit.
+    '''
 
     if isinstance(obj, Quantity):
         return obj.unit.physical_type # type: ignore
