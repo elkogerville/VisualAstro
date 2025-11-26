@@ -16,9 +16,10 @@ Module Structure:
 '''
 
 import astropy.units as u
+from astropy.units import Quantity
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
-from .numerical_utils import get_data
+from .numerical_utils import get_data, get_units
 from .visual_classes import DataCube, FitsFile
 
 
@@ -150,6 +151,9 @@ def mask_image(image, ellipse_region=None, region=None,
     angle = kwargs.get('angle', 0)
     tolerance = kwargs.get('tolerance', 2)
 
+    # extract units
+    unit = get_units(image)
+
     # ensure working with array
     if isinstance(image, (DataCube, FitsFile)):
         image = image.data
@@ -173,6 +177,9 @@ def mask_image(image, ellipse_region=None, region=None,
                 masked_image[..., existing_mask] = image[..., existing_mask]
             else:
                 masked_image = image[..., existing_mask]
+
+            if isinstance(unit, u.UnitBase) and not isinstance(image, Quantity):
+                masked_image *= unit
         else:
             # if spectral cube or similar object
             masked_image = image.with_mask(existing_mask)
@@ -256,6 +263,8 @@ def mask_image(image, ellipse_region=None, region=None,
             masked_image[..., mask] = image[..., mask]
         else:
             masked_image = image[..., mask]
+        if isinstance(unit, u.UnitBase) and not isinstance(image, Quantity):
+            masked_image *= unit
     # if spectral cube object
     else:
         masked_image = image.with_mask(mask)
