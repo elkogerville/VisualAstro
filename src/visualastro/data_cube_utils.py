@@ -157,7 +157,7 @@ def mask_image(image, ellipse_region=None, region=None,
     # ensure working with array
     if isinstance(image, (DataCube, FitsFile)):
         image = image.data
-    elif isinstance(image, (list, tuple)):
+    else:
         image = np.asarray(image)
 
     # determine image shape
