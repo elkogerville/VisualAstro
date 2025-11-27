@@ -22,7 +22,9 @@ import warnings
 from astropy import units as u
 from astropy.io import fits
 from astropy.io.fits import Header
-from astropy.units import physical, Quantity, spectral, Unit, UnitConversionError
+from astropy.units import (
+    physical, Quantity, spectral, Unit, UnitBase, UnitConversionError
+)
 import numpy as np
 from reproject import reproject_interp, reproject_exact
 from scipy import stats
