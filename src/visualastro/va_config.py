@@ -125,6 +125,7 @@ class VAConfig:
         self.loc = 'best'
         self.use_type_label = True
         self.use_unit_label = True
+        self.unit_label_format = 'latex_inline'
 
         # savefig params
         self.savefig = False
