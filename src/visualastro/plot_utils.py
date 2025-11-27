@@ -693,6 +693,35 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
     return cs
 
 
+def format_unit_labels(unit, fmt=None):
+    '''
+    Convert an astropy unit string into a LaTeX-formatted label
+    for plotting. Returns None if no unit is found.
+    Parameters
+    ––––––––––
+    unit : str
+        The unit string to convert.
+    format : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
+        The format of the unit label. 'latex_inline' and 'inline' uses
+        negative exponents while 'latex' uses fractions. If None, uses
+        the default value set by `va_config.unit_label_format`.
+    Returns
+    –––––––
+    str or None
+        A LaTeX-formatted unit label if the input is recognized.
+        Returns None if the unit is invalid.
+    '''
+    fmt = get_config_value(fmt, 'unit_label_format')
+
+    if fmt.lower() == 'inline':
+        fmt = 'latex_inline'
+
+    try:
+        return u.Unit(unit).to_string(fmt)
+    except Exception:
+        return None
+
+
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     '''
     Set axis limits based on concatenated data or user-provided limits.
@@ -764,7 +793,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
 
 
 def set_axis_labels(
-    X, Y, ax, xlabel=None, ylabel=None, use_type_label=None, use_unit_label=None, use_brackets=None
+    X, Y, ax, xlabel=None, ylabel=None, use_brackets=None, use_type_label=None, use_unit_label=None
 ):
     '''
     Automatically generate and set axis labels from Quantity objects with units.
@@ -784,19 +813,19 @@ def set_axis_labels(
         Custom label for the x-axis. If None, the label is inferred from 'X'.
     ylabel : str or None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from 'Y'.
+    use_brackets : bool or None, optional, default=None
+        If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
+        If None, uses the default value set in `va_config.use_brackets`.
     use_type_label: bool or None, optional, default=None
         If True, include the physical type of the X and Y for the axis label if
         available. If None, uses the default value set by `va_config.use_type_label`.
     use_unit_label: bool or None, optional, default=None
         If True, include the unit of the X and Y for the axis label if
         available. If None, uses the default value set by `va_config.use_unit_label`.
-    use_brackets : bool or None, optional, default=None
-        If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
-        If None, uses the default value set in `va_config.use_brackets`.
 
     Notes
     –––––
-    - Units are formatted using 'set_unit_labels', which provides LaTeX-friendly labels.
+    - Units are formatted using 'format_unit_labels', which provides LaTeX-friendly labels.
     '''
     # get default va_config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
@@ -820,7 +849,7 @@ def set_axis_labels(
         physical.surface_brightness: 'Surface Brightness'
     }
 
-    def _create_label(obj, type_map, brackets, use_type_label, use_unit_label):
+    def _create_label(obj, type_map, label, brackets, use_type_label, use_unit_label):
         '''Creates the axis label based on the object being plotted'''
 
         # get physical type and unit of object
@@ -828,7 +857,9 @@ def set_axis_labels(
         unit = get_units(obj)
 
         # get custom label if exists
-        if use_type_label and physical_type in type_map:
+        if isinstance(label, str):
+            type_label = label
+        elif use_type_label and physical_type in type_map:
             type_label = type_map[physical_type]
         # use physical type if exists
         elif use_type_label and physical_type is not None:
@@ -837,7 +868,7 @@ def set_axis_labels(
             type_label = ''
 
         # set unit label
-        unit_label = set_unit_labels(unit)
+        unit_label = format_unit_labels(unit)
 
         # add brackets to unit if exists
         if use_unit_label and unit_label is not None:
@@ -845,45 +876,21 @@ def set_axis_labels(
         else:
             unit_label = ''
 
-        label = fr'{type_label} {unit_label}'.strip()
+        axis_label = fr'{type_label} {unit_label}'.strip()
 
-        return label
+        return axis_label
 
-    # if xlabel is not overidden by user
-    if xlabel is None:
-        xlabel = _create_label(
-            X, TYPE_MAP, brackets, use_type_label, use_unit_label
-        )
-    if ylabel is None:
-        ylabel = _create_label(
-            Y, TYPE_MAP, brackets, use_type_label, use_unit_label
-        )
+    xlabel = _create_label(
+        X, TYPE_MAP, xlabel, brackets, use_type_label, use_unit_label
+    )
+
+    ylabel = _create_label(
+        Y, TYPE_MAP, ylabel, brackets, use_type_label, use_unit_label
+    )
 
     # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
-
-def set_unit_labels(unit):
-    '''
-    Convert an astropy unit string into a LaTeX-formatted label
-    for plotting. Returns None if no unit is found.
-    Parameters
-    ––––––––––
-    unit : str
-        The unit string to convert. Common astropy units such as 'um',
-        'Angstrom', 'km / s', etc. are mapped to LaTeX-friendly forms.
-    Returns
-    –––––––
-    str or None
-        A LaTeX-formatted unit label if the input is recognized.
-        Returns None if the unit is not in the predefined mapping.
-    '''
-
-    try:
-        return u.Unit(unit).to_string('latex_inline')
-    except Exception:
-        return None
 
 
 # Plot Matplotlib Patches and Shapes
