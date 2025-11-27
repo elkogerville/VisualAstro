@@ -123,6 +123,8 @@ class VAConfig:
         self.declination = 'Declination'
         self.highlight = True
         self.loc = 'best'
+        self.use_type_label = True
+        self.use_unit_label = True
 
         # savefig params
         self.savefig = False
