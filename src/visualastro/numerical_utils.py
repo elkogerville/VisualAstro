@@ -22,7 +22,7 @@ import warnings
 from astropy import units as u
 from astropy.io import fits
 from astropy.io.fits import Header
-from astropy.units import Quantity, spectral, Unit, UnitConversionError
+from astropy.units import physical, Quantity, spectral, Unit, UnitConversionError
 import numpy as np
 from reproject import reproject_interp, reproject_exact
 from scipy import stats
@@ -119,6 +119,32 @@ def get_data(obj):
     return obj
 
 
+def get_physical_type(obj):
+    '''
+    Extract the physical_type attribute from an object with
+    a unit attribute. Returns None if no units.
+    Parameters
+    ––––––––––
+    obj : Quantity or Unit
+        Object with a .unit attribute. Custom data types
+        are permitted as long as the .unit is a Astropy Unit.
+
+    Returns
+    –––––––
+    physical_type : astropy.units.physical.PhysicalType or None
+        Physical type of the unit or None if no units are found.
+    '''
+
+    if isinstance(obj, Quantity):
+        return obj.unit.physical_type # type: ignore
+    elif isinstance(obj, UnitBase):
+        return obj.physical_type
+    elif hasattr(obj, 'unit'):
+        return obj.unit.physical_type
+    else:
+        return None
+
+
 def get_units(obj):
     '''
     Extract the unit from an object, if it exists.
@@ -137,6 +163,17 @@ def get_units(obj):
         The unit associated with the input object, if it exists.
         Returns None if the object has no unit or if the unit cannot be parsed.
     '''
+    # check if spectral unit
+    spectral_unit = getattr(obj, 'spectral_unit', None)
+    if spectral_unit is not None:
+        try:
+            if spectral_unit.physical_type in {
+                physical.frequency, physical.length, physical.speed, physical.energy
+            }:
+                return spectral_unit
+        except Exception:
+            pass
+
     # check if object has unit attribute
     unit = getattr(obj, 'unit', None)
     if unit is not None:
