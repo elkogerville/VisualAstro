@@ -26,8 +26,7 @@ import os
 import warnings
 from functools import partial
 import astropy.units as u
-from astropy.units import physical, Quantity, UnitBase
-from astropy.units.typing import PhysicalTypeID
+from astropy.units import physical
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -39,7 +38,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import (
-    check_is_array, compute_density_kde, get_data, get_units, return_array_values
+    check_is_array, compute_density_kde, get_data, get_physical_type, get_units, return_array_values
 )
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -764,13 +763,18 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     ax.set_ylim(ylim)
 
 
-def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
+def set_axis_labels(
+    X, Y, ax, xlabel=None, ylabel=None, use_type_label=None, use_unit_label=None, use_brackets=None
+):
     '''
-    Automatically format labels including units for any plot involving intensity as
-    a function of spectral type.
+    Automatically generate and set axis labels from Quantity objects with units.
+    Creates formatted axis labels by combining the physical type (e.g., 'Wavelength',
+    'Flux Density') and units (e.g., 'μm', 'MJy/sr') of the input data. Labels can be
+    customized to show only the type, only units, or both. Units are encapsulated with
+    either [] or ().
     Parameters
     ––––––––––
-    X : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
+    X : '~astropy.units.Quantity' or object with 'unit' attribute
         The data for the x-axis, typically a spectral axis (frequency, wavelength, or velocity).
     Y : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
         The data for the y-axis, typically flux or intensity.
@@ -780,101 +784,84 @@ def set_axis_labels(X, Y, ax, xlabel=None, ylabel=None, use_brackets=None):
         Custom label for the x-axis. If None, the label is inferred from 'X'.
     ylabel : str or None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from 'Y'.
+    use_type_label: bool or None, optional, default=None
+        If True, include the physical type of the X and Y for the axis label if
+        available. If None, uses the default value set by `va_config.use_type_label`.
+    use_unit_label: bool or None, optional, default=None
+        If True, include the unit of the X and Y for the axis label if
+        available. If None, uses the default value set by `va_config.use_unit_label`.
     use_brackets : bool or None, optional, default=None
         If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
         If None, uses the default value set in `va_config.use_brackets`.
+
     Notes
     –––––
     - Units are formatted using 'set_unit_labels', which provides LaTeX-friendly labels.
-    - If units are not recognized, only the axis type (e.g., 'Spectral Axis', 'Intensity')
-      is displayed without units.
     '''
     # get default va_config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
-
-    # determine spectral type of data (frequency, length, or velocity)
-    spectral_pt = _get_physical_type(X)
-    if spectral_pt == physical.frequency:
-        spectral_type = 'Frequency'
-    elif spectral_pt == physical.length:
-        spectral_type = 'Wavelength'
-    elif spectral_pt == physical.speed:
-        spectral_type = 'Velocity'
-    else:
-        spectral_type = 'Spectral Axis'
-
-    # determine intensity type of data (counts, flux)
-    flux_pt = _get_physical_type(Y)
-    if flux_pt in {u.count.physical_type, u.electron.physical_type}:
-        flux_type = 'Counts'
-    elif flux_pt == u.adu.physical_type:
-        flux_type = 'ADU'
-    elif flux_pt == physical.surface_brightness:
-        flux_type = 'Surface Brightness'
-    elif flux_pt == physical.spectral_flux_density:
-        flux_type = 'Flux Density'
-    elif flux_pt == physical.power_density:
-        flux_type = 'Flux'
-    else:
-        flux_type = 'Intensity'
+    use_type_label = get_config_value(use_type_label, 'use_type_label')
+    use_unit_label = get_config_value(use_unit_label, 'use_unit_label')
 
     # unit bracket type [] or ()
     brackets = [r'[',r']'] if use_brackets else [r'(',r')']
+
+    TYPE_MAP = {
+        u.adu.physical_type: 'ADU',
+        u.count.physical_type: 'Counts',
+        u.electron.physical_type: 'Counts',
+        u.mag.physical_type: 'Mag',
+        physical.energy: 'Energy',
+        physical.frequency: 'Frequency',
+        physical.length: 'Wavelength',
+        physical.power_density: 'Flux',
+        physical.spectral_flux_density: 'Flux Density',
+        physical.speed: 'Velocity',
+        physical.surface_brightness: 'Surface Brightness'
+    }
+
+    def _create_label(obj, type_map, brackets, use_type_label, use_unit_label):
+        '''Creates the axis label based on the object being plotted'''
+
+        # get physical type and unit of object
+        physical_type = get_physical_type(obj)
+        unit = get_units(obj)
+
+        # get custom label if exists
+        if use_type_label and physical_type in type_map:
+            type_label = type_map[physical_type]
+        # use physical type if exists
+        elif use_type_label and physical_type is not None:
+            type_label = str(physical_type).replace('_', ' ').title()
+        else:
+            type_label = ''
+
+        # set unit label
+        unit_label = set_unit_labels(unit)
+
+        # add brackets to unit if exists
+        if use_unit_label and unit_label is not None:
+            unit_label = fr'{brackets[0]}{unit_label}{brackets[1]}'
+        else:
+            unit_label = ''
+
+        label = fr'{type_label} {unit_label}'.strip()
+
+        return label
+
     # if xlabel is not overidden by user
     if xlabel is None:
-        # determine unit from data
-        x_unit = str(getattr(X, 'spectral_unit', getattr(X, 'unit', None)))
-        x_unit_label = set_unit_labels(x_unit)
-        # format unit label if valid unit is found
-        if x_unit_label:
-            xlabel = fr'{spectral_type} {brackets[0]}{x_unit_label}{brackets[1]}'
-        else:
-            xlabel = spectral_type
-    # if ylabel is not overidden by user
+        xlabel = _create_label(
+            X, TYPE_MAP, brackets, use_type_label, use_unit_label
+        )
     if ylabel is None:
-        # determine unit from data
-        y_unit = str(getattr(Y, 'spectral_unit', getattr(Y, 'unit', None)))
-        y_unit_label = set_unit_labels(y_unit)
-        # format unit label if valid unit is found
-        if y_unit_label:
-            ylabel = fr'{flux_type} {brackets[0]}{y_unit_label}{brackets[1]}'
-        else:
-            ylabel = flux_type
+        ylabel = _create_label(
+            Y, TYPE_MAP, brackets, use_type_label, use_unit_label
+        )
+
     # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
-
-def _get_physical_type(obj):
-    '''
-    Extract the physical_type attribute from an object with
-    a unit attribute.
-    Parameters
-    ––––––––––
-    obj : Quantity or Unit
-        Object with a .unit attribute. Custom data types
-        are permitted as long as the .unit is a Astropy Unit.
-
-    Returns
-    –––––––
-    physical_type : astropy.units.physical.PhysicalType
-        Physical type of the unit.
-
-    Raises
-    ––––––
-    TypeError : If object has no valid unit.
-    '''
-
-    if isinstance(obj, Quantity):
-        return obj.unit.physical_type # type: ignore
-    elif isinstance(obj, UnitBase):
-        return obj.physical_type
-    elif hasattr(obj, 'unit'):
-        return obj.unit.physical_type
-    else:
-        raise TypeError(
-            'Object must be a Quantity or a Unit to have a physical type.'
-        )
 
 
 def set_unit_labels(unit):
