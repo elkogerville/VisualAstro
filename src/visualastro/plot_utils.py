@@ -701,7 +701,7 @@ def format_unit_labels(unit, fmt=None):
     ––––––––––
     unit : str
         The unit string to convert.
-    format : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
+    fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
         The format of the unit label. 'latex_inline' and 'inline' uses
         negative exponents while 'latex' uses fractions. If None, uses
         the default value set by `va_config.unit_label_format`.
@@ -793,7 +793,8 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
 
 
 def set_axis_labels(
-    X, Y, ax, xlabel=None, ylabel=None, use_brackets=None, use_type_label=None, use_unit_label=None
+    X, Y, ax, xlabel=None, ylabel=None, use_brackets=None,
+    use_type_label=None, use_unit_label=None, fmt=None
 ):
     '''
     Automatically generate and set axis labels from Quantity objects with units.
@@ -822,15 +823,40 @@ def set_axis_labels(
     use_unit_label: bool or None, optional, default=None
         If True, include the unit of the X and Y for the axis label if
         available. If None, uses the default value set by `va_config.use_unit_label`.
+    fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
+        The format of the unit label. 'latex_inline' and 'inline' uses
+        negative exponents while 'latex' uses fractions. If None, uses
+        the default value set by `va_config.unit_label_format`.
+
+    Examples
+    ––––––––
+    >>> import astropy.units as u
+    >>> wavelength = np.linspace(1, 10, 100) * u.um
+    >>> flux = np.random.random(100) * u.MJy / u.sr
+    >>> fig, ax = plt.subplots()
+    >>> ax.plot(wavelength, flux)
+    >>> set_axis_labels(wavelength, flux, ax)
+    # Sets xlabel to 'Wavelength [μm]' and ylabel to 'Surface Brightness [MJy/sr]'
+
+    >>> # Custom label with only units
+    >>> set_axis_labels(wavelength, flux, ax, use_type_label=False)
+    # Sets xlabel to '[μm]' and ylabel to '[MJy/sr]'
+
+    >>> # Override with custom label
+    >>> set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
+    # Uses 'Custom Flux [MJy/sr]' for y-axis
 
     Notes
     –––––
     - Units are formatted using 'format_unit_labels', which provides LaTeX-friendly labels.
+      The labels are formatted as either 'latex_inline' or 'latex', which displays fractions
+      with either negative exponents or with fractions.
     '''
     # get default va_config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
     use_type_label = get_config_value(use_type_label, 'use_type_label')
     use_unit_label = get_config_value(use_unit_label, 'use_unit_label')
+    fmt = get_config_value(fmt, 'unit_label_format')
 
     # unit bracket type [] or ()
     brackets = [r'[',r']'] if use_brackets else [r'(',r')']
@@ -849,7 +875,9 @@ def set_axis_labels(
         physical.surface_brightness: 'Surface Brightness'
     }
 
-    def _create_label(obj, type_map, label, brackets, use_type_label, use_unit_label):
+    def _create_label(
+        obj, type_map, label, brackets, use_type_label, use_unit_label, fmt
+    ):
         '''Creates the axis label based on the object being plotted'''
 
         # get physical type and unit of object
@@ -868,7 +896,7 @@ def set_axis_labels(
             type_label = ''
 
         # set unit label
-        unit_label = format_unit_labels(unit)
+        unit_label = format_unit_labels(unit, fmt=fmt)
 
         # add brackets to unit if exists
         if use_unit_label and unit_label is not None:
@@ -881,11 +909,13 @@ def set_axis_labels(
         return axis_label
 
     xlabel = _create_label(
-        X, TYPE_MAP, xlabel, brackets, use_type_label, use_unit_label
+        X, TYPE_MAP, xlabel, brackets,
+        use_type_label, use_unit_label, fmt
     )
 
     ylabel = _create_label(
-        Y, TYPE_MAP, ylabel, brackets, use_type_label, use_unit_label
+        Y, TYPE_MAP, ylabel, brackets,
+        use_type_label, use_unit_label, fmt
     )
 
     # set plot labels
