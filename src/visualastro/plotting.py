@@ -21,10 +21,11 @@ from .data_cube import slice_cube
 from .io import get_kwargs
 from .numerical_utils import check_is_array, check_units_consistency, get_units
 from .plot_utils import (
-    add_colorbar, add_contours, plot_circles, plot_ellipses,
+    add_colorbar, add_contours, format_unit_labels,
+    plot_circles, plot_ellipses,
     plot_interactive_ellipse, plot_points,
     return_imshow_norm, set_axis_limits,
-    set_plot_colors, set_unit_labels, set_vmin_vmax
+    set_plot_colors, set_vmin_vmax
 )
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -300,7 +301,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     if isinstance(ylabel, str):
         ax.set_ylabel(ylabel)
     # add colorbar
-    cbar_unit = set_unit_labels(get_units(datas[0]))
+    cbar_unit = format_unit_labels(get_units(datas[0]))
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
     if colorbar:
