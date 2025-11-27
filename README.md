@@ -15,6 +15,8 @@
 **visualastro** is an astrophysical visualization system with convenient functions for easy visualization of common astronomical data. The package is developed with ease of use in mind, and making publication ready plots.
 
 ## Installation
+[![PyPI Version](https://img.shields.io/pypi/v/visualastro)](https://pypi.org/project/visualastro)
+
 Currently, the most stable version of python for visualastro is version 3.11.
 To install visualastro, it is advised to create a new conda environment if possible:
 ```
