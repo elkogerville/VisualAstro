@@ -33,8 +33,9 @@ from .numerical_utils import (
     get_data, shift_by_radial_vel
 )
 from .plot_utils import (
-    add_colorbar, plot_ellipses, plot_interactive_ellipse,
-    return_imshow_norm, set_unit_labels, set_vmin_vmax
+    add_colorbar, format_unit_labels,
+    plot_ellipses, plot_interactive_ellipse,
+    return_imshow_norm, set_vmin_vmax
 )
 from .va_config import get_config_value, va_config, _default_flag
 from .visual_classes import DataCube
@@ -403,7 +404,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         images.append(im)
 
     # determine unit of colorbar
-    cbar_unit = set_unit_labels(cube.unit)
+    cbar_unit = format_unit_labels(cube.unit)
     # set colorbar label
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
@@ -431,7 +432,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         spectral_axis = convert_units(cube.spectral_axis, unit) # type: ignore
         spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
         spectral_value = get_spectral_slice_value(spectral_axis, idx)
-        unit_label = set_unit_labels(spectral_axis.unit) # type: ignore
+        unit_label = format_unit_labels(spectral_axis.unit) # type: ignore
 
         # lambda for wavelength, f for frequency
         spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
