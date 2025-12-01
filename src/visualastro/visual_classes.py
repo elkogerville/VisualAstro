@@ -221,6 +221,105 @@ class DataCube:
         '''
         return self.data[key]
 
+    def to(self, unit, equivalencies=None):
+        '''
+        Convert the DataCube data to a new physical unit.
+        This method supports Quantity objects. SpectralCubes
+        are also supported but only for 'flux' units. To
+        convert SpectralCube wavelength units use `.with_spectral_unit()`.
+
+        Parameters
+        ––––––––––
+        unit : str or astropy.units.Unit
+            Target unit.
+        equivalencies : list, optional
+            Astropy equivalencies for unit conversion (e.g. spectral).
+
+        Returns
+        –––––––
+        DataCube
+            New cube with converted units.
+        '''
+        # convert unit to astropy unit
+        unit = Unit(unit)
+        # check that data has a unit
+        if not isinstance(self.data, (Quantity, SpectralCube)):
+            raise TypeError(
+                'DataCube.data has no unit. Cannot use .to() '
+                'unless data is an astropy Quantity.\n'
+                'For SpectralCubes, use the .to() for flux '
+                'conversions and with_spectral_unit() for '
+                'converting the spectral axis.'
+            )
+
+        try:
+            new_data = self.data.to(unit, equivalencies=equivalencies)
+        except Exception as e:
+            raise TypeError(
+                f'Unit conversion failed: {e}'
+            )
+        # convert errors if present
+        if self.error is not None:
+            if isinstance(self.error, Quantity):
+                new_error = self.error.to(unit, equivalencies=equivalencies)
+            else:
+                raise TypeError(
+                    'DataCube.error must be a Quantity to convert units safely.'
+                )
+        else:
+            new_error = None
+
+        return DataCube(
+            data=new_data,
+            headers=self.header,
+            errors=new_error,
+            wcs=self.wcs
+        )
+
+    def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
+        '''
+        Convert the spectral axis of the DataCube to a new unit.
+
+        Parameters
+        ––––––––––
+        unit : str or astropy.units.Unit
+            Target spectral unit.
+        velocity_convention : str, optional
+            'radio', 'optical', 'relativistic', etc.
+        rest_value : Quantity, optional
+            Rest frequency/wavelength for Doppler conversion.
+
+        Returns
+        –––––––
+        DataCube
+            New cube with converted spectral axis.
+        '''
+
+        unit = Unit(unit)
+
+        if not isinstance(self.data, SpectralCube):
+            raise TypeError(
+                "with_spectral_unit() can only be used when DataCube.data "
+                "is a SpectralCube. For unit conversion of flux values, "
+                "use .to()."
+            )
+        # convert spectral axis
+        try:
+            new_data = self.data.with_spectral_unit(
+                unit,
+                velocity_convention=velocity_convention,
+                rest_value=rest_value
+            )
+        except Exception as e:
+            raise TypeError(f'Spectral axis conversion failed: {e}')
+
+        return DataCube(
+            data=new_data,
+            headers=self.header,
+            errors=self.error,
+            wcs=self.wcs
+        )
+
     # support reshaping
     def reshape(self, *shape):
         '''
