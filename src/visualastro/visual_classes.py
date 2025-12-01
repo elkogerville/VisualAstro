@@ -108,6 +108,9 @@ class DataCube:
     >>> cube.inspect()
     '''
     def __init__(self, data, headers=None, errors=None, wcs=None):
+        self._initialize(data, headers, errors, wcs)
+
+    def _initialize(self, data, headers, errors, wcs):
 
         # type checks
         if not isinstance(data, (np.ndarray, SpectralCube)):
