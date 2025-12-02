@@ -277,8 +277,8 @@ class DataCube:
 
         return DataCube(
             data=new_data,
-            headers=self.header,
-            errors=new_error,
+            header=self.header,
+            error=new_error,
             wcs=self.wcs
         )
 
@@ -321,8 +321,8 @@ class DataCube:
 
         return DataCube(
             data=new_data,
-            headers=self.header,
-            errors=self.error,
+            header=self.header,
+            error=self.error,
             wcs=self.wcs
         )
 
