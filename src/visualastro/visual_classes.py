@@ -216,10 +216,12 @@ class DataCube:
     def __getitem__(self, key):
         '''
         Return a slice or sub-cube from the data.
+
         Parameters
         ––––––––––
         key : slice or tuple
             Index or slice to apply to the cube.
+
         Returns
         –––––––
         slice : same type as `data`
@@ -759,10 +761,21 @@ class DataCube:
         '''
         Returns
         –––––––
-        str : String representation of `DataCube`.
+        str : String representation of DataCube.
         '''
+        if isinstance(self.data, SpectralCube):
+            flux_unit = self.unit
+            wave_unit = self.data.spectral_axis.unit
+            return (
+                f'<DataCube[SpectralCube]: wavelength={wave_unit}, '
+                f'flux={flux_unit}, shape={self.shape}, dtype={self.dtype}>'
+            )
+
+        datatype = 'np.ndarray' if self.unit is None else 'Quantity'
+
         return (
-            f'<DataCube: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
+            f'<DataCube[{datatype}]: unit={self.unit}, '
+            f'shape={self.shape}, dtype={self.dtype}>'
         )
 
     @property

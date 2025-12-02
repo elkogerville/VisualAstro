@@ -220,7 +220,7 @@ def load_spectral_cube(filepath, hdu, error=True,
         if header:
             hdr = hdul[hdu].header
 
-    return DataCube(spectral_cube, headers=hdr, errors=error_array)
+    return DataCube(spectral_cube, header=hdr, error=error_array)
 
 
 # Cube Plotting Functions
