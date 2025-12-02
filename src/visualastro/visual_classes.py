@@ -115,21 +115,16 @@ class DataCube:
     >>> cube.header
     >>> cube.inspect()
     '''
-    def __init__(self, data, headers=None, errors=None, wcs=None):
-        self._initialize(data, headers, errors, wcs)
+    def __init__(self, data, header=None, error=None, wcs=None):
+        self._initialize(data, header, error, wcs)
 
-    def _initialize(self, data, headers, errors, wcs):
+    def _initialize(self, data, header, error, wcs):
 
         # type checks
-        if not isinstance(data, (np.ndarray, SpectralCube)):
+        if not isinstance(data, (np.ndarray, Quantity, SpectralCube)):
             raise TypeError(
-                f"'data' must be a numpy array or SpectralCube, got {type(data).__name__}."
-            )
-        if headers is not None and not isinstance(
-            headers, (list, Header, np.ndarray, tuple)
-        ):
-            raise TypeError(
-                f"'headers' must be a fits.Header or array-like of fits.header, got {type(headers).__name__}."
+                "'data' must be a np.ndarray, Quantity, or SpectralCube, "
+                f'got {type(data).__name__}.'
             )
 
         # extract array view for validation
@@ -145,44 +140,59 @@ class DataCube:
 
         # shape validation
         if array.ndim != 3:
-            raise ValueError(f"'data' must be 3D (T, N, M), got shape {array.shape}.")
-
-        if isinstance(data, np.ndarray) and isinstance(headers, (list, np.ndarray)):
-            if array.shape[0] != len(headers):
-                raise ValueError(
-                    f"Mismatch between T dimension and number of headers: "
-                    f"T={array.shape}, headers={len(headers)}."
-                )
-
-        if errors is not None and errors.shape != array.shape:
             raise ValueError(
-                f"'errors' must match shape of 'data', got {errors.shape} vs {array.shape}."
+                f"'data' must be 3D (T, N, M), got shape {array.shape}."
             )
 
-        if isinstance(headers, Header):
-            header = headers
-        elif isinstance(headers, (list, tuple, np.ndarray)) and len(headers) > 0:
-            header = headers[0]
+        # error validation
+        if error is not None:
+            err = np.asarray(error)
+            if err.shape != array.shape:
+                raise ValueError(
+                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
+                )
+
+        # header validation
+        if header is not None and not isinstance(
+            header, (list, Header, np.ndarray, tuple)
+        ):
+            raise TypeError(
+                "'header' must be a fits.Header or array-like of fits.header, "
+                f'got {type(header).__name__}.'
+            )
+
+        if isinstance(header, (list, np.ndarray, tuple)):
+            if len(header) == 0:
+                raise ValueError(
+                    'Header list cannot be empty.'
+                )
+            if array.shape[0] != len(header):
+                raise ValueError(
+                    f'Mismatch between T dimension and number of header: '
+                    f'T={array.shape}, header={len(header)}.'
+                )
+            primary_hdr = header[0]
         else:
-            header = None
+            primary_hdr = header
 
         # try extracting unit from headers if not found earlier
-        if unit is None and header is not None and 'BUNIT' in header:
+        if unit is None and isinstance(primary_hdr, Header):
             try:
-                unit = Unit(header['BUNIT'])
-            except Exception:
+                unit = Unit(primary_hdr['BUNIT'])
+            except (ValueError, KeyError) as e:
                 pass
 
-        # try extracting WCS
+        # try extracting WCS from headers
         if wcs is None:
-            if isinstance(headers, Header):
+            if isinstance(header, Header):
                 try:
-                    wcs = WCS(headers)
+                    wcs = WCS(header)
                 except Exception:
                     pass
-            elif isinstance(headers, (list, np.ndarray, tuple)):
+            # if a list of headers extract a list of wcs
+            elif isinstance(header, (list, np.ndarray, tuple)):
                 wcs = []
-                for h in headers:
+                for h in header:
                     if not isinstance(h, Header):
                         wcs.append(None)
                         continue
@@ -191,28 +201,16 @@ class DataCube:
                     except Exception:
                         wcs.append(None)
 
-        if (not isinstance(data, Quantity)) and \
-           (not isinstance(data, SpectralCube)) and \
-           (unit is not None):
-            data = data * unit
+        if unit is not None and not isinstance(data, (Quantity, SpectralCube)):
+            data = array * unit
 
-        # assign core attributes
+        # assign attributes
         self.data = data
-        self.header = headers
-        self.error = errors
+        self.header = header
+        self.error = error
         self.value = array
         self.unit = unit
         self.wcs = wcs
-
-        # data attributes
-        self.shape = array.shape
-        self.size = array.size
-        self.ndim = array.ndim
-        self.dtype = array.dtype
-        self.len = len(array)
-        self.has_nan = np.isnan(array).any()
-        self.itemsize = array.itemsize
-        self.nbytes = array.nbytes
 
     # support slicing
     def __getitem__(self, key):
