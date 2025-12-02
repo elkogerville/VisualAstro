@@ -53,16 +53,16 @@ class DataCube:
     ––––––––––
     data : np.ndarray or SpectralCube
         The input data cube. Must be 3-dimensional (T, N, M).
-    headers : fits.Header, array-like of fits.Header, or None, optional, default=None
+    header : fits.Header, array-like of fits.Header, or None, optional, default=None
         Header(s) associated with the data cube. If provided as a list or array,
         its length must match the cube’s first dimension.
-    errors : np.ndarray or None, optional, default=None
+    error : np.ndarray or None, optional, default=None
         Array of uncertainties with the same shape as `data`.
     wcs : astropy.wcs.wcs.WCS, array-like of astropy.wcs.wcs.WCS, or None, optional, default=None
         WCS information associated with the data extension.
         Can also be an array-like of WCS objects. If None,
         DataCube will attempt to extract the WCS from the header
-        attribute. If `headers` is an array-like, DataCube will
+        attribute. If `header` is an array-like, DataCube will
         extract the WCS from each header.
 
     Attributes
@@ -77,6 +77,11 @@ class DataCube:
         Raw numpy array of the cube values.
     unit : astropy.units.Unit or None
         Physical unit of the data if available.
+    wcs : array-like of WCS or WCS
+        WCS(s) associated with the data cube.
+
+    Properties
+    ––––––––––
     shape : tuple
         Shape of the cube (T, N, M).
     size : int
@@ -94,12 +99,15 @@ class DataCube:
     nbytes : int
         Total memory footprint of the data in bytes.
 
+    Methods
+    –––––––
+
     Raises
     ––––––
     TypeError
-        If `data` or `headers` are not of an expected type.
+        If `data` or `header` are not of an expected type.
     ValueError
-        If `data` is not 3D, or if the dimensions of `headers` or `errors` do not match `data`.
+        If `data` is not 3D, or if the dimensions of `header` or `error` do not match `data`.
     Examples
     ––––––––
     Load DataCube from fits file
