@@ -612,6 +612,38 @@ class DataCube:
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
+    def update(self, data=None, header=None, error=None, wcs=None):
+        '''
+        Update any of the DataCube attributes. All internally stored
+        values are recomputed.
+        Parameters
+        ––––––––––
+        data : array-like or `~astropy.units.Quantity`
+            The primary image data. Can be a NumPy array or an
+            `astropy.units.Quantity` object.
+        header : fits.Header, array-like of fits.Header, or None, optional, default=None
+            Header(s) associated with the data cube. If provided as a list or array,
+            its length must match the cube’s first dimension.
+        error : array-like, optional
+            Optional uncertainty or error map associated with the data.
+        wcs : astropy.wcs.wcs.WCS or None, optional, default=None
+            WCS information associated with the data extension.
+            If None, DataCube will attempt to extract the WCS
+            from the header attribute.
+
+        Returns
+        –––––––
+        None
+        '''
+        data = self.data if data is None else data
+        header = self.header if header is None else header
+        error = self.error if error is None else error
+        wcs = self.wcs if wcs is None else wcs
+
+        self._initialize(data, header, error, wcs)
+
+        return None
+
     def view(self, idx, vmin=_default_flag, vmax=_default_flag,
              norm=_default_flag, percentile=_default_flag,
              cmap=None, style=None, figsize=None):
