@@ -765,6 +765,62 @@ class DataCube:
             f'<DataCube: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
         )
 
+    @property
+    def shape(self):
+        '''
+        Returns
+        –––––––
+        tuple : Shape of cube data.
+        '''
+        return self.value.shape
+    @property
+    def size(self):
+        '''
+        Returns
+        –––––––
+        int : Size of cube data.
+        '''
+        return self.value.size
+    @property
+    def ndim(self):
+        '''
+        Returns
+        –––––––
+        int : Number of dimensions of cube data.
+        '''
+        return self.value.ndim
+    @property
+    def dtype(self):
+        '''
+        Returns
+        –––––––
+        np.dtype : Datatype of the cube data.
+        '''
+        return self.value.dtype
+    @property
+    def has_nan(self):
+        '''
+        Returns
+        –––––––
+        bool : Returns True if there are NaNs in the cube.
+        '''
+        return np.isnan(self.value).any()
+    @property
+    def itemsize(self):
+        '''
+        Returns
+        –––––––
+        int : Length of 1 array element in bytes.
+        '''
+        return self.value.itemsize
+    @property
+    def nbytes(self):
+        '''
+        Returns
+        –––––––
+        int : Total number of bytes used by the data array.
+        '''
+        return self.value.nbytes
     # physical properties / statistics
     @property
     def max(self):
@@ -806,6 +862,16 @@ class DataCube:
         float : Standard deviation of all values in the cube, ignoring NaNs.
         '''
         return np.nanstd(self.value)
+    @property
+    def quantity(self):
+        '''
+        Returns
+        –––––––
+        Quantity : Quantity array of data values (values + astropy units).
+        '''
+        if self.unit is None:
+            return None
+        return self.value * self.unit
 
 
 # ExtractedSpectrum
