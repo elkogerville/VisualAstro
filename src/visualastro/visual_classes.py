@@ -201,8 +201,22 @@ class DataCube:
                     except Exception:
                         wcs.append(None)
 
-        if unit is not None and not isinstance(data, (Quantity, SpectralCube)):
+        # ensure that units are consistent
+        if hasattr(data, 'unit'):
+            if unit is not None and data.unit != unit:
+                raise ValueError(
+                    f'Unit mismatch: data={data.unit}, header={unit}'
+                )
+        elif unit is not None:
             data = array * unit
+
+        # validate error units
+        if error is not None and hasattr(error, 'unit') and unit is not None:
+            if error.unit != unit:
+                warnings.warn(
+                    f'Error units ({error.unit}) differ from data units ({unit})',
+                    UserWarning
+                )
 
         # assign attributes
         self.data = data
@@ -594,14 +608,17 @@ class DataCube:
     def header_get(self, key):
         '''
         Retrieve a header value by key from one or multiple headers.
+
         Parameters
         ––––––––––
         key : str
             FITS header keyword to retrieve.
+
         Returns
         –––––––
         value : list or str
             Header value(s) corresponding to `key`.
+
         Raises
         ––––––
         ValueError
@@ -1554,6 +1571,16 @@ class FitsFile:
         float : Standard deviation of all values in the data, ignoring NaNs.
         '''
         return np.nanstd(self.data)
+    @property
+    def quantity(self):
+        '''
+        Returns
+        –––––––
+        Quantity : Quantity array of data values (values + astropy units).
+        '''
+        if self.unit is None:
+            return None
+        return self.value * self.unit
 
 
 # Utility Functions
