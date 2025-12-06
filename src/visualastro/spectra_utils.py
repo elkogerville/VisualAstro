@@ -23,6 +23,7 @@ import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
+from specutils import Spectrum1D
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from .numerical_utils import mask_within_range, return_array_values
 from .ExtractedSpectrum import ExtractedSpectrum
@@ -61,10 +62,18 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     '''
     # if input spectrum is ExtractedSpectrum object
     # extract the spectrum1d attribute
-    if isinstance(spectrum1d, ExtractedSpectrum):
-        spectrum1d = spectrum1d.spectrum1d
+    if not isinstance(spectrum1d, Spectrum1D):
+        if hasattr(spectrum1d, 'spectrum1d'):
+            spectrum1d = spectrum1d.spectrum1d
+        else:
+            raise ValueError (
+                'Input object is not a Spectrum1d '
+                "or has no `spectrum1d` attribute. "
+                f'type: {type(spectrum1d)}'
+            )
     # extract spectral axis
     spectral_axis = spectrum1d.spectral_axis
+
     # suppress warnings during continuum fitting
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
@@ -75,6 +84,7 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
             fit = fit_continuum(spectrum1d, window=region)
         else:
             fit = fit_generic_continuum(spectrum1d)
+
     # fit the continuum of the provided spectral axis
     continuum_fit = fit(spectral_axis)
 
