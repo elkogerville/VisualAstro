@@ -113,21 +113,42 @@ class FitsFile:
         '''
         Helper method to initialize the class.
         '''
-        array = np.asarray(data)
-
-        if isinstance(data, Quantity):
-            unit = data.unit # type: ignore
+        if isinstance(data, Quantity) or hasattr(data, 'unit'):
+            unit = data.unit
         else:
             unit = None
-            if isinstance(header, Header) and 'BUNIT' in header:
-                try:
-                    unit = Unit(header['BUNIT'])
-                except Exception:
-                    pass
 
+        if isinstance(header, Header):
+            if 'BUNIT' in header:
+                BUNIT = header['BUNIT']
+
+                try:
+                    hdr_unit = Unit(BUNIT)
+                except ValueError:
+                    hdr_unit = None
+
+                if unit is not None and hdr_unit is not None:
+                    if unit != hdr_unit:
+                        raise ValueError(
+                            'Unit extracted from header does not match '
+                            'unit attatched to the data!'
+                            f'Data unit: {unit}, Header unit: {hdr_unit}'
+                        )
+
+                unit = hdr_unit if unit is None else unit
+
+        # attatch units to data if bare numpy array
         if not isinstance(data, Quantity):
-            if unit is not None:
-                data = data * unit
+            data_unit = getattr(data, 'unit', None)
+            if data_unit is None and unit is not None:
+                data = np.asarray(data) * unit
+
+        # validate error units
+        if error is not None and hasattr(error, 'unit') and unit is not None:
+            if error.unit != unit:
+                raise ValueError (
+                    f'Error units ({error.unit}) differ from data units ({unit})'
+                )
 
          # try extracting WCS
         if wcs is None and isinstance(header, Header):
@@ -139,7 +160,7 @@ class FitsFile:
         self.data = data
         self.header = header
         self.error = error
-        self.value = array
+        self.value = np.asarray(data)
         self.unit = unit
         self.wcs = wcs
 
