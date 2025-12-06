@@ -318,7 +318,8 @@ class FitsFile:
 
         return None
 
-    # magic functions for FitsFile to behave like a np.ndarray
+    # Array Interface
+    # –––––––––––––––
     def __array__(self):
         '''
         Return the underlying data as a NumPy array.
