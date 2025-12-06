@@ -145,15 +145,7 @@ class FitsFile:
 
     # Properties
     # ––––––––––
-    # physical properties / statistics
-    @property
-    def max(self):
-        '''
-        Returns
-        –––––––
-        float : Maximum value in the data, ignoring NaNs.
-        '''
-        return np.nanmax(self.data)
+    # statistical properties
     @property
     def min(self):
         '''
@@ -162,6 +154,14 @@ class FitsFile:
         float : Minimum value in the data, ignoring NaNs.
         '''
         return np.nanmin(self.data)
+    @property
+    def max(self):
+        '''
+        Returns
+        –––––––
+        float : Maximum value in the data, ignoring NaNs.
+        '''
+        return np.nanmax(self.data)
     @property
     def mean(self):
         '''
@@ -367,7 +367,6 @@ class FitsFile:
             Reshaped data array.
         '''
         return self.data.reshape(*shape)
-
 
     def __repr__(self):
         '''
