@@ -16,7 +16,7 @@ Module Structure:
 '''
 
 import warnings
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitsError
 import numpy as np
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from specutils.spectra import Spectrum1D
@@ -73,7 +73,8 @@ class ExtractedSpectrum:
         flux_candidates = (
             flux,
             spectrum1d,
-            getattr(spectrum1d, 'flux', None)
+            getattr(spectrum1d, 'flux', None),
+            continuum_fit
         )
 
         wave_unit = self._validate_units(wave_candidates, label='wavelength')
@@ -171,6 +172,7 @@ class ExtractedSpectrum:
         - If `spectrum1d` is passed, it takes precedence and replaces `wavelength`
           and `flux`.
         '''
+        from .spectra_utils import compute_continuum_fit
         # –––– KWARGS ––––
         rest_value = kwargs.get('rest_value', None)
         velocity_convention = kwargs.get('velocity_convention', None)
@@ -184,7 +186,7 @@ class ExtractedSpectrum:
         if spectrum1d is not None:
             wavelength = spectrum1d.spectral_axis
             flux = spectrum1d.flux
-            continuum_fit = self._compute_continuum_fit(spectrum1d, fit_method, region)
+            continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
             normalized = (spectrum1d / continuum_fit).flux
 
             self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
@@ -214,7 +216,7 @@ class ExtractedSpectrum:
                 )
             # recompute continuum fit and normalized flux if not passed in
             if continuum_fit is None:
-                continuum_fit = self._compute_continuum_fit(spectrum1d, fit_method, region)
+                continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
             if normalized is None:
                 normalized = (spectrum1d / continuum_fit).flux
 
@@ -285,60 +287,6 @@ class ExtractedSpectrum:
         # case 5: both unitless arrays/scalars
         return np.allclose(a, b)
 
-    @staticmethod
-    def _compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
-        '''
-        Fit the continuum of a 1D spectrum using a specified method.
-        Parameters
-        ––––––––––
-        spectrum1d : Spectrum1D or ExtractedSpectrum
-            Input 1D spectrum object containing flux and spectral_axis.
-            ExtractedSpectrum is supported only if it contains a
-            spectrum1d object.
-        fit_method : str, optional, default='generic'
-            Method used for fitting the continuum.
-            - 'fit_continuum': uses `fit_continuum` with a specified window
-            - 'generic'      : uses `fit_generic_continuum`
-        region : array-like, optional, default=None
-            Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
-            Ignored for other methods. This allows the user to specify which
-            regions to include in the fit. Removing strong peaks is preferable to
-            avoid skewing the fit up or down.
-            Ex: Remove strong emission peak at 7um from fit
-            region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-        Returns
-        –––––––
-        continuum_fit : np.ndarray
-            Continuum flux values evaluated at `spectrum1d.spectral_axis`.
-        Notes
-        –––––
-        - Warnings during the fitting process are suppressed.
-        '''
-        # if input spectrum is ExtractedSpectrum object
-        # extract the spectrum1d attribute
-        if isinstance(spectrum1d, ExtractedSpectrum):
-            spectrum1d = spectrum1d.spectrum1d
-        # extract spectral axis
-        spectral_axis = spectrum1d.spectral_axis
-        # suppress warnings during continuum fitting
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            # fit continuum with selected method
-            if fit_method=='fit_continuum':
-                # convert region to default units
-                if region is not None:
-                    # extract unit
-                    unit = spectral_axis.unit
-                    # convert each element to spectral axis units
-                    region = [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
-                fit = fit_continuum(spectrum1d, window=region)
-            else:
-                fit = fit_generic_continuum(spectrum1d)
-        # fit the continuum of the provided spectral axis
-        continuum_fit = fit(spectral_axis)
-
-        return continuum_fit
-
     def _validate_units(self, objs, label):
         '''
         Validate that the units match between a list of objects.
@@ -359,14 +307,18 @@ class ExtractedSpectrum:
         ValueError : If units exist and do not match.
         '''
         # create set of each unit in objs, and remove any None values
+        # this contains each unique unit across the set of objects
         units = {getattr(o, 'unit', None) for o in objs} - {None}
 
+        # return None if no units found
         if not units:
             return None
+        # raise an error if more than 1 unique unit
         elif len(units) > 1:
-            raise ValueError(
+            raise UnitsError(
                 f'Inconsistent {label} units: {units}'
             )
+        # return the unit
         else:
             return units.pop()
 
