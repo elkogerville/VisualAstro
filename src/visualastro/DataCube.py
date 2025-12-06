@@ -14,7 +14,6 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 '''
 
-import warnings
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
@@ -233,509 +232,9 @@ class DataCube:
         self.unit = unit
         self.wcs = wcs
 
-    # support slicing
-    def __getitem__(self, key):
-        '''
-        Return a slice or sub-cube from the data.
-
-        Parameters
-        ––––––––––
-        key : slice or tuple
-            Index or slice to apply to the cube.
-
-        Returns
-        –––––––
-        slice : same type as `data`
-            The corresponding subset of the cube.
-        '''
-        return self.data[key]
-
-    def to(self, unit, equivalencies=None):
-        '''
-        Convert the DataCube data to a new physical unit.
-        This method supports Quantity objects. SpectralCubes
-        are also supported but only for 'flux' units. To
-        convert SpectralCube wavelength units use `.with_spectral_unit()`.
-
-        Parameters
-        ––––––––––
-        unit : str or astropy.units.Unit
-            Target unit.
-        equivalencies : list, optional
-            Astropy equivalencies for unit conversion (e.g. spectral).
-
-        Returns
-        –––––––
-        DataCube
-            New cube with converted units.
-        '''
-        # convert unit to astropy unit
-        unit = Unit(unit)
-        # check that data has a unit
-        if not isinstance(self.data, (Quantity, SpectralCube)):
-            raise TypeError(
-                'DataCube.data has no unit. Cannot use .to() '
-                'unless data is an astropy Quantity.\n'
-                'For SpectralCubes, use the .to() for flux '
-                'conversions and with_spectral_unit() for '
-                'converting the spectral axis.'
-            )
-
-        try:
-            new_data = self.data.to(unit, equivalencies=equivalencies)
-        except Exception as e:
-            raise TypeError(
-                f'Unit conversion failed: {e}'
-            )
-        # convert errors if present
-        if self.error is not None:
-            if isinstance(self.error, Quantity):
-                new_error = self.error.to(unit, equivalencies=equivalencies)
-            else:
-                raise TypeError(
-                    'DataCube.error must be a Quantity to convert units safely.'
-                )
-        else:
-            new_error = None
-
-        return DataCube(
-            data=new_data,
-            header=self.header,
-            error=new_error,
-            wcs=self.wcs
-        )
-
-    def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
-        '''
-        Convert the spectral axis of the DataCube to a new unit.
-
-        Parameters
-        ––––––––––
-        unit : str or astropy.units.Unit
-            Target spectral unit.
-        velocity_convention : str, optional
-            'radio', 'optical', 'relativistic', etc.
-        rest_value : Quantity, optional
-            Rest frequency/wavelength for Doppler conversion.
-
-        Returns
-        –––––––
-        DataCube
-            New cube with converted spectral axis.
-        '''
-
-        unit = Unit(unit)
-
-        if not isinstance(self.data, SpectralCube):
-            raise TypeError(
-                "with_spectral_unit() can only be used when DataCube.data "
-                "is a SpectralCube. For unit conversion of flux values, "
-                "use .to()."
-            )
-        # convert spectral axis
-        try:
-            new_data = self.data.with_spectral_unit(
-                unit,
-                velocity_convention=velocity_convention,
-                rest_value=rest_value
-            )
-        except Exception as e:
-            raise TypeError(f'Spectral axis conversion failed: {e}')
-
-        return DataCube(
-            data=new_data,
-            header=self.header,
-            error=self.error,
-            wcs=self.wcs
-        )
-
-    # support reshaping
-    def reshape(self, *shape):
-        '''
-        Return a reshaped view of the cube data.
-        Parameters
-        ––––––––––
-        *shape : int
-            New shape for the data array.
-        Returns
-        –––––––
-        np.ndarray
-            Reshaped data array.
-        '''
-        return self.value.reshape(*shape)
-
-    # support len()
-    def __len__(self):
-        '''
-        Return the number of spectral slices along the first axis.
-        Returns
-        –––––––
-        int
-            Length of the first dimension (T).
-        '''
-        return len(self.value)
-
-    # support numpy operations
-    def __array__(self):
-        '''
-        Return the underlying data as a NumPy array.
-        Returns
-        –––––––
-        np.ndarray
-            The underlying 3D array representation.
-        '''
-        return self.value
-
-    def __mul__(self, other):
-        '''
-        Multiply the data cube by a scalar, a Quantity, or another DataCube.
-        This operation returns a new `DataCube` instance. The WCS and headers
-        of the original cube are preserved. Errors are propagated according to
-        standard Gaussian error propagation rules.
-
-        Parameters
-        ––––––––––
-        other : scalar, `~astropy.units.Quantity`, or DataCube
-            - If a scalar or Quantity, the cube data are multiplied by `other`
-                and the uncertainties are scaled by `abs(other)`.
-            - If another `DataCube`, the data arrays are multiplied
-                element-wise. The two cubes must have matching shapes.
-
-        Returns
-        –––––––
-        DataCube
-            A new data cube containing the multiplied data and propagated
-            uncertainties.
-
-        Notes
-        –––––
-        - Error propagation**
-
-            For multiplication of data `A` by `k`, a scalar, Quantity
-            object, or a broadcastable array or quantity array:
-                A' = kA
-                σA' = |k|σA
-
-            For the product of two cubes `A` and `B` with uncertainties
-            `σA` and `σB` (assumed independent):
-
-                C = AB
-                σC = sqrt( (A σB)**2 + (B σA)**2 )
-
-            If only one cube provides uncertainties, the missing uncertainties
-            are assumed to be zero.
-
-        - WCS information is kept intact.
-
-        Examples
-        ––––––––
-        Multiply a cube by a scalar:
-            cube2 = cube1 * 3
-
-        Multiply by a Quantity:
-            cube2 = cube1 * (5 * u.um)
-
-        Multiply two cubes with uncertainty propagation:
-            cube3 = cube1 * cube2
-        '''
-
-        A = self.data
-        σA = self.error
-
-        if (np.isscalar(other)) or (isinstance(other, Quantity) and other.ndim == 0):
-
-            new_data = A * other
-
-            if σA is not None:
-                new_error = σA * np.abs(other)
-            else:
-                new_error = None
-
-            return DataCube(
-                data=new_data,
-                header=self.header,
-                error=new_error,
-                wcs=self.wcs
-            )
-        elif isinstance(other, (np.ndarray, Quantity)):
-            # try broadcasting
-            try:
-                new_data = A * other
-            except Exception:
-                raise TypeError(
-                    'Array or Quantity array cannot be broadcast to cube shape.\n'
-                    f'self.data.shape: {self.data.shape}, other.shape: {other.shape}.'
-                )
-
-            # other has no uncertainties
-            if σA is not None:
-                new_error = σA * np.abs(other)
-            else:
-                new_error = None
-
-            return DataCube(
-                data=new_data,
-                header=self.header,
-                error=new_error,
-                wcs=self.wcs
-            )
-        elif hasattr(other, 'data'):
-
-            B = other.data
-            σB = getattr(other, 'error', None)
-
-            if A.shape != B.shape:
-                raise ValueError(
-                    f'DataCube shapes do not match: '
-                    f'{A.shape} vs {B.shape}'
-                )
-
-            new_data = A * B
-
-            if (σA is not None) and (σB is not None):
-                 new_error = np.sqrt(
-                     (A * σB)**2 + (B * σA)**2
-                 )
-            elif σA is not None:
-                new_error = σA * np.abs(B)
-            elif σB is not None:
-                new_error = σB * np.abs(A)
-            else:
-                new_error = None
-
-            return DataCube(
-                data=new_data,
-                header=self.header,
-                error=new_error,
-                wcs=self.wcs
-            )
-        else:
-            raise ValueError(f'Invalid input: {other}!')
-
-    __rmul__ = __mul__
-
-    def __truediv__(self, other):
-        '''
-        Divide the data cube by a scalar, a Quantity, or another DataCube.
-        This operation returns a new `DataCube` instance. The WCS and headers
-        of the original cube are preserved. Errors are propagated according to
-        standard Gaussian error propagation rules.
-
-        Parameters
-        ––––––––––
-        other : scalar, `~astropy.units.Quantity`, or DataCube
-            - If a scalar or Quantity, the cube data are divided by `other`
-                and the uncertainties are scaled by `abs(other)`.
-            - If another `DataCube`, the data arrays are divided
-                element-wise. The two cubes must have matching shapes.
-
-        Returns
-        –––––––
-        DataCube
-            A new data cube containing the divided data and propagated
-            uncertainties.
-
-        Notes
-        –––––
-        **Error propagation**
-
-            For division of data `A` by a scalar or Quantity `k`:
-                A' = kA
-                σA' = |k|σA
-
-            For the quotient of two cubes `A` and `B` with uncertainties
-            `σA` and `σB` (assumed independent):
-
-                C = AB
-                σC = sqrt( (A σB)**2 + (B σA)**2 )
-
-            If only one cube provides uncertainties, the missing uncertainties
-            are assumed to be zero.
-
-        **WCS Handling**
-
-            The WCS is passed through unchanged.
-
-        Examples
-        ––––––––
-        Divide a cube by a scalar:
-            cube2 = cube1 / 3
-
-        Divide by a Quantity:
-            cube2 = cube1 / (5 * u.um)
-
-        Divide two cubes with uncertainty propagation:
-            cube3 = cube1 * cube2
-        '''
-
-        if np.isscalar(other) or isinstance(other, Quantity):
-
-            new_data = self.data / other
-
-            if self.error is not None:
-                new_error = self.error / np.abs(other)
-            else:
-                new_error = None
-
-            return DataCube(
-                data=new_data,
-                header=self.header,
-                error=new_error,
-                wcs=self.wcs
-            )
-
-        if hasattr(other, 'data'):
-
-            A = self.data
-            σA = self.error
-            B = other.data
-            σB = getattr(other, 'error', None)
-
-
-            new_data = A / B
-
-            if (σA is not None) and (σB is not None):
-                 new_error = np.abs(new_data) * np.sqrt(
-                     (σA / A)**2 + (σB / B)**2
-                 )
-            elif σA is not None:
-                new_error = σA / np.abs(B)
-            elif σB is not None:
-                new_error = np.abs(A) * σB / (B**2)
-            else:
-                new_error = None
-
-            return DataCube(
-                data=new_data,
-                header=self.header,
-                error=new_error,
-                wcs=self.wcs
-            )
-
-    def header_get(self, key):
-        '''
-        Retrieve a header value by key from one or multiple headers.
-
-        Parameters
-        ––––––––––
-        key : str
-            FITS header keyword to retrieve.
-
-        Returns
-        –––––––
-        value : list or str
-            Header value(s) corresponding to `key`.
-
-        Raises
-        ––––––
-        ValueError
-            If headers are of an unsupported type or `key` is not found.
-        '''
-        if isinstance(self.header, (list, np.ndarray, tuple)):
-            return [h[key] for h in self.header]
-        elif isinstance(self.header, Header):
-            return self.header[key] # type: ignore
-        else:
-            raise ValueError(f"Unsupported header type or key '{key}' not found.")
-
-    def update(self, data=None, header=None, error=None, wcs=None):
-        '''
-        Update any of the DataCube attributes. All internally stored
-        values are recomputed.
-        Parameters
-        ––––––––––
-        data : array-like or `~astropy.units.Quantity`
-            The primary image data. Can be a NumPy array or an
-            `astropy.units.Quantity` object.
-        header : fits.Header, array-like of fits.Header, or None, optional, default=None
-            Header(s) associated with the data cube. If provided as a list or array,
-            its length must match the cube’s first dimension.
-        error : array-like, optional
-            Optional uncertainty or error map associated with the data.
-        wcs : astropy.wcs.wcs.WCS or None, optional, default=None
-            WCS information associated with the data extension.
-            If None, DataCube will attempt to extract the WCS
-            from the header attribute.
-
-        Returns
-        –––––––
-        None
-        '''
-        data = self.data if data is None else data
-        header = self.header if header is None else header
-        error = self.error if error is None else error
-        wcs = self.wcs if wcs is None else wcs
-
-        self._initialize(data, header, error, wcs)
-
-        return None
-
-    def with_mask(self, mask):
-        '''
-        Apply a boolean mask to the cube and return the masked data.
-        Parameters
-        ––––––––––
-        mask : np.ndarray or Mask
-            Boolean mask to apply. Must match the cube shape.
-        Returns
-        –––––––
-        masked_data : same type as `data`
-            Masked version of the data.
-        Raises
-        ––––––
-        TypeError
-            If masking is unsupported for the data type.
-        '''
-        if isinstance(self.data, SpectralCube):
-            return self.data.with_mask(mask) # type: ignore
-        elif isinstance(self.data, (np.ndarray, Quantity)):
-            return self.data[mask]
-        else:
-            raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
-
-    def inspect(self, figsize=(10,6), style=None):
-        '''
-        Plot the mean and standard deviation across each cube slice.
-        Useful for quickly identifying slices of interest in the cube.
-        Parameters
-        ––––––––––
-        figsize : tuple, optional, default=(8,4)
-            Size of the output figure.
-        style : str or None, optional, default=None
-            Matplotlib style to use for plotting. If None,
-            uses the default value set by `va_config.style`.
-        Notes
-        –––––
-        This method visualizes the mean and standard deviation of flux across
-        each 2D slice of the cube as a function of slice index.
-        '''
-        from .plot_utils import return_stylename
-
-        # get default va_config values
-        style = get_config_value(style, 'style')
-
-        cube = self.value
-        # compute mean and std across wavelengths
-        mean_flux = np.nanmean(cube, axis=(1, 2))
-        std_flux  = np.nanstd(cube, axis=(1, 2))
-
-        T = np.arange(mean_flux.shape[0])
-        style = return_stylename(style)
-        with plt.style.context(style):
-            fig, ax = plt.subplots(figsize=figsize)
-
-            ax.plot(T, mean_flux, c='darkslateblue', label='Mean')
-            ax.plot(T, std_flux, c='#D81B60', ls='--', label='Std Dev')
-
-            ax.set_xlabel('Cube Slice Index')
-            ax.set_ylabel('Counts')
-            ax.set_xlim(np.nanmin(T), np.nanmax(T))
-
-            ax.legend(loc='best')
-
-            plt.show()
-
-    # physical properties / statistics
+    # Properties
+    # ––––––––––
+    # statistical properties
     @property
     def min(self):
         '''
@@ -852,6 +351,282 @@ class DataCube:
         int : Total number of bytes used by the data array.
         '''
         return self.value.nbytes
+
+    # Methods
+    # –––––––
+    def header_get(self, key):
+        '''
+        Retrieve a header value by key from one or multiple headers.
+
+        Parameters
+        ––––––––––
+        key : str
+            FITS header keyword to retrieve.
+
+        Returns
+        –––––––
+        value : list or str
+            Header value(s) corresponding to `key`.
+
+        Raises
+        ––––––
+        ValueError
+            If headers are of an unsupported type or `key` is not found.
+        '''
+        if isinstance(self.header, (list, np.ndarray, tuple)):
+            return [h[key] for h in self.header]
+        elif isinstance(self.header, Header):
+            return self.header[key] # type: ignore
+        else:
+            raise ValueError(f"Unsupported header type or key '{key}' not found.")
+
+    def inspect(self, figsize=(10,6), style=None):
+        '''
+        Plot the mean and standard deviation across each cube slice.
+        Useful for quickly identifying slices of interest in the cube.
+        Parameters
+        ––––––––––
+        figsize : tuple, optional, default=(8,4)
+            Size of the output figure.
+        style : str or None, optional, default=None
+            Matplotlib style to use for plotting. If None,
+            uses the default value set by `va_config.style`.
+        Notes
+        –––––
+        This method visualizes the mean and standard deviation of flux across
+        each 2D slice of the cube as a function of slice index.
+        '''
+        from .plot_utils import return_stylename
+
+        # get default va_config values
+        style = get_config_value(style, 'style')
+
+        cube = self.value
+        # compute mean and std across wavelengths
+        mean_flux = np.nanmean(cube, axis=(1, 2))
+        std_flux  = np.nanstd(cube, axis=(1, 2))
+
+        T = np.arange(mean_flux.shape[0])
+        style = return_stylename(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            ax.plot(T, mean_flux, c='darkslateblue', label='Mean')
+            ax.plot(T, std_flux, c='#D81B60', ls='--', label='Std Dev')
+
+            ax.set_xlabel('Cube Slice Index')
+            ax.set_ylabel('Counts')
+            ax.set_xlim(np.nanmin(T), np.nanmax(T))
+
+            ax.legend(loc='best')
+
+            plt.show()
+
+    def to(self, unit, equivalencies=None):
+        '''
+        Convert the DataCube data to a new physical unit.
+        This method supports Quantity objects. SpectralCubes
+        are also supported but only for 'flux' units. To
+        convert SpectralCube wavelength units use `.with_spectral_unit()`.
+
+        Parameters
+        ––––––––––
+        unit : str or astropy.units.Unit
+            Target unit.
+        equivalencies : list, optional
+            Astropy equivalencies for unit conversion (e.g. spectral).
+
+        Returns
+        –––––––
+        DataCube
+            New cube with converted units.
+        '''
+        # convert unit to astropy unit
+        unit = Unit(unit)
+        # check that data has a unit
+        if not isinstance(self.data, (Quantity, SpectralCube)):
+            raise TypeError(
+                'DataCube.data has no unit. Cannot use .to() '
+                'unless data is an astropy Quantity.\n'
+                'For SpectralCubes, use the .to() for flux '
+                'conversions and with_spectral_unit() for '
+                'converting the spectral axis.'
+            )
+
+        try:
+            new_data = self.data.to(unit, equivalencies=equivalencies)
+        except Exception as e:
+            raise TypeError(
+                f'Unit conversion failed: {e}'
+            )
+        # convert errors if present
+        if self.error is not None:
+            if isinstance(self.error, Quantity):
+                new_error = self.error.to(unit, equivalencies=equivalencies)
+            else:
+                raise TypeError(
+                    'DataCube.error must be a Quantity to convert units safely.'
+                )
+        else:
+            new_error = None
+
+        return DataCube(
+            data=new_data,
+            header=self.header,
+            error=new_error,
+            wcs=self.wcs
+        )
+
+    def update(self, data=None, header=None, error=None, wcs=None):
+        '''
+        Update any of the DataCube attributes. All internally stored
+        values are recomputed.
+        Parameters
+        ––––––––––
+        data : array-like or `~astropy.units.Quantity`
+            The primary image data. Can be a NumPy array or an
+            `astropy.units.Quantity` object.
+        header : fits.Header, array-like of fits.Header, or None, optional, default=None
+            Header(s) associated with the data cube. If provided as a list or array,
+            its length must match the cube’s first dimension.
+        error : array-like, optional
+            Optional uncertainty or error map associated with the data.
+        wcs : astropy.wcs.wcs.WCS or None, optional, default=None
+            WCS information associated with the data extension.
+            If None, DataCube will attempt to extract the WCS
+            from the header attribute.
+
+        Returns
+        –––––––
+        None
+        '''
+        data = self.data if data is None else data
+        header = self.header if header is None else header
+        error = self.error if error is None else error
+        wcs = self.wcs if wcs is None else wcs
+
+        self._initialize(data, header, error, wcs)
+
+        return None
+
+    def with_mask(self, mask):
+        '''
+        Apply a boolean mask to the cube and return the masked data.
+        Parameters
+        ––––––––––
+        mask : np.ndarray or Mask
+            Boolean mask to apply. Must match the cube shape.
+        Returns
+        –––––––
+        masked_data : same type as `data`
+            Masked version of the data.
+        Raises
+        ––––––
+        TypeError
+            If masking is unsupported for the data type.
+        '''
+        if isinstance(self.data, SpectralCube):
+            return self.data.with_mask(mask) # type: ignore
+        elif isinstance(self.data, (np.ndarray, Quantity)):
+            return self.data[mask]
+        else:
+            raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
+
+    def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
+        '''
+        Convert the spectral axis of the DataCube to a new unit.
+
+        Parameters
+        ––––––––––
+        unit : str or astropy.units.Unit
+            Target spectral unit.
+        velocity_convention : str, optional
+            'radio', 'optical', 'relativistic', etc.
+        rest_value : Quantity, optional
+            Rest frequency/wavelength for Doppler conversion.
+
+        Returns
+        –––––––
+        DataCube
+            New cube with converted spectral axis.
+        '''
+
+        unit = Unit(unit)
+
+        if not isinstance(self.data, SpectralCube):
+            raise TypeError(
+                "with_spectral_unit() can only be used when DataCube.data "
+                "is a SpectralCube. For unit conversion of flux values, "
+                "use .to()."
+            )
+        # convert spectral axis
+        try:
+            new_data = self.data.with_spectral_unit(
+                unit,
+                velocity_convention=velocity_convention,
+                rest_value=rest_value
+            )
+        except Exception as e:
+            raise TypeError(f'Spectral axis conversion failed: {e}')
+
+        return DataCube(
+            data=new_data,
+            header=self.header,
+            error=self.error,
+            wcs=self.wcs
+        )
+
+    # Array Interface
+    # –––––––––––––––
+    def __array__(self):
+        '''
+        Return the underlying data as a NumPy array.
+        Returns
+        –––––––
+        np.ndarray
+            The underlying 3D array representation.
+        '''
+        return self.value
+
+    def __getitem__(self, key):
+        '''
+        Return a slice or sub-cube from the data.
+
+        Parameters
+        ––––––––––
+        key : slice or tuple
+            Index or slice to apply to the cube.
+
+        Returns
+        –––––––
+        slice : same type as `data`
+            The corresponding subset of the cube.
+        '''
+        return self.data[key]
+
+    def __len__(self):
+        '''
+        Return the number of spectral slices along the first axis.
+        Returns
+        –––––––
+        int
+            Length of the first dimension (T).
+        '''
+        return len(self.value)
+
+    def reshape(self, *shape):
+        '''
+        Return a reshaped view of the cube data.
+        Parameters
+        ––––––––––
+        *shape : int
+            New shape for the data array.
+        Returns
+        –––––––
+        np.ndarray
+            Reshaped data array.
+        '''
+        return self.value.reshape(*shape)
 
     def __repr__(self):
         '''
