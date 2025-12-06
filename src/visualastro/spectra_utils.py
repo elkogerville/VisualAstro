@@ -25,7 +25,7 @@ from dust_extinction.grain_models import WD01
 import numpy as np
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from .numerical_utils import mask_within_range, return_array_values
-from .visual_classes import ExtractedSpectrum
+from .ExtractedSpectrum import ExtractedSpectrum
 from .va_config import get_config_value
 
 

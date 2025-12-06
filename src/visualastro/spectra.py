@@ -41,7 +41,7 @@ from .spectra_utils import (
     get_config_value
 )
 from .va_config import get_config_value, va_config, _default_flag
-from .visual_classes import ExtractedSpectrum
+from .ExtractedSpectrum import ExtractedSpectrum
 
 
 # Spectra Extraction Functions

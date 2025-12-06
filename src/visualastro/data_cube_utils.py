@@ -20,7 +20,8 @@ from astropy.units import Quantity
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from .numerical_utils import get_data, get_units
-from .visual_classes import DataCube, FitsFile
+from .DataCube import DataCube
+from .FitsFile import FitsFile
 
 
 # Cube Manipulation Functions
