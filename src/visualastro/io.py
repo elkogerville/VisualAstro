@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from .numerical_utils import check_is_array, reproject_wcs
-from .visual_classes import FitsFile
+from .FitsFile import FitsFile
 from .va_config import get_config_value, va_config, _default_flag
 
 

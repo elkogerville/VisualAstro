@@ -38,7 +38,7 @@ from .plot_utils import (
     return_imshow_norm, set_vmin_vmax
 )
 from .va_config import get_config_value, va_config, _default_flag
-from .visual_classes import DataCube
+from .DataCube import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 

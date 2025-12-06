@@ -30,8 +30,10 @@ from reproject import reproject_interp, reproject_exact
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
-from .visual_classes import DataCube, ExtractedSpectrum, FitsFile, va_config
-from .va_config import get_config_value, _default_flag
+from .DataCube import DataCube
+from .ExtractedSpectrum import ExtractedSpectrum
+from .FitsFile import FitsFile
+from .va_config import get_config_value, va_config, _default_flag
 
 
 # Type Checking Arrays and Objects
