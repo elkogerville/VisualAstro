@@ -18,6 +18,7 @@ import warnings
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
+from matplotlib.artist import get
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
@@ -117,7 +118,9 @@ class DataCube:
         self._initialize(data, header, error, wcs)
 
     def _initialize(self, data, header, error, wcs):
-
+        '''
+        Helper method to initialize the class.
+        '''
         # type checks
         if not isinstance(data, (np.ndarray, Quantity, SpectralCube)):
             raise TypeError(
@@ -173,12 +176,35 @@ class DataCube:
         else:
             primary_hdr = header
 
-        # try extracting unit from headers if not found earlier
-        if unit is None and isinstance(primary_hdr, Header):
-            try:
-                unit = Unit(primary_hdr['BUNIT'])
-            except (ValueError, KeyError) as e:
-                pass
+        # try extracting unit from headers
+        if isinstance(primary_hdr, Header):
+            if 'BUNIT' in primary_hdr:
+                BUNIT = primary_hdr['BUNIT']
+                try:
+                    hdr_unit = Unit(BUNIT)
+                except ValueError:
+                    hdr_unit = None
+                if unit is not None and hdr_unit is not None:
+                    if unit != hdr_unit:
+                        raise ValueError(
+                            'Unit extracted from header does not match '
+                            'unit attatched to the data!'
+                            f'Data unit: {unit}, Header unit: {hdr_unit}'
+                        )
+                unit = hdr_unit if unit is None else unit
+
+        # attatch units to data if is bare numpy array
+        if not isinstance(data, (Quantity, SpectralCube)):
+            data_unit = getattr(data, 'unit', None)
+            if data_unit is None and unit is not None:
+                data = array * unit
+
+        # validate error units
+        if error is not None and hasattr(error, 'unit') and unit is not None:
+            if error.unit != unit:
+                raise ValueError (
+                    f'Error units ({error.unit}) differ from data units ({unit})'
+                )
 
         # try extracting WCS from headers
         if wcs is None:
@@ -198,23 +224,6 @@ class DataCube:
                         wcs.append(WCS(h))
                     except Exception:
                         wcs.append(None)
-
-        # ensure that units are consistent
-        if hasattr(data, 'unit'):
-            if unit is not None and data.unit != unit:
-                raise ValueError(
-                    f'Unit mismatch: data={data.unit}, header={unit}'
-                )
-        elif unit is not None:
-            data = array * unit
-
-        # validate error units
-        if error is not None and hasattr(error, 'unit') and unit is not None:
-            if error.unit != unit:
-                warnings.warn(
-                    f'Error units ({error.unit}) differ from data units ({unit})',
-                    UserWarning
-                )
 
         # assign attributes
         self.data = data
