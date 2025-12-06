@@ -86,8 +86,6 @@ class DataCube:
         Number of dimensions.
     dtype : np.dtype
         Data type of the array.
-    len : int
-        Length of the first axis (T dimension).
     has_nan : bool
         True if any element in the cube is NaN.
     itemsize : int
@@ -97,7 +95,23 @@ class DataCube:
 
     Methods
     –––––––
+    header_get
+    inspect
+    to
+    update
+    with_mask
+    with_spectral_unit
 
+    Array Interface
+    –––––––––––––––
+    __array__
+        Return the underlying data as a Numpy array.
+    __get_item__
+        Return a slice of the data.
+    __len__()
+        Return the length of the first axis.
+    reshape(*shape)
+        Return a reshaped view of the data.
 
     Raises
     ––––––
@@ -169,7 +183,7 @@ class DataCube:
             if array.shape[0] != len(header):
                 raise ValueError(
                     f'Mismatch between T dimension and number of header: '
-                    f'T={array.shape}, header={len(header)}.'
+                    f'T={array.shape[0]}, header={len(header)}.'
                 )
             primary_hdr = header[0]
         else:
@@ -179,10 +193,12 @@ class DataCube:
         if isinstance(primary_hdr, Header):
             if 'BUNIT' in primary_hdr:
                 BUNIT = primary_hdr['BUNIT']
+
                 try:
                     hdr_unit = Unit(BUNIT)
                 except ValueError:
                     hdr_unit = None
+
                 if unit is not None and hdr_unit is not None:
                     if unit != hdr_unit:
                         raise ValueError(
@@ -190,6 +206,7 @@ class DataCube:
                             'unit attatched to the data!'
                             f'Data unit: {unit}, Header unit: {hdr_unit}'
                         )
+
                 unit = hdr_unit if unit is None else unit
 
         # attatch units to data if is bare numpy array
