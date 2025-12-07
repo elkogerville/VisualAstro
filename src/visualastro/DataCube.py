@@ -34,12 +34,12 @@ class DataCube:
 
     Parameters
     ––––––––––
-    data : np.ndarray or SpectralCube
+    data : np.ndarray, Quantity, or SpectralCube
         The input data cube. Must be 3-dimensional (T, N, M).
     header : fits.Header, array-like of fits.Header, or None, optional, default=None
         Header(s) associated with the data cube. If provided as a list or array,
         its length must match the cube’s first dimension.
-    error : np.ndarray or None, optional, default=None
+    error : np.ndarray, Quantity, or None, optional, default=None
         Array of uncertainties with the same shape as `data`.
     wcs : astropy.wcs.wcs.WCS, array-like of astropy.wcs.wcs.WCS, or None, optional, default=None
         WCS information associated with the data extension.
@@ -50,16 +50,19 @@ class DataCube:
 
     Attributes
     ––––––––––
-    data : np.ndarray or SpectralCube
+    data : np.ndarray, Quantity, or SpectralCube
         Original data object.
     primary_header : fits.Header
         Primary header for the DataCube. Cube-level operations
-        (e.g., unit conversions) add `HISTORY` entries here.
-        For time series data with multiple headers, this
-        references `header[0]`.
+        (e.g., unit conversions) add `HISTORY` entries here. For
+        time series data with multiple headers, this references
+        `header[0]`. If no header, is a blank header for logging
+        purposes. Otherwise points to `header`.
     header : array-like of fits.Header or fits.Header
         Header(s) associated with the data cube.
-    error : np.ndarray or None
+        If no header(s) are passed in, an empty
+        `Header` is created for log purposes.
+    error : np.ndarray, Quantity, or None
         Error array if provided, else None.
     value : np.ndarray
         Raw numpy array of the cube values.
