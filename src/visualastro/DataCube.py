@@ -14,6 +14,7 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 '''
 
+from datetime import datetime
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
@@ -92,6 +93,8 @@ class DataCube:
         Size of one array element in bytes.
     nbytes : int
         Total memory footprint of the data in bytes.
+    log : str
+
 
     Methods
     –––––––
@@ -368,6 +371,19 @@ class DataCube:
         int : Total number of bytes used by the data array.
         '''
         return self.value.nbytes
+    @property
+    def log(self):
+        '''
+        Get the processing history from the FITS HISTORY cards.
+
+        Returns
+        –––––––
+        list of str or None
+            List of HISTORY entries, or None if no header exists.
+        '''
+        if self.header is not None and 'HISTORY' in self.header:
+            return list(self.header['HISTORY'])
+        return None
 
     # Methods
     # –––––––
@@ -487,17 +503,28 @@ class DataCube:
         else:
             new_error = None
 
+        # update BUNIT if header exists
+        if self.header is not None:
+            new_hdr = self.header.copy() # type: ignore
+            new_hdr['BUNIT'] = unit.to_string() # type: ignore
+        else:
+            new_hdr = None
+
         return DataCube(
             data=new_data,
-            header=self.header,
+            header=new_hdr,
             error=new_error,
             wcs=self.wcs
         )
 
     def update(self, data=None, header=None, error=None, wcs=None):
         '''
-        Update any of the DataCube attributes. All internally stored
-        values are recomputed.
+        Update any of the DataCube attributes in place. All internally
+        stored values are recomputed.
+
+        If data has units and header has BUNIT, BUNIT will be automatically
+        updated to match the data units.
+
         Parameters
         ––––––––––
         data : array-like or `~astropy.units.Quantity`
@@ -521,6 +548,20 @@ class DataCube:
         header = self.header if header is None else header
         error = self.error if error is None else error
         wcs = self.wcs if wcs is None else wcs
+
+        # update header BUNIT
+        if header is not None and hasattr(data, 'unit'):
+            if 'BUNIT' in header:
+                hdr_unit = header['BUNIT'] # type: ignore
+                data_unit = data.unit # type: ignore
+
+                # update BUNIT in header
+                if hdr_unit != data_unit:
+                    header['BUNIT'] = data_unit.to_string() # type: ignore
+                    # add log
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    log = f'{timestamp} Updated BUNIT: {hdr_unit} -> {data_unit}'
+                    header['HISTORY'] = log # type: ignore
 
         self._initialize(data, header, error, wcs)
 
