@@ -698,6 +698,18 @@ class DataCube:
         '''
         return self.value.reshape(*shape)
 
+    def _log_history(self, message):
+        '''
+        Add `HISTORY` entry to primary header.
+        Parameters
+        ––––––––––
+        message : str
+        '''
+        timestamp = Time.now().isot
+        log = f'{timestamp} {message}'
+
+        self.primary_header.add_history(log) # type: ignore
+
     def __repr__(self):
         '''
         Returns
