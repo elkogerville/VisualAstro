@@ -14,8 +14,8 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 '''
 
-from datetime import datetime
 from astropy.io.fits import Header
+from astropy.time import Time
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
 from matplotlib.artist import get
@@ -52,6 +52,11 @@ class DataCube:
     ––––––––––
     data : np.ndarray or SpectralCube
         Original data object.
+    primary_header : fits.Header
+        Primary header for the DataCube. Cube-level operations
+        (e.g., unit conversions) add `HISTORY` entries here.
+        For time series data with multiple headers, this
+        references `header[0]`.
     header : array-like of fits.Header or fits.Header
         Header(s) associated with the data cube.
     error : np.ndarray or None
@@ -93,8 +98,8 @@ class DataCube:
         Size of one array element in bytes.
     nbytes : int
         Total memory footprint of the data in bytes.
-    log : str
-
+    log : list of str
+        List of each log output in primary_header['HISTORY']
 
     Methods
     –––––––
@@ -185,12 +190,12 @@ class DataCube:
                 )
             if array.shape[0] != len(header):
                 raise ValueError(
-                    f'Mismatch between T dimension and number of header: '
+                    f'Mismatch between T dimension and number of headers: '
                     f'T={array.shape[0]}, header={len(header)}.'
                 )
             primary_hdr = header[0]
         else:
-            primary_hdr = header
+            primary_hdr = Header() if header is None else header
 
         # try extracting unit from headers
         if isinstance(primary_hdr, Header):
