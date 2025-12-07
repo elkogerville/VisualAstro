@@ -155,10 +155,10 @@ class DataCube:
         # extract array view for validation
         if isinstance(data, SpectralCube):
             array = data.unmasked_data[:].value
-            unit = data.unit
+            unit = Unit(data.unit)
         elif isinstance(data, Quantity):
             array = data.value
-            unit = data.unit
+            unit = Unit(data.unit)
         else:
             array = np.asarray(data)
             unit = None
@@ -198,7 +198,11 @@ class DataCube:
                 )
             primary_hdr = header[0]
         else:
-            primary_hdr = Header() if header is None else header
+            if header is None:
+                primary_hdr = Header()
+                header = primary_hdr
+            else:
+                primary_hdr = header
 
         # try extracting unit from headers
         if isinstance(primary_hdr, Header):
