@@ -142,9 +142,9 @@ def load_fits(filepath, header=True, error=True,
         # extract data and optionally the header from the file
         # if header is not requested, return None
         for hdu in hdul:
-            if hdu.data is not None:
-                data = hdu.data
-                fits_header = hdu.header if header else None
+            if hdu.data is not None: # type: ignore
+                data = hdu.data # type: ignore
+                fits_header = hdu.header if header else None # type: ignore
                 break
         if data is None:
             raise ValueError(
@@ -305,6 +305,7 @@ def get_errors(hdul, dtype=None, transpose=False):
 def write_cube_2_fits(cube, filename, overwrite=False):
     '''
     Write a 3D data cube to a series of FITS files.
+
     Parameters
     ––––––––––
     cube : ndarray (N_frames, N, M)
@@ -315,6 +316,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     overwrite : bool, optional, default=False
         If True, existing files with the same name
         will be overwritten.
+
     Notes
     –––––
     Prints a message indicating the number of
@@ -332,6 +334,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
 def get_kwargs(kwargs, *names, default=None):
     '''
     Return the first matching kwarg value from a list of possible names.
+
     Parameters
     ––––––––––
     kwargs : dict
@@ -342,6 +345,7 @@ def get_kwargs(kwargs, *names, default=None):
     default : any, optional, default=None
         Value to return if none of the provided names are found in ``kwargs``.
         Default is None.
+
     Returns
     –––––––
     value : any
@@ -351,6 +355,7 @@ def get_kwargs(kwargs, *names, default=None):
     for name in names:
         if name in kwargs and kwargs[name] is not None:
             return kwargs[name]
+
     return default
 
 
@@ -365,6 +370,7 @@ def save_figure_2_disk(
     Saves current figure to disk as a
     eps, pdf, png, or svg, and prompts
     user for a filename and format.
+
     Parameters
     ––––––––––
     dpi : float, int, or None, optional, default=None

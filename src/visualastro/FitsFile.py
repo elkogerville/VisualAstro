@@ -163,6 +163,7 @@ class FitsFile:
         self.value = np.asarray(data)
         self.unit = unit
         self.wcs = wcs
+        self.footprint = None
 
     # Properties
     # ––––––––––
