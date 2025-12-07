@@ -215,7 +215,7 @@ class DataCube:
                             'not match unit attached to the data!'
                             f'Data unit: {unit}, Header unit: {hdr_unit}'
                         )
-                # use BUNIT it unit is None and log
+                # use BUNIT if unit is None, and log
                 if unit is None and hdr_unit is not None:
                     unit = hdr_unit
 
@@ -393,8 +393,8 @@ class DataCube:
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
-        if self.header is not None and 'HISTORY' in self.header:
-            return list(self.header['HISTORY'])
+        if self.primary_header is not None and 'HISTORY' in self.primary_header:
+            return list(self.primary_header['HISTORY']) # type: ignore
         return None
 
     # Methods
