@@ -203,19 +203,25 @@ class DataCube:
                 BUNIT = primary_hdr['BUNIT']
 
                 try:
-                    hdr_unit = Unit(BUNIT)
+                    hdr_unit = Unit(BUNIT) # type: ignore
                 except ValueError:
                     hdr_unit = None
 
+                # check that both units are equal
                 if unit is not None and hdr_unit is not None:
                     if unit != hdr_unit:
                         raise ValueError(
-                            'Unit extracted from header does not match '
-                            'unit attatched to the data!'
+                            'Unit extracted from primary header does '
+                            'not match unit attached to the data!'
                             f'Data unit: {unit}, Header unit: {hdr_unit}'
                         )
+                # use BUNIT it unit is None and log
+                if unit is None and hdr_unit is not None:
+                    unit = hdr_unit
 
-                unit = hdr_unit if unit is None else unit
+                    timestamp = Time.now().isot
+                    log = f'{timestamp} Assigned unit from BUNIT: {hdr_unit}'
+                    primary_hdr.add_history(log) # type: ignore
 
         # attatch units to data if is bare numpy array
         if not isinstance(data, (Quantity, SpectralCube)):
@@ -251,6 +257,7 @@ class DataCube:
 
         # assign attributes
         self.data = data
+        self.primary_header = primary_hdr
         self.header = header
         self.error = error
         self.value = array
