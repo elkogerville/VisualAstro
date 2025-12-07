@@ -155,10 +155,10 @@ class DataCube:
         # extract array view for validation
         if isinstance(data, SpectralCube):
             array = data.unmasked_data[:].value
-            unit = Unit(data.unit)
+            unit = Unit(data.unit) # type: ignore
         elif isinstance(data, Quantity):
             array = data.value
-            unit = Unit(data.unit)
+            unit = Unit(data.unit) # type: ignore
         else:
             array = np.asarray(data)
             unit = None
@@ -235,7 +235,7 @@ class DataCube:
                 timestamp = Time.now().isot
 
                 if isinstance(header, Header):
-                    header['BUNIT'] = unit.to_string()
+                    header['BUNIT'] = unit.to_string() # type: ignore
                     # add log
                     primary_hdr.add_history(
                         f'{timestamp} Added missing BUNIT={unit}'
@@ -243,10 +243,10 @@ class DataCube:
 
                 elif isinstance(header, (list, tuple, np.ndarray)):
                     for hdr in header:
-                        hdr['BUNIT'] = unit.to_string()
+                        hdr['BUNIT'] = unit.to_string() # type: ignore
                     # add log
                     primary_hdr.add_history(
-                        f'{timestamp} Added missing BUNIT={unit} to all slices'
+                        f'{timestamp} Added missing BUNIT={unit} to all header slices'
                     )
 
         # attatch units to data if is bare numpy array
