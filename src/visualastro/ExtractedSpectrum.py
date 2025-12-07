@@ -15,10 +15,8 @@ Module Structure:
         Utility functions for ExtractedSpectrum methods.
 '''
 
-import warnings
 from astropy.units import Quantity, UnitsError
 import numpy as np
-from specutils.fitting import fit_generic_continuum, fit_continuum
 from specutils.spectra import Spectrum1D
 from .va_config import get_config_value
 
