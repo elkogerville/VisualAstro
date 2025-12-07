@@ -741,17 +741,60 @@ class DataCube:
         '''
         return self.value.reshape(*shape)
 
-    def _log_history(self, message):
+    def _log_history(self, header, message):
         '''
         Add `HISTORY` entry to primary header.
+        The primary header points to either
+        header or header[0] (if header is a list).
+
         Parameters
         ––––––––––
+        header : astropy.Header
         message : str
         '''
         timestamp = Time.now().isot
         log = f'{timestamp} {message}'
 
-        self.primary_header.add_history(log) # type: ignore
+        header.add_history(log)
+
+    def _update_BUNIT(self, unit):
+        '''
+        Update BUNIT in header(s) and log the conversion.
+
+        Parameters
+        ––––––––––
+        unit : astropy.units.Unit
+            New unit to set in BUNIT.
+
+        Returns
+        –––––––
+        fits.Header or list of fits.Header or None
+            Updated header(s) with new BUNIT and history entry.
+            '''
+        unit_str = unit.to_string()
+
+        if isinstance(self.header, Header):
+            # update header BUNIT
+            old_unit = self.header.get('BUNIT', 'unknown')
+            new_hdr = self.header.copy()
+            new_hdr['BUNIT'] = unit_str
+            # add log
+            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit_str}')
+
+        # case 2: header is list of Headers
+        elif isinstance(self.header, (list, np.ndarray, tuple)):
+            old_unit = self.primary_header.get('BUNIT', 'None')
+            new_hdr = [hdr.copy() for hdr in self.header]
+
+            for hdr in new_hdr:
+                hdr['BUNIT'] = unit_str
+            # add log
+            self._log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit_str}')
+
+        else:
+            new_hdr = None
+
+        return new_hdr
 
     def __repr__(self):
         '''
