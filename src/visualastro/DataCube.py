@@ -655,6 +655,10 @@ class DataCube:
                 "is a SpectralCube. For unit conversion of flux values, "
                 "use .to()."
             )
+        # get unit strings
+        old_unit = self.data.spectral_axis.unit.to_string()
+        unit_str = unit.to_string()
+
         # convert spectral axis
         try:
             new_data = self.data.with_spectral_unit(
@@ -665,11 +669,24 @@ class DataCube:
         except Exception as e:
             raise TypeError(f'Spectral axis conversion failed: {e}')
 
+        if isinstance(self.header, Header):
+            new_hdr = self.header.copy()
+            self._log_history(
+                new_hdr, f'Converted spectral axis: {old_unit} -> {unit_str}'
+            )
+        elif isinstance(self.header, (list, np.ndarray, tuple)):
+            new_hdr = [hdr.copy() for hdr in self.header]
+            self._log_history(
+                new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit_str}'
+            )
+        else:
+            new_hdr = None
+
         return DataCube(
             data=new_data,
-            header=self.header,
+            header=new_hdr,
             error=self.error,
-            wcs=self.wcs
+            wcs=new_data.wcs
         )
 
     # Array Interface
