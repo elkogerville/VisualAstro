@@ -289,6 +289,7 @@ def get_errors(hdul, dtype=None, transpose=False):
                 try:
                     var_unit = u.Unit(hdu.header.get('BUNIT'))
                     error_unit = var_unit**0.5
+                    errors *= error_unit
                 except Exception:
                     warnings.warn(
                         'Variance extension has invalid BUNIT; returning errors without units.'
