@@ -222,19 +222,42 @@ class DataCube:
                             'not match unit attached to the data!'
                             f'Data unit: {unit}, Header unit: {hdr_unit}'
                         )
-                # use BUNIT if unit is None, and log
+                # use BUNIT if unit is None
                 if unit is None and hdr_unit is not None:
                     unit = hdr_unit
-
+                    # add log
                     timestamp = Time.now().isot
                     log = f'{timestamp} Assigned unit from BUNIT: {hdr_unit}'
                     primary_hdr.add_history(log) # type: ignore
 
+            # add BUNIT to header(s) if not there
+            if unit is not None and 'BUNIT' not in primary_hdr:
+                timestamp = Time.now().isot
+
+                if isinstance(header, Header):
+                    header['BUNIT'] = unit.to_string()
+                    # add log
+                    primary_hdr.add_history(
+                        f'{timestamp} Added missing BUNIT={unit}'
+                    )
+
+                elif isinstance(header, (list, tuple, np.ndarray)):
+                    for hdr in header:
+                        hdr['BUNIT'] = unit.to_string()
+                    # add log
+                    primary_hdr.add_history(
+                        f'{timestamp} Added missing BUNIT={unit} to all slices'
+                    )
+
         # attatch units to data if is bare numpy array
         if not isinstance(data, (Quantity, SpectralCube)):
-            data_unit = getattr(data, 'unit', None)
-            if data_unit is None and unit is not None:
+            if unit is not None:
                 data = array * unit
+                # add log
+                timestamp = Time.now().isot
+                primary_hdr.add_history(
+                    f'{timestamp} Attached unit to data: unit={unit}'
+                )
 
         # validate error units
         if error is not None and hasattr(error, 'unit') and unit is not None:
