@@ -417,7 +417,6 @@ class DataCube:
     def log(self):
         '''
         Get the processing history from the FITS HISTORY cards.
-
         Returns
         –––––––
         list of str or None
@@ -518,6 +517,7 @@ class DataCube:
         '''
         # convert unit to astropy unit
         unit = Unit(unit)
+
         # check that data has a unit
         if not isinstance(self.data, (Quantity, SpectralCube)):
             raise TypeError(
@@ -546,11 +546,7 @@ class DataCube:
             new_error = None
 
         # update BUNIT if header exists
-        if self.header is not None:
-            new_hdr = self.header.copy() # type: ignore
-            new_hdr['BUNIT'] = unit.to_string() # type: ignore
-        else:
-            new_hdr = None
+        new_hdr = self._update_BUNIT(unit)
 
         return DataCube(
             data=new_data,
