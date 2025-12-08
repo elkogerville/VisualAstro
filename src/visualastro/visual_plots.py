@@ -1312,7 +1312,7 @@ class va:
             '''
             style = return_stylename('astro')
             # visualastro default color schemes
-            color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r']
+            color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r', 'smplot']
             if user_color is None:
                 print(
                     'Visualastro includes many built-in color palettes.\n'
@@ -1321,7 +1321,7 @@ class va:
                 )
                 with plt.style.context(style):
                     fig, ax = plt.subplots(figsize=(8, len(color_map)))
-                    ax.axis("off")
+                    ax.axis('off')
                     print('Default VisualAstro color palettes:')
                     # loop through color schemes
                     for i, color in enumerate(color_map):
@@ -1402,7 +1402,7 @@ class va:
             Display a matplotlib or visualastro plotting style:
             >>> va.help.styles('classic')
             '''
-            style_names = ['astro', 'latex', 'minimal', 'default'] if style_name is None else [style_name]
+            style_names = ['astro', 'latex', 'minimal', 'default', 'smplot'] if style_name is None else [style_name]
             colors = ['darkslateblue', 'slateblue', 'palevioletred', '#D81B60']
             print(
                 'Here are sample plot made with the available visualastro plot styles. '
@@ -1417,9 +1417,11 @@ class va:
 
                     x = np.logspace(1, 9, 100)
                     y = (0.8 + 0.4 * np.random.uniform(size=100)) * np.log10(x)**2
-                    ax.scatter(x, y, color=colors[i%len(colors)], s=8)
+                    ax.scatter(x, y, color=colors[i%len(colors)], s=8, label=r'${\lambda}$')
 
-                    ax.set_xlabel('Frequency [Hz]')
+                    ax.set_xlabel(r'Wavelength [$\mu m$]')
                     ax.set_ylabel('Counts')
+
+                    ax.legend(loc='upper left')
 
                     plt.show()
