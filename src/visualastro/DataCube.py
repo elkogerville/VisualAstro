@@ -17,7 +17,7 @@ Module Structure:
 import copy
 from astropy.io.fits import Header
 from astropy.time import Time
-from astropy.units import Quantity, Unit
+from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
@@ -219,50 +219,43 @@ class DataCube:
             else:
                 primary_hdr = header
 
-        # try extracting unit from headers
-        if isinstance(primary_hdr, Header):
-            if 'BUNIT' in primary_hdr:
-                BUNIT = primary_hdr['BUNIT']
+        # ensure that units are consistent across all headers
+        hdr_unit = self._validate_units(header)
 
-                try:
-                    hdr_unit = Unit(BUNIT) # type: ignore
-                except ValueError:
-                    hdr_unit = None
+        # check that both units are equal
+        if unit is not None and hdr_unit is not None:
+            if unit != hdr_unit:
+                raise ValueError(
+                    'Unit extracted from primary header does '
+                    'not match unit attached to the data!'
+                    f'Data unit: {unit}, Header unit: {hdr_unit}'
+                )
+        # use BUNIT if unit is None
+        if unit is None and hdr_unit is not None:
+            unit = hdr_unit
+            # add log
+            timestamp = Time.now().isot
+            log = f'{timestamp} Assigned unit from BUNIT: {hdr_unit}'
+            primary_hdr.add_history(log) # type: ignore
 
-                # check that both units are equal
-                if unit is not None and hdr_unit is not None:
-                    if unit != hdr_unit:
-                        raise ValueError(
-                            'Unit extracted from primary header does '
-                            'not match unit attached to the data!'
-                            f'Data unit: {unit}, Header unit: {hdr_unit}'
-                        )
-                # use BUNIT if unit is None
-                if unit is None and hdr_unit is not None:
-                    unit = hdr_unit
-                    # add log
-                    timestamp = Time.now().isot
-                    log = f'{timestamp} Assigned unit from BUNIT: {hdr_unit}'
-                    primary_hdr.add_history(log) # type: ignore
+        # add BUNIT to header(s) if not there
+        if unit is not None and 'BUNIT' not in primary_hdr:
+            timestamp = Time.now().isot
 
-            # add BUNIT to header(s) if not there
-            if unit is not None and 'BUNIT' not in primary_hdr:
-                timestamp = Time.now().isot
+            if isinstance(header, Header):
+                header['BUNIT'] = unit.to_string() # type: ignore
+                # add log
+                primary_hdr.add_history(
+                    f'{timestamp} Added missing BUNIT={unit}'
+                )
 
-                if isinstance(header, Header):
-                    header['BUNIT'] = unit.to_string() # type: ignore
-                    # add log
-                    primary_hdr.add_history(
-                        f'{timestamp} Added missing BUNIT={unit}'
-                    )
-
-                elif isinstance(header, (list, tuple, np.ndarray)):
-                    for hdr in header:
-                        hdr['BUNIT'] = unit.to_string() # type: ignore
-                    # add log
-                    primary_hdr.add_history(
-                        f'{timestamp} Added missing BUNIT={unit} to all header slices'
-                    )
+            elif isinstance(header, (list, tuple, np.ndarray)):
+                for hdr in header:
+                    hdr['BUNIT'] = unit.to_string() # type: ignore
+                # add log
+                primary_hdr.add_history(
+                    f'{timestamp} Added missing BUNIT={unit} to all header slices'
+                )
 
         # attatch units to data if is bare numpy array
         if not isinstance(data, (Quantity, SpectralCube)):
@@ -501,7 +494,7 @@ class DataCube:
         T = np.arange(mean_flux.shape[0])
         style = return_stylename(style)
         with plt.style.context(style):
-            fig, ax = plt.subplots(figsize=figsize)
+            _, ax = plt.subplots(figsize=figsize)
 
             ax.plot(T, mean_flux, c='darkslateblue', label='Mean')
             ax.plot(T, std_flux, c='#D81B60', ls='--', label='Std Dev')
@@ -861,6 +854,45 @@ class DataCube:
             new_hdr = None
 
         return new_hdr
+
+    def _validate_units(self, header):
+        '''
+        Validate that the units match between a list of headers.
+
+        Parameters
+        ––––––––––
+        header : array-like of Header or Header
+            A list or array-like of Headers with or without 'BUNIT'.
+
+        Returns
+        –––––––
+        None : if no units are present.
+        Astropy Unit : If units are present and are consistent.
+
+        Raises
+        ––––––
+        ValueError : If units exist and do not match.
+        '''
+        if isinstance(header, Header):
+            header = [header]
+
+        units = set()
+        for i, hdr in enumerate(header):
+            if 'BUNIT' in hdr:
+                try:
+                    units.add(Unit(hdr['BUNIT'])) # type: ignore
+                except Exception:
+                    raise UnitsError(
+                        f"Invalid BUNIT in header: {hdr['BUNIT']} "
+                        f'at index: {i}'
+                    )
+        if len(units) > 1:
+            raise UnitsError(
+                f'Inconsistent units in header list: {units}'
+            )
+
+        # return either single unit or None
+        return next(iter(units), None)
 
     def __repr__(self):
         '''
