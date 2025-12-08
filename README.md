@@ -50,3 +50,21 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 astropy, matplotlib, scipy, numba, regions, reproject, spectral-cube, specutils, and tqdm.
+
+
+## Credits
+
+### Fonts
+VisualAstro includes Hershey-style TrueType fonts from the smplotlib project
+by Jiaxuan Li, used under the MIT License. Citation:
+
+@software{jiaxuan_li_2023_8126529,
+  author       = {Jiaxuan Li},
+  title        = {AstroJacobLi/smplotlib: v0.0.9},
+  month        = jul,
+  year         = 2023,
+  publisher    = {Zenodo},
+  version      = {v0.0.9},
+  doi          = {10.5281/zenodo.8126529},
+  url          = {https://doi.org/10.5281/zenodo.8126529},
+}
