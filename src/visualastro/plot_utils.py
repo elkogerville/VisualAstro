@@ -198,6 +198,10 @@ def set_plot_colors(user_colors=None, cmap=None):
         'ibm': {
             'plot':  ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
             'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#E45756']
+        },
+        'smplot': {
+            'plot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00'],
+            'model': ['#808080', '#FF6B6B', '#6B6BFF', '#6BFF6B', '#6BFFFF', '#FF6BFF', '#FFFF6B']
         }
     }
     # get default va_config values
