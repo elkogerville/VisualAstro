@@ -605,24 +605,42 @@ class DataCube:
         –––––––
         None
         '''
+        # get existing values if not passed in
         data = self.data if data is None else data
-        header = self.header if header is None else header
         error = self.error if error is None else error
         wcs = self.wcs if wcs is None else wcs
 
-        # update header BUNIT
-        if header is not None and hasattr(data, 'unit'):
-            if 'BUNIT' in header:
-                hdr_unit = header['BUNIT'] # type: ignore
-                data_unit = data.unit # type: ignore
+        # get unit
+        unit = getattr(data, 'unit', None)
+        if unit is not None:
+            unit = Unit(unit)
 
-                # update BUNIT in header
-                if hdr_unit != data_unit:
-                    header['BUNIT'] = data_unit.to_string() # type: ignore
-                    # add log
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    log = f'{timestamp} Updated BUNIT: {hdr_unit} -> {data_unit}'
-                    header['HISTORY'] = log # type: ignore
+        # if user did not provide a header ensure that BUNIT is updated
+        if header is None:
+            if unit is not None and self.header is not None:
+                # case 1: header is a single Header
+                if isinstance(self.header, Header):
+                    hdr_unit = self.header.get('BUNIT', None)
+                    hdr_unit = None if hdr_unit is None else Unit(hdr_unit) # type: ignore
+
+                    if hdr_unit is None or hdr_unit != unit:
+                        self.header['BUNIT'] = unit.to_string()
+                        self._log_history(
+                            self.header,
+                            f'Updated BUNIT: {hdr_unit} -> {unit}'
+                        )
+                # case 2: header is a list of headers
+                else:
+                    hdr_unit = self._validate_units(self.header)
+
+                    if hdr_unit is None or hdr_unit != unit:
+                        for hdr in self.header:
+                            hdr['BUNIT'] = unit.to_string()
+                        self._log_history(
+                            self.header[0],
+                            f'Updated BUNIT: {hdr_unit} -> {unit}'
+                        )
+            header = self.header
 
         self._initialize(data, header, error, wcs)
 
@@ -723,8 +741,7 @@ class DataCube:
                 "use .to()."
             )
         # get unit strings
-        old_unit = self.data.spectral_axis.unit.to_string()
-        unit_str = unit.to_string()
+        old_unit = self.data.spectral_axis.unit
 
         # convert spectral axis
         try:
@@ -739,12 +756,12 @@ class DataCube:
         if isinstance(self.header, Header):
             new_hdr = self.header.copy()
             self._log_history(
-                new_hdr, f'Converted spectral axis: {old_unit} -> {unit_str}'
+                new_hdr, f'Converted spectral axis: {old_unit} -> {unit}'
             )
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             new_hdr = [hdr.copy() for hdr in self.header]
             self._log_history(
-                new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit_str}'
+                new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit}'
             )
         else:
             new_hdr = None
@@ -840,15 +857,16 @@ class DataCube:
         fits.Header or list of fits.Header or None
             Updated header(s) with new BUNIT and history entry.
             '''
-        unit_str = unit.to_string()
+        if unit is not None:
+            unit = Unit(unit)
 
         if isinstance(self.header, Header):
             # update header BUNIT
             old_unit = self.header.get('BUNIT', 'unknown')
             new_hdr = self.header.copy()
-            new_hdr['BUNIT'] = unit_str
+            new_hdr['BUNIT'] = unit.to_string()
             # add log
-            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit_str}')
+            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
 
         # case 2: header is list of Headers
         elif isinstance(self.header, (list, np.ndarray, tuple)):
@@ -856,9 +874,9 @@ class DataCube:
             new_hdr = [hdr.copy() for hdr in self.header]
 
             for hdr in new_hdr:
-                hdr['BUNIT'] = unit_str
+                hdr['BUNIT'] = unit.to_string()
             # add log
-            self._log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit_str}')
+            self._log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit}')
 
         else:
             new_hdr = None
