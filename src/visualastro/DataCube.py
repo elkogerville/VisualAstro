@@ -19,7 +19,6 @@ from astropy.io.fits import Header
 from astropy.time import Time
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
-from matplotlib.artist import get
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
@@ -107,12 +106,25 @@ class DataCube:
 
     Methods
     –––––––
-    header_get
-    inspect
-    to
+    header_get(key)
+        Retrieve a header value by key from one or multiple headers.
+        If a Header is missing a key, None is returned.
+    inspect(figsize=(10,6), style=None)
+        Plot the mean and standard deviation across each cube slice.
+        Useful for quickly identifying slices of interest in the cube.
+    to(unit, equivalencies=None)
+        Convert the cube unit (flux unit). This method works for
+        `Quantities`, as well as `SpectralCube` flux units. To convert
+        spectral_units for `SpectralCubes` use `with_spectral_unit()`.
+        Returns a new cube.
     update
-    with_mask
-    with_spectral_unit
+    with_mask(mask)
+        Apply a boolean mask to the cube. Works for both `Quantities`
+        and `SpectralCubes`. The original shape is preserved and
+        masked values are replaced with NaNs. Returns a new cube.
+    with_spectral_unit(unit, velocity_convention=None, rest_value=None)
+        Convert the cube spectral unit (wavelength, frequency, speed...).
+        This method only works for `SpectralCube` data. Returns a new cube.
 
     Array Interface
     –––––––––––––––
@@ -145,7 +157,8 @@ class DataCube:
 
     def _initialize(self, data, header, error, wcs):
         '''
-        Helper method to initialize the class.
+        Helper method to initialize the
+        class and perform type checking.
         '''
         # type checks
         if not isinstance(data, (np.ndarray, Quantity, SpectralCube)):
