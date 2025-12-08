@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-12-05
+Date Modified: 2025-12-08
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
@@ -117,7 +117,10 @@ class DataCube:
         `Quantities`, as well as `SpectralCube` flux units. To convert
         spectral_units for `SpectralCubes` use `with_spectral_unit()`.
         Returns a new cube.
-    update
+    update(data=None, header=None, error=None, wcs=None)
+        Update any of the DataCube attributes in place. All internally
+        stored values are recomputed. If data has units and header has
+        BUNIT, BUNIT will be automatically updated to match the data units.
     with_mask(mask)
         Apply a boolean mask to the cube. Works for both `Quantities`
         and `SpectralCubes`. The original shape is preserved and
@@ -140,9 +143,16 @@ class DataCube:
     Raises
     ––––––
     TypeError
-        If `data` or `header` are not of an expected type.
+        - If `data` or `header` are not of an expected type.
+    UnitsError
+        - If `BUNIT` is inconsistent across headers in a header list.
+        - If `BUNIT` in `header` does not match the unit of `data`.
+        - If `error` units do not match `data` units.
     ValueError
-        If `data` is not 3D, or if the dimensions of `header` or `error` do not match `data`.
+        - If `data` is not 3D with shape (T,N,M).
+        - If `error` shape does not match `data` shape.
+        - If the header list is empty.
+        - If length of the header list does not match data T dimension.
 
     Examples
     ––––––––
@@ -225,7 +235,7 @@ class DataCube:
         # check that both units are equal
         if unit is not None and hdr_unit is not None:
             if unit != hdr_unit:
-                raise ValueError(
+                raise UnitsError(
                     'Unit extracted from primary header does '
                     'not match unit attached to the data!'
                     f'Data unit: {unit}, Header unit: {hdr_unit}'
@@ -270,7 +280,7 @@ class DataCube:
         # validate error units
         if error is not None and hasattr(error, 'unit') and unit is not None:
             if error.unit != unit:
-                raise ValueError (
+                raise UnitsError (
                     f'Error units ({error.unit}) differ from data units ({unit})'
                 )
 
