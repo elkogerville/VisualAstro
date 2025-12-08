@@ -433,6 +433,7 @@ class DataCube:
     def header_get(self, key):
         '''
         Retrieve a header value by key from one or multiple headers.
+        If a Header is missing a key, None is returned.
 
         Parameters
         ––––––––––
@@ -449,12 +450,14 @@ class DataCube:
         ValueError
             If headers are of an unsupported type or `key` is not found.
         '''
-        if isinstance(self.header, (list, np.ndarray, tuple)):
-            return [h[key] for h in self.header]
-        elif isinstance(self.header, Header):
-            return self.header[key] # type: ignore
+        # case 1: single Header
+        if isinstance(self.header, Header):
+            return self.header.get(key, None)
+        # case 2: Header list
+        elif isinstance(self.header, (list, np.ndarray, tuple)):
+            return [h.get(key, None) for h in self.header]
         else:
-            raise ValueError(f"Unsupported header type or key '{key}' not found.")
+            raise ValueError(f'Unsupported header type.')
 
     def inspect(self, figsize=(10,6), style=None):
         '''
@@ -501,9 +504,9 @@ class DataCube:
     def to(self, unit, equivalencies=None):
         '''
         Convert the DataCube data to a new physical unit.
-        This method supports Quantity objects. SpectralCubes
-        are also supported but only for 'flux' units. To
-        convert SpectralCube wavelength units use `.with_spectral_unit()`.
+        This method supports Quantity objects as well as
+        SpectralCubes, but only for 'flux' units. To convert
+        SpectralCube wavelength units use `.with_spectral_unit()`.
 
         Parameters
         ––––––––––
@@ -549,12 +552,14 @@ class DataCube:
 
         # update header BUNIT and transfer over pre-existing logs
         new_hdr = self._update_BUNIT(unit)
+        # update wcs
+        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
         return DataCube(
             data=new_data,
             header=new_hdr,
             error=new_error,
-            wcs=self.wcs
+            wcs=new_wcs
         )
 
     def update(self, data=None, header=None, error=None, wcs=None):
@@ -609,7 +614,10 @@ class DataCube:
 
     def with_mask(self, mask):
         '''
-        Apply a boolean mask to the cube and return the masked data.
+        Apply a boolean mask to the cube and return the
+        masked data. The shape of the cube is preserved
+        and values are masked with NaNs.
+
         Parameters
         ––––––––––
         mask : np.ndarray or Mask
@@ -618,6 +626,7 @@ class DataCube:
         –––––––
         masked_data : same type as `data`
             Masked version of the data.
+
         Raises
         ––––––
         TypeError
