@@ -14,6 +14,7 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 '''
 
+import copy
 from astropy.io.fits import Header
 from astropy.time import Time
 from astropy.units import Quantity, Unit
@@ -130,10 +131,11 @@ class DataCube:
         If `data` or `header` are not of an expected type.
     ValueError
         If `data` is not 3D, or if the dimensions of `header` or `error` do not match `data`.
+
     Examples
     ––––––––
     Load DataCube from fits file
-    >>> cube = load_fits(path)
+    >>> cube = load_fits(filepath)
     >>> cube.header
     >>> cube.inspect()
     '''
@@ -621,12 +623,53 @@ class DataCube:
         TypeError
             If masking is unsupported for the data type.
         '''
+        # check mask shape
+        mask = np.asarray(mask)
+        if mask.shape != self.data.shape:
+            raise ValueError(
+                'Mask shape must match cube shape!'
+            )
+
+        # case 1: mask SpectralCube
         if isinstance(self.data, SpectralCube):
-            return self.data.with_mask(mask) # type: ignore
+            new_data = self.data.with_mask(mask)
+        # case 2: mask ndarray or Quantity
         elif isinstance(self.data, (np.ndarray, Quantity)):
-            return self.data[mask]
+            new_data = self.data.copy()
+            new_data[~mask] = np.nan
         else:
-            raise TypeError(f'Cannot apply mask to data of type {type(self.data)}')
+            raise TypeError(
+                f'Cannot apply mask to data of type {type(self.data)}'
+            )
+
+        # mask errors
+        if self.error is not None:
+            new_error = self.error.copy()
+            new_error[~mask] = np.nan
+        else:
+            new_error = None
+
+        # copy header and wcs
+        if isinstance(self.header, Header):
+            new_header = self.header.copy()
+            # add log
+            self._log_history(new_header, f'Applied boolean mask to cube')
+        # case 2: header is list of Headers
+        elif isinstance(self.header, (list, np.ndarray, tuple)):
+            new_header = [hdr.copy() for hdr in self.header]
+            # add log
+            self._log_history(new_header[0], f'Applied boolean mask to cube')
+        else:
+            new_header = None
+
+        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+
+        return DataCube(
+            new_data,
+            new_header,
+            new_error,
+            new_wcs
+        )
 
     def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
         '''
@@ -646,7 +689,6 @@ class DataCube:
         DataCube
             New cube with converted spectral axis.
         '''
-
         unit = Unit(unit)
 
         if not isinstance(self.data, SpectralCube):
