@@ -547,7 +547,7 @@ class DataCube:
         else:
             new_error = None
 
-        # update BUNIT if header exists
+        # update header BUNIT and transfer over pre-existing logs
         new_hdr = self._update_BUNIT(unit)
 
         return DataCube(
@@ -724,10 +724,12 @@ class DataCube:
         else:
             new_hdr = None
 
+        new_error = None if self.error is None else self.error.copy()
+
         return DataCube(
             data=new_data,
             header=new_hdr,
-            error=self.error,
+            error=new_error,
             wcs=new_data.wcs
         )
 
