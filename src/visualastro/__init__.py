@@ -14,3 +14,29 @@ from visualastro.spectra import *
 from visualastro.spectra_utils import *
 from visualastro.va_config import va_config
 from visualastro.visual_plots import *
+
+def _register_fonts():
+    '''
+    Register additional fonts into matplotlib.
+    '''
+    from pathlib import Path
+    import warnings
+    import matplotlib.font_manager as fm
+
+    package_dir = Path(__file__).parent
+    fonts_dir = package_dir / 'stylelib' / 'Fonts'
+
+    if not fonts_dir.exists():
+        return
+
+    font_files = list(fonts_dir.rglob('*.ttf')) + list(fonts_dir.rglob('*.otf'))
+
+    for font_file in font_files:
+        try:
+            fm.fontManager.addfont(str(font_file))
+        except Exception as e:
+            warnings.warn(
+                f'[visualastro] Could not register font {font_file.name}: {e}'
+            )
+
+_register_fonts()
