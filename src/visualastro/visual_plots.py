@@ -34,35 +34,53 @@ from .spectra import plot_combine_spectrum, plot_spectrum
 from .va_config import get_config_value, va_config, _default_flag
 
 class va:
-    # Plotting Functions
-    # ––––––––––––––––––
     @contextmanager
-    def style(name=None):
+    def style(name=None, rc=None, **rc_kwargs):
         '''
-        Context manager to temporarily apply a Matplotlib style.
+        Context manager to temporarily apply a Matplotlib or VisualAstro style,
+        with optional rcParams overrides.
 
         Parameters
         ––––––––––
-        name : str or None, optional, default=None
-            Name of the Matplotlib or visualastro style to apply.
-            The style name is passed to `return_stylename`, which
-            returns the path to a visualastro mpl stylesheet.
-            Matplotlib styles are also allowed (ex: 'classic').
-            If None, uses the default value set by `va_config.style`.
-        Yields
-        ––––––
-        None
-            This context manager does not return a value. Code executed within
-            the context will use the specified style, which is restored upon exit.
+        name : str or None
+            Matplotlib or VisualAstro style name. If None, uses the default
+            value from `va_config.style`. Ex: 'astro' or 'latex'.
+        rc : dict, optional
+            Dictionary of rcParams overrides.
+            Ex: {'font.size': 14}
+        **rc_kwargs
+            Additional rcParams overrides supplied as keyword arguments.
+            Use underscores in place of dots: font_size → font.size
+
         Examples
         ––––––––
-        >>> with style('astro'):
+        >>> with style('latex', font_size=23, axes_labelsize=40):
         ...     plt.plot(x, y)
-        ...     plt.show()
+
+        >>> with style('paper', rc={'font.size': 14, 'lines.linewidth': 2}):
+        ...     fig, ax = plt.subplots()
+
+        >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
+        ...     # rc dict and kwargs are merged (kwargs take precedence)
+        ...     plt.plot(x, y)
         '''
+       # get visualastro style
         name = get_config_value(name, 'style')
         style_name = return_stylename(name)
-        with plt.style.context(style_name): # type: ignore
+
+        # update rcParams, with priority to kwargs
+        rc_combined = {}
+        if rc is not None:
+            rc_combined.update(rc)
+        if rc_kwargs:
+            # replace '_' with '.' for rcParams
+            rc_combined.update({
+                k.replace('_', '.'): v for k, v in rc_kwargs.items()
+            })
+
+        context = [style_name, rc_combined] if rc_combined else style_name
+
+        with plt.style.context(context): # type: ignore
             yield
 
 
