@@ -16,6 +16,7 @@ Module Structure:
 '''
 
 from contextlib import contextmanager
+import warnings
 from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
