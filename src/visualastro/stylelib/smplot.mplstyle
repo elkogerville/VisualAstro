@@ -1,4 +1,4 @@
-# STYLE SHEET COURTESY OF JIAXUAN LI
+# STYLE SHEET MODIFIED FROM SMPLOTLIB, COURTESY OF JIAXUAN LI
 
 # @software{jiaxuan_li_2023_8126529,
 #   author       = {Jiaxuan Li},
@@ -374,7 +374,7 @@ mathtext.default: it  # The default font to use for math.
 ## https://matplotlib.org/api/axes_api.html#module-matplotlib.axes
 #axes.facecolor:     white   # axes background color
 #axes.edgecolor:     black   # axes edge color
-axes.linewidth:      1.0     # edge line width
+axes.linewidth:      0.6     # edge line width
 #axes.grid:          False   # display grid or not
 #axes.grid.axis:     both    # which axis the grid should apply to
 axes.grid.which:    major   # grid lines at {major, minor, both} ticks
@@ -385,7 +385,7 @@ axes.titlesize:     large   # font size of the axes title
                              # text.color as default value
 #axes.titley:        None    # position title (axes relative units).  None implies auto
 axes.titlepad:      10.0     # pad between axes and title in points
-#axes.labelsize:     medium  # font size of the x and y labels
+axes.labelsize:     16  # font size of the x and y labels
 axes.labelpad:      4.0     # space between label and axis
 axes.labelweight:   normal  # weight of the x and y labels
 #axes.labelcolor:    black
