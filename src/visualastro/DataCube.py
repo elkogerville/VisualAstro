@@ -158,6 +158,7 @@ class DataCube:
     ––––––––
     Load DataCube from fits file
     >>> cube = load_fits(filepath)
+    >>> cube.data
     >>> cube.header
     >>> cube.inspect()
     '''
