@@ -634,7 +634,7 @@ class DataCube:
                         )
                 # case 2: header is a list of headers
                 else:
-                    hdr_unit = self._validate_units(self.header)
+                    hdr_unit = get_common_units(self.header)
 
                     if hdr_unit is None or hdr_unit != unit:
                         for hdr in self.header:
@@ -829,49 +829,6 @@ class DataCube:
             Reshaped data array.
         '''
         return self.value.reshape(*shape)
-
-    # Utility Functions
-    # –––––––––––––––––
-    def _validate_units(self, header):
-        '''
-        Validate that the units match between a list of headers.
-
-        Parameters
-        ––––––––––
-        header : array-like of Header or Header
-            A list or array-like of Headers with or without 'BUNIT'.
-
-        Returns
-        –––––––
-        None : if no units are present.
-        Astropy Unit : If units are present and are consistent.
-
-        Raises
-        ––––––
-        ValueError : If units exist and do not match.
-        '''
-        if isinstance(header, Header):
-            header = [header]
-
-        units = set()
-        for i, hdr in enumerate(header):
-            # create unique set of each unit
-            if 'BUNIT' in hdr:
-                try:
-                    units.add(Unit(hdr['BUNIT'])) # type: ignore
-                except Exception:
-                    raise UnitsError(
-                        f"Invalid BUNIT in header: {hdr['BUNIT']} "
-                        f'at index: {i}'
-                    )
-        # raise error if more than one unit found
-        if len(units) > 1:
-            raise UnitsError(
-                f'Inconsistent units in header list: {units}'
-            )
-
-        # return either single unit or None
-        return next(iter(units), None)
 
     def __repr__(self):
         '''
