@@ -19,6 +19,9 @@ from visualastro.visual_plots import *
 def _register_fonts():
     '''
     Register additional fonts into matplotlib.
+    To add more fonts, simply add a folder to
+    VisualAstro/src/visualastro/stylelib/Fonts
+    with .ttf or .otf files.
     '''
     from pathlib import Path
     import warnings
