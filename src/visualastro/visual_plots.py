@@ -1421,7 +1421,7 @@ class va:
             Display a matplotlib or visualastro plotting style:
             >>> va.help.styles('classic')
             '''
-            style_names = ['astro', 'sm', 'smplot', 'latex', 'minimal', 'default'] if style_name is None else [style_name]
+            style_names = ['astro', 'smplot', 'latex', 'minimal', 'default'] if style_name is None else [style_name]
             colors = ['k', 'darkslateblue', 'slateblue', 'plum', 'palevioletred', '#D81B60']
             print(
                 'Here are sample plot made with the available visualastro plot styles. '
