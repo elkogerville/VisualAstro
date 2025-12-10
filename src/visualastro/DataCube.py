@@ -859,7 +859,7 @@ class DataCube:
             new_hdr = self.header.copy()
             new_hdr['BUNIT'] = unit.to_string()
             # add log
-            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
+            log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
 
         # case 2: header is list of Headers
         elif isinstance(self.header, (list, np.ndarray, tuple)):
@@ -869,7 +869,7 @@ class DataCube:
             for hdr in new_hdr:
                 hdr['BUNIT'] = unit.to_string()
             # add log
-            self._log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit}')
+            log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit}')
 
         else:
             new_hdr = None
