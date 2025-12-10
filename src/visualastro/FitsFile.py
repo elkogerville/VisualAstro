@@ -97,10 +97,13 @@ class FitsFile:
     –––––––
     header_get(key)
         Retrieve a value from the fits Header.
+    to(unit, equivalencies=None)
+        Convert the data unit. This method works for
+        `Quantities`, and returns a new FitsFile.
     update(data=None, header=None, error=None, wcs=None)
-        Update any of the parameters of ExtractedSpectrum.
-        Values not provided are preserved from the existing
-        instance. Recomputes any stored values.
+        Update any of the FitsFile attributes in place. All internally
+        stored values are recomputed. If data has units and header has
+        BUNIT, BUNIT will be automatically updated to match the data units.
 
     Array Interface
     –––––––––––––––
