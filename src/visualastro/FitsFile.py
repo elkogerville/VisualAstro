@@ -509,18 +509,48 @@ class FitsFile:
 
     # Utility Functions
     # –––––––––––––––––
-    def _log_history(self, message):
+    def _log_history(self, header, message):
         '''
         Add `HISTORY` entry to header.
 
         Parameters
         ––––––––––
+        header : astropy.Header
         message : str
         '''
         timestamp = Time.now().isot
         log = f'{timestamp} {message}'
 
-        self.header.add_history(log)
+        header.add_history(log)
+
+    def _update_BUNIT(self, unit):
+        '''
+        Update BUNIT in header and log the conversion.
+
+        Parameters
+        ––––––––––
+        unit : astropy.units.Unit
+            New unit to set in BUNIT.
+
+        Returns
+        –––––––
+        fits.Header or list of fits.Header or None
+            Updated header(s) with new BUNIT and history entry.
+        '''
+        if unit is not None:
+            unit = Unit(unit)
+
+        if isinstance(self.header, Header):
+            # update header BUNIT
+            old_unit = self.header.get('BUNIT', 'unknown')
+            new_hdr = self.header.copy()
+            new_hdr['BUNIT'] = unit.to_string()
+            # add log
+            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
+        else:
+            new_hdr = None
+
+        return new_hdr
 
     def __repr__(self):
         '''
