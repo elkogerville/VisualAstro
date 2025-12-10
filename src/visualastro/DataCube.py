@@ -445,7 +445,7 @@ class DataCube:
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
-        if self.primary_header is not None and 'HISTORY' in self.primary_header:
+        if isinstance(self.primary_header, Header) and 'HISTORY' in self.primary_header:
             return list(self.primary_header['HISTORY']) # type: ignore
         return None
 
