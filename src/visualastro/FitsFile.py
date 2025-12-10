@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-12-05
+Date Modified: 2025-12-10
 Description:
     FitsFile data structure for 2D Fits data.
 Dependencies:
@@ -109,7 +109,18 @@ class FitsFile:
         Return the length of the first axis.
     reshape(*shape)
         Return a reshaped view of the data.
+
+    Raises
+    ––––––
+    TypeError
+        - If `data` or `header` are not of an expected type.
+    UnitsError
+        - If `BUNIT` in `header` does not match the unit of `data`.
+        - If `error` units do not match `data` units.
+    ValueError
+        - If `error` shape does not match `data` shape.
     '''
+
     def __init__(self, data, header=None, error=None, wcs=None):
         self._initialize(data, header, error, wcs)
 
@@ -186,7 +197,7 @@ class FitsFile:
 
             if isinstance(error, Quantity) and unit is not None:
                 if error.unit != unit:
-                    raise ValueError (
+                    raise UnitsError (
                         f'Error units ({error.unit}) differ from data units ({unit})'
                     )
 
@@ -514,6 +525,9 @@ class FitsFile:
         –––––––
         str : String representation of `FitsFile`.
         '''
+        datatype = 'np.ndarray' if self.unit is None else 'Quantity'
+
         return (
-            f'<FitsFile: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
+            f'<FitsFile[{datatype}]: unit={self.unit}, '
+            'shape={self.shape}, dtype={self.dtype}>'
         )
