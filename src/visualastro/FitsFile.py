@@ -12,6 +12,7 @@ Module Structure:
         Lightweight data class for fits files.
 '''
 
+import copy
 from astropy.io.fits import Header
 from astropy.time import Time
 from astropy.units import Quantity, Unit, UnitsError
@@ -157,22 +158,22 @@ class FitsFile:
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            header.add_history(
-                f'{Time.now().isot} Using header BUNIT: {hdr_unit}'
+            self._log_history(
+                header, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header if missing
         if unit is not None and 'BUNIT' not in header:
             header['BUNIT'] = unit.to_string() # type: ignore
-            header.add_history(
-                f'{Time.now().isot}: Added missing BUNIT={unit}'
+            self._log_history(
+                header, f'Added missing BUNIT={unit} to header'
             )
 
         # attatch units to data if bare numpy array
         if not isinstance(data, Quantity) and unit is not None:
             data = array * unit
-            header.add_history(
-                f'{Time.now().isot} Attached unit to data: unit={unit}'
+            self._log_history(
+                header, f'Attached unit to data: unit={unit}'
             )
 
         # error validation
