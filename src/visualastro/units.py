@@ -6,11 +6,13 @@ Description:
     Utility functions for astropy units.
 Dependencies:
     - astropy
+    - numpy
 '''
 
 
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
+import numpy as np
 
 
 def get_common_units(objs):

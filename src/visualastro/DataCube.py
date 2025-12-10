@@ -17,11 +17,10 @@ Module Structure:
 import copy
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .data_class_utils import log_history, update_BUNIT
+from .fits_utils import log_history, update_BUNIT
 from .units import get_common_units
 from .va_config import get_config_value
 from .validation import validate_type
