@@ -64,8 +64,6 @@ class DataCube:
         `Header` is created for log purposes.
     error : np.ndarray, Quantity, or None
         Error array if provided, else None.
-    value : np.ndarray
-        Raw numpy array of the cube values.
     unit : astropy.units.Unit or None
         Physical unit of the data if available.
     wcs : array-like of WCS or WCS
@@ -73,6 +71,10 @@ class DataCube:
 
     Properties
     ––––––––––
+    value : np.ndarray
+        Raw numpy array of the cube values.
+    quantity : Quantity
+        Quantity array of data values (values + astropy units).
     min : float
         Minimum value in the cube, ignoring NaNs.
     max : float
@@ -85,8 +87,6 @@ class DataCube:
         Sum of all values in the cube, ignoreing NaNs.
     std : float
         Standard deviation of all values in the cube, ignoring NaNs.
-    quantity : Quantity
-        Quantity array of data values (values + astropy units).
     shape : tuple
         Shape of the cube (T, N, M).
     size : int
@@ -181,10 +181,10 @@ class DataCube:
         # extract array view for validation
         if isinstance(data, SpectralCube):
             array = data.unmasked_data[:].value
-            unit = Unit(data.unit) # type: ignore
+            unit = data.unit
         elif isinstance(data, Quantity):
             array = data.value
-            unit = Unit(data.unit) # type: ignore
+            unit = data.unit
         else:
             array = np.asarray(data)
             unit = None
@@ -309,12 +309,33 @@ class DataCube:
         self.primary_header = primary_hdr
         self.header = header
         self.error = error
-        self.value = array
         self.unit = unit
         self.wcs = wcs
 
     # Properties
     # ––––––––––
+    @property
+    def value(self):
+        '''
+        Returns
+        –––––––
+        np.ndarray : View of the underlying numpy array.
+        '''
+        if isinstance(self.data, SpectralCube):
+            return self.data.unmasked_data[:].value
+        else:
+            return np.asarray(self.data)
+    @property
+    def quantity(self):
+        '''
+        Returns
+        –––––––
+        Quantity : Quantity array of data values (values + astropy units).
+        '''
+        if self.unit is None:
+            return None
+        return self.unit * self.value
+
     # statistical properties
     @property
     def min(self):
@@ -364,16 +385,6 @@ class DataCube:
         float : Standard deviation of all values in the cube, ignoring NaNs.
         '''
         return np.nanstd(self.value)
-    @property
-    def quantity(self):
-        '''
-        Returns
-        –––––––
-        Quantity : Quantity array of data values (values + astropy units).
-        '''
-        if self.unit is None:
-            return None
-        return self.value * self.unit
 
     # array properties
     @property
@@ -907,6 +918,7 @@ class DataCube:
 
         units = set()
         for i, hdr in enumerate(header):
+            # create unique set of each unit
             if 'BUNIT' in hdr:
                 try:
                     units.add(Unit(hdr['BUNIT'])) # type: ignore
@@ -915,6 +927,7 @@ class DataCube:
                         f"Invalid BUNIT in header: {hdr['BUNIT']} "
                         f'at index: {i}'
                     )
+        # raise error if more than one unit found
         if len(units) > 1:
             raise UnitsError(
                 f'Inconsistent units in header list: {units}'
