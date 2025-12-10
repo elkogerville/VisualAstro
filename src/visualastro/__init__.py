@@ -4,6 +4,7 @@ from visualastro.ExtractedSpectrum import ExtractedSpectrum
 from visualastro.FitsFile import FitsFile
 
 # Submodules
+from visualastro.data_class_utils import log_history
 from visualastro.data_cube import *
 from visualastro.data_cube_utils import *
 from visualastro.io import *
