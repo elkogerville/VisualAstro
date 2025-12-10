@@ -195,14 +195,6 @@ class DataCube:
                 f"'data' must be 3D (T, N, M), got shape {array.shape}."
             )
 
-        # error validation
-        if error is not None:
-            err = np.asarray(error)
-            if err.shape != array.shape:
-                raise ValueError(
-                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
-                )
-
         # header validation
         if header is not None and not isinstance(
             header, (list, Header, np.ndarray, tuple)
@@ -237,17 +229,16 @@ class DataCube:
         if unit is not None and hdr_unit is not None:
             if unit != hdr_unit:
                 raise UnitsError(
-                    'Unit extracted from primary header does '
-                    'not match unit attached to the data!'
+                    'Unit in header does not match data unit! '
                     f'Data unit: {unit}, Header unit: {hdr_unit}'
                 )
+
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            # add log
-            timestamp = Time.now().isot
-            log = f'{timestamp} Assigned unit from BUNIT: {hdr_unit}'
-            primary_hdr.add_history(log) # type: ignore
+            primary_hdr.add_history(
+                f'{Time.now().isot} Assigned unit from BUNIT: {hdr_unit}'
+            )
 
         # add BUNIT to header(s) if not there
         if unit is not None and 'BUNIT' not in primary_hdr:
@@ -255,7 +246,6 @@ class DataCube:
 
             if isinstance(header, Header):
                 header['BUNIT'] = unit.to_string() # type: ignore
-                # add log
                 primary_hdr.add_history(
                     f'{timestamp} Added missing BUNIT={unit}'
                 )
@@ -263,7 +253,6 @@ class DataCube:
             elif isinstance(header, (list, tuple, np.ndarray)):
                 for hdr in header:
                     hdr['BUNIT'] = unit.to_string() # type: ignore
-                # add log
                 primary_hdr.add_history(
                     f'{timestamp} Added missing BUNIT={unit} to all header slices'
                 )
@@ -272,18 +261,22 @@ class DataCube:
         if not isinstance(data, (Quantity, SpectralCube)):
             if unit is not None:
                 data = array * unit
-                # add log
-                timestamp = Time.now().isot
                 primary_hdr.add_history(
-                    f'{timestamp} Attached unit to data: unit={unit}'
+                    f'{Time.now().isot} Attached unit to data: unit={unit}'
                 )
 
-        # validate error units
-        if error is not None and hasattr(error, 'unit') and unit is not None:
-            if error.unit != unit:
-                raise UnitsError (
-                    f'Error units ({error.unit}) differ from data units ({unit})'
+        # error validation
+        if error is not None:
+            err = np.asarray(error)
+            if err.shape != array.shape:
+                raise ValueError(
+                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
                 )
+            if isinstance(error, Quantity) and unit is not None:
+                if error.unit != unit:
+                    raise UnitsError (
+                        f'Error units ({error.unit}) differ from data units ({unit})'
+                    )
 
         # try extracting WCS from headers
         if wcs is None:
