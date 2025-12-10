@@ -20,6 +20,7 @@ import numpy as np
 from .data_class_utils import (
     get_common_units, log_history, update_BUNIT, validate_type
 )
+from .wcs_utils import get_wcs
 
 class FitsFile:
     '''
@@ -190,12 +191,9 @@ class FitsFile:
                         f'Error units ({error.unit}) differ from data units ({unit})'
                     )
 
-         # try extracting WCS
-        if wcs is None and isinstance(header, Header):
-            try:
-                wcs = WCS(header)
-            except Exception:
-                pass
+        # try extracting WCS
+        if wcs is None:
+            wcs = get_wcs(header)
 
         self.data = data
         self.primary_header = header
