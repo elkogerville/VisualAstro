@@ -368,6 +368,63 @@ class FitsFile:
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
+    def to(self, unit, equivalencies=None):
+        '''
+        Convert the FitsFile data to a new physical unit.
+        The `data` attribute must be a Quantity object.
+        This returns a new FitsFile object.
+
+        Parameters
+        ––––––––––
+        unit : str or astropy.units.Unit
+            Target unit.
+        equivalencies : list, optional
+            Astropy equivalencies for unit conversion (e.g. spectral).
+
+        Returns
+        –––––––
+        FitsFile
+            New cube with converted units.
+        '''
+        # convert unit to astropy unit
+        unit = Unit(unit)
+
+        # check that data has a unit
+        if not isinstance(self.data, Quantity):
+            raise TypeError(
+                'FitsFile.data has no unit. Cannot use .to() '
+                'unless data is an astropy Quantity.'
+            )
+
+        try:
+            new_data = self.data.to(unit, equivalencies=equivalencies)
+        except Exception as e:
+            raise TypeError(
+                f'Unit conversion failed: {e}'
+            )
+        # convert errors if present
+        if self.error is not None:
+            if isinstance(self.error, Quantity):
+                new_error = self.error.to(unit, equivalencies=equivalencies)
+            else:
+                raise TypeError(
+                    'FitsFile.error must be a Quantity to convert units safely.'
+                )
+        else:
+            new_error = None
+
+        # update header BUNIT and transfer over pre-existing logs
+        new_hdr = self._update_BUNIT(unit)
+        # update wcs
+        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+
+        return FitsFile(
+            data=new_data,
+            header=new_hdr,
+            error=new_error,
+            wcs=new_wcs
+        )
+
     def update(self, data=None, header=None, error=None, wcs=None):
         '''
         Update any of the FitsFile attributes. All internally stored
