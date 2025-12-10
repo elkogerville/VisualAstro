@@ -20,7 +20,7 @@ from astropy.units import Quantity, Unit, UnitsError
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .fits_utils import log_history, update_BUNIT
+from .fits_utils import log_history, with_updated_header_key
 from .units import get_common_units
 from .va_config import get_config_value
 from .validation import validate_type
@@ -547,7 +547,7 @@ class DataCube:
         try:
             new_data = self.data.to(unit, equivalencies=equivalencies)
         except Exception as e:
-            raise TypeError(
+            raise UnitsError(
                 f'Unit conversion failed: {e}'
             )
         # convert errors if present
@@ -562,7 +562,9 @@ class DataCube:
             new_error = None
 
         # update header BUNIT and transfer over pre-existing logs
-        new_hdr = update_BUNIT(unit, self.header, self.primary_header)
+        new_hdr = with_updated_header_key(
+            'BUNIT', unit, self.header, self.primary_header
+        )
         # update wcs
         new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
