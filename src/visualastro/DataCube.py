@@ -20,7 +20,7 @@ from astropy.units import Quantity, Unit, UnitsError
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .fits_utils import log_history, with_updated_header_key
+from .fits_utils import log_history, update_header_key, with_updated_header_key
 from .units import get_common_units
 from .va_config import get_config_value
 from .validation import validate_type
@@ -612,31 +612,15 @@ class DataCube:
         if unit is not None:
             unit = Unit(unit)
 
-        # if user did not provide a header ensure that BUNIT is updated
+        # if user did not provide a header
+        # ensure that BUNIT is updated
         if header is None:
             if unit is not None and self.header is not None:
-                # case 1: header is a single Header
-                if isinstance(self.header, Header):
-                    hdr_unit = self.header.get('BUNIT', None)
-                    hdr_unit = None if hdr_unit is None else Unit(hdr_unit) # type: ignore
-
-                    if hdr_unit is None or hdr_unit != unit:
-                        self.header['BUNIT'] = unit.to_string()
-                        log_history(
-                            self.header,
-                            f'Updated BUNIT: {hdr_unit} -> {unit}'
-                        )
-                # case 2: header is a list of headers
-                else:
-                    hdr_unit = get_common_units(self.header)
-
-                    if hdr_unit is None or hdr_unit != unit:
-                        for hdr in self.header:
-                            hdr['BUNIT'] = unit.to_string()
-                        log_history(
-                            self.header[0],
-                            f'Updated BUNIT: {hdr_unit} -> {unit}'
-                        )
+                hdr_unit = get_common_units(self.header)
+                if hdr_unit is None or hdr_unit != unit:
+                    update_header_key(
+                        'BUNIT', unit, self.header, self.primary_header
+                    )
             header = self.header
 
         self._initialize(data, header, error, wcs)

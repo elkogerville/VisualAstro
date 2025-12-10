@@ -17,7 +17,7 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .fits_utils import log_history, with_updated_header_key
+from .fits_utils import log_history, update_header_key, with_updated_header_key
 from .units import get_common_units
 from .validation import validate_type
 from .wcs_utils import get_wcs
@@ -428,8 +428,12 @@ class FitsFile:
 
     def update(self, data=None, header=None, error=None, wcs=None):
         '''
-        Update any of the FitsFile attributes. All internally stored
-        values are recomputed.
+        Update any of the FitsFile attributes in place. All internally
+        stored values are recomputed.
+
+        If data has units and header has BUNIT, BUNIT will be automatically
+        updated to match the data units.
+
         Parameters
         ––––––––––
         data : array-like or `~astropy.units.Quantity`
@@ -450,9 +454,24 @@ class FitsFile:
         None
         '''
         data = self.data if data is None else data
-        header = self.header if header is None else header
         error = self.error if error is None else error
         wcs = self.wcs if wcs is None else wcs
+
+        # get unit
+        unit = getattr(data, 'unit', None)
+        if unit is not None:
+            unit = Unit(unit)
+
+        # if user did not provide a header
+        # ensure that BUNIT is updated
+        if header is None:
+            if unit is not None and self.header is not None:
+                hdr_unit = get_common_units(self.header)
+                if hdr_unit is None or hdr_unit != unit:
+                    update_header_key(
+                        'BUNIT', unit, self.header, self.primary_header
+                    )
+            header = self.header
 
         self._initialize(data, header, error, wcs)
 
