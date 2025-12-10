@@ -13,13 +13,15 @@ Module Structure:
 '''
 
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
 import astropy.units as u
 from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
 import numpy as np
-from .FitsFile import FitsFile
+from reproject import reproject_interp, reproject_exact
+from .va_config import get_config_value, va_config, _default_flag
 
 
 def get_wcs(header):
@@ -63,32 +65,29 @@ def get_wcs(header):
 
 # Data Transformations
 # ––––––––––––––––––––
-def crop(self, size, position=None, mode='trim', frame='icrs', origin_idx=0):
+def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origin_idx=0):
     '''
-    Crop the FitsFile object around a given position using WCS.
-    This method creates a `Cutout2D` from the data, centered on a
-    specified position in either pixel or world (RA/Dec) coordinates.
-    It automatically handles cases where the WCS axes have been swapped
-    due to a data transpose, and applies the same cropping to the
-    associated error map if available.
+    Create a Cutout2D from array-like data using WCS and a world/pixel position.
 
     Parameters
     ––––––––––
-    size : `~astropy.units.Quantity`, float, int, or tuple
-        The size of the cutout region. Can be a single
-        `Quantity` or a tuple specifying height and width.
-        If a float or int, will interpret as number of pixels
-        from center. If float, will round to nearest int.
+    data : array-like
+        The image to crop. Must be 2D.
+    size : Quantity, float, int, or tuple
+        Size of the cutout. Interpreted as pixels if unitless.
         Ex:
             - 6 * u.arcsec
             - (6*u.deg, 4*u.deg)
             - (7, 8)
-    position : array-like, `~astropy.coordinates.SkyCoord`, optional, default=None
+    position : tuple, Quantity tuple, or SkyCoord, optional, default=None
         The center of the cutout region. Accepted formats are:
         - `(x, y)` : pixel coordinates (integers or floats)
         - `(ra, dec)` : sky coordinates as `~astropy.units.Quantity` in angular units
         - `~astropy.coordinates.SkyCoord` : directly specify a coordinate object
         - If None, defaults to the center of the image.
+    wcs : astropy.wcs.WCS
+        WCS corresponding to `data`. If `data` has an attribute
+        `.wcs`, it will be used automatically.
     mode : {'trim', 'partial', 'strict'}, default='trim'
         Defines how the function handles edges that fall outside the image:
         - 'trim': Trim the cutout to fit within the image bounds.
@@ -101,68 +100,56 @@ def crop(self, size, position=None, mode='trim', frame='icrs', origin_idx=0):
 
     Returns
     –––––––
-    cropped : FitsFile
-        A new `FitsFile` instance containing:
-        - data : Cropped image as a `np.ndarray`
-        - header : Original FITS header
-        - error : Cropped error array (if available)
-        - wcs : Updated WCS corresponding to the cutout region
+    Quantity or ndarray
+        The cropped region with units if the original data had units.
+    WCS
+        The WCS of the cropped region
 
     Raises
     ––––––
     ValueError
         If the WCS is missing (None) or cutout creation fails.
     TypeError
-        If the position is not one of the accepted types.
+        If `position` is not a supported type.
 
     Notes
     –––––
     - If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,
         the method will automatically attempt to correct for inverted RA/Dec axes.
-    - The same cutout region is applied to the error array if present.
 
-    Examples
-    ––––––––
-    Crop by pixel coordinates:
-        >>> cube.crop(size=100, position=(250, 300))
-
-    Crop by pixel coordinates:
-        >>> cube.crop(size=6*u.arcsec, position=(250, 300))
-
-    Crop by sky coordinates:
-        >>> from astropy import units as u
-        >>> cube.crop(size=6*u.arcsec, position=(83.8667*u.deg, -69.2697*u.deg))
-
-    Crop using a SkyCoord object:
-        >>> from astropy.coordinates import SkyCoord
-        >>> c = SkyCoord(ra=83.8667*u.deg, dec=-69.2697*u.deg, frame='icrs')
-        >>> cube.crop(size=6*u.arcsec, position=c)
     '''
-    data = self.data
-    error = self.error
-    wcs = self.wcs
+    if hasattr(data, 'wcs'):
+        wcs = data.wcs.celestial
 
     if wcs is None:
         raise ValueError (
-            'WCS is None. Please crop using normal array indexing or enter WCS.'
+            'WCS is None. Provide a WCS or crop manually with slicing.'
         )
-    # if no position passed in use center of image
+
+    # default to center of image
     if position is None:
         ny, nx = data.shape
-        position = [nx//2, ny//2]
-    # if position is passed in as integers, assume pixel indeces
-    # and convert to world coordinates
-    if isinstance(position[0], (float, int)) and isinstance(position[1], (float, int)):
+        position = [nx / 2, ny / 2]
+    # assume floats and ints are pixel coordinates
+    if (
+        isinstance(position, (list, np.ndarray, tuple))
+        and len(position) == 2
+        and isinstance(position[0], (float, int))
+        and isinstance(position[1], (float, int))
+        ):
         ra, dec = wcs.wcs_pix2world(position[0], position[1], origin_idx)
-        ra *= u.deg
-        dec *= u.deg
-    # if position passed in as Quantity, convert to degrees
+        center = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, frame=frame) # type: ignore
+
+    # convert Quantities to degrees
     elif (
-        len(position) == 2 and
-        all(isinstance(p, Quantity) for p in position)
-    ):
-        ra = position[0].to(u.deg)
-        dec = position[1].to(u.deg)
+        isinstance(position, (list, np.ndarray, tuple))
+        and len(position) == 2
+        and all(isinstance(p, Quantity) for p in position)
+        ):
+        ra = position[0].to(u.deg) # type: ignore
+        dec = position[1].to(u.deg) # type: ignore
+        center = SkyCoord(ra=ra, dec=dec, frame=frame)
+
     # if position passed in as SkyCoord, use that
     elif isinstance(position, SkyCoord):
         center = position
@@ -170,21 +157,184 @@ def crop(self, size, position=None, mode='trim', frame='icrs', origin_idx=0):
         raise TypeError(
             'Position must be a (x, y) pixel tuple, (ra, dec) in degrees, or a SkyCoord.'
         )
-    # crop image
-    if not isinstance(position, SkyCoord):
-        # try with ra=ra and dec=dec and if it fails; swap
-        # this is because the user maybe performed wcs.swapaxes(0,1)
-        try:
-            center = SkyCoord(ra=ra, dec=dec, frame=frame)
-            cutout = Cutout2D(data, position=center, size=size, wcs=wcs, mode=mode)
-        except ValueError:
-            # fallback if WCS RA/Dec swapped
-            center = SkyCoord(ra=dec, dec=ra, frame=frame)
-            cutout = Cutout2D(data, position=center, size=size, wcs=wcs, mode=mode)
-    else:
-        cutout = Cutout2D(data, position=center, size=size, wcs=wcs, mode=mode)
-    # also crop the errors if available
-    if error is not None:
-        error = Cutout2D(error, position=center, size=size, wcs=wcs, mode=mode).data
 
-    return FitsFile(cutout.data, header=self.header, error=error, wcs=cutout.wcs)
+    # crop image
+    try:
+        cutout = Cutout2D(data, position=center, size=size, wcs=wcs, mode=mode)
+    except ValueError:
+        # fallback if WCS RA/Dec swapped
+        center_swapped = SkyCoord(ra=center.dec, dec=center.ra, frame=frame)
+        cutout = Cutout2D(data, position=center_swapped, size=size, wcs=wcs, mode=mode)
+
+    # re-attach units
+    crop_data = cutout.data
+    if hasattr(data, 'unit'):
+        unit = Unit(data.unit)
+        crop_data *= unit
+
+    crop_wcs = cutout.wcs
+
+    return crop_data, crop_wcs
+
+
+def reproject_wcs(
+    input_data,
+    reference_wcs,
+    method=None,
+    return_footprint=None,
+    parallel=None,
+    block_size=_default_flag
+):
+    '''
+    Reproject data or Quantity arrays onto a reference WCS.
+
+    Parameters
+    ––––––––––
+    input_data : array-like, list, or tuple
+        The input data to be reprojected. May be:
+        - A HDUList object
+        - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
+        - An object containing `.data` and either `.wcs` or `.header`
+        - A list containing any of the above inputs
+        Note:
+            - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
+            - [(np.ndarray, WCS), DataCube, FitsFile] is a valid input.
+    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+        The target WCS or FITS header to which `input_data` will be reprojected.
+    method : {'interp', 'exact'} or None, default=None
+        Reprojection method:
+        - 'interp' : use `reproject_interp`
+        - 'exact' : use `reproject_exact`
+        If None, uses the default value
+        set by `va_config.reproject_method`.
+    return_footprint : bool or None, optional, default=None
+        If True, return both reprojected data and reprojection
+        footprints. If False, return only the reprojected data.
+        If None, uses the default value set by `va_config.return_footprint`.
+    parallel : bool, int, str, or None, optional, default=None
+        If True, the reprojection is carried out in parallel,
+        and if a positive integer, this specifies the number
+        of threads to use. The reprojection will be parallelized
+        over output array blocks specified by `block_size` (if the
+        block size is not set, it will be determined automatically).
+        If None, uses the default value set by `va_config.reproject_parallel`.
+    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+        The size of blocks in terms of output array pixels that each block
+        will handle reprojecting. Extending out from (0,0) coords positively,
+        block sizes are clamped to output space edges when a block would extend
+        past edge. Specifying 'auto' means that reprojection will be done in
+        blocks with the block size automatically determined. If `block_size` is
+        not specified or set to None, the reprojection will not be carried out in blocks.
+        If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+
+    Returns
+    –––––––
+    reprojected : ndarray or list of ndarray
+        The reprojected data array(s). If `input_data` contains
+        multiple items, the output is a list; otherwise a single array.
+    footprint : ndarray or list of ndarray
+        The reprojection footprint(s). Only returned if `return_footprint=True`.
+        If `input_data` contains multiple items, the output is a list;
+        otherwise a single array.
+
+    Raises
+    ––––––
+    ValueError
+        If a `DataCube` or `FitsFile` object has neither `.wcs` nor `.header`
+        attribute available.
+
+    Examples
+    ––––––––
+    Reproject a single array:
+
+    >>> reproject_wcs((data, wcs), reference_wcs)
+
+    Reproject a list of DataCube objects:
+
+    >>> reproject_wcs([cube1, cube2], reference_wcs, method='exact')
+    '''
+    method = get_config_value(method, 'reproject_method')
+    return_footprint = get_config_value(return_footprint, 'return_footprint')
+    parallel = get_config_value(parallel, 'reproject_parallel')
+    block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
+
+    # normalize input into a list
+    if isinstance(input_data, list):
+        normalized = [_normalize_reproject_input(item) for item in input_data]
+    else:
+        normalized = [_normalize_reproject_input(input_data)]
+
+    # separate inputs and units
+    input_list  = [item[0] for item in normalized]
+    units = [item[1] for item in normalized]
+
+    # select reproject function
+    reproject_method = {
+        'interp': reproject_interp,
+        'exact': reproject_exact
+    }.get(method, reproject_interp)
+
+    reprojected_data = []
+    footprints = []
+
+    for (data, unit) in zip(input_list, units):
+
+        # Run reprojection
+        reprojected, footprint = reproject_method(
+            data, reference_wcs, parallel=parallel, block_size=block_size
+        )
+
+        if unit is not None:
+            reprojected *= unit
+
+        reprojected_data.append(reprojected)
+        footprints.append(footprint)
+
+    # unwrap single-element lists
+    if len(reprojected_data) == 1:
+        reprojected_data = reprojected_data[0]
+        footprints = footprints[0]
+
+    return (reprojected_data, footprints) if return_footprint else reprojected_data
+
+
+def _normalize_reproject_input(input_data):
+    '''
+    Ensures that the reprojection inputs are one of the accepted types.
+
+    Parameters
+    ––––––––––
+    input_data : fits.HDUList, tuple, or object
+        Input data to be reprojected. Must follow one of the formats:
+            - fits.HDUList : hdul object containing data and header
+            - tuple : tuple containing (data, header/WCS)
+            - object : object containing a `.value` and `.header`/.`wcs` attribute
+
+    Returns
+    –––––––
+    input_data : fits.HDUList, tuple, or object
+        The exact same input_data object
+    unit : Astropy.Unit or None
+        The unit of the input data. If the input data
+        is a HDUList, the unit is None.
+
+    Raises
+    ––––––
+    TypeError
+        If `input_data` is not an accepted type/format.
+    '''
+    no_unit = None
+    # case 1: HDUList
+    if isinstance(input_data, fits.HDUList):
+        return input_data, no_unit
+    # case 2: (data, header/wcs) tuple
+    elif isinstance(input_data, tuple) and len(input_data) == 2:
+        data, wcs_or_header = input_data
+        unit = getattr(data, 'unit', None)
+        return (np.asarray(data), wcs_or_header), unit
+
+    else:
+        raise TypeError(
+            'Each input must be an HDUList, a (data, header/WCS) tuple, '
+            'or an object with `.data` and `.wcs` or `.header`.'
+        )
