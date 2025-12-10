@@ -18,8 +18,8 @@ from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
 from .fits_utils import log_history, update_header_key, with_updated_header_key
-from .units import get_common_units
-from .validation import validate_type
+from .units import check_unit_equality, get_common_units
+from .validation import _validate_type
 from .wcs_utils import get_wcs
 
 
@@ -136,14 +136,14 @@ class FitsFile:
         class and perform type checking.
         '''
         # type checks
-        data = validate_type(
+        data = _validate_type(
             data, (np.ndarray, Quantity), allow_none=False, name='data'
         )
         assert data is not None
-        header = validate_type(
+        header = _validate_type(
             header, Header, default=Header(), allow_none=True, name='header'
         )
-        error = validate_type(
+        error = _validate_type(
             error, (np.ndarray, Quantity), allow_none=True, name='error'
         )
 
@@ -155,12 +155,7 @@ class FitsFile:
         hdr_unit = get_common_units(header)
 
         # check that both units are equal
-        if unit is not None and hdr_unit is not None:
-            if unit != hdr_unit:
-                raise UnitsError(
-                    'Unit in header does not match data unit! '
-                    f'Data unit: {unit}, Header unit: {hdr_unit}'
-                )
+        check_unit_equality(unit, hdr_unit, 'data', 'header')
 
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
@@ -394,7 +389,7 @@ class FitsFile:
         # convert unit to astropy unit
         unit = Unit(unit)
 
-        validate_type(
+        _validate_type(
             self.data, Quantity, allow_none=False, name='data'
         )
 
