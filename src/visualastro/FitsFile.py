@@ -17,9 +17,9 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .data_class_utils import (
-    get_common_units, log_history, update_BUNIT, validate_type
-)
+from .data_class_utils import log_history, update_BUNIT
+from .units import get_common_units
+from .validation import validate_type
 from .wcs_utils import get_wcs
 
 class FitsFile:
