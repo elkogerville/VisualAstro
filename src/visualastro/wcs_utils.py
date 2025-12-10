@@ -22,6 +22,45 @@ import numpy as np
 from .FitsFile import FitsFile
 
 
+def get_wcs(header):
+    '''
+    Extract WCS from header(s).
+
+    Parameters
+    ––––––––––
+    header : Header or list of Header
+        Single header or list of headers.
+
+    Returns
+    –––––––
+    WCS, list of WCS/None, or None
+        - Single WCS if header is a Header and WCS extraction succeeds
+        - List of WCS/None if header is a list (None for failed extractions)
+        - None if header is a single Header and WCS extraction fails
+    '''
+    if isinstance(header, Header):
+        try:
+            return WCS(header)
+        except Exception:
+            return None
+
+    # if a list of headers extract a list of wcs
+    elif isinstance(header, (list, np.ndarray, tuple)):
+        wcs_list = []
+        for h in header:
+            if not isinstance(h, Header):
+                wcs_list.append(None)
+                continue
+            try:
+                wcs_list.append(WCS(h))
+            except Exception:
+                wcs_list.append(None)
+        return wcs_list
+
+    else:
+        return None
+
+
 # Data Transformations
 # ––––––––––––––––––––
 def crop(self, size, position=None, mode='trim', frame='icrs', origin_idx=0):
