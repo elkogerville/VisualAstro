@@ -15,6 +15,50 @@ from astropy.units import Quantity, Unit, UnitsError
 import numpy as np
 
 
+def check_unit_equality(unit1, unit2, name1="unit1", name2="unit2"):
+    '''
+    Validate that two units are exactly equal.
+
+    Parameters
+    ––––––––––
+    unit1, unit2 : str or astropy.units.Unit or None
+        Units to compare. None means 'unitless'.
+    name1, name2 : str
+        Labels used in error messages.
+
+    Raises
+    ––––––
+    UnitsError
+        If units differ (either convertible or incompatible).
+    '''
+    # case 1: either of the units are None
+    if unit1 is None or unit2 is None:
+        return
+
+    try:
+        u1 = Unit(unit1)
+        u2 = Unit(unit2)
+    except Exception:
+        raise UnitsError('Invalid unit(s) supplied')
+
+    # case 1: units are exactly equal
+    if u1 == u2:
+        return
+
+    # case 2: equivalent but not equal
+    if u1.is_equivalent(u2):
+        raise UnitsError(
+            f'{name1} and {name2} units are equivalent but not equal '
+            f'({u1} vs {u2}). Convert one to match.'
+        )
+
+    # case 3: mismatch
+    raise UnitsError(
+        f'{name1} and {name2} have incompatible units: '
+        f'{u1} vs {u2}.'
+    )
+
+
 def get_common_units(objs):
     '''
     Extract units of each object in objs
