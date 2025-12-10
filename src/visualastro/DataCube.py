@@ -21,6 +21,8 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
+
+from visualastro.wcs_utils import get_wcs
 from .data_class_utils import (
     get_common_units, log_history, update_BUNIT, validate_type
 )
@@ -278,22 +280,7 @@ class DataCube:
 
         # try extracting WCS from headers
         if wcs is None:
-            if isinstance(header, Header):
-                try:
-                    wcs = WCS(header)
-                except Exception:
-                    pass
-            # if a list of headers extract a list of wcs
-            elif isinstance(header, (list, np.ndarray, tuple)):
-                wcs = []
-                for h in header:
-                    if not isinstance(h, Header):
-                        wcs.append(None)
-                        continue
-                    try:
-                        wcs.append(WCS(h))
-                    except Exception:
-                        wcs.append(None)
+            wcs = get_wcs(header)
 
         # assign attributes
         self.data = data
@@ -671,7 +658,7 @@ class DataCube:
         '''
         # check mask shape
         mask = np.asarray(mask)
-        if mask.shape != self.data.shape:
+        if mask.shape != self.shape:
             raise ValueError(
                 'Mask shape must match cube shape!'
             )
@@ -804,7 +791,10 @@ class DataCube:
         slice : same type as `data`
             The corresponding subset of the cube.
         '''
-        return self.data[key]
+        if self.unit is None:
+            return self.value[key]
+
+        return self.unit * self.value[key]
 
     def __len__(self):
         '''
