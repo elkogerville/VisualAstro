@@ -242,11 +242,13 @@ class DataCube:
 
         # add BUNIT to header(s) if not there
         if unit is not None and 'BUNIT' not in primary_hdr:
-
+            self._log_history(
+                primary_hdr, f'Using data unit: {unit}'
+            )
             if isinstance(header, Header):
                 header['BUNIT'] = unit.to_string()
                 self._log_history(
-                    primary_hdr, f'Added missing BUNIT={unit}'
+                    primary_hdr, f'Added missing BUNIT={unit} to header'
                 )
 
             elif isinstance(header, (list, tuple, np.ndarray)):
