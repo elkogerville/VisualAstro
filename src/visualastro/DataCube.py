@@ -22,6 +22,7 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
+from .data_class_utils import log_history
 from .va_config import get_config_value
 
 class DataCube:
@@ -236,25 +237,25 @@ class DataCube:
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            self._log_history(
+            log_history(
                 primary_hdr, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header(s) if not there
         if unit is not None and 'BUNIT' not in primary_hdr:
-            self._log_history(
+            log_history(
                 primary_hdr, f'Using data unit: {unit}'
             )
             if isinstance(header, Header):
                 header['BUNIT'] = unit.to_string()
-                self._log_history(
+                log_history(
                     primary_hdr, f'Added missing BUNIT={unit} to header'
                 )
 
             elif isinstance(header, (list, tuple, np.ndarray)):
                 for hdr in header:
                     hdr['BUNIT'] = unit.to_string()
-                self._log_history(
+                log_history(
                     primary_hdr, f'Added missing BUNIT={unit} to all header slices'
                 )
 
@@ -262,7 +263,7 @@ class DataCube:
         if not isinstance(data, (Quantity, SpectralCube)):
             if unit is not None:
                 data = array * unit
-                self._log_history(
+                log_history(
                     primary_hdr, f'Attached unit to data: unit={unit}'
                 )
 
@@ -631,7 +632,7 @@ class DataCube:
 
                     if hdr_unit is None or hdr_unit != unit:
                         self.header['BUNIT'] = unit.to_string()
-                        self._log_history(
+                        log_history(
                             self.header,
                             f'Updated BUNIT: {hdr_unit} -> {unit}'
                         )
@@ -642,7 +643,7 @@ class DataCube:
                     if hdr_unit is None or hdr_unit != unit:
                         for hdr in self.header:
                             hdr['BUNIT'] = unit.to_string()
-                        self._log_history(
+                        log_history(
                             self.header[0],
                             f'Updated BUNIT: {hdr_unit} -> {unit}'
                         )
@@ -702,12 +703,12 @@ class DataCube:
         if isinstance(self.header, Header):
             new_header = self.header.copy()
             # add log
-            self._log_history(new_header, f'Applied boolean mask to cube')
+            log_history(new_header, f'Applied boolean mask to cube')
         # case 2: header is list of Headers
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             new_header = [hdr.copy() for hdr in self.header]
             # add log
-            self._log_history(new_header[0], f'Applied boolean mask to cube')
+            log_history(new_header[0], f'Applied boolean mask to cube')
         else:
             new_header = None
 
@@ -761,12 +762,12 @@ class DataCube:
 
         if isinstance(self.header, Header):
             new_hdr = self.header.copy()
-            self._log_history(
+            log_history(
                 new_hdr, f'Converted spectral axis: {old_unit} -> {unit}'
             )
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             new_hdr = [hdr.copy() for hdr in self.header]
-            self._log_history(
+            log_history(
                 new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit}'
             )
         else:
@@ -835,22 +836,6 @@ class DataCube:
 
     # Utility Functions
     # –––––––––––––––––
-    def _log_history(self, header, message):
-        '''
-        Add `HISTORY` entry to primary header.
-        The primary header points to either
-        header or header[0] (if header is a list).
-
-        Parameters
-        ––––––––––
-        header : astropy.Header
-        message : str
-        '''
-        timestamp = Time.now().isot
-        log = f'{timestamp} {message}'
-
-        header.add_history(log)
-
     def _update_BUNIT(self, unit):
         '''
         Update BUNIT in header(s) and log the conversion.
@@ -870,7 +855,7 @@ class DataCube:
 
         if isinstance(self.header, Header):
             # update header BUNIT
-            old_unit = self.header.get('BUNIT', 'unknown')
+            old_unit = self.primary_header.get('BUNIT', 'unknown')
             new_hdr = self.header.copy()
             new_hdr['BUNIT'] = unit.to_string()
             # add log
@@ -878,7 +863,7 @@ class DataCube:
 
         # case 2: header is list of Headers
         elif isinstance(self.header, (list, np.ndarray, tuple)):
-            old_unit = self.primary_header.get('BUNIT', 'None')
+            old_unit = self.primary_header.get('BUNIT', 'unknown')
             new_hdr = [hdr.copy() for hdr in self.header]
 
             for hdr in new_hdr:
