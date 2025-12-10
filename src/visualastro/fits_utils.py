@@ -30,14 +30,16 @@ def log_history(header, message):
     header.add_history(log)
 
 
-def update_BUNIT(unit, header, primary_header):
+def with_updated_header_key(key, value, header, primary_header):
     '''
-    Update BUNIT in header(s) and log the conversion.
+    Returns a copy of header(s) with updated key.
 
     Parameters
     ––––––––––
-    unit : astropy.units.Unit or str
-        New unit to set in BUNIT.
+    key : str
+        FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
+    value : str or Unit or any FITS-serializable value
+        New value for the keyword.
     header : Header or list[Header]
         The header(s) to update.
     primary_header : Header
@@ -45,27 +47,37 @@ def update_BUNIT(unit, header, primary_header):
 
     Returns
     –––––––
-    fits.Header or list of fits.Header or None
-        Updated header(s) with new BUNIT and history entry.
+    Header or list[Header] or None
+        A copy of the input header(s) with the updated keyword.
         '''
-    if unit is not None:
-        unit = Unit(unit)
+    try:
+        value_str = value.to_string()
+    except AttributeError:
+        value_str = str(value)
 
-    old_unit = primary_header.get('BUNIT', 'unknown')
+    old_value = 'unknown'
+    if isinstance(primary_header, Header):
+        old_value = primary_header.get(key, 'unknown')
 
     # case 1: single Header
     if isinstance(header, Header):
         new_hdr = header.copy()
-        new_hdr['BUNIT'] = unit.to_string()
-        log_history(new_hdr, f'Updated BUNIT: {old_unit} -> {unit}')
+        new_hdr[key] = value_str
+
+        log_history(
+            new_hdr, f'Updated {key}: {old_value} -> {value_str}'
+        )
 
     # case 2: header is list of Headers
     elif isinstance(header, (list, np.ndarray, tuple)):
         new_hdr = [h.copy() for h in header]
+
         for hdr in new_hdr:
-            hdr['BUNIT'] = unit.to_string()
+            hdr[key] = value_str
+
         log_history(
-            new_hdr[0], f'Updated BUNIT across all slices: {old_unit} -> {unit}'
+            new_hdr[0],
+            f'Updated {key} across all slices: {old_value} -> {value_str}'
         )
 
     # case 3: no valid Header
