@@ -17,8 +17,8 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .fits_utils import log_history, update_header_key, with_updated_header_key
-from .units import check_unit_equality, get_common_units
+from .fits_utils import _log_history, update_header_key, with_updated_header_key
+from .units import _check_unit_equality, get_common_units
 from .validation import _validate_type
 from .wcs_utils import get_wcs
 
@@ -155,26 +155,26 @@ class FitsFile:
         hdr_unit = get_common_units(header)
 
         # check that both units are equal
-        check_unit_equality(unit, hdr_unit, 'data', 'header')
+        _check_unit_equality(unit, hdr_unit, 'data', 'header')
 
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            log_history(
+            _log_history(
                 header, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header if missing
         if unit is not None and 'BUNIT' not in header:
             header['BUNIT'] = unit.to_string() # type: ignore
-            log_history(
+            _log_history(
                 header, f'Added missing BUNIT={unit} to header'
             )
 
         # attatch units to data if bare numpy array
         if not isinstance(data, Quantity) and unit is not None:
             data = array * unit
-            log_history(
+            _log_history(
                 header, f'Attached unit to data: unit={unit}'
             )
 

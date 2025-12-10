@@ -20,8 +20,8 @@ from astropy.units import Quantity, Unit, UnitsError
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .fits_utils import log_history, update_header_key, with_updated_header_key
-from .units import check_unit_equality, get_common_units
+from .fits_utils import _log_history, update_header_key, with_updated_header_key
+from .units import _check_unit_equality, get_common_units
 from .va_config import get_config_value
 from .validation import _validate_type
 from .wcs_utils import get_wcs
@@ -224,30 +224,30 @@ class DataCube:
         hdr_unit = get_common_units(header)
 
         # check that both units are equal
-        check_unit_equality(unit, hdr_unit, 'data', 'header')
+        _check_unit_equality(unit, hdr_unit, 'data', 'header')
 
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            log_history(
+            _log_history(
                 primary_hdr, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header(s) if not there
         if unit is not None and 'BUNIT' not in primary_hdr:
-            log_history(
+            _log_history(
                 primary_hdr, f'Using data unit: {unit}'
             )
             if isinstance(header, Header):
                 header['BUNIT'] = unit.to_string()
-                log_history(
+                _log_history(
                     primary_hdr, f'Added missing BUNIT={unit} to header'
                 )
 
             elif isinstance(header, (list, tuple, np.ndarray)):
                 for hdr in header:
                     hdr['BUNIT'] = unit.to_string()
-                log_history(
+                _log_history(
                     primary_hdr, f'Added missing BUNIT={unit} to all header slices'
                 )
 
@@ -255,7 +255,7 @@ class DataCube:
         if not isinstance(data, (Quantity, SpectralCube)):
             if unit is not None:
                 data = array * unit
-                log_history(
+                _log_history(
                     primary_hdr, f'Attached unit to data: unit={unit}'
                 )
 
@@ -672,12 +672,12 @@ class DataCube:
         if isinstance(self.header, Header):
             new_header = self.header.copy()
             # add log
-            log_history(new_header, f'Applied boolean mask to cube')
+            _log_history(new_header, f'Applied boolean mask to cube')
         # case 2: header is list of Headers
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             new_header = [hdr.copy() for hdr in self.header]
             # add log
-            log_history(new_header[0], f'Applied boolean mask to cube')
+            _log_history(new_header[0], f'Applied boolean mask to cube')
         else:
             new_header = None
 
@@ -731,12 +731,12 @@ class DataCube:
 
         if isinstance(self.header, Header):
             new_hdr = self.header.copy()
-            log_history(
+            _log_history(
                 new_hdr, f'Converted spectral axis: {old_unit} -> {unit}'
             )
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             new_hdr = [hdr.copy() for hdr in self.header]
-            log_history(
+            _log_history(
                 new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit}'
             )
         else:
