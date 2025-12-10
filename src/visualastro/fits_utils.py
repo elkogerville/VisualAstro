@@ -15,7 +15,7 @@ from astropy.units import Unit
 import numpy as np
 
 
-def log_history(header, message):
+def _log_history(header, message):
     '''
     Add `HISTORY` entry to header.
 
@@ -61,7 +61,7 @@ def update_header_key(key, value, header, primary_header):
     # case 1: single Header
     if isinstance(header, Header):
         header[key] = value_str
-        log_history(
+        _log_history(
             primary_header, f'Updated {key}: {old_value} -> {value_str}'
         )
 
@@ -69,7 +69,7 @@ def update_header_key(key, value, header, primary_header):
     elif isinstance(header, (list, np.ndarray, tuple)):
         for hdr in header:
             hdr[key] = value_str
-        log_history(
+        _log_history(
             header[0],
             f'Updated {key} across all slices: {old_value} -> {value_str}'
         )
@@ -109,7 +109,7 @@ def with_updated_header_key(key, value, header, primary_header):
         new_hdr = header.copy()
         new_hdr[key] = value_str
 
-        log_history(
+        _log_history(
             new_hdr, f'Updated {key}: {old_value} -> {value_str}'
         )
         return new_hdr
@@ -121,7 +121,7 @@ def with_updated_header_key(key, value, header, primary_header):
         for hdr in new_hdr:
             hdr[key] = value_str
 
-        log_history(
+        _log_history(
             new_hdr[0],
             f'Updated {key} across all slices: {old_value} -> {value_str}'
         )

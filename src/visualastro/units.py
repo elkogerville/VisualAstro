@@ -15,7 +15,7 @@ from astropy.units import Quantity, Unit, UnitsError
 import numpy as np
 
 
-def check_unit_equality(unit1, unit2, name1="unit1", name2="unit2"):
+def _check_unit_equality(unit1, unit2, name1="unit1", name2="unit2"):
     '''
     Validate that two units are exactly equal.
 
