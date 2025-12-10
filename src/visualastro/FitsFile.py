@@ -13,7 +13,8 @@ Module Structure:
 '''
 
 from astropy.io.fits import Header
-from astropy.units import Quantity, Unit
+from astropy.time import Time
+from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
 
@@ -113,42 +114,78 @@ class FitsFile:
         '''
         Helper method to initialize the class.
         '''
-        if isinstance(data, Quantity) or hasattr(data, 'unit'):
-            unit = data.unit
+        # type checks
+        if not isinstance(data, (np.ndarray, Quantity)):
+            raise TypeError(
+                "'data' must be a np.ndarray or Quantity, "
+                f'got {type(data).__name__}.'
+            )
+
+        array = np.asarray(data)
+
+        # header validation
+        if header is None:
+            header = Header()
+        elif not isinstance(header, Header):
+            raise TypeError(
+                "'header' must be a fits.Header, "
+                f'got {type(header).__name__}.'
+            )
+
+        # extract unit
+        unit = data.unit if isinstance(data, Quantity) else None
+
+        # extract BUNIT from header
+        if 'BUNIT' in header:
+            try:
+                hdr_unit = Unit(header['BUNIT']) # type: ignore
+            except ValueError:
+                hdr_unit = None
         else:
-            unit = None
+            hdr_unit = None
 
-        if isinstance(header, Header):
-            if 'BUNIT' in header:
-                BUNIT = header['BUNIT']
+        # check that both units are equal
+        if unit is not None and hdr_unit is not None:
+            if unit != hdr_unit:
+                raise UnitsError(
+                    'Unit in header does not match data unit! '
+                    f'Data unit: {unit}, Header unit: {hdr_unit}'
+                )
 
-                try:
-                    hdr_unit = Unit(BUNIT)
-                except ValueError:
-                    hdr_unit = None
+        # use BUNIT if unit is None
+        if unit is None and hdr_unit is not None:
+            unit = hdr_unit
+            header.add_history(
+                f'{Time.now().isot} Assigned unit from BUNIT: {hdr_unit}'
+            )
 
-                if unit is not None and hdr_unit is not None:
-                    if unit != hdr_unit:
-                        raise ValueError(
-                            'Unit extracted from header does not match '
-                            'unit attatched to the data!'
-                            f'Data unit: {unit}, Header unit: {hdr_unit}'
-                        )
-
-                unit = hdr_unit if unit is None else unit
+        # add BUNIT to header if missing
+        if unit is not None and 'BUNIT' not in header:
+            header['BUNIT'] = unit.to_string() # type: ignore
+            header.add_history(
+                f'{Time.now().isot}: Added missing BUNIT={unit}'
+            )
 
         # attatch units to data if bare numpy array
-        if not isinstance(data, Quantity):
-            data_unit = getattr(data, 'unit', None)
-            if data_unit is None and unit is not None:
-                data = np.asarray(data) * unit
+        if not isinstance(data, Quantity) and unit is not None:
+            data = array * unit
+            header.add_history(
+                f'{Time.now().isot} Attached unit to data: unit={unit}'
+            )
 
-        # validate error units
-        if error is not None and hasattr(error, 'unit') and unit is not None:
-            if error.unit != unit:
-                raise ValueError (
-                    f'Error units ({error.unit}) differ from data units ({unit})'
+        # error validation
+        if error is not None:
+            err = np.asarray(error)
+            if err.shape != array.shape:
+                raise ValueError(
+                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
                 )
+
+            if isinstance(error, Quantity) and unit is not None:
+                if error.unit != unit:
+                    raise ValueError (
+                        f'Error units ({error.unit}) differ from data units ({unit})'
+                    )
 
          # try extracting WCS
         if wcs is None and isinstance(header, Header):
