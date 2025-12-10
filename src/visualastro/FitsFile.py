@@ -469,7 +469,7 @@ class FitsFile:
         np.ndarray
             The underlying 2D array representation.
         '''
-        return self.data
+        return self.value
 
     def __getitem__(self, key):
         '''
