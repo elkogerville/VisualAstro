@@ -14,11 +14,12 @@ Module Structure:
 
 import copy
 from astropy.io.fits import Header
-from astropy.time import Time
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .data_class_utils import log_history, update_BUNIT
+from .data_class_utils import (
+    get_common_units, log_history, update_BUNIT, validate_type
+)
 
 class FitsFile:
     '''
@@ -129,34 +130,22 @@ class FitsFile:
         Helper method to initialize the class.
         '''
         # type checks
-        if not isinstance(data, (np.ndarray, Quantity)):
-            raise TypeError(
-                "'data' must be a np.ndarray or Quantity, "
-                f'got {type(data).__name__}.'
-            )
+        data = validate_type(
+            data, (np.ndarray, Quantity), allow_none=False, name='data'
+        )
+        header = validate_type(
+            header, Header, default=Header(), allow_none=True, name='header'
+        )
+        error = validate_type(
+            error, (np.ndarray, Quantity), allow_none=True, name='error'
+        )
 
         array = np.asarray(data)
-
-        # header validation
-        if header is None:
-            header = Header()
-        elif not isinstance(header, Header):
-            raise TypeError(
-                "'header' must be a fits.Header, "
-                f'got {type(header).__name__}.'
-            )
-
         # extract unit
         unit = data.unit if isinstance(data, Quantity) else None
 
         # extract BUNIT from header
-        if 'BUNIT' in header:
-            try:
-                hdr_unit = Unit(header['BUNIT']) # type: ignore
-            except ValueError:
-                hdr_unit = None
-        else:
-            hdr_unit = None
+        hdr_unit = get_common_units(header)
 
         # check that both units are equal
         if unit is not None and hdr_unit is not None:
