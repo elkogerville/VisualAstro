@@ -236,33 +236,32 @@ class DataCube:
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            primary_hdr.add_history(
-                f'{Time.now().isot} Assigned unit from BUNIT: {hdr_unit}'
+            self._log_history(
+                primary_hdr, f'Assigned unit from BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header(s) if not there
         if unit is not None and 'BUNIT' not in primary_hdr:
-            timestamp = Time.now().isot
 
             if isinstance(header, Header):
-                header['BUNIT'] = unit.to_string() # type: ignore
-                primary_hdr.add_history(
-                    f'{timestamp} Added missing BUNIT={unit}'
+                header['BUNIT'] = unit.to_string()
+                self._log_history(
+                    primary_hdr, f'Added missing BUNIT={unit}'
                 )
 
             elif isinstance(header, (list, tuple, np.ndarray)):
                 for hdr in header:
-                    hdr['BUNIT'] = unit.to_string() # type: ignore
-                primary_hdr.add_history(
-                    f'{timestamp} Added missing BUNIT={unit} to all header slices'
+                    hdr['BUNIT'] = unit.to_string()
+                self._log_history(
+                    primary_hdr, f'Added missing BUNIT={unit} to all header slices'
                 )
 
         # attatch units to data if is bare numpy array
         if not isinstance(data, (Quantity, SpectralCube)):
             if unit is not None:
                 data = array * unit
-                primary_hdr.add_history(
-                    f'{Time.now().isot} Attached unit to data: unit={unit}'
+                self._log_history(
+                    primary_hdr, f'Attached unit to data: unit={unit}'
                 )
 
         # error validation
@@ -832,6 +831,8 @@ class DataCube:
         '''
         return self.value.reshape(*shape)
 
+    # Utility Functions
+    # –––––––––––––––––
     def _log_history(self, header, message):
         '''
         Add `HISTORY` entry to primary header.
