@@ -4,7 +4,6 @@ from visualastro.ExtractedSpectrum import ExtractedSpectrum
 from visualastro.FitsFile import FitsFile
 
 # Submodules
-from visualastro.data_class_utils import log_history
 from visualastro.data_cube import *
 from visualastro.data_cube_utils import *
 from visualastro.io import *
@@ -13,8 +12,10 @@ from visualastro.plotting import *
 from visualastro.plot_utils import *
 from visualastro.spectra import *
 from visualastro.spectra_utils import *
+from visualastro.units import *
 from visualastro.va_config import va_config
 from visualastro.visual_plots import *
+from visualastro.wcs_utils import crop2D, reproject_wcs
 
 def _register_fonts():
     '''
