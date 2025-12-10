@@ -129,12 +129,14 @@ class FitsFile:
 
     def _initialize(self, data, header, error, wcs):
         '''
-        Helper method to initialize the class.
+        Helper method to initialize the
+        class and perform type checking.
         '''
         # type checks
         data = validate_type(
             data, (np.ndarray, Quantity), allow_none=False, name='data'
         )
+        assert data is not None
         header = validate_type(
             header, Header, default=Header(), allow_none=True, name='header'
         )
@@ -265,7 +267,7 @@ class FitsFile:
         –––––––
         float : sum of all values in the data, ignoring NaNs.
         '''
-        return np.nansum(self.value)
+        return np.nansum(self.data)
     @property
     def std(self):
         '''
