@@ -237,7 +237,7 @@ class DataCube:
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
             self._log_history(
-                primary_hdr, f'Assigned unit from BUNIT: {hdr_unit}'
+                primary_hdr, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header(s) if not there
