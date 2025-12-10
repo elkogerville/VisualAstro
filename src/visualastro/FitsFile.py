@@ -40,22 +40,24 @@ class FitsFile:
 
     Attributes
     ––––––––––
-    data : ndarray
-        The numerical data array (converted from `Quantity` if needed).
+    data : ndarray or Quantity
+        The Numpy or Quantity array of data.
     header : `~astropy.io.fits.Header` or None
         The FITS header provided at initialization.
-    error : ndarray or None
+    error : ndarray, Quantity, or None
         Associated error data, if provided.
-    value : ndarray
-        Alias for `.data`.
-    unit : `~astropy.units.Unit` or None
+    unit : astropy.units.Unit or None
         The physical unit of the data. Inferred from the input
         `Quantity` or from the FITS header keyword ``BUNIT``.
-    wcs : `~astropy.wcs.WCS` or None
+    wcs : astropy.wcs.WCS or None
         The WCS transformation extracted from the header, if valid.
 
     Properties
     ––––––––––
+    value : np.ndarray
+        Raw numpy array of the cube values.
+    quantity : Quantity
+        Quantity array of data values (values + astropy units).
     min : float
         Minimum value in the cube, ignoring NaNs.
     max : float
@@ -68,8 +70,6 @@ class FitsFile:
         Sum of all values in the cube, ignoreing NaNs.
     std : float
         Standard deviation of all values in the cube, ignoring NaNs.
-    quantity : Quantity
-        Quantity array of data values (values + astropy units).
     shape : tuple
         Shape of the data array.
     size : int
@@ -86,6 +86,8 @@ class FitsFile:
         Size in bytes of each array element.
     nbytes : int
         Total memory footprint of the array in bytes.
+    log: list of str
+        List of each log output in primary_header['HISTORY']
 
     Methods
     –––––––
