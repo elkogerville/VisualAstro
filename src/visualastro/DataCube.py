@@ -179,6 +179,7 @@ class DataCube:
             data, (np.ndarray, Quantity, SpectralCube),
             allow_none=False, name='data'
         )
+        assert data is not None
         header = validate_type(
             header, (list, Header, np.ndarray, tuple),
             default=Header(), allow_none=True, name='header'
@@ -318,49 +319,55 @@ class DataCube:
         '''
         Returns
         –––––––
-        float : Minimum value in the cube, ignoring NaNs.
+        Quantity or float
+            Minimum value in the cube, ignoring NaNs.
         '''
-        return np.nanmin(self.value)
+        return self._stat('min')
     @property
     def max(self):
         '''
         Returns
         –––––––
-        float : Maximum value in the cube, ignoring NaNs.
+        Quantity or float
+            Maximum value in the cube, ignoring NaNs.
         '''
-        return np.nanmax(self.value)
+        return self._stat('max')
     @property
     def mean(self):
         '''
         Returns
         –––––––
-        float : Mean of all values in the cube, ignoring NaNs.
+        Quantity or float
+            Mean of all values in the cube, ignoring NaNs.
         '''
-        return np.nanmean(self.value)
+        return self._stat('mean')
     @property
     def median(self):
         '''
         Returns
         –––––––
-        float : Median of all values in the cube, ignoring NaNs.
+        Quantity or float
+            Median of all values in the cube, ignoring NaNs.
         '''
-        return np.nanmedian(self.value)
+        return self._stat('median')
     @property
     def sum(self):
         '''
         Returns
         –––––––
-        float : sum of all values in the cube, ignoring NaNs.
+        Quantity or float
+            Sum of all values in the cube, ignoring NaNs.
         '''
-        return np.nansum(self.value)
+        return self._stat('sum')
     @property
     def std(self):
         '''
         Returns
         –––––––
-        float : Standard deviation of all values in the cube, ignoring NaNs.
+        Quantity or float
+            Standard deviation of all values in the cube, ignoring NaNs.
         '''
-        return np.nanstd(self.value)
+        return self._stat('std')
 
     # array properties
     @property
@@ -817,6 +824,53 @@ class DataCube:
             Reshaped data array.
         '''
         return self.value.reshape(*shape)
+
+    # statistical property helper
+    def _stat(self, func):
+        '''
+        Compute a statistical property of the data, handling Quantity and SpectralCube
+        objects.
+
+        This method evaluates one of several statistical operations on the underlying
+        data. If the data is a `SpectralCube`, the corresponding lazy method on the
+        cube is used. Otherwise, the operation is applied using the appropriate
+        NumPy NaN-aware function. If the object carries physical units, the
+        returned value is scaled accordingly.
+
+        Parameters
+        ––––––––––
+        func : {'min', 'max', 'mean', 'median', 'std'}
+            The name of the statistical quantity to compute.
+
+        Returns
+        –––––––
+        value : float, `astropy.units.Quantity`, or scalar-like
+            The computed statistical value. If the underlying data includes
+            units, the returned value is a `Quantity`; otherwise it is a unitless
+            NumPy scalar.
+
+        Raises
+        ––––––
+        KeyError
+            If an unsupported statistic name is provided.
+        '''
+        _STAT_FUNCS = {
+            'min': np.nanmin,
+            'max': np.nanmax,
+            'mean': np.nanmean,
+            'median': np.nanmedian,
+            'std': np.nanstd,
+        }
+
+        # evaluate SpectralCubes with lazy methods
+        # ex: self.data.min()
+        if isinstance(self.data, SpectralCube):
+            method = getattr(self.data, func)
+            return method()
+
+        np_func = _STAT_FUNCS[func]
+        value = np_func(self.data)
+        return value if self.unit is None else self.unit * value
 
     def __repr__(self):
         '''
