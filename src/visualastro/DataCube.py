@@ -16,14 +16,16 @@ Module Structure:
 
 import copy
 from astropy.io.fits import Header
-from astropy.time import Time
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .data_class_utils import log_history, update_BUNIT
+from .data_class_utils import (
+    get_common_units, log_history, update_BUNIT, validate_type
+)
 from .va_config import get_config_value
+
 
 class DataCube:
     '''
@@ -173,11 +175,18 @@ class DataCube:
         class and perform type checking.
         '''
         # type checks
-        if not isinstance(data, (np.ndarray, Quantity, SpectralCube)):
-            raise TypeError(
-                "'data' must be a np.ndarray, Quantity, or SpectralCube, "
-                f'got {type(data).__name__}.'
-            )
+        data = validate_type(
+            data, (np.ndarray, Quantity, SpectralCube),
+            allow_none=False, name='data'
+        )
+        header = validate_type(
+            header, (list, Header, np.ndarray, tuple),
+            default=Header(), allow_none=True, name='header'
+        )
+        error = validate_type(
+            error, (np.ndarray, Quantity), default=None,
+            allow_none=True, name='error'
+        )
 
         # extract array view for validation
         if isinstance(data, SpectralCube):
@@ -196,15 +205,6 @@ class DataCube:
                 f"'data' must be 3D (T, N, M), got shape {array.shape}."
             )
 
-        # header validation
-        if header is not None and not isinstance(
-            header, (list, Header, np.ndarray, tuple)
-        ):
-            raise TypeError(
-                "'header' must be a fits.Header or array-like of fits.header, "
-                f'got {type(header).__name__}.'
-            )
-
         if isinstance(header, (list, np.ndarray, tuple)):
             if len(header) == 0:
                 raise ValueError(
@@ -217,14 +217,10 @@ class DataCube:
                 )
             primary_hdr = header[0]
         else:
-            if header is None:
-                primary_hdr = Header()
-                header = primary_hdr
-            else:
-                primary_hdr = header
+            primary_hdr = header
 
         # ensure that units are consistent across all headers
-        hdr_unit = self._validate_units(header)
+        hdr_unit = get_common_units(header)
 
         # check that both units are equal
         if unit is not None and hdr_unit is not None:
