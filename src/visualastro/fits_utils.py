@@ -30,9 +30,54 @@ def log_history(header, message):
     header.add_history(log)
 
 
+def update_header_key(key, value, header, primary_header):
+    '''
+    Update header(s) in place with a new key-value pair.
+
+    Parameters
+    ––––––––––
+    key : str
+        FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
+    value : str or Unit or any FITS-serializable value
+        New value for the keyword.
+    header : Header or list[Header]
+        The header(s) to update in place.
+    primary_header : Header
+        The primary header (for logging original unit).
+
+    Returns
+    –––––––
+    None
+    '''
+    try:
+        value_str = value.to_string()
+    except AttributeError:
+        value_str = str(value)
+
+    old_value = 'unknown'
+    if isinstance(primary_header, Header):
+        old_value = primary_header.get(key, 'unknown')
+
+    # case 1: single Header
+    if isinstance(header, Header):
+        header[key] = value_str
+        log_history(
+            primary_header, f'Updated {key}: {old_value} -> {value_str}'
+        )
+
+    # case 2: header is list of Headers
+    elif isinstance(header, (list, np.ndarray, tuple)):
+        for hdr in header:
+            hdr[key] = value_str
+        log_history(
+            header[0],
+            f'Updated {key} across all slices: {old_value} -> {value_str}'
+        )
+
+
 def with_updated_header_key(key, value, header, primary_header):
     '''
-    Returns a copy of header(s) with updated key.
+    Returns a copy of header(s) with a new key-value pair.
 
     Parameters
     ––––––––––
@@ -49,7 +94,7 @@ def with_updated_header_key(key, value, header, primary_header):
     –––––––
     Header or list[Header] or None
         A copy of the input header(s) with the updated keyword.
-        '''
+    '''
     try:
         value_str = value.to_string()
     except AttributeError:
@@ -67,6 +112,7 @@ def with_updated_header_key(key, value, header, primary_header):
         log_history(
             new_hdr, f'Updated {key}: {old_value} -> {value_str}'
         )
+        return new_hdr
 
     # case 2: header is list of Headers
     elif isinstance(header, (list, np.ndarray, tuple)):
@@ -79,9 +125,8 @@ def with_updated_header_key(key, value, header, primary_header):
             new_hdr[0],
             f'Updated {key} across all slices: {old_value} -> {value_str}'
         )
+        return new_hdr
 
     # case 3: no valid Header
     else:
-        new_hdr = None
-
-    return new_hdr
+        return None
