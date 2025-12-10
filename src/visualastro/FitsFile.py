@@ -18,7 +18,7 @@ from astropy.time import Time
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-
+from .data_class_utils import log_history
 
 class FitsFile:
     '''
@@ -158,21 +158,21 @@ class FitsFile:
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
-            self._log_history(
+            log_history(
                 header, f'Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header if missing
         if unit is not None and 'BUNIT' not in header:
             header['BUNIT'] = unit.to_string() # type: ignore
-            self._log_history(
+            log_history(
                 header, f'Added missing BUNIT={unit} to header'
             )
 
         # attatch units to data if bare numpy array
         if not isinstance(data, Quantity) and unit is not None:
             data = array * unit
-            self._log_history(
+            log_history(
                 header, f'Attached unit to data: unit={unit}'
             )
 
@@ -509,20 +509,6 @@ class FitsFile:
 
     # Utility Functions
     # –––––––––––––––––
-    def _log_history(self, header, message):
-        '''
-        Add `HISTORY` entry to header.
-
-        Parameters
-        ––––––––––
-        header : astropy.Header
-        message : str
-        '''
-        timestamp = Time.now().isot
-        log = f'{timestamp} {message}'
-
-        header.add_history(log)
-
     def _update_BUNIT(self, unit):
         '''
         Update BUNIT in header and log the conversion.
@@ -546,7 +532,7 @@ class FitsFile:
             new_hdr = self.header.copy()
             new_hdr['BUNIT'] = unit.to_string()
             # add log
-            self._log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
+            log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
         else:
             new_hdr = None
 
