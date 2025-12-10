@@ -199,13 +199,31 @@ class FitsFile:
         self.data = data
         self.header = header
         self.error = error
-        self.value = np.asarray(data)
         self.unit = unit
         self.wcs = wcs
         self.footprint = None
 
     # Properties
     # ––––––––––
+    @property
+    def value(self):
+        '''
+        Returns
+        –––––––
+        np.ndarray : View of the underlying numpy array.
+        '''
+        return np.asarray(self.data)
+    @property
+    def quantity(self):
+        '''
+        Returns
+        –––––––
+        Quantity : Quantity array of data values (values + astropy units).
+        '''
+        if self.unit is None:
+            return None
+        return self.unit * self.value
+
     # statistical properties
     @property
     def min(self):
@@ -255,16 +273,6 @@ class FitsFile:
         float : Standard deviation of all values in the data, ignoring NaNs.
         '''
         return np.nanstd(self.data)
-    @property
-    def quantity(self):
-        '''
-        Returns
-        –––––––
-        Quantity : Quantity array of data values (values + astropy units).
-        '''
-        if self.unit is None:
-            return None
-        return self.value * self.unit
 
     # array properties
     @property
