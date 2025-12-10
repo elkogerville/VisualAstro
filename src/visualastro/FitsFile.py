@@ -55,21 +55,21 @@ class FitsFile:
     Properties
     ––––––––––
     value : np.ndarray
-        Raw numpy array of the cube values.
+        Raw numpy array of the data values.
     quantity : Quantity
         Quantity array of data values (values + astropy units).
     min : float
-        Minimum value in the cube, ignoring NaNs.
+        Minimum value in the data, ignoring NaNs.
     max : float
-        Maximum value in the cube, ignoring NaNs.
+        Maximum value in the data, ignoring NaNs.
     mean : float
-        Mean of all values in the cube, ignoring NaNs.
+        Mean of all values in the data, ignoring NaNs.
     median : float
-        Median of all values in the cube, ignoring NaNs.
+        Median of all values in the data, ignoring NaNs.
     sum : float
-        Sum of all values in the cube, ignoreing NaNs.
+        Sum of all values in the data, ignoreing NaNs.
     std : float
-        Standard deviation of all values in the cube, ignoring NaNs.
+        Standard deviation of all values in the data, ignoring NaNs.
     shape : tuple
         Shape of the data array.
     size : int
@@ -262,7 +262,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        float : sum of all values in the cube, ignoring NaNs.
+        float : sum of all values in the data, ignoring NaNs.
         '''
         return np.nansum(self.value)
     @property
@@ -280,7 +280,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        tuple : Shape of cube data.
+        tuple : Shape of data.
         '''
         return self.value.shape
     @property
@@ -288,7 +288,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        int : Size of cube data.
+        int : Size of data.
         '''
         return self.value.size
     @property
@@ -296,7 +296,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        int : Number of dimensions of cube data.
+        int : Number of dimensions of data.
         '''
         return self.value.ndim
     @property
@@ -304,7 +304,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        np.dtype : Datatype of the cube data.
+        np.dtype : Datatype of the data.
         '''
         return self.value.dtype
     @property
@@ -312,7 +312,7 @@ class FitsFile:
         '''
         Returns
         –––––––
-        bool : Returns True if there are NaNs in the cube.
+        bool : Returns True if there are NaNs.
         '''
         return np.isnan(self.value).any()
     @property
@@ -363,7 +363,7 @@ class FitsFile:
             If headers are of an unsupported type or `key` is not found.
         '''
         if isinstance(self.header, Header):
-            return self.header[key] # type: ignore
+            return self.header.get(key, None)
         else:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
@@ -448,6 +448,21 @@ class FitsFile:
             Reshaped data array.
         '''
         return self.data.reshape(*shape)
+
+    # Utility Functions
+    # –––––––––––––––––
+    def _log_history(self, message):
+        '''
+        Add `HISTORY` entry to header.
+
+        Parameters
+        ––––––––––
+        message : str
+        '''
+        timestamp = Time.now().isot
+        log = f'{timestamp} {message}'
+
+        self.header.add_history(log)
 
     def __repr__(self):
         '''
