@@ -21,12 +21,11 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-
-from visualastro.wcs_utils import get_wcs
-from .data_class_utils import (
-    get_common_units, log_history, update_BUNIT, validate_type
-)
+from .data_class_utils import log_history, update_BUNIT
+from .units import get_common_units
 from .va_config import get_config_value
+from .validation import validate_type
+from .wcs_utils import get_wcs
 
 
 class DataCube:
