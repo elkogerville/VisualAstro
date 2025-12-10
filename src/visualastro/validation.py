@@ -9,7 +9,7 @@ Dependencies:
 '''
 
 
-def validate_type(
+def _validate_type(
     data, types, default=None, allow_none=True, name='data'
 ):
     '''
