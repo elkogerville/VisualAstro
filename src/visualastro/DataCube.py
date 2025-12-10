@@ -22,7 +22,7 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .data_class_utils import log_history
+from .data_class_utils import log_history, update_BUNIT
 from .va_config import get_config_value
 
 class DataCube:
@@ -574,7 +574,7 @@ class DataCube:
             new_error = None
 
         # update header BUNIT and transfer over pre-existing logs
-        new_hdr = self._update_BUNIT(unit)
+        new_hdr = update_BUNIT(unit, self.header, self.primary_header)
         # update wcs
         new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
@@ -836,46 +836,6 @@ class DataCube:
 
     # Utility Functions
     # –––––––––––––––––
-    def _update_BUNIT(self, unit):
-        '''
-        Update BUNIT in header(s) and log the conversion.
-
-        Parameters
-        ––––––––––
-        unit : astropy.units.Unit
-            New unit to set in BUNIT.
-
-        Returns
-        –––––––
-        fits.Header or list of fits.Header or None
-            Updated header(s) with new BUNIT and history entry.
-            '''
-        if unit is not None:
-            unit = Unit(unit)
-
-        if isinstance(self.header, Header):
-            # update header BUNIT
-            old_unit = self.primary_header.get('BUNIT', 'unknown')
-            new_hdr = self.header.copy()
-            new_hdr['BUNIT'] = unit.to_string()
-            # add log
-            log_history(new_hdr, f'Converted units: {old_unit} -> {unit}')
-
-        # case 2: header is list of Headers
-        elif isinstance(self.header, (list, np.ndarray, tuple)):
-            old_unit = self.primary_header.get('BUNIT', 'unknown')
-            new_hdr = [hdr.copy() for hdr in self.header]
-
-            for hdr in new_hdr:
-                hdr['BUNIT'] = unit.to_string()
-            # add log
-            log_history(new_hdr[0], f'Converted units: {old_unit} -> {unit}')
-
-        else:
-            new_hdr = None
-
-        return new_hdr
-
     def _validate_units(self, header):
         '''
         Validate that the units match between a list of headers.
