@@ -17,7 +17,7 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .fits_utils import log_history, update_BUNIT
+from .fits_utils import log_history, with_updated_header_key
 from .units import get_common_units
 from .validation import validate_type
 from .wcs_utils import get_wcs
@@ -391,17 +391,14 @@ class FitsFile:
         # convert unit to astropy unit
         unit = Unit(unit)
 
-        # check that data has a unit
-        if not isinstance(self.data, Quantity):
-            raise TypeError(
-                'FitsFile.data has no unit. Cannot use .to() '
-                'unless data is an astropy Quantity.'
-            )
+        validate_type(
+            self.data, Quantity, allow_none=False, name='data'
+        )
 
         try:
             new_data = self.data.to(unit, equivalencies=equivalencies)
         except Exception as e:
-            raise TypeError(
+            raise UnitsError(
                 f'Unit conversion failed: {e}'
             )
         # convert errors if present
@@ -416,7 +413,9 @@ class FitsFile:
             new_error = None
 
         # update header BUNIT and transfer over pre-existing logs
-        new_hdr = update_BUNIT(unit, self.header, self.primary_header)
+        new_hdr = with_updated_header_key(
+            'BUNIT', unit, self.header, self.primary_header
+        )
         # update wcs
         new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
