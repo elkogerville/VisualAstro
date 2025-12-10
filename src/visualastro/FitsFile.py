@@ -158,7 +158,7 @@ class FitsFile:
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
             header.add_history(
-                f'{Time.now().isot} Assigned unit from BUNIT: {hdr_unit}'
+                f'{Time.now().isot} Using header BUNIT: {hdr_unit}'
             )
 
         # add BUNIT to header if missing
@@ -341,7 +341,7 @@ class FitsFile:
             List of HISTORY entries, or None if no header exists.
         '''
         if isinstance(self.header, Header) and 'HISTORY' in self.header:
-            return list(self.primary_header['HISTORY']) # type: ignore
+            return list(self.header['HISTORY']) # type: ignore
         return None
 
     # Methods
