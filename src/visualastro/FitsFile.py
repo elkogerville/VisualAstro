@@ -331,6 +331,18 @@ class FitsFile:
         int : Total number of bytes used by the data array.
         '''
         return self.value.nbytes
+    @property
+    def log(self):
+        '''
+        Get the processing history from the FITS HISTORY cards.
+        Returns
+        –––––––
+        list of str or None
+            List of HISTORY entries, or None if no header exists.
+        '''
+        if isinstance(self.header, Header) and 'HISTORY' in self.header:
+            return list(self.primary_header['HISTORY']) # type: ignore
+        return None
 
     # Methods
     # –––––––
