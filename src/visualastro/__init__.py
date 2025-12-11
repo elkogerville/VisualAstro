@@ -15,7 +15,7 @@ from visualastro.spectra_utils import *
 from visualastro.units import *
 from visualastro.va_config import va_config
 from visualastro.visual_plots import *
-from visualastro.wcs_utils import crop2D, reproject_wcs
+from visualastro.wcs_utils import crop2D, get_wcs, reproject_wcs
 
 def _register_fonts():
     '''
