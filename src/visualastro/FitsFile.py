@@ -17,7 +17,10 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import numpy as np
-from .fits_utils import _log_history, update_header_key, with_updated_header_key
+from .fits_utils import (
+_get_history, _log_history, update_header_key,
+with_updated_header_key
+)
 from .units import _check_unit_equality, get_common_units
 from .validation import _validate_type
 from .wcs_utils import get_wcs
@@ -341,9 +344,7 @@ class FitsFile:
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
-        if isinstance(self.header, Header) and 'HISTORY' in self.header:
-            return list(self.header['HISTORY']) # type: ignore
-        return None
+        return _get_history(self.primary_header)
 
     # Methods
     # –––––––
