@@ -15,16 +15,20 @@ Module Structure:
 '''
 
 import copy
+import warnings
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
-from .fits_utils import _log_history, update_header_key, with_updated_header_key
+from .fits_utils import (
+update_header_key, with_updated_header_key,
+_get_history, _log_history, _transfer_history
+)
 from .units import _check_unit_equality, get_common_units
-from .va_config import get_config_value
+from .va_config import get_config_value, _default_flag
 from .validation import _validate_type
-from .wcs_utils import get_wcs
+from .wcs_utils import get_wcs, reproject_wcs
 
 
 class DataCube:
@@ -283,6 +287,7 @@ class DataCube:
         self.error = error
         self.unit = unit
         self.wcs = wcs
+        self.footprint = None
 
     # Properties
     # ––––––––––
@@ -430,9 +435,7 @@ class DataCube:
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
-        if isinstance(self.primary_header, Header) and 'HISTORY' in self.primary_header:
-            return list(self.primary_header['HISTORY']) # type: ignore
-        return None
+        return _get_history(self.primary_header)
 
     # Methods
     # –––––––
