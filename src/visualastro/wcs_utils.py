@@ -21,6 +21,8 @@ from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
 import numpy as np
 from reproject import reproject_interp, reproject_exact
+from spectral_cube import SpectralCube
+from tqdm import tqdm
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -183,7 +185,8 @@ def reproject_wcs(
     method=None,
     return_footprint=None,
     parallel=None,
-    block_size=_default_flag
+    block_size=_default_flag,
+    description=None
 ):
     '''
     Reproject data or Quantity arrays onto a reference WCS.
@@ -194,13 +197,17 @@ def reproject_wcs(
         The input data to be reprojected. May be:
         - A HDUList object
         - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
-        - An object containing `.data` and either `.wcs` or `.header`
         - A list containing any of the above inputs
         Note:
             - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
-            - [(np.ndarray, WCS), DataCube, FitsFile] is a valid input.
+            - [(np.ndarray, WCS), HDUList] is a valid input.
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
+        Dimensional handling:
+        - 2D → 2D: Direct reprojection
+        - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
+        - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
+        - 3D → 3D: Direct reprojection (spectral axes must be compatible)
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
         - 'interp' : use `reproject_interp`
@@ -226,6 +233,8 @@ def reproject_wcs(
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
         If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+    description : str or None, optional, default=None
+        Description message for loading bar. If None, uses default message.
 
     Returns
     –––––––
@@ -240,23 +249,16 @@ def reproject_wcs(
     Raises
     ––––––
     ValueError
-        If a `DataCube` or `FitsFile` object has neither `.wcs` nor `.header`
-        attribute available.
+        If a the inputs are not able to be reprojected.
 
-    Examples
-    ––––––––
-    Reproject a single array:
-
-    >>> reproject_wcs((data, wcs), reference_wcs)
-
-    Reproject a list of DataCube objects:
-
-    >>> reproject_wcs([cube1, cube2], reference_wcs, method='exact')
     '''
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')
     parallel = get_config_value(parallel, 'reproject_parallel')
     block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
+
+    if isinstance(reference_wcs, fits.Header):
+        reference_wcs = WCS(reference_wcs)
 
     # normalize input into a list
     if isinstance(input_data, list):
@@ -277,13 +279,69 @@ def reproject_wcs(
     reprojected_data = []
     footprints = []
 
-    for (data, unit) in zip(input_list, units):
+    for (obj, unit) in zip(input_list, units):
 
-        # Run reprojection
-        reprojected, footprint = reproject_method(
-            data, reference_wcs, parallel=parallel, block_size=block_size
-        )
+        # case 1: HDUList
+        if isinstance(obj, fits.HDUList):
+            reprojected, footprint = reproject_method(
+                obj, reference_wcs, parallel=parallel, block_size=block_size
+            )
+            if unit is not None:
+                reprojected *= unit
+            reprojected_data.append(reprojected)
+            footprints.append(footprint)
+            continue
 
+        # get data/wcs dimensions
+        data, wcs = obj
+        data_ndim = np.asarray(data).ndim
+        wcs_ndim = wcs.naxis
+        ref_ndim = reference_wcs.naxis
+
+        # case 2: data ndim == reference wcs ndim
+        if (
+            (data_ndim == 2 and ref_ndim == 2)
+            or (data_ndim == 3 and ref_ndim == 3)
+        ):
+            reprojected, footprint = reproject_method(
+                (data, wcs), reference_wcs,
+                parallel=parallel, block_size=block_size
+            )
+
+        # case 3: reference wcs ndim > data ndim
+        elif data_ndim == 2 and ref_ndim > 2:
+            ref_celestial = reference_wcs.celestial
+            reprojected, footprint = reproject_method(
+                (data, wcs), ref_celestial,
+                parallel=parallel, block_size=block_size
+            )
+
+        # case 4: data ndim > reference wcs ndim
+        # for each data slice, reproject
+        elif data_ndim == 3 and ref_ndim == 2:
+            wcs_celestial = wcs.celestial if wcs_ndim > 2 else wcs
+
+            reprojects = []
+            footprints_slice = []
+            desc = 'Looping over each slice' if description is None else description
+            for i in tqdm(range(data.shape[0]), desc=desc):
+                repr_i, foot_i = reproject_method(
+                    (data[i], wcs_celestial), reference_wcs,
+                    parallel=parallel, block_size=block_size
+                )
+                reprojects.append(repr_i)
+                footprints_slice.append(foot_i)
+
+            reprojected = np.stack(reprojects, axis=0)
+            footprint = np.stack(footprints_slice, axis=0)
+
+        else:
+            raise ValueError(
+                f'Unsupported dimension combination: data_ndim={data_ndim}, '
+                f'ref_ndim={ref_ndim}. Supported: (2,2), (2,3), (3,2), (3,3)'
+            )
+
+        # re-attach units
         if unit is not None:
             reprojected *= unit
 
@@ -304,19 +362,17 @@ def _normalize_reproject_input(input_data):
 
     Parameters
     ––––––––––
-    input_data : fits.HDUList, tuple, or object
+    input_data : fits.HDUList or tuple
         Input data to be reprojected. Must follow one of the formats:
             - fits.HDUList : hdul object containing data and header
-            - tuple : tuple containing (data, header/WCS)
-            - object : object containing a `.value` and `.header`/.`wcs` attribute
+            - tuple : (data, header/WCS) containing array and WCS/Header
 
     Returns
     –––––––
-    input_data : fits.HDUList, tuple, or object
-        The exact same input_data object
+    input_data : fits.HDUList or tuple
+        Normalized input (HDUList unchanged, tuple converted to (array, WCS))
     unit : Astropy.Unit or None
-        The unit of the input data. If the input data
-        is a HDUList, the unit is None.
+        The unit of the input data (None for HDUList)
 
     Raises
     ––––––
@@ -330,11 +386,21 @@ def _normalize_reproject_input(input_data):
     # case 2: (data, header/wcs) tuple
     elif isinstance(input_data, tuple) and len(input_data) == 2:
         data, wcs_or_header = input_data
-        unit = getattr(data, 'unit', None)
-        return (np.asarray(data), wcs_or_header), unit
+        if isinstance(wcs_or_header, fits.Header):
+            wcs = WCS(wcs_or_header)
+        else:
+            wcs = wcs_or_header
+
+        if isinstance(data, SpectralCube):
+            value = data.unmasked_data[:].value
+            unit  = data.unit
+        else:
+            value = np.asarray(data)
+            unit = getattr(data, 'unit', None)
+
+        return (value, wcs), unit
 
     else:
         raise TypeError(
-            'Each input must be an HDUList, a (data, header/WCS) tuple, '
-            'or an object with `.data` and `.wcs` or `.header`.'
+            'Each input must be an HDUList, or a (data, header/WCS) tuple.'
         )
