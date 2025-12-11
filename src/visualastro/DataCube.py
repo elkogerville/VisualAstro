@@ -510,6 +510,147 @@ class DataCube:
 
             plt.show()
 
+
+    def reproject(
+        self,
+        reference_wcs,
+        method=None,
+        return_footprint=None,
+        parallel=None,
+        block_size=_default_flag
+    ):
+        '''
+        Reproject DataCube to a new WCS grid.
+
+        Parameters
+        ––––––––––
+        reference_wcs : WCS or Header
+            Target WCS or FITS header to reproject onto
+        method : {'interp', 'exact'} or None
+            Reprojection method
+        return_footprint : bool or None
+            Whether to return footprint array
+        parallel : bool, int, or None
+            Parallelization settings
+        block_size : tuple, 'auto', or None
+            Block size for reprojection
+
+        Returns
+        –––––––
+        new_cube : DataCube
+            Reprojected DataCube.
+
+        Notes
+        –––––
+        - As of right now, the WCS and Header are correctly
+          updated for reprojected SpectralCubes only! For any
+          other data type, the old WCS and Header are passed down.
+
+        '''
+        method = get_config_value(method, 'reproject_method')
+
+        if isinstance(self.data, SpectralCube):
+            try:
+                new_data = self.data.reproject(reference_wcs)
+                new_header = Header() if new_data.header is None else new_data.header.copy()
+
+                if isinstance(self.primary_header, Header):
+                    new_header = _transfer_history(self.primary_header, new_header)
+
+                _log_history(
+                    new_header,
+                    f'Reprojected data with SpectralCube.reproject'
+                )
+
+                if self.error is not None:
+                   new_error, footprint = reproject_wcs(
+                       (self.error, self.wcs), reference_wcs,
+                       return_footprint=True, method=method,
+                       parallel=parallel, block_size=block_size
+                   )
+                   _log_history(
+                       new_header,
+                       f'Reprojected errors with reproject_{method}'
+                   )
+                else:
+                    new_error = None
+                    footprint = None
+
+                new_cube = DataCube(
+                    new_data, new_header,
+                    new_error, new_data.wcs
+                )
+                if return_footprint:
+                    new_cube.footprint = footprint
+
+                return new_cube
+
+            except Exception as e:
+                if isinstance(self.primary_header, Header):
+                    warnings.warn(
+                        f'\nSpectralCube.reproject() failed ({e}), '
+                        f'falling back to manual reprojection!'
+                        'WARNING: SpectralCube at .data is now a Quantity!'
+                    )
+                pass
+
+        if self.wcs is None and self.header is None:
+            raise ValueError(
+                'Cannot reproject: DataCube has neither .wcs nor .header'
+            )
+
+        wcs_info = self.wcs if self.wcs is not None else self.header
+
+        new_data, footprint = reproject_wcs(
+            (self.data, wcs_info),
+            reference_wcs,
+            return_footprint=True,
+            method=method,
+            parallel=parallel,
+            block_size=block_size,
+            description='looping over data slices'
+        )
+
+        new_header = Header() if self.header is None else self.header.copy()
+        if isinstance(self.primary_header, Header):
+            new_header = _transfer_history(self.primary_header, new_header)
+
+        _log_history(
+            new_header,
+            f'Reprojected data with reproject_{method}'
+        )
+
+        if self.error is not None:
+            new_error = reproject_wcs(
+                (self.error, self.wcs), reference_wcs,
+                return_footprint=False, method=method,
+                parallel=parallel, block_size=block_size,
+                description='looping over error slices'
+            )
+            _log_history(
+                new_header,
+                f'Reprojected errors with reproject_{method}'
+            )
+        else:
+            new_error = None
+
+        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+
+        warnings.warn(
+            f'\nWCS Header correction not yet implemented for manual reprojection! '
+            f'Output cube Header and WCS are still mapped to the original cube! '
+        )
+
+        new_cube = DataCube(
+            new_data, new_header,
+            new_error, new_wcs
+        )
+
+        if return_footprint:
+            new_cube.footprint = footprint
+
+        return new_cube
+
     def to(self, unit, equivalencies=None):
         '''
         Convert the DataCube data to a new physical unit.
@@ -559,7 +700,8 @@ class DataCube:
         else:
             new_error = None
 
-        # update header BUNIT and transfer over pre-existing logs
+        # update header BUNIT into copy and
+        # transfer over pre-existing logs
         new_hdr = with_updated_header_key(
             'BUNIT', unit, self.header, self.primary_header
         )
