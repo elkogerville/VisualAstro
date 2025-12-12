@@ -108,7 +108,7 @@
 #timezone:    UTC       # a pytz timezone string, e.g., US/Central or Europe/Paris
 
 # Colors
-axes.prop_cycle: cycler('color', ["#785ef0", "#dc267f", "#648fff", "#ffb000", "#fe6100"])
+#axes.prop_cycle: cycler('color', ["#785ef0", "#dc267f", "#648fff", "#ffb000", "#fe6100"])
 ## ***************************************************************************
 ## * LINES                                                                   *
 ## ***************************************************************************
@@ -392,17 +392,17 @@ axes.labelsize:     16  # font size of the x and y labels
                              #     - above patches but below lines ('line')
                              #     - above all (False)
 
-#axes.formatter.limits: -5, 6  # use scientific notation if log10
+axes.formatter.limits: -4, 4  # use scientific notation if log10
                                # of the axis range is smaller than the
                                # first or larger than the second
-#axes.formatter.use_locale: False  # When True, format tick labels
+axes.formatter.use_locale: False  # When True, format tick labels
                                    # according to the user's locale.
                                    # For example, use ',' as a decimal
                                    # separator in the fr_FR locale.
-#axes.formatter.use_mathtext: False  # When True, use mathtext for scientific
+axes.formatter.use_mathtext: True  # When True, use mathtext for scientific
                                      # notation.
-#axes.formatter.min_exponent: 0  # minimum exponent to format in scientific notation
-#axes.formatter.useoffset: True  # If True, the tick label formatter
+axes.formatter.min_exponent: 4  # minimum exponent to format in scientific notation
+axes.formatter.useoffset: False  # If True, the tick label formatter
                                  # will default to labeling ticks relative
                                  # to an offset when the data range is
                                  # small compared to the minimum absolute
