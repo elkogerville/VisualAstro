@@ -73,7 +73,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 
     Parameters
     ––––––––––
-    data : array-like
+    data : array-like or Quantity
         The image to crop. Must be 2D.
     size : Quantity, float, int, or tuple
         Size of the cutout. Interpreted as pixels if unitless.
@@ -120,7 +120,9 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
         the method will automatically attempt to correct for inverted RA/Dec axes.
 
     '''
-    if hasattr(data, 'wcs'):
+    if isinstance(wcs, WCS):
+        wcs = wcs.celestial
+    elif hasattr(data, 'wcs'):
         wcs = data.wcs.celestial
 
     if wcs is None:
@@ -132,6 +134,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     if position is None:
         ny, nx = data.shape
         position = [nx / 2, ny / 2]
+
     # assume floats and ints are pixel coordinates
     if (
         isinstance(position, (list, np.ndarray, tuple))
@@ -148,8 +151,24 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
         and len(position) == 2
         and all(isinstance(p, Quantity) for p in position)
         ):
-        ra = position[0].to(u.deg) # type: ignore
-        dec = position[1].to(u.deg) # type: ignore
+        p0 = position[0].to(u.deg)
+        p1 = position[1].to(u.deg)
+
+        test1 = SkyCoord(ra=p0, dec=p1, frame=frame)
+        x1, y1 = wcs.world_to_pixel(test1)
+
+        if np.isfinite(x1) and np.isfinite(y1):
+            ra, dec = p0, p1
+
+        else:
+            test2 = SkyCoord(ra=p1, dec=p0, frame=frame)
+            x2, y2 = wcs.world_to_pixel(test2)
+
+            if np.isfinite(x2) and np.isfinite(y2):
+                ra, dec = p1, p0
+            else:
+                raise ValueError('Could not interpret input as RA/Dec.')
+
         center = SkyCoord(ra=ra, dec=dec, frame=frame)
 
     # if position passed in as SkyCoord, use that
@@ -166,14 +185,10 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     except ValueError:
         # fallback if WCS RA/Dec swapped
         center_swapped = SkyCoord(ra=center.dec, dec=center.ra, frame=frame)
+
         cutout = Cutout2D(data, position=center_swapped, size=size, wcs=wcs, mode=mode)
 
-    # re-attach units
     crop_data = cutout.data
-    if hasattr(data, 'unit'):
-        unit = Unit(data.unit)
-        crop_data *= unit
-
     crop_wcs = cutout.wcs
 
     return crop_data, crop_wcs
