@@ -789,10 +789,25 @@ class DataCube:
         '''
         # check mask shape
         mask = np.asarray(mask)
-        if mask.shape != self.shape:
+
+        # ensure mask is 3D
+        if mask.ndim == 2:
+            mask = mask[None, :, :]
+        elif mask.ndim != 3:
             raise ValueError(
-                'Mask shape must match cube shape!'
+                f'Mask must be 2D or 3D, got {mask.ndim}D with shape {mask.shape}'
             )
+
+        if mask.shape != self.shape:
+            # broadcast 2D mask (1xNxM) across 3D cube (TxNxM)
+            if mask.shape[1:] == self.shape[1:] and mask.shape[0] == 1:
+                mask = np.broadcast_to(mask, self.shape)
+            else:
+                raise ValueError(
+                    'Mask shape does not match cube shape and is not broadcastable! '
+                    'For a 3D datacube with shape TxNxM, mask should either have shapes '
+                    f'NxM, 1xNxM, or TxNxM. \nMask shape: {mask.shape}, cube shape: {self.shape}'
+                )
 
         # case 1: mask SpectralCube
         if isinstance(self.data, SpectralCube):
