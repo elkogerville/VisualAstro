@@ -536,5 +536,5 @@ class FitsFile:
 
         return (
             f'<FitsFile[{datatype}]: unit={self.unit}, '
-            'shape={self.shape}, dtype={self.dtype}>'
+            f'shape={self.shape}, dtype={self.dtype}>'
         )
