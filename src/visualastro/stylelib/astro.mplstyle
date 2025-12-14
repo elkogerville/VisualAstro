@@ -401,7 +401,7 @@ axes.formatter.use_locale: False  # When True, format tick labels
                                    # separator in the fr_FR locale.
 axes.formatter.use_mathtext: True  # When True, use mathtext for scientific
                                      # notation.
-axes.formatter.min_exponent: 4  # minimum exponent to format in scientific notation
+#axes.formatter.min_exponent: 4  # minimum exponent to format in scientific notation
 axes.formatter.useoffset: False  # If True, the tick label formatter
                                  # will default to labeling ticks relative
                                  # to an offset when the data range is
