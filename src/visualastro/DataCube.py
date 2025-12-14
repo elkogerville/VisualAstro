@@ -25,7 +25,7 @@ from .fits_utils import (
 update_header_key, with_updated_header_key,
 _get_history, _log_history, _transfer_history
 )
-from .units import _check_unit_equality, get_common_units
+from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value, _default_flag
 from .validation import _validate_type
 from .wcs_utils import get_wcs, reproject_wcs
@@ -225,7 +225,7 @@ class DataCube:
             primary_hdr = header
 
         # ensure that units are consistent across all headers
-        hdr_unit = get_common_units(header)
+        hdr_unit = _validate_units_consistency(header)
 
         # check that both units are equal
         _check_unit_equality(unit, hdr_unit, 'data', 'header')
@@ -285,7 +285,6 @@ class DataCube:
         self.primary_header = primary_hdr
         self.header = header
         self.error = error
-        self.unit = unit
         self.wcs = wcs
         self.footprint = None
 
@@ -312,6 +311,14 @@ class DataCube:
         if self.unit is None:
             return None
         return self.unit * self.value
+    @property
+    def unit(self):
+        '''
+        Returns
+        –––––––
+        Unit : Astropy.Unit of the data.
+        '''
+        return getattr(self.data, 'unit', None)
 
     # statistical properties
     @property
@@ -756,7 +763,7 @@ class DataCube:
         # ensure that BUNIT is updated
         if header is None:
             if unit is not None and self.header is not None:
-                hdr_unit = get_common_units(self.header)
+                hdr_unit = _validate_units_consistency(self.header)
                 if hdr_unit is None or hdr_unit != unit:
                     update_header_key(
                         'BUNIT', unit, self.header, self.primary_header
