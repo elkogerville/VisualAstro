@@ -567,7 +567,8 @@ def add_subplot(
 
 
 def add_colorbar(im, ax, cbar_width=None,
-                 cbar_pad=None, clabel=None):
+                 cbar_pad=None, clabel=None,
+                 rasterized=None):
     '''
     Add a colorbar next to an Axes.
     Parameters
@@ -602,6 +603,9 @@ def add_colorbar(im, ax, cbar_width=None,
     cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
+
+    if rasterized:
+        cbar.solids.set_rasterized(True)
 
 
 def add_contours(x, y, ax, levels=20, contour_method='contour',
