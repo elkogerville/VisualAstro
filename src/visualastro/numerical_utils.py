@@ -188,13 +188,13 @@ def get_units(obj):
 
     # check if ExtractedSpectrum
     if isinstance(obj, ExtractedSpectrum):
-        for attr in ('spectrum1d', 'flux'):
+        for attr in ('spectrum', 'flux'):
             unit = getattr(getattr(obj, attr, None), 'unit', None)
             if unit is not None:
                 return unit
-        spectrum1d = getattr(obj, 'spectrum1d', None)
-        if spectrum1d is not None:
-            unit = getattr(getattr(spectrum1d, 'flux', None), 'unit', None)
+        spectrum = getattr(obj, 'spectrum', None)
+        if spectrum is not None:
+            unit = getattr(getattr(spectrum, 'flux', None), 'unit', None)
             if unit is not None:
                 return unit
 

@@ -553,7 +553,7 @@ class va:
         figure formatting, while preserving full configurability through **kwargs.
         Parameters
         ––––––––––
-        extracted_spectra : list of `ExtractedSpectrum`/`Spectrum1D`, or list of list of `ExtractedSpectrum`/`Spectrum1D`
+        extracted_spectra : list of `ExtractedSpectrum`/`Spectrum`, or list of list of `ExtractedSpectrum`/`Spectrum`
             List of spectra to plot. Each element should contain wavelength and flux attributes,
             and optionally the normalize attribute.
         idx : int, optional, default=0
