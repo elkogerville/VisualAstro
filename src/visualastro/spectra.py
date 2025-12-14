@@ -24,7 +24,7 @@ from astropy.units import Quantity
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-from specutils.spectra import Spectrum1D
+from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
@@ -237,8 +237,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             flux = deredden_flux(spectral_axis, flux, Rv, Ebv,
                                  deredden_method, deredden_region)
 
-        # initialize Spectrum1D object
-        spectrum1d = Spectrum1D(
+        # initialize Spectrum object
+        spectrum = Spectrum(
             spectral_axis=spectral_axis,
             flux=flux,
             rest_value=rest_freq,
@@ -246,17 +246,17 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         )
 
         # compute continuum fit
-        continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
+        continuum_fit = compute_continuum_fit(spectrum, fit_method, region)
 
         # compute normalized flux
-        flux_normalized = spectrum1d / continuum_fit
+        flux_normalized = spectrum / continuum_fit
 
         # variable for plotting wavelength
-        wavelength = spectrum1d.spectral_axis
+        wavelength = spectrum.spectral_axis
         # convert wavelength to desired units
         wavelength = convert_units(wavelength, unit)
-        # rebuild spectrum1d after unit change
-        spectrum1d = Spectrum1D(
+        # rebuild spectrum after unit change
+        spectrum = Spectrum(
             spectral_axis=wavelength,
             flux=flux,
             rest_value=rest_freq,
@@ -267,7 +267,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         extracted_spectra.append(ExtractedSpectrum(
             wavelength=wavelength,
             flux=flux,
-            spectrum1d=spectrum1d,
+            spectrum=spectrum,
             normalized=flux_normalized.flux,
             continuum_fit=continuum_fit
         ))
@@ -535,7 +535,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     one `ExtractedSpectrum` object.
     Parameters
     ––––––––––
-    extracted_spectra : list of `ExtractedSpectrum`/`Spectrum1D`, or list of list of `ExtractedSpectrum`/`Spectrum1D`
+    extracted_spectra : list of `ExtractedSpectrum`/`Spectrum`, or list of list of `ExtractedSpectrum`/`Spectrum`
         List of spectra to plot. Each element should contain wavelength and flux attributes,
         and optionally the normalize attribute.
     ax : matplotlib.axes.Axes

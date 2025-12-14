@@ -23,7 +23,7 @@ import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
-from specutils import Spectrum1D
+from specutils import Spectrum
 from specutils.fitting import fit_generic_continuum, fit_continuum
 from .numerical_utils import mask_within_range, return_array_values
 from .ExtractedSpectrum import ExtractedSpectrum
@@ -32,15 +32,15 @@ from .va_config import get_config_value
 
 # Science Spectrum Functions
 # ––––––––––––––––––––––––––
-def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
+def compute_continuum_fit(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
     Parameters
     ––––––––––
-    spectrum1d : Spectrum1D or ExtractedSpectrum
+    spectrum : Spectrum or ExtractedSpectrum
         Input 1D spectrum object containing flux and spectral_axis.
         ExtractedSpectrum is supported only if it contains a
-        spectrum1d object.
+        spectrum object.
     fit_method : str, optional, default='generic'
         Method used for fitting the continuum.
         - 'fit_continuum': uses `fit_continuum` with a specified window
@@ -55,24 +55,24 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
     Returns
     –––––––
     continuum_fit : np.ndarray
-        Continuum flux values evaluated at `spectrum1d.spectral_axis`.
+        Continuum flux values evaluated at `spectrum.spectral_axis`.
     Notes
     –––––
     - Warnings during the fitting process are suppressed.
     '''
     # if input spectrum is ExtractedSpectrum object
-    # extract the spectrum1d attribute
-    if not isinstance(spectrum1d, Spectrum1D):
-        if hasattr(spectrum1d, 'spectrum1d'):
-            spectrum1d = spectrum1d.spectrum1d
+    # extract the spectrum attribute
+    if not isinstance(spectrum, Spectrum):
+        if hasattr(spectrum, 'spectrum'):
+            spectrum = spectrum.spectrum
         else:
             raise ValueError (
-                'Input object is not a Spectrum1d '
-                "or has no `spectrum1d` attribute. "
-                f'type: {type(spectrum1d)}'
+                'Input object is not a Spectrum '
+                "or has no `spectrum` attribute. "
+                f'type: {type(spectrum)}'
             )
     # extract spectral axis
-    spectral_axis = spectrum1d.spectral_axis
+    spectral_axis = spectrum.spectral_axis
 
     # suppress warnings during continuum fitting
     with warnings.catch_warnings():
@@ -81,9 +81,9 @@ def compute_continuum_fit(spectrum1d, fit_method='fit_continuum', region=None):
         if fit_method=='fit_continuum':
             # convert region to default units
             region = _convert_region_units(region, spectral_axis)
-            fit = fit_continuum(spectrum1d, window=region)
+            fit = fit_continuum(spectrum, window=region)
         else:
-            fit = fit_generic_continuum(spectrum1d)
+            fit = fit_generic_continuum(spectrum)
 
     # fit the continuum of the provided spectral axis
     continuum_fit = fit(spectral_axis)
