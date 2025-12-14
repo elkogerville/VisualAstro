@@ -432,7 +432,7 @@ class FitsFile:
             wcs=new_wcs
         )
 
-    def update(self, data=None, header=None, error=None, wcs=None):
+    def update(self, *, data=None, header=None, error=None, wcs=None):
         '''
         Update any of the FitsFile attributes in place. All internally
         stored values are recomputed.
