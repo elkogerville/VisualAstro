@@ -226,6 +226,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
         # shift by radial velocity
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
+        # convert wavelength to desired units
+        spectral_axis = convert_units(spectral_axis, unit)
 
         # extract spectrum flux
         flux = extract_method(cube)
@@ -251,25 +253,13 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         # compute normalized flux
         flux_normalized = spectrum / continuum_fit
 
-        # variable for plotting wavelength
-        wavelength = spectrum.spectral_axis
-        # convert wavelength to desired units
-        wavelength = convert_units(wavelength, unit)
-        # rebuild spectrum after unit change
-        spectrum = Spectrum(
-            spectral_axis=wavelength,
-            flux=flux,
-            rest_value=rest_freq,
-            velocity_convention=convention
-        )
-
         # save computed spectrum
         extracted_spectra.append(ExtractedSpectrum(
-            wavelength=wavelength,
-            flux=flux,
             spectrum=spectrum,
             normalized=flux_normalized.flux,
-            continuum_fit=continuum_fit
+            continuum_fit=continuum_fit,
+            fit_method=fit_method,
+            region=region
         ))
 
     # plot spectrum
