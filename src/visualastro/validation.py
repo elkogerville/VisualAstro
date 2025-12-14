@@ -7,6 +7,8 @@ Description:
 Dependencies:
     - astropy
 '''
+from astropy.units import Quantity
+import numpy as np
 
 
 def _validate_type(
@@ -49,3 +51,59 @@ def _validate_type(
         )
 
     return data
+
+
+def _allclose(a, b):
+    '''
+    Determine whether two array-like objects are equal within a tolerance,
+    with additional handling for `astropy.units.Quantity` and None.
+    This function behaves like `numpy.allclose`, but adds logic to safely
+    compare Quantities (ensuring matching units) and to treat None as
+    a valid sentinel value.
+    Parameters
+    ––––––––––
+    a, b : array-like, `~astropy.units.Quantity`, scalar, or None
+        The inputs to compare. Inputs may be numerical arrays, scalars, or
+        `Quantity` objects with units. If one argument is None, the result is
+        False unless both are None.
+
+    Returns
+    –––––––
+    bool
+        True if the inputs are considered equal, False otherwise.
+        Equality rules:
+        - Both None → True
+        - One None → False
+        - Quantities with mismatched units → False
+        - Quantities with identical units → value arrays compared via
+            `numpy.allclose`
+        - Non-Quantity arrays/scalars → compared via `numpy.allclose`
+
+    Notes
+    –––––
+    - This function does **not** attempt unit conversion.
+        Quantities must already share identical units.
+    - This function exists to support `.update()` logic where user-supplied
+        wavelength/flux arrays should only trigger recomputation if they
+        differ from stored values.
+    '''
+    # case 1: both are None → equal
+    if a is None and b is None:
+        return True
+
+    # case 2: only one is None → different
+    if a is None or b is None:
+        return False
+
+    # case 3: one is Quantity, one is not
+    if isinstance(a, Quantity) != isinstance(b, Quantity):
+        return False
+
+    # case 4: both Quantities
+    if isinstance(a, Quantity) and isinstance(b, Quantity):
+        if a.unit != b.unit:
+            return False
+        return np.allclose(a.value, b.value)
+
+    # case 5: both unitless arrays/scalars
+    return np.allclose(a, b)
