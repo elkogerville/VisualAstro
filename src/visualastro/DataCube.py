@@ -722,7 +722,7 @@ class DataCube:
             wcs=new_wcs
         )
 
-    def update(self, data=None, header=None, error=None, wcs=None):
+    def update(self, *, data=None, header=None, error=None, wcs=None):
         '''
         Update any of the DataCube attributes in place. All internally
         stored values are recomputed.
