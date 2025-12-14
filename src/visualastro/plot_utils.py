@@ -587,10 +587,17 @@ def add_colorbar(im, ax, cbar_width=None,
         value set in `va_config.cbar_pad`.
     clabel : str, optional
         Label for the colorbar. If None, no label is set.
+    rasterized : bool or None, default=None
+        Whether to rasterize colorbar. Rasterization
+        converts the artist to a bitmap when saving to
+        vector formats (e.g., PDF, SVG), which can
+        significantly reduce file size for complex plots.
+        If None, uses default value set by `va_config.rasterized`
     '''
     # get default va_config values
     cbar_width = get_config_value(cbar_width, 'cbar_width')
     cbar_pad = get_config_value(cbar_pad, 'cbar_pad')
+    rasterized = get_config_value(rasterized, 'rasterized')
 
     # extract figure from axes
     fig = ax.figure
