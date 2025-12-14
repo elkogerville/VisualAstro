@@ -35,26 +35,32 @@ from .va_config import get_config_value
 def compute_continuum_fit(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
+
     Parameters
     ––––––––––
     spectrum : Spectrum or ExtractedSpectrum
         Input 1D spectrum object containing flux and spectral_axis.
         ExtractedSpectrum is supported only if it contains a
         spectrum object.
-    fit_method : str, optional, default='generic'
+    fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used for fitting the continuum.
         - 'fit_continuum': uses `fit_continuum` with a specified window
         - 'generic'      : uses `fit_generic_continuum`
-    region : array-like, optional, default=None
-        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
-        Ignored for other methods. This allows the user to specify which
-        regions to include in the fit. Removing strong peaks is preferable to
-        avoid skewing the fit up or down.
+    region : array-like of tuple, optional
+        Spectral region(s) to include in the continuum fit when
+        `fit_method='fit_continuum'`. Each region is specified as a
+        `(lower, upper)` bound in wavelength or pixel coordinates
+        (typically `Quantity`). Multiple regions may be provided to
+        restrict the fit to selected portions of the spectrum. This
+        is commonly used to exclude strong emission or absorption features
+        that would otherwise bias the continuum model.Ignored for all
+        other fitting methods.
         Ex: Remove strong emission peak at 7um from fit
         region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+
     Returns
     –––––––
-    continuum_fit : np.ndarray
+    continuum_fit : Quantity
         Continuum flux values evaluated at `spectrum.spectral_axis`.
     Notes
     –––––
