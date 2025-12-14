@@ -15,7 +15,7 @@ from astropy.units import Quantity, Unit, UnitsError
 import numpy as np
 
 
-def _check_unit_equality(unit1, unit2, name1="unit1", name2="unit2"):
+def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     '''
     Validate that two units are exactly equal.
 
@@ -59,7 +59,7 @@ def _check_unit_equality(unit1, unit2, name1="unit1", name2="unit2"):
     )
 
 
-def get_common_units(objs):
+def _validate_units_consistency(objs, *, label=None):
     '''
     Extract units of each object in objs
     and validate that units match.
@@ -90,6 +90,8 @@ def get_common_units(objs):
     for i, obj in enumerate(objs):
         if isinstance(obj, Quantity):
             units.add(obj.unit)
+        elif hasattr(obj, 'unit'):
+            units.add(obj.unit)
         elif isinstance(obj, Header) and 'BUNIT' in obj:
             try:
                 units.add(Unit(obj['BUNIT'])) # type: ignore
@@ -100,8 +102,9 @@ def get_common_units(objs):
                 )
     # raise error if more than one unit found
     if len(units) > 1:
+        prefix = f'{label} ' if label is not None else ''
         raise UnitsError(
-            f'Inconsistent units found: {units}'
+            f'Inconsistent {prefix}units found: {units}'
         )
 
     # return either single unit or None
