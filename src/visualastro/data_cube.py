@@ -410,7 +410,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         clabel = cbar_unit if cbar_unit is not None else None
     # set colorbar
     if colorbar:
-        add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
+        add_colorbar(im, ax, cbar_width, cbar_pad, clabel, rasterized=rasterized)
 
     # plot ellipses
     if plot_ellipse:
