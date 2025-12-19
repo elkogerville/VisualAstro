@@ -53,9 +53,6 @@ class FitsFile:
         The FITS header provided at initialization.
     error : ndarray, Quantity, or None
         Associated error data, if provided.
-    unit : astropy.units.Unit or None
-        The physical unit of the data. Inferred from the input
-        `Quantity` or from the FITS header keyword ``BUNIT``.
     wcs : astropy.wcs.WCS or None
         The WCS transformation extracted from the header, if valid.
 
@@ -65,6 +62,9 @@ class FitsFile:
         Raw numpy array of the data values.
     quantity : Quantity
         Quantity array of data values (values + astropy units).
+    unit : astropy.units.Unit or None
+        The physical unit of the data. Inferred from the input
+        `Quantity` or from the FITS header keyword `BUNIT`.
     min : float
         Minimum value in the data, ignoring NaNs.
     max : float
@@ -138,7 +138,6 @@ class FitsFile:
         Helper method to initialize the
         class and perform type checking.
         '''
-        # type checks
         data = _validate_type(
             data, (np.ndarray, Quantity), allow_none=False, name='data'
         )
