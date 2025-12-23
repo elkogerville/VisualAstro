@@ -367,3 +367,97 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y + continuum
+
+
+@dataclass
+class GaussianFitResult:
+    '''
+    Lightweight dataclass for gaussian fitting results.
+
+    Notes
+    –––––
+    - If new gaussian models are added, make sure to update
+      the `additional_parameters` list.
+    '''
+    # fitted parameters
+    amplitude: Any
+    amplitude_error: Any
+    mu: Any
+    mu_error: Any
+    sigma: Any
+    sigma_error: Any
+
+    # derived quantities
+    flux: Any
+    flux_error: Any
+    FWHM: Any
+    FWHM_error: Any
+
+    # additional parameters
+    slope: Optional[Any] = None
+    slope_error: Optional[Any] = None
+    intercept: Optional[Any] = None
+    intercept_error: Optional[Any] = None
+    # NOTE: ensure these are updated!
+    additional_parameters = ['slope', 'intercept']
+    parameters_labels = ['Slope (m)', 'Intercept (b)']
+
+    # raw curve fit results
+    popt: Optional[Any] = None
+    pcov: Optional[Any] = None
+    perr: Optional[Any] = None
+
+    def pretty_print(self):
+        '''
+        Pretty print the results in table format.
+        '''
+        fitted_data = [
+            ['Amplitude', self.amplitude, self.amplitude_error],
+            ['Mu (μ)', self.mu, self.mu_error],
+            ['Sigma (σ)', self.sigma, self.sigma_error],
+        ]
+        for param, name in zip(
+            self.additional_parameters, self.parameters_labels
+        ):
+            if getattr(self, param, None) is not None:
+                value = getattr(self, param)
+                error = getattr(self, param+'_error', '')
+                fitted_data.append([name, value, error])
+
+        print('Fitted Parameters:')
+        print_pretty_table(
+            headers=['Parameter', 'Value', 'Error'],
+            data=fitted_data
+        )
+
+        print('\nDerived Parameters: ')
+        print_pretty_table(
+            headers=None,
+            data=[
+                ['Integrated Flux', self.flux, self.flux_error],
+                ['FWHM', self.FWHM, self.FWHM_error],
+            ]
+        )
+
+    def __repr__(self):
+        '''
+        Returns values ± errors.
+        '''
+        exclude = {'popt', 'pcov', 'perr', 'additional_parameters', 'parameters_labels'}
+
+        lines = ['GaussianFitResult(']
+
+        for field in fields(self):
+            if field.name in exclude or field.name.endswith('_error'):
+                continue
+
+            value = getattr(self, field.name)
+            if value is not None:
+                error = getattr(self, f'{field.name}_error', None)
+                if error is not None:
+                    lines.append(f'  {field.name} : {value} ± {error}')
+                else:
+                    lines.append(f'  {field.name} : {value}')
+
+        lines.append(')')
+        return '\n'.join(lines)
