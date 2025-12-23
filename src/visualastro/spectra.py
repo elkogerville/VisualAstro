@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
+from .ExtractedSpectrum import ExtractedSpectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
@@ -35,13 +36,14 @@ from .plot_utils import (
     set_axis_limits, set_plot_colors
 )
 from .spectra_utils import (
+    GaussianFitResult,
     compute_continuum_fit,
     deredden_flux, gaussian,
     gaussian_continuum, gaussian_line,
     get_config_value
 )
+from .text_utils import print_pretty_table
 from .va_config import get_config_value, va_config, _default_flag
-from .ExtractedSpectrum import ExtractedSpectrum
 
 
 # Spectra Extraction Functions
@@ -462,7 +464,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     for i, extracted_spectrum in enumerate(extracted_spectra):
 
         # extract wavelength and flux
-        wavelength = extracted_spectrum.wavelength
+        wavelength = extracted_spectrum.spectral_axis
         if plot_norm_continuum:
             flux = extracted_spectrum.normalized
         else:
