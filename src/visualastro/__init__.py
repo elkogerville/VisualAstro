@@ -12,6 +12,7 @@ from visualastro.plotting import *
 from visualastro.plot_utils import *
 from visualastro.spectra import *
 from visualastro.spectra_utils import *
+from visualastro.text_utils import pretty_table, print_pretty_table
 from visualastro.units import *
 from visualastro.va_config import va_config
 from visualastro.visual_plots import *
