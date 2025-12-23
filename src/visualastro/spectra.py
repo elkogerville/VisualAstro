@@ -705,53 +705,71 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
 # Spectra Fitting Functions
 # –––––––––––––––––––––––––
-def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
-                        interpolate=None, interp_method=None, yerror=None,
-                        error_method=None, samples=None, return_fit_params=None,
-                        plot_interp=False, print_vals=None, **kwargs):
+def fit_gaussian_2_spec(
+    extracted_spectrum, p0, *, model=None, spectral_range=None,
+    fit_method=None, absolute_sigma=False, yerror=None,
+    interpolate=None, samples=None, interp_method=None,
+    error_interp_method=None, return_fit_params=None,
+    plot_interp=False, print_vals=None, **kwargs
+):
     '''
-    Fit a Gaussian or Gaussian variant to a 1D spectrum, optionally including a continuum.
+    Fit a Gaussian-like model to a Spectrum, optionally including the continuum.
+
     Parameters
     ––––––––––
-    extracted_spectrum : ExtractedSpectrum
-        Spectrum object containing 'wavelength' and 'flux' arrays.
+    extracted_spectrum : ExtractedSpectrum or Spectrum
+        Spectrum object to be gaussian fitted.
     p0 : list
         Initial guess for the Gaussian fit parameters.
         This should match the input arguments of the
         gaussian model (excluding the first argument
         which is wavelength).
-    model : str or None, default=None
+    model : {'gaussian', 'gaussian_line', 'gaussian_continuum'} or None, default=None
         Type of Gaussian model to fit:
         - 'gaussian' : standard Gaussian
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
         The continuum can be computed with compute_continuum_fit().
         If None, uses the default value set by `va_config.gaussian_model`.
-    wave_range : tuple or list, optional, default=None
+    spectral_range : array-like or None, optional, default=None
         (min, max) wavelength range to restrict the fit.
         If None, computes the min and max from the wavelength.
-    interpolate : bool or None, default=None
-        Whether to interpolate the spectrum over
-        a regular wavelength grid. The number of
-        samples is controlled by `samples`. If None,
-        uses the default value set by `va_config.interpolate`.
-    interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
-        Interpolation method used. If None, uses the default
-        value set by `va_config.interpolation_method`.
+    fit_method : {'lm', 'trf', 'dogbox'} or None, optional, default=None
+        Curve fitting algorithm used by `scipy.optimize.curve_fit`.
+        If None, uses the default value set by `va_config.curve_fit_method`.
+    absolute_sigma : boolean, optional, default=False
+        If True, the values provided in `yerror` are interpreted as absolute
+        1σ uncertainties on the flux measurements. In this case, the returned
+        covariance matrix reflects these absolute uncertainties, and parameter
+        errors are reported in physical units.
+        If False, the values in `yerror` are treated as relative weights only.
+        The covariance matrix is rescaled such that the reduced χ² of the fit
+        is unity, and the reported parameter uncertainties reflect relative
+        errors rather than absolute measurement uncertainties.
+        Set this to True when `yerror` represents well-calibrated observational
+        uncertainties (e.g., photon-counting or pipeline-provided errors).
+        Set this to False when `yerror` is used only for weighting the fit.
     yerror : array-like or None, optional, default=None
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
-    error_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
-        Method to interpolate yerror if provided. If None, uses
-        the default value set by `va_config.error_interpolation_method`.
+        This is passed to `curve_fit` as the `sigma` parameter.
+    interpolate : bool or None, default=None
+        Whether to interpolate the spectrum over a regular wavelength grid.
+        The number of samples is controlled by `samples`. If None, uses the
+        default value set by `va_config.curve_fit_interpolate`.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
         None, uses the default value set by `va_config.interpolation_samples`.
+    interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
+        Interpolation method used. If None, uses the default
+        value set by `va_config.interpolation_method`.
+    error_interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
+        Method to interpolate yerror if provided. If None, uses
+        the default value set by `va_config.error_interpolation_method`.
     return_fit_params : bool or None, default=None
-        If True, return full computed best-fit parameters
-        including derived flux and FWHM. If False, return
-        only Flux, FWHM, and mu. If None, uses the default
-        value set by `va_config.return_gaussian_fit_parameters`.
+        If True, return full computed best-fit parameters for all parameters,
+        including popt, pcov, and perr. If False, return only Flux, FWHM, and mu.
+        If None, uses the default value set by `va_config.return_gaussian_fit_parameters`.
     plot_interp : bool, default=False
         If True, plot the interpolated spectrum. This is
         provided for debugging purposes.
@@ -790,28 +808,22 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
             Resolution in dots per inch.
 
     Returns
-    –––––––
-    If return_fit_params:
-        popt : np.ndarray
-            Best-fit parameters including integrated flux and FWHM.
-        perr : np.ndarray
-            Uncertainties of fit parameters including flux and FWHM errors.
-    Else:
-        PlotHandles : namedtuple
-            A `namedtuple` with the following fields:
+    -------
+    GaussianFitResult or GaussianHandles
 
-            - `flux` : float
-              Integrated flux of the fitted Gaussian.
-            - `FWHM` : float
-              Full width at half maximum of the fitted Gaussian.
-            - `mu` : float
-              Mean (central wavelength or position) of the fitted Gaussian.
-            - `flux_error` : float
-              1σ uncertainty on the integrated flux.
-            - `FWHM_error` : float
-              1σ uncertainty on the FWHM.
-            - `mu_error` : float
-              1σ uncertainty on the mean position.
+        GaussianFitResult : dataclass (when `return_fit_params=True`):
+            Contains all fitted parameters (amplitude, mu, sigma, and optionally
+            slope/intercept for line models), derived quantities (flux, FWHM),
+            and their 1σ uncertainties. Also includes raw fit outputs (popt, pcov, perr).
+            See dataclass definition for complete attribute list.
+
+        GaussianHandles : namedtuple (when `return_fit_params=False`):
+            Simplified namedtuple with key results:
+
+            - flux, FWHM, mu : Quantity
+                Integrated flux, full width at half maximum, and center position.
+            - flux_error, FWHM_error, mu_error : Quantity
+                1σ uncertainties on the above quantities.
     '''
     # –––– KWARGS ––––
     # figure params
@@ -832,88 +844,147 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
     # get default va_config values
     colors = get_config_value(colors, 'colors')
     model = get_config_value(model, 'gaussian_model')
-    interpolate = get_config_value(interpolate, 'interpolate')
+    fit_method = get_config_value(fit_method, 'curve_fit_method')
+    interpolate = get_config_value(interpolate, 'curve_fit_interpolate')
     interp_method = get_config_value(interp_method, 'interpolation_method')
-    error_method = get_config_value(error_method, 'error_interpolation_method')
+    error_interp_method = get_config_value(error_interp_method, 'error_interpolation_method')
     samples = get_config_value(samples, 'interpolation_samples')
     return_fit_params = get_config_value(return_fit_params, 'return_gaussian_fit_parameters')
     print_vals = get_config_value(print_vals, 'print_gaussian_values')
 
     # ensure arrays are not quantity objects
-    wave_unit = extracted_spectrum.wavelength.unit
-    flux_unit = extracted_spectrum.flux.unit
-    wavelength = return_array_values(extracted_spectrum.wavelength)
-    flux = return_array_values(extracted_spectrum.flux)
+    spectral_axis = extracted_spectrum.spectral_axis
+    flux = extracted_spectrum.flux
+
+    spectral_unit = spectral_axis.unit
+    flux_unit = flux.unit
+
+    x0 = spectral_axis.to_value()
+    y0 = flux.to_value()
+
+    if yerror is not None:
+        yerror = yerror.to_value()
+
+    p0 = list(p0)
+
     # compute default wavelength range from wavelength
-    wave_range = [np.nanmin(wavelength), np.nanmax(wavelength)] if wave_range is None else wave_range
-    # guassian fitting function map
-    function_map = {
-        'gaussian': gaussian,
-        'gaussian_line': gaussian_line,
-        'gaussian_continuum': gaussian_continuum
-    }
+    if spectral_range is None:
+        spectral_range = [np.nanmin(x0), np.nanmax(x0)]
+
     if model == 'gaussian_continuum':
-        continuum = p0[-1]
+        # remove continuum values to ensure it is not
+        # included as a free parameter during minimization
+        continuum = np.asarray(p0.pop(-1))
+    else:
+        continuum = None
+
     # interpolate arrays
     if interpolate:
         # interpolate wavelength and flux arrays
-        wavelength, flux = interpolate_arrays(wavelength, flux, wave_range,
-                                              samples, method=interp_method)
+        x, y = interpolate_arrays(
+            x0, y0, spectral_range, samples, method=interp_method
+        )
         # interpolate y error values
         if yerror is not None:
-            _, yerror = interpolate_arrays(extracted_spectrum.wavelength,
-                                           yerror, wave_range, samples,
-                                           method=error_method)
+            _, yerror = interpolate_arrays(
+                x0, yerror, spectral_range, samples, method=error_interp_method
+            )
         # interpolate continuum array
         if model == 'gaussian_continuum':
-            _, continuum = interpolate_arrays(extracted_spectrum.wavelength,
-                                              continuum, wave_range, samples,
-                                              method=interp_method)
-            # remove continuum values to ensure it is not
-            # included as a free parameter during minimization
-            p0.pop(-1)
-
-    # clip values outisde wavelength range
-    wave_mask = mask_within_range(wavelength, wave_range)
-    wave_sub = wavelength[wave_mask]
-    flux_sub = flux[wave_mask]
-    if yerror is not None:
-        yerror = yerror[wave_mask]
-    if model == 'gaussian_continuum':
-        continuum = continuum[wave_mask]
-
-    # extract fitting function from map
-    function = function_map.get(model, gaussian)
-    # fit gaussian model to data
-    if model == 'gaussian_continuum':
-        # define lambda function
-        fitted_model = lambda x, A, mu, sigma: gaussian_continuum(x, A, mu, sigma, continuum)
-        # fit gaussian to data
-        popt, pcov = curve_fit(fitted_model, wave_sub, flux_sub, p0,
-                               sigma=yerror, absolute_sigma=True, method='trf')
-        # overwrite for plotting
-        function = fitted_model
+            _, continuum = interpolate_arrays(
+                x0, continuum, spectral_range, samples, method=interp_method
+            )
     else:
-        # fit gaussian to data
-        popt, pcov = curve_fit(function, wave_sub, flux_sub, p0, sigma=yerror,
-                               absolute_sigma=True, method='trf')
+        x, y = x0, y0
+
+    # clip values outside wavelength range
+    spectral_mask = mask_within_range(x, spectral_range)
+
+    x_sub = x[spectral_mask]
+    y_sub = y[spectral_mask]
+    yerr_sub = yerror[spectral_mask] if yerror is not None else None
+
+    if len(x_sub) == 0:
+        raise ValueError(
+            f'No data points within spectral_range {spectral_range}'
+        )
+
+    if model == 'gaussian_continuum' and continuum is not None:
+        continuum_sub = continuum[spectral_mask]
+
+        def function(x, A, mu, sigma):
+            return gaussian_continuum(x, A, mu, sigma, continuum_sub)
+
+    elif model == 'gaussian_line':
+        function = gaussian_line
+
+    else:
+        function = gaussian
+
+    # fit gaussian model to data
+    popt, pcov = curve_fit(
+        function,
+        x_sub,
+        y_sub,
+        p0,
+        sigma=yerr_sub,
+        absolute_sigma=absolute_sigma,
+        method=fit_method
+    )
+
     # estimate errors
     perr = np.sqrt(np.diag(pcov))
+
     # extract physical quantities from model fitting
     amplitude = popt[0] * flux_unit
     amplitude_error = perr[0] * flux_unit
-    mu = popt[1] * wave_unit
-    mu_error = perr[1] * wave_unit
-    sigma = popt[2] * wave_unit
-    sigma_error = perr[2] * wave_unit
+
+    mu = popt[1] * spectral_unit
+    mu_error = perr[1] * spectral_unit
+
+    sigma = popt[2] * spectral_unit
+    sigma_error = perr[2] * spectral_unit
+
     # compute integrated flux, FWHM, and their errors
     integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
     flux_error = integrated_flux * np.sqrt(
         (amplitude_error / amplitude)**2 +
         (sigma_error / sigma)**2
     )
+
     FWHM = 2*sigma * np.sqrt(2*np.log(2))
     FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
+
+    if model == 'gaussian_line' and len(popt) > 3:
+        m = popt[3] * (flux_unit / spectral_unit)
+        m_error = perr[3] * (flux_unit / spectral_unit)
+        b = popt[4] * flux_unit
+        b_error = perr[4] * flux_unit
+    else:
+        m = None
+        m_error = None
+        b = None
+        b_error = None
+
+    result = GaussianFitResult(
+        amplitude=amplitude,
+        amplitude_error=amplitude_error,
+        mu=mu,
+        mu_error=mu_error,
+        sigma=sigma,
+        sigma_error=sigma_error,
+        flux=integrated_flux,
+        flux_error=flux_error,
+        FWHM=FWHM,
+        FWHM_error=FWHM_error,
+        slope=m,
+        slope_error=m_error,
+        intercept=b,
+        intercept_error=b_error,
+        popt=popt,
+        pcov=pcov,
+        perr=perr
+    )
 
     # set plot style and colors
     colors, _ = set_plot_colors(colors)
@@ -927,26 +998,24 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
             'scatter': ax.scatter
         }.get(plot_type, ax.plot)
         # plot interpolated data
-        if plot_interp:
-            plt_plot(wavelength, flux,
-                     c=colors[2%len(colors)],
-                     label='Interpolated')
+        if plot_interp and interpolate:
+            plt_plot(
+                x, y, c=colors[2%len(colors)], label='Interpolated'
+            )
         # plot original data
-        # re-extract values of original data
-        wavelength = return_array_values(extracted_spectrum.wavelength)
-        flux = return_array_values(extracted_spectrum.flux)
         # clip values outisde of plotting range
-        xlim = wave_range if xlim is None else xlim
-        plot_mask = mask_within_range(wavelength, xlim)
+        xlim = spectral_range if xlim is None else xlim
+        plot_mask = mask_within_range(x0, xlim)
         label = label if label is not None else 'Spectrum'
-        plt_plot(wavelength[plot_mask], flux[plot_mask],
+        plt_plot(x0[plot_mask], y0[plot_mask],
                  c=colors[0%len(colors)], label=label)
         # plot gaussian model
-        ax.plot(wave_sub, function(wave_sub, *popt),
+        ax.plot(x_sub, function(x_sub, *popt),
                 c=colors[1%len(colors)], label='Gaussian Model')
         # set axis labels and limits
-        set_axis_labels(extracted_spectrum.wavelength, extracted_spectrum.flux,
-                        ax, xlabel, ylabel, use_brackets)
+        set_axis_labels(
+            spectral_axis, flux, ax, xlabel, ylabel, use_brackets
+        )
         ax.set_xlim(xlim[0], xlim[1])
         plt.legend()
         if savefig:
@@ -954,57 +1023,13 @@ def fit_gaussian_2_spec(extracted_spectrum, p0, model=None, wave_range=None,
         plt.show()
 
     if print_vals:
-        # format list for printed table
-        computed_vals = [return_array_values(integrated_flux), return_array_values(FWHM), '', '', '']
-        computed_errors = [return_array_values(flux_error), return_array_values(FWHM_error), '', '', '']
-        # table headers
-        print('Best Fit Values:   | Best Fit Errors:   | Computed Values:   | Computed Errors:   \n'+'–'*81)
-        params = ['A', 'μ', 'σ', 'm', 'b']
-        computed_labels = ['Flux', 'FWHM', '', '', '']
-        for i in range(len(popt)):
-            # format best fit values
-            fit_str = f'{params[i]+":":<2} {popt[i]:>15.6f}'
-            # format best fit errors
-            fit_err = f'{params[i]+"δ":<2}: {perr[i]:>14.8f}'
-            # format computed values if value exists
-            if computed_vals[i]:
-                comp_str = f'{computed_labels[i]+":":<6} {computed_vals[i]:>10.9f}'
-                comp_err = f'{computed_labels[i]+"δ:":<6} {computed_errors[i]:>11.8f}'
-            else:
-                comp_str = f"{computed_labels[i]:<6} {'':>11}"
-                comp_err = f"{computed_labels[i]:<6} {'':>11}"
-
-            print(f'{fit_str} | {fit_err} | {comp_str} | {comp_err}')
-
-    GAUSSIAN_FIELDS = ['amplitude', 'mu', 'sigma', 'flux', 'FWHM',
-                       'amplitude_error', 'mu_error', 'sigma_error', 'flux_error', 'FWHM_error']
-    GAUSSIAN_LINE_FIELDS = ['amplitude', 'mu', 'sigma', 'm', 'b', 'flux', 'FWHM',
-                            'amplitude_error', 'mu_error', 'sigma_error', 'm_error', 'b_error', 'flux_error', 'FWHM_error']
-    GAUSSIAN_CONT_FIELDS = GAUSSIAN_FIELDS[:]
-    DEFAULT_FIELDS = ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
-    return_handle = {
-        'gaussian': namedtuple('Gaussian', GAUSSIAN_FIELDS),
-        'gaussian_line': namedtuple('GaussianLine', GAUSSIAN_LINE_FIELDS),
-        'gaussian_continuum': namedtuple('GaussianContinuum', GAUSSIAN_CONT_FIELDS),
-        'default': namedtuple('DefaultGaussian', DEFAULT_FIELDS)
-    }
-    model = model.lower() if return_fit_params else 'default'
-    PlotHandles = return_handle[model.lower()]
+        result.pretty_print()
 
     if return_fit_params:
-        # concatenate computed values and errors
-        fitted_params = [amplitude, mu, sigma]
-        fitted_errors = [amplitude_error, mu_error, sigma_error]
-        # add any extra fitting params
-        if len(popt) > 3:
-            fitted_params.extend(popt[3:])
-            fitted_errors.extend(perr[3:])
-
-        # added computed values and errors
-        fitted_params += [integrated_flux, FWHM]
-        fitted_errors += [flux_error, FWHM_error]
-
-        return PlotHandles(*(fitted_params + fitted_errors))
-
+        return result
     else:
-        return PlotHandles(integrated_flux, FWHM, mu, flux_error, FWHM_error, mu_error)
+        default_return = ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
+        GaussianHandles = namedtuple('GaussianFit', default_return)
+        return GaussianHandles(
+            integrated_flux, FWHM, mu, flux_error, FWHM_error, mu_error
+        )
