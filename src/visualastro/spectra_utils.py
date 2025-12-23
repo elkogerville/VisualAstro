@@ -18,15 +18,16 @@ Module Structure:
     - Model Fitting Functions
         Model fitting utility functions.
 '''
-
+from dataclasses import dataclass, fields
+from typing import Optional, Any
 import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from specutils import Spectrum
 from specutils.fitting import fit_generic_continuum, fit_continuum
+from .text_utils import print_pretty_table
 from .numerical_utils import mask_within_range, return_array_values
-from .ExtractedSpectrum import ExtractedSpectrum
 from .va_config import get_config_value
 
 
@@ -245,6 +246,7 @@ def _convert_region_units(region, spectral_axis):
 def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     '''
     Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
+
     Parameters
     ––––––––––
     extracted_spectrum : `ExtractedSpectrum`
@@ -256,6 +258,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     xlim : tuple of float, optional, default=None
         Wavelength range `(xmin, xmax)` to restrict the fitting region.
         If None, the full spectrum is used.
+
     Returns
     –––––––
     p0 : list of float
@@ -263,13 +266,14 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
         - First element: amplitude (`max(flux)` in the region)
         - Second element: center (`wavelength` at max flux)
         - Remaining elements: values from `args`
+
     Notes
     –––––
     - Useful for feeding into `scipy.optimize.curve_fit`
       or similar fitting routines.
     '''
     # extract wavelength and flux from ExtractedSpectrum object
-    wavelength = return_array_values(extracted_spectrum.wavelength)
+    wavelength = return_array_values(extracted_spectrum.spectral_axis)
     flux = return_array_values(extracted_spectrum.flux)
     # clip arrays by xlim
     if xlim is not None:
