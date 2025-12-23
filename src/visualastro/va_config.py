@@ -181,6 +181,12 @@ class VAConfig:
         self.reproject_block_size = None
         self.reproject_parallel = False
 
+        # Utils Params
+        # ––––––––––––
+        self.table_precision = 7
+        self.table_scientific_notation = True
+        self.table_column_pad = 3
+
     def reset_defaults(self):
         self.__init__()
 
