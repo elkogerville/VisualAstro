@@ -36,9 +36,8 @@ from .plot_utils import (
     set_axis_limits, set_plot_colors
 )
 from .spectra_utils import (
-    GaussianFitResult,
-    compute_continuum_fit,
-    deredden_flux, gaussian,
+    GaussianFitResult, deredden_flux,
+    fit_continuum, gaussian,
     gaussian_continuum, gaussian_line,
     get_config_value
 )
@@ -250,7 +249,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         )
 
         # compute continuum fit
-        continuum_fit = compute_continuum_fit(spectrum, fit_method, region)
+        continuum_fit = fit_continuum(spectrum, fit_method, region)
 
         # compute normalized flux
         flux_normalized = spectrum / continuum_fit
@@ -729,7 +728,7 @@ def fit_gaussian_2_spec(
         - 'gaussian' : standard Gaussian
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
-        The continuum can be computed with compute_continuum_fit().
+        The continuum can be computed with fit_continuum().
         If None, uses the default value set by `va_config.gaussian_model`.
     spectral_range : array-like or None, optional, default=None
         (min, max) wavelength range to restrict the fit.
@@ -1023,7 +1022,7 @@ def fit_gaussian_2_spec(
         plt.show()
 
     if print_vals:
-        result.pretty_print()
+        result.pretty_print(**kwargs)
 
     if return_fit_params:
         return result
