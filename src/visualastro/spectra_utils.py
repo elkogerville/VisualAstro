@@ -409,10 +409,15 @@ class GaussianFitResult:
     pcov: Optional[Any] = None
     perr: Optional[Any] = None
 
-    def pretty_print(self):
+    def pretty_print(self, **kwargs):
         '''
         Pretty print the results in table format.
         '''
+
+        precision = kwargs.get('precision', va_config.table_precision)
+        sci_notation = kwargs.get('sci_notation', va_config.table_scientific_notation)
+        pad = kwargs.get('pad', va_config.table_column_pad)
+
         fitted_data = [
             ['Amplitude', self.amplitude, self.amplitude_error],
             ['Mu (μ)', self.mu, self.mu_error],
@@ -429,7 +434,10 @@ class GaussianFitResult:
         print('Fitted Parameters:')
         print_pretty_table(
             headers=['Parameter', 'Value', 'Error'],
-            data=fitted_data
+            data=fitted_data,
+            precision=precision,
+            sci_notation=sci_notation,
+            pad=pad
         )
 
         print('\nDerived Parameters: ')
@@ -438,7 +446,10 @@ class GaussianFitResult:
             data=[
                 ['Integrated Flux', self.flux, self.flux_error],
                 ['FWHM', self.FWHM, self.FWHM_error],
-            ]
+            ],
+            precision=precision,
+            sci_notation=sci_notation,
+            pad=pad
         )
 
     def __repr__(self):
