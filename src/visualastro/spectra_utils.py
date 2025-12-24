@@ -25,15 +25,16 @@ from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from specutils import Spectrum
-from specutils.fitting import fit_generic_continuum, fit_continuum
+from specutils.fitting import fit_continuum as _fit_continuum
+from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
 from .numerical_utils import mask_within_range, return_array_values
-from .va_config import get_config_value
+from .va_config import get_config_value, va_config
 
 
 # Science Spectrum Functions
 # ––––––––––––––––––––––––––
-def compute_continuum_fit(spectrum, fit_method='fit_continuum', region=None):
+def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
 
@@ -88,9 +89,9 @@ def compute_continuum_fit(spectrum, fit_method='fit_continuum', region=None):
         if fit_method=='fit_continuum':
             # convert region to default units
             region = _convert_region_units(region, spectral_axis)
-            fit = fit_continuum(spectrum, window=region)
+            fit = _fit_continuum(spectrum, window=region)
         else:
-            fit = fit_generic_continuum(spectrum)
+            fit = _fit_generic(spectrum)
 
     # fit the continuum of the provided spectral axis
     continuum_fit = fit(spectral_axis)
@@ -398,6 +399,7 @@ class GaussianFitResult:
     slope_error: Optional[Any] = None
     intercept: Optional[Any] = None
     intercept_error: Optional[Any] = None
+
     # NOTE: ensure these are updated!
     additional_parameters = ['slope', 'intercept']
     parameters_labels = ['Slope (m)', 'Intercept (b)']
