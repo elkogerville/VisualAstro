@@ -15,7 +15,7 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
     Use print_pretty_table to print the output directly.
 
     Parameters
-    ––––––––––
+    ----------
     headers : list of str or None
         Names of each column. If None, skips rendering the header row
         and starts directly with the separator line.
@@ -35,7 +35,7 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
         Number of spaces between columns for visual separation.
 
     Returns
-    –––––––
+    -------
     table : str
         Formatted table string with aligned columns, ready to print.
     '''
@@ -45,12 +45,12 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
         Format each table cell for consistent styling.
 
         Parameters
-        ––––––––––
+        ----------
         cell : float, int, Quantity, str, or None
             Table cell to format
 
         Returns
-        –––––––
+        -------
         Formatted cell : float, int, Quantity, or str
         '''
         if cell is None or cell == '':
@@ -120,7 +120,7 @@ def print_pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
     can be either a numerical value with or without units, a string, or None.
 
     Parameters
-    ––––––––––
+    ----------
     headers : list of str or None
         Names of each column. If None, skips rendering the header row
         and starts directly with the separator line.
