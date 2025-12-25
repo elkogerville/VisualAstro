@@ -220,30 +220,47 @@ def _convert_region_units(region, spectral_axis):
     '''
     Convert the units of a list of spectral regions to match
     a given spectral axis. Helper function used when fitting
+
     a spectrum continuum.
     Parameters
-    ––––––––––
+    ----------
     region : list of tuple of astropy.units.Quantity or None
         Each element is a tuple `(rmin, rmax)` defining a spectral region.
         Both `rmin` and `rmax` should be `Quantity` objects with units.
         If `None`, the function returns `None`.
     spectral_axis : astropy.units.Quantity
         The spectral axis whose unit is used for conversion.
+
     Returns
-    –––––––
+    -------
     list of tuple of astropy.units.Quantity or None
         The input regions converted to the same unit as 'spectral_axis'.
         Returns `None` if `region` is `None`.
+
     Examples
-    ––––––––
+    --------
     >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
     '''
     if region is None:
         return region
+
     # extract unit
     unit = spectral_axis.unit
+
     # convert each element to spectral axis units
-    return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
+    if isinstance(region, SpectralRegion):
+        converted_bounds = []
+        for subregion in region:
+            rmin = subregion.lower.to(unit)
+            rmax = subregion.upper.to(unit)
+            converted_bounds.append((rmin, rmax))
+        return converted_bounds
+
+    elif isinstance(region, list):
+        return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
+
+    else:
+        raise TypeError(f"region must be SpectralRegion or list of tuples, got {type(region)}")
 
 
 # Model Fitting Functions
@@ -385,8 +402,53 @@ class GaussianFitResult:
     '''
     Lightweight dataclass for gaussian fitting results.
 
+    Attributes
+    ----------
+    amplitude : Any
+        Amplitude of gaussian.
+    amplitude_error : Any
+        Error on `amplitude`.
+    mu : Any
+        Mu or center of gaussian.
+    mu_error : Any
+        Error on `mu`.
+    sigma : Any
+        Sigma or standard deviation of gaussian.
+    sigma_error : Any
+        Error on `sigma`.
+    flux : Any
+        Integrated flux of gaussian.
+    flux_error : Any
+        Error on `flux`.
+    FWHM : Any
+        Full width at half maxixum or the width of
+        the gaussian at half of its maximum value.
+    FWHM_error : Any
+        Error on `FWHM`.
+    slope : Any
+        Slope of continuum, if modelled as a linear line
+        using the `gaussian_line` model.
+    slope_error : Any
+        Error on `slope`.
+    intercept : Any
+        Y-intercept of continuum, if modelled as a linear
+        line using the `gaussian_line` model.
+    intercept_error : Any
+        Error on `intercept`.
+    popt : Any
+        Optimal values for the parameters so that the sum of the
+        squared residuals of `f(xdata, *popt) - ydata` is minimized.
+        Returned by `scipy.optimize.curve_fit`.
+    pcov : Any
+        The estimated approximate covariance of popt. The diagonals
+        provide the variance of the parameter estimate. Returned by
+        `scipy.optimize.curve_fit`.
+    perr : Any
+        The one standard deviation errors on the parameters.
+        Computed as `perr = np.sqrt(np.diag(pcov))`.
+
     Notes
-    –––––
+    -----
     - If new gaussian models are added, make sure to update
       the `additional_parameters` list.
     '''
