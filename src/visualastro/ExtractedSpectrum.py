@@ -15,9 +15,12 @@ Module Structure:
         Utility functions for ExtractedSpectrum methods.
 '''
 
-from astropy.units import Quantity, UnitsError
+import copy
 import numpy as np
-from specutils.spectra import Spectrum1D
+from specutils import SpectralRegion
+from specutils.manipulation import extract_region as _extract_region
+from specutils.spectra import Spectrum
+from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value
 
 
