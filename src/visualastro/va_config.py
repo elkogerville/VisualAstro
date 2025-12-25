@@ -23,7 +23,13 @@ class VAConfig:
 
     Users can modify attributes to update default values for
     plotting functions globally.
+
+    Examples
+    --------
+    >>> va_config.style = 'minimal'
+    >>> va_config.figsize = (8, 8)
     '''
+
     def __init__(self):
         # Plotting Params
         # –––––––––––––––
@@ -188,6 +194,9 @@ class VAConfig:
         self.table_column_pad = 3
 
     def reset_defaults(self):
+        '''
+        Reset all configuration values to default.
+        '''
         self.__init__()
 
 # instantiate va_config class
