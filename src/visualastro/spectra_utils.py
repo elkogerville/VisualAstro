@@ -24,7 +24,7 @@ import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
-from specutils import Spectrum
+from specutils import SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
@@ -39,7 +39,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     Fit the continuum of a 1D spectrum using a specified method.
 
     Parameters
-    ––––––––––
+    ----------
     spectrum : Spectrum or ExtractedSpectrum
         Input 1D spectrum object containing flux and spectral_axis.
         ExtractedSpectrum is supported only if it contains a
@@ -47,7 +47,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used for fitting the continuum.
         - 'fit_continuum': uses `fit_continuum` with a specified window
-        - 'generic'      : uses `fit_generic_continuum`
+        - 'generic' : uses `fit_generic_continuum`
     region : array-like of tuple, optional
         Spectral region(s) to include in the continuum fit when
         `fit_method='fit_continuum'`. Each region is specified as a
@@ -61,11 +61,12 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
         region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
 
     Returns
-    –––––––
+    -------
     continuum_fit : Quantity
         Continuum flux values evaluated at `spectrum.spectral_axis`.
+
     Notes
-    –––––
+    -----
     - Warnings during the fitting process are suppressed.
     '''
     # if input spectrum is ExtractedSpectrum object
@@ -104,8 +105,9 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
     '''
     Apply extinction correction (dereddening) to a spectrum.
     Default values are for LMC parameters.
+
     Parameters
-    ––––––––––
+    ----------
     wavelength : array-like
         Wavelength array (in Angstroms, microns, or units expected by the
         extinction law being used).
@@ -128,8 +130,9 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
         For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
         'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
         If None, uses default value set by `va_config.deredden_region`.
+
     Returns
-    –––––––
+    -------
     deredden_flux : array-like
         Flux array corrected for extinction.
     '''
@@ -165,8 +168,9 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
 def propagate_flux_errors(errors, method=None):
     '''
     Compute propagated flux errors from individual pixel errors in a spectrum.
+
     Parameters
-    ––––––––––
+    ----------
     errors : np.ndarray
         Either:
         - 2D array with shape (N_spectra, N_pixels), or
@@ -176,7 +180,7 @@ def propagate_flux_errors(errors, method=None):
         If None, falls back to va_config.flux_extract_method.
 
     Returns
-    –––––––
+    -------
     flux_errors : np.ndarray
         1D array of propagated flux errors (shape N_spectra).
     '''
@@ -249,7 +253,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
 
     Parameters
-    ––––––––––
+    ----------
     extracted_spectrum : `ExtractedSpectrum`
         `ExtractedSpectrum` object containing `wavelength` and `flux` attributes.
         These can be `numpy.ndarray` or `astropy.units.Quantity`.
@@ -261,7 +265,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
         If None, the full spectrum is used.
 
     Returns
-    –––––––
+    -------
     p0 : list of float
         Initial guess for Gaussian fitting parameters:
         - First element: amplitude (`max(flux)` in the region)
@@ -269,7 +273,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
         - Remaining elements: values from `args`
 
     Notes
-    –––––
+    -----
     - Useful for feeding into `scipy.optimize.curve_fit`
       or similar fitting routines.
     '''
@@ -293,8 +297,9 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
 def gaussian(x, A, mu, sigma):
     '''
     Compute a gaussian curve.
+
     Parameters
-    ––––––––––
+    ----------
     x : np.ndarray
         (N,) shaped range of x values (pixel indices) to
         compute the gaussian function over.
@@ -304,8 +309,9 @@ def gaussian(x, A, mu, sigma):
         Mean or center of gaussian function.
     sigma : float
         Standard deviation of gaussian function.
+
     Returns
-    –––––––
+    -------
     y : np.ndarray
         (N,) shaped array of values of gaussian function
         evaluated at each `x`.
@@ -317,8 +323,9 @@ def gaussian(x, A, mu, sigma):
 def gaussian_line(x, A, mu, sigma, m, b):
     '''
     Compute a Gaussian curve with a linear continuum.
+
     Parameters
-    ––––––––––
+    ----------
     x : np.ndarray
         (N,) shaped array of x values (e.g., pixel indices)
         to evaluate the Gaussian.
@@ -332,8 +339,9 @@ def gaussian_line(x, A, mu, sigma, m, b):
         Slope of the linear continuum.
     b : float
         Y-intercept of the linear continuum.
+
     Returns
-    –––––––
+    -------
     y : np.ndarray
         (N,) shaped array of the Gaussian function evaluated
         at each `x`, including the linear continuum `m*x + b`.
@@ -345,8 +353,9 @@ def gaussian_line(x, A, mu, sigma, m, b):
 def gaussian_continuum(x, A, mu, sigma, continuum):
     '''
     Compute a Gaussian curve with a continuum offset.
+
     Parameters
-    ––––––––––
+    ----------
     x : np.ndarray
         (N,) shaped array of x values (e.g., pixel indices)
         to evaluate the Gaussian.
@@ -359,8 +368,9 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     continuum : np.ndarray or array-like
         Continuum values to add to the Gaussian.
         Must be the same shape as `x`.
+
     Returns
-    –––––––
+    -------
     y : np.ndarray
         (N,) shaped array of the Gaussian function evaluated
         at `x`, including the continuum offset.

@@ -31,7 +31,7 @@ class FitsFile:
     Lightweight container for FITS image data and metadata.
 
     Parameters
-    ––––––––––
+    ----------
     data : array-like or `~astropy.units.Quantity`
         The primary image data. Can be a NumPy array or an
         `astropy.units.Quantity` object.
@@ -46,7 +46,7 @@ class FitsFile:
         from the header attribute.
 
     Attributes
-    ––––––––––
+    ----------
     data : ndarray or Quantity
         The Numpy or Quantity array of data.
     header : `~astropy.io.fits.Header` or None
@@ -57,7 +57,7 @@ class FitsFile:
         The WCS transformation extracted from the header, if valid.
 
     Properties
-    ––––––––––
+    ----------
     value : np.ndarray
         Raw numpy array of the data values.
     quantity : Quantity
@@ -97,7 +97,7 @@ class FitsFile:
         List of each log output in primary_header['HISTORY']
 
     Methods
-    –––––––
+    -------
     header_get(key)
         Retrieve a value from the fits Header.
     to(unit, equivalencies=None)
@@ -109,7 +109,7 @@ class FitsFile:
         BUNIT, BUNIT will be automatically updated to match the data units.
 
     Array Interface
-    –––––––––––––––
+    ---------------
     __array__
         Return the underlying data as a Numpy array.
     __get_item__
@@ -120,7 +120,7 @@ class FitsFile:
         Return a reshaped view of the data.
 
     Raises
-    ––––––
+    ----------
     TypeError
         - If `data` or `header` are not of an expected type.
     UnitsError
@@ -211,7 +211,7 @@ class FitsFile:
     def value(self):
         '''
         Returns
-        –––––––
+        -------
         np.ndarray : View of the underlying numpy array.
         '''
         return np.asarray(self.data)
@@ -219,7 +219,7 @@ class FitsFile:
     def quantity(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity : Quantity array of data values (values + astropy units).
         '''
         if self.unit is None:
@@ -229,7 +229,7 @@ class FitsFile:
     def unit(self):
         '''
         Returns
-        –––––––
+        -------
         Unit : Astropy.Unit of the data.
         '''
         return getattr(self.data, 'unit', None)
@@ -239,7 +239,7 @@ class FitsFile:
     def min(self):
         '''
         Returns
-        –––––––
+        -------
         float : Minimum value in the data, ignoring NaNs.
         '''
         return np.nanmin(self.data)
@@ -247,7 +247,7 @@ class FitsFile:
     def max(self):
         '''
         Returns
-        –––––––
+        -------
         float : Maximum value in the data, ignoring NaNs.
         '''
         return np.nanmax(self.data)
@@ -255,7 +255,7 @@ class FitsFile:
     def mean(self):
         '''
         Returns
-        –––––––
+        -------
         float : Mean of all values in the data, ignoring NaNs.
         '''
         return np.nanmean(self.data)
@@ -263,7 +263,7 @@ class FitsFile:
     def median(self):
         '''
         Returns
-        –––––––
+        -------
         float : Median of all values in the data, ignoring NaNs.
         '''
         return np.nanmedian(self.data)
@@ -271,7 +271,7 @@ class FitsFile:
     def sum(self):
         '''
         Returns
-        –––––––
+        -------
         float : sum of all values in the data, ignoring NaNs.
         '''
         return np.nansum(self.data)
@@ -279,7 +279,7 @@ class FitsFile:
     def std(self):
         '''
         Returns
-        –––––––
+        -------
         float : Standard deviation of all values in the data, ignoring NaNs.
         '''
         return np.nanstd(self.data)
@@ -289,7 +289,7 @@ class FitsFile:
     def shape(self):
         '''
         Returns
-        –––––––
+        -------
         tuple : Shape of data.
         '''
         return self.value.shape
@@ -297,7 +297,7 @@ class FitsFile:
     def size(self):
         '''
         Returns
-        –––––––
+        -------
         int : Size of data.
         '''
         return self.value.size
@@ -305,7 +305,7 @@ class FitsFile:
     def ndim(self):
         '''
         Returns
-        –––––––
+        -------
         int : Number of dimensions of data.
         '''
         return self.value.ndim
@@ -313,7 +313,7 @@ class FitsFile:
     def dtype(self):
         '''
         Returns
-        –––––––
+        -------
         np.dtype : Datatype of the data.
         '''
         return self.value.dtype
@@ -321,7 +321,7 @@ class FitsFile:
     def has_nan(self):
         '''
         Returns
-        –––––––
+        -------
         bool : Returns True if there are NaNs.
         '''
         return np.isnan(self.value).any()
@@ -329,7 +329,7 @@ class FitsFile:
     def itemsize(self):
         '''
         Returns
-        –––––––
+        -------
         int : Length of 1 array element in bytes.
         '''
         return self.value.itemsize
@@ -337,7 +337,7 @@ class FitsFile:
     def nbytes(self):
         '''
         Returns
-        –––––––
+        -------
         int : Total number of bytes used by the data array.
         '''
         return self.value.nbytes
@@ -346,7 +346,7 @@ class FitsFile:
         '''
         Get the processing history from the FITS HISTORY cards.
         Returns
-        –––––––
+        -------
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
@@ -358,15 +358,15 @@ class FitsFile:
         '''
         Retrieve a header value by key from a header.
         Parameters
-        ––––––––––
+        ----------
         key : str
             FITS header keyword to retrieve.
         Returns
-        –––––––
+        -------
         value : list or str
             Header values corresponding to `key`.
         Raises
-        ––––––
+        ------
         ValueError
             If headers are of an unsupported type or `key` is not found.
         '''
@@ -382,14 +382,14 @@ class FitsFile:
         This returns a new FitsFile object.
 
         Parameters
-        ––––––––––
+        ----------
         unit : str or astropy.units.Unit
             Target unit.
         equivalencies : list, optional
             Astropy equivalencies for unit conversion (e.g. spectral).
 
         Returns
-        –––––––
+        -------
         FitsFile
             New cube with converted units.
         '''
@@ -440,7 +440,7 @@ class FitsFile:
         updated to match the data units.
 
         Parameters
-        ––––––––––
+        ----------
         data : array-like or `~astropy.units.Quantity`
             The primary image data. Can be a NumPy array or an
             `astropy.units.Quantity` object.
@@ -455,7 +455,7 @@ class FitsFile:
             from the header attribute.
 
         Returns
-        –––––––
+        -------
         None
         '''
         data = self.data if data is None else data
@@ -488,7 +488,7 @@ class FitsFile:
         '''
         Return the underlying data as a NumPy array.
         Returns
-        –––––––
+        -------
         np.ndarray
             The underlying 2D array representation.
         '''
@@ -498,11 +498,11 @@ class FitsFile:
         '''
         Return a slice of the data.
         Parameters
-        ––––––––––
+        ----------
         key : slice or tuple
             Index or slice to apply to the data.
         Returns
-        –––––––
+        -------
         slice : same type as `data`
             The corresponding subset of the data.
         '''
@@ -512,7 +512,7 @@ class FitsFile:
         '''
         Return the number of spectral slices along the first axis.
         Returns
-        –––––––
+        -------
         int
             Length of the first dimension.
         '''
@@ -522,11 +522,11 @@ class FitsFile:
         '''
         Return a reshaped view of the data.
         Parameters
-        ––––––––––
+        ----------
         *shape : int
             New shape for the data array.
         Returns
-        –––––––
+        -------
         np.ndarray
             Reshaped data array.
         '''
@@ -535,7 +535,7 @@ class FitsFile:
     def __repr__(self):
         '''
         Returns
-        –––––––
+        -------
         str : String representation of `FitsFile`.
         '''
         datatype = 'np.ndarray' if self.unit is None else 'Quantity'

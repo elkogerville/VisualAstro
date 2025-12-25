@@ -54,7 +54,7 @@ def load_data_cube(filepath, error=True, hdu=None,
     array of shape (T, M, N), and bundles the data, headers, errors, and WCS
     into a `DataCube` object.
     Parameters
-    ––––––––––
+    ----------
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
         Example: 'Spectro-Module/raw/HARPS*.fits'
@@ -78,15 +78,15 @@ def load_data_cube(filepath, error=True, hdu=None,
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
         If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
     Returns
-    –––––––
+    -------
     cube : DataCube
         A DataCube object containing:
         - `cube.data` : np.ndarray of shape (T, M, N)
         - `cube.header` : list of astropy.io.fits.Header objects
         - `cube.error` : np.ndarray of shape (T, M, N)
         - `cube.wcs` : list of `astropy.wcs.wcs.WCS`
-    Example
-    –––––––
+    Examples
+    --------
     Search for all fits files starting with 'HARPS' with .fits extention and load them.
         filepath = 'Spectro-Module/raw/HARPS.*.fits'
     '''
@@ -171,7 +171,7 @@ def load_spectral_cube(filepath, hdu, error=True,
     Load a spectral cube from a FITS file,
     optionally including errors and header.
     Parameters
-    ––––––––––
+    ----------
     filepath : str
         Path to the FITS file to read.
     hdu : int or str
@@ -187,7 +187,7 @@ def load_spectral_cube(filepath, hdu, error=True,
         If True, print FITS file info to the console.
         If None, uses default value set by `va_config.print_info`.
     Returns
-    –––––––
+    -------
     DataCube
         A `DataCube` object containing:
         - data : SpectralCube
@@ -232,7 +232,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     '''
     Plot a single spectral slice from one or more spectral cubes.
     Parameters
-    ––––––––––
+    ----------
     cubes : DataCube, SpectralCube, or list of such
         One or more spectral cubes to plot. All cubes should have consistent units.
     idx : int
@@ -326,12 +326,12 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             Angle of ellipse in degrees.
 
     Returns
-    –––––––
+    -------
     images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
             Image object if a single array is provided, otherwise a list of image
             objects created by `ax.imshow`.
     Notes
-    –––––
+    -----
     - If multiple cubes are provided, they are overplotted in sequence.
     '''
     # check cube units match and ensure cubes is iterable

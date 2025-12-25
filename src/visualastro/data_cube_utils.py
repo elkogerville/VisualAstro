@@ -30,7 +30,7 @@ def slice_cube(cube, idx):
     '''
     Return a slice of a data cube along the first axis.
     Parameters
-    ––––––––––
+    ----------
     cube : np.ndarray
         Input data cube, typically with shape (T, N, ...) where T is the first axis.
     idx : int or list of int
@@ -39,7 +39,7 @@ def slice_cube(cube, idx):
         - [i] -> returns 'cube[i]'
         - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
     Returns
-    –––––––
+    -------
     cube : np.ndarray
         Sliced cube with shape (N, ...).
     '''
