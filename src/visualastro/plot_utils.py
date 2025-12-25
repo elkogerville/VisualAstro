@@ -893,7 +893,9 @@ def set_axis_labels(
     def _create_label(
         obj, type_map, label, brackets, use_type_label, use_unit_label, fmt
     ):
-        '''Creates the axis label based on the object being plotted'''
+        '''
+        Creates the axis label based on the object being plotted
+        '''
 
         # get physical type and unit of object
         physical_type = get_physical_type(obj)

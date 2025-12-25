@@ -1029,6 +1029,7 @@ def fit_gaussian_2_spec(
     else:
         default_return = ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']
         GaussianHandles = namedtuple('GaussianFit', default_return)
+
         return GaussianHandles(
             integrated_flux, FWHM, mu, flux_error, FWHM_error, mu_error
         )

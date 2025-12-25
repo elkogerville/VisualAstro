@@ -40,7 +40,7 @@ class DataCube:
     metadata, and visualization methods.
 
     Parameters
-    ––––––––––
+    ----------
     data : np.ndarray, Quantity, or SpectralCube
         The input data cube. Must be 3-dimensional (T, N, M).
     header : fits.Header, array-like of fits.Header, or None, optional, default=None
@@ -56,7 +56,7 @@ class DataCube:
         extract the WCS from each header.
 
     Attributes
-    ––––––––––
+    ----------
     data : np.ndarray, Quantity, or SpectralCube
         Original data object.
     primary_header : fits.Header
@@ -77,7 +77,7 @@ class DataCube:
         WCS(s) associated with the data cube.
 
     Properties
-    ––––––––––
+    ----------
     value : np.ndarray
         Raw numpy array of the cube values.
     quantity : Quantity
@@ -112,7 +112,7 @@ class DataCube:
         List of each log output in primary_header['HISTORY']
 
     Methods
-    –––––––
+    -------
     header_get(key)
         Retrieve a header value by key from one or multiple headers.
         If a Header is missing a key, None is returned.
@@ -137,7 +137,7 @@ class DataCube:
         This method only works for `SpectralCube` data. Returns a new cube.
 
     Array Interface
-    –––––––––––––––
+    ---------------
     __array__
         Return the underlying data as a Numpy array.
     __get_item__
@@ -148,7 +148,7 @@ class DataCube:
         Return a reshaped view of the data.
 
     Raises
-    ––––––
+    ------
     TypeError
         - If `data`, `header`, or `error` are not of an expected type.
     UnitsError
@@ -162,7 +162,7 @@ class DataCube:
         - If length of the header list does not match data T dimension.
 
     Examples
-    ––––––––
+    --------
     Load DataCube from fits file
     >>> cube = load_fits(filepath)
     >>> cube.data
@@ -294,7 +294,7 @@ class DataCube:
     def value(self):
         '''
         Returns
-        –––––––
+        -------
         np.ndarray : View of the underlying numpy array.
         '''
         if isinstance(self.data, SpectralCube):
@@ -305,7 +305,7 @@ class DataCube:
     def quantity(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity : Quantity array of data values (values + astropy units).
         '''
         if self.unit is None:
@@ -315,7 +315,7 @@ class DataCube:
     def unit(self):
         '''
         Returns
-        –––––––
+        -------
         Unit : Astropy.Unit of the data.
         '''
         return getattr(self.data, 'unit', None)
@@ -325,7 +325,7 @@ class DataCube:
     def min(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Minimum value in the cube, ignoring NaNs.
         '''
@@ -334,7 +334,7 @@ class DataCube:
     def max(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Maximum value in the cube, ignoring NaNs.
         '''
@@ -343,7 +343,7 @@ class DataCube:
     def mean(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Mean of all values in the cube, ignoring NaNs.
         '''
@@ -352,7 +352,7 @@ class DataCube:
     def median(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Median of all values in the cube, ignoring NaNs.
         '''
@@ -361,7 +361,7 @@ class DataCube:
     def sum(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Sum of all values in the cube, ignoring NaNs.
         '''
@@ -370,7 +370,7 @@ class DataCube:
     def std(self):
         '''
         Returns
-        –––––––
+        -------
         Quantity or float
             Standard deviation of all values in the cube, ignoring NaNs.
         '''
@@ -381,7 +381,7 @@ class DataCube:
     def shape(self):
         '''
         Returns
-        –––––––
+        -------
         tuple : Shape of cube data.
         '''
         return self.value.shape
@@ -389,7 +389,7 @@ class DataCube:
     def size(self):
         '''
         Returns
-        –––––––
+        -------
         int : Size of cube data.
         '''
         return self.value.size
@@ -397,7 +397,7 @@ class DataCube:
     def ndim(self):
         '''
         Returns
-        –––––––
+        -------
         int : Number of dimensions of cube data.
         '''
         return self.value.ndim
@@ -405,7 +405,7 @@ class DataCube:
     def dtype(self):
         '''
         Returns
-        –––––––
+        -------
         np.dtype : Datatype of the cube data.
         '''
         return self.value.dtype
@@ -413,7 +413,7 @@ class DataCube:
     def has_nan(self):
         '''
         Returns
-        –––––––
+        -------
         bool : Returns True if there are NaNs in the cube.
         '''
         return np.isnan(self.value).any()
@@ -421,7 +421,7 @@ class DataCube:
     def itemsize(self):
         '''
         Returns
-        –––––––
+        -------
         int : Length of 1 array element in bytes.
         '''
         return self.value.itemsize
@@ -429,7 +429,7 @@ class DataCube:
     def nbytes(self):
         '''
         Returns
-        –––––––
+        -------
         int : Total number of bytes used by the data array.
         '''
         return self.value.nbytes
@@ -438,7 +438,7 @@ class DataCube:
         '''
         Get the processing history from the FITS HISTORY cards.
         Returns
-        –––––––
+        -------
         list of str or None
             List of HISTORY entries, or None if no header exists.
         '''
@@ -452,17 +452,17 @@ class DataCube:
         If a Header is missing a key, None is returned.
 
         Parameters
-        ––––––––––
+        ----------
         key : str
             FITS header keyword to retrieve.
 
         Returns
-        –––––––
+        -------
         value : list or str
             Header value(s) corresponding to `key`.
 
         Raises
-        ––––––
+        ------
         ValueError
             If headers are of an unsupported type or `key` is not found.
         '''
@@ -480,14 +480,14 @@ class DataCube:
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
         Parameters
-        ––––––––––
+        ----------
         figsize : tuple, optional, default=(8,4)
             Size of the output figure.
         style : str or None, optional, default=None
             Matplotlib style to use for plotting. If None,
             uses the default value set by `va_config.style`.
         Notes
-        –––––
+        -----
         This method visualizes the mean and standard deviation of flux across
         each 2D slice of the cube as a function of slice index.
         '''
@@ -530,7 +530,7 @@ class DataCube:
         Reproject DataCube to a new WCS grid.
 
         Parameters
-        ––––––––––
+        ----------
         reference_wcs : WCS or Header
             Target WCS or FITS header to reproject onto
         method : {'interp', 'exact'} or None
@@ -543,12 +543,12 @@ class DataCube:
             Block size for reprojection
 
         Returns
-        –––––––
+        -------
         new_cube : DataCube
             Reprojected DataCube.
 
         Notes
-        –––––
+        -----
         - As of right now, the WCS and Header are correctly
           updated for reprojected SpectralCubes only! For any
           other data type, the old WCS and Header are passed down.
@@ -666,14 +666,14 @@ class DataCube:
         SpectralCube wavelength units use `.with_spectral_unit()`.
 
         Parameters
-        ––––––––––
+        ----------
         unit : str or astropy.units.Unit
             Target unit.
         equivalencies : list, optional
             Astropy equivalencies for unit conversion (e.g. spectral).
 
         Returns
-        –––––––
+        -------
         DataCube
             New cube with converted units.
         '''
@@ -731,7 +731,7 @@ class DataCube:
         updated to match the data units.
 
         Parameters
-        ––––––––––
+        ----------
         data : array-like or `~astropy.units.Quantity`
             The primary image data. Can be a NumPy array or an
             `astropy.units.Quantity` object.
@@ -746,7 +746,7 @@ class DataCube:
             from the header attribute.
 
         Returns
-        –––––––
+        -------
         None
         '''
         # get existing values if not passed in
@@ -781,16 +781,16 @@ class DataCube:
         and values are masked with NaNs.
 
         Parameters
-        ––––––––––
+        ----------
         mask : np.ndarray or Mask
             Boolean mask to apply. Must match the cube shape.
         Returns
-        –––––––
+        -------
         masked_data : same type as `data`
             Masked version of the data.
 
         Raises
-        ––––––
+        ------
         TypeError
             If masking is unsupported for the data type.
         '''
@@ -862,7 +862,7 @@ class DataCube:
         Convert the spectral axis of the DataCube to a new unit.
 
         Parameters
-        ––––––––––
+        ----------
         unit : str or astropy.units.Unit
             Target spectral unit.
         velocity_convention : str, optional
@@ -871,7 +871,7 @@ class DataCube:
             Rest frequency/wavelength for Doppler conversion.
 
         Returns
-        –––––––
+        -------
         DataCube
             New cube with converted spectral axis.
         '''
@@ -924,7 +924,7 @@ class DataCube:
         '''
         Return the underlying data as a NumPy array.
         Returns
-        –––––––
+        ----------
         np.ndarray
             The underlying 3D array representation.
         '''
@@ -935,12 +935,12 @@ class DataCube:
         Return a slice or sub-cube from the data.
 
         Parameters
-        ––––––––––
+        ----------
         key : slice or tuple
             Index or slice to apply to the cube.
 
         Returns
-        –––––––
+        -------
         slice : same type as `data`
             The corresponding subset of the cube.
         '''
@@ -953,7 +953,7 @@ class DataCube:
         '''
         Return the number of spectral slices along the first axis.
         Returns
-        –––––––
+        -------
         int
             Length of the first dimension (T).
         '''
@@ -963,11 +963,11 @@ class DataCube:
         '''
         Return a reshaped view of the cube data.
         Parameters
-        ––––––––––
+        ----------
         *shape : int
             New shape for the data array.
         Returns
-        –––––––
+        -------
         np.ndarray
             Reshaped data array.
         '''
@@ -986,19 +986,19 @@ class DataCube:
         returned value is scaled accordingly.
 
         Parameters
-        ––––––––––
+        ----------
         func : {'min', 'max', 'mean', 'median', 'std'}
             The name of the statistical quantity to compute.
 
         Returns
-        –––––––
+        -------
         value : float, `astropy.units.Quantity`, or scalar-like
             The computed statistical value. If the underlying data includes
             units, the returned value is a `Quantity`; otherwise it is a unitless
             NumPy scalar.
 
         Raises
-        ––––––
+        ------
         KeyError
             If an unsupported statistic name is provided.
         '''
@@ -1023,7 +1023,7 @@ class DataCube:
     def __repr__(self):
         '''
         Returns
-        –––––––
+        -------
         str : String representation of DataCube.
         '''
         if isinstance(self.data, SpectralCube):
