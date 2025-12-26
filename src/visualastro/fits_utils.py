@@ -159,7 +159,7 @@ def _log_history(header, message):
 
 def _transfer_history(header1, header2):
     '''
-    Trasfer `HISTORY` cards from one
+    Transfer `HISTORY` cards from one
     header to another. This is not a
     destructive action.
 

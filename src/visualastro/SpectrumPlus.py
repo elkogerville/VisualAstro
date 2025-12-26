@@ -9,9 +9,6 @@ Dependencies:
     - astropy
     - numpy
     - specutils
-Module Structure:
-    - SpectrumPlus
-        Data class for extracted spectra.
 '''
 
 import copy

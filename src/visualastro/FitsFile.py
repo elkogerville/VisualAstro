@@ -7,9 +7,6 @@ Description:
 Dependencies:
     - astropy
     - numpy
-Module Structure:
-    - FitsFile
-        Lightweight data class for fits files.
 '''
 
 import copy
