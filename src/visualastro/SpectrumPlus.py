@@ -559,16 +559,3 @@ class SpectrumPlus:
         )
 
         return f'<SpectrumPlus: {flux}{spectral_axis}{stats}>'
-
-
-'''
-TODO:
-    - docs
-    - more attributes
-    - logs
-    - homogenize all classes to be immutable
-    - __getitem__ should return a new instance of class
-    - update probably should not exist
-    - DataCube SpectralCube should use its own header
-
-'''
