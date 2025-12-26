@@ -206,7 +206,7 @@ class FitsFile:
         self.footprint = None
 
     # Properties
-    # ––––––––––
+    # ----------
     @property
     def value(self):
         '''
@@ -353,7 +353,7 @@ class FitsFile:
         return _get_history(self.primary_header)
 
     # Methods
-    # –––––––
+    # -------
     def header_get(self, key):
         '''
         Retrieve a header value by key from a header.
@@ -483,7 +483,7 @@ class FitsFile:
         return None
 
     # Array Interface
-    # –––––––––––––––
+    # ---------------
     def __array__(self):
         '''
         Return the underlying data as a NumPy array.

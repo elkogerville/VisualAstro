@@ -289,7 +289,7 @@ class DataCube:
         self.footprint = None
 
     # Properties
-    # ––––––––––
+    # ----------
     @property
     def value(self):
         '''
@@ -445,7 +445,7 @@ class DataCube:
         return _get_history(self.primary_header)
 
     # Methods
-    # –––––––
+    # -------
     def header_get(self, key):
         '''
         Retrieve a header value by key from one or multiple headers.
@@ -919,7 +919,7 @@ class DataCube:
         )
 
     # Array Interface
-    # –––––––––––––––
+    # ---------------
     def __array__(self):
         '''
         Return the underlying data as a NumPy array.

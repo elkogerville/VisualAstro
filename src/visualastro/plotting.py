@@ -31,7 +31,7 @@ from .va_config import get_config_value, va_config, _default_flag
 
 
 # Plotting Functions
-# ––––––––––––––––––
+# ------------------
 def imshow(datas, ax, idx=None, vmin=_default_flag,
            vmax=_default_flag, norm=_default_flag,
            percentile=_default_flag, origin=None,
@@ -40,8 +40,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
            **kwargs):
     '''
     Display 2D image data with optional overlays and customization.
+
     Parameters
-    ––––––––––
+    ----------
     datas : np.ndarray or list of np.ndarray
         Image array or list of image arrays to plot. Each array should
         be 2D (Ny, Nx) or 3D (Nz, Nx, Ny) if using 'idx' to slice a cube.
@@ -150,13 +151,14 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
             Width of the default interactive ellipse.
         - `h` : float, optional, default=Y//5
             Height of the default interactive ellipse.
+
     Returns
-    –––––––
+    -------
     images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
             Image object if a single array is provided, otherwise a list of image
             objects created by `imshow`.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     # figure params
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     invert_xaxis = kwargs.get('invert_xaxis', False)
@@ -320,8 +322,9 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     Plot a 2D scatter distribution with normalized density histograms.
     This function creates a scatter plot of `X` vs. `Y` along
     with normalizable histograms of `X` and `Y`.
+
     Parameters
-    ––––––––––
+    ----------
     X : array-like or list of arrays
         The x-axis data or list of data arrays.
     Y : array-like or list of arrays
@@ -395,8 +398,9 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
             Legend location.
         - `xlabel`, `ylabel` : str, optional, default=None
             Axis labels for the scatter plot.
+
     Returns
-    –––––––
+    -------
     handles : DensityHistogram
         A named tuple containing the created Matplotlib objects:
 
@@ -412,7 +416,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         If only a single dataset is provided, each field contains a single
         object or tuple instead of a list.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     # scatter params
@@ -560,8 +564,9 @@ def plot_histogram(datas, ax,
                    **kwargs):
     '''
     Plot one or more histograms on a given Axes object.
+
     Parameters
-    ––––––––––
+    ----------
     datas : array-like or list of array-like
         Input data to histogram. Can be a single 1D array or a
         list of 1D/2D arrays. 2D arrays are automatically flattened.
@@ -616,7 +621,7 @@ def plot_histogram(datas, ax,
             Label for the y-axis.
 
     Returns
-    –––––––
+    -------
     hists : tuple or list of tuple
         The result(s) returned by `Axes.hist`. Each tuple has the form
         `(n, bins, patches)`, where:
@@ -632,7 +637,7 @@ def plot_histogram(datas, ax,
         If only one histogram is created, `hists` is a single tuple; otherwise,
         it is a list of tuples.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     cmap = kwargs.get('cmap', va_config.cmap)
@@ -707,8 +712,9 @@ def plot_lines(X, Y, ax, normalize=None,
                zorder=None, **kwargs):
     '''
     Plot one or more lines on a given Axes object with flexible styling.
+
     Parameters
-    ––––––––––
+    ----------
     X : array-like or list of array-like
         x-axis data for the lines. Can be a single array or a list of arrays.
     Y : array-like or list of array-like
@@ -782,14 +788,14 @@ def plot_lines(X, Y, ax, normalize=None,
                 ymax/min ±= ypad * (ymax - ymin)
 
     Returns
-    –––––––
+    -------
     lines : Line2D or list of Line2D
         The line object(s) created by `Axes.plot`. Each element is a
         `matplotlib.lines.Line2D` instance representing one plotted line.
         If only one line is created, `lines` is a single `Line2D` object;
         otherwise, it is a list of `Line2D` objects.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
@@ -876,8 +882,9 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
                  facecolors=_default_flag, **kwargs):
     '''
     Plot a scatter plot (optionally with error bars) on a given Axes object.
+
     Parameters
-    ––––––––––
+    ----------
     X : array-like or list of array-like
         x-axis data for the lines. Can be a single array or a list of arrays.
     Y : array-like or list of array-like
@@ -972,14 +979,14 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             If True, draw error bars above the plot symbols; otherwise, below.
 
     Returns
-    –––––––
+    -------
     lines : PathCollection or list of PathCollection
         The scatter plot object(s) created by `Axes.scatter`. Each element
         is a `matplotlib.collections.PathCollection` instance representing
         one scatter plot. If only one scatter is created, `lines` is a single
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # scatter params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
@@ -1094,8 +1101,9 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
               edgecolors=_default_flag, plot_contours=None, **kwargs):
     '''
     Scatter plot in 3D with support for multiple datasets.
+
     Parameters
-    ––––––––––
+    ----------
     X, Y, Z : array-like or list of array-like
         Coordinates of the data points. Each of `X`, `Y`, and `Z`
         may be a single array or a list of arrays for plotting
@@ -1188,19 +1196,19 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
             If True, sets minor ticks for all axes.
 
     Returns
-    –––––––
+    -------
     scatter : `matplotlib.collections.Path3DCollection` or list of them
         The created scatter artist(s). Returns a single object
         if only one dataset is plotted.
 
     Raises
-    ––––––
+    ------
     ValueError
         If `X`, `Y`, and `Z` do not have the same number of arrays
         after unit consistency checks.
 
     Notes
-    –––––
+    -----
     - The function cycles through `colors`, `sizes`, `markers`,
       `alphas`, and `edgecolors` if fewer values are given than
       datasets.
@@ -1208,7 +1216,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
       and finally `scale` if provided.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # scatter params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)

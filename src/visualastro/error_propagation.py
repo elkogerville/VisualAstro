@@ -6,7 +6,7 @@ def __mul__(self, other):
     standard Gaussian error propagation rules.
 
     Parameters
-    ––––––––––
+    ----------
     other : scalar, `~astropy.units.Quantity`, or DataCube
         - If a scalar or Quantity, the cube data are multiplied by `other`
             and the uncertainties are scaled by `abs(other)`.
@@ -14,13 +14,13 @@ def __mul__(self, other):
             element-wise. The two cubes must have matching shapes.
 
     Returns
-    –––––––
+    -------
     DataCube
         A new data cube containing the multiplied data and propagated
         uncertainties.
 
     Notes
-    –––––
+    -----
     - Error propagation**
 
         For multiplication of data `A` by `k`, a scalar, Quantity
@@ -40,7 +40,7 @@ def __mul__(self, other):
     - WCS information is kept intact.
 
     Examples
-    ––––––––
+    --------
     Multiply a cube by a scalar:
         cube2 = cube1 * 3
 
@@ -134,7 +134,7 @@ def __truediv__(self, other):
     standard Gaussian error propagation rules.
 
     Parameters
-    ––––––––––
+    ----------
     other : scalar, `~astropy.units.Quantity`, or DataCube
         - If a scalar or Quantity, the cube data are divided by `other`
             and the uncertainties are scaled by `abs(other)`.
@@ -142,13 +142,13 @@ def __truediv__(self, other):
             element-wise. The two cubes must have matching shapes.
 
     Returns
-    –––––––
+    -------
     DataCube
         A new data cube containing the divided data and propagated
         uncertainties.
 
     Notes
-    –––––
+    -----
     **Error propagation**
 
         For division of data `A` by a scalar or Quantity `k`:
@@ -169,7 +169,7 @@ def __truediv__(self, other):
         The WCS is passed through unchanged.
 
     Examples
-    ––––––––
+    --------
     Divide a cube by a scalar:
         cube2 = cube1 / 3
 

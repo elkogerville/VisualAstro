@@ -20,14 +20,14 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     Validate that two units are exactly equal.
 
     Parameters
-    ––––––––––
+    ----------
     unit1, unit2 : str or astropy.units.Unit or None
         Units to compare. None means 'unitless'.
     name1, name2 : str
         Labels used in error messages.
 
     Raises
-    ––––––
+    ------
     UnitsError
         If units differ (either convertible or incompatible).
     '''
@@ -65,20 +65,20 @@ def _validate_units_consistency(objs, *, label=None):
     and validate that units match.
 
     Parameters
-    ––––––––––
+    ----------
     obj : array-like
         A single object or list/array of objects with unit data.
         Can be Quantities, Headers with 'BUNIT', or a mix of both.
 
     Returns
-    –––––––
+    -------
     None
         If no units are present.
     astropy.units.Unit
         If units are present and are consistent.
 
     Raises
-    ––––––
+    ------
     UnitsError
         If units exist and do not match, or if BUNIT is invalid.
     '''

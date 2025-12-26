@@ -25,7 +25,7 @@ from .FitsFile import FitsFile
 
 
 # Cube Manipulation Functions
-# –––––––––––––––––––––––––––
+# ---------------------------
 def slice_cube(cube, idx):
     '''
     Return a slice of a data cube along the first axis.
@@ -65,7 +65,7 @@ def get_spectral_slice_value(spectral_axis, idx):
     Return a representative value from a spectral axis
     given an index or index range.
     Parameters
-    ––––––––––
+    ----------
     spectral_axis : Quantity
         The spectral axis (e.g., wavelength, frequency, or
         velocity) as an 'astropy.units.Quantity' array.
@@ -75,7 +75,7 @@ def get_spectral_slice_value(spectral_axis, idx):
         - [i] -> returns 'spectral_axis[i]'
         - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
     Returns
-    –––––––
+    -------
     spectral_value : float
         The spectral value at the specified index or index
         range, in the units of 'spectral_axis'.
@@ -92,7 +92,7 @@ def get_spectral_slice_value(spectral_axis, idx):
 
 
 # Cube/Image Masking Functions
-# ––––––––––––––––––––––––––––
+# ----------------------------
 def mask_image(image, ellipse_region=None, region=None,
                line_points=None, invert_region=False, above_line=True,
                preserve_shape=True, existing_mask=None, **kwargs):
@@ -101,7 +101,7 @@ def mask_image(image, ellipse_region=None, region=None,
     Supports applying an elliptical or annular region mask, an optional
     line cut (upper or lower half-plane), and combining with an existing mask.
     Parameters
-    ––––––––––
+    ----------
     image : array-like, DataCube, FitsFile, or SpectralCube
         Input image or cube. If higher-dimensional, the mask is applied
         to the last two axes.
@@ -138,14 +138,14 @@ def mask_image(image, ellipse_region=None, region=None,
         - tolerance : float, optional, default=2
             Tolerance for annulus inner/outer radii
     Returns
-    –––––––
+    -------
     masked_image : ndarray or SpectralCube
         Image with mask applied. Type matches input.
     masks : ndarray of bool or list
         If multiple masks are combined, returns a list containing the
         master mask followed by individual masks. Otherwise returns a single mask.
     '''
-    # –––– Kwargs ––––
+    # ---- Kwargs ----
     center = kwargs.get('center', None)
     w = kwargs.get('w', None)
     h = kwargs.get('h', None)
@@ -187,7 +187,7 @@ def mask_image(image, ellipse_region=None, region=None,
 
         return masked_image
 
-    # –––– Region Mask ––––
+    # ---- Region Mask ----
     # if ellipse region is passed in use those values
     if ellipse_region is not None:
         center = ellipse_region.center
@@ -232,7 +232,7 @@ def mask_image(image, ellipse_region=None, region=None,
         # empty mask if no region
         region_mask = np.ones((N, M), dtype=bool)
 
-    # –––– Line Mask ––––
+    # ---- Line Mask ----
     if line_points is not None:
         # start from previous mask
         line_mask = region_mask.copy()
@@ -246,7 +246,7 @@ def mask_image(image, ellipse_region=None, region=None,
         # empty mask if no region
         line_mask = region_mask.copy()
 
-    # –––– Combine Masks ––––
+    # ---- Combine Masks ----
     # start master mask with line_mask (or region if no line)
     mask = line_mask.copy()
 
@@ -256,7 +256,7 @@ def mask_image(image, ellipse_region=None, region=None,
             raise ValueError("existing_mask must have the same shape as the image")
         mask |= existing_mask
 
-    # –––– Apply Mask ––––
+    # ---- Apply Mask ----
     # if numpy array:
     if isinstance(image, np.ndarray):
         if preserve_shape:
@@ -270,7 +270,7 @@ def mask_image(image, ellipse_region=None, region=None,
     else:
         masked_image = image.with_mask(mask)
 
-    # ––––– Final Mask List –––––
+    # ---- Final Mask List ----
     # Return master mask as first element
     masks = [mask] + masks if len(masks) > 1 else mask
 
@@ -281,18 +281,18 @@ def compute_line(points):
     '''
     Compute the slope and intercept of a line passing through two points.
     Parameters
-    ––––––––––
+    ----------
     points : list or tuple of tuples
         A sequence containing exactly two points, each as (x, y), e.g.,
         [(x0, y0), (x1, y1)].
     Returns
-    –––––––
+    -------
     m : float
         Slope of the line.
     b : float
         Intercept of the line (y = m*x + b).
     Notes
-    –––––
+    -----
     - The function assumes the two points have different x-coordinates.
     - If the x-coordinates are equal, a ZeroDivisionError will be raised.
     '''

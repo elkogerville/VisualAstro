@@ -33,7 +33,7 @@ from .va_config import get_config_value, va_config
 
 
 # Science Spectrum Functions
-# ––––––––––––––––––––––––––
+# --------------------------
 def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
@@ -213,7 +213,7 @@ def propagate_flux_errors(errors, method=None):
 
 
 # Science Helper Functions
-# ––––––––––––––––––––––––
+# ------------------------
 def _convert_region_units(region, spectral_axis):
     '''
     Convert the units of a list of spectral regions to match
@@ -262,7 +262,7 @@ def _convert_region_units(region, spectral_axis):
 
 
 # Model Fitting Functions
-# –––––––––––––––––––––––
+# -----------------------
 def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     '''
     Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.

@@ -44,7 +44,7 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
 # Datacube I/O Functions
-# ––––––––––––––––––––––
+# ----------------------
 def load_data_cube(filepath, error=True, hdu=None,
                    dtype=None, print_info=None,
                    transpose=None, invert_wcs=None):
@@ -224,7 +224,7 @@ def load_spectral_cube(filepath, hdu, error=True,
 
 
 # Cube Plotting Functions
-# –––––––––––––––––––––––
+# -----------------------
 def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                        norm=_default_flag, percentile=_default_flag,
                        radial_vel=None, unit=None, cmap=None, mask_non_pos=None,
@@ -336,7 +336,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     '''
     # check cube units match and ensure cubes is iterable
     cubes = check_units_consistency(cubes)
-    # –––– Kwargs ––––
+    # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # labels

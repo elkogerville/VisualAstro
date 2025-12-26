@@ -18,7 +18,7 @@ def _validate_type(
     Validate that `data` is an instance of one of the allowed types.
 
     Parameters
-    ––––––––––
+    ----------
     data : object
         The object to validate.
     types : type or tuple of types
@@ -33,7 +33,7 @@ def _validate_type(
         Name of object for error message.
 
     Raises
-    ––––––
+    ------
     TypeError
         If `data` is not an instance of any of the types in `types`.
     '''
@@ -60,15 +60,16 @@ def _allclose(a, b):
     This function behaves like `numpy.allclose`, but adds logic to safely
     compare Quantities (ensuring matching units) and to treat None as
     a valid sentinel value.
+
     Parameters
-    ––––––––––
+    ----------
     a, b : array-like, `~astropy.units.Quantity`, scalar, or None
         The inputs to compare. Inputs may be numerical arrays, scalars, or
         `Quantity` objects with units. If one argument is None, the result is
         False unless both are None.
 
     Returns
-    –––––––
+    -------
     bool
         True if the inputs are considered equal, False otherwise.
         Equality rules:
@@ -80,7 +81,7 @@ def _allclose(a, b):
         - Non-Quantity arrays/scalars → compared via `numpy.allclose`
 
     Notes
-    –––––
+    -----
     - This function does **not** attempt unit conversion.
         Quantities must already share identical units.
     - This function exists to support `.update()` logic where user-supplied

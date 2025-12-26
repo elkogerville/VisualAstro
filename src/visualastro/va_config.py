@@ -32,7 +32,7 @@ class VAConfig:
 
     def __init__(self):
         # Plotting Params
-        # –––––––––––––––
+        # ---------------
 
         # I/O params
         self.default_unit = np.float64
@@ -146,7 +146,7 @@ class VAConfig:
         self.ellipse_label_loc = [0.03, 0.03]
 
         # Science Params
-        # ––––––––––––––
+        # --------------
         # data params
         self.wavelength_unit = None
         self.radial_velocity = None
@@ -188,7 +188,7 @@ class VAConfig:
         self.reproject_parallel = False
 
         # Utils Params
-        # ––––––––––––
+        # ------------
         self.table_precision = 7
         self.table_scientific_notation = True
         self.table_column_pad = 3
@@ -211,14 +211,16 @@ def get_config_value(var, attribute):
     '''
     Retrieve a configuration value, falling back to the
     default from `va_config` if `var` is None.
+
     Parameters
-    ––––––––––
+    ----------
     var : any
         User-specified value. If not None, this value is returned.
     attribute : str
         Name of the attribute to retrieve from `va_config` when `var` is None.
+
     Returns
-    –––––––
+    -------
     value : any
         The user-specified `var` if provided, otherwise the
         corresponding default value from `va_config`.

@@ -41,7 +41,7 @@ class va:
         with optional rcParams overrides.
 
         Parameters
-        ––––––––––
+        ----------
         name : str or None
             Matplotlib or VisualAstro style name. If None, uses the default
             value from `va_config.style`. Ex: 'astro' or 'latex'.
@@ -53,7 +53,7 @@ class va:
             Use underscores in place of dots: font_size → font.size
 
         Examples
-        ––––––––
+        --------
         >>> with style('latex', font_size=23, axes_labelsize=40):
         ...     plt.plot(x, y)
 
@@ -99,7 +99,7 @@ class va:
         formatting, while preserving full configurability through **kwargs.
 
         Parameters
-        ––––––––––
+        ----------
         datas : np.ndarray or list of np.ndarray
             Image array or list of image arrays to plot. Each array should
             be 2D (Ny, Nx) or 3D (Nz, Nx, Ny) if using 'idx' to slice a cube.
@@ -229,7 +229,7 @@ class va:
             - `dpi` : int, default=`va_config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
-        # –––– KWARGS ––––
+        # ---- KWARGS ----
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
@@ -303,8 +303,9 @@ class va:
         then calls the core `plot_spectral_cube` routine with the provided parameters.
         This method is intended for rapid visualization and consistent figure formatting,
         while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         cubes : DataCube, SpectralCube, or list of such
             One or more spectral cubes to plot. All cubes should have consistent units.
         idx : int
@@ -399,11 +400,12 @@ class va:
                 If True, saves the figure to disk using `save_figure_2_disk`.
             - `dpi` : int, default=`va_config.dpi`
                 Resolution (dots per inch) for saved figure.
+
         Notes
-        –––––
+        -----
         - If multiple cubes are provided, they are overplotted in sequence.
         '''
-        # –––– KWARGS ––––
+        # ---- KWARGS ----
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
@@ -444,8 +446,9 @@ class va:
         style, then calls the core `plot_spectrum` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
             Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
             and `flux` must be given.
@@ -515,7 +518,7 @@ class va:
             - `dpi` : int, default=`va_config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
-        # –––– KWARGS ––––
+        # ---- KWARGS ----
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
@@ -551,8 +554,9 @@ class va:
         style, then calls the core `plot_combine_spectrum` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         extracted_spectra : list of `SpectrumPlus`/`Spectrum`, or list of list of `SpectrumPlus`/`Spectrum`
             List of spectra to plot. Each element should contain wavelength and flux attributes,
             and optionally the normalize attribute.
@@ -625,7 +629,7 @@ class va:
                 Resolution (dots per inch) for saved figure.
 
         Returns
-        –––––––
+        -------
         SpectrumPlus or None
             If `return_spectra` is True, returns the concatenated spectrum.
             Otherwise, returns None.
@@ -679,8 +683,9 @@ class va:
         style, then calls the core `plot_density_histogram` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         X : array-like or list of arrays
             The x-axis data or list of data arrays.
         Y : array-like or list of arrays
@@ -800,8 +805,9 @@ class va:
         style, then calls the core `plot_histogram` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         datas : array-like or list of array-like
             Input data to histogram. Can be a single 1D array or a
             list of 1D/2D arrays. 2D arrays are automatically flattened.
@@ -864,7 +870,7 @@ class va:
             - `dpi` : int, default=`va_config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
-        # –––– KWARGS ––––
+        # ---- KWARGS ----
         # figure params
         figsize = kwargs.get('figsize', va_config.figsize)
         style = kwargs.get('style', va_config.style)
@@ -903,8 +909,9 @@ class va:
         style, then calls the core `plot_lines` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         X : array-like or list of array-like
             x-axis data for the lines. Can be a single array or a list of arrays.
         Y : array-like or list of array-like
@@ -1019,8 +1026,9 @@ class va:
         style, then calls the core `plot_scatter` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         X : array-like or list of array-like
             x-axis data for the lines. Can be a single array or a list of arrays.
         Y : array-like or list of array-like
@@ -1156,8 +1164,9 @@ class va:
         style, then calls the core `plot_scatter` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
+
         Parameters
-        ––––––––––
+        ----------
         X, Y, Z : array-like or list of array-like
             Coordinates of the data points. Each of `X`, `Y`, and `Z`
             may be a single array or a list of arrays for plotting
@@ -1259,19 +1268,19 @@ class va:
                 Resolution (dots per inch) for saved figure.
 
         Returns
-        –––––––
+        -------
         scatter : `matplotlib.collections.Path3DCollection` or list of them
             The created scatter artist(s). Returns a single object
             if only one dataset is plotted.
 
         Raises
-        ––––––
+        ------
         ValueError
             If `X`, `Y`, and `Z` do not have the same number of arrays
             after unit consistency checks.
 
         Notes
-        –––––
+        -----
         - The function cycles through `colors`, `sizes`, `markers`,
           `alphas`, and `edgecolors` if fewer values are given than
           datasets.
@@ -1305,7 +1314,7 @@ class va:
             plt.show()
 
 
-    # –––– VisualAstro Help ––––
+    # ---- VisualAstro Help ----
     class help:
         @staticmethod
         def colors(user_color=None):
@@ -1318,12 +1327,13 @@ class va:
             scheme: 'plot colors' and 'model colors'.
 
             Parameters
-            ––––––––––
+            ----------
             user_color : str or None, optional, default=None
                 Name of a specific color scheme to display. If `None`,
                 all default VisualAstro palettes are shown.
+
             Examples
-            ––––––––
+            --------
             Display all default VisualAstro color palettes:
             >>> va.help.colors()
             Display only the 'astro' palette, including plot and model colors:
@@ -1408,14 +1418,16 @@ class va:
             This method is primarily intended for previewing and comparing the
             visual appearance of built-in style sheets such as 'astro',
             'latex', and 'minimal'.
+
             Parameters
-            ––––––––––
+            ----------
             style_name : str or None, optional
                 Name of a specific style to preview. If ``None`` (default),
                 all predefined styles ``['astro', 'latex', 'minimal']`` are shown
                 sequentially.
+
             Examples
-            ––––––––
+            --------
             Display all visualastro plotting styles:
             >>> va.help.styles()
             Display a matplotlib or visualastro plotting style:

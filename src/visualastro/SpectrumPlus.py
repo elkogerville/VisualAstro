@@ -320,7 +320,7 @@ class SpectrumPlus:
         )
 
     # helper functions
-    # ––––––––––––––––
+    # ----------------
     def __getitem__(self, key):
         '''
         Return a sliced view of the `SpectrumPlus` object.

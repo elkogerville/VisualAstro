@@ -44,7 +44,7 @@ from .va_config import get_config_value, va_config, _default_flag
 
 
 # Plot Style and Color Functions
-# ––––––––––––––––––––––––––––––
+# ------------------------------
 def return_stylename(style):
     '''
     Returns the path to a visualastro mpl stylesheet for
@@ -66,12 +66,13 @@ def return_stylename(style):
     or other errors, `va_config.style_fallback` is used.
 
     Parameters
-    ––––––––––
+    ----------
     style : str
         Name of the mpl stylesheet without the extension.
         ex: 'astro'
+
     Returns
-    –––––––
+    -------
     style_path : str
         Path to matplotlib stylesheet.
     '''
@@ -99,8 +100,9 @@ def return_stylename(style):
 def lighten_color(color, mix=0.5):
     '''
     Lightens the given matplotlib color by mixing it with white.
+
     Parameters
-    ––––––––––
+    ----------
     color : matplotlib color, str
         Matplotlib named color, hex color, html color or rgb tuple.
     mix : float or int
@@ -121,8 +123,9 @@ def sample_cmap(N, cmap=None, return_hex=False):
     '''
     Sample N distinct colors from a given matplotlib colormap
     returned as RGBA tuples in an array of shape (N,4).
+
     Parameters
-    ––––––––––
+    ----------
     N : int
         Number of colors to sample.
     cmap : str, Colormap, or None, optional, default=None
@@ -130,8 +133,9 @@ def sample_cmap(N, cmap=None, return_hex=False):
         uses the default value in `va_config.cmap`.
     return_hex : bool, optional, default=False
         If True, return colors as hex strings.
+
     Returns
-    –––––––
+    -------
     list of tuple
         A list of RGBA colors sampled evenly from the colormap.
     '''
@@ -148,8 +152,9 @@ def sample_cmap(N, cmap=None, return_hex=False):
 def set_plot_colors(user_colors=None, cmap=None):
     '''
     Returns plot and model colors based on predefined palettes or user input.
+
     Parameters
-    ––––––––––
+    ----------
     user_colors : str, list, or None, optional, default=None
         - None: returns the default palette (`va_config.default_palette`).
         - str:
@@ -166,8 +171,9 @@ def set_plot_colors(user_colors=None, cmap=None):
     cmap : str, list of str, or None, default=None
         Matplotlib colormap name. If None, uses
         the default value in `va_config.cmap`.
+
     Returns
-    –––––––
+    -------
     plot_colors : list of str
         Colors for plotting the data.
     model_colors : list of str
@@ -242,12 +248,13 @@ def set_plot_colors(user_colors=None, cmap=None):
 
 
 # Imshow Stretch Functions
-# ––––––––––––––––––––––––
+# ------------------------
 def return_imshow_norm(vmin, vmax, norm, **kwargs):
     '''
     Return a matplotlib or astropy normalization object for image display.
+
     Parameters
-    ––––––––––
+    ----------
     vmin : float or None
         Minimum value for normalization.
     vmax : float or None
@@ -272,8 +279,9 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
             Only used in 'asinhnorm'.
         - `gamma` : float, optional, default=`va_config.gamma`
             Power law exponent.
+
     Returns
-    –––––––
+    -------
     norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
         Normalization object to pass to `imshow`. None if `norm` is 'none'.
     '''
@@ -313,8 +321,9 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     vmax can be set by the user. Setting percentile to None results in
     no stretch. Passing in a boolean array uses vmin=0, vmax=1. This
     function is used internally by plotting functions.
+
     Parameters
-    ––––––––––
+    ----------
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
     percentile : list or tuple of two floats, or None, default=`_default_flag`
@@ -325,8 +334,9 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
         If provided, overrides the computed vmin.
     vmax : float or None, default=None
         If provided, overrides the computed vmax.
+
     Returns
-    –––––––
+    -------
     vmin : float or None
         Minimum value for image scaling.
     vmax : float or None
@@ -357,8 +367,9 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     '''
     Compute percentile-based intensity limits from a data cube slice.
     This function is intended to be used to compute an image scaling.
+
     Parameters
-    ––––––––––
+    ----------
     cube : ndarray, SpectralCube, or DataCube
         Input data cube of shape (N_frames, N, M).
     slice_idx : int or list of int, optional
@@ -370,8 +381,9 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
         Lower percentile (0–100) for intensity scaling.
     vmax : float
         Upper percentile (0–100) for intensity scaling.
+
     Returns
-    –––––––
+    -------
     vmin : float
         Computed lower intensity value corresponding to the
         specified 'vmin' percentile.
@@ -392,7 +404,7 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
 
 
 # Axes Labels, Format, and Styling
-# ––––––––––––––––––––––––––––––––
+# --------------------------------
 def make_plot_grid(nrows=None, ncols=None, figsize=None,
                    sharex=None, sharey=None, hspace=_default_flag,
                    wspace=_default_flag, width_ratios=None, height_ratios=None,
@@ -400,8 +412,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     '''
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
+
     Parameters
-    ––––––––––
+    ----------
     nrows : int or None, default=None
         Number of subplot rows. If None, uses
         the default value set in `va_config.nrows`.
@@ -450,8 +463,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
         Axes width in physical units is equal to aspect.
         None will disable a fixed box aspect so that height
         and width of the Axes are chosen independently.
+
     Returns
-    –––––––
+    -------
     fig : `~matplotlib.figure.Figure`
         The created Matplotlib Figure instance.
     axs : ndarray of `~matplotlib.axes.Axes`
@@ -510,8 +524,9 @@ def add_subplot(
     **kwargs):
     '''
     Add a subplot to a figure, optionally creating a new figure.
+
     Parameters
-    ––––––––––
+    ----------
     shape : int or tuple, default: 111
         The subplot specification. Can be given as a three-digit integer
         (e.g., 211 means 2 rows, 1 column, subplot index 1) or a tuple
@@ -536,7 +551,7 @@ def add_subplot(
         `aspect`, `facecolor`, etc.).
 
     Returns
-    –––––––
+    -------
     ax : matplotlib.axes.Axes
         The created or retrieved subplot axes.
     fig : matplotlib.figure.Figure, optional
@@ -544,7 +559,7 @@ def add_subplot(
         Returned only if `return_fig=True`.
 
     Examples
-    ––––––––
+    --------
     Create a new figure and subplot:
     >>> fig, ax = add_subplot(return_fig=True)
 
@@ -571,8 +586,9 @@ def add_colorbar(im, ax, cbar_width=None,
                  rasterized=None):
     '''
     Add a colorbar next to an Axes.
+
     Parameters
-    ––––––––––
+    ----------
     im : matplotlib.cm.ScalarMappable
         The image, contour set, or mappable object returned by
         a plotting function (e.g., 'imshow', 'scatter', etc...).
@@ -626,8 +642,9 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
     contour lines or filled contours using either `ax.contour` or
     `ax.contourf`. If `zdir` and `offset` are provided, the contours
     are projected onto a plane in 3D space.
+
     Parameters
-    ––––––––––
+    ----------
     x : array-like
         1D array of x-values for the dataset.
     y : array-like
@@ -671,11 +688,11 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
             Fontsize of contour labels.
 
     Returns
-    –––––––
+    -------
     cs : matplotlib.contour.QuadContourSet or mpl_toolkits.mplot3d.art3d.QuadContourSet3D
         The contour set object created by Matplotlib.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     fontsize = kwargs.get('fontsize', va_config.fontsize)
     # get default va_config values
     cmap = get_config_value(cmap, 'cmap')
@@ -712,16 +729,18 @@ def format_unit_labels(unit, fmt=None):
     '''
     Convert an astropy unit string into a LaTeX-formatted label
     for plotting. Returns None if no unit is found.
+
     Parameters
-    ––––––––––
+    ----------
     unit : str
         The unit string to convert.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
         The format of the unit label. 'latex_inline' and 'inline' uses
         negative exponents while 'latex' uses fractions. If None, uses
         the default value set by `va_config.unit_label_format`.
+
     Returns
-    –––––––
+    -------
     str or None
         A LaTeX-formatted unit label if the input is recognized.
         Returns None if the unit is invalid.
@@ -740,8 +759,9 @@ def format_unit_labels(unit, fmt=None):
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
     '''
     Set axis limits based on concatenated data or user-provided limits.
+
     Parameters
-    ––––––––––
+    ----------
     xdata : list/tuple of arrays or array
         X-axis data from multiple datasets.
     ydata : list/tuple of arrays or array
@@ -764,7 +784,7 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
                 xmax/min ±= xpad * (xmax - xmin)
                 ymax/min ±= ypad * (ymax - ymin)
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     xpad = kwargs.get('xpad', va_config.xpad)
     ypad = kwargs.get('ypad', va_config.ypad)
 
@@ -817,8 +837,9 @@ def set_axis_labels(
     'Flux Density') and units (e.g., 'μm', 'MJy/sr') of the input data. Labels can be
     customized to show only the type, only units, or both. Units are encapsulated with
     either [] or ().
+
     Parameters
-    ––––––––––
+    ----------
     X : '~astropy.units.Quantity' or object with 'unit' attribute
         The data for the x-axis, typically a spectral axis (frequency, wavelength, or velocity).
     Y : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
@@ -844,7 +865,7 @@ def set_axis_labels(
         the default value set by `va_config.unit_label_format`.
 
     Examples
-    ––––––––
+    --------
     >>> import astropy.units as u
     >>> wavelength = np.linspace(1, 10, 100) * u.um
     >>> flux = np.random.random(100) * u.MJy / u.sr
@@ -862,7 +883,7 @@ def set_axis_labels(
     # Uses 'Custom Flux [MJy/sr]' for y-axis
 
     Notes
-    –––––
+    -----
     - Units are formatted using 'format_unit_labels', which provides LaTeX-friendly labels.
       The labels are formatted as either 'latex_inline' or 'latex', which displays fractions
       with either negative exponents or with fractions.
@@ -941,7 +962,7 @@ def set_axis_labels(
 
 
 # Plot Matplotlib Patches and Shapes
-# ––––––––––––––––––––––––––––––––––
+# ----------------------------------
 def plot_circles(
     circles,
     ax,
@@ -952,8 +973,9 @@ def plot_circles(
 ):
     '''
     Plot one or more circles on a Matplotlib axis with customizable style.
+
     Parameters
-    ––––––––––
+    ----------
     circles : array-like or None
         Circle coordinates and radii. Can be a single circle `[x, y, r]`
         or a list/array of circles `[[x1, y1, r1], [x2, y2, r2], ...]`.
@@ -1006,12 +1028,14 @@ def plot_circles(
 def copy_ellipse(ellipse):
     '''
     Returns a copy of an Ellipse object.
+
     Parameters
-    ––––––––––
+    ----------
     ellipse : matplotlib.patches.Ellipse
         The Ellipse object to copy.
+
     Returns
-    ––––––––––
+    -------
     matplotlib.patches.Ellipse
         A new Ellipse object with the same properties as the input.
     '''
@@ -1031,8 +1055,9 @@ def copy_ellipse(ellipse):
 def plot_ellipses(ellipses, ax):
     '''
     Plots an ellipse or list of ellipses to an axes.
+
     Parameters
-    ––––––––––
+    ----------
     ellipses : matplotlib.patches.Ellipse or list
         The Ellipse or list of Ellipses to plot.
     ax : matplotlib.axes.Axes
@@ -1052,8 +1077,9 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     Create an interactive ellipse selector on an Axes
     along with an interactive text window displaying
     the current ellipse center, width, and height.
+
     Parameters
-    ––––––––––
+    ----------
     center : tuple of float
         (x, y) coordinates of the ellipse center in data units.
     w : float
@@ -1071,8 +1097,9 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     highlight : bool or None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses the default value set in `va_config.highlight`.
+
     Notes
-    –––––
+    -----
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     '''
@@ -1101,8 +1128,9 @@ def _update_ellipse_region(region, text):
     '''
     Update ellipse information text when the
     interactive region is modified.
+
     Parameters
-    ––––––––––
+    ----------
     region : regions.EllipsePixelRegion
         The ellipse region being updated.
     text : matplotlib.text.Text
@@ -1126,8 +1154,9 @@ def _update_ellipse_region(region, text):
 def return_ellipse_region(center, w, h, angle=0, fill=False):
     '''
     Create a matplotlib.patches.Ellipse object.
+
     Parameters
-    ––––––––––
+    ----------
     center : tuple of float
         (x, y) coordinates of the ellipse center.
     w : float
@@ -1138,8 +1167,9 @@ def return_ellipse_region(center, w, h, angle=0, fill=False):
         Rotation angle of the ellipse in degrees (counterclockwise).
     fill : bool, default=False
         Whether the ellipse should be filled (True) or only outlined (False).
+
     Returns
-    –––––––
+    -------
     matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
     '''
@@ -1151,8 +1181,9 @@ def return_ellipse_region(center, w, h, angle=0, fill=False):
 def plot_points(points, ax, color='r', size=20, marker='*'):
     '''
     Plot points on a given Matplotlib axis with customizable style.
+
     Parameters
-    ––––––––––
+    ----------
     points : array-like or None
         Coordinates of points to plot. Can be a single point `[x, y]`
         or a list/array of points `[[x1, y1], [x2, y2], ...]`.
@@ -1184,7 +1215,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
 
 
 # Notebook Utils
-# ––––––––––––––
+# --------------
 def use_inline():
     '''
     Start an inline IPython backend session.
