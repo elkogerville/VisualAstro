@@ -20,7 +20,7 @@ def update_header_key(key, value, header, primary_header):
     Update header(s) in place with a new key-value pair.
 
     Parameters
-    ––––––––––
+    ----------
     key : str
         FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
     value : str or Unit or any FITS-serializable value
@@ -31,7 +31,7 @@ def update_header_key(key, value, header, primary_header):
         The primary header (for logging original unit).
 
     Returns
-    –––––––
+    -------
     None
     '''
     try:
@@ -65,7 +65,7 @@ def with_updated_header_key(key, value, header, primary_header):
     Returns a copy of header(s) with a new key-value pair.
 
     Parameters
-    ––––––––––
+    ----------
     key : str
         FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
     value : str or Unit or any FITS-serializable value
@@ -76,7 +76,7 @@ def with_updated_header_key(key, value, header, primary_header):
         The primary header (for logging original unit).
 
     Returns
-    –––––––
+    -------
     Header or list[Header] or None
         A copy of the input header(s) with the updated keyword.
     '''
@@ -122,12 +122,12 @@ def _get_history(header):
     Get `HISTORY` cards from a Header as a list.
 
     Parameters
-    ––––––––––
+    ----------
     header : Header
         Fits Header with `HISTORY` cards.
 
     Returns
-    –––––––
+    -------
     list or None :
         all `HISTORY` cards or None if no entries.
     '''
@@ -147,7 +147,7 @@ def _log_history(header, message):
     Add `HISTORY` entry to header.
 
     Parameters
-    ––––––––––
+    ----------
     header : astropy.Header
     message : str
     '''
@@ -164,14 +164,14 @@ def _transfer_history(header1, header2):
     destructive action.
 
     Parameters
-    ––––––––––
+    ----------
     header1 : Header
         Fits Header with `HISTORY` cards to send.
     header2 : Header
         Fits Header to copy `HISTORY` cards to.
 
     Returns
-    –––––––
+    -------
     header2 : Header
         Fits Header with updated `HISTORY`.
     '''

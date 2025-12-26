@@ -31,7 +31,7 @@ from .wcs_utils import reproject_wcs
 
 
 # Fits File I/O Operations
-# ––––––––––––––––––––––––
+# ------------------------
 def load_fits(filepath, header=True, error=True,
               print_info=None, transpose=None,
               dtype=None, target_wcs=_default_flag,
@@ -41,7 +41,7 @@ def load_fits(filepath, header=True, error=True,
     The WCS is also extracted if possible. Optionally, the
     data and errors can be reprojected onto a target wcs.
     Parameters
-    ––––––––––
+    ----------
     filepath : str
         Path to the FITS file to load.
     header : bool, default=True
@@ -100,7 +100,7 @@ def load_fits(filepath, header=True, error=True,
             not specified or set to None, the reprojection will not be carried out in blocks.
 
     Returns
-    –––––––
+    -------
     FitsFile
         If header or error is True, returns an object containing:
         - data: `np.ndarray` of the FITS data
@@ -112,7 +112,7 @@ def load_fits(filepath, header=True, error=True,
     data : np.ndarray
         If header is False, returns just the data component.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     reproject_method = kwargs.get('reproject_method', va_config.reproject_method)
     return_footprint = kwargs.get('return_footprint', va_config.return_footprint)
     parallel = kwargs.get('parallel', va_config.reproject_parallel)
@@ -209,7 +209,7 @@ def get_dtype(data, dtype=None, default_dtype=None):
     Returns the dtype from the provided data. Promotes
     integers to floats if needed.
     Parameters
-    ––––––––––
+    ----------
     data : array-like
         Input array whose dtype will be checked.
     dtype : data-type, optional, default=None
@@ -220,7 +220,7 @@ def get_dtype(data, dtype=None, default_dtype=None):
         Float type to use if `data` is integer or unsigned.
         If None, uses the default unit set in `va_config.default_dtype`.
     Returns
-    –––––––
+    -------
     dtype : np.dtype
         NumPy dtype object: user dtype if given, otherwise the array's
         float dtype or `default_dtype` if array is integer/unsigned.
@@ -247,13 +247,13 @@ def get_errors(hdul, dtype=None, transpose=False):
     of variance if needed. If a unit is found from the header, return
     the error array as a Quantity object instead.
     Parameters
-    ––––––––––
+    ----------
     hdul : astropy.io.fits.HDUList
         The HDUList object containing FITS extensions to search for errors or variance.
     dtype : data-type, optional, default=np.float64
         The desired NumPy dtype of the returned error array.
     Returns
-    –––––––
+    -------
     errors : np.ndarray or None
         The error array if found, or None if no suitable extension is present.
     '''
@@ -309,7 +309,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     Write a 3D data cube to a series of FITS files.
 
     Parameters
-    ––––––––––
+    ----------
     cube : ndarray (N_frames, N, M)
         Data cube containing N_frames images of shape (N, M).
     filename : str
@@ -320,7 +320,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         will be overwritten.
 
     Notes
-    –––––
+    -----
     Prints a message indicating the number of
     frames and the base filename.
     '''
@@ -332,13 +332,13 @@ def write_cube_2_fits(cube, filename, overwrite=False):
 
 
 # Figure I/O Operations
-# –––––––––––––––––––––
+# ---------------------
 def get_kwargs(kwargs, *names, default=None):
     '''
     Return the first matching kwarg value from a list of possible names.
 
     Parameters
-    ––––––––––
+    ----------
     kwargs : dict
             Dictionary of keyword arguments, typically taken from ``**kwargs``.
     *names : str
@@ -349,7 +349,7 @@ def get_kwargs(kwargs, *names, default=None):
         Default is None.
 
     Returns
-    –––––––
+    -------
     value : any
         The value of the first matching keyword argument, or `default` if
         none are found.
@@ -374,7 +374,7 @@ def save_figure_2_disk(
     user for a filename and format.
 
     Parameters
-    ––––––––––
+    ----------
     dpi : float, int, or None, optional, default=None
         Resolution in dots per inch. If None, uses
         the default value set by `va_config.dpi`.
@@ -405,7 +405,7 @@ def save_figure_2_disk(
             The edgecolor of the figure. If 'auto',
             use the current figure edgecolor.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
     edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
 

@@ -33,18 +33,20 @@ from .SpectrumPlus import SpectrumPlus
 
 
 # Type Checking Arrays and Objects
-# ––––––––––––––––––––––––––––––––
+# --------------------------------
 def check_is_array(data, keep_units=False):
     '''
     Ensure array input is np.ndarray.
+
     Parameters
-    ––––––––––
+    ----------
     data : np.ndarray, DataCube, FitsFile, or Quantity
         Array or DataCube object.
     keep_units : bool, optional, default=False
         If True, keep astropy units attached if present.
+
     Returns
-    –––––––
+    -------
     data : np.ndarray
         Array or 'data' component of DataCube.
     '''
@@ -71,13 +73,14 @@ def check_units_consistency(datas):
     '''
     Check that all input objects have the same units and warn if they differ.
     Additionally ensure that the input is iterable by wrapping in a list.
+
     Parameters
-    ––––––––––
+    ----------
     datas : object or list/tuple of objects
         Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
 
     Returns
-    –––––––
+    -------
     datas : list
         The input objects as a list.
     '''
@@ -101,12 +104,12 @@ def get_data(obj):
     '''
     Extract the underlying data attribute from a DataCube or FitsFile object.
     Parameters
-    ––––––––––
+    ----------
     obj : DataCube or FitsFile or np.ndarray
         The object from which to extract the data. If a raw array is provided,
         it is returned unchanged.
     Returns
-    –––––––
+    -------
     np.ndarray, or data extension
         The data attribute contained in the object, or the input array itself
         if it is not a DataCube or FitsFile.
@@ -123,14 +126,15 @@ def get_physical_type(obj):
     '''
     Extract the physical_type attribute from an object with
     a unit attribute. Returns None if no units.
+
     Parameters
-    ––––––––––
+    ----------
     obj : Quantity or Unit
         Object with a .unit attribute. Custom data types
         are permitted as long as the .unit is a Astropy Unit.
 
     Returns
-    –––––––
+    -------
     physical_type : astropy.units.physical.PhysicalType or None
         Physical type of the unit or None if no units are found.
     '''
@@ -148,8 +152,9 @@ def get_physical_type(obj):
 def get_units(obj):
     '''
     Extract the unit from an object, if it exists.
+
     Parameters
-    ––––––––––
+    ----------
     obj : Quantity, SpectralCube, FITS-like object, or any
         The input object from which to extract a unit. This can be:
         - an astropy.units.Quantity
@@ -158,7 +163,7 @@ def get_units(obj):
         - a FITS-like object with a header containing a 'BUNIT' keyword
         - any other object (returns None if no unit is found)
     Returns
-    –––––––
+    -------
     astropy.units.Unit or None
         The unit associated with the input object, if it exists.
         Returns None if the object has no unit or if the unit cannot be parsed.
@@ -248,13 +253,15 @@ def return_array_values(array):
     '''
     Extract the numerical values from an 'astropy.units.Quantity'
     or return the array as-is.
+
     Parameters
-    ––––––––––
+    ----------
     array : astropy.units.Quantity or array-like
         The input array. If it is a Quantity, the numerical values are extracted.
         Otherwise, the input is returned unchanged.
+
     Returns
-    –––––––
+    -------
     np.ndarray or array-like
         The numerical values of the array, without units if input was a Quantity,
         or the original array if it was not a Quantity.
@@ -267,20 +274,22 @@ def return_array_values(array):
 def non_nan(obj, keep_units=False):
     '''
     Return the input data with all NaN values removed.
+
     Parameters
-    ––––––––––
+    ----------
     obj : array_like
         Input array or array-like object. This may be a NumPy
         array, list, DataCube, FitsFile, or Quantity.
     keep_units : bool, optional, default=False
         If True, keep astropy units attached if present.
+
     Returns
-    –––––––
+    -------
     ndarray
         A 1-D array containing only the non-NaN elements from `obj`.
 
     Notes
-    –––––
+    -----
     This function converts the input to a NumPy array using
     `check_is_array(obj)`, then removes entries where the value is NaN.
     If the input contains units (e.g., an `astropy.units.Quantity`),
@@ -292,12 +301,13 @@ def non_nan(obj, keep_units=False):
     return data[non_nans]
 
 # Science Operation Functions
-# –––––––––––––––––––––––––––
+# ---------------------------
 def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
     '''
     Estimate the 2D density of a set of particles using a Gaussian KDE.
+
     Parameters
-    ––––––––––
+    ----------
     x : np.ndarray
         1D array of x-coordinates of shape (N,).
     y : np.ndarray
@@ -318,8 +328,9 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
         limits by 20% beyond the minimum and maximum of the data in both
         `x` and `y` directions. This helps capture the tails of the
         Gaussian kernel near the plot boundaries.
+
     Returns
-    –––––––
+    -------
     xgrid : np.ndarray
         2D array of x-coordinates for the evaluation grid (shape res×res).
     ygrid : np.ndarray
@@ -350,19 +361,22 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
 def convert_units(quantity, unit):
     '''
     Convert an Astropy Quantity to a specified unit, with a fallback if conversion fails.
+
     Parameters
-    ––––––––––
+    ----------
     quantity : astropy.units.Quantity
         The input quantity to convert.
     unit : str, astropy.units.Unit, or None
         The unit to convert to. If None, no conversion is performed.
+
     Returns
-    –––––––
+    -------
     astropy.units.Quantity
         The quantity converted to the requested unit if possible; otherwise,
         the original quantity with its existing unit.
+
     Notes
-    –––––
+    -----
     - Uses 'spectral()' equivalencies to allow conversions between
         wavelength, frequency, and velocity units.
     - If conversion fails, prints a warning and returns the original quantity.
@@ -384,15 +398,17 @@ def convert_units(quantity, unit):
 def shift_by_radial_vel(spectral_axis, radial_vel):
     '''
     Shift spectral axis to rest frame using a radial velocity.
+
     Parameters
-    ––––––––––
+    ----------
     spectral_axis : astropy.units.Quantity
         The spectral axis to shift. Can be in frequency or wavelength units.
     radial_vel : float, astropy.units.Quantity or None
         Radial velocity in km/s (astropy units are optional). Positive values
         correspond to a redshift (moving away). If None, no shift is applied.
+
     Returns
-    –––––––
+    -------
     shifted_axis : astropy.units.Quantity
         The spectral axis shifted to the rest frame according to the given
         radial velocity. If the input is in frequency units, the classical
@@ -415,12 +431,13 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
 
 
 # Numerical Operation Functions
-# –––––––––––––––––––––––––––––
+# -----------------------------
 def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
     '''
     Interpolate a 1D array over a specified range.
+
     Parameters
-    ––––––––––
+    ----------
     xp : array-like
         The x-coordinates of the data points.
     yp : array-like
@@ -434,8 +451,9 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
         - 'linear' : linear interpolation
         - 'cubic' : cubic interpolation using 'interp1d'
         - 'cubic_spline' : cubic spline interpolation using 'CubicSpline'
+
     Returns
-    –––––––
+    -------
     x_interp : np.ndarray
         The evenly spaced x-coordinates over the specified range.
     y_interp : np.ndarray
@@ -459,14 +477,16 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
 def mask_within_range(x, xlim=None):
     '''
     Return a boolean mask for values of x within the given limits.
+
     Parameters
-    ––––––––––
+    ----------
     x : array-like
         Data array (e.g., wavelength or flux values)
     xlim : tuple or list, optional
         (xmin, xmax) range. If None, uses the min/max of x.
+
     Returns
-    –––––––
+    -------
     mask : ndarray of bool
         True where x is within the limits.
     '''

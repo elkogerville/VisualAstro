@@ -31,12 +31,12 @@ def get_wcs(header):
     Extract WCS from header(s).
 
     Parameters
-    ––––––––––
+    ----------
     header : Header or list of Header
         Single header or list of headers.
 
     Returns
-    –––––––
+    -------
     WCS, list of WCS/None, or None
         - Single WCS if header is a Header and WCS extraction succeeds
         - List of WCS/None if header is a list (None for failed extractions)
@@ -66,13 +66,13 @@ def get_wcs(header):
 
 
 # Data Transformations
-# ––––––––––––––––––––
+# --------------------
 def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origin_idx=0):
     '''
     Create a Cutout2D from array-like data using WCS and a world/pixel position.
 
     Parameters
-    ––––––––––
+    ----------
     data : array-like or Quantity
         The image to crop. Must be 2D.
     size : Quantity, float, int, or tuple
@@ -101,21 +101,21 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
         Origin index for pixel-to-world conversion (0 for 0-based, 1 for 1-based).
 
     Returns
-    –––––––
+    -------
     Quantity or ndarray
         The cropped region with units if the original data had units.
     WCS
         The WCS of the cropped region
 
     Raises
-    ––––––
+    ------
     ValueError
         If the WCS is missing (None) or cutout creation fails.
     TypeError
         If `position` is not a supported type.
 
     Notes
-    –––––
+    -----
     - If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,
         the method will automatically attempt to correct for inverted RA/Dec axes.
 
@@ -207,7 +207,7 @@ def reproject_wcs(
     Reproject data or Quantity arrays onto a reference WCS.
 
     Parameters
-    ––––––––––
+    ----------
     input_data : array-like, list, or tuple
         The input data to be reprojected. May be:
         - A HDUList object
@@ -252,7 +252,7 @@ def reproject_wcs(
         Description message for loading bar. If None, uses default message.
 
     Returns
-    –––––––
+    -------
     reprojected : ndarray or list of ndarray
         The reprojected data array(s). If `input_data` contains
         multiple items, the output is a list; otherwise a single array.
@@ -262,7 +262,7 @@ def reproject_wcs(
         otherwise a single array.
 
     Raises
-    ––––––
+    ------
     ValueError
         If a the inputs are not able to be reprojected.
 
@@ -376,21 +376,21 @@ def _normalize_reproject_input(input_data):
     Ensures that the reprojection inputs are one of the accepted types.
 
     Parameters
-    ––––––––––
+    ----------
     input_data : fits.HDUList or tuple
         Input data to be reprojected. Must follow one of the formats:
             - fits.HDUList : hdul object containing data and header
             - tuple : (data, header/WCS) containing array and WCS/Header
 
     Returns
-    –––––––
+    -------
     input_data : fits.HDUList or tuple
         Normalized input (HDUList unchanged, tuple converted to (array, WCS))
     unit : Astropy.Unit or None
         The unit of the input data (None for HDUList)
 
     Raises
-    ––––––
+    ------
     TypeError
         If `input_data` is not an accepted type/format.
     '''

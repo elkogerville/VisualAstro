@@ -46,7 +46,7 @@ from .va_config import get_config_value, va_config, _default_flag
 
 
 # Spectra Extraction Functions
-# ––––––––––––––––––––––––––––
+# ----------------------------
 def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=None,
                          region=None, radial_vel=_default_flag, rest_freq=_default_flag,
                          deredden=None, unit=_default_flag, emission_line=None,
@@ -54,8 +54,9 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
+
     Parameters
-    ––––––––––
+    ----------
     cubes : DataCube, SpectralCube, or list of cubes
         Input cube(s) from which to extract spectra. The data must either be
         a SpectralCube, or a DataCube containing a SpectralCube.
@@ -174,11 +175,11 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
-    –––––––
+    -------
     SpectrumPlus or list of SpectrumPlus
         Single object if one cube is provided, list if multiple cubes are provided.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     # spectra extraction memory mode
     extract_mode = get_kwargs(kwargs, 'how', default=extract_mode)
     # doppler convention
@@ -281,14 +282,15 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
 
 # Spectra Plotting Functions
-# ––––––––––––––––––––––––––
+# --------------------------
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
                   plot_continuum_fit=False, emission_line=None, wavelength=None,
                   flux=None, continuum_fit=None, colors=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
+
     Parameters
-    ––––––––––
+    ----------
     extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
         Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
         and `flux` must be given.
@@ -352,7 +354,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
-    –––––––
+    -------
     lines : Line2D or list of Line2D, or PlotSpectrum
         The plotted line object(s) created by `Axes.plot`.
 
@@ -367,7 +369,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             * `continuum_lines` : Line2D or list of Line2D
               The plotted continuum fit line(s), if available.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     # fig params
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     # line params
@@ -524,8 +526,9 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     '''
     Allows for easily plotting multiple spectra and stiching them together into
     one `SpectrumPlus` object.
+
     Parameters
-    ––––––––––
+    ----------
     extracted_spectra : list of `SpectrumPlus`/`Spectrum`, or list of list of `SpectrumPlus`/`Spectrum`
         List of spectra to plot. Each element should contain wavelength and flux attributes,
         and optionally the normalize attribute.
@@ -591,7 +594,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             If True, format axis labels with units in brackets instead of parentheses.
 
     Returns
-    –––––––
+    -------
     SpectrumPlus or None
         If `return_spectra` is True, returns the concatenated spectrum.
         Otherwise, returns None.
@@ -602,7 +605,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
     wavelength interval before plotting.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     # figure params
     rasterized = kwargs.get('rasterized', va_config.rasterized)
     ylim = kwargs.get('ylim', None)
@@ -703,7 +706,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
 
 # Spectra Fitting Functions
-# –––––––––––––––––––––––––
+# -------------------------
 def fit_gaussian_2_spec(
     extracted_spectrum, p0, *, model=None, spectral_range=None,
     fit_method=None, absolute_sigma=False, yerror=None,
@@ -715,7 +718,7 @@ def fit_gaussian_2_spec(
     Fit a Gaussian-like model to a Spectrum, optionally including the continuum.
 
     Parameters
-    ––––––––––
+    ----------
     extracted_spectrum : SpectrumPlus or Spectrum
         Spectrum object to be gaussian fitted.
     p0 : list
@@ -824,7 +827,7 @@ def fit_gaussian_2_spec(
             - flux_error, FWHM_error, mu_error : Quantity
                 1σ uncertainties on the above quantities.
     '''
-    # –––– KWARGS ––––
+    # ---- KWARGS ----
     # figure params
     figsize = kwargs.get('figsize', va_config.figsize)
     style = kwargs.get('style', va_config.style)
