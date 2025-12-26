@@ -323,9 +323,9 @@ class SpectrumPlus:
     # ----------------
     def __getitem__(self, key):
         '''
-        Return a sliced view of the `SpectrumPlus` object.
-        The continuum fit and normalized spectra are automatically
-        recomputed for the spectra slice.
+        Slice the underlying `Spectrum` object, and return a new
+        SpectrumPlus. The continuum fit and normalized spectra
+        are automatically recomputed for the spectra slice.
 
         Parameters
         ----------
