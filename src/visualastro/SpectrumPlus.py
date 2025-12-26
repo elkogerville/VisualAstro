@@ -74,8 +74,37 @@ class SpectrumPlus:
 
     Methods
     -------
-    extract_region
-    replace_flux_where
+    extract_region(region, return_single_spectrum=False)
+        Extract a subregion of the spectrum.
+    replace_flux_where(mask, values)
+        Replace flux values at selected locations.
+
+    Array Interface
+    ---------------
+    __get_item__
+        Return a slice of the spectrum.
+    __getattr__
+        Delegate undefined attributes or methods
+        to the underlying `Spectrum` object.
+    __mul__
+        Multiply the spectrum flux by a scalar factor.
+    __rmul__
+        Multiply a scalar value by the spectrum flux.
+    __truediv__
+        Divide the spectrum flux by a scalar factor.
+    __rtruediv__
+        Raise an error as dividing by the spectrum flux
+        is undefined behavior.
+
+    Helper Methods
+    --------------
+    _apply_region
+        Helper method for `extract_region`.
+    _fit_continuum
+        Helper method to fit the spectrum continuum.
+    _construct_spectrum
+        Helper method to construct a Spectrum object.
+
     '''
 
     def __init__(self, spectrum=None, *, spectral_axis=None, flux=None,
@@ -126,7 +155,7 @@ class SpectrumPlus:
         self.region = region
 
     # Properties
-    # ––––––––––
+    # ----------
     @property
     def spectral_axis(self):
         '''
@@ -177,7 +206,7 @@ class SpectrumPlus:
         return self.spectrum.flux.unit
 
     # Methods
-    # –––––––
+    # -------
     def extract_region(self, region, return_single_spectrum=False):
         '''
         Extract a spectral sub-region.
