@@ -446,7 +446,7 @@ class va:
         figure formatting, while preserving full configurability through **kwargs.
         Parameters
         ––––––––––
-        extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
+        extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
             Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
             and `flux` must be given.
         plot_norm_continuum : bool, optional, default=False
@@ -553,7 +553,7 @@ class va:
         figure formatting, while preserving full configurability through **kwargs.
         Parameters
         ––––––––––
-        extracted_spectra : list of `ExtractedSpectrum`/`Spectrum`, or list of list of `ExtractedSpectrum`/`Spectrum`
+        extracted_spectra : list of `SpectrumPlus`/`Spectrum`, or list of list of `SpectrumPlus`/`Spectrum`
             List of spectra to plot. Each element should contain wavelength and flux attributes,
             and optionally the normalize attribute.
         idx : int, optional, default=0
@@ -572,7 +572,7 @@ class va:
         concatenate : bool, optional, default=False
             If True, concatenate all spectra and plot as a single continuous curve.
         return_spectra : bool, optional, default=False
-            If True, return the concatenated `ExtractedSpectrum` object instead of only plotting.
+            If True, return the concatenated `SpectrumPlus` object instead of only plotting.
             If True, `concatenate` is set to True.
         plot_normalize : bool, optional, default=False
             If True, plot the normalized flux instead of the raw flux.
@@ -626,7 +626,7 @@ class va:
 
         Returns
         –––––––
-        ExtractedSpectrum or None
+        SpectrumPlus or None
             If `return_spectra` is True, returns the concatenated spectrum.
             Otherwise, returns None.
 
