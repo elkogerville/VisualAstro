@@ -43,22 +43,32 @@ class SpectrumPlus:
 
     Attributes
     ----------
-    spectrum
+    spectrum : specutils.Spectrum
+        Underlying Spectrum object containing the spectrum
+        spectral axis and flux arrays.
     continuum_fit : array-like or callable or None
         Continuum fit data or fitting function.
     normalized : array-like or None
         Normalized flux array, if available.
-    fit_method
-    region
+    fit_method : {'fit_continuum', 'generic'}
+        Method used to compute the continuum fit.
+    region : SpectralRegion or None
+        Region used to compute the continuum fit.
+        Can be used to remove strong absorption/emission
+        lines that can skew the fit.
 
     Properties
     ----------
+    spectral_axis : Quantity or SpectralAxis
+        Spectral axis array of the spectrum.
     wavelength : Quantity or SpectralAxis
-        Wavelength array of the spectrum.
+        Spectral axis array of the spectrum converted to Angstroms.
+    frequency : Quantity or SpectralAxis
+        Spectral axis array of the spectrum converted to GHz.
     flux : Quantity
         Flux array of the spectrum.
-    wave_unit : Astropy.Unit
-        Unit of wavelength array.
+    spectral_unit : Astropy.Unit
+        Unit of spectral axis.
     unit : Astropy.Unit
         Unit of flux array.
 
@@ -68,7 +78,7 @@ class SpectrumPlus:
     replace_flux_where
     '''
 
-    def __init__(self, spectrum=None, spectral_axis=None, flux=None,
+    def __init__(self, spectrum=None, *, spectral_axis=None, flux=None,
                  normalized=None, continuum_fit=None, **kwargs):
 
         # kwargs and config
