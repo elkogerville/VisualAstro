@@ -187,3 +187,31 @@ def _transfer_history(header1, header2):
             header2.add_history(history)
 
     return header2
+
+
+def _copy_headers(headers):
+    '''
+    copy a single or list of fits.Header.
+
+    Parameters
+    ----------
+    headers : fits.Header or array-like of fits.Header
+        Header(s) to be copied.
+
+    Returns
+    -------
+    fits.Header or list of fits.Header
+    '''
+
+    if isinstance(headers, Header):
+        return headers.copy()
+
+    elif (
+        isinstance(headers, (list, np.ndarray, tuple))
+        and isinstance(headers[0], Header)
+    ):
+        return [hdu.copy() for hdu in headers]
+    else:
+        raise ValueError(
+            'Invalid header(s) inputs!'
+        )
