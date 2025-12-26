@@ -40,10 +40,8 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
 
     Parameters
     ----------
-    spectrum : Spectrum or ExtractedSpectrum
+    spectrum : Spectrum or SpectrumPlus
         Input 1D spectrum object containing flux and spectral_axis.
-        ExtractedSpectrum is supported only if it contains a
-        spectrum object.
     fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used for fitting the continuum.
         - 'fit_continuum': uses `fit_continuum` with a specified window
@@ -69,7 +67,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     -----
     - Warnings during the fitting process are suppressed.
     '''
-    # if input spectrum is ExtractedSpectrum object
+    # if input spectrum is SpectrumPlus object
     # extract the spectrum attribute
     if not isinstance(spectrum, Spectrum):
         if hasattr(spectrum, 'spectrum'):
@@ -271,8 +269,8 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
 
     Parameters
     ----------
-    extracted_spectrum : `ExtractedSpectrum`
-        `ExtractedSpectrum` object containing `wavelength` and `flux` attributes.
+    extracted_spectrum : `SpectrumPlus`
+        `SpectrumPlus` object containing `wavelength` and `flux` attributes.
         These can be `numpy.ndarray` or `astropy.units.Quantity`.
     args : list or array-like
         Additional parameters to append to the initial guess after
@@ -294,7 +292,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     - Useful for feeding into `scipy.optimize.curve_fit`
       or similar fitting routines.
     '''
-    # extract wavelength and flux from ExtractedSpectrum object
+    # extract wavelength and flux from SpectrumPlus object
     wavelength = return_array_values(extracted_spectrum.spectral_axis)
     flux = return_array_values(extracted_spectrum.flux)
     # clip arrays by xlim

@@ -1,7 +1,7 @@
 # Core Classes
 from visualastro.DataCube import DataCube
-from visualastro.ExtractedSpectrum import ExtractedSpectrum
 from visualastro.FitsFile import FitsFile
+from visualastro.SpectrumPlus import SpectrumPlus
 
 # Submodules
 from visualastro.data_cube import *

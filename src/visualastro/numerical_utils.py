@@ -28,8 +28,8 @@ import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from .DataCube import DataCube
-from .ExtractedSpectrum import ExtractedSpectrum
 from .FitsFile import FitsFile
+from .SpectrumPlus import SpectrumPlus
 
 
 # Type Checking Arrays and Objects
@@ -186,8 +186,8 @@ def get_units(obj):
         if unit is not None:
             return unit
 
-    # check if ExtractedSpectrum
-    if isinstance(obj, ExtractedSpectrum):
+    # check if SpectrumPlus
+    if isinstance(obj, SpectrumPlus):
         for attr in ('spectrum', 'flux'):
             unit = getattr(getattr(obj, attr, None), 'unit', None)
             if unit is not None:

@@ -25,7 +25,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
-from .ExtractedSpectrum import ExtractedSpectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
@@ -41,6 +40,7 @@ from .spectra_utils import (
     gaussian_continuum, gaussian_line,
     get_config_value
 )
+from .SpectrumPlus import SpectrumPlus
 from .text_utils import print_pretty_table
 from .va_config import get_config_value, va_config, _default_flag
 
@@ -175,7 +175,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
     Returns
     –––––––
-    ExtractedSpectrum or list of ExtractedSpectrum
+    SpectrumPlus or list of SpectrumPlus
         Single object if one cube is provided, list if multiple cubes are provided.
     '''
     # –––– KWARGS ––––
@@ -255,7 +255,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         flux_normalized = spectrum / continuum_fit
 
         # save computed spectrum
-        extracted_spectra.append(ExtractedSpectrum(
+        extracted_spectra.append(SpectrumPlus(
             spectrum=spectrum,
             normalized=flux_normalized.flux,
             continuum_fit=continuum_fit,
@@ -289,7 +289,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     Plot one or more extracted spectra on a matplotlib Axes.
     Parameters
     ––––––––––
-    extracted_spectrums : ExtractedSpectrum or list of ExtractedSpectrum, optional
+    extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
         Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
         and `flux` must be given.
     ax : matplotlib.axes.Axes
@@ -398,7 +398,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     if ax is None:
         raise ValueError('ax must be a matplotlib axes object!')
 
-    # construct ExtractedSpectrum if user passes in wavelenght and flux
+    # construct SpectrumPlus if user passes in wavelenght and flux
     if extracted_spectra is None:
 
         # disable normalization because the user provided raw arrays
@@ -415,7 +415,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             isinstance(wavelength, (np.ndarray, Quantity)) and
             isinstance(flux, (np.ndarray, Quantity))
         ):
-            extracted_spectra = ExtractedSpectrum(
+            extracted_spectra = SpectrumPlus(
                 wavelength=wavelength,
                 flux=flux,
                 continuum_fit=continuum_fit_list[0]
@@ -427,7 +427,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
             len(wavelength) == len(flux)
         ):
             extracted_spectra = [
-                ExtractedSpectrum(
+                SpectrumPlus(
                     wavelength=w,
                     flux=f,
                     continuum_fit=continuum_fit_list[i % len(continuum_fit_list)]
@@ -523,10 +523,10 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                           colors=None, **kwargs):
     '''
     Allows for easily plotting multiple spectra and stiching them together into
-    one `ExtractedSpectrum` object.
+    one `SpectrumPlus` object.
     Parameters
     ––––––––––
-    extracted_spectra : list of `ExtractedSpectrum`/`Spectrum`, or list of list of `ExtractedSpectrum`/`Spectrum`
+    extracted_spectra : list of `SpectrumPlus`/`Spectrum`, or list of list of `SpectrumPlus`/`Spectrum`
         List of spectra to plot. Each element should contain wavelength and flux attributes,
         and optionally the normalize attribute.
     ax : matplotlib.axes.Axes
@@ -547,7 +547,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     concatenate : bool, optional, default=False
         If True, concatenate all spectra and plot as a single continuous curve.
     return_spectra : bool, optional, default=False
-        If True, return the concatenated `ExtractedSpectrum` object instead of only plotting.
+        If True, return the concatenated `SpectrumPlus` object instead of only plotting.
         If True, `concatenate` is set to True.
     plot_normalize : bool, optional, default=False
         If True, plot the normalized flux instead of the raw flux.
@@ -592,7 +592,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
     Returns
     –––––––
-    ExtractedSpectrum or None
+    SpectrumPlus or None
         If `return_spectra` is True, returns the concatenated spectrum.
         Otherwise, returns None.
 
@@ -697,7 +697,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         ax.legend(loc=loc)
 
     if return_spectra:
-        extracted_spectrum = ExtractedSpectrum(wavelength, flux)
+        extracted_spectrum = SpectrumPlus(wavelength, flux)
 
         return extracted_spectrum
 
@@ -716,7 +716,7 @@ def fit_gaussian_2_spec(
 
     Parameters
     ––––––––––
-    extracted_spectrum : ExtractedSpectrum or Spectrum
+    extracted_spectrum : SpectrumPlus or Spectrum
         Spectrum object to be gaussian fitted.
     p0 : list
         Initial guess for the Gaussian fit parameters.
