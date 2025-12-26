@@ -3,16 +3,15 @@ Author: Elko Gerville-Reache
 Date Created: 2025-09-22
 Date Modified: 2025-12-05
 Description:
-    ExtractedSpectrum data structure for 1D spectrum objects.
+    SpectrumPlus data structure for 1D spectrum objects.
+    This is an extension of the specutils.Spectrum class.
 Dependencies:
     - astropy
     - numpy
     - specutils
 Module Structure:
-    - ExtractedSpectrum
+    - SpectrumPlus
         Data class for extracted spectra.
-    - Utility Functions
-        Utility functions for ExtractedSpectrum methods.
 '''
 
 import copy
@@ -29,306 +28,489 @@ class ExtractedSpectrum:
     Lightweight container class for extracted 1D spectra with associated metadata.
 
     Parameters
-    ––––––––––
+    ----------
+    spectrum : `~specutils.Spectrum`, optional
+        Spectrum object containing wavelength, flux, and unit information.
+        Takes precedent over `wavelength` and `flux`.
     wavelength : array-like or `~astropy.units.Quantity`, optional
         Wavelength array corresponding to the spectral axis.
     flux : array-like or `~astropy.units.Quantity`, optional
         Flux values of the spectrum. Units are inferred if possible.
-    spectrum1d : `~specutils.Spectrum1D`, optional
-        Spectrum object containing wavelength, flux, and unit information.
-        Used as an alternative input to `wavelength` and `flux`.
     normalized : array-like or `~astropy.units.Quantity`, optional
         Normalized flux values of the spectrum, if available.
     continuum_fit : array-like or callable, optional
         Continuum fit to the spectrum or a callable used to generate it.
 
     Attributes
-    ––––––––––
-    wavelength : array-like or `~astropy.units.Quantity`
-        Wavelength values of the spectrum.
-    flux : array-like or `~astropy.units.Quantity`
-        Flux values of the spectrum.
-    spectrum1d : `~specutils.Spectrum1D` or None
-        Original Spectrum1D object, if provided.
-    normalized : array-like or None
-        Normalized flux array, if available.
+    ----------
+    spectrum
     continuum_fit : array-like or callable or None
         Continuum fit data or fitting function.
-    wave_unit : `~astropy.units.Unit` or None
-        Wavelength unit inferred from `wavelength` or `spectrum1d`.
-    unit : `~astropy.units.Unit` or None
-        Flux unit inferred from `flux` or `spectrum1d`.
+    normalized : array-like or None
+        Normalized flux array, if available.
+    fit_method
+    region
+
+    Properties
+    ----------
+    wavelength : Quantity or SpectralAxis
+        Wavelength array of the spectrum.
+    flux : Quantity
+        Flux array of the spectrum.
+    wave_unit : Astropy.Unit
+        Unit of wavelength array.
+    unit : Astropy.Unit
+        Unit of flux array.
+
+    Methods
+    -------
+    extract_region
+    replace_flux_where
     '''
 
-    def __init__(self, wavelength=None, flux=None, spectrum1d=None,
-                 normalized=None, continuum_fit=None):
-        self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
+    def __init__(self, spectrum=None, spectral_axis=None, flux=None,
+                 normalized=None, continuum_fit=None, **kwargs):
 
-    def _initialize(self, wavelength, flux, spectrum1d, normalized, continuum_fit):
+        # kwargs and config
+        fit_method = kwargs.get('fit_method', None)
+        fit_method = get_config_value(
+            fit_method, 'spectrum_continuum_fit_method'
+        )
+        region = kwargs.get('region', None)
+        if region is not None and not isinstance(region, SpectralRegion):
+            region = SpectralRegion(region)
 
-        # validate that wavelength and flux units are consistent
-        wave_candidates = (
-            wavelength,
-            getattr(spectrum1d, 'spectral_axis', None)
+        # validate that spectral axis and flux units are consistent
+        spectral_candidates = (
+            spectral_axis,
+            getattr(spectrum, 'spectral_axis', None)
         )
         flux_candidates = (
+            spectrum,
+            getattr(spectrum, 'flux', None),
             flux,
-            spectrum1d,
-            getattr(spectrum1d, 'flux', None),
             continuum_fit
         )
 
-        wave_unit = self._validate_units(wave_candidates, label='wavelength')
-        unit = self._validate_units(flux_candidates, label='flux')
+        _validate_units_consistency(spectral_candidates, label='spectral axis')
+        _validate_units_consistency(flux_candidates, label='flux')
 
-        self.wavelength = wavelength
-        self.flux = flux
-        self.spectrum1d = spectrum1d
-        self.normalized = normalized
+        # generate Spectrum
+        spectrum = self._construct_spectrum(
+            spectrum=spectrum,
+            spectral_axis=spectral_axis,
+            flux=flux,
+            **kwargs
+        )
+        # fit continuum and normalize
+        if continuum_fit is None:
+            continuum_fit = self._fit_continuum(spectrum, fit_method, region)
+
+        if normalized is None:
+            normalized = spectrum / continuum_fit
+
+        self.spectrum = spectrum
         self.continuum_fit = continuum_fit
-        self.wave_unit = wave_unit
-        self.unit = unit
+        self.normalized = normalized
+        self.fit_method = fit_method
+        self.region = region
 
-    # support slicing
+    # Properties
+    # ––––––––––
+    @property
+    def spectral_axis(self):
+        '''
+        Returns
+        -------
+        Quantity or SpectralAxis : Spectral axis array.
+        '''
+        return self.spectrum.spectral_axis
+    @property
+    def wavelength(self):
+        '''
+        Returns
+        -------
+        Quantity or SpectralAxis : Wavelength array in Å units.
+        '''
+        return self.spectrum.wavelength
+    @property
+    def frequency(self):
+        '''
+        Returns
+        -------
+        Quantity or SpectralAxis : wavelength array in GHz units.
+        '''
+        return self.spectrum.frequency
+    @property
+    def flux(self):
+        '''
+        Returns
+        -------
+        Quantity : Flux array.
+        '''
+        return self.spectrum.flux
+    @property
+    def spectral_unit(self):
+        '''
+        Returns
+        -------
+        Unit : Spectral axis unit.
+        '''
+        return self.spectrum.spectral_axis.unit
+    @property
+    def unit(self):
+        '''
+        Returns
+        -------
+        Unit : Flux unit.
+        '''
+        return self.spectrum.flux.unit
+
+    # Methods
+    # –––––––
+    def extract_region(self, region, return_single_spectrum=False):
+        '''
+        Extract a spectral sub-region.
+
+        Parameters
+        ----------
+        region : SpectralRegion or array-like of tuple
+            Spectral region(s) to extract. If array-like,
+            it must be a sequence of `(lower, upper)`
+            bounds, typically as `Quantity`.
+        return_single_region : boolean, optional, default=False
+            If True, the resulting spectra will be concatenated
+            together into a single Spectrum object instead.
+
+        Returns
+        -------
+        Spectrum
+            A new Spectrum object restricted to the specified region(s).
+        '''
+        if not isinstance(region, SpectralRegion):
+            region = SpectralRegion(region)
+
+        return self._apply_region(
+            self.spectrum, region, return_single_spectrum=return_single_spectrum
+        )
+
+    def replace_flux_where(self, mask, values):
+        '''
+        Replace flux values at selected locations and return a new spectrum.
+
+        This method returns a new `ExtractedSpectrum` in which the flux values
+        corresponding to `mask` are replaced by `values`. The WCS, velocity
+        convention, rest value and meta attributes are preserved. The operation
+        is non-mutating; the original spectrum remains unchanged.
+
+        Parameters
+        ----------
+        mask : array-like of bool
+            Boolean mask with the same shape as the spectrum flux. Elements
+            set to True indicate locations where the flux will be replaced.
+        values : `Quantity`
+            Replacement flux values. Must have the same shape and units as
+            the spectrum flux.
+
+        Returns
+        -------
+        `ExtractedSpectrum`
+            A new spectrum with modified flux values. The spectral axis and
+            coordinate metadata are preserved, while uncertainty and masking
+            information are not propagated.
+
+        Raises
+        ------
+        ValueError :
+            If `values` does not have the same shape as the spectrum flux.
+        TypeError :
+            If `values` is not a `Quantity` with units compatible with the
+            spectrum flux.
+        UnitsError :
+            If `flux` and `values` don't have the same units.
+        '''
+        spectrum = self.spectrum
+        spectral_axis = spectrum.spectral_axis
+        flux = spectrum.flux.copy()
+
+        if values.shape != flux.shape:
+            raise ValueError(
+                'Replacement values must match flux shape. '
+                f'Flux shape: {flux.shape}, values shape: {values.shape}.'
+            )
+
+        if not hasattr(values, 'unit'):
+            raise TypeError("`values` must be an astropy Quantity.")
+
+        _check_unit_equality(flux.unit, values.unit, 'flux', 'values')
+
+        flux[mask] = values[mask]
+
+        new_spectrum = Spectrum(
+            spectral_axis=spectral_axis,
+            flux=flux,
+            wcs=spectrum.wcs,
+            velocity_convention=spectrum.velocity_convention,
+            rest_value=spectrum.rest_value,
+            meta=dict(spectrum.meta) if spectrum.meta is not None else None,
+        )
+
+        fit_method = self.fit_method
+
+        return ExtractedSpectrum(
+            spectrum=new_spectrum, fit_method=fit_method
+        )
+
+    # helper functions
+    # ––––––––––––––––
     def __getitem__(self, key):
         '''
         Return a sliced view of the `ExtractedSpectrum` object.
+        The continuum fit and normalized spectra are automatically
+        recomputed for the spectra slice.
 
         Parameters
-        ––––––––––
+        ----------
         key : int, slice, or array-like
             Index or slice used to select specific elements from
             the wavelength, flux, and other stored arrays.
 
         Returns
-        –––––––
+        -------
         ExtractedSpectrum
             A new `ExtractedSpectrum` instance containing the sliced
-            wavelength, flux, normalized flux, continuum fit, and
-            `Spectrum1D` object (if present).
-
-        Notes
-        –––––
-        - Metadata such as `rest_value` and `velocity_convention` are
-            preserved when slicing `spectrum1d`.
-        - Attributes that are `None` remain `None` in the returned object.
+            spectrum object.
         '''
-        wavelength = None
-        flux = None
-        spectrum1d = None
-        normalized = None
-        continuum_fit = None
-
-        if self.wavelength is not None:
-            wavelength = self.wavelength[key]
-        if self.flux is not None:
-            flux = self.flux[key]
-        if self.spectrum1d is not None:
-            spectrum1d = Spectrum1D(
-                spectral_axis=self.spectrum1d.spectral_axis[key],
-                flux=self.spectrum1d.flux[key],
-                rest_value=self.spectrum1d.rest_value,
-                velocity_convention=self.spectrum1d.velocity_convention
-            )
-        if self.normalized is not None:
-            normalized = self.normalized[key]
-        if self.continuum_fit is not None:
-            continuum_fit = self.continuum_fit[key]
+        sub_spectrum = self.spectrum[key]
+        fit_method = self.fit_method
 
         return ExtractedSpectrum(
-            wavelength,
-            flux,
-            spectrum1d,
-            normalized,
-            continuum_fit
+            spectrum=sub_spectrum, fit_method=fit_method
         )
 
-    def update(self, wavelength=None, flux=None, spectrum1d=None, normalized=None, continuum_fit=None, **kwargs):
+    def __getattr__(self, name):
         '''
-        Update one or more attributes of the ExtractedSpectrum object.
-        Any argument provided to this method overrides the existing value.
-        Arguments left as None will retain the current stored values.
-        Dependent attributes are automatically recomputed using the newest available
-        inputs, falling back to the previously stored values when needed.
+        Delegate attribute/method access to underlying Spectrum object
+        if it is not defined in ExtractedSpectrum.
 
         Parameters
-        ––––––––––
-        wavelength : `~astropy.units.Quantity`, optional
-            New spectral axis array to assign to the spectrum. If provided,
-            the stored `Spectrum1D` object will be rebuilt (if it exists).
-        flux : `~astropy.units.Quantity`, optional
-            New flux array to assign to the spectrum. If provided,
-            the stored `Spectrum1D` object will be rebuilt (if it exists).
-        spectrum1d : `~specutils.Spectrum1D`, optional
-            A full Spectrum1D object to replace the internal representation.
-            If passed, this overrides both `wavelength` and `flux`, and no
-            further updates are applied.
-
-        Returns
-        –––––––
-        None
-
-        Notes
-        –––––
-        - If `spectrum1d` is passed, it takes precedence and replaces `wavelength`
-          and `flux`.
+        ----------
+        name : str
+            Name of attribute, property, method, etc...
         '''
-        from .spectra_utils import compute_continuum_fit
-        # –––– KWARGS ––––
-        rest_value = kwargs.get('rest_value', None)
-        velocity_convention = kwargs.get('velocity_convention', None)
-        fit_method = kwargs.get('fit_method', None)
-        region = kwargs.get('region', None)
+        if name.startswith('_'):
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
-        # get default va_config values
-        fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
+        try:
+            return getattr(self.spectrum, name)
+        except AttributeError:
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
 
-        # use spectrum1d to update ExtractedSpectrum if provided
-        if spectrum1d is not None:
-            wavelength = spectrum1d.spectral_axis
-            flux = spectrum1d.flux
-            continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
-            normalized = (spectrum1d / continuum_fit).flux
-
-            self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
-
-            return None
-
-        wavelength = self.wavelength if wavelength is None else wavelength
-        flux = self.flux if flux is None else flux
-
-        # rebuild spectrum1d if wavelength or flux is passed in
-        if not self._allclose(wavelength, self.wavelength) or not self._allclose(flux, self.flux):
-
-            # rest value and velocity convention defaults are set
-            # by the previous spectrum1d values if they existed
-            if self.spectrum1d is not None:
-                rest_value = self.spectrum1d.rest_value if rest_value is None else rest_value
-                velocity_convention = (
-                                self.spectrum1d.velocity_convention
-                                if velocity_convention is None else velocity_convention
-                            )
-
-            spectrum1d = Spectrum1D(
-                    spectral_axis=wavelength,
-                    flux=flux,
-                    rest_value=rest_value,
-                    velocity_convention=velocity_convention
-                )
-            # recompute continuum fit and normalized flux if not passed in
-            if continuum_fit is None:
-                continuum_fit = compute_continuum_fit(spectrum1d, fit_method, region)
-            if normalized is None:
-                normalized = (spectrum1d / continuum_fit).flux
-
-        # use previous values unless provided / recomputed
-        spectrum1d = self.spectrum1d if spectrum1d is None else spectrum1d
-        normalized = self.normalized if normalized is None else normalized
-        continuum_fit = self.continuum_fit if continuum_fit is None else continuum_fit
-
-        self._initialize(wavelength, flux, spectrum1d, normalized, continuum_fit)
-
-        return None
-
-    # helper functions
-    # ––––––––––––––––
-    @staticmethod
-    def _allclose(a, b):
+    def __mul__(self, factor):
         '''
-        Determine whether two array-like objects are equal within a tolerance,
-        with additional handling for `astropy.units.Quantity` and None.
-        This function behaves like `numpy.allclose`, but adds logic to safely
-        compare Quantities (ensuring matching units) and to treat None as
-        a valid sentinel value.
-        Parameters
-        ––––––––––
-        a, b : array-like, `~astropy.units.Quantity`, scalar, or None
-            The inputs to compare. Inputs may be numerical arrays, scalars, or
-            `Quantity` objects with units. If one argument is None, the result is
-            False unless both are None.
-
-        Returns
-        –––––––
-        bool
-            True if the inputs are considered equal, False otherwise.
-            Equality rules:
-            - Both None → True
-            - One None → False
-            - Quantities with mismatched units → False
-            - Quantities with identical units → value arrays compared via
-                `numpy.allclose`
-            - Non-Quantity arrays/scalars → compared via `numpy.allclose`
-
-        Notes
-        –––––
-        - This function does **not** attempt unit conversion.
-          Quantities must already share identical units.
-        - This function exists to support `.update()` logic where user-supplied
-          wavelength/flux arrays should only trigger recomputation if they
-          differ from stored values.
-        '''
-        # case 1: both are None → equal
-        if a is None and b is None:
-            return True
-
-        # case 2: only one is None → different
-        if a is None or b is None:
-            return False
-
-        # case 3: one is Quantity, one is not
-        if isinstance(a, Quantity) != isinstance(b, Quantity):
-            return False
-
-        # case 4: both Quantities
-        if isinstance(a, Quantity) and isinstance(b, Quantity):
-            if a.unit != b.unit:
-                return False
-            return np.allclose(a.value, b.value)
-
-        # case 5: both unitless arrays/scalars
-        return np.allclose(a, b)
-
-    def _validate_units(self, objs, label):
-        '''
-        Validate that the units match between a list of objects.
+        Multiply spectrum by a scalar.
 
         Parameters
-        ––––––––––
-        objs : array-like of objects
-            A list or array-like of objects with or without 'unit'
-            attribute.
+        ----------
+        factor : scalar
+        '''
+        scaled_spectrum = self.spectrum * factor
+        fit_method = self.fit_method
+        region = copy.copy(self.region)
+
+        return ExtractedSpectrum(
+            spectrum=scaled_spectrum,
+            fit_method=fit_method,
+            region=region
+        )
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, factor):
+        '''
+        Divide spectrum by a scalar.
+
+        Parameters
+        ----------
+        factor : scalar
+        '''
+        scaled_spectrum = self.spectrum / factor
+        fit_method = self.fit_method
+        region = copy.copy(self.region)
+
+        return ExtractedSpectrum(
+            spectrum=scaled_spectrum,
+            fit_method=fit_method,
+            region=region
+        )
+
+    def __rtruediv__(self, factor):
+        raise TypeError(
+            'Division by an ExtractedSpectrum is not defined.'
+        )
+
+    def _apply_region(self, spectrum, region, return_single_spectrum=False):
+        '''
+        Apply a spectral region to a Spectrum object.
+
+        This is a thin wrapper around `specutils.manipulation.extract_region`.
+        If `region` is not already a `SpectralRegion`, it is coerced into one
+        before extraction.
+
+        Parameters
+        ----------
+        spectrum : Spectrum or None
+            Input spectrum to which the region will be applied. If None,
+            the function returns None.
+        region : SpectralRegion or array-like
+            Spectral region to extract. If array-like, it is interpreted as
+            region bounds and converted to a `SpectralRegion`.
 
         Returns
-        –––––––
-        None : if no units are present.
-        Astropy Unit : If units are present and are consistent.
+        -------
+        Spectrum or None
+            A new `Spectrum` object containing only the portion defined
+            by `region`, or None if the input spectrum is None.
+        '''
+
+        if not isinstance(region, SpectralRegion):
+            region = SpectralRegion(region)
+
+        return _extract_region(
+            spectrum, region, return_single_spectrum=return_single_spectrum
+        )
+
+    def _fit_continuum(self, spectrum, fit_method, region):
+        '''
+        Fit spectrum continuum.
+
+        Parameters
+        ----------
+        spectrum : Spectrum
+            Spectrum object.
+        fit_method : {'fit_continuum', 'generic'}
+            Continuum fitting method.
+        region : array-like of tuple, optional
+            Spectral region(s) to include in the continuum fit.
+            Ex:
+            region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+        '''
+        from .spectra_utils import fit_continuum
+
+        continuum_fit = fit_continuum(spectrum, fit_method, region)
+
+        return continuum_fit
+
+    def _construct_spectrum(
+        self, *, spectrum=None, spectral_axis=None, flux=None, **kwargs
+    ):
+        '''
+        Construct and return a Spectrum instance from either an existing spectrum
+        or from spectral axis and flux arrays.
+
+        Exactly one of the following input combinations must be provided:
+        - `spectrum`: a pre-existing `specutils.Spectrum` instance, or
+        - `spectral_axis` and `flux`: array-like objects used to construct a new
+            `Spectrum`.
+
+        Parameters
+        ----------
+        spectrum : `specutils.Spectrum`, optional
+            Existing spectrum object to return directly. If provided, `spectral_axis`
+            and `flux` must be None.
+        spectral_axis : array-like or `astropy.units.Quantity`, optional
+            Spectral axis values. Must be provided together with `flux` if
+            `spectrum` is not given.
+        flux : array-like or `astropy.units.Quantity`, optional
+            Flux values corresponding to `spectral_axis`. Must be provided together
+            with `spectral_axis` if `spectrum` is not given.
+
+        **kwargs
+            Additional keyword arguments forwarded to the `Spectrum` constructor
+            (e.g., velocity_convention, rest_value, wcs, radial_velocity. etc).
+
+        Returns
+        -------
+        spectrum : `specutils.Spectrum`
+            A validated spectrum instance.
 
         Raises
-        ––––––
-        ValueError : If units exist and do not match.
+        ------
+        ValueError
+            If both `spectrum` and (`wavelength` or `flux`) are provided, if neither
+            input path is fully specified, or if `spectrum` is not a `Spectrum`
+            instance.
         '''
-        # create set of each unit in objs, and remove any None values
-        # this contains each unique unit across the set of objects
-        units = {getattr(o, 'unit', None) for o in objs} - {None}
+        if spectrum is not None:
+            if spectral_axis is not None or flux is not None:
+                raise ValueError(
+                    'Provide either spectrum OR spectral_axis + flux, not both!'
+                )
+            elif not isinstance(spectrum, Spectrum):
+                raise ValueError(
+                    "'spectrum' must be a Spectrum instance!"
+                )
+            return spectrum
 
-        # return None if no units found
-        if not units:
-            return None
-        # raise an error if more than 1 unique unit
-        elif len(units) > 1:
-            raise UnitsError(
-                f'Inconsistent {label} units: {units}'
+        if spectral_axis is None or flux is None:
+            raise ValueError(
+                'spectral_axis and flux must both be provided if spectrum is None.'
             )
-        # return the unit
-        else:
-            return units.pop()
+
+        return Spectrum(
+            spectral_axis=spectral_axis,
+            flux=flux,
+            **kwargs
+        )
+
+    def __dir__(self):
+        '''
+        Ensure both `SpectrumPlus` and `specutils.Spectrum`
+        attributes are included in dir().
+        '''
+        return sorted(
+            set(
+                dir(type(self)) +
+                list(self.__dict__.keys()) +
+                dir(self.spectrum)
+            )
+        )
 
     def __repr__(self):
         '''
         Returns
-        –––––––
-        str : String representation of `ExtractedSpectrum`.
+        -------
+        str : String representation of `SpectrumPlus`.
         '''
-        return (
-            f'<ExtractedSpectrum: wave_unit={self.wave_unit}, flux_unit={self.unit}, len={len(self.wavelength)}>'
+        flux = (
+            f'flux=({self.flux.value[0]:.3e} ... {self.flux.value[-1]:.3e}) '
+            f'[{self.unit}]; '
         )
+        spectral_axis = (
+            f'spectral_axis=({self.spectral_axis.value[0]:.3e} ... '
+            f'{self.spectral_axis.value[-1]:.3e}) '
+            f'[{self.spectral_unit}]; '
+        )
+        stats = (
+            f'mean={np.nanmean(self.flux.value):.3e} [{self.unit}], '
+            f'len={len(self.spectral_axis)}'
+        )
+
+        return f'<SpectrumPlus: {flux}{spectral_axis}{stats}>'
+
+
+'''
+TODO:
+    - docs
+    - more attributes
+    - logs
+    - homogenize all classes to be immutable
+    - __getitem__ should return a new instance of class
+    - update probably should not exist
+    - DataCube SpectralCube should use its own header
+
+'''
