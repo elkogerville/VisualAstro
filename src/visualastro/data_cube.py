@@ -49,10 +49,13 @@ def load_data_cube(filepath, error=True, hdu=None,
                    dtype=None, print_info=None,
                    transpose=None, invert_wcs=None):
     '''
-    Load a sequence of FITS files into a 3D data cube. This function searches
-    for all FITS files matching a given path pattern, loads them into a NumPy
-    array of shape (T, M, N), and bundles the data, headers, errors, and WCS
+    Load a sequence of FITS files into a 3D data cube.
+
+    This function searches for all FITS files matching a
+    given path pattern, loads them into a NumPy array of shape
+    (T, M, N), and bundles the data, headers, errors, and WCS
     into a `DataCube` object.
+
     Parameters
     ----------
     filepath : str
@@ -77,6 +80,7 @@ def load_data_cube(filepath, error=True, hdu=None,
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
         If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
+
     Returns
     -------
     cube : DataCube
@@ -85,10 +89,11 @@ def load_data_cube(filepath, error=True, hdu=None,
         - `cube.header` : list of astropy.io.fits.Header objects
         - `cube.error` : np.ndarray of shape (T, M, N)
         - `cube.wcs` : list of `astropy.wcs.wcs.WCS`
+
     Examples
     --------
-    Search for all fits files starting with 'HARPS' with .fits extention and load them.
-        filepath = 'Spectro-Module/raw/HARPS.*.fits'
+    Search for all fits files starting with 'HARPS' with .fits extention and load them:
+        >>> filepath = 'Spectro-Module/raw/HARPS.*.fits'
     '''
     # get default config values
     hdu = get_config_value(hdu, 'hdu_idx')
@@ -140,7 +145,7 @@ def load_data_cube(filepath, error=True, hdu=None,
         error_array[0] = err.astype(dt)
 
     # loop through remaining files
-    for i, file in enumerate(tqdm(fits_files[1:], desc="Loading FITS")):
+    for i, file in enumerate(tqdm(fits_files[1:], desc='Loading FITS')):
         with fits.open(file) as hdul:
             data = hdul[hdu].data
             headers[i+1] = hdul[hdu].header
@@ -170,6 +175,7 @@ def load_spectral_cube(filepath, hdu, error=True,
     '''
     Load a spectral cube from a FITS file,
     optionally including errors and header.
+
     Parameters
     ----------
     filepath : str
@@ -186,6 +192,7 @@ def load_spectral_cube(filepath, hdu, error=True,
     print_info : bool or None, optional, default=None
         If True, print FITS file info to the console.
         If None, uses default value set by `va_config.print_info`.
+
     Returns
     -------
     DataCube
@@ -231,6 +238,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                        wcs_grid=None, **kwargs):
     '''
     Plot a single spectral slice from one or more spectral cubes.
+
     Parameters
     ----------
     cubes : DataCube, SpectralCube, or list of such
@@ -330,6 +338,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
             Image object if a single array is provided, otherwise a list of image
             objects created by `ax.imshow`.
+
     Notes
     -----
     - If multiple cubes are provided, they are overplotted in sequence.
@@ -404,7 +413,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         images.append(im)
 
     # determine unit of colorbar
-    cbar_unit = format_unit_labels(cube.unit)
+    cbar_unit = format_unit_labels(cubes[0].unit)
     # set colorbar label
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None

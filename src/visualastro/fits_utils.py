@@ -15,7 +15,7 @@ from astropy.units import Unit
 import numpy as np
 
 
-def update_header_key(key, value, header, primary_header):
+def _update_header_key(key, value, header, primary_header):
     '''
     Update header(s) in place with a new key-value pair.
 
@@ -131,10 +131,10 @@ def _get_history(header):
     list or None :
         all `HISTORY` cards or None if no entries.
     '''
-    if not isinstance(header, Header) or "HISTORY" not in header:
+    if not isinstance(header, Header) or 'HISTORY' not in header:
         return None
 
-    history = header["HISTORY"]
+    history = header['HISTORY']
 
     if isinstance(history, str):
         return [history]
@@ -142,17 +142,20 @@ def _get_history(header):
     return list(history) # type: ignore
 
 
-def _log_history(header, message):
+def _log_history(header, description):
     '''
-    Add `HISTORY` entry to header.
+    Add a `HISTORY` entry to header
+    in place. A timestamp is included.
 
     Parameters
     ----------
     header : astropy.Header
-    message : str
+        Header for logging a `HISTORY` card.
+    description : str
+        Description of log.
     '''
     timestamp = Time.now().isot
-    log = f'{timestamp} {message}'
+    log = f'{timestamp} {description}'
 
     header.add_history(log)
 

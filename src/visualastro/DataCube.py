@@ -22,8 +22,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
 from .fits_utils import (
-update_header_key, with_updated_header_key,
-_get_history, _log_history, _transfer_history
+    with_updated_header_key,
+    _get_history, _log_history,
+    _transfer_history, _update_header_key,
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value, _default_flag
@@ -765,7 +766,7 @@ class DataCube:
             if unit is not None and self.header is not None:
                 hdr_unit = _validate_units_consistency(self.header)
                 if hdr_unit is None or hdr_unit != unit:
-                    update_header_key(
+                    _update_header_key(
                         'BUNIT', unit, self.header, self.primary_header
                     )
             header = self.header

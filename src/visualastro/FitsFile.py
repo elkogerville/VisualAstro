@@ -12,11 +12,11 @@ Dependencies:
 import copy
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
-from astropy.wcs import WCS
 import numpy as np
 from .fits_utils import (
-_get_history, _log_history, update_header_key,
-with_updated_header_key
+_get_history, _log_history,
+with_updated_header_key,
+_update_header_key
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .validation import _validate_type
@@ -71,7 +71,7 @@ class FitsFile:
     median : float
         Median of all values in the data, ignoring NaNs.
     sum : float
-        Sum of all values in the data, ignoreing NaNs.
+        Sum of all values in the data, ignoring NaNs.
     std : float
         Standard deviation of all values in the data, ignoring NaNs.
     shape : tuple
@@ -470,7 +470,7 @@ class FitsFile:
             if unit is not None and self.header is not None:
                 hdr_unit = _validate_units_consistency(self.header)
                 if hdr_unit is None or hdr_unit != unit:
-                    update_header_key(
+                    _update_header_key(
                         'BUNIT', unit, self.header, self.primary_header
                     )
             header = self.header

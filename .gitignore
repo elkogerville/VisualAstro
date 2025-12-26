@@ -4,4 +4,4 @@ build/
 dist/
 *.egg-info/
 *.pyc
-TODO.py
+TODO.txt
