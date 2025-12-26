@@ -188,21 +188,40 @@ class SpectrumPlus:
             Spectral region(s) to extract. If array-like,
             it must be a sequence of `(lower, upper)`
             bounds, typically as `Quantity`.
-        return_single_region : boolean, optional, default=False
+            Ex : [(6.5*u.um, 8*u.um), (8.5*u.um, 9*u.um)]
+            Ex : [(6000, 6200), (7000, 8000)] * u.AA
+        return_single_spectrum : boolean, optional, default=False
             If True, the resulting spectra will be concatenated
             together into a single Spectrum object instead.
 
         Returns
         -------
-        Spectrum
-            A new Spectrum object restricted to the specified region(s).
+        SpectrumPlus or list of SpectrumPlus
+            A new SpectrumPlus object (or list of objects) restricted
+            to the specified region(s).
         '''
+        fit_method = self.fit_method
+
         if not isinstance(region, SpectralRegion):
             region = SpectralRegion(region)
 
-        return self._apply_region(
-            self.spectrum, region, return_single_spectrum=return_single_spectrum
+        new_spectrum = self._apply_region(
+            self.spectrum,
+            region,
+            return_single_spectrum=return_single_spectrum
         )
+
+        if return_single_spectrum:
+            return SpectrumPlus(
+                spectrum=new_spectrum, fit_method=fit_method
+            )
+
+        # convert each subregion to a SpectrumPlus
+        return [
+            SpectrumPlus(
+                spectrum=spec, fit_method=fit_method
+            ) for spec in new_spectrum
+        ]
 
     def replace_flux_where(self, mask, values):
         '''
