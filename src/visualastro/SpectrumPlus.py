@@ -245,27 +245,53 @@ class SpectrumPlus:
             to the specified region(s).
         '''
         fit_method = self.fit_method
+        log_file = self.log
 
         if not isinstance(region, SpectralRegion):
             region = SpectralRegion(region)
 
+        # extract region
         new_spectrum = self._apply_region(
             self.spectrum,
             region,
             return_single_spectrum=return_single_spectrum
         )
 
-        if return_single_spectrum:
+        N_regions = len(region.subregions)
+        # get lower and upper bound of each subregion
+        rmins = [r.lower.to_string() for r in region]
+        rmaxs = [r.upper.to_string() for r in region]
+
+        if return_single_spectrum or N_regions == 1:
+
+            new_log = _copy_headers(log_file)
+            log = (
+                f'Extracting {N_regions} region(s) btwn : '
+                f'{rmins[0]} - {rmaxs[-1]}'
+            )
+            _log_history(new_log, log)
+
             return SpectrumPlus(
-                spectrum=new_spectrum, fit_method=fit_method
+                spectrum=new_spectrum,
+                fit_method=fit_method,
+                log_file=new_log
             )
 
         # convert each subregion to a SpectrumPlus
-        return [
-            SpectrumPlus(
-                spectrum=spec, fit_method=fit_method
-            ) for spec in new_spectrum
-        ]
+        spectrum_list = []
+        for spec, rmin, rmax in zip(new_spectrum, rmins, rmaxs):
+            new_log = _copy_headers(log_file)
+            _log_history(new_log, f'Extracting region : {rmin} - {rmax}')
+
+            spectrum_list.append(
+                SpectrumPlus(
+                    spectrum=spec,
+                    fit_method=fit_method,
+                    log_file=new_log
+                )
+            )
+
+        return spectrum_list
 
     def replace_flux_where(self, mask, values):
         '''
