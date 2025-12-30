@@ -18,7 +18,7 @@ import numpy as np
 from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
-from .fits_utils import _copy_headers, _log_history
+from .fits_utils import _copy_headers, _get_history, _log_history
 from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value
 
@@ -169,7 +169,7 @@ class SpectrumPlus:
         self.normalized = normalized
         self.fit_method = fit_method
         self.region = region
-        self.log = log_file
+        self.log_file = log_file
 
     # Properties
     # ----------
@@ -221,6 +221,16 @@ class SpectrumPlus:
         Unit : Flux unit.
         '''
         return self.spectrum.flux.unit
+    @property
+    def log(self):
+        '''
+        Get the processing history from the FITS HISTORY cards.
+        Returns
+        -------
+        list of str or None
+            List of HISTORY entries, or None if no header exists.
+        '''
+        return _get_history(self.log_file)
 
     # Methods
     # -------
@@ -247,7 +257,7 @@ class SpectrumPlus:
             to the specified region(s).
         '''
         fit_method = self.fit_method
-        log_file = self.log
+        log_file = self.log_file
 
         if not isinstance(region, SpectralRegion):
             region = SpectralRegion(region)
@@ -357,7 +367,7 @@ class SpectrumPlus:
         )
 
         fit_method = self.fit_method
-        new_log = _copy_headers(self.log)
+        new_log = _copy_headers(self.log_file)
         _log_history(new_log, f'Replacing flux at masked locations')
 
         return SpectrumPlus(
@@ -427,7 +437,7 @@ class SpectrumPlus:
         fit_method = self.fit_method
         region = copy.copy(self.region)
 
-        new_log = _copy_headers(self.log)
+        new_log = _copy_headers(self.log_file)
         _log_history(new_log, f'Multiplying flux by {factor}')
 
         return SpectrumPlus(
@@ -451,7 +461,7 @@ class SpectrumPlus:
         fit_method = self.fit_method
         region = copy.copy(self.region)
 
-        new_log = _copy_headers(self.log)
+        new_log = _copy_headers(self.log_file)
         _log_history(new_log, f'Dividing flux by {factor}')
 
         return SpectrumPlus(
