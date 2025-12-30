@@ -15,7 +15,7 @@ from astropy.units import Unit
 import numpy as np
 
 
-def _update_header_key(key, value, header, primary_header):
+def _update_header_key(key, value, header, primary_header=None):
     '''
     Update header(s) in place with a new key-value pair.
 
@@ -28,7 +28,8 @@ def _update_header_key(key, value, header, primary_header):
     header : Header or list[Header]
         The header(s) to update in place.
     primary_header : Header
-        The primary header (for logging original unit).
+        Header used for logging the key update.
+        If None, uses `header` for logging.
 
     Returns
     -------
@@ -39,25 +40,33 @@ def _update_header_key(key, value, header, primary_header):
     except AttributeError:
         value_str = str(value)
 
-    old_value = 'unknown'
-    if isinstance(primary_header, Header):
-        old_value = primary_header.get(key, 'unknown')
-
-    # case 1: single Header
     if isinstance(header, Header):
-        header[key] = value_str
-        _log_history(
-            primary_header, f'Updated {key}: {old_value} -> {value_str}'
+        headers = [header]
+    elif isinstance(header, (list, np.ndarray, tuple)):
+        if len(header) == 0:
+            raise ValueError('Header list is empty.')
+        headers = list(header)
+    else:
+        raise TypeError(
+            'header must be a Header or an array-like of Headers.'
         )
 
-    # case 2: header is list of Headers
-    elif isinstance(header, (list, np.ndarray, tuple)):
-        for hdr in header:
-            hdr[key] = value_str
-        _log_history(
-            header[0],
+    if primary_header is None:
+        primary_header = headers[0]
+
+    old_value = primary_header.get(key, 'DNE')
+
+    for hdr in headers:
+        hdr[key] = value_str
+
+    if len(headers) == 1:
+        msg = f'Updated {key}: {old_value} -> {value_str}'
+    else:
+        msg = (
             f'Updated {key} across all slices: {old_value} -> {value_str}'
         )
+
+    _log_history(primary_header, msg)
 
 
 def with_updated_header_key(key, value, header, primary_header):
