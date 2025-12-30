@@ -517,7 +517,8 @@ class SpectrumPlus:
         return continuum_fit
 
     def _construct_spectrum(
-        self, *, spectrum=None, spectral_axis=None, flux=None, **kwargs
+        self, *, spectrum=None, spectral_axis=None,
+        flux=None, log_file=None, **kwargs
     ):
         '''
         Construct and return a Spectrum instance from either an existing spectrum
@@ -556,6 +557,7 @@ class SpectrumPlus:
             input path is fully specified, or if `spectrum` is not a `Spectrum`
             instance.
         '''
+
         if spectrum is not None:
             if spectral_axis is not None or flux is not None:
                 raise ValueError(
@@ -565,11 +567,20 @@ class SpectrumPlus:
                 raise ValueError(
                     "'spectrum' must be a Spectrum instance!"
                 )
+
+            if log_file is not None:
+                _log_history(log_file, "Initialize SpectrumPlus from a <Spectrum> object")
+
             return spectrum
 
         if spectral_axis is None or flux is None:
             raise ValueError(
                 'spectral_axis and flux must both be provided if spectrum is None.'
+            )
+
+        if log_file is not None:
+            _log_history(
+                log_file, "Initialize SpectrumPlus with input arrays"
             )
 
         return Spectrum(
