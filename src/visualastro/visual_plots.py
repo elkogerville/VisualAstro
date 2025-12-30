@@ -435,8 +435,8 @@ class va:
 
 
     @staticmethod
-    def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=False,
-                      plot_continuum_fit=False, emission_line=None, wavelength=None,
+    def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=None,
+                      plot_continuum_fit=None, emission_line=None, wavelength=None,
                       flux=None, continuum_fit=None, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectrum`, which visualizes extracted
@@ -452,10 +452,12 @@ class va:
         extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
             Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
             and `flux` must be given.
-        plot_norm_continuum : bool, optional, default=False
+        plot_norm_continuum : bool, optional, default=None
             If True, plot normalized flux instead of raw flux.
-        plot_continuum_fit : bool, optional, default=False
-            If True, overplot continuum fit.
+            If None, uses the default value set by `plot_normalized_continuum`.
+        plot_continuum_fit : bool, optional, default=None
+            If True, overplot continuum fit. If None, uses
+            the default value set by `va_config.plot_continuum_fit`.
         emission_line : str, optional, default=None
             Label for an emission line to annotate on the plot.
         wavelength : array-like, optional, default=None
