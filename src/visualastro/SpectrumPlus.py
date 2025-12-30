@@ -1,10 +1,11 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-12-05
+Date Modified: 2025-25-05
 Description:
     SpectrumPlus data structure for 1D spectrum objects.
-    This is an extension of the specutils.Spectrum class.
+    This is an extension of the specutils.Spectrum class
+    that offers convenience methods to work with spectra.
 Dependencies:
     - astropy
     - numpy
