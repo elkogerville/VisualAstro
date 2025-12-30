@@ -169,17 +169,18 @@ class VAConfig:
         self.deredden_method = None
         self.deredden_region = None
 
-        # gaussian fitting params
-        self.gaussian_model = 'gaussian'
+        # curve_fit params
         self.curve_fit_interpolate = False
-        self.return_gaussian_fit_parameters = False
-        self.print_gaussian_values = True
         self.curve_fit_method = 'trf'
-
-        # numerical parameters
+        self.curve_fit_absolute_sigma = False
         self.interpolation_samples = 10000
         self.interpolation_method = 'cubic_spline'
         self.error_interpolation_method = 'cubic_spline'
+
+        # gaussian fitting params
+        self.gaussian_model = 'gaussian'
+        self.return_gaussian_fit_parameters = False
+        self.print_gaussian_values = True
 
         # reprojection parameters
         self.reproject_method = 'interp'
