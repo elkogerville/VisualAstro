@@ -425,10 +425,14 @@ class SpectrumPlus:
         fit_method = self.fit_method
         region = copy.copy(self.region)
 
+        new_log = _copy_headers(self.log)
+        _log_history(new_log, f'Multiplying flux by {factor}')
+
         return SpectrumPlus(
             spectrum=scaled_spectrum,
             fit_method=fit_method,
-            region=region
+            region=region,
+            log_file=new_log
         )
 
     __rmul__ = __mul__
@@ -445,10 +449,14 @@ class SpectrumPlus:
         fit_method = self.fit_method
         region = copy.copy(self.region)
 
+        new_log = _copy_headers(self.log)
+        _log_history(new_log, f'Dividing flux by {factor}')
+
         return SpectrumPlus(
             spectrum=scaled_spectrum,
             fit_method=fit_method,
-            region=region
+            region=region,
+            log_file=new_log
         )
 
     def __rtruediv__(self, factor):
