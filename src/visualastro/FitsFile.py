@@ -14,9 +14,8 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 import numpy as np
 from .fits_utils import (
-_get_history, _log_history,
-with_updated_header_key,
-_update_header_key
+    _copy_headers, _get_history,
+    _log_history, _update_header_key
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .validation import _validate_type
@@ -150,10 +149,10 @@ class FitsFile:
         # extract unit
         unit = data.unit if isinstance(data, Quantity) else None
 
-        # extract BUNIT from header
+        # extract BUNIT from header(s)
         hdr_unit = _validate_units_consistency(header)
 
-        # check that both units are equal
+        # check that data and header units are equal
         _check_unit_equality(unit, hdr_unit, 'data', 'header')
 
         # use BUNIT if unit is None
