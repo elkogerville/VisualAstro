@@ -13,10 +13,12 @@ Dependencies:
 '''
 
 import copy
+from astropy.io.fits import Header
 import numpy as np
 from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
+from .fits_utils import _copy_headers, _log_history
 from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value
 
