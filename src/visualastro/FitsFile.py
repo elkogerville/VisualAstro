@@ -413,10 +413,10 @@ class FitsFile:
         else:
             new_error = None
 
-        # update header BUNIT and transfer over pre-existing logs
-        new_hdr = with_updated_header_key(
-            'BUNIT', unit, self.header, self.primary_header
-        )
+        # update header BUNIT
+        new_hdr = _copy_headers(self.header)
+        new_hdr = _update_header_key('BUNIT', unit, new_hdr)
+
         # update wcs
         new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
