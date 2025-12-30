@@ -355,9 +355,13 @@ class SpectrumPlus:
         )
 
         fit_method = self.fit_method
+        new_log = _copy_headers(self.log)
+        _log_history(new_log, f'Replacing flux at masked locations')
 
         return SpectrumPlus(
-            spectrum=new_spectrum, fit_method=fit_method
+            spectrum=new_spectrum,
+            fit_method=fit_method,
+            log_file=new_log
         )
 
     # helper functions
