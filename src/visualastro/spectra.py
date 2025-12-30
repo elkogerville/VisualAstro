@@ -283,8 +283,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
 # Spectra Plotting Functions
 # --------------------------
-def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
-                  plot_continuum_fit=False, emission_line=None, wavelength=None,
+def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
+                  plot_continuum_fit=None, emission_line=None, wavelength=None,
                   flux=None, continuum_fit=None, colors=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
@@ -296,10 +296,12 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
         and `flux` must be given.
     ax : matplotlib.axes.Axes
         Axis to plot on.
-    plot_norm_continuum : bool, optional, default=False
+    plot_norm_continuum : bool, optional, default=None
         If True, plot normalized flux instead of raw flux.
-    plot_continuum_fit : bool, optional, default=False
-        If True, overplot continuum fit.
+        If None, uses the default value set by `plot_normalized_continuum`.
+    plot_continuum_fit : bool, optional, default=None
+        If True, overplot continuum fit. If None, uses
+        the default value set by `va_config.plot_continuum_fit`.
     emission_line : str, optional, default=None
         Label for an emission line to annotate on the plot.
     wavelength : array-like, optional, default=None
@@ -391,6 +393,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=False,
     use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
 
     # get default va_config values
+    plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
+    plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
     colors = get_config_value(colors, 'colors')
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
