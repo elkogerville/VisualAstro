@@ -54,6 +54,10 @@ class SpectrumPlus:
         Region used to compute the continuum fit.
         Can be used to remove strong absorption/emission
         lines that can skew the fit.
+    log : Header
+        Log file to track SpectrumPlus operations using
+        `HISTORY` cards. Methods that return a new SpectrumPlus
+        instance will transfer over any existing logs.
 
     Properties
     ----------
@@ -105,8 +109,10 @@ class SpectrumPlus:
 
     '''
 
-    def __init__(self, spectrum=None, *, spectral_axis=None, flux=None,
-                 normalized=None, continuum_fit=None, **kwargs):
+    def __init__(
+        self, spectrum=None, *, spectral_axis=None, flux=None,
+        normalized=None, continuum_fit=None, log_file=None, **kwargs
+    ):
 
         # kwargs and config
         fit_method = kwargs.get('fit_method', None)
