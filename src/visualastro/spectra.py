@@ -709,7 +709,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 # -------------------------
 def fit_gaussian_2_spec(
     extracted_spectrum, p0, *, model=None, spectral_range=None,
-    fit_method=None, absolute_sigma=False, yerror=None,
+    fit_method=None, absolute_sigma=None, yerror=None,
     interpolate=None, samples=None, interp_method=None,
     error_interp_method=None, return_fit_params=None,
     plot_interp=False, print_vals=None, **kwargs
@@ -739,7 +739,7 @@ def fit_gaussian_2_spec(
     fit_method : {'lm', 'trf', 'dogbox'} or None, optional, default=None
         Curve fitting algorithm used by `scipy.optimize.curve_fit`.
         If None, uses the default value set by `va_config.curve_fit_method`.
-    absolute_sigma : boolean, optional, default=False
+    absolute_sigma : boolean, optional, default=None
         If True, the values provided in `yerror` are interpreted as absolute
         1σ uncertainties on the flux measurements. In this case, the returned
         covariance matrix reflects these absolute uncertainties, and parameter
@@ -751,6 +751,7 @@ def fit_gaussian_2_spec(
         Set this to True when `yerror` represents well-calibrated observational
         uncertainties (e.g., photon-counting or pipeline-provided errors).
         Set this to False when `yerror` is used only for weighting the fit.
+        If None, uses the default value set by `va_config.curve_fit_absolute_sigma`.
     yerror : array-like or None, optional, default=None
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
@@ -847,6 +848,7 @@ def fit_gaussian_2_spec(
     colors = get_config_value(colors, 'colors')
     model = get_config_value(model, 'gaussian_model')
     fit_method = get_config_value(fit_method, 'curve_fit_method')
+    absolute_sigma = get_config_value(absolute_sigma, 'curve_fit_absolute_sigma')
     interpolate = get_config_value(interpolate, 'curve_fit_interpolate')
     interp_method = get_config_value(interp_method, 'interpolation_method')
     error_interp_method = get_config_value(error_interp_method, 'error_interpolation_method')
