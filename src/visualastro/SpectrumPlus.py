@@ -123,6 +123,14 @@ class SpectrumPlus:
         if region is not None and not isinstance(region, SpectralRegion):
             region = SpectralRegion(region)
 
+        if log_file is None:
+            log_file = Header()
+        elif not isinstance(log_file, Header):
+            raise ValueError(
+                'log_file should be a astropy.fits.Header! '
+                f'Got type: {type(log_file)}'
+            )
+
         # validate that spectral axis and flux units are consistent
         spectral_candidates = (
             spectral_axis,
@@ -143,11 +151,13 @@ class SpectrumPlus:
             spectrum=spectrum,
             spectral_axis=spectral_axis,
             flux=flux,
+            log_file=log_file,
             **kwargs
         )
         # fit continuum and normalize
         if continuum_fit is None:
             continuum_fit = self._fit_continuum(spectrum, fit_method, region)
+            _log_history(log_file, f"Computing continuum fit with '{fit_method}'")
 
         if normalized is None:
             normalized = spectrum / continuum_fit
@@ -157,6 +167,7 @@ class SpectrumPlus:
         self.normalized = normalized
         self.fit_method = fit_method
         self.region = region
+        self.log = log_file
 
     # Properties
     # ----------
