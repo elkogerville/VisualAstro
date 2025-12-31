@@ -832,18 +832,8 @@ class DataCube:
         except Exception as e:
             raise TypeError(f'Spectral axis conversion failed: {e}')
 
-        if isinstance(self.header, Header):
-            new_hdr = self.header.copy()
-            _log_history(
-                new_hdr, f'Converted spectral axis: {old_unit} -> {unit}'
-            )
-        elif isinstance(self.header, (list, np.ndarray, tuple)):
-            new_hdr = [hdr.copy() for hdr in self.header]
-            _log_history(
-                new_hdr[0], f'Converted spectral axis: {old_unit} -> {unit}'
-            )
-        else:
-            new_hdr = None
+        new_hdr = _copy_headers(self.header)
+        _log_history(new_hdr, f'Converted spectral axis: {old_unit} -> {unit}')
 
         new_error = None if self.error is None else self.error.copy()
 
