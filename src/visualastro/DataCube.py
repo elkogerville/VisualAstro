@@ -22,8 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
 from .fits_utils import (
-    with_updated_header_key,
-    _get_history, _log_history,
+    _copy_headers, _get_history, _log_history,
     _transfer_history, _update_header_key,
 )
 from .units import _check_unit_equality, _validate_units_consistency
