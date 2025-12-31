@@ -69,63 +69,6 @@ def _update_header_key(key, value, header, primary_header=None):
     _log_history(primary_header, msg)
 
 
-def with_updated_header_key(key, value, header, primary_header):
-    '''
-    Returns a copy of header(s) with a new key-value pair.
-
-    Parameters
-    ----------
-    key : str
-        FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
-    value : str or Unit or any FITS-serializable value
-        New value for the keyword.
-    header : Header or list[Header]
-        The header(s) to update.
-    primary_header : Header
-        The primary header (for logging original unit).
-
-    Returns
-    -------
-    Header or list[Header] or None
-        A copy of the input header(s) with the updated keyword.
-    '''
-    try:
-        value_str = value.to_string()
-    except AttributeError:
-        value_str = str(value)
-
-    old_value = 'unknown'
-    if isinstance(primary_header, Header):
-        old_value = primary_header.get(key, 'unknown')
-
-    # case 1: single Header
-    if isinstance(header, Header):
-        new_hdr = header.copy()
-        new_hdr[key] = value_str
-
-        _log_history(
-            new_hdr, f'Updated {key}: {old_value} -> {value_str}'
-        )
-        return new_hdr
-
-    # case 2: header is list of Headers
-    elif isinstance(header, (list, np.ndarray, tuple)):
-        new_hdr = [h.copy() for h in header]
-
-        for hdr in new_hdr:
-            hdr[key] = value_str
-
-        _log_history(
-            new_hdr[0],
-            f'Updated {key} across all slices: {old_value} -> {value_str}'
-        )
-        return new_hdr
-
-    # case 3: no valid Header
-    else:
-        return None
-
-
 def _get_history(header):
     '''
     Get `HISTORY` cards from a Header as a list.
