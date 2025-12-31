@@ -11,8 +11,130 @@ Dependencies:
 
 from astropy.io.fits import Header
 from astropy.time import Time
-from astropy.units import Unit
 import numpy as np
+
+
+def _copy_headers(headers):
+    '''
+    copy a single or list of fits.Header.
+
+    Parameters
+    ----------
+    headers : fits.Header or array-like of fits.Header
+        Header(s) to be copied.
+
+    Returns
+    -------
+    fits.Header or list of fits.Header
+    '''
+
+    if headers is None:
+        return None
+
+    elif isinstance(headers, Header):
+        return headers.copy()
+
+    elif (
+        isinstance(headers, (list, np.ndarray, tuple))
+        and isinstance(headers[0], Header)
+    ):
+        return [hdu.copy() for hdu in headers]
+
+    else:
+        raise ValueError(
+            'Invalid header(s) inputs!'
+        )
+
+
+def _get_history(header):
+    '''
+    Get `HISTORY` cards from a Header as a list.
+
+    Parameters
+    ----------
+    header : Header
+        Fits Header with `HISTORY` cards.
+
+    Returns
+    -------
+    list or None :
+        all `HISTORY` cards or None if no entries.
+    '''
+    if not isinstance(header, Header) or 'HISTORY' not in header:
+        return None
+
+    history = header['HISTORY']
+
+    if isinstance(history, str):
+        return [history]
+
+    return list(history) # type: ignore
+
+
+def _log_history(header, description):
+    '''
+    Add a `HISTORY` entry to header
+    in place. A timestamp is included.
+    If `header` is a list of Headers,
+    the `HISTORY` is only added to the
+    first header.
+
+    Parameters
+    ----------
+    header : astropy.Header
+        Header for logging a `HISTORY` card.
+    description : str
+        Description of log.
+
+    Returns
+    -------
+    None
+    '''
+    if header is None:
+        return None
+
+    timestamp = Time.now().isot
+    log = f'{timestamp} {description}'
+
+    if isinstance(header, Header):
+        header.add_history(log)
+
+    elif isinstance(header, (list, np.ndarray, tuple)):
+        header[0].add_history(log)
+
+    else:
+        raise ValueError(
+            'header must be a Header or list of Headers!'
+        )
+
+
+def _transfer_history(header1, header2):
+    '''
+    Transfer `HISTORY` cards from one
+    header to another. This is not a
+    destructive action.
+
+    Parameters
+    ----------
+    header1 : Header
+        Fits Header with `HISTORY` cards to send.
+    header2 : Header
+        Fits Header to copy `HISTORY` cards to.
+
+    Returns
+    -------
+    header2 : Header
+        Fits Header with updated `HISTORY`.
+    '''
+    # get logs from header 1
+    hdr1_history = _get_history(header1)
+
+    # add logs to header 2
+    if hdr1_history is not None:
+        for history in hdr1_history:
+            header2.add_history(history)
+
+    return header2
 
 
 def _update_header_key(key, value, header, primary_header=None):
@@ -67,103 +189,3 @@ def _update_header_key(key, value, header, primary_header=None):
         )
 
     _log_history(primary_header, msg)
-
-
-def _get_history(header):
-    '''
-    Get `HISTORY` cards from a Header as a list.
-
-    Parameters
-    ----------
-    header : Header
-        Fits Header with `HISTORY` cards.
-
-    Returns
-    -------
-    list or None :
-        all `HISTORY` cards or None if no entries.
-    '''
-    if not isinstance(header, Header) or 'HISTORY' not in header:
-        return None
-
-    history = header['HISTORY']
-
-    if isinstance(history, str):
-        return [history]
-
-    return list(history) # type: ignore
-
-
-def _log_history(header, description):
-    '''
-    Add a `HISTORY` entry to header
-    in place. A timestamp is included.
-
-    Parameters
-    ----------
-    header : astropy.Header
-        Header for logging a `HISTORY` card.
-    description : str
-        Description of log.
-    '''
-    timestamp = Time.now().isot
-    log = f'{timestamp} {description}'
-
-    header.add_history(log)
-
-
-def _transfer_history(header1, header2):
-    '''
-    Transfer `HISTORY` cards from one
-    header to another. This is not a
-    destructive action.
-
-    Parameters
-    ----------
-    header1 : Header
-        Fits Header with `HISTORY` cards to send.
-    header2 : Header
-        Fits Header to copy `HISTORY` cards to.
-
-    Returns
-    -------
-    header2 : Header
-        Fits Header with updated `HISTORY`.
-    '''
-    # get logs from header 1
-    hdr1_history = _get_history(header1)
-
-    # add logs to header 2
-    if hdr1_history is not None:
-        for history in hdr1_history:
-            header2.add_history(history)
-
-    return header2
-
-
-def _copy_headers(headers):
-    '''
-    copy a single or list of fits.Header.
-
-    Parameters
-    ----------
-    headers : fits.Header or array-like of fits.Header
-        Header(s) to be copied.
-
-    Returns
-    -------
-    fits.Header or list of fits.Header
-    '''
-
-    if isinstance(headers, Header):
-        return headers.copy()
-
-    elif (
-        isinstance(headers, (list, np.ndarray, tuple))
-        and isinstance(headers[0], Header)
-    ):
-        return [hdu.copy() for hdu in headers]
-    else:
-        raise ValueError(
-            'Invalid header(s) inputs!'
-        )
