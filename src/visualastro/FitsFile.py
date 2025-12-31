@@ -159,7 +159,11 @@ class FitsFile:
             )
 
         # add BUNIT to header if missing
-        if unit is not None and 'BUNIT' not in header:
+        if (
+            unit is not None and
+            isinstance(header, Header) and
+            'BUNIT' not in header
+        ):
             header['BUNIT'] = unit.to_string() # type: ignore
             _log_history(
                 header, f'Added missing BUNIT={unit} to header'
