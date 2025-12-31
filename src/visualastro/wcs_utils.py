@@ -17,7 +17,7 @@ from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
 import astropy.units as u
-from astropy.units import Quantity, Unit
+from astropy.units import Quantity
 from astropy.wcs import WCS
 import numpy as np
 from reproject import reproject_interp, reproject_exact
@@ -63,6 +63,29 @@ def get_wcs(header):
 
     else:
         return None
+
+
+def _is_valid_wcs_slice(key):
+    '''
+    Check if a key is a valid slice for a WCS object.
+
+    Parameters
+    ----------
+    key : slice or tuple
+        key to slice WCS with.
+
+    Returns
+    -------
+    bool :
+        If key is a valid WCS slice.
+    '''
+    if isinstance(key, slice):
+        return True
+
+    if isinstance(key, tuple):
+        return all(isinstance(k, slice) for k in key)
+
+    return False
 
 
 # Data Transformations
