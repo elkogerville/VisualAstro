@@ -12,14 +12,16 @@ Dependencies:
 import copy
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
+from astropy.wcs import WCS
 import numpy as np
 from .fits_utils import (
     _copy_headers, _get_history,
-    _log_history, _update_header_key
+    _log_history, _transfer_history,
+    _update_header_key
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .validation import _validate_type
-from .wcs_utils import get_wcs
+from .wcs_utils import get_wcs, _is_valid_wcs_slice
 
 
 class FitsFile:
@@ -116,7 +118,7 @@ class FitsFile:
         Return a reshaped view of the data.
 
     Raises
-    ----------
+    ------
     TypeError
         - If `data` or `header` are not of an expected type.
     UnitsError
@@ -193,6 +195,7 @@ class FitsFile:
         # try extracting WCS
         if wcs is None:
             wcs = get_wcs(header)
+            assert isinstance(wcs, WCS)
 
         self.data = data
         self.primary_header = header
@@ -341,6 +344,7 @@ class FitsFile:
     def log(self):
         '''
         Get the processing history from the FITS HISTORY cards.
+
         Returns
         -------
         list of str or None
@@ -353,14 +357,17 @@ class FitsFile:
     def header_get(self, key):
         '''
         Retrieve a header value by key from a header.
+
         Parameters
         ----------
         key : str
             FITS header keyword to retrieve.
+
         Returns
         -------
         value : list or str
             Header values corresponding to `key`.
+
         Raises
         ------
         ValueError
