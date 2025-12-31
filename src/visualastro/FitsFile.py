@@ -20,7 +20,7 @@ from .fits_utils import (
     _update_header_key
 )
 from .units import _check_unit_equality, _validate_units_consistency
-from .validation import _validate_type
+from .validation import _check_shapes_match, _validate_type
 from .wcs_utils import get_wcs, _is_valid_wcs_slice
 
 
@@ -129,13 +129,7 @@ class FitsFile:
     '''
 
     def __init__(self, data, header=None, error=None, wcs=None):
-        self._initialize(data, header, error, wcs)
 
-    def _initialize(self, data, header, error, wcs):
-        '''
-        Helper method to initialize the
-        class and perform type checking.
-        '''
         data = _validate_type(
             data, (np.ndarray, Quantity), allow_none=False, name='data'
         )
@@ -180,17 +174,10 @@ class FitsFile:
 
         # error validation
         if error is not None:
-            err = np.asarray(error)
-            if err.shape != array.shape:
-                raise ValueError(
-                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
-                )
+            _check_shapes_match(array, error, 'data', 'error')
 
             if isinstance(error, Quantity) and unit is not None:
-                if error.unit != unit:
-                    raise UnitsError (
-                        f'Error units ({error.unit}) differ from data units ({unit})'
-                    )
+                _check_unit_equality(error.unit, unit, 'error unit', 'data unit')
 
         # try extracting WCS
         if wcs is None:
