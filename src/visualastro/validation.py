@@ -11,6 +11,39 @@ from astropy.units import Quantity
 import numpy as np
 
 
+def _check_shapes_match(a, b, name_a='a', name_b='b'):
+    '''
+    Check that two input arrays have the same shape.
+
+    Parameters
+    ----------
+    a : array-like
+    b : array-like
+    name_a : str, optional, default='a'
+        Name to use for array 'a' in error messages.
+    name_b : str, optional, default='b'
+        Name to use for array 'b' in error messages.
+
+    Returns
+    -------
+    None :
+        Returns None if the shapes match,
+        otherwise raises a ValueError.
+
+    Raises
+    ------
+    ValueError :
+        Arrays have differing shapes.
+    '''
+
+    A = np.asarray(a)
+    B = np.asarray(b)
+    if A.shape != B.shape:
+        raise ValueError(
+            f'Shape mismatch: {name_a}.shape={A.shape}, {name_b}.shape={B.shape}'
+        )
+
+
 def _validate_type(
     data, types, default=None, allow_none=True, name='data'
 ):
@@ -25,10 +58,10 @@ def _validate_type(
         A type or tuple of types that `data` is allowed to be.
         Ex: Quantity, (Quantity), or (Quantity, SpectralCube)
     default : object, optional, default=None
-            Value to return if `data` is None. Use this to provide
-            a default instance when None is passed.
+        Value to return if `data` is None. Use this to provide
+        a default instance when None is passed.
     allow_none : bool, default=True
-            If True, None is a valid input. If False, None will raise TypeError.
+        If True, None is a valid input. If False, None will raise TypeError.
     name : str
         Name of object for error message.
 
