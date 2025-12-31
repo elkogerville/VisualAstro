@@ -780,25 +780,16 @@ class DataCube:
             new_error = None
 
         # copy header and wcs
-        if isinstance(self.header, Header):
-            new_header = self.header.copy()
-            # add log
-            _log_history(new_header, f'Applied boolean mask to cube')
-        # case 2: header is list of Headers
-        elif isinstance(self.header, (list, np.ndarray, tuple)):
-            new_header = [hdr.copy() for hdr in self.header]
-            # add log
-            _log_history(new_header[0], f'Applied boolean mask to cube')
-        else:
-            new_header = None
+        new_hdr = _copy_headers(self.header)
+        _log_history(new_hdr, 'Applied boolean mask to cube')
 
         new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
 
         return DataCube(
-            new_data,
-            new_header,
-            new_error,
-            new_wcs
+            data=new_data,
+            header=new_hdr,
+            error=new_error,
+            wcs=new_wcs
         )
 
     def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
@@ -813,6 +804,7 @@ class DataCube:
             'radio', 'optical', 'relativistic', etc.
         rest_value : Quantity, optional
             Rest frequency/wavelength for Doppler conversion.
+            Required if output type is velocity.
 
         Returns
         -------
@@ -823,9 +815,9 @@ class DataCube:
 
         if not isinstance(self.data, SpectralCube):
             raise TypeError(
-                "with_spectral_unit() can only be used when DataCube.data "
-                "is a SpectralCube. For unit conversion of flux values, "
-                "use .to()."
+                'with_spectral_unit() can only be used when DataCube.data '
+                'is a SpectralCube. For unit conversion of flux values, '
+                'use .to().'
             )
         # get unit strings
         old_unit = self.data.spectral_axis.unit
