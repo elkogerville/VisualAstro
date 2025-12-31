@@ -715,71 +715,22 @@ class DataCube:
             wcs=new_wcs
         )
 
-    def update(self, *, data=None, header=None, error=None, wcs=None):
-        '''
-        Update any of the DataCube attributes in place. All internally
-        stored values are recomputed.
-
-        If data has units and header has BUNIT, BUNIT will be automatically
-        updated to match the data units.
-
-        Parameters
-        ----------
-        data : array-like or `~astropy.units.Quantity`
-            The primary image data. Can be a NumPy array or an
-            `astropy.units.Quantity` object.
-        header : fits.Header, array-like of fits.Header, or None, optional, default=None
-            Header(s) associated with the data cube. If provided as a list or array,
-            its length must match the cube’s first dimension.
-        error : array-like, optional
-            Optional uncertainty or error map associated with the data.
-        wcs : astropy.wcs.wcs.WCS or None, optional, default=None
-            WCS information associated with the data extension.
-            If None, DataCube will attempt to extract the WCS
-            from the header attribute.
-
-        Returns
-        -------
-        None
-        '''
-        # get existing values if not passed in
-        data = self.data if data is None else data
-        error = self.error if error is None else error
-        wcs = self.wcs if wcs is None else wcs
-
-        # get unit
-        unit = getattr(data, 'unit', None)
-        if unit is not None:
-            unit = Unit(unit)
-
-        # if user did not provide a header
-        # ensure that BUNIT is updated
-        if header is None:
-            if unit is not None and self.header is not None:
-                hdr_unit = _validate_units_consistency(self.header)
-                if hdr_unit is None or hdr_unit != unit:
-                    _update_header_key(
-                        'BUNIT', unit, self.header, self.primary_header
-                    )
-            header = self.header
-
-        self._initialize(data, header, error, wcs)
-
-        return None
-
     def with_mask(self, mask):
         '''
         Apply a boolean mask to the cube and return the
-        masked data. The shape of the cube is preserved
-        and values are masked with NaNs.
+        masked data as a new DataCube.
+
+        The shape of the cube is preserved and
+        values are masked with NaNs.
 
         Parameters
         ----------
         mask : np.ndarray or Mask
             Boolean mask to apply. Must match the cube shape.
+
         Returns
         -------
-        masked_data : same type as `data`
+        masked_data : DataCube
             Masked version of the data.
 
         Raises
