@@ -27,8 +27,8 @@ from .fits_utils import (
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value, _default_flag
-from .validation import _validate_type
-from .wcs_utils import get_wcs, reproject_wcs
+from .validation import _check_shapes_match, _validate_type
+from .wcs_utils import get_wcs, reproject_wcs, _is_valid_wcs_slice
 
 
 class DataCube:
@@ -119,15 +119,16 @@ class DataCube:
     inspect(figsize=(10,6), style=None)
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
+    reproject(
+        reference_wcs, method=None, return_footprint=None,
+        parallel=None, block_size=_default_flag
+    )
+        Reproject the data onto a new target WCS and return a new cube.
     to(unit, equivalencies=None)
         Convert the cube unit (flux unit). This method works for
         `Quantities`, as well as `SpectralCube` flux units. To convert
         spectral_units for `SpectralCubes` use `with_spectral_unit()`.
         Returns a new cube.
-    update(data=None, header=None, error=None, wcs=None)
-        Update any of the DataCube attributes in place. All internally
-        stored values are recomputed. If data has units and header has
-        BUNIT, BUNIT will be automatically updated to match the data units.
     with_mask(mask)
         Apply a boolean mask to the cube. Works for both `Quantities`
         and `SpectralCubes`. The original shape is preserved and
@@ -171,14 +172,7 @@ class DataCube:
     '''
 
     def __init__(self, data, header=None, error=None, wcs=None):
-        self._initialize(data, header, error, wcs)
 
-    def _initialize(self, data, header, error, wcs):
-        '''
-        Helper method to initialize the
-        class and perform type checking.
-        '''
-        # type checks
         data = _validate_type(
             data, (np.ndarray, Quantity, SpectralCube),
             allow_none=False, name='data'
