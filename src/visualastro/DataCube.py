@@ -205,6 +205,8 @@ class DataCube:
             )
 
         if isinstance(header, (list, np.ndarray, tuple)):
+            header = list(header)
+
             if len(header) == 0:
                 raise ValueError(
                     'Header list cannot be empty.'
@@ -259,16 +261,10 @@ class DataCube:
 
         # error validation
         if error is not None:
-            err = np.asarray(error)
-            if err.shape != array.shape:
-                raise ValueError(
-                    f"'error' must match shape of 'data', got {err.shape} vs {array.shape}."
-                )
+            _check_shapes_match(array, error, 'data', 'error')
+
             if isinstance(error, Quantity) and unit is not None:
-                if error.unit != unit:
-                    raise UnitsError (
-                        f'Error units ({error.unit}) differ from data units ({unit})'
-                    )
+                _check_unit_equality(error.unit, unit, 'error unit', 'data unit')
 
         # try extracting WCS from headers
         if wcs is None:
@@ -431,6 +427,7 @@ class DataCube:
     def log(self):
         '''
         Get the processing history from the FITS HISTORY cards.
+
         Returns
         -------
         list of str or None
@@ -463,9 +460,11 @@ class DataCube:
         # case 1: single Header
         if isinstance(self.header, Header):
             return self.header.get(key, None)
+
         # case 2: Header list
         elif isinstance(self.header, (list, np.ndarray, tuple)):
             return [h.get(key, None) for h in self.header]
+
         else:
             raise ValueError(f'Unsupported header type.')
 
@@ -473,6 +472,7 @@ class DataCube:
         '''
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
+
         Parameters
         ----------
         figsize : tuple, optional, default=(8,4)
@@ -480,6 +480,7 @@ class DataCube:
         style : str or None, optional, default=None
             Matplotlib style to use for plotting. If None,
             uses the default value set by `va_config.style`.
+
         Notes
         -----
         This method visualizes the mean and standard deviation of flux across
@@ -510,7 +511,6 @@ class DataCube:
             ax.legend(loc='best')
 
             plt.show()
-
 
     def reproject(
         self,
