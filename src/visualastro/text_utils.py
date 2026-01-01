@@ -7,7 +7,10 @@ Description:
 '''
 
 
-def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
+from visualastro.va_config import get_config_value
+
+
+def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
     '''
     Format a pretty table given a 2D list of table cells. Each cell
     can be either a numerical value with or without units, a string, or None.
@@ -26,19 +29,32 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
         - Quantity object with units (e.g., astropy.units.Quantity)
         - String
         - None (renders as empty string)
-    precision : int, optional, default=6
+    precision : int, optional, default=None
         Number of decimal places for numerical formatting.
-    sci_notation : bool, optional, default=True
+        If None, uses the default value set by `va_config.table_precision`.
+    sci_notation : bool, optional, default=None
         If True, formats numbers in scientific notation (e.g., 1.23e-04).
         If False, formats as fixed-point decimals (e.g., 0.000123).
+        If None, uses the default value set by `va_config.table_sci_notation`.
     pad : int, optional, default=3
         Number of spaces between columns for visual separation.
+        If None, uses the default value set by `va_config.table_column_pad`.
 
     Returns
     -------
     table : str
         Formatted table string with aligned columns, ready to print.
     '''
+
+    precision = get_config_value(precision, 'table_precision')
+    sci_notation = get_config_value(sci_notation, 'table_sci_notation')
+    pad = get_config_value(pad, 'table_column_pad')
+
+    if not isinstance(pad, int) or pad <= 0:
+        raise ValueError(
+            "`pad` must be an integer > 0!"
+        )
+    col_pad = ' ' * pad
 
     def _format_table_cell(cell):
         '''
@@ -69,11 +85,6 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
             return f'{value:.{precision}e}{unit}'
         else:
             return f'{value:.{precision}f}{unit}'
-    if not isinstance(pad, int) or pad <= 0:
-        raise ValueError(
-            "`pad` must be an integer > 0!"
-        )
-    col_pad = ' ' * pad
 
     # format all cells
     formatted_data = [[_format_table_cell(cell) for cell in row] for row in data]
@@ -114,7 +125,7 @@ def pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
     return table
 
 
-def print_pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
+def print_pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
     '''
     Format a pretty table given a 2D list of table cells and print it. Each cell
     can be either a numerical value with or without units, a string, or None.
@@ -131,13 +142,16 @@ def print_pretty_table(headers, data, precision=6, sci_notation=True, pad=3):
         - Quantity object with units (e.g., astropy.units.Quantity)
         - String
         - None (renders as empty string)
-    precision : int, optional, default=6
+    precision : int, optional, default=None
         Number of decimal places for numerical formatting.
-    sci_notation : bool, optional, default=True
+        If None, uses the default value set by `va_config.table_precision`.
+    sci_notation : bool, optional, default=None
         If True, formats numbers in scientific notation (e.g., 1.23e-04).
         If False, formats as fixed-point decimals (e.g., 0.000123).
-    pad : int, optional, default=3
+        If None, uses the default value set by `va_config.table_sci_notation`.
+    pad : int, optional, default=None
         Number of spaces between columns for visual separation.
+        If None, uses the default value set by `va_config.table_column_pad`.
     '''
 
     table = pretty_table(
