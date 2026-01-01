@@ -145,11 +145,6 @@ class VAConfig:
         self.circle_fill = False
         self.ellipse_label_loc = [0.03, 0.03]
 
-        # pretty table params
-        self.table_precision = 6
-        self.table_sci_notation = True
-        self.table_column_pad = 3
-
         # Science Params
         # --------------
         # data params
@@ -195,8 +190,10 @@ class VAConfig:
 
         # Utils Params
         # ------------
+
+        # pretty table params
         self.table_precision = 7
-        self.table_scientific_notation = True
+        self.table_sci_notation = True
         self.table_column_pad = 3
 
     def reset_defaults(self):

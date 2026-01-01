@@ -487,7 +487,7 @@ class GaussianFitResult:
         '''
 
         precision = kwargs.get('precision', va_config.table_precision)
-        sci_notation = kwargs.get('sci_notation', va_config.table_scientific_notation)
+        sci_notation = kwargs.get('sci_notation', va_config.table_sci_notation)
         pad = kwargs.get('pad', va_config.table_column_pad)
 
         fitted_data = [
