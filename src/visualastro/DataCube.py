@@ -234,7 +234,11 @@ class DataCube:
             )
 
         # add BUNIT to header(s) if not there
-        if unit is not None and 'BUNIT' not in primary_hdr:
+        if (
+            unit is not None and
+            isinstance(primary_hdr, Header) and
+            'BUNIT' not in primary_hdr
+        ):
             _log_history(
                 primary_hdr, f'Using data unit: {unit}'
             )
