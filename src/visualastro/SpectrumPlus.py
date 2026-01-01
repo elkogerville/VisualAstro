@@ -225,6 +225,7 @@ class SpectrumPlus:
     def log(self):
         '''
         Get the processing history from the FITS HISTORY cards.
+
         Returns
         -------
         list of str or None
