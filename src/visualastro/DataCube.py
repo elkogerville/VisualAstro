@@ -858,22 +858,60 @@ class DataCube:
 
     def __getitem__(self, key):
         '''
-        Return a slice or sub-cube from the data.
+        Return a slice of the data.
+
+        The method attempts to slice the WCS. The Header
+        keywords affected by the slicing is then updated
+        using the new WCS.
 
         Parameters
         ----------
         key : slice or tuple
-            Index or slice to apply to the cube.
+            Index or slice to apply to the data.
 
         Returns
         -------
-        slice : same type as `data`
-            The corresponding subset of the cube.
+        slice : DataCube
+            The corresponding subset of the data.
         '''
-        if self.unit is None:
-            return self.value[key]
+        new_data = self.data[key]
+        new_error = self.error[key] if self.error is not None else None
 
-        return self.unit * self.value[key]
+        new_hdr = _copy_headers(self.header)
+        _log_history(new_hdr, f'Sliced data with key : {key}')
+
+        if isinstance(new_hdr, list):
+            new_hdr = _transfer_history(new_hdr, Header())
+            _log_history(new_hdr, 'Header list dropped due to slicing')
+
+        if self.wcs is None:
+            new_wcs = None
+        elif isinstance(self.wcs, list):
+            new_wcs = None
+            _log_history(new_hdr, 'WCS list dropped due to slicing')
+        elif not _is_valid_wcs_slice(key):
+            new_wcs = None
+            new_hdr = _transfer_history(new_hdr, Header())
+            _log_history(new_hdr, f'Header and WCS dropped due to invalid slice')
+        else:
+            try:
+                new_wcs = self.wcs[key]
+                wcs_hdr = new_wcs.to_header()
+                if new_hdr is not None:
+                    for wcs_key in wcs_hdr:
+                        new_hdr[wcs_key] = wcs_hdr[wcs_key]
+            except (AttributeError, TypeError, ValueError) as e:
+                new_wcs = None
+                if new_hdr is not None:
+                    new_hdr = _transfer_history(new_hdr, Header())
+                    _log_history(new_hdr, f'Header and WCS dropped due to {type(e).__name__}')
+
+        return DataCube(
+            data=new_data,
+            header=new_hdr,
+            error=new_error,
+            wcs=new_wcs
+        )
 
     def __len__(self):
         '''
