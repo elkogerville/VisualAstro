@@ -398,9 +398,14 @@ class SpectrumPlus:
         '''
         sub_spectrum = self.spectrum[key]
         fit_method = self.fit_method
+        new_log = _copy_headers(self.log_file)
+
+        _log_history(new_log, f'Sliced data with key : {key}')
 
         return SpectrumPlus(
-            spectrum=sub_spectrum, fit_method=fit_method
+            spectrum=sub_spectrum,
+            fit_method=fit_method,
+            log_file=new_log
         )
 
     def __getattr__(self, name):
