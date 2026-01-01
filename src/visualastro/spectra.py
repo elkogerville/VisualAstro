@@ -974,6 +974,19 @@ def fit_gaussian_2_spec(
         b = None
         b_error = None
 
+    fit_config={
+        'gaussian_model': model,
+        'curve_fit_method': fit_method,
+        'absolute_sigma': absolute_sigma,
+        'interpolate': interpolate,
+    }
+    if interpolate:
+        fit_config.update(
+            interpolate_method=interp_method,
+            error_interp_method=error_interp_method,
+            interpolate_samples=samples
+        )
+
     result = GaussianFitResult(
         amplitude=amplitude,
         amplitude_error=amplitude_error,
@@ -991,7 +1004,10 @@ def fit_gaussian_2_spec(
         intercept_error=b_error,
         popt=popt,
         pcov=pcov,
-        perr=perr
+        perr=perr,
+        p0=p0,
+        fit_config=fit_config
+
     )
 
     # set plot style and colors

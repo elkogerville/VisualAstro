@@ -478,6 +478,8 @@ class GaussianFitResult:
     popt: Optional[Any] = None
     pcov: Optional[Any] = None
     perr: Optional[Any] = None
+    p0: Optional[Any] = None
+    fit_config: Optional[dict] = None
 
     def pretty_print(self, **kwargs):
         '''
