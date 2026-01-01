@@ -145,6 +145,11 @@ class VAConfig:
         self.circle_fill = False
         self.ellipse_label_loc = [0.03, 0.03]
 
+        # pretty table params
+        self.table_precision = 6
+        self.table_sci_notation = True
+        self.table_column_pad = 3
+
         # Science Params
         # --------------
         # data params
