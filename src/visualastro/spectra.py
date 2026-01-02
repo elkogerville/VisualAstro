@@ -1030,17 +1030,25 @@ def fit_gaussian_2_spec(
         # clip values outisde of plotting range
         xlim = spectral_range if xlim is None else xlim
         plot_mask = mask_within_range(x0, xlim)
+        gauss_mask = mask_within_range(x_sub, xlim)
         label = label if label is not None else 'Spectrum'
+
         plt_plot(x0[plot_mask], y0[plot_mask],
                  c=colors[0%len(colors)], label=label)
         # plot gaussian model
-        ax.plot(x_sub, function(x_sub, *popt),
-                c=colors[1%len(colors)], label='Gaussian Model')
+        gaussian = function(x_sub, *popt)
+        ax.plot(
+            x_sub,
+            gaussian,
+            c=colors[1%len(colors)],
+            label='Gaussian Model'
+        )
         # set axis labels and limits
         set_axis_labels(
             spectral_axis, flux, ax, xlabel, ylabel, use_brackets
         )
-        ax.set_xlim(xlim[0], xlim[1])
+        set_axis_limits(x0[plot_mask], [y0[plot_mask], gaussian[gauss_mask]], ax, xlim=xlim)
+
         plt.legend()
         if savefig:
             save_figure_2_disk(dpi=dpi)
