@@ -40,6 +40,10 @@ class SpectrumPlus:
         Normalized flux values of the spectrum, if available.
     continuum_fit : array-like or callable, optional
         Continuum fit to the spectrum or a callable used to generate it.
+    log_file : Header
+        Log file to track SpectrumPlus operations using
+        `HISTORY` cards. Methods that return a new SpectrumPlus
+        instance will transfer over any existing logs.
 
     Attributes
     ----------
@@ -56,10 +60,8 @@ class SpectrumPlus:
         Region used to compute the continuum fit.
         Can be used to remove strong absorption/emission
         lines that can skew the fit.
-    log : Header
-        Log file to track SpectrumPlus operations using
-        `HISTORY` cards. Methods that return a new SpectrumPlus
-        instance will transfer over any existing logs.
+    log : list of str
+        List of each log output in primary_header['HISTORY']
 
     Properties
     ----------
