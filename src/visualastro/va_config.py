@@ -179,7 +179,7 @@ class VAConfig:
 
         # gaussian fitting params
         self.gaussian_model = 'gaussian'
-        self.return_gaussian_fit_parameters = False
+        self.return_gaussian_fit_parameters = True
         self.print_gaussian_values = True
 
         # reprojection parameters
