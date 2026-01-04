@@ -188,6 +188,9 @@ class VAConfig:
         self.reproject_block_size = None
         self.reproject_parallel = False
 
+        # error propagation
+        self.propagate_flux_error_method = None
+
         # Utils Params
         # ------------
 
