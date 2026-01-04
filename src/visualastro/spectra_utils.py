@@ -19,8 +19,10 @@ Module Structure:
         Model fitting utility functions.
 '''
 from dataclasses import dataclass, fields
-from typing import Optional, Any
+from typing import Any, List, Optional, Union
 import warnings
+import astropy.units as u
+from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
@@ -29,6 +31,7 @@ from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
 from .numerical_utils import mask_within_range, return_array_values
+from .SpectrumPlus import SpectrumPlus
 from .va_config import get_config_value, va_config
 
 
@@ -393,6 +396,19 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y + continuum
+
+
+@dataclass
+class ExtractedSpectrumResult:
+    '''
+    Lightweight dataclass for spectrum extraction results.
+
+    Attributes
+    ----------
+    spectra :
+    '''
+    spectrum: Union[SpectrumPlus, List[SpectrumPlus]]
+    error: Optional[Union[Quantity, List[Quantity]]]
 
 
 @dataclass
