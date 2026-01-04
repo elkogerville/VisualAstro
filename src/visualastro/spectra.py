@@ -28,7 +28,8 @@ from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     check_units_consistency, convert_units, interpolate_arrays,
-    mask_within_range, return_array_values, shift_by_radial_vel
+    mask_within_range, return_array_values, shift_by_radial_vel,
+    _unwrap_if_single
 )
 from .plot_utils import (
     return_stylename, set_axis_labels,
@@ -41,7 +42,6 @@ from .spectra_utils import (
     get_config_value
 )
 from .SpectrumPlus import SpectrumPlus
-from .text_utils import print_pretty_table
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -203,6 +203,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         'median': lambda cube: cube.median(axis=(1, 2), how=extract_mode),
         'sum': lambda cube: cube.sum(axis=(1, 2), how=extract_mode)
     }
+
     flux_extract_method = str(get_config_value(flux_extract_method, 'flux_extract_method')).lower()
     extract_method = methods.get(flux_extract_method)
     if extract_method is None:
@@ -220,15 +221,16 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
     # ensure cubes are iterable
     cubes = check_units_consistency(cubes)
+
     # set plot style and colors
     style = return_stylename(style)
 
     extracted_spectra = []
+
     for cube in cubes:
 
         # shift by radial velocity
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
-        # convert wavelength to desired units
         spectral_axis = convert_units(spectral_axis, unit)
 
         # extract spectrum flux
@@ -236,10 +238,11 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         # convert to Quantity
         flux = flux.value * flux.unit
 
-        # derreden
         if deredden:
-            flux = deredden_flux(spectral_axis, flux, Rv, Ebv,
-                                 deredden_method, deredden_region)
+            flux = deredden_flux(
+                spectral_axis, flux, Rv, Ebv,
+                deredden_method, deredden_region
+            )
 
         # initialize Spectrum object
         spectrum = Spectrum(
@@ -275,10 +278,9 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         plt.show()
 
     # ensure a list is only returned if returning more than 1 spectrum
-    if len(extracted_spectra) == 1:
-        return extracted_spectra[0]
+    spectra_out = _unwrap_if_single(extracted_spectra)
 
-    return extracted_spectra
+    return spectra_out
 
 
 # Spectra Plotting Functions

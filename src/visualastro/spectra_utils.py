@@ -399,19 +399,6 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
 
 
 @dataclass
-class ExtractedSpectrumResult:
-    '''
-    Lightweight dataclass for spectrum extraction results.
-
-    Attributes
-    ----------
-    spectra :
-    '''
-    spectrum: Union[SpectrumPlus, List[SpectrumPlus]]
-    error: Optional[Union[Quantity, List[Quantity]]]
-
-
-@dataclass
 class GaussianFitResult:
     '''
     Lightweight dataclass for gaussian fitting results.
