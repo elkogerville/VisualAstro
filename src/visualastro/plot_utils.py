@@ -1173,7 +1173,9 @@ def return_ellipse_region(center, w, h, angle=0, fill=False):
     matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
     '''
-    ellipse = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill)
+    ellipse = Ellipse(
+        xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill
+    )
 
     return ellipse
 
