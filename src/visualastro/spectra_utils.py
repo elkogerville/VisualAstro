@@ -177,8 +177,8 @@ def propagate_flux_errors(errors, method=None):
         - 2D array with shape (N_spectra, N_pixels), or
         - 1D array with shape (N_pixels,) for a single spectrum.
     method : {'mean', 'sum', 'median'} or None, optional
-        Flux extraction method.
-        If None, falls back to va_config.flux_extract_method.
+        Flux extraction method. If None, uses the default
+        value set by `va_config.propagate_flux_error_method`.
 
     Returns
     -------
@@ -186,7 +186,11 @@ def propagate_flux_errors(errors, method=None):
         1D array of propagated flux errors (shape N_spectra).
     '''
     # get default va_config value
-    method = get_config_value(method, 'flux_extract_method').lower()
+    method = get_config_value(method, 'propagate_flux_error_method').lower()
+    if method is None:
+        raise ValueError(
+            "method must be : {'mean', 'sum', 'median'}"
+        )
 
     # ensure errors are 2-dimensional
     if errors.ndim == 1:
