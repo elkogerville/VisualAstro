@@ -308,6 +308,40 @@ class SpectrumPlus:
 
         return spectrum_list
 
+    def remove_nonfinite(self, return_mask=False):
+        '''
+        Return a new SpectrumPlus with all samples removed
+        where the flux is not finite (NaN, +inf, -inf).
+
+        This reduces the length of the spectrum!
+
+        Parameters
+        ----------
+        return_mask : bool, optional, default=False
+            If True, return the boolean mask used
+            to remove non finite values.
+
+        Returns
+        -------
+        SpectrumPlus :
+            New SpectrumPlus object with all non finite values
+            removed from the object.
+        finite : bool
+            Boolean mask used to mask the spectrum spectral axis
+            and flux. Only returned if `return_mask` is True.
+        '''
+        finite = np.isfinite(self.flux)
+
+        finite_spec = SpectrumPlus(
+            spectral_axis=self.spectral_axis[finite],
+            flux=self.flux[finite]
+        )
+
+        if return_mask:
+            return finite_spec, finite
+
+        return finite_spec
+
     def replace_flux_where(self, mask, values):
         '''
         Replace flux values at selected locations and return a new spectrum.
