@@ -199,6 +199,9 @@ class VAConfig:
         self.table_sci_notation = True
         self.table_column_pad = 3
 
+        # numpy save
+        self.save_format = '.npy'
+
     def reset_defaults(self):
         '''
         Reset all configuration values to default.
