@@ -16,6 +16,7 @@ Module Structure:
         Functions to handle matplotlib figure I/O operations.
 '''
 
+import os
 import warnings
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -191,7 +192,7 @@ def load_fits(filepath, header=True, error=True,
                     wcs = None
 
         if transpose:
-            data = data.T # type: ignore
+            data = data.T
             if wcs is not None and invert_wcs:
                 wcs = wcs.swapaxes(0, 1)
 
@@ -359,6 +360,97 @@ def get_kwargs(kwargs, *names, default=None):
             return kwargs[name]
 
     return default
+
+
+def save_array(arr, filename, fmt=None):
+    '''
+    Save a NumPy array to disk.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Array to be saved.
+    filename : str
+        Output filename. Should include the extension, otherwise
+        the array will be saved according to `fmt`.
+    fmt : {'.dat', '.csv', '.npy', '.txt'} or None, optional, default=None
+        Default output extension. Only used if filename has
+        no extension. If None, uses the default value set by
+        `va_config.save_format`. The format is correctly recognized
+        even if the '.' is omitted.
+
+    Raises
+    ------
+    ValueError :
+        If provided `fmt` is invalid.
+    '''
+    VALID_EXTS = {'.dat', '.csv', '.npy', '.txt'}
+
+    fmt = get_config_value(fmt, 'save_format')
+    fmt = f".{fmt.lstrip('.')}"
+
+    if fmt not in VALID_EXTS:
+        raise ValueError(f"Invalid fmt '{fmt}'. Must be one of {VALID_EXTS}")
+
+    if not isinstance(arr, np.ndarray):
+        raise TypeError('arr must be a NumPy ndarray!')
+
+    root, ext = os.path.splitext(filename)
+    ext = ext.lower()
+
+    if ext == '':
+        filename = root + fmt
+
+    if ext == '.npy':
+        np.save(filename, arr)
+    elif ext in {'.txt', '.dat', '.csv'}:
+        np.savetxt(filename, arr)
+    else:
+        raise ValueError(f'Unsupported file extension: {ext}')
+
+
+def save_quantity(quantity, filename):
+    '''
+    Save an astropy Quantity to disk.
+
+    Parameters
+    ----------
+    arr : Quantity
+        Array to be saved.
+    filename : str
+        Output filename with ot without `.npz` extension.
+
+    Raises
+    ------
+    TypeError :
+        If `quantity` is not a astropy.units.Quantity.
+    '''
+    if not isinstance(quantity, u.Quantity):
+        raise TypeError("quantity must be an astropy.units.Quantity")
+
+    np.savez(
+        filename,
+        data=quantity.value,
+        unit=str(quantity.unit)
+    )
+
+
+def load_quantity(filename):
+    '''
+    Load a saved quantity array.
+
+    Parameters
+    ----------
+    filename : str
+        Path to quantity array. Should be a `.npz`.
+
+    Returns
+    -------
+    Quantity : astropy.units.Quantity
+        Numpy array with units.
+    '''
+    with np.load(filename) as f:
+        return f['data'] * u.Unit(f['unit'].item())
 
 
 def save_figure_2_disk(
