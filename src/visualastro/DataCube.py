@@ -228,6 +228,7 @@ class DataCube:
                 f"'data' must be 3D (T, N, M), got shape {array.shape}."
             )
 
+        # header(s) validation
         if isinstance(header, (list, np.ndarray, tuple)):
             header = list(header)
 
@@ -240,9 +241,13 @@ class DataCube:
                     f'Mismatch between T dimension and number of headers: '
                     f'T={array.shape[0]}, header={len(header)}.'
                 )
+            _validate_iterable_type(header, Header, 'header')
+
             primary_hdr = header[0]
         else:
             primary_hdr = header
+
+        _log_history(primary_hdr, 'Initialized DataCube')
 
         # ensure that units are consistent across all headers
         hdr_unit = _validate_units_consistency(header)
@@ -266,18 +271,7 @@ class DataCube:
             _log_history(
                 primary_hdr, f'Using data unit: {unit}'
             )
-            if isinstance(header, Header):
-                header['BUNIT'] = unit.to_string()
-                _log_history(
-                    primary_hdr, f'Added missing BUNIT={unit} to header'
-                )
-
-            elif isinstance(header, (list, tuple, np.ndarray)):
-                for hdr in header:
-                    hdr['BUNIT'] = unit.to_string()
-                _log_history(
-                    primary_hdr, f'Added missing BUNIT={unit} to all header slices'
-                )
+            _update_header_key('BUNIT', unit, header, primary_hdr)
 
         # attatch units to data if is bare numpy array
         if not isinstance(data, (Quantity, SpectralCube)):
