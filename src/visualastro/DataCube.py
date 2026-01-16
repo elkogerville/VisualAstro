@@ -827,15 +827,12 @@ class DataCube:
         # update header BUNIT
         new_hdr = _copy_headers(self.header)
         _update_header_key('BUNIT', unit, new_hdr)
-
-        # update wcs
-        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+        _log_history(new_hdr, f'Converted cube unit to {unit.to_string()}')
 
         return DataCube(
             data=new_data,
             header=new_hdr,
             error=new_error,
-            wcs=new_wcs
         )
 
     def with_mask(self, mask):
@@ -906,13 +903,10 @@ class DataCube:
         new_hdr = _copy_headers(self.header)
         _log_history(new_hdr, 'Applied boolean mask to cube')
 
-        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
-
         return DataCube(
             data=new_data,
             header=new_hdr,
             error=new_error,
-            wcs=new_wcs
         )
 
     def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
@@ -934,14 +928,14 @@ class DataCube:
         DataCube
             New cube with converted spectral axis.
         '''
-        unit = Unit(unit)
-
         if not isinstance(self.data, SpectralCube):
             raise TypeError(
                 'with_spectral_unit() can only be used when DataCube.data '
                 'is a SpectralCube. For unit conversion of flux values, '
                 'use .to().'
             )
+
+        unit = Unit(unit)
         # get unit strings
         old_unit = self.data.spectral_axis.unit
 
@@ -1019,15 +1013,12 @@ class DataCube:
         else:
             try:
                 new_wcs = self.wcs[key]
-                wcs_hdr = new_wcs.to_header()
-                if new_hdr is not None:
-                    for wcs_key in wcs_hdr:
-                        new_hdr[wcs_key] = wcs_hdr[wcs_key]
+                _update_header_from_wcs(new_hdr, new_wcs)
+
             except (AttributeError, TypeError, ValueError) as e:
                 new_wcs = None
-                if new_hdr is not None:
-                    new_hdr = _transfer_history(new_hdr, Header())
-                    _log_history(new_hdr, f'Header and WCS dropped due to {type(e).__name__}')
+                new_hdr = _transfer_history(new_hdr, Header())
+                _log_history(new_hdr, f'Header and WCS dropped due to {type(e).__name__}')
 
         return DataCube(
             data=new_data,
