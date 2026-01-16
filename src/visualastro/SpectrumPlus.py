@@ -87,11 +87,11 @@ class SpectrumPlus:
 
     Array Interface
     ---------------
-    __get_item__
-        Return a slice of the spectrum.
     __getattr__
         Delegate undefined attributes or methods
         to the underlying `Spectrum` object.
+    __getitem__
+        Return a slice of the spectrum.
     __mul__
         Multiply the spectrum flux by a scalar factor.
     __rmul__
@@ -415,6 +415,28 @@ class SpectrumPlus:
 
     # helper functions
     # ----------------
+    def __getattr__(self, name):
+        '''
+        Delegate attribute/method access to underlying Spectrum object
+        if it is not defined in SpectrumPlus.
+
+        Parameters
+        ----------
+        name : str
+            Name of attribute, property, method, etc...
+        '''
+        if name.startswith('_'):
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
+
+        try:
+            return getattr(self.spectrum, name)
+        except AttributeError:
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
+
     def __getitem__(self, key):
         '''
         Slice the underlying `Spectrum` object, and return a new
@@ -444,28 +466,6 @@ class SpectrumPlus:
             fit_method=fit_method,
             log_file=new_log
         )
-
-    def __getattr__(self, name):
-        '''
-        Delegate attribute/method access to underlying Spectrum object
-        if it is not defined in SpectrumPlus.
-
-        Parameters
-        ----------
-        name : str
-            Name of attribute, property, method, etc...
-        '''
-        if name.startswith('_'):
-            raise AttributeError(
-                f"'{type(self).__name__}' object has no attribute '{name}'"
-            )
-
-        try:
-            return getattr(self.spectrum, name)
-        except AttributeError:
-            raise AttributeError(
-                f"'{type(self).__name__}' object has no attribute '{name}'"
-            )
 
     def __mul__(self, factor):
         '''
