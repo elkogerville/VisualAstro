@@ -580,66 +580,268 @@ def _reproject_wcs(
                 f'ref_ndim={ref_ndim}. Supported: (2,2), (2,3), (3,2), (3,3)'
             )
 
-        # re-attach units
-        if unit is not None:
-            reprojected *= unit
+        if log_file is not None:
+            _log_history(log_file, f'Reprojection mode: {mode}')
 
+        reprojected, footprint = reproject_func(
+            (data, wcs), ref_wcs,
+            parallel=parallel, block_size=block_size
+        )
+
+    if unit is not None:
+        reprojected *= unit
+
+    return (reprojected, footprint) if return_footprint else reprojected
+
+
+def reproject_wcs(
+    input_data_list,
+    reference_wcs,
+    method=None,
+    return_footprint=None,
+    parallel=None,
+    block_size=_default_flag,
+    log_file=None,
+    **kwargs
+):
+    '''
+    Parameters
+    ----------
+    input_data_list : tuple or list of tuple
+        A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
+        Note:
+            - [np.ndarray, WCS/Header] is not allowed!
+              Ensure they follow the format:
+                - [(np.ndarray, WCS/Header), ...]
+    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+        The target WCS or FITS header to which `input_data` will be reprojected.
+        Dimensional handling:
+        Input WCS → Reference WCS
+            - 2D → 2D: Direct reprojection
+            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
+            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
+            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+    method : {'interp', 'exact'} or None, default=None
+        Reprojection method:
+            - 'interp' : use `reproject_interp`
+            - 'exact' : use `reproject_exact`
+        If None, uses the default value
+        set by `va_config.reproject_method`.
+    return_footprint : bool or None, optional, default=None
+        If True, return both reprojected data and reprojection
+        footprints. If False, return only the reprojected data.
+        If None, uses the default value set by `va_config.return_footprint`.
+    parallel : bool, int, str, or None, optional, default=None
+        If True, the reprojection is carried out in parallel,
+        and if a positive integer, this specifies the number
+        of threads to use. The reprojection will be parallelized
+        over output array blocks specified by `block_size` (if the
+        block size is not set, it will be determined automatically).
+        If None, uses the default value set by `va_config.reproject_parallel`.
+    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+        The size of blocks in terms of output array pixels that each block
+        will handle reprojecting. Extending out from (0,0) coords positively,
+        block sizes are clamped to output space edges when a block would extend
+        past edge. Specifying 'auto' means that reprojection will be done in
+        blocks with the block size automatically determined. If `block_size` is
+        not specified or set to None, the reprojection will not be carried out in blocks.
+        If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+    log_file : fits.Header or None, optional, default=None
+        If provided, reprojection details are logged to this header's
+        HISTORY. Intended for internal use within VisualAstro.
+    description : str or None, optional, default=None
+        Description message for the progress bar. If None, a default message
+        is used. Intended for internal use within VisualAstro.
+
+    Returns
+    -------
+    reprojected_data : ndarray or list of ndarray
+        Reprojected data. A single array is returned if a single input
+        was provided; otherwise a list of arrays.
+    footprint : ndarray or list of ndarray, optional
+        Reprojection footprint(s), returned only if `return_footprint=True`.
+
+    Raises
+    ------
+    ValueError
+        If the inputs are not able to be reprojected.
+    '''
+    if not isinstance(input_data_list, list):
+        input_data_list = [input_data_list]
+
+    if log_file is not None and not isinstance(log_file, Header):
+        raise TypeError(
+            'log_file must be a fits.Header or None!'
+        )
+    if log_file is not None and len(input_data_list) > 1:
+        _log_history(
+            log_file,
+            f'Reprojected batch of {len(input_data_list)} datasets'
+        )
+
+    reprojected_data = []
+    footprints = []
+
+    for i, item in enumerate(input_data_list):
+        log_once = log_file if i == 0 else None
+        reprojected, footprint = _reproject_wcs(
+            item, reference_wcs,
+            method=method,
+            return_footprint=True,
+            parallel=parallel,
+            block_size=block_size,
+            log_file=log_once,
+            **kwargs
+        )
         reprojected_data.append(reprojected)
         footprints.append(footprint)
 
-    # unwrap single-element lists
-    if len(reprojected_data) == 1:
-        reprojected_data = reprojected_data[0]
-        footprints = footprints[0]
+    reprojected_data = _unwrap_if_single(reprojected_data)
+    footprints = _unwrap_if_single(footprints)
 
     return (reprojected_data, footprints) if return_footprint else reprojected_data
 
 
-def _normalize_reproject_input(input_data):
+def _copy_wcs(wcs):
     '''
-    Ensures that the reprojection inputs are one of the accepted types.
+    Copy a single or list of WCS.
 
     Parameters
     ----------
-    input_data : fits.HDUList or tuple
-        Input data to be reprojected. Must follow one of the formats:
-            - fits.HDUList : hdul object containing data and header
-            - tuple : (data, header/WCS) containing array and WCS/Header
+    wcs : WCS or array-like of WCS
+        WCS(s) to be copied.
 
     Returns
     -------
-    input_data : fits.HDUList or tuple
-        Normalized input (HDUList unchanged, tuple converted to (array, WCS))
-    unit : Astropy.Unit or None
-        The unit of the input data (None for HDUList)
+    WCS or list of WCS
+    '''
+    if wcs is None:
+        return None
+
+    elif isinstance(wcs, WCS):
+        return copy.deepcopy(wcs)
+
+    elif (
+        isinstance(wcs, (list, np.ndarray, tuple))
+        and isinstance(wcs[0], WCS)
+    ):
+        return [copy.deepcopy(w) for w in wcs]
+
+    else:
+        raise ValueError(
+            'Invalid wcs(s) inputs!'
+        )
+
+
+def _normalize_reproject_input(input_data):
+    '''
+    Ensures that the reprojection input is a valid (data, WCS) tuple.
+
+    Parameters
+    ----------
+    input_data : tuple
+        Input data as (data, header/WCS) tuple.
+
+    Returns
+    -------
+    normalized : tuple
+        A `(ndarray, WCS)` tuple suitable for reprojection.
+    unit : astropy.units.Unit or None
+        The unit of the input data, if present.
 
     Raises
     ------
     TypeError
-        If `input_data` is not an accepted type/format.
+        If `input_data` is not a valid tuple format.
+    TypeError
+        If WCS/Header is not a recognized type.
+    ValueError
+        If `data` in input_data is neither 2D or 3D.
     '''
-    no_unit = None
-    # case 1: HDUList
-    if isinstance(input_data, fits.HDUList):
-        return input_data, no_unit
-    # case 2: (data, header/wcs) tuple
-    elif isinstance(input_data, tuple) and len(input_data) == 2:
-        data, wcs_or_header = input_data
-        if isinstance(wcs_or_header, fits.Header):
-            wcs = WCS(wcs_or_header)
-        else:
-            wcs = wcs_or_header
+    if not (isinstance(input_data, tuple) and len(input_data) == 2):
+        raise TypeError(
+            'Input must be a (data, header/WCS) tuple.'
+        )
 
-        if isinstance(data, SpectralCube):
-            value = data.unmasked_data[:].value
-            unit  = data.unit
-        else:
-            value = np.asarray(data)
-            unit = getattr(data, 'unit', None)
+    data, wcs_or_header = input_data
 
-        return (value, wcs), unit
-
+    if isinstance(wcs_or_header, fits.Header):
+        wcs = WCS(wcs_or_header)
+    elif isinstance(wcs_or_header, WCS):
+        wcs = wcs_or_header
     else:
         raise TypeError(
-            'Each input must be an HDUList, or a (data, header/WCS) tuple.'
+            f'WCS must be a Header or WCS object, got {type(wcs_or_header).__name__}'
         )
+
+    if isinstance(data, SpectralCube):
+        value = data.unmasked_data[:].value
+        unit  = data.unit
+    else:
+        value = np.asarray(data)
+        unit = getattr(data, 'unit', None)
+
+    if value.ndim not in (2, 3):
+        raise ValueError(
+            f'Data must be 2D or 3D for reprojection, got ndim={value.ndim}'
+        )
+
+    return (value, wcs), unit
+
+
+def _strip_wcs_from_header(header):
+    '''
+    Strip all WCS information from a Header.
+
+    Uses `spectral_cube.wcs_utils.strip_wcs_from_header` under the hood.
+
+    Parameters
+    ----------
+    header : Header or array-like of Headers
+        Header(s) to strip WCS related entries from.
+
+    Returns
+    -------
+    nowcs_header : Header or array-like of Headers
+        Header(s) with no WCS information.
+    '''
+
+    if isinstance(header, (list, tuple)):
+        return [strip_wcs_from_header(h) for h in header]
+
+    if not isinstance(header, Header):
+        raise TypeError('header must be an astropy.io.fits.Header or sequence thereof')
+
+    return strip_wcs_from_header(header)
+
+
+def _update_header_from_wcs(header, wcs):
+    '''
+    Update Header key-value pairs in place using a WCS object.
+
+    The WCS is converted to a Header, then each key-value
+    pair is iterated over to update the original header.
+    This should only update WCS related keys. It is ideal
+    to call `_strip_wcs_from_header` before calling this function,
+    to avoid stale WCS keywords.
+
+    Parameters
+    ----------
+    header : Header
+        Astropy Header object to update.
+    wcs : WCS
+        WCS object to update header with.
+    '''
+    if not isinstance(header, Header):
+        raise ValueError(
+            'header must be a Fits Header!'
+        )
+    if isinstance(wcs, WCS):
+        wcs_header = wcs.to_header()
+    else:
+        raise ValueError(
+            'wcs must be a WCS object!'
+        )
+
+    for key in wcs_header:
+        header[key] = wcs_header[key]
