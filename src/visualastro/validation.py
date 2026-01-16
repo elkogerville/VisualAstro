@@ -44,6 +44,45 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
         )
 
 
+def _validate_iterable_type(obj, types, name='object'):
+    '''
+    Validate that obj is an iterable whose elements are
+    all instances of the given type(s).
+
+    Raises a TypeError if the type(s) do not match.
+
+    Parameters
+    ----------
+    obj : iterable
+        Iterable to validate.
+    types : type or tuple of types
+        Required type(s) for each element.
+    name : str
+        Name used in error messages.
+
+    Raises
+    ------
+    ValueError
+        If obj is not iterable or contains invalid elements.
+    TypeError
+        If an element of obj is not the correct type.
+    '''
+    if not isinstance(types, tuple):
+        types = (types,)
+
+    try:
+        iterator = iter(obj)
+    except TypeError:
+        raise ValueError(f'{name} must be an iterable.')
+
+    for i, item in enumerate(iterator):
+        if not isinstance(item, types):
+            raise TypeError(
+                f'Element {i} of {name} must be instance of {types}, '
+                f'got {type(item)}.'
+            )
+
+
 def _validate_type(
     data, types, default=None, allow_none=True, name='data'
 ):
