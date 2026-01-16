@@ -192,12 +192,24 @@ class DataCube:
         assert data is not None
         header = _validate_type(
             header, (list, Header, np.ndarray, tuple),
-            default=Header(), allow_none=True, name='header'
+            allow_none=True, name='header'
         )
         error = _validate_type(
             error, (np.ndarray, Quantity), default=None,
             allow_none=True, name='error'
         )
+        wcs = _validate_type(
+            wcs, (list, WCS), default=None,
+            allow_none=True, name='wcs'
+        )
+        if isinstance(wcs, list):
+            _validate_iterable_type(wcs, WCS, 'wcs')
+
+        if header is None:
+            if isinstance(wcs, list):
+                header = [Header() for _ in wcs]
+            else:
+                header = Header()
 
         # extract array view for validation
         if isinstance(data, SpectralCube):
