@@ -26,7 +26,7 @@ from spectral_cube import SpectralCube
 from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
 from .fits_utils import _log_history
-from .numerical_utils import _unwrap_if_single
+from .utils import _unwrap_if_single
 from .va_config import get_config_value, va_config, _default_flag
 
 
