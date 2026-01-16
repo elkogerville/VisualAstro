@@ -572,18 +572,38 @@ class DataCube:
         '''
         Reproject DataCube to a new WCS grid.
 
+        All WCS related metadata is updated in the
+        reprojected DataCube.
+
         Parameters
         ----------
         reference_wcs : WCS or Header
-            Target WCS or FITS header to reproject onto
+            Target WCS or FITS header to reproject onto.
         method : {'interp', 'exact'} or None
-            Reprojection method
-        return_footprint : bool or None
-            Whether to return footprint array
-        parallel : bool, int, or None
-            Parallelization settings
+            Reprojection method:
+                - 'interp' : use `reproject_interp`
+                - 'exact' : use `reproject_exact`
+            If None, uses the default value
+            set by `va_config.reproject_method`.
+        return_footprint : bool or None, optional
+            If True, return both reprojected data and reprojection
+            footprints. If False, return only the reprojected data.
+            If None, uses the default value set by `va_config.return_footprint`.
+        parallel : bool, int, or None, optional, default=None
+            If True, the reprojection is carried out in parallel,
+            and if a positive integer, this specifies the number
+            of threads to use. The reprojection will be parallelized
+            over output array blocks specified by `block_size` (if the
+            block size is not set, it will be determined automatically).
+            If None, uses the default value set by `va_config.reproject_parallel`.
         block_size : tuple, 'auto', or None
-            Block size for reprojection
+            The size of blocks in terms of output array pixels that each block
+            will handle reprojecting. Extending out from (0,0) coords positively,
+            block sizes are clamped to output space edges when a block would extend
+            past edge. Specifying 'auto' means that reprojection will be done in
+            blocks with the block size automatically determined. If `block_size` is
+            not specified or set to None, the reprojection will not be carried out in blocks.
+            If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
 
         Returns
         -------
@@ -592,108 +612,162 @@ class DataCube:
 
         Notes
         -----
-        - As of right now, the WCS and Header are correctly
-          updated for reprojected SpectralCubes only! For any
-          other data type, the old WCS and Header are passed down.
-
+        - A cube-level WCS is only attached when the dimensionality of the
+          reprojected data matches the dimensionality of the reference WCS.
+        - For slice-by-slice reprojection (e.g., 3D → 2D targets), the output
+          DataCube will not carry a cube-level WCS.
+        - In time-series mode, per-slice headers are updated consistently
+          when applicable.
+        - If `return_footprint=True`, the reprojection footprint is attached
+          to the returned DataCube as the `.footprint` attribute.
         '''
-        method = get_config_value(method, 'reproject_method')
-
-        if isinstance(self.data, SpectralCube):
-            try:
-                new_data = self.data.reproject(reference_wcs)
-                new_header = Header() if new_data.header is None else new_data.header.copy()
-
-                if isinstance(self.primary_header, Header):
-                    new_header = _transfer_history(self.primary_header, new_header)
-
-                _log_history(
-                    new_header,
-                    f'Reprojected data with SpectralCube.reproject'
-                )
-
-                if self.error is not None:
-                   new_error, footprint = reproject_wcs(
-                       (self.error, self.wcs), reference_wcs,
-                       return_footprint=True, method=method,
-                       parallel=parallel, block_size=block_size
-                   )
-                   _log_history(
-                       new_header,
-                       f'Reprojected errors with reproject_{method}'
-                   )
-                else:
-                    new_error = None
-                    footprint = None
-
-                new_cube = DataCube(
-                    new_data, new_header,
-                    new_error, new_data.wcs
-                )
-                if return_footprint:
-                    new_cube.footprint = footprint
-
-                return new_cube
-
-            except Exception as e:
-                if isinstance(self.primary_header, Header):
-                    warnings.warn(
-                        f'\nSpectralCube.reproject() failed ({e}), '
-                        f'falling back to manual reprojection!'
-                        'WARNING: SpectralCube at .data is now a Quantity!'
-                    )
-                pass
+        return_footprint = get_config_value(return_footprint, 'return_footprint')
 
         if self.wcs is None and self.header is None:
             raise ValueError(
                 'Cannot reproject: DataCube has neither .wcs nor .header'
             )
 
+        if isinstance(reference_wcs, Header):
+            reference_wcs = WCS(reference_wcs)
+        elif not isinstance(reference_wcs, WCS):
+            raise TypeError(
+                'reference_wcs must be a WCS or fits.Header'
+            )
+
         wcs_info = self.wcs if self.wcs is not None else self.header
 
-        new_data, footprint = reproject_wcs(
-            (self.data, wcs_info),
-            reference_wcs,
-            return_footprint=True,
-            method=method,
-            parallel=parallel,
-            block_size=block_size,
-            description='looping over data slices'
-        )
+        # new header free of WCS
+        new_header = _copy_headers(self.nowcs_header)
+        new_header = _transfer_history(self.primary_header, new_header)
+        _log_history(new_header, f'Reprojected DataCube')
 
-        new_header = Header() if self.header is None else self.header.copy()
-        if isinstance(self.primary_header, Header):
-            new_header = _transfer_history(self.primary_header, new_header)
+        # timeseries case, 3d cube with a list of headers/wcs
+        if isinstance(wcs_info, list):
+            data = self.value
+            if self.unit is not None:
+                data = self.unit * data
+            reprojected_cube = []
+            footprint = []
 
-        _log_history(
-            new_header,
-            f'Reprojected data with reproject_{method}'
-        )
+            for i, wcs in tqdm(enumerate(wcs_info), desc='Reprojecting each data slice'):
+                reprojected, fp = _reproject_wcs(
+                    (data[i], wcs),
+                    reference_wcs,
+                    method=method,
+                    return_footprint=True,
+                    parallel=parallel,
+                    block_size=block_size
+                )
 
-        if self.error is not None:
-            new_error = reproject_wcs(
-                (self.error, self.wcs), reference_wcs,
-                return_footprint=False, method=method,
-                parallel=parallel, block_size=block_size,
-                description='looping over error slices'
-            )
+                reprojected_cube.append(reprojected)
+                footprint.append(fp)
+
+            new_data = np.stack(reprojected_cube, axis=0)
+            footprint = np.stack(footprint, axis=0)
             _log_history(
                 new_header,
-                f'Reprojected errors with reproject_{method}'
+                'Reprojected timeseries cube slice-by-slice'
             )
+
+            if self.error is not None:
+                reprojected_errors = []
+
+                for i, wcs in enumerate(tqdm(wcs_info, desc='Reprojecting each error slice')):
+                    error_reproj = _reproject_wcs(
+                        (self.error[i], wcs),
+                        reference_wcs,
+                        method=method,
+                        return_footprint=False,
+                        parallel=parallel,
+                        block_size=block_size
+                    )
+                    reprojected_errors.append(error_reproj)
+
+                new_error = np.stack(reprojected_errors, axis=0)
+            else:
+                new_error = None
+
         else:
-            new_error = None
+            new_data, footprint = _reproject_wcs(
+                (self.data, wcs_info),
+                reference_wcs,
+                method=method,
+                return_footprint=True,
+                parallel=parallel,
+                block_size=block_size,
+                description='Reprojecting data slices',
+                log_file=new_header
+            )
 
-        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+            if self.error is not None:
+                new_error = _reproject_wcs(
+                    (self.error, wcs_info),
+                    reference_wcs,
+                    method=method,
+                    return_footprint=False,
+                    parallel=parallel,
+                    block_size=block_size,
+                    description='Reprojecting error slices'
+                )
+            else:
+                new_error = None
 
-        warnings.warn(
-            f'\nWCS Header correction not yet implemented for manual reprojection! '
-            f'Output cube Header and WCS are still mapped to the original cube! '
-        )
+        if self.error is not None:
+            _log_history(new_header, f'Reprojected errors')
+
+        # update new header with reference WCS
+        if isinstance(new_header, list):
+            # timeseries cube
+            if reference_wcs.naxis == 2:
+                for hdr in new_header:
+                    _update_header_from_wcs(hdr, reference_wcs)
+                _log_history(new_header, 'Assigned 2D reference WCS to all slices')
+            else:
+                warnings.warn(
+                    'Reference WCS is not 2D; dropping WCS for timeseries cube.'
+                )
+                _log_history(new_header, 'Dropped WCS due to dim mismatch')
+        else:
+            # non-timeseries cube
+            if reference_wcs.naxis == new_data.ndim:
+                _update_header_from_wcs(new_header, reference_wcs)
+                _log_history(new_header, 'Updated all WCS keys in header')
+            else:
+                warnings.warn(
+                    'Reference WCS dimensionality does not match data; '
+                    'cube-level WCS not assigned.'
+                )
+                _log_history(new_header, 'Dropped WCS due to dim mismatch')
+
+        if np.all(np.isnan(new_data)):
+            raise ValueError(
+                'All values in reprojected data are NaN. '
+                'This likely indicates a WCS round-tripping failure.'
+            )
+
+        if isinstance(self.data, SpectralCube):
+            if isinstance(new_header, list):
+                raise RuntimeError(
+                    'SpectralCube reprojection resulted in per-slice headers; '
+                    'this is not supported.'
+                )
+
+            new_wcs = WCS(new_header)
+
+            new_data = SpectralCube(
+                data=new_data,
+                wcs=new_wcs,
+                meta=self.data.meta
+            )
+
+            new_data._spectral_unit = self.data._spectral_unit
+            new_data._spectral_scale = self.data._spectral_scale
 
         new_cube = DataCube(
-            new_data, new_header,
-            new_error, new_wcs
+            data=new_data,
+            header=new_header,
+            error=new_error
         )
 
         if return_footprint:
