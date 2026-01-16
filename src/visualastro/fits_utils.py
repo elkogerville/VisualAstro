@@ -139,10 +139,15 @@ def _transfer_history(header1, header2):
     # get logs from header 1
     hdr1_history = _get_history(header1)
 
+    if isinstance(header2, list):
+        target_header = header2[0]
+    else:
+        target_header = header2
+
     # add logs to header 2
     if hdr1_history is not None:
         for history in hdr1_history:
-            header2.add_history(history)
+            target_header.add_history(history)
 
     return header2
 
