@@ -16,7 +16,7 @@ import numpy as np
 
 def _copy_headers(headers):
     '''
-    copy a single or list of fits.Header.
+    Copy a single or list of fits.Header.
 
     Parameters
     ----------
@@ -28,10 +28,7 @@ def _copy_headers(headers):
     fits.Header or list of fits.Header
     '''
 
-    if headers is None:
-        return None
-
-    elif isinstance(headers, Header):
+    if isinstance(headers, Header):
         return headers.copy()
 
     elif (
