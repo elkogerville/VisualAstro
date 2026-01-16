@@ -82,14 +82,7 @@ def _log_history(header, description):
         Header for logging a `HISTORY` card.
     description : str
         Description of log.
-
-    Returns
-    -------
-    None
     '''
-    if header is None:
-        return None
-
     timestamp = Time.now().isot
     log = f'{timestamp} {description}'
 
