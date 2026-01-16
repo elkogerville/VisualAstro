@@ -292,10 +292,37 @@ class DataCube:
         if wcs is None:
             wcs = get_wcs(header)
 
+        # ensure header and wcs are in sync
+        if wcs is not None:
+            if isinstance(header, list):
+                if not isinstance(wcs, list):
+                    raise ValueError(
+                        'If header is a list, wcs must be a list of same length!'
+                    )
+                if len(header) != len(wcs):
+                    raise ValueError(
+                        f'Header list length ({len(header)}) must match '
+                        f'WCS list length ({len(wcs)})'
+                    )
+                for hdr, w in zip(header, wcs):
+                    _update_header_from_wcs(hdr, w)
+            else:
+                # single header case
+                if isinstance(wcs, list):
+                    raise ValueError(
+                        'If wcs is a list, header must also be a list'
+                    )
+                _update_header_from_wcs(header, wcs)
+
+        # extract non WCS info from header
+        nowcs_header = _strip_wcs_from_header(header)
+        _remove_history(nowcs_header)
+
         # assign attributes
         self.data = data
         self.primary_header = primary_hdr
         self.header = header
+        self.nowcs_header = nowcs_header
         self.error = error
         self.wcs = wcs
         self.footprint = None
