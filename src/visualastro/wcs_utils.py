@@ -12,6 +12,7 @@ Module Structure:
         Lightweight data class for fits files.
 '''
 
+import copy
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -22,7 +23,10 @@ from astropy.wcs import WCS
 import numpy as np
 from reproject import reproject_interp, reproject_exact
 from spectral_cube import SpectralCube
+from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
+from .fits_utils import _log_history
+from .numerical_utils import _unwrap_if_single
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -217,39 +221,248 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     return crop_data, crop_wcs
 
 
-def reproject_wcs(
+# def reproject_wcs(
+#     input_data,
+#     reference_wcs,
+#     method=None,
+#     return_footprint=None,
+#     parallel=None,
+#     block_size=_default_flag,
+#     description=None
+# ):
+#     '''
+#     Reproject data or Quantity arrays onto a reference WCS.
+
+#     Parameters
+#     ----------
+#     input_data : array-like, list, or tuple
+#         The input data to be reprojected. May be:
+#         - A HDUList object
+#         - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
+#         - A list containing any of the above inputs
+#         Note:
+#             - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
+#             - [(np.ndarray, WCS), HDUList] is a valid input.
+#     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+#         The target WCS or FITS header to which `input_data` will be reprojected.
+#         Dimensional handling:
+#         Input WCS → Reference WCS
+#             - 2D → 2D: Direct reprojection
+#             - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
+#             - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
+#             - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+#     method : {'interp', 'exact'} or None, default=None
+#         Reprojection method:
+#         - 'interp' : use `reproject_interp`
+#         - 'exact' : use `reproject_exact`
+#         If None, uses the default value
+#         set by `va_config.reproject_method`.
+#     return_footprint : bool or None, optional, default=None
+#         If True, return both reprojected data and reprojection
+#         footprints. If False, return only the reprojected data.
+#         If None, uses the default value set by `va_config.return_footprint`.
+#     parallel : bool, int, str, or None, optional, default=None
+#         If True, the reprojection is carried out in parallel,
+#         and if a positive integer, this specifies the number
+#         of threads to use. The reprojection will be parallelized
+#         over output array blocks specified by `block_size` (if the
+#         block size is not set, it will be determined automatically).
+#         If None, uses the default value set by `va_config.reproject_parallel`.
+#     block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+#         The size of blocks in terms of output array pixels that each block
+#         will handle reprojecting. Extending out from (0,0) coords positively,
+#         block sizes are clamped to output space edges when a block would extend
+#         past edge. Specifying 'auto' means that reprojection will be done in
+#         blocks with the block size automatically determined. If `block_size` is
+#         not specified or set to None, the reprojection will not be carried out in blocks.
+#         If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+#     description : str or None, optional, default=None
+#         Description message for loading bar. If None, uses default message.
+
+#     Returns
+#     -------
+#     reprojected : ndarray or list of ndarray
+#         The reprojected data array(s). If `input_data` contains
+#         multiple items, the output is a list; otherwise a single array.
+#     footprint : ndarray or list of ndarray
+#         The reprojection footprint(s). Only returned if `return_footprint=True`.
+#         If `input_data` contains multiple items, the output is a list;
+#         otherwise a single array.
+
+#     Raises
+#     ------
+#     ValueError
+#         If a the inputs are not able to be reprojected.
+
+#     '''
+#     method = get_config_value(method, 'reproject_method')
+#     return_footprint = get_config_value(return_footprint, 'return_footprint')
+#     parallel = get_config_value(parallel, 'reproject_parallel')
+#     block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
+
+#     if isinstance(reference_wcs, fits.Header):
+#         reference_wcs = WCS(reference_wcs)
+
+#     # normalize input into a list
+#     if isinstance(input_data, list):
+#         normalized = [_normalize_reproject_input(item) for item in input_data]
+#     else:
+#         normalized = [_normalize_reproject_input(input_data)]
+
+#     # separate inputs and units
+#     input_list  = [item[0] for item in normalized]
+#     units = [item[1] for item in normalized]
+
+#     # select reproject function
+#     reproject_method = {
+#         'interp': reproject_interp,
+#         'exact': reproject_exact
+#     }.get(method, reproject_interp)
+
+#     reprojected_data = []
+#     footprints = []
+
+#     for (obj, unit) in zip(input_list, units):
+
+#         # case 1: HDUList
+#         if isinstance(obj, fits.HDUList):
+#             reprojected, footprint = reproject_method(
+#                 obj, reference_wcs, parallel=parallel, block_size=block_size
+#             )
+#             if unit is not None:
+#                 reprojected *= unit
+#             reprojected_data.append(reprojected)
+#             footprints.append(footprint)
+#             continue
+
+#         # case 2: 3D cube with a list of Headers/WCS
+#         # for each Header/WCS, reproject the data slice
+#         # at the corresponding index
+#         elif isinstance(obj, tuple) and isinstance(obj[1], list):
+
+#             if obj[0].ndim != 3:
+#                raise ValueError(
+#                    'Attempting to reproject non 3D data using a list of Headers/WCS! '
+#                    'Only 3D data is supported for reprojection with a list of Headers/WCS'
+#                )
+#             if obj[0].shape[0] != len(obj[1]):
+#                 raise ValueError(
+#                     'Attempting to reproject 3D data with a list of Headers/WCS. '
+#                     'Ensure the length of the list matches the shape of the data at axis 0!'
+#                 )
+
+#             reprojected_cube = []
+#             footprint_list = []
+
+#             for i, wcs in enumerate(obj[1]):
+#                 reprojected, footprint = reproject_method(
+#                     (obj[0][i], wcs), reference_wcs,
+#                     parallel=parallel, block_size=block_size
+#                 )
+#                 reprojected_cube.append(reprojected)
+#                 footprint_list.append(footprint)
+
+#             reprojected_data.append(reprojected_cube)
+#             footprints.append(footprint_list)
+
+
+#         # get data/wcs dimensions
+#         data, wcs = obj
+#         data_ndim = np.asarray(data).ndim
+#         wcs_ndim = wcs.naxis
+#         ref_ndim = reference_wcs.naxis
+
+#         # case 2: data ndim == reference wcs ndim
+#         if (
+#             (data_ndim == 2 and ref_ndim == 2)
+#             or (data_ndim == 3 and ref_ndim == 3)
+#         ):
+#             reprojected, footprint = reproject_method(
+#                 (data, wcs), reference_wcs,
+#                 parallel=parallel, block_size=block_size
+#             )
+
+#         # case 3: reference wcs ndim > data ndim
+#         elif data_ndim == 2 and ref_ndim > 2:
+#             ref_celestial = reference_wcs.celestial
+#             reprojected, footprint = reproject_method(
+#                 (data, wcs), ref_celestial,
+#                 parallel=parallel, block_size=block_size
+#             )
+
+#         # case 4: data ndim > reference wcs ndim
+#         # for each data slice, reproject
+#         elif data_ndim == 3 and ref_ndim == 2:
+#             wcs_celestial = wcs.celestial if wcs_ndim > 2 else wcs
+
+#             reprojects = []
+#             footprints_slice = []
+#             desc = 'Looping over each slice' if description is None else description
+#             for i in tqdm(range(data.shape[0]), desc=desc):
+#                 repr_i, foot_i = reproject_method(
+#                     (data[i], wcs_celestial), reference_wcs,
+#                     parallel=parallel, block_size=block_size
+#                 )
+#                 reprojects.append(repr_i)
+#                 footprints_slice.append(foot_i)
+
+#             reprojected = np.stack(reprojects, axis=0)
+#             footprint = np.stack(footprints_slice, axis=0)
+
+#         else:
+#             raise ValueError(
+#                 f'Unsupported dimension combination: data_ndim={data_ndim}, '
+#                 f'ref_ndim={ref_ndim}. Supported: (2,2), (2,3), (3,2), (3,3)'
+#             )
+
+#         # re-attach units
+#         if unit is not None:
+#             reprojected *= unit
+
+#         reprojected_data.append(reprojected)
+#         footprints.append(footprint)
+
+#     # unwrap single-element lists
+#     if len(reprojected_data) == 1:
+#         reprojected_data = reprojected_data[0]
+#         footprints = footprints[0]
+
+#     return (reprojected_data, footprints) if return_footprint else reprojected_data
+#
+
+def _reproject_wcs(
     input_data,
     reference_wcs,
     method=None,
     return_footprint=None,
     parallel=None,
     block_size=_default_flag,
-    description=None
+    log_file=None,
+    **kwargs
 ):
     '''
     Reproject data or Quantity arrays onto a reference WCS.
 
+    Units are conserved if present in `input_data`.
+
     Parameters
     ----------
-    input_data : array-like, list, or tuple
-        The input data to be reprojected. May be:
-        - A HDUList object
-        - A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
-        - A list containing any of the above inputs
+    input_data : tuple
+        A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
         Note:
             - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
-            - [(np.ndarray, WCS), HDUList] is a valid input.
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
-        - 2D → 2D: Direct reprojection
-        - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
-        - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
-        - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+        Input WCS → Reference WCS
+            - 2D → 2D: Direct reprojection
+            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
+            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
+            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
-        - 'interp' : use `reproject_interp`
-        - 'exact' : use `reproject_exact`
+            - 'interp' : use `reproject_interp`
+            - 'exact' : use `reproject_exact`
         If None, uses the default value
         set by `va_config.reproject_method`.
     return_footprint : bool or None, optional, default=None
@@ -271,107 +484,95 @@ def reproject_wcs(
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
         If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+    log_file : fits.Header or None, optional, default=None
+        If provided, reprojection details are logged to this header's
+        HISTORY. Intended for internal use within VisualAstro.
     description : str or None, optional, default=None
-        Description message for loading bar. If None, uses default message.
+        Description message for the progress bar. If None, a default message
+        is used. Intended for internal use within VisualAstro.
 
     Returns
     -------
-    reprojected : ndarray or list of ndarray
-        The reprojected data array(s). If `input_data` contains
-        multiple items, the output is a list; otherwise a single array.
-    footprint : ndarray or list of ndarray
-        The reprojection footprint(s). Only returned if `return_footprint=True`.
-        If `input_data` contains multiple items, the output is a list;
-        otherwise a single array.
+    reprojected : ndarray
+        The reprojected data array.
+    footprint : ndarray, optional
+        The reprojection footprint. Only returned if `return_footprint=True`.
 
     Raises
     ------
     ValueError
-        If a the inputs are not able to be reprojected.
-
+        If the inputs are not able to be reprojected.
     '''
+    description = kwargs.get('description', None)
+
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')
     parallel = get_config_value(parallel, 'reproject_parallel')
     block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
 
+    if isinstance(reference_wcs, (list, tuple)):
+        raise ValueError('reference_wcs must be a single WCS or Header')
+
     if isinstance(reference_wcs, fits.Header):
         reference_wcs = WCS(reference_wcs)
 
-    # normalize input into a list
-    if isinstance(input_data, list):
-        normalized = [_normalize_reproject_input(item) for item in input_data]
-    else:
-        normalized = [_normalize_reproject_input(input_data)]
+    if log_file is not None:
+        if not isinstance(log_file, Header):
+            raise TypeError(
+                'log_file must be a Header!'
+            )
 
-    # separate inputs and units
-    input_list  = [item[0] for item in normalized]
-    units = [item[1] for item in normalized]
+    obj, unit = _normalize_reproject_input(input_data)
 
-    # select reproject function
-    reproject_method = {
+    reproject_func = {
         'interp': reproject_interp,
         'exact': reproject_exact
     }.get(method, reproject_interp)
 
-    reprojected_data = []
-    footprints = []
+    if log_file is not None:
+        _log_history(
+            log_file, f'Reprojection algorithm: reproject_{method}'
+        )
 
-    for (obj, unit) in zip(input_list, units):
+    data, wcs = obj
+    data_ndim = np.asarray(data).ndim
+    ref_ndim = reference_wcs.naxis
 
-        # case 1: HDUList
-        if isinstance(obj, fits.HDUList):
-            reprojected, footprint = reproject_method(
-                obj, reference_wcs, parallel=parallel, block_size=block_size
-            )
-            if unit is not None:
-                reprojected *= unit
-            reprojected_data.append(reprojected)
-            footprints.append(footprint)
-            continue
+    # 3D data -> 2D reference: reproject each slice
+    if data_ndim == 3 and ref_ndim == 2:
+        wcs_celestial = wcs.celestial if wcs.naxis > 2 else wcs
 
-        # get data/wcs dimensions
-        data, wcs = obj
-        data_ndim = np.asarray(data).ndim
-        wcs_ndim = wcs.naxis
-        ref_ndim = reference_wcs.naxis
+        reprojects = []
+        footprints_slice = []
+        desc = 'Looping over each slice' if description is None else description
 
-        # case 2: data ndim == reference wcs ndim
-        if (
-            (data_ndim == 2 and ref_ndim == 2)
-            or (data_ndim == 3 and ref_ndim == 3)
-        ):
-            reprojected, footprint = reproject_method(
-                (data, wcs), reference_wcs,
+        for i in tqdm(range(data.shape[0]), desc=desc):
+            repr_i, foot_i = reproject_func(
+                (data[i], wcs_celestial), reference_wcs,
                 parallel=parallel, block_size=block_size
             )
+            reprojects.append(repr_i)
+            footprints_slice.append(foot_i)
 
-        # case 3: reference wcs ndim > data ndim
-        elif data_ndim == 2 and ref_ndim > 2:
-            ref_celestial = reference_wcs.celestial
-            reprojected, footprint = reproject_method(
-                (data, wcs), ref_celestial,
-                parallel=parallel, block_size=block_size
+        reprojected = np.stack(reprojects, axis=0)
+        footprint = np.stack(footprints_slice, axis=0)
+        if log_file is not None:
+            _log_history(
+                log_file, 'Reprojection mode: 3D data -> 2D reference (slice-by-slice)'
             )
 
-        # case 4: data ndim > reference wcs ndim
-        # for each data slice, reproject
-        elif data_ndim == 3 and ref_ndim == 2:
-            wcs_celestial = wcs.celestial if wcs_ndim > 2 else wcs
+    # single reprojection
+    else:
+        # determine which WCS to use based on dimensions
+        if data_ndim == 2 and ref_ndim > 2:
+            # 2D data -> 3+D reference: use celestial slice
+            ref_wcs = reference_wcs.celestial
+            mode = '2D data -> 3D reference (celestial WCS only)'
 
-            reprojects = []
-            footprints_slice = []
-            desc = 'Looping over each slice' if description is None else description
-            for i in tqdm(range(data.shape[0]), desc=desc):
-                repr_i, foot_i = reproject_method(
-                    (data[i], wcs_celestial), reference_wcs,
-                    parallel=parallel, block_size=block_size
-                )
-                reprojects.append(repr_i)
-                footprints_slice.append(foot_i)
-
-            reprojected = np.stack(reprojects, axis=0)
-            footprint = np.stack(footprints_slice, axis=0)
+        elif data_ndim == ref_ndim:
+            # matching dimensions
+            ref_wcs = reference_wcs
+            mode = f'{data_ndim}D data -> {ref_ndim}D reference'
 
         else:
             raise ValueError(
