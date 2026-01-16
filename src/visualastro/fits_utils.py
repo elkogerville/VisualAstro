@@ -98,11 +98,31 @@ def _log_history(header, description):
         )
 
 
+def _remove_history(header):
+    '''
+    Remove any `HISTORY` cards from a header in place.
+
+    Parameters
+    ----------
+    header : fits.Header or list of fits.Header
+        Header(s) with `HISTORY` cards to remove.
+    '''
+    if isinstance(header, (list, tuple, np.ndarray)):
+        for h in header:
+            _remove_history(h)
+        return
+
+    while 'HISTORY' in header:
+        header.remove('HISTORY')
+
+
 def _transfer_history(header1, header2):
     '''
     Transfer `HISTORY` cards from one
-    header to another. This is not a
-    destructive action.
+    header to another. If header2 is a list
+    of headers, the HISTORY is written to header2[0].
+
+    This is not a destructive action.
 
     Parameters
     ----------
