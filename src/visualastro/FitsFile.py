@@ -16,12 +16,16 @@ from astropy.wcs import WCS
 import numpy as np
 from .fits_utils import (
     _copy_headers, _get_history,
-    _log_history, _transfer_history,
-    _update_header_key
+    _log_history, _remove_history,
+    _transfer_history, _update_header_key
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .validation import _check_shapes_match, _validate_type
-from .wcs_utils import get_wcs, _is_valid_wcs_slice
+from .wcs_utils import (
+    get_wcs, _is_valid_wcs_slice,
+    _strip_wcs_from_header,
+    _update_header_from_wcs
+)
 
 
 class FitsFile:
@@ -53,6 +57,7 @@ class FitsFile:
         Associated error data, if provided.
     wcs : astropy.wcs.WCS or None
         The WCS transformation extracted from the header, if valid.
+    footprint : ndarray or None
 
     Properties
     ----------
@@ -140,6 +145,7 @@ class FitsFile:
         error = _validate_type(
             error, (np.ndarray, Quantity), allow_none=True, name='error'
         )
+        wcs = _validate_type(wcs, WCS, allow_none=True, name='wcs')
 
         array = np.asarray(data)
         # extract unit
@@ -188,9 +194,17 @@ class FitsFile:
             wcs = get_wcs(header)
             assert isinstance(wcs, WCS)
 
+        if wcs is not None:
+            _update_header_from_wcs(header, wcs)
+
+        # extract non WCS info from header
+        nowcs_header = _strip_wcs_from_header(header)
+        _remove_history(nowcs_header)
+
         self.data = data
         self.primary_header = header
         self.header = header
+        self.nowcs_header = nowcs_header
         self.error = error
         self.wcs = wcs
         self.footprint = None
