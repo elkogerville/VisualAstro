@@ -428,15 +428,12 @@ class FitsFile:
         # update header BUNIT
         new_hdr = _copy_headers(self.header)
         new_hdr = _update_header_key('BUNIT', unit, new_hdr)
-
-        # update wcs
-        new_wcs = None if self.wcs is None else copy.deepcopy(self.wcs)
+        _log_history(new_hdr, f'Converted unit to {unit.to_string()}')
 
         return FitsFile(
             data=new_data,
             header=new_hdr,
             error=new_error,
-            wcs=new_wcs
         )
 
     # Array Interface
@@ -486,9 +483,7 @@ class FitsFile:
             if self.wcs is not None:
                 try:
                     new_wcs = self.wcs[key]
-                    wcs_hdr = new_wcs.to_header()
-                    for wcs_key in wcs_hdr:
-                        new_hdr[wcs_key] = wcs_hdr[wcs_key]
+                    _update_header_from_wcs(new_hdr, new_wcs)
 
                 except (AttributeError, TypeError, ValueError) as e:
                     new_wcs = None
