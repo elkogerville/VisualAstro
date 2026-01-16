@@ -28,7 +28,7 @@ from tqdm import tqdm
 from .numerical_utils import check_is_array
 from .FitsFile import FitsFile
 from .va_config import get_config_value, va_config, _default_flag
-from .wcs_utils import reproject_wcs
+from .wcs_utils import _reproject_wcs
 
 
 # Fits File I/O Operations
@@ -172,13 +172,13 @@ def load_fits(filepath, header=True, error=True,
                     f'target_wcs must be Header or WCS, got {type(target_wcs)}'
                 )
             input_wcs = WCS(fits_header).celestial
-            data, footprint = reproject_wcs((data, input_wcs), wcs,
+            data, footprint = _reproject_wcs((data, input_wcs), wcs,
                                              method=reproject_method,
                                              return_footprint=True,
                                              parallel=parallel,
                                              block_size=block_size)
             if errors is not None:
-                errors = reproject_wcs((errors, input_wcs), wcs,
+                errors = _reproject_wcs((errors, input_wcs), wcs,
                                         method=reproject_method,
                                         return_footprint=False,
                                         parallel=parallel,
