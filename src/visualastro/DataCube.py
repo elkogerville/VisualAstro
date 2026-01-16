@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-12-08
+Date Modified: 2026-01-15
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
@@ -14,21 +14,33 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 '''
 
-import copy
 import warnings
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
+from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
+from tqdm import tqdm
 from .fits_utils import (
-    _copy_headers, _get_history, _log_history,
+    _copy_headers, _get_history,
+    _log_history, _remove_history,
     _transfer_history, _update_header_key,
 )
 from .units import _check_unit_equality, _validate_units_consistency
 from .va_config import get_config_value, _default_flag
-from .validation import _check_shapes_match, _validate_type
-from .wcs_utils import get_wcs, reproject_wcs, _is_valid_wcs_slice
+from .validation import (
+    _check_shapes_match,
+    _validate_iterable_type,
+    _validate_type
+)
+from .wcs_utils import (
+    get_wcs,
+    _is_valid_wcs_slice,
+    _reproject_wcs,
+    _strip_wcs_from_header,
+    _update_header_from_wcs
+)
 
 
 class DataCube:
@@ -71,8 +83,6 @@ class DataCube:
         `Header` is created for log purposes.
     error : np.ndarray, Quantity, or None
         Error array if provided, else None.
-    unit : astropy.units.Unit or None
-        Physical unit of the data if available.
     wcs : array-like of WCS or WCS
         WCS(s) associated with the data cube.
 
@@ -82,6 +92,8 @@ class DataCube:
         Raw numpy array of the cube values.
     quantity : Quantity
         Quantity array of data values (values + astropy units).
+    unit : astropy.units.Unit or None
+        Physical unit of the data if available.
     min : float
         Minimum value in the cube, ignoring NaNs.
     max : float
@@ -91,7 +103,7 @@ class DataCube:
     median : float
         Median of all values in the cube, ignoring NaNs.
     sum : float
-        Sum of all values in the cube, ignoreing NaNs.
+        Sum of all values in the cube, ignoring NaNs.
     std : float
         Standard deviation of all values in the cube, ignoring NaNs.
     shape : tuple
@@ -141,7 +153,7 @@ class DataCube:
     ---------------
     __array__
         Return the underlying data as a Numpy array.
-    __get_item__
+    __getitem__
         Return a slice of the data.
     __len__()
         Return the length of the first axis.
