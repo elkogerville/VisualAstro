@@ -40,7 +40,7 @@ from .data_cube_utils import slice_cube
 from .numerical_utils import (
     compute_density_kde, get_data, return_array_values, to_array
 )
-from .units import get_units, _get_physical_type
+from .units import get_physical_type, get_units
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -733,8 +733,8 @@ def format_unit_labels(unit, fmt=None):
 
     Parameters
     ----------
-    unit : str
-        The unit string to convert.
+    unit : str or astropy.Unit
+        The astropy.Unit or unit string to convert.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
         The format of the unit label. 'latex_inline' and 'inline' uses
         negative exponents while 'latex' uses fractions. If None, uses
@@ -752,7 +752,11 @@ def format_unit_labels(unit, fmt=None):
         fmt = 'latex_inline'
 
     try:
-        return u.Unit(unit).to_string(fmt)
+        if isinstance(unit, str):
+            unit = u.Unit(unit)
+        elif not isinstance(unit, u.UnitBase):
+            unit = u.Unit(unit)
+        return unit.to_string(fmt)
     except Exception:
         return None
 
