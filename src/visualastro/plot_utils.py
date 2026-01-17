@@ -38,8 +38,9 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import (
-    check_is_array, compute_density_kde, get_data, get_physical_type, get_units, return_array_values
+    check_is_array, compute_density_kde, get_data, get_units, return_array_values
 )
+from .units import _get_physical_type
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -919,7 +920,7 @@ def set_axis_labels(
         '''
 
         # get physical type and unit of object
-        physical_type = get_physical_type(obj)
+        physical_type = _get_physical_type(obj)
         unit = get_units(obj)
 
         # get custom label if exists
