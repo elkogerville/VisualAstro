@@ -22,7 +22,7 @@ import warnings
 from astropy import units as u
 from astropy.io.fits import Header
 from astropy.units import (
-    physical, Quantity, spectral, Unit, UnitBase, UnitConversionError
+    physical, Quantity, spectral, Unit, UnitConversionError
 )
 import numpy as np
 from scipy import stats
@@ -118,38 +118,6 @@ def get_data(obj):
         return obj.data
 
     return obj
-
-
-def get_physical_type(obj):
-    '''
-    Extract the physical_type attribute from an object with
-    a unit attribute. Returns None if no units.
-
-    Parameters
-    ----------
-    obj : Quantity or Unit
-        Object with a .unit attribute. Custom data types
-        are permitted as long as the .unit is a Astropy Unit.
-
-    Returns
-    -------
-    physical_type : astropy.units.physical.PhysicalType or None
-        Physical type of the unit or None if no units are found.
-    '''
-
-    if isinstance(obj, Quantity):
-        unit = obj.unit
-        if isinstance(unit, UnitBase):
-            return unit.physical_type
-        return None
-
-    elif isinstance(obj, UnitBase):
-        return obj.physical_type
-
-    elif hasattr(obj, 'unit'):
-        return obj.unit.physical_type
-
-    return None
 
 
 def get_units(obj):
