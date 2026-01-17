@@ -337,7 +337,9 @@ class DataCube:
         np.ndarray : View of the underlying numpy array.
         '''
         if isinstance(self.data, SpectralCube):
-            return self.data.unmasked_data[:].value
+            return self.data.filled_data[:].value
+        if isinstance(self.data, Quantity):
+            return self.data.value
         else:
             return np.asarray(self.data)
     @property
