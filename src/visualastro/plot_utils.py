@@ -38,7 +38,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import (
-    check_is_array, compute_density_kde, get_data, return_array_values
+    compute_density_kde, get_data, return_array_values, to_array
 )
 from .units import get_units, _get_physical_type
 from .va_config import get_config_value, va_config, _default_flag
@@ -345,7 +345,7 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     '''
     percentile = va_config.percentile if percentile is _default_flag else percentile
     # check if data is an array
-    data = check_is_array(data)
+    data = to_array(data)
     # check if data is boolean
     if data.dtype == bool:
         return 0, 1

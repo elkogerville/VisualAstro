@@ -20,13 +20,13 @@ Module Structure:
 
 import warnings
 from astropy import units as u
-from astropy.io.fits import Header
 from astropy.units import (
-    physical, Quantity, spectral, Unit, UnitConversionError
+    Quantity, spectral, Unit, UnitConversionError
 )
 import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
+from spectral_cube import SpectralCube
 from .DataCube import DataCube
 from .FitsFile import FitsFile
 from .SpectrumPlus import SpectrumPlus
@@ -69,6 +69,50 @@ def check_is_array(data, keep_units=False):
     return np.asarray(data)
 
 
+def to_array(obj, keep_units=False):
+    """
+    Return input object as either a np.ndarray or Quantity.
+
+    Parameters
+    ----------
+    obj : array-like or Quantity
+        Array or DataCube object.
+    keep_units : bool, optional, default=False
+        If True, keep astropy units attached if present.
+
+    Returns
+    -------
+    array : np.ndarray
+        Quantity array if `keep_units` is True, else a NumPy array.
+    """
+    if isinstance(obj, Quantity):
+        return obj if keep_units else obj.value
+
+    elif isinstance(obj, SpectralCube):
+        q = obj.filled_data[:]
+        return q if keep_units else q.value
+
+    if hasattr(obj, 'value'):
+        value = obj.value
+        unit = getattr(obj, 'unit', None)
+        if keep_units and unit is not None:
+            if isinstance(value, Quantity):
+                return value
+            return value * unit
+
+        return np.asarray(value)
+
+    if hasattr(obj, 'data'):
+        return to_array(obj.data, keep_units=keep_units)
+
+    try:
+        return np.asarray(obj)
+    except Exception:
+        raise TypeError(
+            f'Object of type {type(obj).__name__} cannot be converted to an array'
+        )
+
+
 def check_units_consistency(datas):
     '''
     Check that all input objects have the same units and warn if they differ.
@@ -95,7 +139,6 @@ def check_units_consistency(datas):
                 f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
                 f"at index 0. Values may be plotted incorrectly..."
             )
-
 
     return datas
 

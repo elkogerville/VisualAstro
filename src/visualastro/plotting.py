@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
-from .numerical_utils import check_is_array, check_units_consistency
+from .numerical_utils import check_units_consistency, to_array
 from .plot_utils import (
     add_colorbar, add_contours, format_unit_labels,
     plot_circles, plot_ellipses,
@@ -182,7 +182,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = kwargs.get('plot_ellipse', False)
     # default ellipse parameters
-    data = check_is_array(datas)
+    data = to_array(datas)
     X, Y = (data[0].shape if isinstance(datas, list) else data.shape)[-2:]
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
@@ -215,7 +215,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     # loop over data list
     for i, data in enumerate(datas):
         # ensure data is an array
-        data = check_is_array(data)
+        data = to_array(data)
         # slice data with index if provided
         if idx is not None:
             data = slice_cube(data, idx[i%len(idx)])
@@ -679,7 +679,7 @@ def plot_histogram(datas, ax,
         color = colors[i%len(colors)]
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
         # ensure data is an array and is 1D
-        data = check_is_array(data)
+        data = to_array(data)
         if data.ndim == 2:
             data = data.flatten()
         data_list.append(data)
