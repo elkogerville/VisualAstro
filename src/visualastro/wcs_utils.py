@@ -566,7 +566,7 @@ def _normalize_reproject_input(input_data):
         )
 
     if isinstance(data, SpectralCube):
-        value = data.unmasked_data[:].value
+        value = data.filled_data[:].value
         unit  = data.unit
     else:
         value = np.asarray(data)
