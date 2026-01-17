@@ -213,7 +213,7 @@ class DataCube:
 
         # extract array view for validation
         if isinstance(data, SpectralCube):
-            array = data.unmasked_data[:].value
+            array = data.filled_data[:].value
             unit = data.unit
         elif isinstance(data, Quantity):
             array = data.value
