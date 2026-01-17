@@ -74,31 +74,28 @@ def get_units(obj):
     return None
 
 
-def _is_unitless(obj):
+def get_physical_type(obj):
     """
-    Validate that an object has no unit.
-
-    u.dimensionless_unscaled is treated
-    as no units.
+    Extract the physical type associated with an object's unit.
 
     Parameters
     ----------
-    obj : object
-        Object to check if unitless.
+    obj : any
+        Object from which a unit can be extracted via `get_units`.
 
     Returns
     -------
-    bool :
-        If object has a unit.
+    astropy.units.physical.PhysicalType or None
+        Physical type of the unit, or None if unavailable.
     """
-    if isinstance(obj, Quantity):
-        return obj.unit == dimensionless_unscaled
+    unit = get_units(obj)
+    if unit is None:
+        return None
 
-    unit = getattr(obj, 'unit', None)
-    if isinstance(unit, UnitBase):
-        return unit == dimensionless_unscaled
-
-    return True
+    try:
+        return unit.physical_type
+    except Exception:
+        return None
 
 
 def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
@@ -145,36 +142,31 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     )
 
 
-def _get_physical_type(obj):
-    '''
-    Extract the physical_type attribute from an object with
-    a unit attribute. Returns None if no units.
+def _is_unitless(obj):
+    """
+    Validate that an object has no unit.
+
+    u.dimensionless_unscaled is treated
+    as no units.
 
     Parameters
     ----------
-    obj : Quantity or Unit
-        Object with a .unit attribute. Custom data types
-        are permitted as long as the .unit is a Astropy Unit.
+    obj : object
+        Object to check if unitless.
 
     Returns
     -------
-    physical_type : astropy.units.physical.PhysicalType or None
-        Physical type of the unit or None if no units are found.
-    '''
-
+    bool :
+        If object has a unit.
+    """
     if isinstance(obj, Quantity):
-        unit = obj.unit
-        if isinstance(unit, UnitBase):
-            return unit.physical_type
-        return None
+        return obj.unit == dimensionless_unscaled
 
-    elif isinstance(obj, UnitBase):
-        return obj.physical_type
+    unit = getattr(obj, 'unit', None)
+    if isinstance(unit, UnitBase):
+        return unit == dimensionless_unscaled
 
-    elif hasattr(obj, 'unit'):
-        return obj.unit.physical_type
-
-    return None
+    return True
 
 
 def _validate_units_consistency(objs, *, label=None):
