@@ -138,13 +138,18 @@ def get_physical_type(obj):
     '''
 
     if isinstance(obj, Quantity):
-        return obj.unit.physical_type # type: ignore
+        unit = obj.unit
+        if isinstance(unit, UnitBase):
+            return unit.physical_type
+        return None
+
     elif isinstance(obj, UnitBase):
         return obj.physical_type
+
     elif hasattr(obj, 'unit'):
         return obj.unit.physical_type
-    else:
-        return None
+
+    return None
 
 
 def get_units(obj):
