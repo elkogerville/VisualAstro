@@ -752,9 +752,7 @@ def format_unit_labels(unit, fmt=None):
         fmt = 'latex_inline'
 
     try:
-        if isinstance(unit, str):
-            unit = u.Unit(unit)
-        elif not isinstance(unit, u.UnitBase):
+        if not isinstance(unit, u.UnitBase):
             unit = u.Unit(unit)
         return unit.to_string(fmt)
     except Exception:
@@ -924,7 +922,7 @@ def set_axis_labels(
         '''
 
         # get physical type and unit of object
-        physical_type = _get_physical_type(obj)
+        physical_type = get_physical_type(obj)
         unit = get_units(obj)
 
         # get custom label if exists
