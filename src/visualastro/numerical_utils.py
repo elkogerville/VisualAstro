@@ -27,48 +27,11 @@ import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
-from .DataCube import DataCube
-from .FitsFile import FitsFile
-from .SpectrumPlus import SpectrumPlus
+from .units import get_units
 
 
 # Type Checking Arrays and Objects
 # --------------------------------
-def check_is_array(data, keep_units=False):
-    '''
-    Ensure array input is np.ndarray.
-
-    Parameters
-    ----------
-    data : np.ndarray, DataCube, FitsFile, or Quantity
-        Array or DataCube object.
-    keep_units : bool, optional, default=False
-        If True, keep astropy units attached if present.
-
-    Returns
-    -------
-    data : np.ndarray
-        Array or 'data' component of DataCube.
-    '''
-    if isinstance(data, DataCube):
-        if keep_units:
-            return data.value * data.unit
-        else:
-            data = data.value
-    elif isinstance(data, FitsFile):
-        if keep_units:
-            return data.data * data.unit
-        else:
-            data = data.data
-    if isinstance(data, Quantity):
-        if keep_units:
-            return data
-        else:
-            data = data.value
-
-    return np.asarray(data)
-
-
 def to_array(obj, keep_units=False):
     """
     Return input object as either a np.ndarray or Quantity.
@@ -161,72 +124,6 @@ def get_data(obj):
         return obj.data
 
     return obj
-
-
-def get_units(obj):
-    '''
-    Extract the unit from an object, if it exists.
-
-    Parameters
-    ----------
-    obj : Quantity, SpectralCube, FITS-like object, or any
-        The input object from which to extract a unit. This can be:
-        - an astropy.units.Quantity
-        - a SpectralCube
-        - a DataCube or FitsFile
-        - a FITS-like object with a header containing a 'BUNIT' keyword
-        - any other object (returns None if no unit is found)
-    Returns
-    -------
-    astropy.units.Unit or None
-        The unit associated with the input object, if it exists.
-        Returns None if the object has no unit or if the unit cannot be parsed.
-    '''
-    # check if spectral unit
-    spectral_unit = getattr(obj, 'spectral_unit', None)
-    if spectral_unit is not None:
-        try:
-            if spectral_unit.physical_type in {
-                physical.frequency, physical.length, physical.speed, physical.energy
-            }:
-                return spectral_unit
-        except Exception:
-            pass
-
-    # check if object has unit attribute
-    unit = getattr(obj, 'unit', None)
-    if unit is not None:
-        return unit
-
-    # try obj.data.unit
-    data = getattr(obj, 'data', None)
-    if data is not None:
-        unit = getattr(data, 'unit', None)
-        if unit is not None:
-            return unit
-
-    # check if SpectrumPlus
-    if isinstance(obj, SpectrumPlus):
-        for attr in ('spectrum', 'flux'):
-            unit = getattr(getattr(obj, attr, None), 'unit', None)
-            if unit is not None:
-                return unit
-        spectrum = getattr(obj, 'spectrum', None)
-        if spectrum is not None:
-            unit = getattr(getattr(spectrum, 'flux', None), 'unit', None)
-            if unit is not None:
-                return unit
-
-    # try to extract unit from header
-    # use either header extension or obj if obj is a header
-    header = getattr(obj, 'header', obj if isinstance(obj, Header) else None)
-    if isinstance(header, Header) and 'BUNIT' in header:
-        try:
-            return Unit(header['BUNIT'])
-        except Exception:
-            return None
-
-    return None
 
 
 def quantities_2_array(values):
