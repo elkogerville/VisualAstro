@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2025-12-10
+Date Modified: 2026-01-17
 Description:
     Utility functions for astropy units.
 Dependencies:
@@ -11,12 +11,98 @@ Dependencies:
 
 
 from astropy.io.fits import Header
-from astropy.units import Quantity, Unit, UnitBase, UnitsError
+from astropy.units import (
+    dimensionless_unscaled, Quantity, Unit, UnitBase, UnitsError
+)
 import numpy as np
 
 
+def get_units(obj):
+    """
+    Extract the unit from an object, if it exists.
+
+    This function checks if the object has a .unit attribute,
+    or if 'BUNIT' exists in `obj`.
+
+    Parameters
+    ----------
+    obj : Object
+        The input object from which to extract a unit. This can be:
+        - an astropy.units.Quantity
+        - a fits.Header with a 'BUNIT' key
+        - any object with a .data attribute
+        - any object with a .header attribute
+    Returns
+    -------
+    astropy.units.Unit or None
+        The unit associated with the input object, if it exists.
+        Returns None if the object has no unit or if the unit cannot be parsed.
+    """
+    if isinstance(obj, Quantity):
+        return obj.unit
+
+    if isinstance(obj, Header):
+        bunit = obj.get('BUNIT')
+        if isinstance(bunit, str):
+            try:
+                return Unit(bunit)
+            except Exception:
+                return None
+        return None
+
+    unit = getattr(obj, 'unit', None)
+    if unit is not None:
+        try:
+            return unit if isinstance(unit, UnitBase) else Unit(unit)
+        except Exception:
+            pass
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            unit = get_units(data)
+            if unit is not None:
+                return unit
+
+    if hasattr(obj, 'header'):
+        header = obj.header
+        if header is not obj:
+            unit = get_units(header)
+            if unit is not None:
+                return unit
+
+    return None
+
+
+def _is_unitless(obj):
+    """
+    Validate that an object has no unit.
+
+    u.dimensionless_unscaled is treated
+    as no units.
+
+    Parameters
+    ----------
+    obj : object
+        Object to check if unitless.
+
+    Returns
+    -------
+    bool :
+        If object has a unit.
+    """
+    if isinstance(obj, Quantity):
+        return obj.unit == dimensionless_unscaled
+
+    unit = getattr(obj, 'unit', None)
+    if isinstance(unit, UnitBase):
+        return unit == dimensionless_unscaled
+
+    return True
+
+
 def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
-    '''
+    """
     Validate that two units are exactly equal.
 
     Parameters
@@ -30,7 +116,7 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     ------
     UnitsError
         If units differ (either convertible or incompatible).
-    '''
+    """
     # case 1: either of the units are None
     if unit1 is None or unit2 is None:
         return
