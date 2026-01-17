@@ -114,10 +114,8 @@ def get_data(obj):
         The data attribute contained in the object, or the input array itself
         if it is not a DataCube or FitsFile.
     '''
-    if isinstance(obj, DataCube):
-        obj = obj.data
-    elif isinstance(obj, FitsFile):
-        obj = obj.data
+    if hasattr(obj, 'data'):
+        return obj.data
 
     return obj
 
