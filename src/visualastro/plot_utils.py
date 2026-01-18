@@ -398,8 +398,8 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     data = slice_cube(cube, slice_idx)
     data = return_array_values(data)
     # compute vmin and vmax
-    vmin = np.nanpercentile(data, vmin) #type: ignore
-    vmax = np.nanpercentile(data, vmax) #type: ignore
+    vmin = np.nanpercentile(data, vmin)
+    vmax = np.nanpercentile(data, vmax)
 
     return vmin, vmax
 
@@ -724,39 +724,6 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         ax.clabel(cs, fontsize=fontsize)
 
     return cs
-
-
-def format_unit_labels(unit, fmt=None):
-    '''
-    Convert an astropy unit string into a LaTeX-formatted label
-    for plotting. Returns None if no unit is found.
-
-    Parameters
-    ----------
-    unit : str or astropy.Unit
-        The astropy.Unit or unit string to convert.
-    fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
-        The format of the unit label. 'latex_inline' and 'inline' uses
-        negative exponents while 'latex' uses fractions. If None, uses
-        the default value set by `va_config.unit_label_format`.
-
-    Returns
-    -------
-    str or None
-        A LaTeX-formatted unit label if the input is recognized.
-        Returns None if the unit is invalid.
-    '''
-    fmt = get_config_value(fmt, 'unit_label_format')
-
-    if fmt.lower() == 'inline':
-        fmt = 'latex_inline'
-
-    try:
-        if not isinstance(unit, u.UnitBase):
-            unit = u.Unit(unit)
-        return unit.to_string(fmt)
-    except Exception:
-        return None
 
 
 def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
