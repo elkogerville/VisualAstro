@@ -86,7 +86,10 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
         Physical type of the unit, or None if unavailable.
     """
     unit = get_units(obj)
+
     if unit is None:
+        return None
+    elif isinstance(unit, StructuredUnit):
         return None
 
     try:
