@@ -170,11 +170,11 @@ def non_nan(obj, keep_units=False):
     Notes
     -----
     This function converts the input to a NumPy array using
-    `check_is_array(obj)`, then removes entries where the value is NaN.
+    `to_array(obj)`, then removes entries where the value is NaN.
     If the input contains units (e.g., an `astropy.units.Quantity`),
     the returned object will retain the original units.
     '''
-    data = check_is_array(obj, keep_units)
+    data = to_array(obj, keep_units)
     non_nans = ~np.isnan(data)
 
     return data[non_nans]
