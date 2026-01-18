@@ -865,7 +865,7 @@ def set_axis_labels(
     fmt = get_config_value(fmt, 'unit_label_format')
 
     # unit bracket type [] or ()
-    brackets = [r'[',r']'] if use_brackets else [r'(',r')']
+    brackets = [r'[', r']'] if use_brackets else [r'(', r')']
 
     TYPE_MAP = {
         u.adu.physical_type: 'ADU',
@@ -1188,7 +1188,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
 
 # Notebook Utils
 # --------------
-def use_inline():
+def inline():
     '''
     Start an inline IPython backend session.
     Allows for inline plots in IPython sessions
@@ -1212,11 +1212,12 @@ def use_inline():
         print(f'Unable to set inline backend: {e}')
 
 
-def use_interactive():
+def interactive():
     '''
     Start an interactive IPython backend session.
     Allows for interactive plots in IPython sessions
     like Jupyter Notebook.
+
     Ensure ipympl is installed:
     >>> $ conda install -c conda-forge ipympl
     '''
@@ -1241,7 +1242,7 @@ def use_interactive():
         )
 
 
-def plt_close():
+def close():
     '''
     Closes all interactive plots in session.
     '''
