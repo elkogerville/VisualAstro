@@ -46,7 +46,10 @@ def get_wcs(header):
         - List of WCS/None if header is a list (None for failed extractions)
         - None if header is a single Header and WCS extraction fails
     '''
-    if isinstance(header, Header):
+    if isinstance(header, WCS):
+        return header
+
+    elif isinstance(header, Header):
         try:
             return WCS(header)
         except Exception:
