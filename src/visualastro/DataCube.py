@@ -203,7 +203,7 @@ class DataCube:
             allow_none=True, name='wcs'
         )
         if isinstance(wcs, list):
-            _validate_iterable_type(wcs, WCS, 'wcs')
+            wcs = _validate_iterable_type(wcs, WCS, 'wcs')
 
         if header is None:
             if isinstance(wcs, list):
@@ -241,7 +241,7 @@ class DataCube:
                     f'Mismatch between T dimension and number of headers: '
                     f'T={array.shape[0]}, header={len(header)}.'
                 )
-            _validate_iterable_type(header, Header, 'header')
+            header = _validate_iterable_type(header, Header, 'header')
 
             primary_hdr = header[0]
         else:
