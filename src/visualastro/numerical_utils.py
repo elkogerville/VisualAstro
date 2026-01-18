@@ -19,9 +19,6 @@ Module Structure:
 '''
 
 from astropy import units as u
-from astropy.units import (
-    Quantity, spectral, Unit, UnitConversionError
-)
 import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
@@ -236,43 +233,6 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
     Z = np.reshape(kernel(grid), xgrid.shape)
 
     return xgrid, ygrid, Z
-
-
-def convert_units(quantity, unit):
-    '''
-    Convert an Astropy Quantity to a specified unit, with a fallback if conversion fails.
-
-    Parameters
-    ----------
-    quantity : astropy.units.Quantity
-        The input quantity to convert.
-    unit : str, astropy.units.Unit, or None
-        The unit to convert to. If None, no conversion is performed.
-
-    Returns
-    -------
-    astropy.units.Quantity
-        The quantity converted to the requested unit if possible; otherwise,
-        the original quantity with its existing unit.
-
-    Notes
-    -----
-    - Uses 'spectral()' equivalencies to allow conversions between
-        wavelength, frequency, and velocity units.
-    - If conversion fails, prints a warning and returns the original quantity.
-    '''
-    if unit is None:
-        return quantity
-    try:
-        # convert string unit to Unit if necessary
-        target_unit = Unit(unit) if isinstance(unit, str) else unit
-        return quantity.to(target_unit, equivalencies=spectral())
-    except UnitConversionError:
-        print(
-            f'Could not convert to unit: {unit}.'
-            f'Defaulting to unit: {quantity.unit}.'
-            )
-        return quantity
 
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
