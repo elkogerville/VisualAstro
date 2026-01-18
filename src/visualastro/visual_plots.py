@@ -31,7 +31,7 @@ from .plotting import (
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 
 class va:
     @contextmanager
@@ -44,7 +44,7 @@ class va:
         ----------
         name : str or None
             Matplotlib or VisualAstro style name. If None, uses the default
-            value from `va_config.style`. Ex: 'astro' or 'latex'.
+            value from `config.style`. Ex: 'astro' or 'latex'.
         rc : dict, optional
             Dictionary of rcParams overrides.
             Ex: {'font.size': 14}
@@ -115,11 +115,11 @@ class va:
         vmin : float or None, optional, default=`_default_flag`
             Lower limit for colormap scaling; overides `percentile[0]`.
             If None, values are determined from `percentile[0]`.
-            If `_default_flag`, uses the default value in `va_config.vmin`.
+            If `_default_flag`, uses the default value in `config.vmin`.
         vmax : float or None, optional, default=`_default_flag`
             Upper limit for colormap scaling; overides `percentile[1]`.
             If None, values are determined from `percentile[1]`.
-            If `_default_flag`, uses the default value in `va_config.vmax`.
+            If `_default_flag`, uses the default value in `config.vmax`.
         norm : str or None, optional, default=`_default_flag`
             Normalization algorithm for colormap scaling.
             - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -127,14 +127,14 @@ class va:
             - 'log' -> logarithmic scaling using 'LogNorm'
             - 'powernorm' -> power-law normalization using 'PowerNorm'
             - 'linear', 'none', or None -> no normalization applied
-            If `_default_flag`, uses the default value in `va_config.norm`.
+            If `_default_flag`, uses the default value in `config.norm`.
         percentile : list or tuple of two floats, or None, default=`_default_flag`
             Default percentile range used to determine 'vmin' and 'vmax'.
-            If `_default_flag`, uses default value from `va_config.percentile`.
+            If `_default_flag`, uses default value from `config.percentile`.
             If None, use no percentile stretch.
         origin : {'upper', 'lower'} or None, default=None
             Pixel origin convention for imshow. If None,
-            uses the default value from `va_config.origin`.
+            uses the default value from `config.origin`.
         wcs_input : `astropy.wcs.WCS`, `astropy.io.fits.Header`, list, tuple, or bool, optional
             World Coordinate System (WCS) definition for the input data. If `None`,
             the method will attempt to infer a WCS from the provided data if it is a
@@ -154,7 +154,7 @@ class va:
             or image orientation is flipped. Ignored if no valid WCS is present.
         cmap : str, list of str or None, default=None
             Matplotlib colormap name or list of colormaps, cycled across images.
-            If None, uses the default value from `va_config.cmap`.
+            If None, uses the default value from `config.cmap`.
             ex: ['turbo', 'RdPu_r']
         aspect : {'auto', 'equal'}, float, or None, optional, default=`_default_flag`
             Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
@@ -162,21 +162,21 @@ class va:
             sets an aspect ratio of 1. None defaults to 'equal', however, if the
             image uses a transform that does not contain the axes data transform,
             then None means to not modify the axes aspect at all. If `_default_flag`,
-            uses the default value from `va_config.aspect`.
+            uses the default value from `config.aspect`.
         mask_non_pos : bool or None, optional, default=None
             If True, mask out non-positive data values. Useful for displaying
             log scaling of images with non-positive values. If None, uses the
-            default value set by `va_config.mask_non_positive`.
+            default value set by `config.mask_non_positive`.
         wcs_grid : bool or None, optional, default=None
             If True, display WCS grid ontop of plot. If None,
-            uses the default value set by `va_config.wcs_grid`.
+            uses the default value set by `config.wcs_grid`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
@@ -185,22 +185,22 @@ class va:
                 Invert the x-axis if True.
             - `invert_yaxis` : bool, optional, default=False
                 Invert the y-axis if True.
-            - `text_loc` : list of float, optional, default=`va_config.text_loc`
+            - `text_loc` : list of float, optional, default=`config.text_loc`
                 Relative axes coordinates for text placement when
                 plotting interactive ellipses.
-            - `text_color` : str, optional, default=`va_config.text_color`
+            - `text_color` : str, optional, default=`config.text_color`
                 Color of the ellipse annotation text.
             - `xlabel` : str, optional, default=None
                 X-axis label.
             - `ylabel` : str, optional, default=None
                 Y-axis label.
-            - `colorbar` : bool, optional, default=`va_config.cbar`
+            - `colorbar` : bool, optional, default=`config.cbar`
                 Add colorbar if True.
-            - `clabel` : str or bool, optional, default=`va_config.clabel`
+            - `clabel` : str or bool, optional, default=`config.clabel`
                 Colorbar label. If True, use default label; if None or False, no label.
-            - `cbar_width` : float, optional, default=`va_config.cbar_width`
+            - `cbar_width` : float, optional, default=`config.cbar_width`
                 Width of the colorbar.
-            - `cbar_pad` : float, optional, default=`va_config.cbar_pad`
+            - `cbar_pad` : float, optional, default=`config.cbar_pad`
                 Padding between plot and colorbar.
             - `circles` : list, optional, default=None
                 List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
@@ -219,23 +219,23 @@ class va:
                 Width of the default interactive ellipse.
             - `h` : float, optional, default=Y//5
                 Height of the default interactive ellipse.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         # by default plot WCS if available
         wcs = None
@@ -313,11 +313,11 @@ class va:
         vmin : float or None, optional, default=`_default_flag`
             Lower limit for colormap scaling; overides `percentile[0]`.
             If None, values are determined from `percentile[0]`.
-            If `_default_flag`, uses the default value in `va_config.vmin`.
+            If `_default_flag`, uses the default value in `config.vmin`.
         vmax : float or None, optional, default=`_default_flag`
             Upper limit for colormap scaling; overides `percentile[1]`.
             If None, values are determined from `percentile[1]`.
-            If `_default_flag`, uses the default value in `va_config.vmax`.
+            If `_default_flag`, uses the default value in `config.vmax`.
         norm : str or None, optional, default=`_default_flag`
             Normalization algorithm for colormap scaling.
             - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -325,34 +325,34 @@ class va:
             - 'log' -> logarithmic scaling using 'LogNorm'
             - 'powernorm' -> power-law normalization using 'PowerNorm'
             - 'linear', 'none', or None -> no normalization applied
-            If `_default_flag`, uses the default value in `va_config.norm`.
+            If `_default_flag`, uses the default value in `config.norm`.
         percentile : list or tuple of two floats, or None, default=`_default_flag`
             Default percentile range used to determine `vmin` and `vmax`.
             If None, use no percentile stretch (as long as vmin/vmax are None).
-            If `_default_flag`, uses default value from `va_config.percentile`.
+            If `_default_flag`, uses default value from `config.percentile`.
         radial_vel : float or None, optional, default=None
             Radial velocity in km/s to shift the spectral axis.
             Astropy units are optional. If None, uses the default
-            value set by `va_config.radial_velocity`.
+            value set by `config.radial_velocity`.
         unit : astropy.units.Unit or str, optional, default=None
             Desired spectral axis unit for labeling.
         cmap : str, list or tuple of str, or None, default=None
             Colormap(s) to use for plotting. If None,
-            uses the default value set by `va_config.cmap`.
+            uses the default value set by `config.cmap`.
         mask_non_pos : bool or None, optional, default=None
             If True, mask out non-positive data values. Useful for displaying
             log scaling of images with non-positive values. If None, uses the
-            default value set by `va_config.mask_non_positive`.
+            default value set by `config.mask_non_positive`.
         wcs_grid : bool or None, optional, default=None
             If True, display WCS grid ontop of plot. If None,
-            uses the default value set by `va_config.wcs_grid`.
+            uses the default value set by `config.wcs_grid`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
@@ -361,25 +361,25 @@ class va:
                 If True, display spectral slice label as plot title.
             - `emission_line` : str or None, default=None
                 Optional emission line label to display instead of slice value.
-            - `text_loc` : list of float, default=`va_config.text_loc`
+            - `text_loc` : list of float, default=`config.text_loc`
                 Relative axes coordinates for overlay text placement.
-            - `text_color` : str, default=`va_config.text_color`
+            - `text_color` : str, default=`config.text_color`
                 Color of overlay text.
-            - `colorbar` : bool, default=`va_config.cbar`
+            - `colorbar` : bool, default=`config.cbar`
                 Whether to add a colorbar.
-            - `cbar_width` : float, default=`va_config.cbar_width`
+            - `cbar_width` : float, default=`config.cbar_width`
                 Width of the colorbar.
-            - `cbar_pad` : float, default=`va_config.cbar_pad`
+            - `cbar_pad` : float, default=`config.cbar_pad`
                 Padding between axes and colorbar.
-            - `clabel` : str, bool, or None, default=`va_config.clabel`
+            - `clabel` : str, bool, or None, default=`config.clabel`
                 Label for colorbar. If True, automatically generate from cube unit.
-            - `xlabel` : str, default=`va_config.right_ascension`
+            - `xlabel` : str, default=`config.right_ascension`
                 X axis label.
-            - `ylabel` : str, default=`va_config.declination`
+            - `ylabel` : str, default=`config.declination`
                 Y axis label.
             - `spectral_label` : bool, optional, default=True
                 Whether to draw spectral slice value as a label.
-            - `highlight` : bool, optional, default=`va_config.highlight`
+            - `highlight` : bool, optional, default=`config.highlight`
                 Whether to highlight interactive ellipse if plotted.
             - `ellipses` : list or None, default=None
                 Ellipse objects to overlay on the image.
@@ -391,14 +391,14 @@ class va:
                 Width and height of default ellipse.
             - `angle` : float or None, default=None
                 Angle of ellipse in degrees.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
         Notes
@@ -407,11 +407,11 @@ class va:
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         cubes = cubes if isinstance(cubes, (list, np.ndarray, tuple)) else [cubes]
 
@@ -457,7 +457,7 @@ class va:
             If None, uses the default value set by `plot_normalized_continuum`.
         plot_continuum_fit : bool, optional, default=None
             If True, overplot continuum fit. If None, uses
-            the default value set by `va_config.plot_continuum_fit`.
+            the default value set by `config.plot_continuum_fit`.
         emission_line : str, optional, default=None
             Label for an emission line to annotate on the plot.
         wavelength : array-like, optional, default=None
@@ -469,30 +469,30 @@ class va:
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
             If None, uses the default color palette from
-            `va_config.default_palette`.
+            `config.default_palette`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
             - `color` or `c` : list of colors or None, optional, default=None
                 Aliases for `colors`.
-            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
                 Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
                 Line width for the plotted lines.
-            - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+            - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
                 The alpha blending value, between 0 (transparent) and 1 (opaque).
             - `zorders`, `zorder` : float, default=None
                 Order of line placement. If None, will increment by 1 for
                 each additional line plotted.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple, optional, default=None
                 Wavelength range to display.
@@ -500,33 +500,33 @@ class va:
                 Flux range to display.
             - `labels`, `label`, `l` : str or list of str, default=None
                 Legend labels.
-            - `loc` : str, default=`va_config.loc`
+            - `loc` : str, default=`config.loc`
                 Location of legend.
             - `xlabel` : str, optional
                 Label for the x-axis.
             - `ylabel` : str, optional
                 Label for the y-axis.
-            - `text_loc` : list of float, optional, default=`va_config.text_loc`
+            - `text_loc` : list of float, optional, default=`config.text_loc`
                 Location for emission line annotation text in axes coordinates.
-            - `use_brackets` : bool, optional, default=`va_config.use_brackets`
+            - `use_brackets` : bool, optional, default=`config.use_brackets`
                 If True, plot units in square brackets; otherwise, parentheses.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         # set plot style
         style = return_stylename(style)
@@ -588,14 +588,14 @@ class va:
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
             If None, uses the default color palette from
-            `va_config.default_palette`.
+            `config.default_palette`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
@@ -604,30 +604,30 @@ class va:
                 y-axis limits as (ymin, ymax).
             - `color` or `c` : list of colors or None, optional, default=None
                 Aliases for `colors`.
-            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
                 Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
                 Line width for the plotted lines.
-            - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+            - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
                 The alpha blending value, between 0 (transparent) and 1 (opaque).
-            - cmap : str, optional, default=`va_config.cmap`
+            - cmap : str, optional, default=`config.cmap`
                 Colormap name for generating colors.
             - label : str, optional, default=None.
                 Label for the plotted spectrum.
-            - loc : str, optional, default=`va_config.loc`
+            - loc : str, optional, default=`config.loc`
                 Legend location (e.g., 'best', 'upper right').
             - xlabel, ylabel : str, optional, default=None
                 Axis labels.
-            - use_brackets : bool, optional, default=`va_config.use_brackets`
+            - use_brackets : bool, optional, default=`config.use_brackets`
                 If True, format axis labels with units in brackets instead of parentheses.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
         Returns
@@ -643,11 +643,11 @@ class va:
         wavelength interval before plotting.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         # set plot style
         style = return_stylename(style)
@@ -695,82 +695,82 @@ class va:
         bins : int, sequence, str, or None, optional, default=None
             Histogram bin specification. Passed directly to
             `matplotlib.pyplot.hist`. If None, uses the default
-            value from `va_config.bins`. If `bins` is a str, use
+            value from `config.bins`. If `bins` is a str, use
             one of the supported binning strategies 'auto', 'fd',
             'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
         xlog : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the scatter plot.
-            If None, uses the default value from `va_config.xlog`.
+            If None, uses the default value from `config.xlog`.
         ylog : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the scatter plot.
-            If None, uses the default value from `va_config.ylog`.
+            If None, uses the default value from `config.ylog`.
         xlog_hist : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the top histogram.
-            If None, uses the default value from `va_config.xlog_hist`.
+            If None, uses the default value from `config.xlog_hist`.
         ylog_hist : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the right histogram.
-            If None, uses the default value from `va_config.ylog_hist`.
+            If None, uses the default value from `config.ylog_hist`.
         histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-            Type of histogram to draw. If None, uses the default value from `va_config.histtype`.
+            Type of histogram to draw. If None, uses the default value from `config.histtype`.
         normalize : bool, optional, default=None
             If True, normalize histograms to a probability density.
-            If None, uses the default value from `va_config.normalize_hist`.
+            If None, uses the default value from `config.normalize_hist`.
         colors : list of colors, str, or None, optional, default=None
             Colors for each dataset. If None, uses the
-            default color palette from `va_config.default_palette`.
+            default color palette from `config.default_palette`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keyword arguments include:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
             - `color`, `c` : list of colors, str, or None, optional, default=None
                 aliases for `colors`.
-            - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
+            - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
                 Marker size(s) for scatter points.
-            - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
+            - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
                 Marker style(s) for scatter points.
-            - `alphas`, `alpha`, `a` : float or list, optional, default=`va_config.alpha`
+            - `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
                 Transparency level(s).
-            - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`va_config.edgecolor`
+            - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
                 Edge colors for scatter points.
-            - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`va_config.linestyle`
+            - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
                 Line style(s) for histogram edges.
-            - `linewidth`, `lw` : float or list, optional, default=`va_config.linewidth`
+            - `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
                 Line width(s) for histogram edges.
             - `zorders`, `zorder` : int or list, optional, default=None
                 Z-order(s) for drawing priority.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap name for automatic color assignment.
             - `xlim`, `ylim` : tuple, optional, default=None
                 Axis limits for the scatter plot.
             - `labels`, `label`, `l` : list or str, optional, default=None
                 Labels for legend entries.
-            - `loc` : str, optional, default=`va_config.loc`
+            - `loc` : str, optional, default=`config.loc`
                 Legend location.
             - `xlabel`, `ylabel` : str, optional, default=None
                 Axis labels for the scatter plot.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -818,37 +818,37 @@ class va:
         bins : int, sequence, str, or None, optional, default=None
             Histogram bin specification. Passed directly to
             `matplotlib.pyplot.hist`. If None, uses the default
-            value from `va_config.bins`. If `bins` is a str, use
+            value from `config.bins`. If `bins` is a str, use
             one of the supported binning strategies 'auto', 'fd',
             'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
         xlog : bool or None, optional, default=None
             If True, set x-axis to logarithmic scale.
-            If None, uses the default value from `va_config.xlog`.
+            If None, uses the default value from `config.xlog`.
         ylog : bool or None, optional, default=None
             If True, set y-axis to logarithmic scale.
-            If None, uses the default value from `va_config.ylog`.
+            If None, uses the default value from `config.ylog`.
         histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-            Matplotlib histogram type. If None, uses the default value from `va_config.histtype`.
+            Matplotlib histogram type. If None, uses the default value from `config.histtype`.
         normalize : bool or None, optional, default=None
             If True, normalize histograms to a probability density.
-            If None, uses the default value from `va_config.normalize_hist`.
+            If None, uses the default value from `config.normalize_hist`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each dataset. If None,
-            uses the default color palette from `va_config.default_palette`.
+            uses the default color palette from `config.default_palette`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
             - `color`, `c` : list of colors, str, or None, optional, default=None
                 aliases for `colors`.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple, optional
                 X data range to display.
@@ -856,29 +856,29 @@ class va:
                 Y data range to display.
             - `labels`, `label`, `l` : str or list of str, default=None
                 Legend labels.
-            - `loc` : str, default=`va_config.loc`
+            - `loc` : str, default=`config.loc`
                 Location of legend.
             - `xlabel` : str or None, optional
                 Label for the x-axis.
             - `ylabel` : str or None, optional
                 Label for the y-axis.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -922,27 +922,27 @@ class va:
             The Axes object to plot on.
         normalize : bool or None, optional, default=None
             If True, normalize each line by its maximum value.
-            If None, uses the default value from `va_config.normalize_data`.
+            If None, uses the default value from `config.normalize_data`.
         xlog : bool or None, optional, default=None
             If True, set the x-axis to logarithmic scale.
-            If None, uses the default value from `va_config.xlog`.
+            If None, uses the default value from `config.xlog`.
         ylog : bool or None, optional, default=None
             If True, set the y-axis to logarithmic scale.
-            If None, uses the default value from `va_config.ylog`.
+            If None, uses the default value from `config.ylog`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each line. If None, uses the
-            default color palette from `va_config.default_palette`.
+            default color palette from `config.default_palette`.
         linestyle : str, list of str, or None, optional, default=None
             Line style(s) to use for plotting. Can be a single string or a list of
             styles for multiple lines. Accepted values are:
             {'-', '--', '-.', ':', ''}. If None, uses the default
-            value set in `va_config.linestyle`.
+            value set in `config.linestyle`.
         linewidth : float, list of float, or None, optional, default=None
             Line width for the plotted lines. If None, uses the
-            default value set in `va_config.linewidth`.
+            default value set in `config.linewidth`.
         alpha : float, list of float or None, optional, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value set in `va_config.alpha`.
+            If None, uses the default value set in `config.alpha`.
         zorder : float or list of float, optional, default=None
             Order in which to plot lines in. Lines are drawn in order
             of greatest to lowest zorder. If None, starts at 0 and increments
@@ -953,20 +953,20 @@ class va:
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
                 Aliases for `colors`.
-            - `linestyles`, `ls` : str or list of str, default=`va_config.linestyle`
+            - `linestyles`, `ls` : str or list of str, default=`config.linestyle`
                 Aliases for `linestyle`.
-            - `linewidths`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+            - `linewidths`, `lw` : float or list of float, optional, default=`config.linewidth`
                 Aliases for `linewidth`.
-            - `alphas`, `a` : float or list of float, default=`va_config.alpha`
+            - `alphas`, `a` : float or list of float, default=`config.alpha`
                 Aliases for `alpha`.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
                 Limits for the x-axis.
@@ -974,7 +974,7 @@ class va:
                 Limits for the y-axis.
             - `labels`, `label`, `l` : str or list of str, default=None
                 Legend labels.
-            - `loc` : str, default=`va_config.loc`
+            - `loc` : str, default=`config.loc`
                 Location of legend.
             - `xlabel` : str or None
                 Label for the x-axis.
@@ -985,22 +985,22 @@ class va:
                 axis limits. Defined as:
                     xmax/min ±= xpad * (xmax - xmin)
                     ymax/min ±= ypad * (ymax - ymin)
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -1043,62 +1043,62 @@ class va:
             x-axis errors on `Y`. Should be same shape as `Y`.
         normalize : bool or None, optional, default=None
             If True, normalize each line by its maximum value.
-            If None, uses the default value from `va_config.normalize_data`.
+            If None, uses the default value from `config.normalize_data`.
         xlog : bool or None, optional, default=None
             If True, set the x-axis to logarithmic scale. If
-            None, uses the default value in `va_config.xlog`.
+            None, uses the default value in `config.xlog`.
         ylog : bool or None, optional, default=None
             If True, set the y-axis to logarithmic scale. If
-            None, uses the default value in `va_config.ylog`.
+            None, uses the default value in `config.ylog`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
             If None, uses the default color palette from
-            `va_config.default_palette`.
+            `config.default_palette`.
         size : float, list of float, or None, optional, default=None
             Size of scatter dots. If None, uses the default
-            value in `va_config.scatter_size`.
+            value in `config.scatter_size`.
         marker : str, list of str, or None, optional, default=None
             Marker style for scatter dots. If None, uses the
-            default value in `va_config.marker`.
+            default value in `config.marker`.
         alpha : float, list of float, or None, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value from `va_config.alpha`.
+            If None, uses the default value from `config.alpha`.
         edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
             The edge color of the marker. Possible values:
             - 'face': The edge color will always be the same as the face color.
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
-            If `_default_flag`, uses the default value in `va_config.edgecolor`.
+            If `_default_flag`, uses the default value in `config.edgecolor`.
         facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
             The face color of the marker. Possible values:
             - 'none': Sets the face color to transparent
             - A color or sequence of colors
             - None: No face color is set (facecolor is set to marker color).
-            If `_default_flag`, uses the default value in `va_config.facecolor`.
+            If `_default_flag`, uses the default value in `config.facecolor`.
 
         **kwargs : dict, optional
             Additional parameters.
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
                 Aliases for `colors`.
-            - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+            - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
                 Aliases for `size`.
-            - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+            - `markers`, `m` : str or list of str, optional, default=`config.marker`
                 Aliases for `marker`.
-            - `alphas`, `a` : float or list of float default=`va_config.alpha`
+            - `alphas`, `a` : float or list of float default=`config.alpha`
                 Aliases for `alpha`.
-            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
                 Aliases for `edgecolors`.
             - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
                 Aliases for `facecolors`.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
                 Limits for the x-axis.
@@ -1106,38 +1106,38 @@ class va:
                 Limits for the y-axis.
             - `labels`, `label`, `l` : str or list of str, default=None
                 Legend labels.
-            - `loc` : str, default=`va_config.loc`
+            - `loc` : str, default=`config.loc`
                 Location of legend.
             - `xlabel` : str or None
                 Label for the x-axis.
             - `ylabel` : str or None
                 Label for the y-axis.
-            - `ecolors`, `ecolor` : color or list of color, optional, default=`va_config.ecolors`
+            - `ecolors`, `ecolor` : color or list of color, optional, default=`config.ecolors`
                 Color(s) of the error bars.
-            - `elinewidth` : float, default=`va_config.elinewidth`
+            - `elinewidth` : float, default=`config.elinewidth`
                 Line width of the error bars.
-            - `capsize` : float, default=`va_config.capsize`
+            - `capsize` : float, default=`config.capsize`
                 Length of the error bar caps in points.
-            - `capthick` : float, default=`va_config.capthick`
+            - `capthick` : float, default=`config.capthick`
                 Thickness of the error bar caps in points.
-            - `barsabove` : bool, default=`va_config.barsabove`
+            - `barsabove` : bool, default=`config.barsabove`
                 If True, draw error bars above the plot symbols; otherwise, below.
-            - `figsize` : tuple of float, default=`va_config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize)
+        style = kwargs.get('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):
@@ -1188,22 +1188,22 @@ class va:
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
             If None, uses the default color palette from
-            `va_config.default_palette`.
+            `config.default_palette`.
         size : float, list of float, or None, optional, default=None
             Size of scatter dots. If None, uses the default
-            value in `va_config.scatter_size`.
+            value in `config.scatter_size`.
         marker : str, list of str, or None, optional, default=None
             Marker style for scatter dots. If None, uses the
-            default value in `va_config.marker`.
+            default value in `config.marker`.
         alpha : float, list of float, or None, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value from `va_config.alpha`.
+            If None, uses the default value from `config.alpha`.
         edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
             The edge color of the marker. Possible values:
             - 'face': The edge color will always be the same as the face color.
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
-            If `_default_flag`, uses the default value in `va_config.edgecolor`.
+            If `_default_flag`, uses the default value in `config.edgecolor`.
         plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
             Specifies which contour projections to draw onto the side planes of the 3D axes.
             Each entry indicates the axis *normal* to the projection plane:
@@ -1218,22 +1218,22 @@ class va:
 
             Supported keywords:
 
-            - `rasterized` : bool, default=`va_config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
                 Aliases for `colors`.
-            - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+            - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
                 Aliases for `size`.
-            - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+            - `markers`, `m` : str or list of str, optional, default=`config.marker`
                 Aliases for `marker`.
-            - `alphas`, `a` : float or list of float default=`va_config.alpha`
+            - `alphas`, `a` : float or list of float default=`config.alpha`
                 Aliases for `alpha`.
-            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
                 Aliases for `edgecolors`.
-            - `cmap` : str, optional, default=`va_config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
             - `xlim` : tuple of two floats or None
                 Limits for the x-axis.
@@ -1257,16 +1257,16 @@ class va:
                 Label for the z-axis.
             - `minor_ticks` : bool, default=False
                 If True, sets minor ticks for all axes.
-            - `figsize` : tuple of float, default=`va_config.figsize3d`
+            - `figsize` : tuple of float, default=`config.figsize3d`
                 Figure size in inches.
-            - `style` : str, default=`va_config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `tight_layout` : bool, optional, default=True
                 If True, uses `plt.tight_layout()`.
-            - `savefig` : bool, default=`va_config.savefig`
+            - `savefig` : bool, default=`config.savefig`
                 If True, saves the figure to disk using `save_figure_2_disk`.
-            - `dpi` : int, default=`va_config.dpi`
+            - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
         Returns
@@ -1291,12 +1291,12 @@ class va:
           and finally `scale` if provided.
         '''
         # figure params
-        figsize = kwargs.get('figsize', va_config.figsize3d)
-        style = kwargs.get('style', va_config.style)
+        figsize = kwargs.get('figsize', config.figsize3d)
+        style = kwargs.get('style', config.style)
         tight_layout = kwargs.get('tight_layout', True)
         # savefig
-        savefig = kwargs.get('savefig', va_config.savefig)
-        dpi = kwargs.get('dpi', va_config.dpi)
+        savefig = kwargs.get('savefig', config.savefig)
+        dpi = kwargs.get('dpi', config.dpi)
 
         style = return_stylename(style)
         with plt.style.context(style):

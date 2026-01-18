@@ -41,7 +41,7 @@ from .numerical_utils import (
     compute_density_kde, get_data, return_array_values, to_array
 )
 from .units import to_latex_unit, get_physical_type, get_units
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 
 
 # Plot Style and Color Functions
@@ -64,7 +64,7 @@ def return_stylename(style):
         mystylesheet.mplstyle
 
     If a style is unable to load due to missing fonts
-    or other errors, `va_config.style_fallback` is used.
+    or other errors, `config.style_fallback` is used.
 
     Parameters
     ----------
@@ -94,7 +94,7 @@ def return_stylename(style):
             f"[visualastro] Could not apply style '{style}' ({e}). "
             "Falling back to 'default' style."
         )
-        fallback = os.path.join(dir_path, 'stylelib', va_config.style_fallback)
+        fallback = os.path.join(dir_path, 'stylelib', config.style_fallback)
         return fallback
 
 
@@ -131,7 +131,7 @@ def sample_cmap(N, cmap=None, return_hex=False):
         Number of colors to sample.
     cmap : str, Colormap, or None, optional, default=None
         Name of the matplotlib colormap. If None,
-        uses the default value in `va_config.cmap`.
+        uses the default value in `config.cmap`.
     return_hex : bool, optional, default=False
         If True, return colors as hex strings.
 
@@ -140,7 +140,7 @@ def sample_cmap(N, cmap=None, return_hex=False):
     list of tuple
         A list of RGBA colors sampled evenly from the colormap.
     '''
-    # get default va_config values
+    # get default config values
     cmap = get_config_value(cmap, 'cmap')
 
     colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
@@ -157,7 +157,7 @@ def set_plot_colors(user_colors=None, cmap=None):
     Parameters
     ----------
     user_colors : str, list, or None, optional, default=None
-        - None: returns the default palette (`va_config.default_palette`).
+        - None: returns the default palette (`config.default_palette`).
         - str:
             * If the string matches a palette name, returns that palette.
             * If the string ends with '_r', returns the reversed version of the palette.
@@ -171,7 +171,7 @@ def set_plot_colors(user_colors=None, cmap=None):
               using sample_cmap(). By default uses 'turbo'.
     cmap : str, list of str, or None, default=None
         Matplotlib colormap name. If None, uses
-        the default value in `va_config.cmap`.
+        the default value in `config.cmap`.
 
     Returns
     -------
@@ -211,9 +211,9 @@ def set_plot_colors(user_colors=None, cmap=None):
             'model': ['#808080', '#FF6B6B', '#6B6BFF', '#6BFF6B', '#6BFFFF', '#FF6BFF', '#FFFF6B']
         }
     }
-    # get default va_config values
+    # get default config values
     cmap = get_config_value(cmap, 'cmap')
-    default_palette = va_config.default_palette
+    default_palette = config.default_palette
 
     # default case
     if user_colors is None:
@@ -274,11 +274,11 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
 
         Supported keywords:
 
-        - `linear_width` : float, optional, default=`va_config.linear_width`
+        - `linear_width` : float, optional, default=`config.linear_width`
             The effective width of the linear region, beyond
             which the transformation becomes asymptotically logarithmic.
             Only used in 'asinhnorm'.
-        - `gamma` : float, optional, default=`va_config.gamma`
+        - `gamma` : float, optional, default=`config.gamma`
             Power law exponent.
 
     Returns
@@ -286,8 +286,8 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
     norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
         Normalization object to pass to `imshow`. None if `norm` is 'none'.
     '''
-    linear_width = kwargs.get('linear_width', va_config.linear_width)
-    gamma = kwargs.get('gamma', va_config.gamma)
+    linear_width = kwargs.get('linear_width', config.linear_width)
+    gamma = kwargs.get('gamma', config.gamma)
 
     # use linear stretch if plotting boolean array
     if vmin==0 and vmax==1:
@@ -330,7 +330,7 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     percentile : list or tuple of two floats, or None, default=`_default_flag`
         Percentile range '[pmin, pmax]' to compute vmin and vmax.
         If None, sets vmin and vmax to None. If `_default_flag`, uses
-        default value from `va_config.percentile`.
+        default value from `config.percentile`.
     vmin : float or None, default=None
         If provided, overrides the computed vmin.
     vmax : float or None, default=None
@@ -343,7 +343,7 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     vmax : float or None
         Maximum value for image scaling.
     '''
-    percentile = va_config.percentile if percentile is _default_flag else percentile
+    percentile = config.percentile if percentile is _default_flag else percentile
     # check if data is an array
     data = to_array(data)
     # check if data is boolean
@@ -418,29 +418,29 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     ----------
     nrows : int or None, default=None
         Number of subplot rows. If None, uses
-        the default value set in `va_config.nrows`.
+        the default value set in `config.nrows`.
     ncols : int or None, default=None
         Number of subplot columns. If None, uses
-        the default value set in `va_config.ncols`.
+        the default value set in `config.ncols`.
     figsize : tuple of float or None, default=None
         Figure size in inches as (width, height). If None,
-        uses the default value set in `va_config.grid_figsize`.
+        uses the default value set in `config.grid_figsize`.
     sharex : bool or None, default=None
         If True, share the x-axis among all subplots. If None,
-        uses the default value set in `va_config.sharex`.
+        uses the default value set in `config.sharex`.
     sharey : bool or None, default=None
         If True, share the y-axis among all subplots. If None,
-        uses the default value set in `va_config.sharey`.
+        uses the default value set in `config.sharey`.
     hspace : float or None, default=`_default_flag`
         Height padding between subplots. If None,
         Matplotlib’s default spacing is used. If
         `_default_flag`, uses the default value set in
-        `va_config.hspace`.
+        `config.hspace`.
     wspace : float or None, default=`_default_flag`
         Width padding between subplots. If None,
         Matplotlib’s default spacing is used. If
         `_default_flag`, uses the default value set in
-        `va_config.wspace`.
+        `config.wspace`.
     width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
         Defines the relative widths of the columns. Each column gets a relative width
@@ -457,7 +457,7 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     Nticks : int or None, default=`_default_flag`
         Maximum number of major ticks per axis. If None,
         uses the default matplotlib settings. If `_default_flag`,
-        uses the default value set in `va_config.Nticks`.
+        uses the default value set in `config.Nticks`.
     aspect : float or None, default=None
         Changes the physical dimensions of the Axes,
         such that the ratio of the Axes height to the
@@ -472,15 +472,15 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     axs : ndarray of `~matplotlib.axes.Axes`
         Flattened array of Axes objects, ordered row-wise.
     '''
-    # get default va_config values
+    # get default config values
     nrows = get_config_value(nrows, 'nrows')
     ncols = get_config_value(ncols, 'ncols')
     figsize = get_config_value(figsize, 'grid_figsize')
     sharex = get_config_value(sharex, 'sharex')
     sharey = get_config_value(sharey, 'sharey')
-    hspace = va_config.hspace if hspace is _default_flag else hspace
-    wspace = va_config.wspace if wspace is _default_flag else wspace
-    Nticks = va_config.Nticks if Nticks is _default_flag else Nticks
+    hspace = config.hspace if hspace is _default_flag else hspace
+    wspace = config.wspace if wspace is _default_flag else wspace
+    Nticks = config.Nticks if Nticks is _default_flag else Nticks
 
     Nx = nrows
     Ny = ncols
@@ -537,7 +537,7 @@ def add_subplot(
         a new figure is created.
     figsize : tuple of float, optional, default=None
         Figure size in inches. If None, uses the
-        default value set by `va_config.figsize`.
+        default value set by `config.figsize`.
     projection : str or None, optional, default=None
         Projection type for the subplot. Examples include WCSAxes or
         {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
@@ -571,7 +571,7 @@ def add_subplot(
     Create a 3D subplot:
     >>> fig, ax = add_subplot(projection='3d', return_fig=True)
     '''
-    # get default va_config values
+    # get default config values
     figsize = get_config_value(figsize, 'figsize')
     # create figure if not passed in
     if fig is None:
@@ -597,11 +597,11 @@ def add_colorbar(im, ax, cbar_width=None,
         The axes to which the colorbar will be attached.
     cbar_width : float or None, optional, default=None
         Width of the colorbar in figure coordinates.
-        If None, uses the default value set in `va_config.cbar_width`.
+        If None, uses the default value set in `config.cbar_width`.
     cbar_pad : float or None, optional, default=None
         Padding between the main axes and the colorbar
         in figure coordinates. If None, uses the default
-        value set in `va_config.cbar_pad`.
+        value set in `config.cbar_pad`.
     clabel : str, optional
         Label for the colorbar. If None, no label is set.
     rasterized : bool or None, default=None
@@ -609,9 +609,9 @@ def add_colorbar(im, ax, cbar_width=None,
         converts the artist to a bitmap when saving to
         vector formats (e.g., PDF, SVG), which can
         significantly reduce file size for complex plots.
-        If None, uses default value set by `va_config.rasterized`
+        If None, uses default value set by `config.rasterized`
     '''
-    # get default va_config values
+    # get default config values
     cbar_width = get_config_value(cbar_width, 'cbar_width')
     cbar_pad = get_config_value(cbar_pad, 'cbar_pad')
     rasterized = get_config_value(rasterized, 'rasterized')
@@ -624,7 +624,7 @@ def add_colorbar(im, ax, cbar_width=None,
     # add colorbar
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
     # formatting and label
-    cbar.ax.tick_params(which=va_config.cbar_tick_which, direction=va_config.cbar_tick_dir)
+    cbar.ax.tick_params(which=config.cbar_tick_which, direction=config.cbar_tick_dir)
     if clabel is not None:
         cbar.set_label(fr'{clabel}')
 
@@ -677,7 +677,7 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         If None, contours are plotted in 2D.
     offset : float or None, default=None
         Offset along the `zdir` direction for projecting contours in 3D space.
-    cmap : str, optional, default=`va_config.cmap`
+    cmap : str, optional, default=`config.cmap`
         Colormap used for plotting contours.
 
     **kwargs : dict, optional
@@ -685,7 +685,7 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
 
         Supported keywords:
 
-        - `fontsize` : float, default=`va_config.fontsize`
+        - `fontsize` : float, default=`config.fontsize`
             Fontsize of contour labels.
 
     Returns
@@ -694,8 +694,8 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         The contour set object created by Matplotlib.
     '''
     # ---- KWARGS ----
-    fontsize = kwargs.get('fontsize', va_config.fontsize)
-    # get default va_config values
+    fontsize = kwargs.get('fontsize', config.fontsize)
+    # get default config values
     cmap = get_config_value(cmap, 'cmap')
     # get contour plotting method
     contour_method = {
@@ -748,15 +748,15 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
 
         Supported keywords:
 
-        - `xpad`/`ypad` : float, optional, default=`va_config.xpad`/`va_config.ypad`
+        - `xpad`/`ypad` : float, optional, default=`config.xpad`/`config.ypad`
             Padding along x and y axis used when computing axis limits.
             Defined as:
                 xmax/min ±= xpad * (xmax - xmin)
                 ymax/min ±= ypad * (ymax - ymin)
     '''
     # ---- KWARGS ----
-    xpad = kwargs.get('xpad', va_config.xpad)
-    ypad = kwargs.get('ypad', va_config.ypad)
+    xpad = kwargs.get('xpad', config.xpad)
+    ypad = kwargs.get('ypad', config.ypad)
 
     if xdata is not None:
         # concatenate list of data into single array
@@ -822,17 +822,17 @@ def set_axis_labels(
         Custom label for the y-axis. If None, the label is inferred from 'Y'.
     use_brackets : bool or None, optional, default=None
         If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
-        If None, uses the default value set in `va_config.use_brackets`.
+        If None, uses the default value set in `config.use_brackets`.
     use_type_label: bool or None, optional, default=None
         If True, include the physical type of the X and Y for the axis label if
-        available. If None, uses the default value set by `va_config.use_type_label`.
+        available. If None, uses the default value set by `config.use_type_label`.
     use_unit_label: bool or None, optional, default=None
         If True, include the unit of the X and Y for the axis label if
-        available. If None, uses the default value set by `va_config.use_unit_label`.
+        available. If None, uses the default value set by `config.use_unit_label`.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
         The format of the unit label. 'latex_inline' and 'inline' uses
         negative exponents while 'latex' uses fractions. If None, uses
-        the default value set by `va_config.unit_label_format`.
+        the default value set by `config.unit_label_format`.
 
     Examples
     --------
@@ -858,7 +858,7 @@ def set_axis_labels(
       The labels are formatted as either 'latex_inline' or 'latex', which displays fractions
       with either negative exponents or with fractions.
     '''
-    # get default va_config values
+    # get default config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
     use_type_label = get_config_value(use_type_label, 'use_type_label')
     use_unit_label = get_config_value(use_unit_label, 'use_unit_label')
@@ -959,15 +959,15 @@ def plot_circles(
         sampled from a colormap using sample_cmap(cmap=`cmap`).
     linewidth : float or None, optional, default=None
         Width of the circle edge lines. If None,
-        uses the default value set in `va_config.linewidth`.
+        uses the default value set in `config.linewidth`.
     fill : bool or None, optional, default=None
         Whether the circles are filled. If None,
-        uses the default value set in `va_config.circle_fill`.
+        uses the default value set in `config.circle_fill`.
     cmap : str or None, optional, default=None
         matplolib cmap used to sample default circle colors.
-        If None, uses the default value set in `va_config.cmap`.
+        If None, uses the default value set in `config.cmap`.
     '''
-    # get default va_config values
+    # get default config values
     linewidth = get_config_value(linewidth, 'linewidth')
     fill = get_config_value(fill, 'circle_fill')
     cmap = get_config_value(cmap, 'cmap')
@@ -1060,20 +1060,20 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
         The Axes on which to draw the ellipse selector.
     text_loc : list of float or None, optional, default=None
         Position of the text label in Axes coordinates, given as [x, y].
-        If None, uses the default value set in `va_config.text_loc`.
+        If None, uses the default value set in `config.text_loc`.
     text_color : str or None, optional, default=None
         Color of the annotation text. If None, uses
-        the default value set in `va_config.text_color`.
+        the default value set in `config.text_color`.
     highlight : bool or None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
-        uses the default value set in `va_config.highlight`.
+        uses the default value set in `config.highlight`.
 
     Notes
     -----
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     '''
-    # get default va_config values
+    # get default config values
     text_loc = get_config_value(text_loc, 'ellipse_label_loc')
     text_color = get_config_value(text_color, 'text_color')
     highlight = get_config_value(highlight, 'highlight')

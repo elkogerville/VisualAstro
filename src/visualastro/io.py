@@ -27,7 +27,7 @@ import numpy as np
 from tqdm import tqdm
 from .numerical_utils import to_array
 from .FitsFile import FitsFile
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 from .wcs_utils import _reproject_wcs
 
 
@@ -53,13 +53,13 @@ def load_fits(filepath, header=True, error=True,
         If True, return the 'ERR' extention of the fits file.
     print_info : bool or None, default=None
         If True, print HDU information using 'hdul.info()'.
-        If None, uses the default value set by `va_config.print_info`.
+        If None, uses the default value set by `config.print_info`.
     transpose : bool or None, default=None
         If True, transpose the data array before returning.
         This will also transpose the error array and swap
         the WCS axes for consistency. The swapping of the WCS
-        can be disabled by `va_config.invert_wcs_if_transpose`.
-        If None, uses the default value set by `va_config.transpose`.
+        can be disabled by `config.invert_wcs_if_transpose`.
+        If None, uses the default value set by `config.transpose`.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
@@ -69,30 +69,30 @@ def load_fits(filepath, header=True, error=True,
         data set. Input data must have a valid header
         to extract WCS from. If None, will not reproject
         the input data. If `_default_flag`, uses the default
-        value set by `va_config.target_wcs`.
+        value set by `config.target_wcs`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
-        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
+        If None, uses the default value set by `config.invert_wcs_if_transpose`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `reproject_method` : {'interp', 'exact'} or None, default=`va_config.reproject_method`
+        - `reproject_method` : {'interp', 'exact'} or None, default=`config.reproject_method`
             Reprojection method:
             - 'interp' : use `reproject_interp`
             - 'exact' : use `reproject_exact`
-        - `return_footprint` : bool or None, optional, default=`va_config.return_footprint`
+        - `return_footprint` : bool or None, optional, default=`config.return_footprint`
             If True, return both reprojected data and reprojection
             footprints. If False, return only the reprojected data.
-        - `parallel` : bool, int, str, or None, optional, default=`va_config.reproject_parallel`
+        - `parallel` : bool, int, str, or None, optional, default=`config.reproject_parallel`
             If True, the reprojection is carried out in parallel,
             and if a positive integer, this specifies the number
             of threads to use. The reprojection will be parallelized
             over output array blocks specified by `block_size` (if the
             block size is not set, it will be determined automatically).
-        - `block_size` : tuple, ‘auto’, or None, optional, default=`va_config.reproject_block_size`
+        - `block_size` : tuple, ‘auto’, or None, optional, default=`config.reproject_block_size`
             The size of blocks in terms of output array pixels that each block
             will handle reprojecting. Extending out from (0,0) coords positively,
             block sizes are clamped to output space edges when a block would extend
@@ -114,15 +114,15 @@ def load_fits(filepath, header=True, error=True,
         If header is False, returns just the data component.
     '''
     # ---- KWARGS ----
-    reproject_method = kwargs.get('reproject_method', va_config.reproject_method)
-    return_footprint = kwargs.get('return_footprint', va_config.return_footprint)
-    parallel = kwargs.get('parallel', va_config.reproject_parallel)
-    block_size = kwargs.get('block_size', va_config.reproject_block_size)
+    reproject_method = kwargs.get('reproject_method', config.reproject_method)
+    return_footprint = kwargs.get('return_footprint', config.return_footprint)
+    parallel = kwargs.get('parallel', config.reproject_parallel)
+    block_size = kwargs.get('block_size', config.reproject_block_size)
 
-    # get default va_config values
+    # get default config values
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
-    target_wcs = va_config.target_wcs if target_wcs is _default_flag else target_wcs
+    target_wcs = config.target_wcs if target_wcs is _default_flag else target_wcs
     invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
 
     # disable transpose if reprojecting
@@ -219,14 +219,14 @@ def get_dtype(data, dtype=None, default_dtype=None):
         `np.float64` if integer or unsigned.
     default_dtype : data-type, optional, default=None
         Float type to use if `data` is integer or unsigned.
-        If None, uses the default unit set in `va_config.default_dtype`.
+        If None, uses the default unit set in `config.default_dtype`.
     Returns
     -------
     dtype : np.dtype
         NumPy dtype object: user dtype if given, otherwise the array's
         float dtype or `default_dtype` if array is integer/unsigned.
     '''
-    # get default va_config values
+    # get default config values
     default_dtype = get_config_value(default_dtype, 'default_unit')
 
     # return user dtype if passed in
@@ -376,7 +376,7 @@ def save_array(arr, filename, fmt=None):
     fmt : {'.dat', '.csv', '.npy', '.txt'} or None, optional, default=None
         Default output extension. Only used if filename has
         no extension. If None, uses the default value set by
-        `va_config.save_format`. The format is correctly recognized
+        `config.save_format`. The format is correctly recognized
         even if the '.' is omitted.
 
     Raises
@@ -469,12 +469,12 @@ def save_figure_2_disk(
     ----------
     dpi : float, int, or None, optional, default=None
         Resolution in dots per inch. If None, uses
-        the default value set by `va_config.dpi`.
+        the default value set by `config.dpi`.
     pdf_compression : int or None, optional, default=None
         'Pdf.compression' value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
         compression. If None, uses the default value
-        set by `va_config.pdf_compression`.
+        set by `config.pdf_compression`.
     transparent : bool, optional, default=False
         If True, the Axes patches will all be transparent;
         the Figure patch will also be transparent unless
@@ -483,7 +483,7 @@ def save_figure_2_disk(
         Bounding box in inches: only the given portion of the
         figure is saved. If 'tight', try to figure out the
         tight bbox of the figure. If `_default_flag`, uses
-        the default value set by `va_config.bbox_inches`.
+        the default value set by `config.bbox_inches`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -501,12 +501,12 @@ def save_figure_2_disk(
     facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
     edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
 
-    # get default va_config values
+    # get default config values
     dpi = get_config_value(dpi, 'dpi')
     pdf_compression = get_config_value(pdf_compression, 'pdf_compression')
-    bbox_inches = va_config.bbox_inches if bbox_inches is _default_flag else bbox_inches
+    bbox_inches = config.bbox_inches if bbox_inches is _default_flag else bbox_inches
 
-    allowed_formats = va_config.allowed_formats
+    allowed_formats = config.allowed_formats
     # prompt user for filename, and extract extension
     filename = input("Input filename for image (ex: myimage.pdf): ").strip()
     basename, *extension = filename.rsplit(".", 1)

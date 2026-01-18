@@ -19,7 +19,7 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
-from .va_config import get_config_value, va_config
+from .config import get_config_value, config
 
 
 def get_units(obj: Any) -> UnitBase | StructuredUnit | None:
@@ -140,7 +140,7 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
         The format of the unit label. 'latex_inline' and 'inline' uses
         negative exponents while 'latex' uses fractions. If None, uses
-        the default value set by `va_config.unit_label_format`.
+        the default value set by `config.unit_label_format`.
 
     Returns
     -------
@@ -263,11 +263,11 @@ def _infer_physical_type_label(obj: Any) -> str | None:
         return None
 
     if _is_spectral_axis(obj):
-        return va_config._SPECTRAL_TYPE_LABELS.get(
+        return config._SPECTRAL_TYPE_LABELS.get(
             physical_type, 'Spectral Axis'
         )
 
-    return va_config._PHYSICAL_TYPE_LABELS.get(
+    return config._PHYSICAL_TYPE_LABELS.get(
         physical_type, None
     )
 

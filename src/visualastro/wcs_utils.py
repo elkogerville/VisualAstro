@@ -27,7 +27,7 @@ from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
 from .fits_utils import _log_history
 from .utils import _unwrap_if_single
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 
 
 def get_wcs(header):
@@ -258,18 +258,18 @@ def _reproject_wcs(
             - 'interp' : use `reproject_interp`
             - 'exact' : use `reproject_exact`
         If None, uses the default value
-        set by `va_config.reproject_method`.
+        set by `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
-        If None, uses the default value set by `va_config.return_footprint`.
+        If None, uses the default value set by `config.return_footprint`.
     parallel : bool, int, str, or None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
-        If None, uses the default value set by `va_config.reproject_parallel`.
+        If None, uses the default value set by `config.reproject_parallel`.
     block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
@@ -277,7 +277,7 @@ def _reproject_wcs(
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -302,7 +302,7 @@ def _reproject_wcs(
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')
     parallel = get_config_value(parallel, 'reproject_parallel')
-    block_size = va_config.reproject_block_size if block_size is _default_flag else block_size
+    block_size = config.reproject_block_size if block_size is _default_flag else block_size
 
     if isinstance(reference_wcs, (list, tuple)):
         raise ValueError('reference_wcs must be a single WCS or Header')
@@ -420,18 +420,18 @@ def reproject_wcs(
             - 'interp' : use `reproject_interp`
             - 'exact' : use `reproject_exact`
         If None, uses the default value
-        set by `va_config.reproject_method`.
+        set by `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
-        If None, uses the default value set by `va_config.return_footprint`.
+        If None, uses the default value set by `config.return_footprint`.
     parallel : bool, int, str, or None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
-        If None, uses the default value set by `va_config.reproject_parallel`.
+        If None, uses the default value set by `config.reproject_parallel`.
     block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
@@ -439,7 +439,7 @@ def reproject_wcs(
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.

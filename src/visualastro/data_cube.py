@@ -38,7 +38,7 @@ from .plot_utils import (
     return_imshow_norm, set_vmin_vmax
 )
 from .units import to_latex_unit
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
@@ -64,23 +64,23 @@ def load_data_cube(filepath, error=True, hdu=None,
         Example: 'Spectro-Module/raw/HARPS*.fits'
     hdu : int or None, default=None
         Hdu extension to use. If None, uses the
-        default value set by `va_config.hdu_idx`.
+        default value set by `config.hdu_idx`.
     dtype : numpy.dtype, optional, default=None
         Data type for the loaded FITS data. If None, will use
         the dtype of the provided data, promoting integer or
         unsigned to `np.float64`.
     print_info : bool or None, optional, default=None
         If True, print summary information about the loaded cube.
-        If None, uses the default value set by `va_config.print_info`.
+        If None, uses the default value set by `config.print_info`.
     transpose : bool or None, optional, default=None
         If True, transpose each 2D image before stacking into the cube.
         This will also transpose each error array if available and
         swap the WCS axes for consistency. The swapping of the WCS
-        can be disabled by `va_config.invert_wcs_if_transpose`.
-        If None, uses the default value set by `va_config.transpose`.
+        can be disabled by `config.invert_wcs_if_transpose`.
+        If None, uses the default value set by `config.transpose`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
-        If None, uses the default value set by `va_config.invert_wcs_if_transpose`.
+        If None, uses the default value set by `config.invert_wcs_if_transpose`.
 
     Returns
     -------
@@ -192,7 +192,7 @@ def load_spectral_cube(filepath, hdu, error=True,
         from FITS data, promoting integer and unsigned to `np.float64`.
     print_info : bool or None, optional, default=None
         If True, print FITS file info to the console.
-        If None, uses default value set by `va_config.print_info`.
+        If None, uses default value set by `config.print_info`.
 
     Returns
     -------
@@ -251,11 +251,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     vmin : float or None, optional, default=`_default_flag`
         Lower limit for colormap scaling; overides `percentile[0]`.
         If None, values are determined from `percentile[0]`.
-        If `_default_flag`, uses the default value in `va_config.vmin`.
+        If `_default_flag`, uses the default value in `config.vmin`.
     vmax : float or None, optional, default=`_default_flag`
         Upper limit for colormap scaling; overides `percentile[1]`.
         If None, values are determined from `percentile[1]`.
-        If `_default_flag`, uses the default value in `va_config.vmax`.
+        If `_default_flag`, uses the default value in `config.vmax`.
     norm : str or None, optional, default=`_default_flag`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -263,35 +263,35 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
-        If `_default_flag`, uses the default value in `va_config.norm`.
+        If `_default_flag`, uses the default value in `config.norm`.
     percentile : list or tuple of two floats, or None, default=`_default_flag`
         Default percentile range used to determine `vmin` and `vmax`.
         If None, use no percentile stretch (as long as vmin/vmax are None).
-        If `_default_flag`, uses default value from `va_config.percentile`.
+        If `_default_flag`, uses default value from `config.percentile`.
     radial_vel : float or None, optional, default=None
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, uses the default
-        value set by `va_config.radial_velocity`.
+        value set by `config.radial_velocity`.
     unit : astropy.units.Unit or str, optional, default=None
         Desired spectral axis unit for labeling.
     cmap : str, list or tuple of str, or None, default=None
         Colormap(s) to use for plotting. If None,
-        uses the default value set by `va_config.cmap`.
+        uses the default value set by `config.cmap`.
     mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
-        default value set by `va_config.mask_non_positive`.
+        default value set by `config.mask_non_positive`.
     wcs_grid : bool or None, optional, default=None
         If True, display WCS grid ontop of plot. Requires
         using WCSAxes for `ax`. If None, uses the default
-        value set by `va_config.wcs_grid`.
+        value set by `config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
@@ -300,27 +300,27 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             If True, display spectral slice label as plot title.
         - `emission_line` : str or None, default=None
             Optional emission line label to display instead of slice value.
-        - `text_loc` : list of float, default=`va_config.text_loc`
+        - `text_loc` : list of float, default=`config.text_loc`
             Relative axes coordinates for overlay text placement.
-        - `text_color` : str, default=`va_config.text_color`
+        - `text_color` : str, default=`config.text_color`
             Color of overlay text.
-        - `colorbar` : bool, default=`va_config.cbar`
+        - `colorbar` : bool, default=`config.cbar`
             Whether to add a colorbar.
-        - `cbar_width` : float, default=`va_config.cbar_width`
+        - `cbar_width` : float, default=`config.cbar_width`
             Width of the colorbar.
-        - `cbar_pad` : float, default=`va_config.cbar_pad`
+        - `cbar_pad` : float, default=`config.cbar_pad`
             Padding between axes and colorbar.
-        - `clabel` : str, bool, or None, default=`va_config.clabel`
+        - `clabel` : str, bool, or None, default=`config.clabel`
             Label for colorbar. If True, automatically generate from cube unit.
-        - `xlabel` : str, default=`va_config.right_ascension`
+        - `xlabel` : str, default=`config.right_ascension`
             X axis label.
-        - `ylabel` : str, default=`va_config.declination`
+        - `ylabel` : str, default=`config.declination`
             Y axis label.
         - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
-        - `highlight` : bool, optional, default=`va_config.highlight`
+        - `highlight` : bool, optional, default=`config.highlight`
             Whether to highlight interactive ellipse or wavelength label if plotted.
-        - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
+        - `mask_out_val` : float, optional, default=`config.mask_out_value`
             Value to use when masking out non-positive values.
             Ex: np.nan, 1e-6, np.inf
         - `ellipses` : list or None, default=None
@@ -348,22 +348,22 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     cubes = check_units_consistency(cubes)
     # ---- Kwargs ----
     # fig params
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     # labels
     title = kwargs.get('title', False)
     emission_line = kwargs.get('emission_line', None)
-    text_loc = kwargs.get('text_loc', va_config.text_loc)
-    text_color = kwargs.get('text_color', va_config.text_color)
-    colorbar = kwargs.get('colorbar', va_config.cbar)
-    cbar_width = kwargs.get('cbar_width', va_config.cbar_width)
-    cbar_pad = kwargs.get('cbar_pad', va_config.cbar_pad)
-    clabel = kwargs.get('clabel', va_config.clabel)
-    xlabel = kwargs.get('xlabel', va_config.right_ascension)
-    ylabel = kwargs.get('ylabel', va_config.declination)
+    text_loc = kwargs.get('text_loc', config.text_loc)
+    text_color = kwargs.get('text_color', config.text_color)
+    colorbar = kwargs.get('colorbar', config.cbar)
+    cbar_width = kwargs.get('cbar_width', config.cbar_width)
+    cbar_pad = kwargs.get('cbar_pad', config.cbar_pad)
+    clabel = kwargs.get('clabel', config.clabel)
+    xlabel = kwargs.get('xlabel', config.right_ascension)
+    ylabel = kwargs.get('ylabel', config.declination)
     draw_spectral_label = kwargs.get('spectral_label', True)
-    highlight = kwargs.get('highlight', va_config.highlight)
+    highlight = kwargs.get('highlight', config.highlight)
     # mask out value
-    mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
+    mask_out_val = kwargs.get('mask_out_val', config.mask_out_value)
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = (
@@ -375,11 +375,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     h = kwargs.get('h', Y//5)
     angle = kwargs.get('angle', None)
 
-    # get default va_config values
-    vmin = va_config.vmin if vmin is _default_flag else vmin
-    vmax = va_config.vmax if vmax is _default_flag else vmax
-    norm = va_config.norm if norm is _default_flag else norm
-    percentile = va_config.percentile if percentile is _default_flag else percentile
+    # get default config values
+    vmin = config.vmin if vmin is _default_flag else vmin
+    vmax = config.vmax if vmax is _default_flag else vmax
+    norm = config.norm if norm is _default_flag else norm
+    percentile = config.percentile if percentile is _default_flag else percentile
     radial_vel = get_config_value(radial_vel, 'radial_velocity')
     cmap = get_config_value(cmap, 'cmap')
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')

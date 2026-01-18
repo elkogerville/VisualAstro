@@ -42,7 +42,7 @@ from .spectra_utils import (
 )
 from .SpectrumPlus import SpectrumPlus
 from .utils import _unwrap_if_single
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 
 
 # Spectra Extraction Functions
@@ -62,7 +62,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         a SpectralCube, or a DataCube containing a SpectralCube.
     flux_extract_method : {'mean', 'median', 'sum'} or None, default=None
         Method for extracting the flux. If None, uses the default
-        value set by `va_config.flux_extract_method`.
+        value set by `config.flux_extract_method`.
     extract_mode : {'cube', 'slice', 'ray'} or None, default=None
         Specifies how the spectral cube should be traversed during flux
         extraction. This controls memory usage and performance for large cubes.
@@ -78,10 +78,10 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
                 Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
                 load at the cost of speed. Recommended for extremely large cubes
                 or low-memory environments.
-        If None, uses the default value set by `va_config.spectral_cube_extraction_mode`.
+        If None, uses the default value set by `config.spectral_cube_extraction_mode`.
     fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
         Method used to fit the continuum. If None, uses the default
-        value set by `va_config.spectrum_continuum_fit_method`.
+        value set by `config.spectrum_continuum_fit_method`.
     region : array-like or None, optional, default=None
         Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
         Ignored for other methods. This allows the user to specify which
@@ -92,53 +92,53 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     radial_vel : float or None, optional, default=`_default_flag`
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, ignores the radial velocity.
-        If `_default_flag`, uses the default value set by `va_config.radial_velocity`.
+        If `_default_flag`, uses the default value set by `config.radial_velocity`.
     rest_freq : float or None, optional, default=`_default_flag`
         Rest-frame frequency or wavelength of the spectrum. If None,
         ignores the rest frequency for unit conversions. If `_default_flag`,
-        uses the default value set by `va_config.spectra_rest_frequency`.
+        uses the default value set by `config.spectra_rest_frequency`.
     deredden : bool or None, optional, default=None
         Whether to apply dereddening to the flux using deredden_flux().
-        If None, uses the default value set by `va_config.deredden_spectrum`.
+        If None, uses the default value set by `config.deredden_spectrum`.
     unit : str, astropy.units.Unit, or None, optional, default=`_default_flag`
         Desired units for the wavelength axis. Converts the default
         units if possible. If None, does not try and convert. If `_default_flag`,
-        uses the default value set by `va_config.wavelength_unit`.
+        uses the default value set by `config.wavelength_unit`.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
     plot_continuum_fit : bool or None, optional, default=None
         Whether to overplot the continuum fit. If None, uses the
-        default value set by `va_config.plot_continuum_fit`.
+        default value set by `config.plot_continuum_fit`.
     plot_norm_continuum : bool or None, optional, default=None
         Whether to plot the normalized extracted spectra. If None,
-        uses the default value set by `va_config.plot_normalized_continuum`.
+        uses the default value set by `config.plot_normalized_continuum`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `how` : str, optional, default=`va_config.spectral_cube_extraction_mode`
+        - `how` : str, optional, default=`config.spectral_cube_extraction_mode`
             Alias for `extract_mode`.
         - `convention` : str, optional
             Doppler convention.
-        - `Rv` : float, optional, default=`va_config.Rv`
+        - `Rv` : float, optional, default=`config.Rv`
             Dereddening parameter.
-        - `Ebv` : float, optional, default=`va_config.Ebv`
+        - `Ebv` : float, optional, default=`config.Ebv`
             Dereddening parameter.
-        - `deredden_method` : str, optional, default=`va_config.deredden_method`
+        - `deredden_method` : str, optional, default=`config.deredden_method`
             Extinction law to use.
-        - `deredden_region` : str, optional, default=`va_config.deredden_region`
+        - `deredden_region` : str, optional, default=`config.deredden_region`
             Region/environment for WD01 extinction law.
-        - `figsize` : tuple, optional, default=`va_config.figsize`
+        - `figsize` : tuple, optional, default=`config.figsize`
             Figure size for plotting.
-        - `style` : str, optional, default=`va_config.style`
+        - `style` : str, optional, default=`config.style`
             Plotting style.
-        - `savefig` : bool, optional, default=`va_config.savefig`
+        - `savefig` : bool, optional, default=`config.savefig`
             Whether to save the figure to disk.
-        - `dpi` : int, optional, default=`va_config.dpi`
+        - `dpi` : int, optional, default=`config.dpi`
             Figure resolution for saving.
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
@@ -146,16 +146,16 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         - `colors`, `color` or `c` : list of colors or None, optional, default=None
             Colors to use for each dataset. If None, default
             color cycle is used.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
             Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+        - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
             The alpha blending value, between 0 (transparent) and 1 (opaque).
         - `zorders`, `zorder` : float, default=None
             Order of line placement. If None, will increment by 1 for
             each additional line plotted.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional, default=None
             Wavelength range to display.
@@ -163,15 +163,15 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`va_config.loc`
+        - `loc` : str, default=`config.loc`
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
             Label for the y-axis.
-        - `text_loc` : list of float, optional, default=`va_config.text_loc`
+        - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
+        - `use_brackets` : bool, optional, default=`config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
@@ -185,18 +185,18 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     # doppler convention
     convention = kwargs.get('convention', None)
     # dereddening parameters
-    Rv = kwargs.get('Rv', va_config.Rv)
-    Ebv = kwargs.get('Ebv', va_config.Ebv)
-    deredden_method = kwargs.get('deredden_method', va_config.deredden_method)
-    deredden_region = kwargs.get('deredden_region', va_config.deredden_region)
+    Rv = kwargs.get('Rv', config.Rv)
+    Ebv = kwargs.get('Ebv', config.Ebv)
+    deredden_method = kwargs.get('deredden_method', config.deredden_method)
+    deredden_region = kwargs.get('deredden_region', config.deredden_region)
     # figure params
-    figsize = kwargs.get('figsize', va_config.figsize)
-    style = kwargs.get('style', va_config.style)
+    figsize = kwargs.get('figsize', config.figsize)
+    style = kwargs.get('style', config.style)
     # savefig
-    savefig = kwargs.get('savefig', va_config.savefig)
-    dpi = kwargs.get('dpi', va_config.dpi)
+    savefig = kwargs.get('savefig', config.savefig)
+    dpi = kwargs.get('dpi', config.dpi)
 
-    # get default va_config values
+    # get default config values
     extract_mode = get_config_value(extract_mode, 'spectral_cube_extraction_mode')
     methods = {
         'mean': lambda cube: cube.mean(axis=(1, 2), how=extract_mode),
@@ -212,10 +212,10 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             f'Choose from {list(methods.keys())}.'
         )
     fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
-    radial_vel = va_config.radial_velocity if radial_vel is _default_flag else radial_vel
-    rest_freq = va_config.spectra_rest_frequency if rest_freq is _default_flag else rest_freq
+    radial_vel = config.radial_velocity if radial_vel is _default_flag else radial_vel
+    rest_freq = config.spectra_rest_frequency if rest_freq is _default_flag else rest_freq
     deredden = get_config_value(deredden, 'deredden_spectrum')
-    unit = va_config.wavelength_unit if unit is _default_flag else unit
+    unit = config.wavelength_unit if unit is _default_flag else unit
     plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 
@@ -303,7 +303,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         If None, uses the default value set by `plot_normalized_continuum`.
     plot_continuum_fit : bool, optional, default=None
         If True, overplot continuum fit. If None, uses
-        the default value set by `va_config.plot_continuum_fit`.
+        the default value set by `config.plot_continuum_fit`.
     emission_line : str, optional, default=None
         Label for an emission line to annotate on the plot.
     wavelength : array-like, optional, default=None
@@ -315,30 +315,30 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
         If None, uses the default color palette from
-        `va_config.default_palette`.
+        `config.default_palette`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
         - `color` or `c` : list of colors or None, optional, default=None
             Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
             Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+        - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
             The alpha blending value, between 0 (transparent) and 1 (opaque).
         - `zorders`, `zorder` : float, default=None
             Order of line placement. If None, will increment by 1 for
             each additional line plotted.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional, default=None
             Wavelength range to display.
@@ -346,15 +346,15 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`va_config.loc`
+        - `loc` : str, default=`config.loc`
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
         - `ylabel` : str, optional
             Label for the y-axis.
-        - `text_loc` : list of float, optional, default=`va_config.text_loc`
+        - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
+        - `use_brackets` : bool, optional, default=`config.use_brackets`
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
@@ -375,26 +375,26 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     '''
     # ---- KWARGS ----
     # fig params
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     # line params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
     zorder = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    text_loc = kwargs.get('text_loc', va_config.plot_spectrum_text_loc)
-    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
+    text_loc = kwargs.get('text_loc', config.plot_spectrum_text_loc)
+    use_brackets = kwargs.get('use_brackets', config.use_brackets)
 
-    # get default va_config values
+    # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
     plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
     colors = get_config_value(colors, 'colors')
@@ -566,14 +566,14 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
         If None, uses the default color palette from
-        `va_config.default_palette`.
+        `config.default_palette`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
@@ -582,21 +582,21 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             y-axis limits as (ymin, ymax).
         - `color` or `c` : list of colors or None, optional, default=None
             Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`va_config.linestyle`
+        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
             Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float default=`va_config.alpha`
+        - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - cmap : str, optional, default=`va_config.cmap`
+        - cmap : str, optional, default=`config.cmap`
             Colormap name for generating colors.
         - label : str, optional, default=None.
             Label for the plotted spectrum.
-        - loc : str, optional, default=`va_config.loc`
+        - loc : str, optional, default=`config.loc`
             Legend location (e.g., 'best', 'upper right').
         - xlabel, ylabel : str, optional, default=None
             Axis labels.
-        - use_brackets : bool, optional, default=`va_config.use_brackets`
+        - use_brackets : bool, optional, default=`config.use_brackets`
             If True, format axis labels with units in brackets instead of parentheses.
 
     Returns
@@ -613,22 +613,22 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     '''
     # ---- KWARGS ----
     # figure params
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     ylim = kwargs.get('ylim', None)
     # line params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
     linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
     alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # labels
     label = kwargs.get('label', None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
+    use_brackets = kwargs.get('use_brackets', config.use_brackets)
 
-    # get default va_config values
+    # get default config values
     colors = get_config_value(colors, 'colors')
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
@@ -738,13 +738,13 @@ def fit_gaussian_2_spec(
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
         The continuum can be computed with fit_continuum().
-        If None, uses the default value set by `va_config.gaussian_model`.
+        If None, uses the default value set by `config.gaussian_model`.
     spectral_range : array-like or None, optional, default=None
         (min, max) wavelength range to restrict the fit.
         If None, computes the min and max from the wavelength.
     fit_method : {'lm', 'trf', 'dogbox'} or None, optional, default=None
         Curve fitting algorithm used by `scipy.optimize.curve_fit`.
-        If None, uses the default value set by `va_config.curve_fit_method`.
+        If None, uses the default value set by `config.curve_fit_method`.
     absolute_sigma : boolean, optional, default=None
         If True, the values provided in `yerror` are interpreted as absolute
         1σ uncertainties on the flux measurements. In this case, the returned
@@ -757,7 +757,7 @@ def fit_gaussian_2_spec(
         Set this to True when `yerror` represents well-calibrated observational
         uncertainties (e.g., photon-counting or pipeline-provided errors).
         Set this to False when `yerror` is used only for weighting the fit.
-        If None, uses the default value set by `va_config.curve_fit_absolute_sigma`.
+        If None, uses the default value set by `config.curve_fit_absolute_sigma`.
     yerror : array-like or None, optional, default=None
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
@@ -765,36 +765,36 @@ def fit_gaussian_2_spec(
     interpolate : bool or None, default=None
         Whether to interpolate the spectrum over a regular wavelength grid.
         The number of samples is controlled by `samples`. If None, uses the
-        default value set by `va_config.curve_fit_interpolate`.
+        default value set by `config.curve_fit_interpolate`.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
-        None, uses the default value set by `va_config.interpolation_samples`.
+        None, uses the default value set by `config.interpolation_samples`.
     interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
         Interpolation method used. If None, uses the default
-        value set by `va_config.interpolation_method`.
+        value set by `config.interpolation_method`.
     error_interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
         Method to interpolate yerror if provided. If None, uses
-        the default value set by `va_config.error_interpolation_method`.
+        the default value set by `config.error_interpolation_method`.
     return_fit_params : bool or None, default=None
         If True, return full computed best-fit parameters for all parameters,
         including popt, pcov, and perr. If False, return only Flux, FWHM, and mu.
-        If None, uses the default value set by `va_config.return_gaussian_fit_parameters`.
+        If None, uses the default value set by `config.return_gaussian_fit_parameters`.
     plot_interp : bool, default=False
         If True, plot the interpolated spectrum. This is
         provided for debugging purposes.
     print_vals : bool or None, default=None
         If True, print a table of best-fit parameters,
         errors, and computed quantities. If None, uses the
-        default value set by `va_config.print_gaussian_values`.
+        default value set by `config.print_gaussian_values`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `figsize` : list or tuple, optional, default=`va_config.figsize`
+        - `figsize` : list or tuple, optional, default=`config.figsize`
             Figure size.
-        - `style` : str or {'astro', 'latex', 'minimal', 'default'}, optional, default=`va_config.style`
+        - `style` : str or {'astro', 'latex', 'minimal', 'default'}, optional, default=`config.style`
             Plot style used. Can either be a matplotlib mplstyle
             or an included visualastro style.
         - `xlim` : tuple, optional, default=None
@@ -807,13 +807,13 @@ def fit_gaussian_2_spec(
             Plot x-axis label.
         - `ylabel` : str, optional, default=None
             Plot y-axis label.
-        - `colors` : str or list, optional, default=`va_config.colors`
+        - `colors` : str or list, optional, default=`config.colors`
             Plot colors. If None, will use default visualastro color palette.
-        - `use_brackets` : bool, optional, default=`va_config.use_brackets`
+        - `use_brackets` : bool, optional, default=`config.use_brackets`
             If True, use square brackets for plot units. If False, use parentheses.
-        - `savefig` : bool, optional, default=`va_config.savefig`
+        - `savefig` : bool, optional, default=`config.savefig`
             If True, save current figure to disk.
-        - `dpi` : float or int, optional, default=`va_config.dpi`
+        - `dpi` : float or int, optional, default=`config.dpi`
             Resolution in dots per inch.
 
     Returns
@@ -836,8 +836,8 @@ def fit_gaussian_2_spec(
     '''
     # ---- KWARGS ----
     # figure params
-    figsize = kwargs.get('figsize', va_config.figsize)
-    style = kwargs.get('style', va_config.style)
+    figsize = kwargs.get('figsize', config.figsize)
+    style = kwargs.get('style', config.style)
     xlim = kwargs.get('xlim', None)
     plot_type = kwargs.get('plot_type', 'plot')
     # labels
@@ -845,12 +845,12 @@ def fit_gaussian_2_spec(
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=None)
-    use_brackets = kwargs.get('use_brackets', va_config.use_brackets)
+    use_brackets = kwargs.get('use_brackets', config.use_brackets)
     # savefig
-    savefig = kwargs.get('savefig', va_config.savefig)
-    dpi = kwargs.get('dpi', va_config.dpi)
+    savefig = kwargs.get('savefig', config.savefig)
+    dpi = kwargs.get('dpi', config.dpi)
 
-    # get default va_config values
+    # get default config values
     colors = get_config_value(colors, 'colors')
     model = get_config_value(model, 'gaussian_model')
     fit_method = get_config_value(fit_method, 'curve_fit_method')
