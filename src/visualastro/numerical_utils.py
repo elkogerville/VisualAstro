@@ -30,50 +30,6 @@ from spectral_cube import SpectralCube
 
 # Type Checking Arrays and Objects
 # --------------------------------
-def to_array(obj, keep_units=False):
-    """
-    Return input object as either a np.ndarray or Quantity.
-
-    Parameters
-    ----------
-    obj : array-like or Quantity
-        Array or DataCube object.
-    keep_units : bool, optional, default=False
-        If True, keep astropy units attached if present.
-
-    Returns
-    -------
-    array : np.ndarray
-        Quantity array if `keep_units` is True, else a NumPy array.
-    """
-    if isinstance(obj, Quantity):
-        return obj if keep_units else obj.value
-
-    elif isinstance(obj, SpectralCube):
-        q = obj.filled_data[:]
-        return q if keep_units else q.value
-
-    if hasattr(obj, 'value'):
-        value = obj.value
-        unit = getattr(obj, 'unit', None)
-        if keep_units and unit is not None:
-            if isinstance(value, Quantity):
-                return value
-            return value * unit
-
-        return np.asarray(value)
-
-    if hasattr(obj, 'data'):
-        return to_array(obj.data, keep_units=keep_units)
-
-    try:
-        return np.asarray(obj)
-    except Exception:
-        raise TypeError(
-            f'Object of type {type(obj).__name__} cannot be converted to an array'
-        )
-
-
 def get_data(obj):
     """
     Return the `data` attribute of an object if present;
@@ -145,6 +101,50 @@ def non_nan(obj, keep_units=False):
     non_nans = ~np.isnan(data)
 
     return data[non_nans]
+
+
+def to_array(obj, keep_units=False):
+    """
+    Return input object as either a np.ndarray or Quantity.
+
+    Parameters
+    ----------
+    obj : array-like or Quantity
+        Array or DataCube object.
+    keep_units : bool, optional, default=False
+        If True, keep astropy units attached if present.
+
+    Returns
+    -------
+    array : np.ndarray
+        Quantity array if `keep_units` is True, else a NumPy array.
+    """
+    if isinstance(obj, Quantity):
+        return obj if keep_units else obj.value
+
+    elif isinstance(obj, SpectralCube):
+        q = obj.filled_data[:]
+        return q if keep_units else q.value
+
+    if hasattr(obj, 'value'):
+        value = obj.value
+        unit = getattr(obj, 'unit', None)
+        if keep_units and unit is not None:
+            if isinstance(value, Quantity):
+                return value
+            return value * unit
+
+        return np.asarray(value)
+
+    if hasattr(obj, 'data'):
+        return to_array(obj.data, keep_units=keep_units)
+
+    try:
+        return np.asarray(obj)
+    except Exception:
+        raise TypeError(
+            f'Object of type {type(obj).__name__} cannot be converted to an array'
+        )
 
 
 # Science Operation Functions
