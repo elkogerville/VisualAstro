@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
-from .numerical_utils import check_units_consistency, to_array
+from .numerical_utils import to_array
 from .plot_utils import (
     add_colorbar, add_contours,
     plot_circles, plot_ellipses,
@@ -27,7 +27,7 @@ from .plot_utils import (
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_vmin_vmax
 )
-from .units import to_latex_unit, get_units
+from .units import check_units_consistency, get_units, to_latex_unit
 from .config import get_config_value, config, _default_flag
 
 

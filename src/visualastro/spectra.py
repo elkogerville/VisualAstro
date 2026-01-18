@@ -27,8 +27,9 @@ from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    check_units_consistency, convert_units, interpolate_arrays,
-    mask_within_range, return_array_values, shift_by_radial_vel
+    convert_units, interpolate_arrays,
+    mask_within_range, return_array_values,
+    shift_by_radial_vel
 )
 from .plot_utils import (
     return_stylename, set_axis_labels,
@@ -41,6 +42,7 @@ from .spectra_utils import (
     get_config_value
 )
 from .SpectrumPlus import SpectrumPlus
+from .units import check_units_consistency
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
