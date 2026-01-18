@@ -40,7 +40,7 @@ from .data_cube_utils import slice_cube
 from .numerical_utils import (
     compute_density_kde, get_data, return_array_values, to_array
 )
-from .units import get_physical_type, get_units
+from .units import to_latex_unit, get_physical_type, get_units
 from .va_config import get_config_value, va_config, _default_flag
 
 
@@ -854,7 +854,7 @@ def set_axis_labels(
 
     Notes
     -----
-    - Units are formatted using 'format_unit_labels', which provides LaTeX-friendly labels.
+    - Units are formatted using 'to_latex_unit', which provides LaTeX-friendly labels.
       The labels are formatted as either 'latex_inline' or 'latex', which displays fractions
       with either negative exponents or with fractions.
     '''
@@ -904,7 +904,7 @@ def set_axis_labels(
             type_label = ''
 
         # set unit label
-        unit_label = format_unit_labels(unit, fmt=fmt)
+        unit_label = to_latex_unit(unit, fmt=fmt)
 
         # add brackets to unit if exists
         if use_unit_label and unit_label is not None:
