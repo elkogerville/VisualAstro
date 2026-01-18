@@ -27,8 +27,8 @@ from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    interpolate_arrays, mask_within_range,
-    return_array_values, shift_by_radial_vel
+    interpolate_arrays, get_value,
+    mask_within_range, shift_by_radial_vel
 )
 from .plot_utils import (
     return_stylename, set_axis_labels,
@@ -656,14 +656,14 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         wavelength = spectrum.wavelength
         flux = spectrum.normalize if plot_normalize else spectrum.flux
         # compute minimum and maximum wavelength values
-        wmin = np.nanmin(return_array_values(wavelength))
-        wmax = np.nanmax(return_array_values(wavelength))
+        wmin = np.nanmin(get_value(wavelength))
+        wmax = np.nanmax(get_value(wavelength))
         wavelength_lims.append( [wmin, wmax] )
         # mask wavelength and flux if user passes in limits
         if wave_cuttofs is not None:
             wave_min = wave_cuttofs[i]
             wave_max = wave_cuttofs[i+1]
-            mask = mask_within_range(return_array_values(wavelength), [wave_min, wave_max])
+            mask = mask_within_range(get_value(wavelength), [wave_min, wave_max])
             wavelength = wavelength[mask]
             flux = flux[mask]
 
@@ -685,8 +685,8 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         wavelength = np.concatenate(wave_list)
         flux = np.concatenate(flux_list)
 
-        ax.plot(return_array_values(wavelength),
-                return_array_values(flux),
+        ax.plot(get_value(wavelength),
+                get_value(flux),
                 color=c, label=l, ls=linestyles,
                 lw=linewidths, alpha=alphas,
                 rasterized=rasterized)
