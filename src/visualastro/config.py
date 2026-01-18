@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2025-10-27
+Date Modified: 2026-01-18
 Description:
     Visualastro configuration interface to update function defaults.
 Dependencies:
