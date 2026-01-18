@@ -19,10 +19,8 @@ Module Structure:
         Model fitting utility functions.
 '''
 from dataclasses import dataclass, fields
-from typing import Any, List, Optional, Union
+from typing import Any, Optional
 import warnings
-import astropy.units as u
-from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
