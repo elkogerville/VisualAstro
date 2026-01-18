@@ -92,40 +92,6 @@ def get_data(obj):
     return obj
 
 
-def quantities_2_array(values):
-    '''
-    Convert a list of scalar Quantity objects into a single 1D Quantity array.
-    Guaranteed to return shape (N,) even if inputs have shape (1,).
-
-    Parameters
-    ----------
-    values : array-like of Quantity
-        An array-like object where each element is a Quantity.
-
-    Returns
-    -------
-    flattened_quantity : Quantity
-        A 1D Quantity array with shape (N,).
-    '''
-
-    flat = []
-    for v in values:
-        if not isinstance(v, Quantity):
-            raise TypeError(
-                'All elements must be astropy Quantity objects.'
-            )
-
-        arr = np.asarray(v)
-
-        # flatten if shape is (1,)
-        if arr.shape == (1,):
-            flat.append(arr[0] * v.unit)
-        else:
-            flat.append(v)
-
-    return u.Quantity(flat)
-
-
 def return_array_values(array):
     '''
     Extract the numerical values from an 'astropy.units.Quantity'
