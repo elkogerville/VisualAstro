@@ -27,7 +27,7 @@ from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    interpolate_arrays, get_value,
+    interpolate, get_value,
     mask_within_range, shift_by_radial_vel
 )
 from .plot_utils import (
@@ -892,17 +892,17 @@ def fit_gaussian_2_spec(
     # interpolate arrays
     if interpolate:
         # interpolate wavelength and flux arrays
-        x, y = interpolate_arrays(
+        x, y = interpolate(
             x0, y0, spectral_range, samples, method=interp_method
         )
         # interpolate y error values
         if yerror is not None:
-            _, yerror = interpolate_arrays(
+            _, yerror = interpolate(
                 x0, yerror, spectral_range, samples, method=error_interp_method
             )
         # interpolate continuum array
         if model == 'gaussian_continuum':
-            _, continuum = interpolate_arrays(
+            _, continuum = interpolate(
                 x0, continuum, spectral_range, samples, method=interp_method
             )
     else:
