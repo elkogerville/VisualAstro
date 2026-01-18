@@ -75,6 +75,9 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
     """
     Extract the physical type associated with an object's unit.
 
+    Returns None if no physical type is found, or if the unit
+    is a `StructuredUnit`.
+
     Parameters
     ----------
     obj : any
@@ -98,7 +101,7 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
         return None
 
 
-def to_unit(obj):
+def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     """
     Normalize an input into an astropy Unit.
 
@@ -126,7 +129,7 @@ def to_unit(obj):
 
 
 def to_latex_unit(unit: Any, fmt=None) -> str | None:
-    '''
+    """
     Convert an astropy unit string into a LaTeX-formatted label
     for plotting. Returns None if no unit is found.
 
@@ -144,7 +147,7 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
     str or None
         A LaTeX-formatted unit label if the input is recognized.
         Returns None if the unit is invalid.
-    '''
+    """
     fmt = get_config_value(fmt, 'unit_label_format')
 
     if fmt.lower() == 'inline':
