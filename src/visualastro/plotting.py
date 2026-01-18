@@ -28,7 +28,7 @@ from .plot_utils import (
     set_plot_colors, set_vmin_vmax
 )
 from .units import to_latex_unit, get_units
-from .va_config import get_config_value, va_config, _default_flag
+from .config import get_config_value, config, _default_flag
 
 
 # Plotting Functions
@@ -61,11 +61,11 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     vmin : float or None, optional, default=`_default_flag`
         Lower limit for colormap scaling; overides `percentile[0]`.
         If None, values are determined from `percentile[0]`.
-        If `_default_flag`, uses the default value in `va_config.vmin`.
+        If `_default_flag`, uses the default value in `config.vmin`.
     vmax : float or None, optional, default=`_default_flag`
         Upper limit for colormap scaling; overides `percentile[1]`.
         If None, values are determined from `percentile[1]`.
-        If `_default_flag`, uses the default value in `va_config.vmax`.
+        If `_default_flag`, uses the default value in `config.vmax`.
     norm : str or None, optional, default=`_default_flag`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -73,17 +73,17 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
-        If `_default_flag`, uses the default value in `va_config.norm`.
+        If `_default_flag`, uses the default value in `config.norm`.
     percentile : list or tuple of two floats, or None, default=`_default_flag`
         Default percentile range used to determine 'vmin' and 'vmax'.
-        If `_default_flag`, uses default value from `va_config.percentile`.
+        If `_default_flag`, uses default value from `config.percentile`.
         If None, use no percentile stretch.
     origin : {'upper', 'lower'} or None, default=None
         Pixel origin convention for imshow. If None,
-        uses the default value from `va_config.origin`.
+        uses the default value from `config.origin`.
     cmap : str, list of str or None, default=None
         Matplotlib colormap name or list of colormaps, cycled across images.
-        If None, uses the default value from `va_config.cmap`.
+        If None, uses the default value from `config.cmap`.
         ex: ['turbo', 'RdPu_r']
     aspect : {'auto', 'equal'}, float, or None, optional, default=`_default_flag`
         Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
@@ -91,22 +91,22 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         sets an aspect ratio of 1. None defaults to 'equal', however, if the
         image uses a transform that does not contain the axes data transform,
         then None means to not modify the axes aspect at all. If `_default_flag`,
-        uses the default value from `va_config.aspect`.
+        uses the default value from `config.aspect`.
     mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
-        default value set by `va_config.mask_non_positive`.
+        default value set by `config.mask_non_positive`.
     wcs_grid : bool or None, optional, default=None
         If True, display WCS grid ontop of plot. Requires
         using WCSAxes for `ax`. If None, uses the default
-        value set by `va_config.wcs_grid`.
+        value set by `config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
@@ -115,24 +115,24 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
             Invert the x-axis if True.
         - `invert_yaxis` : bool, optional, default=False
             Invert the y-axis if True.
-        - `text_loc` : list of float, optional, default=`va_config.text_loc`
+        - `text_loc` : list of float, optional, default=`config.text_loc`
             Relative axes coordinates for text placement when
             plotting interactive ellipses.
-        - `text_color` : str, optional, default=`va_config.text_color`
+        - `text_color` : str, optional, default=`config.text_color`
             Color of the ellipse annotation text.
         - `xlabel` : str, optional, default=None
             X-axis label.
         - `ylabel` : str, optional, default=None
             Y-axis label.
-        - `colorbar` : bool, optional, default=`va_config.cbar`
+        - `colorbar` : bool, optional, default=`config.cbar`
             Add colorbar if True.
-        - `clabel` : str or bool, optional, default=`va_config.clabel`
+        - `clabel` : str or bool, optional, default=`config.clabel`
             Colorbar label. If True, use default label; if None or False, no label.
-        - `cbar_width` : float, optional, default=`va_config.cbar_width`
+        - `cbar_width` : float, optional, default=`config.cbar_width`
             Width of the colorbar.
-        - `cbar_pad` : float, optional, default=`va_config.cbar_pad`
+        - `cbar_pad` : float, optional, default=`config.cbar_pad`
             Padding between plot and colorbar.
-        - `mask_out_val` : float, optional, default=`va_config.mask_out_value`
+        - `mask_out_val` : float, optional, default=`config.mask_out_value`
             Value to use when masking out non-positive values.
             Ex: np.nan, 1e-6, np.inf
         - `circles` : list, optional, default=None
@@ -161,20 +161,20 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     '''
     # ---- KWARGS ----
     # figure params
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     invert_xaxis = kwargs.get('invert_xaxis', False)
     invert_yaxis = kwargs.get('invert_yaxis', False)
     # labels
-    text_loc = kwargs.get('text_loc', va_config.text_loc)
-    text_color = kwargs.get('text_color', va_config.text_color)
+    text_loc = kwargs.get('text_loc', config.text_loc)
+    text_color = kwargs.get('text_color', config.text_color)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colorbar = kwargs.get('colorbar', va_config.cbar)
-    clabel = kwargs.get('clabel', va_config.clabel)
-    cbar_width = kwargs.get('cbar_width', va_config.cbar_width)
-    cbar_pad = kwargs.get('cbar_pad', va_config.cbar_pad)
+    colorbar = kwargs.get('colorbar', config.cbar)
+    clabel = kwargs.get('clabel', config.clabel)
+    cbar_width = kwargs.get('cbar_width', config.cbar_width)
+    cbar_pad = kwargs.get('cbar_pad', config.cbar_pad)
     # mask out value
-    mask_out_val = kwargs.get('mask_out_val', va_config.mask_out_value)
+    mask_out_val = kwargs.get('mask_out_val', config.mask_out_value)
     # plot objects
     circles = kwargs.get('circles', None)
     points = kwargs.get('points', None)
@@ -188,14 +188,14 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
 
-    # get default va_config values
-    vmin = va_config.vmin if vmin is _default_flag else vmin
-    vmax = va_config.vmax if vmax is _default_flag else vmax
-    norm = va_config.norm if norm is _default_flag else norm
-    percentile = va_config.percentile if percentile is _default_flag else percentile
+    # get default config values
+    vmin = config.vmin if vmin is _default_flag else vmin
+    vmax = config.vmax if vmax is _default_flag else vmax
+    norm = config.norm if norm is _default_flag else norm
+    percentile = config.percentile if percentile is _default_flag else percentile
     origin = get_config_value(origin, 'origin')
     cmap = get_config_value(cmap, 'cmap')
-    aspect = va_config.aspect if aspect is _default_flag else aspect
+    aspect = config.aspect if aspect is _default_flag else aspect
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
@@ -265,9 +265,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
             # set label based on coordinate type
             if coord_type == 'longitude':
-                coord.set_axislabel(va_config.right_ascension)
+                coord.set_axislabel(config.right_ascension)
             elif coord_type == 'latitude':
-                coord.set_axislabel(va_config.declination)
+                coord.set_axislabel(config.declination)
 
             # determine which pixel axis this world coordinate
             # primarily affects by checking the PC/CD matrix
@@ -339,63 +339,63 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     bins : int, sequence, str, or None, optional, default=None
         Histogram bin specification. Passed directly to
         `matplotlib.pyplot.hist`. If None, uses the default
-        value from `va_config.bins`. If `bins` is a str, use
+        value from `config.bins`. If `bins` is a str, use
         one of the supported binning strategies 'auto', 'fd',
         'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
     xlog : bool or None, optional, default=None
         Whether to use a logarithmic x-axis scale for the scatter plot.
-        If None, uses the default value from `va_config.xlog`.
+        If None, uses the default value from `config.xlog`.
     ylog : bool or None, optional, default=None
         Whether to use a logarithmic y-axis scale for the scatter plot.
-        If None, uses the default value from `va_config.ylog`.
+        If None, uses the default value from `config.ylog`.
     xlog_hist : bool or None, optional, default=None
         Whether to use a logarithmic x-axis scale for the top histogram.
-        If None, uses the default value from `va_config.xlog_hist`.
+        If None, uses the default value from `config.xlog_hist`.
     ylog_hist : bool or None, optional, default=None
         Whether to use a logarithmic y-axis scale for the right histogram.
-        If None, uses the default value from `va_config.ylog_hist`.
+        If None, uses the default value from `config.ylog_hist`.
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-        Type of histogram to draw. If None, uses the default value from `va_config.histtype`.
+        Type of histogram to draw. If None, uses the default value from `config.histtype`.
     normalize : bool, optional, default=None
         If True, normalize histograms to a probability density.
-        If None, uses the default value from `va_config.normalize_hist`.
+        If None, uses the default value from `config.normalize_hist`.
     colors : list of colors, str, or None, optional, default=None
         Colors for each dataset. If None, uses the
-        default color palette from `va_config.default_palette`.
+        default color palette from `config.default_palette`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keyword arguments include:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
         - `color`, `c` : list of colors, str, or None, optional, default=None
             aliases for `colors`.
-        - `sizes`, `size`, `s` : float or list, optional, default=`va_config.scatter_size`
+        - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
             Marker size(s) for scatter points.
-        - `markers`, `marker`, `m` : str or list, optional, default=`va_config.marker`
+        - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
             Marker style(s) for scatter points.
-        - `alphas`, `alpha`, `a` : float or list, optional, default=`va_config.alpha`
+        - `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
             Transparency level(s).
-        - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`va_config.edgecolor`
+        - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
             Edge colors for scatter points.
-        - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`va_config.linestyle`
+        - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
             Line style(s) for histogram edges.
-        - `linewidth`, `lw` : float or list, optional, default=`va_config.linewidth`
+        - `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
             Line width(s) for histogram edges.
         - `zorders`, `zorder` : int or list, optional, default=None
             Z-order(s) for drawing priority.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap name for automatic color assignment.
         - `xlim`, `ylim` : tuple, optional, default=None
             Axis limits for the scatter plot.
         - `labels`, `label`, `l` : list or str, optional, default=None
             Labels for legend entries.
-        - `loc` : str, optional, default=`va_config.loc`
+        - `loc` : str, optional, default=`config.loc`
             Legend location.
         - `xlabel`, `ylabel` : str, optional, default=None
             Axis labels for the scatter plot.
@@ -418,7 +418,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         object or tuple instead of a list.
     '''
     # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     # scatter params
     sizes = get_kwargs(kwargs, 'size', 's', default=None)
@@ -429,17 +429,17 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
     linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=None)
     zorders = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
 
-    # get default va_config values
+    # get default config values
     bins = get_config_value(bins, 'bins')
     xlog = get_config_value(xlog, 'xlog')
     ylog = get_config_value(ylog, 'ylog')
@@ -576,37 +576,37 @@ def plot_histogram(datas, ax,
     bins : int, sequence, str, or None, optional, default=None
         Histogram bin specification. Passed directly to
         `matplotlib.pyplot.hist`. If None, uses the default
-        value from `va_config.bins`. If `bins` is a str, use
+        value from `config.bins`. If `bins` is a str, use
         one of the supported binning strategies 'auto', 'fd',
         'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
     xlog : bool or None, optional, default=None
         If True, set x-axis to logarithmic scale.
-        If None, uses the default value from `va_config.xlog`.
+        If None, uses the default value from `config.xlog`.
     ylog : bool or None, optional, default=None
         If True, set y-axis to logarithmic scale.
-        If None, uses the default value from `va_config.ylog`.
+        If None, uses the default value from `config.ylog`.
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-        Matplotlib histogram type. If None, uses the default value from `va_config.histtype`.
+        Matplotlib histogram type. If None, uses the default value from `config.histtype`.
     normalize : bool or None, optional, default=None
         If True, normalize histograms to a probability density.
-        If None, uses the default value from `va_config.normalize_hist`.
+        If None, uses the default value from `config.normalize_hist`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each dataset. If None,
-        uses the default color palette from `va_config.default_palette`.
+        uses the default color palette from `config.default_palette`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`.
+        - `color`, `c` : str, list of str or None, optional, default=`config.colors`.
             Aliases for `colors`.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple, optional
             X data range to display.
@@ -614,7 +614,7 @@ def plot_histogram(datas, ax,
             Y data range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`va_config.loc`
+        - `loc` : str, default=`config.loc`
             Location of legend.
         - `xlabel` : str or None, optional
             Label for the x-axis.
@@ -639,19 +639,19 @@ def plot_histogram(datas, ax,
         it is a list of tuples.
     '''
     # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
 
-    # get default va_config values
+    # get default config values
     bins = get_config_value(bins, 'bins')
     xlog = get_config_value(xlog, 'xlog')
     ylog = get_config_value(ylog, 'ylog')
@@ -724,27 +724,27 @@ def plot_lines(X, Y, ax, normalize=None,
         The Axes object to plot on.
     normalize : bool or None, optional, default=None
         If True, normalize each line by its maximum value.
-        If None, uses the default value from `va_config.normalize_data`.
+        If None, uses the default value from `config.normalize_data`.
     xlog : bool or None, optional, default=None
         If True, set the x-axis to logarithmic scale.
-        If None, uses the default value from `va_config.xlog`.
+        If None, uses the default value from `config.xlog`.
     ylog : bool or None, optional, default=None
         If True, set the y-axis to logarithmic scale.
-        If None, uses the default value from `va_config.ylog`.
+        If None, uses the default value from `config.ylog`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each line. If None, uses the
-        default color palette from `va_config.default_palette`.
+        default color palette from `config.default_palette`.
     linestyle : str, list of str, or None, optional, default=None
         Line style(s) to use for plotting. Can be a single string or a list of
         styles for multiple lines. Accepted values are:
         {'-', '--', '-.', ':', ''}. If None, uses the default
-        value set in `va_config.linestyle`.
+        value set in `config.linestyle`.
     linewidth : float, list of float, or None, optional, default=None
         Line width for the plotted lines. If None, uses the
-        default value set in `va_config.linewidth`.
+        default value set in `config.linewidth`.
     alpha : float, list of float or None, optional, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses the default value set in `va_config.alpha`.
+        If None, uses the default value set in `config.alpha`.
     zorder : float or list of float, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
         of greatest to lowest zorder. If None, starts at 0 and increments
@@ -755,20 +755,20 @@ def plot_lines(X, Y, ax, normalize=None,
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
             Aliases for `colors`.
-        - `linestyles`, `ls` : str or list of str, default=`va_config.linestyle`
+        - `linestyles`, `ls` : str or list of str, default=`config.linestyle`
             Aliases for `linestyle`.
-        - `linewidths`, `lw` : float or list of float, optional, default=`va_config.linewidth`
+        - `linewidths`, `lw` : float or list of float, optional, default=`config.linewidth`
             Aliases for `linewidth`.
-        - `alphas`, `a` : float or list of float, default=`va_config.alpha`
+        - `alphas`, `a` : float or list of float, default=`config.alpha`
             Aliases for `alpha`.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
             Limits for the x-axis.
@@ -776,7 +776,7 @@ def plot_lines(X, Y, ax, normalize=None,
             Limits for the y-axis.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`va_config.loc`
+        - `loc` : str, default=`config.loc`
             Location of legend.
         - `xlabel` : str or None
             Label for the x-axis.
@@ -797,25 +797,25 @@ def plot_lines(X, Y, ax, normalize=None,
         otherwise, it is a list of `Line2D` objects.
     '''
     # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     linestyles = get_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
     linewidths = get_kwargs(kwargs, 'linewidths', 'lw', default=linewidth)
     alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     # axes
     xpad = kwargs.get('xpad', 0.0)
     ypad = kwargs.get('ypad', 0.0)
 
-    # get default va_config values
+    # get default config values
     normalize = get_config_value(normalize, 'normalize_data')
     xlog = get_config_value(xlog, 'xlog')
     ylog = get_config_value(ylog, 'ylog')
@@ -898,63 +898,63 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         x-axis errors on `Y`. Should be same shape as `Y`.
     normalize : bool or None, optional, default=None
         If True, normalize each line by its maximum value.
-        If None, uses the default value from `va_config.normalize_data`.
+        If None, uses the default value from `config.normalize_data`.
     xlog : bool or None, optional, default=None
         If True, set the x-axis to logarithmic scale. If
-        None, uses the default value in `va_config.xlog`.
+        None, uses the default value in `config.xlog`.
     ylog : bool or None, optional, default=None
         If True, set the y-axis to logarithmic scale. If
-        None, uses the default value in `va_config.ylog`.
+        None, uses the default value in `config.ylog`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
         If None, uses the default color palette from
-        `va_config.default_palette`.
+        `config.default_palette`.
     size : float, list of float, or None, optional, default=None
         Size of scatter dots. If None, uses the default
-        value in `va_config.scatter_size`.
+        value in `config.scatter_size`.
     marker : str, list of str, or None, optional, default=None
         Marker style for scatter dots. If None, uses the
-        default value in `va_config.marker`.
+        default value in `config.marker`.
     alpha : float, list of float, or None, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses the default value from `va_config.alpha`.
+        If None, uses the default value from `config.alpha`.
     edgecolors : {'face', 'none'}, color, list of color, or None, default=`_default_flag`
         The edge color of the marker. Possible values:
         - 'face': The edge color will always be the same as the face color.
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
         - None: no edgecolor is set (edgecolor is set to marker color).
-        If `_default_flag`, uses the default value in `va_config.edgecolor`.
+        If `_default_flag`, uses the default value in `config.edgecolor`.
     facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
         The face color of the marker. Possible values:
         - 'none': Sets the face color to transparent
         - A color or sequence of colors
         - None: No facecolor is set (facecolor is set to marker color).
-        If `_default_flag`, uses the default value in `va_config.facecolor`.
+        If `_default_flag`, uses the default value in `config.facecolor`.
 
     **kwargs : dict, optional
         Additional parameters.
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
             Aliases for `colors`.
-        - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+        - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
             Aliases for `size`.
-        - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+        - `markers`, `m` : str or list of str, optional, default=`config.marker`
             Aliases for `marker`.
-        - `alphas`, `a` : float or list of float default=`va_config.alpha`
+        - `alphas`, `a` : float or list of float default=`config.alpha`
             Aliases for `alpha`.
-        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
             Aliases for `edgecolors`.
         - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
             Aliases for `facecolors`.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
             Limits for the x-axis.
@@ -962,21 +962,21 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             Limits for the y-axis.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`va_config.loc`
+        - `loc` : str, default=`config.loc`
             Location of legend.
         - `xlabel` : str or None
             Label for the x-axis.
         - `ylabel` : str or None
             Label for the y-axis.
-        - `ecolors`, `ecolor` : color or list of color, optional, default=`va_config.ecolors`
+        - `ecolors`, `ecolor` : color or list of color, optional, default=`config.ecolors`
             Color(s) of the error bars.
-        - `elinewidth` : float, default=`va_config.elinewidth`
+        - `elinewidth` : float, default=`config.elinewidth`
             Line width of the error bars.
-        - `capsize` : float, default=`va_config.capsize`
+        - `capsize` : float, default=`config.capsize`
             Length of the error bar caps in points.
-        - `capthick` : float, default=`va_config.capthick`
+        - `capthick` : float, default=`config.capthick`
             Thickness of the error bar caps in points.
-        - `barsabove` : bool, default=`va_config.barsabove`
+        - `barsabove` : bool, default=`config.barsabove`
             If True, draw error bars above the plot symbols; otherwise, below.
 
     Returns
@@ -988,7 +988,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     '''
     # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     # scatter params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'sizes', 's', default=size)
@@ -996,31 +996,31 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
     facecolors = get_kwargs(kwargs, 'facecolor', 'fc', default=facecolors)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
     labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', va_config.loc)
+    loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     # errorbars
     ecolors = get_kwargs(kwargs, 'ecolors', 'ecolor', default=None)
-    elinewidth = kwargs.get('elinewidth', va_config.elinewidth)
-    capsize = kwargs.get('capsize', va_config.capsize)
-    capthick = kwargs.get('capthick', va_config.capthick)
-    barsabove = kwargs.get('barsabove', va_config.barsabove)
+    elinewidth = kwargs.get('elinewidth', config.elinewidth)
+    capsize = kwargs.get('capsize', config.capsize)
+    capthick = kwargs.get('capthick', config.capthick)
+    barsabove = kwargs.get('barsabove', config.barsabove)
 
-    # get default va_config values
+    # get default config values
     xlog = get_config_value(xlog, 'xlog')
     ylog = get_config_value(ylog, 'ylog')
     colors = get_config_value(colors, 'colors')
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
-    edgecolors = va_config.edgecolor if edgecolors is _default_flag else edgecolors
-    facecolors = va_config.facecolor if facecolors is _default_flag else facecolors
+    edgecolors = config.edgecolor if edgecolors is _default_flag else edgecolors
+    facecolors = config.facecolor if facecolors is _default_flag else facecolors
     ecolors = get_config_value(ecolors, 'ecolors')
 
     X = check_units_consistency(X)
@@ -1082,7 +1082,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         if yerr is not None:
             yerror = yerr[i%len(yerr)]
 
-        ax.errorbar(x, y, yerror, xerror, fmt=va_config.eb_fmt, ecolor=ecolor, elinewidth=elinewidth,
+        ax.errorbar(x, y, yerror, xerror, fmt=config.eb_fmt, ecolor=ecolor, elinewidth=elinewidth,
                     capsize=capsize, capthick=capthick, barsabove=barsabove)
 
     # set axes labels
@@ -1126,22 +1126,22 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
         If None, uses the default color palette from
-        `va_config.default_palette`.
+        `config.default_palette`.
     size : float, list of float, or None, optional, default=None
         Size of scatter dots. If None, uses the default
-        value in `va_config.scatter_size`.
+        value in `config.scatter_size`.
     marker : str, list of str, or None, optional, default=None
         Marker style for scatter dots. If None, uses the
-        default value in `va_config.marker`.
+        default value in `config.marker`.
     alpha : float, list of float, or None, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses the default value from `va_config.alpha`.
+        If None, uses the default value from `config.alpha`.
     edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
         The edge color of the marker. Possible values:
         - 'face': The edge color will always be the same as the face color.
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
-        If `_default_flag`, uses the default value in `va_config.edgecolor`.
+        If `_default_flag`, uses the default value in `config.edgecolor`.
     plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
         Specifies which contour projections to draw onto the side planes of the 3D axes.
         Each entry indicates the axis *normal* to the projection plane:
@@ -1156,22 +1156,22 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`va_config.rasterized`
+        - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`va_config.colors`
+        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
             Aliases for `colors`.
-        - `sizes`, `s` : float or list of float, optional, default=`va_config.scatter_size`
+        - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
             Aliases for `size`.
-        - `markers`, `m` : str or list of str, optional, default=`va_config.marker`
+        - `markers`, `m` : str or list of str, optional, default=`config.marker`
             Aliases for `marker`.
-        - `alphas`, `a` : float or list of float default=`va_config.alpha`
+        - `alphas`, `a` : float or list of float default=`config.alpha`
             Aliases for `alpha`.
-        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`va_config.edgecolor`
+        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
             Aliases for `edgecolors`.
-        - `cmap` : str, optional, default=`va_config.cmap`
+        - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
         - `xlim` : tuple of two floats or None
             Limits for the x-axis.
@@ -1218,14 +1218,14 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
       and finally `scale` if provided.
     '''
     # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', va_config.rasterized)
+    rasterized = kwargs.get('rasterized', config.rasterized)
     # scatter params
     colors = get_kwargs(kwargs, 'color', 'c', default=colors)
     sizes = get_kwargs(kwargs, 'sizes', 's', default=size)
     markers = get_kwargs(kwargs, 'markers', 'm', default=marker)
     alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
     edgecolors = get_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
-    cmap = kwargs.get('cmap', va_config.cmap)
+    cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
@@ -1238,12 +1238,12 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     # ticks
     minor_ticks = kwargs.get('minor_ticks', False)
 
-    # get default va_config values
+    # get default config values
     colors = get_config_value(colors, 'colors')
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
-    edgecolors = va_config.edgecolor if edgecolors is _default_flag else edgecolors
+    edgecolors = config.edgecolor if edgecolors is _default_flag else edgecolors
 
     X = check_units_consistency(X)
     Y = check_units_consistency(Y)

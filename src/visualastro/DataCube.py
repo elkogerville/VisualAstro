@@ -28,7 +28,7 @@ from .fits_utils import (
     _transfer_history, _update_header_key,
 )
 from .units import _check_unit_equality, _validate_units_consistency
-from .va_config import get_config_value, _default_flag
+from .config import get_config_value, _default_flag
 from .validation import (
     _check_shapes_match,
     _validate_iterable_type,
@@ -530,7 +530,7 @@ class DataCube:
             Size of the output figure.
         style : str or None, optional, default=None
             Matplotlib style to use for plotting. If None,
-            uses the default value set by `va_config.style`.
+            uses the default value set by `config.style`.
 
         Notes
         -----
@@ -539,7 +539,7 @@ class DataCube:
         '''
         from .plot_utils import return_stylename
 
-        # get default va_config values
+        # get default config values
         style = get_config_value(style, 'style')
 
         cube = self.value
@@ -586,18 +586,18 @@ class DataCube:
                 - 'interp' : use `reproject_interp`
                 - 'exact' : use `reproject_exact`
             If None, uses the default value
-            set by `va_config.reproject_method`.
+            set by `config.reproject_method`.
         return_footprint : bool or None, optional
             If True, return both reprojected data and reprojection
             footprints. If False, return only the reprojected data.
-            If None, uses the default value set by `va_config.return_footprint`.
+            If None, uses the default value set by `config.return_footprint`.
         parallel : bool, int, or None, optional, default=None
             If True, the reprojection is carried out in parallel,
             and if a positive integer, this specifies the number
             of threads to use. The reprojection will be parallelized
             over output array blocks specified by `block_size` (if the
             block size is not set, it will be determined automatically).
-            If None, uses the default value set by `va_config.reproject_parallel`.
+            If None, uses the default value set by `config.reproject_parallel`.
         block_size : tuple, 'auto', or None
             The size of blocks in terms of output array pixels that each block
             will handle reprojecting. Extending out from (0,0) coords positively,
@@ -605,7 +605,7 @@ class DataCube:
             past edge. Specifying 'auto' means that reprojection will be done in
             blocks with the block size automatically determined. If `block_size` is
             not specified or set to None, the reprojection will not be carried out in blocks.
-            If `_default_flag`, uses the default value set by `va_config.reproject_block_size`.
+            If `_default_flag`, uses the default value set by `config.reproject_block_size`.
 
         Returns
         -------

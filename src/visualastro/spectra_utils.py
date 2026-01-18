@@ -30,7 +30,7 @@ from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
 from .numerical_utils import mask_within_range, return_array_values
 from .SpectrumPlus import SpectrumPlus
-from .va_config import get_config_value, va_config
+from .config import get_config_value, config
 
 
 # Science Spectrum Functions
@@ -115,27 +115,27 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
         linear units (e.g., erg/s/cm^2/Å, Jy).
     Rv : float or None, optional, default=None
         Ratio of total-to-selective extinction (A_V / E(B-V)).
-        If None, uses default value set by `va_config.Rv`.
+        If None, uses default value set by `config.Rv`.
     Ebv : float or None, optional, default=None
         Color excess E(B-V), representing the amount of reddening.
-        If None, uses default value set by `va_config.Ebv`.
+        If None, uses default value set by `config.Ebv`.
     deredden_method : {'G23', 'WD01', 'M14'} or None, optional, default=None
         Choice of extinction law:
         - 'G23' : Gordon et al. (2023)
         - 'WD01': Weingartner & Draine (2001)
         - 'M14' : Maíz Apellániz et al. (2014)
-        If None, uses default value set by `va_config.deredden_method`.
+        If None, uses default value set by `config.deredden_method`.
     region : str or None, optional, default=None
         For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
         'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
-        If None, uses default value set by `va_config.deredden_region`.
+        If None, uses default value set by `config.deredden_region`.
 
     Returns
     -------
     deredden_flux : array-like
         Flux array corrected for extinction.
     '''
-    # get default va_config values
+    # get default config values
     Rv = get_config_value(Rv, 'Rv')
     Ebv = get_config_value(Ebv, 'Ebv')
     deredden_method = get_config_value(deredden_method, 'deredden_method')
@@ -176,14 +176,14 @@ def propagate_flux_errors(errors, method=None):
         - 1D array with shape (N_pixels,) for a single spectrum.
     method : {'mean', 'sum', 'median'} or None, optional
         Flux extraction method. If None, uses the default
-        value set by `va_config.propagate_flux_error_method`.
+        value set by `config.propagate_flux_error_method`.
 
     Returns
     -------
     flux_errors : np.ndarray
         1D array of propagated flux errors (shape N_spectra).
     '''
-    # get default va_config value
+    # get default config value
     method = get_config_value(method, 'propagate_flux_error_method').lower()
     if method is None:
         raise ValueError(
@@ -491,9 +491,9 @@ class GaussianFitResult:
         Pretty print the results in table format.
         '''
 
-        precision = kwargs.get('precision', va_config.table_precision)
-        sci_notation = kwargs.get('sci_notation', va_config.table_sci_notation)
-        pad = kwargs.get('pad', va_config.table_column_pad)
+        precision = kwargs.get('precision', config.table_precision)
+        sci_notation = kwargs.get('sci_notation', config.table_sci_notation)
+        pad = kwargs.get('pad', config.table_column_pad)
 
         fitted_data = [
             ['Amplitude', self.amplitude, self.amplitude_error],
