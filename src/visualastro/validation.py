@@ -7,6 +7,8 @@ Description:
 Dependencies:
     - astropy
 '''
+from collections.abc import Iterable, Iterator, Sequence
+from typing import Tuple, Type, TypeVar
 from astropy.units import Quantity
 import numpy as np
 
@@ -128,78 +130,60 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
             f'Shape mismatch: {name_a}.shape={A.shape}, {name_b}.shape={B.shape}'
         )
 
-
-def _validate_iterable_type(obj, types, name='object'):
-    '''
-    Validate that obj is an iterable whose elements are
-    all instances of the given type(s).
-
-    Raises a TypeError if the type(s) do not match.
-
-    Parameters
-    ----------
-    obj : iterable
-        Iterable to validate.
-    types : type or tuple of types
-        Required type(s) for each element.
-    name : str
-        Name used in error messages.
-
-    Raises
-    ------
-    ValueError
-        If obj is not iterable or contains invalid elements.
-    TypeError
-        If an element of obj is not the correct type.
-    '''
-    if not isinstance(types, tuple):
-        types = (types,)
-
-    try:
-        iterator = iter(obj)
-    except TypeError:
-        raise ValueError(f'{name} must be an iterable.')
-
-    for i, item in enumerate(iterator):
-        if not isinstance(item, types):
-            raise TypeError(
-                f'Element {i} of {name} must be instance of {types}, '
-                f'got {type(item)}.'
-            )
-
+T = TypeVar('T')
+C = TypeVar('C', bound=Sequence)
 
 def _validate_type(
-    data, types, default=None, allow_none=True, name='data'
-):
-    '''
+    data: T | None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
+    allow_none: bool = True,
+    name: str = 'data'
+) -> T | None:
+    """
     Validate that `data` is an instance of one of the allowed types.
 
     Parameters
     ----------
-    data : object
-        The object to validate.
-    types : type or tuple of types
+    data : T or None
+        The object to validate. Can be any type.
+    types : type[T] or tuple of type[T]
         A type or tuple of types that `data` is allowed to be.
-        Ex: Quantity, (Quantity), or (Quantity, SpectralCube)
-    default : object, optional, default=None
-        Value to return if `data` is None. Use this to provide
-        a default instance when None is passed.
+        For example: `Quantity` or `(Quantity, SpectralCube)`.
+    default : T or None, optional, default=None
+        Value to return if `data` is None and `allow_none` is True.
+        The default value must be an instance of one of the allowed types.
     allow_none : bool, default=True
-        If True, None is a valid input. If False, None will raise TypeError.
+        If True, None inputs return `default`.
+        If False, passing None raises a TypeError.
     name : str
-        Name of object for error message.
+        Name of the object for use in error messages.
+
+    Returns
+    -------
+    data
+        The validated object. Guaranteed to be an instance of one of the
+        types specified by `types` if no exception is raised.
 
     Raises
     ------
     TypeError
         If `data` is not an instance of any of the types in `types`.
-    '''
-    if data is None and allow_none:
-        return default
-
-    # make iterable
+    """
     if not isinstance(types, tuple):
         types = (types,)
+
+    if data is None:
+        if not allow_none:
+            raise TypeError(f"'{name}' cannot be None.")
+        if default is None:
+            return None
+        if not isinstance(default, types):
+            allowed = ', '.join(t.__name__ for t in types)
+            raise TypeError(
+                f"'default' must be one of: {allowed}; got {type(default).__name__}."
+            )
+        return default
 
     if not isinstance(data, types):
         allowed = ', '.join(t.__name__ for t in types)
@@ -208,3 +192,60 @@ def _validate_type(
         )
 
     return data
+
+
+def _validate_iterable_type(
+    obj: C,
+    types: Type[T] | Tuple[Type[T], ...],
+    name: str = 'object',
+) -> C:
+    """
+    Validate that `obj` is a non-iterator iterable whose elements are all
+    instances of the given type(s).
+
+    This function is intended for collections such as lists or tuples.
+    Iterator-like objects and string-like objects are rejected. If
+    validation succeeds, the input object is returned unchanged.
+
+    Parameters
+    ----------
+    obj : iterable
+        A non-iterator iterable (e.g. list or tuple) to validate.
+    types : type or tuple of types
+        Required type(s) for each element of `obj`.
+    name : str, optional
+        Name used in error messages.
+
+    Returns
+    -------
+    obj : iterable
+        The validated iterable. Guaranteed to be the same object passed in
+        and to contain only instances of `types`.
+
+    Raises
+    ------
+    TypeError
+        If `obj` is not iterable, is an iterator, is a string or bytes
+        object, or if any element of `obj` is not an instance of `types`.
+    """
+    if not isinstance(types, tuple):
+        types = (types,)
+
+    if (
+        not isinstance(obj, Iterable) or
+        isinstance(obj, (Iterator, str, bytes))
+    ):
+        raise TypeError(
+            f'{name} must be a non-iterator iterable (e.g. list or tuple), '
+            f'got {type(obj).__name__}.'
+        )
+
+    allowed = ', '.join(t.__name__ for t in types)
+    for i, item in enumerate(obj):
+        if not isinstance(item, types):
+            raise TypeError(
+                f'Element {i} of {name} must be instance of {allowed}, '
+                f'got {type(item).__name__}.'
+            )
+
+    return obj
