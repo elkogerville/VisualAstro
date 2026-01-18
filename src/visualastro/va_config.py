@@ -14,6 +14,8 @@ Module Structure:
 '''
 
 import numpy as np
+import astropy.units as u
+from astropy.units import physical
 
 
 class VAConfig:
@@ -132,6 +134,23 @@ class VAConfig:
         self.use_type_label = True
         self.use_unit_label = True
         self.unit_label_format = 'latex_inline'
+        self._PHYSICAL_TYPE_LABELS = {
+            u.adu.physical_type: 'ADU',
+            u.count.physical_type: 'Counts',
+            u.electron.physical_type: 'Counts',
+            u.mag.physical_type: 'Magnitude',
+            physical.length: 'Distance',
+            physical.power_density: 'Flux',
+            physical.spectral_flux_density: 'Flux Density',
+            physical.surface_brightness: 'Surface Brightness',
+        }
+
+        self._SPECTRAL_TYPE_LABELS = {
+            physical.length: 'Wavelength',
+            physical.frequency: 'Frequency',
+            physical.energy: 'Energy',
+            physical.speed: 'Velocity',
+        }
 
         # savefig params
         self.savefig = False
