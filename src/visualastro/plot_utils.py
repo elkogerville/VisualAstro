@@ -38,7 +38,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import slice_cube
 from .numerical_utils import (
-    compute_density_kde, get_data, return_array_values, to_array
+    compute_density_kde, get_data, get_value, to_array
 )
 from .units import (
     to_latex_unit, get_physical_type,
@@ -399,7 +399,7 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     cube = get_data(cube)
     # slice cube
     data = slice_cube(cube, slice_idx)
-    data = return_array_values(data)
+    data = get_value(data)
     # compute vmin and vmax
     vmin = np.nanpercentile(data, vmin)
     vmax = np.nanpercentile(data, vmax)
@@ -768,8 +768,8 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
         else:
             xdata = np.asarray(xdata)
         # min and max values across data sets
-        xmin = return_array_values(np.nanmin(xdata))
-        xmax = return_array_values(np.nanmax(xdata))
+        xmin = get_value(np.nanmin(xdata))
+        xmax = get_value(np.nanmax(xdata))
         # pad xlim
         if xpad > 0:
             dx = xmax - xmin
@@ -785,8 +785,8 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
         else:
             ydata = np.asarray(ydata)
         # min and max values across data sets
-        ymin = return_array_values(np.nanmin(ydata))
-        ymax = return_array_values(np.nanmax(ydata))
+        ymin = get_value(np.nanmin(ydata))
+        ymax = get_value(np.nanmax(ydata))
         # pad ylim
         if ypad > 0:
             dy = ymax - ymin

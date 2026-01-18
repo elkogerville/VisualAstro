@@ -73,45 +73,41 @@ def to_array(obj, keep_units=False):
 
 
 def get_data(obj):
-    '''
-    Extract the underlying data attribute from a DataCube or FitsFile object.
-    Parameters
-    ----------
-    obj : DataCube or FitsFile or np.ndarray
-        The object from which to extract the data. If a raw array is provided,
-        it is returned unchanged.
-    Returns
-    -------
-    np.ndarray, or data extension
-        The data attribute contained in the object, or the input array itself
-        if it is not a DataCube or FitsFile.
-    '''
-    if hasattr(obj, 'data'):
-        return obj.data
-
-    return obj
-
-
-def return_array_values(array):
-    '''
-    Extract the numerical values from an 'astropy.units.Quantity'
-    or return the array as-is.
+    """
+    Return the `data` attribute of an object if present;
+    otherwise return the object unchanged.
 
     Parameters
     ----------
-    array : astropy.units.Quantity or array-like
-        The input array. If it is a Quantity, the numerical values are extracted.
-        Otherwise, the input is returned unchanged.
+    obj : any
+        An object that may expose a `data` attribute (e.g. a DataCube,
+        FITS-like object), or a raw NumPy array.
 
     Returns
     -------
-    np.ndarray or array-like
-        The numerical values of the array, without units if input was a Quantity,
-        or the original array if it was not a Quantity.
-    '''
-    array = array.value if isinstance(array, Quantity) else array
+    array-like
+        `obj.data` if the attribute exists; otherwise `obj` itself.
+    """
+    return obj.data if hasattr(obj, 'data') else obj
 
-    return array
+
+def get_value(obj):
+    """
+    Return the `value` attribute of an object if present;
+    otherwise return the object unchanged.
+
+    Parameters
+    ----------
+    obj : any
+        An object that may expose a `value` attribute
+        (e.g. a DataCube, Quantity).
+
+    Returns
+    -------
+    array-like
+        `obj.value` if the attribute exists; otherwise `obj` itself.
+    """
+    return obj.value if hasattr(obj, 'value') else obj
 
 
 def non_nan(obj, keep_units=False):
@@ -297,8 +293,8 @@ def mask_within_range(x, xlim=None):
     mask : ndarray of bool
         True where x is within the limits.
     '''
-    x = return_array_values(x)
-    xlim = return_array_values(xlim)
+    x = get_value(x)
+    xlim = get_value(xlim)
 
     xmin = xlim[0] if xlim is not None else np.nanmin(x)
     xmax = xlim[1] if xlim is not None else np.nanmax(x)

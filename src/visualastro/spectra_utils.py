@@ -28,7 +28,7 @@ from specutils import SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
-from .numerical_utils import mask_within_range, return_array_values
+from .numerical_utils import get_value, mask_within_range
 from .SpectrumPlus import SpectrumPlus
 from .config import get_config_value, config
 
@@ -298,8 +298,8 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
       or similar fitting routines.
     '''
     # extract wavelength and flux from SpectrumPlus object
-    wavelength = return_array_values(extracted_spectrum.spectral_axis)
-    flux = return_array_values(extracted_spectrum.flux)
+    wavelength = get_value(extracted_spectrum.spectral_axis)
+    flux = get_value(extracted_spectrum.flux)
     # clip arrays by xlim
     if xlim is not None:
         mask = mask_within_range(wavelength, xlim)
