@@ -9,7 +9,7 @@ Dependencies:
     - numpy
 '''
 
-
+import warnings
 from typing import Any
 from astropy.io.fits import Header
 import astropy.units as u
@@ -158,6 +158,36 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
         return unit.to_string(fmt)
     except Exception:
         return None
+
+
+def check_units_consistency(datas):
+    '''
+    Check that all input objects have the same units and warn if they differ.
+    Additionally ensure that the input is iterable by wrapping in a list.
+
+    Parameters
+    ----------
+    datas : object or list/tuple of objects
+        Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
+
+    Returns
+    -------
+    datas : list
+        The input objects as a list.
+    '''
+    datas = datas if isinstance(datas, (list, tuple)) else [datas]
+
+    first_unit = get_units(datas[0])
+
+    for i, obj in enumerate(datas[1:], start=1):
+        unit = get_units(obj)
+        if unit != first_unit:
+            warnings.warn(
+                f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
+                f"at index 0. Values may be plotted incorrectly..."
+            )
+
+    return datas
 
 
 def _is_spectral_axis(obj):
