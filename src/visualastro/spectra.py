@@ -517,10 +517,10 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     if labels[0] is not None:
         ax.legend(loc=loc)
 
-    lines = lines[0] if len(lines) == 1 else lines
+    lines = _unwrap_if_single(lines)
     if plot_continuum_fit:
         PlotHandles = namedtuple('PlotSpectrum', ['lines', 'continuum_lines'])
-        fit_lines = fit_lines[0] if len(fit_lines) == 1 else fit_lines
+        fit_lines = _unwrap_if_single(fit_lines)
 
         return PlotHandles(lines, fit_lines)
 
