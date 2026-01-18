@@ -93,21 +93,26 @@ def get_data(obj):
 
 def get_value(obj):
     """
-    Return the `value` attribute of an object if present;
-    otherwise return the object unchanged.
+    Return the underlying NumPy array from
+    objects exposing a `value` attribute.
+
+    If the object does not expose `value`,
+    it is treated as the value itself. The
+    result is returned using np.asarray().
 
     Parameters
     ----------
     obj : any
         An object that may expose a `value` attribute
-        (e.g. a DataCube, Quantity).
+        (e.g. an Astropy `Quantity`) or is array-like.
 
     Returns
     -------
-    array-like
-        `obj.value` if the attribute exists; otherwise `obj` itself.
+    numpy.ndarray
+        The extracted data as a NumPy array.
     """
-    return obj.value if hasattr(obj, 'value') else obj
+    value = obj.value if hasattr(obj, 'value') else obj
+    return np.asarray(value)
 
 
 def non_nan(obj, keep_units=False):
