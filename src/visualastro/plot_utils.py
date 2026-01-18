@@ -22,11 +22,11 @@ Module Structure:
         Notebook utility functions.
 '''
 
+from collections.abc import Sequence
 import os
+from typing import Any
 import warnings
 from functools import partial
-import astropy.units as u
-from astropy.units import physical
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -40,7 +40,10 @@ from .data_cube_utils import slice_cube
 from .numerical_utils import (
     compute_density_kde, get_data, return_array_values, to_array
 )
-from .units import to_latex_unit, get_physical_type, get_units
+from .units import (
+    to_latex_unit, get_physical_type,
+    get_units, _infer_physical_type_label
+)
 from .config import get_config_value, config, _default_flag
 
 
@@ -799,40 +802,43 @@ def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
 
 def set_axis_labels(
     X, Y, ax, xlabel=None, ylabel=None, use_brackets=None,
-    use_type_label=None, use_unit_label=None, fmt=None
+    show_physical_label=None, show_unit=None, fmt=None
 ):
-    '''
-    Automatically generate and set axis labels from Quantity objects with units.
-    Creates formatted axis labels by combining the physical type (e.g., 'Wavelength',
-    'Flux Density') and units (e.g., 'μm', 'MJy/sr') of the input data. Labels can be
-    customized to show only the type, only units, or both. Units are encapsulated with
-    either [] or ().
+    """
+    Automatically generate and set axis labels from objects with physical
+    units.
+
+    This function creates formatted axis labels by combining an inferred
+    physical type (e.g., 'Wavelength', 'Flux Density') with a formatted unit
+    string (e.g., 'μm', 'MJy/sr'). Each component can be enabled or disabled
+    independently, and custom labels may be provided.
 
     Parameters
     ----------
-    X : '~astropy.units.Quantity' or object with 'unit' attribute
-        The data for the x-axis, typically a spectral axis (frequency, wavelength, or velocity).
-    Y : '~astropy.units.Quantity' or object with 'unit' or 'spectral_unit' attribute
-        The data for the y-axis, typically flux or intensity.
+    X : '~astropy.units.Quantity' or object with a unit
+        Data for the x-axis, typically a spectral axis (frequency,
+        wavelength, or velocity).
+    Y : '~astropy.units.Quantity' or object with a unit
+        Data for the y-axis, typically flux, intensity, or surface brightness.
     ax : 'matplotlib.axes.Axes'
-        The matplotlib axes object on which to set the labels.
-    xlabel : str or None, optional, default=None
-        Custom label for the x-axis. If None, the label is inferred from 'X'.
-    ylabel : str or None, optional, default=None
-        Custom label for the y-axis. If None, the label is inferred from 'Y'.
-    use_brackets : bool or None, optional, default=None
-        If True, wrap units in square brackets '[ ]'. If False, use parentheses '( )'.
-        If None, uses the default value set in `config.use_brackets`.
-    use_type_label: bool or None, optional, default=None
-        If True, include the physical type of the X and Y for the axis label if
-        available. If None, uses the default value set by `config.use_type_label`.
-    use_unit_label: bool or None, optional, default=None
-        If True, include the unit of the X and Y for the axis label if
-        available. If None, uses the default value set by `config.use_unit_label`.
-    fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
-        The format of the unit label. 'latex_inline' and 'inline' uses
-        negative exponents while 'latex' uses fractions. If None, uses
-        the default value set by `config.unit_label_format`.
+        Matplotlib axes object on which to set the labels.
+    xlabel : str or None, optional
+        Custom label for the x-axis. If None, the label is inferred from `X`.
+    ylabel : str or None, optional
+        Custom label for the y-axis. If None, the label is inferred from `Y`.
+    use_brackets : bool or None, optional
+        If True, wrap units in square brackets '[ ]'. If False, use
+        parentheses '( )'. If None, uses the default value from
+        `config.use_brackets`.
+    show_physical_label : bool or None, optional
+        If True, include the inferred physical type in the axis label.
+        If None, uses the default value from `config.use_type_label`.
+    show_unit : bool or None, optional
+        If True, include the unit in the axis label. If None, uses the
+        default value from `config.use_unit_label`.
+    fmt : {'latex', 'latex_inline', 'inline'} or None, optional
+        Format for unit rendering. Passed to `to_latex_unit`. If None,
+        uses the default value from `config.unit_label_format`.
 
     Examples
     --------
@@ -842,93 +848,129 @@ def set_axis_labels(
     >>> fig, ax = plt.subplots()
     >>> ax.plot(wavelength, flux)
     >>> set_axis_labels(wavelength, flux, ax)
-    # Sets xlabel to 'Wavelength [μm]' and ylabel to 'Surface Brightness [MJy/sr]'
+    # xlabel: 'Wavelength [μm]'
+    # ylabel: 'Surface Brightness [MJy/sr]'
 
-    >>> # Custom label with only units
-    >>> set_axis_labels(wavelength, flux, ax, use_type_label=False)
-    # Sets xlabel to '[μm]' and ylabel to '[MJy/sr]'
+    >>> set_axis_labels(wavelength, flux, ax, show_physical_label=False)
+    # xlabel: '[μm]'
+    # ylabel: '[MJy/sr]'
 
-    >>> # Override with custom label
     >>> set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
-    # Uses 'Custom Flux [MJy/sr]' for y-axis
+    # ylabel: 'Custom Flux [MJy/sr]'
 
     Notes
     -----
-    - Units are formatted using 'to_latex_unit', which provides LaTeX-friendly labels.
-      The labels are formatted as either 'latex_inline' or 'latex', which displays fractions
-      with either negative exponents or with fractions.
-    '''
+    - Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
+      representations.
+    - If both `show_physical_label` and `show_unit` are False, the resulting
+      axis label is an empty string.
+    """
     # get default config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
-    use_type_label = get_config_value(use_type_label, 'use_type_label')
-    use_unit_label = get_config_value(use_unit_label, 'use_unit_label')
+    show_physical_label = get_config_value(show_physical_label, 'use_type_label')
+    show_unit = get_config_value(show_unit, 'use_unit_label')
     fmt = get_config_value(fmt, 'unit_label_format')
 
     # unit bracket type [] or ()
     brackets = [r'[', r']'] if use_brackets else [r'(', r')']
 
-    TYPE_MAP = {
-        u.adu.physical_type: 'ADU',
-        u.count.physical_type: 'Counts',
-        u.electron.physical_type: 'Counts',
-        u.mag.physical_type: 'Mag',
-        physical.energy: 'Energy',
-        physical.frequency: 'Frequency',
-        physical.length: 'Wavelength',
-        physical.power_density: 'Flux',
-        physical.spectral_flux_density: 'Flux Density',
-        physical.speed: 'Velocity',
-        physical.surface_brightness: 'Surface Brightness'
-    }
-
-    def _create_label(
-        obj, type_map, label, brackets, use_type_label, use_unit_label, fmt
-    ):
-        '''
-        Creates the axis label based on the object being plotted
-        '''
-
-        # get physical type and unit of object
-        physical_type = get_physical_type(obj)
-        unit = get_units(obj)
-
-        # get custom label if exists
-        if isinstance(label, str):
-            type_label = label
-        elif use_type_label and physical_type in type_map:
-            type_label = type_map[physical_type]
-        # use physical type if exists
-        elif use_type_label and physical_type is not None:
-            type_label = str(physical_type).replace('_', ' ').title()
-        else:
-            type_label = ''
-
-        # set unit label
-        unit_label = to_latex_unit(unit, fmt=fmt)
-
-        # add brackets to unit if exists
-        if use_unit_label and unit_label is not None:
-            unit_label = fr'{brackets[0]}{unit_label}{brackets[1]}'
-        else:
-            unit_label = ''
-
-        axis_label = fr'{type_label} {unit_label}'.strip()
-
-        return axis_label
-
-    xlabel = _create_label(
-        X, TYPE_MAP, xlabel, brackets,
-        use_type_label, use_unit_label, fmt
+    xlabel = _format_axis_label(
+        X, xlabel, brackets, show_physical_label, show_unit, fmt
     )
-
-    ylabel = _create_label(
-        Y, TYPE_MAP, ylabel, brackets,
-        use_type_label, use_unit_label, fmt
+    ylabel = _format_axis_label(
+        Y, ylabel, brackets, show_physical_label, show_unit, fmt
     )
 
     # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+
+def _format_axis_label(
+    obj: Any,
+    label: str | None,
+    brackets: Sequence[str],
+    show_physical_label: bool,
+    show_unit: bool,
+    fmt: str
+) -> str:
+    """
+    Create a scientific axis label with physical type and unit information.
+
+    This function generates axis labels in the format `<physical label> [<unit>]`,
+    where the physical label describes what the axis represents (e.g., 'Wavelength',
+    'Flux') and the unit is formatted in LaTeX notation. Both components can be
+    customized or disabled independently.
+
+    Parameters
+    ----------
+    obj : any
+        An object from which physical type and unit information can be extracted.
+        This may be an Astropy `Quantity`, a Spectrum-like object, or any object
+        compatible with `get_units` and `get_physical_type`.
+    label : str or None
+        If a string is provided, use it as the physical label directly, overriding
+        any auto-detected physical type. If None, the physical label is inferred
+        from the object's physical type (when `show_physical_label=True`).
+    brackets : tuple of str
+        A 2-element tuple specifying the opening and closing characters to wrap
+        around the unit string. Common choices include `('[', ']')`, `('(', ')')`,
+        or `('', '')` for no brackets.
+    show_physical_label : bool
+        If True, include the physical type label in the output. If False, omit
+        the physical label entirely (useful for creating unit-only labels).
+    show_unit : bool
+        If True, include the unit in the output. If False, omit the unit
+        (useful for creating label-only outputs).
+    fmt : str or None
+        Format string for unit rendering, passed to `to_latex_unit`. Common
+        values include 'latex', 'latex_inline', or 'inline'. See `to_latex_unit`
+        documentation for details.
+
+    Returns
+    -------
+    str
+        A formatted axis label string. The format depends on the parameters:
+        - Label only: 'Wavelength'
+        - Unit only: '[$\\mu$m]'
+        - Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
+        - Neither: '' (empty string)
+
+    Notes
+    -----
+    - If the object has no unit or the unit cannot be formatted, the unit
+      portion is omitted regardless of `show_unit`.
+    - The output is stripped of leading/trailing whitespace.
+    """
+    physical_type = get_physical_type(obj)
+
+    # format physical label
+    if isinstance(label, str):
+        physical_label = label
+
+    elif show_physical_label:
+        inferred = _infer_physical_type_label(obj)
+        if inferred is not None:
+            physical_label = inferred
+        elif physical_type is not None:
+            physical_label = str(physical_type).replace('_', ' ').title()
+        else:
+            physical_label = ''
+
+    else:
+        physical_label = ''
+
+    # format unit label
+    unit = get_units(obj)
+    unit_str = to_latex_unit(unit, fmt=fmt)
+
+    # create axis label
+    if show_unit and unit_str is not None:
+        unit_label = fr'{brackets[0]}{unit_str}{brackets[1]}'
+    else:
+        unit_label = ''
+
+    return fr'{physical_label} {unit_label}'.strip()
 
 
 # Plot Matplotlib Patches and Shapes
