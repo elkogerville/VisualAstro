@@ -127,6 +127,38 @@ def to_unit(obj):
     return None
 
 
+def to_latex_unit(unit: Any, fmt=None) -> str | None:
+    '''
+    Convert an astropy unit string into a LaTeX-formatted label
+    for plotting. Returns None if no unit is found.
+
+    Parameters
+    ----------
+    unit : str or astropy.Unit
+        The astropy.Unit or unit string to convert.
+    fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
+        The format of the unit label. 'latex_inline' and 'inline' uses
+        negative exponents while 'latex' uses fractions. If None, uses
+        the default value set by `va_config.unit_label_format`.
+
+    Returns
+    -------
+    str or None
+        A LaTeX-formatted unit label if the input is recognized.
+        Returns None if the unit is invalid.
+    '''
+    fmt = get_config_value(fmt, 'unit_label_format')
+
+    if fmt.lower() == 'inline':
+        fmt = 'latex_inline'
+
+    try:
+        unit = to_unit(unit)
+        return unit.to_string(fmt)
+    except Exception:
+        return None
+
+
 def _is_spectral_axis(obj):
     """
     Determine whether an object represents a spectral axis.
