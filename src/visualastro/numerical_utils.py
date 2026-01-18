@@ -242,7 +242,7 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
 
 # Numerical Operation Functions
 # -----------------------------
-def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
+def interpolate(xp, yp, x_range, N_samples, method='linear'):
     '''
     Interpolate a 1D array over a specified range.
 
@@ -271,13 +271,14 @@ def interpolate_arrays(xp, yp, x_range, N_samples, method='linear'):
     '''
     # generate new interpolation samples
     x_interp = np.linspace(x_range[0], x_range[1], N_samples)
+
     # get interpolation method
     if method == 'cubic_spline':
         f_interp = CubicSpline(xp, yp)
     else:
-        # fallback to linear if method is unknown
         kind = method if method in ['linear', 'cubic'] else 'linear'
         f_interp = interp1d(xp, yp, kind=kind)
+
     # interpolate over new samples
     y_interp = f_interp(x_interp)
 
