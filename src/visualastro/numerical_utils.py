@@ -179,6 +179,7 @@ def non_nan(obj, keep_units=False):
 
     return data[non_nans]
 
+
 # Science Operation Functions
 # ---------------------------
 def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
@@ -191,7 +192,7 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
         1D array of x-coordinates of shape (N,).
     y : np.ndarray
         1D array of y-coordinates of shape (N,).
-    bw_method : str, scalar or callable, optional, default='scott'
+    bw_method : {'scott', 'silverman'}, scalar or callable, optional, default='scott'
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
         - 'scott' or 'silverman': use standard rules of thumb.
