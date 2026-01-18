@@ -216,6 +216,62 @@ def _is_spectral_axis(obj):
     return False
 
 
+def _infer_physical_type_label(obj: Any) -> str | None:
+    """
+    Infer a human-readable physical-type label for an object.
+
+    This function determines an appropriate scientific label
+    based on the physical type of an object's associated unit.
+    Spectral axes are treated with higher precedence than other
+    physical quantities (i.e. 'um' is mapped to 'Wavelength'
+    rather than 'Distance'). If no suitable label can be inferred,
+    the function returns None.
+
+    The inference logic follows this order:
+
+    1. If the object represents a spectral axis, return a spectral-axis
+        label (e.g., 'Wavelength', 'Frequency', 'Velocity').
+    2. Otherwise, return a curated physical-type label (e.g., 'Flux',
+        'Surface Brightness').
+    3. If no mapping exists, return None.
+
+    Parameters
+    ----------
+    obj : any
+        An object describing an axis or quantity. This may be an Astropy
+        `Quantity`, a Spectrum-like object exposing spectral metadata, or
+        any object from which a unit can be extracted via `get_units`.
+
+    Returns
+    -------
+    label : str or None
+        A human-readable physical-type label, or None if no appropriate
+        label can be inferred.
+
+    Notes
+    -----
+    - Spectral axes take precedence over generic physical types.
+    - Length units are only interpreted as wavelengths when spectral context
+        can be inferred (via Astropy spectral equivalencies or explicit spectral
+        metadata). For example, units such as 'um', 'm', etc.. are mapped to
+        'Wavelength' but distance units like 'pc' would return 'Distance'.
+    - Structured units and non-scalar physical types are ignored.
+    - This function does not raise exceptions.
+    """
+    physical_type = get_physical_type(obj)
+    if physical_type is None:
+        return None
+
+    if _is_spectral_axis(obj):
+        return va_config._SPECTRAL_TYPE_LABELS.get(
+            physical_type, 'Spectral Axis'
+        )
+
+    return va_config._PHYSICAL_TYPE_LABELS.get(
+        physical_type, None
+    )
+
+
 def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     """
     Validate that two units are exactly equal.
