@@ -11,8 +11,10 @@ Dependencies:
 
 
 from astropy.io.fits import Header
+import astropy.units as u
 from astropy.units import (
-    dimensionless_unscaled, Quantity, Unit, UnitBase, UnitsError
+    dimensionless_unscaled, physical,
+    Quantity, Unit, UnitBase, UnitsError
 )
 import numpy as np
 
@@ -96,6 +98,89 @@ def get_physical_type(obj):
         return unit.physical_type
     except Exception:
         return None
+
+
+def to_unit(obj):
+    """
+    Normalize an input into an astropy Unit.
+
+    Parameters
+    ----------
+    obj : Unit, Quantity, str, or None
+
+    Returns
+    -------
+    unit : astropy.units.Unit or None
+    """
+    if isinstance(obj, UnitBase):
+        return obj
+
+    elif isinstance(obj, Quantity):
+        return obj.unit
+
+    elif isinstance(obj, str):
+        try:
+            return Unit(obj)
+        except Exception:
+            return None
+
+    return None
+
+
+def _is_spectral_axis(obj):
+    """
+    Determine whether an object represents a spectral axis.
+
+    An object is considered a spectral axis if it explicitly exposes
+    spectral metadata (e.g., `spectral_axis` or `spectral_unit`), or if
+    its unit corresponds to a spectral quantity such as wavelength,
+    frequency, energy, or Doppler velocity. Length units are only treated
+    as spectral when they are convertible via Astropy spectral
+    equivalencies.
+
+    Parameters
+    ----------
+    obj : any
+        An object describing an axis. This may be a SpectralCube,
+        Spectrum1D, Quantity, or any object exposing a unit.
+
+    Returns
+    -------
+    bool
+        True if the object represents a spectral axis, False otherwise.
+
+    Notes
+    -----
+    - Length units (e.g., meters, microns) are only interpreted as
+      wavelengths when spectral context can be inferred.
+    - Plain length quantities without spectral context are not
+      automatically treated as spectral axes.
+    """
+
+    if hasattr(obj, 'spectral_axis') or hasattr(obj, 'spectral_unit'):
+        return True
+
+    unit = get_units(obj)
+    if unit is None:
+        return False
+
+    physical_type = unit.physical_type
+
+    if physical_type in {
+        physical.frequency,
+        physical.energy,
+        physical.speed,
+    }:
+        return True
+
+    if physical_type is physical.length:
+        try:
+            unit.to(u.Hz, equivalencies=u.spectral())
+            return True
+        except Exception:
+            pass
+
+    return False
 
 
 def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
