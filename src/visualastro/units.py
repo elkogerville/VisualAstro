@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2026-01-17
+Date Modified: 2026-01-18
 Description:
     Utility functions for astropy units.
 Dependencies:
@@ -10,16 +10,19 @@ Dependencies:
 '''
 
 
+from typing import Any
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import (
     dimensionless_unscaled, physical,
-    Quantity, Unit, UnitBase, UnitsError
+    Quantity, Unit, UnitBase, UnitsError, StructuredUnit
 )
+from astropy.units.physical import PhysicalType
 import numpy as np
+from .va_config import get_config_value, va_config
 
 
-def get_units(obj):
+def get_units(obj: Any) -> UnitBase | StructuredUnit | None:
     """
     Extract the unit from an object, if it exists.
 
@@ -45,19 +48,11 @@ def get_units(obj):
 
     if isinstance(obj, Header):
         bunit = obj.get('BUNIT')
-        if isinstance(bunit, str):
-            try:
-                return Unit(bunit)
-            except Exception:
-                return None
-        return None
+        return to_unit(bunit)
 
     unit = getattr(obj, 'unit', None)
     if unit is not None:
-        try:
-            return unit if isinstance(unit, UnitBase) else Unit(unit)
-        except Exception:
-            pass
+        return to_unit(unit)
 
     if hasattr(obj, 'data'):
         data = obj.data
@@ -76,7 +71,7 @@ def get_units(obj):
     return None
 
 
-def get_physical_type(obj):
+def get_physical_type(obj: Any) -> PhysicalType | None:
     """
     Extract the physical type associated with an object's unit.
 
