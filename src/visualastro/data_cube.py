@@ -29,14 +29,14 @@ from tqdm import tqdm
 from .data_cube_utils import get_spectral_slice_value, slice_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
-    convert_units, get_data, shift_by_radial_vel
+    get_data, shift_by_radial_vel
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses,
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax
 )
-from .units import check_units_consistency, to_latex_unit
+from .units import check_units_consistency, convert_units, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
