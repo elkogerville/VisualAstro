@@ -49,28 +49,28 @@ def get_data(obj):
     return obj.data if hasattr(obj, 'data') else obj
 
 
-def get_value(obj: Any) -> NDArray:
+def get_value(obj: Any):
     """
-    Return the underlying NumPy array from
-    objects exposing a `value` attribute.
+    Return the numeric value of an object,
+    stripping units if present.
 
-    If the object does not expose `value`,
-    it is treated as the value itself. The
-    result is returned using np.asarray().
+   If the object exposes a `value` attribute
+   (e.g., an Astropy `Quantity`), that attribute
+   is returned. Otherwise, the object itself is
+   returned unchanged.
 
-    Parameters
-    ----------
+   Parameters
+   ----------
     obj : any
-        An object that may expose a `value` attribute
-        (e.g. an Astropy `Quantity`) or is array-like.
+        Object that may expose a `value` attribute.
 
     Returns
     -------
-    numpy.ndarray
-        The extracted data as a NumPy array.
+    any
+        The underlying numeric value with units removed,
+        if applicable.
     """
-    value = obj.value if hasattr(obj, 'value') else obj
-    return np.asarray(value)
+    return obj.value if hasattr(obj, 'value') else obj
 
 
 def to_array(obj, keep_units=False):
