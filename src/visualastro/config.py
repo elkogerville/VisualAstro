@@ -37,6 +37,7 @@ class VAConfig:
         # ---------------
 
         # I/O params
+        self.unit_mismatch = 'warn'
         self.default_unit = np.float64
         self.hdu_idx = 0
         self.print_info = False
