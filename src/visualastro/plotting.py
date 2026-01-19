@@ -27,7 +27,7 @@ from .plot_utils import (
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_vmin_vmax
 )
-from .units import ensure_unit_consistency, get_units, to_latex_unit
+from .units import ensure_common_unit, get_units, to_latex_unit
 from .config import get_config_value, config, _default_flag
 
 
@@ -201,7 +201,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
 
     # ensure inputs are iterable or conform to standard
     datas = to_list(datas)
-    datas = ensure_unit_consistency(datas)
+    datas = ensure_common_unit(datas)
     cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
     if idx is not None:
         idx = idx if isinstance(idx, (list, np.ndarray, tuple)) else [idx]
@@ -458,8 +458,8 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
     X = to_list(X)
     Y = to_list(Y)
-    X = ensure_unit_consistency(X)
-    Y = ensure_unit_consistency(Y)
+    X = ensure_common_unit(X)
+    Y = ensure_common_unit(Y)
     if np.ndim(X) == 1 and np.ndim(Y) >= 2:
         X = [X]
     if np.ndim(Y) == 1 and np.ndim(X) >= 2:
@@ -664,7 +664,7 @@ def plot_histogram(datas, ax,
 
     # ensure inputs are iterable or conform to standard
     datas = to_list(datas)
-    datas = ensure_unit_consistency(datas)
+    datas = ensure_common_unit(datas)
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
@@ -830,8 +830,8 @@ def plot_lines(X, Y, ax, normalize=None,
 
     X = to_list(X)
     Y = to_list(Y)
-    X = ensure_unit_consistency(X)
-    Y = ensure_unit_consistency(Y)
+    X = ensure_common_unit(X)
+    Y = ensure_common_unit(Y)
     if np.ndim(X[0]) == 0:
         X = [X]
     if np.ndim(Y[0]) == 0:
@@ -1031,8 +1031,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
 
     X = to_list(X)
     Y = to_list(Y)
-    X = ensure_unit_consistency(X)
-    Y = ensure_unit_consistency(Y)
+    X = ensure_common_unit(X)
+    Y = ensure_common_unit(Y)
     if np.ndim(X) == 1 and np.ndim(Y) >= 2:
         X = [X]
     if np.ndim(Y) == 1 and np.ndim(X) >= 2:
@@ -1256,9 +1256,9 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     X = to_list(X)
     Y = to_list(Y)
     Z = to_list(Z)
-    X = ensure_unit_consistency(X)
-    Y = ensure_unit_consistency(Y)
-    Z = ensure_unit_consistency(Z)
+    X = ensure_common_unit(X)
+    Y = ensure_common_unit(Y)
+    Z = ensure_common_unit(Z)
 
     if not (len(X) == len(Y) == len(Z)):
         raise ValueError(

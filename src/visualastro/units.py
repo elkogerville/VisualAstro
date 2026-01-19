@@ -212,7 +212,7 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
         return None
 
 
-def ensure_unit_consistency(
+def ensure_common_unit(
     objs,
     *,
     unit=None,

@@ -37,7 +37,7 @@ from .plot_utils import (
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax
 )
-from .units import ensure_unit_consistency, convert_quantity, to_latex_unit
+from .units import ensure_common_unit, convert_quantity, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
@@ -346,7 +346,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     '''
     # check cube units match and ensure cubes is iterable
     cubes = to_list(cubes)
-    cubes = ensure_unit_consistency(cubes)
+    cubes = ensure_common_unit(cubes)
     # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)

@@ -47,7 +47,7 @@ from .spectra_utils import gaussian as _gaussian
 from .spectra_utils import gaussian_continuum as _gaussian_continuum
 from .spectra_utils import gaussian_line as _gaussian_line
 from .SpectrumPlus import SpectrumPlus
-from .units import ensure_unit_consistency, convert_quantity
+from .units import ensure_common_unit, convert_quantity
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
@@ -228,7 +228,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
     # ensure cubes are iterable
     cubes = to_list(cubes)
-    cubes = ensure_unit_consistency(cubes)
+    cubes = ensure_common_unit(cubes)
 
     # set plot style and colors
     style = return_stylename(style)
@@ -459,7 +459,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
     # ensure extracted_spectra is iterable
     extracted_spectra = to_list(extracted_spectra)
-    extracted_spectra = ensure_unit_consistency(extracted_spectra)
+    extracted_spectra = ensure_common_unit(extracted_spectra)
     linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
@@ -645,7 +645,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
     # ensure units match and that extracted_spectra is a list
     extracted_spectra = to_list(extracted_spectra)
-    extracted_spectra = ensure_unit_consistency(extracted_spectra)
+    extracted_spectra = ensure_common_unit(extracted_spectra)
     # hardcode behavior to avoid breaking
     if return_spectra:
         concatenate = True
