@@ -85,8 +85,8 @@ def finite(obj, *, keep_units=True, keep_inf=False):
     keep_units : bool, optional, default=True
         If True, preserve astropy units if present on the input.
     keep_inf : bool, optional, default=False
-        If False, remove all non-finite values (NaN, +inf, -inf).
-        If True, remove only NaNs and retain infinite values.
+        If True, keep ±inf values and remove only NaNs.
+        If False, remove NaN and ±inf values.
 
     Returns
     -------
@@ -100,8 +100,7 @@ def finite(obj, *, keep_units=True, keep_inf=False):
         and `~np.isnan` when `keep_inf=True`.
     """
     data = to_array(obj, keep_units)
-
-    mask = ~np.isnan(data) if keep_inf else np.isfinite(data)
+    mask = mask_finite(data, keep_inf=keep_inf)
 
     return data[mask]
 
@@ -286,6 +285,36 @@ def interpolate(xp, yp, x_range, N_samples, method='linear'):
     y_interp = f_interp(x_interp)
 
     return x_interp, y_interp
+
+
+def mask_finite(obj, *, keep_inf=False):
+    """
+    Return a boolean mask identifying finite values in array-like input.
+
+    Parameters
+    ----------
+    obj : array_like
+        Input data. May be a NumPy array, list, DataCube, FitsFile,
+        Quantity, or any object compatible with `to_array`.
+    keep_units : bool, optional, default=True
+        Passed through to `to_array`. Units do not affect the mask.
+    keep_inf : bool, optional, default=False
+        If False, mask excludes NaN and ±inf values.
+        If True, mask excludes only NaNs and retains ±inf values.
+
+    Returns
+    -------
+    ndarray of bool
+        Boolean mask with the same shape as the input data.
+        True indicates values that are kept.
+
+    Notes
+    -----
+    - Uses `np.isfinite` when `keep_inf=False`.
+    - Uses `~np.isnan` when `keep_inf=True`.
+    """
+    data = to_array(obj)
+    return ~np.isnan(data) if keep_inf else np.isfinite(data)
 
 
 def mask_within_range(x, xlim=None):
