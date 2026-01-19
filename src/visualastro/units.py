@@ -19,7 +19,7 @@ from astropy.units import (
     UnitConversionError, UnitsError, StructuredUnit
 )
 from astropy.units.physical import PhysicalType
-import numpy as np
+from .numerical_utils import to_list
 from .config import get_config_value, config
 
 
@@ -56,6 +56,57 @@ def convert_units(quantity, unit):
         print(
             f'Could not convert to unit: {unit}.'
             f'Defaulting to unit: {quantity.unit}.'
+            )
+        return quantity
+
+
+def convert_quantity(
+    quantity,
+    unit,
+    *,
+    equivalencies=None,
+    on_failure='warn',
+):
+    """
+    Convert an Astropy Quantity to a specified unit.
+
+    Parameters
+    ----------
+    quantity : astropy.units.Quantity
+        Input quantity to convert.
+    unit : str or astropy.units.Unit or None
+        Target unit. If None, the input is returned unchanged.
+    equivalencies : list or None, optional
+        Unit equivalencies to use during conversion
+        (e.g. `spectral()`). Default is None.
+    on_failure : {'warn', 'ignore', 'raise'}, optional
+        Behavior if unit conversion fails.
+
+    Returns
+    -------
+    astropy.units.Quantity
+        Converted quantity, or the original quantity if conversion
+        fails and `on_failure` is not 'raise'.
+
+    Raises
+    ------
+    UnitConversionError
+        If conversion fails and `on_failure='raise'`.
+    """
+    if unit is None:
+        return quantity
+
+    target_unit = to_unit(unit)
+
+    try:
+        return quantity.to(target_unit, equivalencies=equivalencies)
+    except UnitConversionError as exc:
+        if on_failure == 'raise':
+            raise UnitConversionError
+        if on_failure == 'warn':
+            warnings.warn(
+                f'Could not convert from {quantity.unit} to {target_unit}; '
+                f'leaving quantity unchanged.'
             )
         return quantity
 
@@ -160,7 +211,7 @@ def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     elif isinstance(obj, str):
         try:
             return Unit(obj)
-        except Exception:
+        except UnitsError:
             return None
 
     return None
@@ -248,7 +299,7 @@ def ensure_unit_consistency(
         u for u in units if u is not None
     )
 
-    prefix = f"{label}: " if label else ""
+    prefix = f'{label}: ' if isinstance(label, str) else ''
 
     out = []
     for i, (obj, u) in enumerate(zip(objs, units)):
