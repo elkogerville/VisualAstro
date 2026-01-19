@@ -73,38 +73,6 @@ def get_value(obj: Any) -> NDArray:
     return np.asarray(value)
 
 
-def finite(obj, *, keep_units=True, keep_inf=False):
-    """
-    Filter NaN and optionally infinite values from array-like input.
-
-    Parameters
-    ----------
-    obj : array_like
-        Input data. May be a NumPy array, list, DataCube, FitsFile,
-        Quantity, or any object compatible with `to_array`.
-    keep_units : bool, optional, default=True
-        If True, preserve astropy units if present on the input.
-    keep_inf : bool, optional, default=False
-        If True, keep ±inf values and remove only NaNs.
-        If False, remove NaN and ±inf values.
-
-    Returns
-    -------
-    ndarray or Quantity
-        A 1-D array containing the filtered values. Units are preserved
-        if `keep_units=True` and the input carries units.
-
-    Notes
-    -----
-    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
-        and `~np.isnan` when `keep_inf=True`.
-    """
-    data = to_array(obj, keep_units)
-    mask = mask_finite(data, keep_inf=keep_inf)
-
-    return data[mask]
-
-
 def to_array(obj, keep_units=False):
     """
     Return input object as either a np.ndarray or Quantity.
@@ -285,6 +253,39 @@ def interpolate(xp, yp, x_range, N_samples, method='linear'):
     y_interp = f_interp(x_interp)
 
     return x_interp, y_interp
+
+
+def finite(obj, *, keep_units=True, keep_inf=False):
+    """
+    Filter NaN and optionally infinite values from
+    array-like input. The output is always 1D.
+
+    Parameters
+    ----------
+    obj : array_like
+        Input data. May be a NumPy array, list, DataCube, FitsFile,
+        Quantity, or any object compatible with `to_array`.
+    keep_units : bool, optional, default=True
+        If True, preserve astropy units if present on the input.
+    keep_inf : bool, optional, default=False
+        If True, keep ±inf values and remove only NaNs.
+        If False, remove NaN and ±inf values.
+
+    Returns
+    -------
+    ndarray or Quantity
+        A 1-D array containing the filtered values. Units are preserved
+        if `keep_units=True` and the input carries units.
+
+    Notes
+    -----
+    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
+        and `~np.isnan` when `keep_inf=True`.
+    """
+    data = to_array(obj, keep_units)
+    mask = mask_finite(data, keep_inf=keep_inf)
+
+    return data[mask]
 
 
 def mask_finite(obj, *, keep_inf=False):
