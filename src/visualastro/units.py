@@ -15,7 +15,7 @@ from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import (
     dimensionless_unscaled, physical,
-    Quantity, spectral, Unit, UnitBase,
+    Quantity, Unit, UnitBase,
     UnitConversionError, UnitsError, StructuredUnit
 )
 from astropy.units.physical import PhysicalType

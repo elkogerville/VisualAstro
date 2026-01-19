@@ -20,6 +20,7 @@ Module Structure:
 '''
 
 from collections import namedtuple
+import astropy.units as u
 from astropy.units import Quantity
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +47,7 @@ from .spectra_utils import gaussian as _gaussian
 from .spectra_utils import gaussian_continuum as _gaussian_continuum
 from .spectra_utils import gaussian_line as _gaussian_line
 from .SpectrumPlus import SpectrumPlus
-from .units import ensure_unit_consistency, convert_units
+from .units import ensure_unit_consistency, convert_quantity
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
@@ -238,7 +239,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
         # shift by radial velocity
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
-        spectral_axis = convert_units(spectral_axis, unit)
+        spectral_axis = convert_quantity(spectral_axis, unit, equivalencies=u.spectral())
 
         # extract spectrum flux
         flux = extract_method(cube)

@@ -20,6 +20,7 @@ Module Structure:
 import glob
 import warnings
 from astropy.io import fits
+import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from astropy.wcs import WCS
 from matplotlib.patches import Ellipse
@@ -36,7 +37,7 @@ from .plot_utils import (
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax
 )
-from .units import ensure_unit_consistency, convert_units, to_latex_unit
+from .units import ensure_unit_consistency, convert_quantity, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
@@ -439,7 +440,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     # plot wavelength/frequency of current spectral slice, and emission line
     if draw_spectral_label:
         # compute spectral axis value of slice for label
-        spectral_axis = convert_units(cube.spectral_axis, unit) # type: ignore
+        spectral_axis = convert_quantity(cube.spectral_axis, unit, equivalencies=u.spectral())
         spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
         spectral_value = get_spectral_slice_value(spectral_axis, idx)
         unit_label = to_latex_unit(spectral_axis.unit)
