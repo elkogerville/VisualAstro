@@ -411,7 +411,7 @@ def _is_unitless(obj):
     return True
 
 
-def _validate_units_consistency(objs, *, label=None):
+def _validate_common_unit(objs, *, label=None):
     '''
     Extract units of each object in objs
     and validate that units match.
