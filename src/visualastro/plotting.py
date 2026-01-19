@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
 from .data_cube import slice_cube
 from .io import get_kwargs
-from .numerical_utils import to_array
+from .numerical_utils import to_array, to_list
 from .plot_utils import (
     add_colorbar, add_contours,
     plot_circles, plot_ellipses,
@@ -27,7 +27,7 @@ from .plot_utils import (
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_vmin_vmax
 )
-from .units import check_units_consistency, get_units, to_latex_unit
+from .units import get_units, to_latex_unit
 from .config import get_config_value, config, _default_flag
 
 
@@ -200,7 +200,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
     # ensure inputs are iterable or conform to standard
-    datas = check_units_consistency(datas)
+    datas = to_list(datas)
     cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
     if idx is not None:
         idx = idx if isinstance(idx, (list, np.ndarray, tuple)) else [idx]
@@ -455,8 +455,8 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
 
-    X = check_units_consistency(X)
-    Y = check_units_consistency(Y)
+    X = to_list(X)
+    Y = to_list(Y)
     if np.ndim(X) == 1 and np.ndim(Y) >= 2:
         X = [X]
     if np.ndim(Y) == 1 and np.ndim(X) >= 2:
@@ -660,7 +660,7 @@ def plot_histogram(datas, ax,
     colors = get_config_value(colors, 'colors')
 
     # ensure inputs are iterable or conform to standard
-    datas = check_units_consistency(datas)
+    datas = to_list(datas)
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
@@ -824,8 +824,8 @@ def plot_lines(X, Y, ax, normalize=None,
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
 
-    X = check_units_consistency(X)
-    Y = check_units_consistency(Y)
+    X = to_list(X)
+    Y = to_list(Y)
     if np.ndim(X[0]) == 0:
         X = [X]
     if np.ndim(Y[0]) == 0:
@@ -1023,8 +1023,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     facecolors = config.facecolor if facecolors is _default_flag else facecolors
     ecolors = get_config_value(ecolors, 'ecolors')
 
-    X = check_units_consistency(X)
-    Y = check_units_consistency(Y)
+    X = to_list(X)
+    Y = to_list(Y)
     if np.ndim(X) == 1 and np.ndim(Y) >= 2:
         X = [X]
     if np.ndim(Y) == 1 and np.ndim(X) >= 2:
@@ -1245,9 +1245,9 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     alphas = get_config_value(alphas, 'alpha')
     edgecolors = config.edgecolor if edgecolors is _default_flag else edgecolors
 
-    X = check_units_consistency(X)
-    Y = check_units_consistency(Y)
-    Z = check_units_consistency(Z)
+    X = to_list(X)
+    Y = to_list(Y)
+    Z = to_list(Z)
 
     if not (len(X) == len(Y) == len(Z)):
         raise ValueError(

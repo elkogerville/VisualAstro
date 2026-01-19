@@ -117,6 +117,26 @@ def to_array(obj, keep_units=False):
         )
 
 
+def to_list(obj: Any) -> list:
+    """
+    Normalize input to a list.
+
+    Parameters
+    ----------
+    obj : object or list/tuple of objects
+        Input data.
+
+    Returns
+    -------
+    list
+        A list containing `obj` if a single object was provided,
+        or `obj` converted to a list if it was already a list or tuple.
+    """
+    return obj if isinstance(obj, list) else (
+        list(obj) if isinstance(obj, tuple) else [obj]
+    )
+
+
 # Science Operation Functions
 # ---------------------------
 def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
