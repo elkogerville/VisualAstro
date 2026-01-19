@@ -900,17 +900,17 @@ def fit_gaussian_2_spec(
     # interpolate arrays
     if interpolate:
         # interpolate wavelength and flux arrays
-        x, y = interpolate(
+        x, y = _interpolate(
             x0, y0, spectral_range, samples, method=interp_method
         )
         # interpolate y error values
         if yerror is not None:
-            _, yerror = interpolate(
+            _, yerror = _interpolate(
                 x0, yerror, spectral_range, samples, method=error_interp_method
             )
         # interpolate continuum array
         if model == 'gaussian_continuum':
-            _, continuum = interpolate(
+            _, continuum = _interpolate(
                 x0, continuum, spectral_range, samples, method=interp_method
             )
     else:
@@ -932,13 +932,13 @@ def fit_gaussian_2_spec(
         continuum_sub = continuum[spectral_mask]
 
         def function(x, A, mu, sigma):
-            return gaussian_continuum(x, A, mu, sigma, continuum_sub)
+            return _gaussian_continuum(x, A, mu, sigma, continuum_sub)
 
     elif model == 'gaussian_line':
-        function = gaussian_line
+        function = _gaussian_line
 
     else:
-        function = gaussian
+        function = _gaussian
 
     # fit gaussian model to data
     popt, pcov = curve_fit(
