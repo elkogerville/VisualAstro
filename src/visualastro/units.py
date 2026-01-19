@@ -414,7 +414,8 @@ def _is_unitless(obj):
 def _validate_common_unit(objs, *, label=None):
     '''
     Extract units of each object in objs
-    and validate that units match.
+    and validate that units match. This is
+    an internal function used for input validation.
 
     Parameters
     ----------
@@ -434,7 +435,7 @@ def _validate_common_unit(objs, *, label=None):
     UnitsError
         If units exist and do not match, or if BUNIT is invalid.
     '''
-    if not np.iterable(objs) or isinstance(objs, (Header, Quantity)):
+    if not isinstance(objs, (list, tuple)):
         objs = [objs]
 
     # create unique set of each unit
