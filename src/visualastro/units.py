@@ -198,34 +198,78 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
         return None
 
 
-def check_units_consistency(datas):
-    '''
-    Check that all input objects have the same units and warn if they differ.
-    Additionally ensure that the input is iterable by wrapping in a list.
+def ensure_unit_consistency(
+    objs,
+    *,
+    unit=None,
+    on_mismatch=None,
+    label=None,
+):
+    """
+    Check unit consistency across one or more objects.
+
+    This function verifies that all objects with defined units share the same
+    unit. No unit conversion is performed; objects are returned unchanged.
+    The function will either raise an UnitsError, issue a warning, or ignore.
 
     Parameters
     ----------
-    datas : object or list/tuple of objects
-        Objects to check. Can be Quantity, SpectralCube, DataCube, etc.
+    objs : object or list or tuple of objects
+        Input objects carrying units (e.g. Quantity, DataCube, SpectralCube).
+        Objects without units are allowed.
+    unit : astropy.units.Unit or str or None, optional, default=None
+        Reference unit to compare against. If None, the first non-None unit
+        encountered among the inputs is used.
+    on_mismatch : {'warn', 'ignore', 'raise'}, optional, default=None
+        Action to take when a unit mismatch is detected. If None, uses
+        the default value from `config.unit_mismatch`.
+    label : str or None, optional
+        Optional context label prepended to warnings or errors.
 
     Returns
     -------
-    datas : list
-        The input objects as a list.
-    '''
-    datas = datas if isinstance(datas, (list, tuple)) else [datas]
+    objs : list
+        List of input objects, returned unchanged.
 
-    first_unit = get_units(datas[0])
+    Raises
+    ------
+    UnitsError
+        If a unit mismatch is detected and `on_mismatch='raise'`.
+    """
+    on_mismatch = get_config_value(on_mismatch, 'unit_mismatch')
 
-    for i, obj in enumerate(datas[1:], start=1):
-        unit = get_units(obj)
-        if unit != first_unit:
-            warnings.warn(
-                f"\nInput at index {i} has unit `{unit}`, which differs from unit `{first_unit}`."
-                f"at index 0. Values may be plotted incorrectly..."
+    objs = to_list(objs)
+    units = [get_units(obj) for obj in objs]
+
+    if all(u is None for u in units):
+        return objs
+
+    ref_unit = Unit(unit) if unit is not None else next(
+        u for u in units if u is not None
+    )
+
+    prefix = f"{label}: " if label else ""
+
+    out = []
+    for i, (obj, u) in enumerate(zip(objs, units)):
+        if u is None or u == ref_unit:
+            out.append(obj)
+            continue
+
+        if on_mismatch == 'raise':
+            raise UnitsError(
+                f"{prefix}Unit mismatch at index {i}: {u} != {ref_unit}"
             )
 
-    return datas
+        if on_mismatch == 'warn':
+            warnings.warn(
+                f"{prefix}Unit mismatch at index {i}: {u} != {ref_unit}. "
+                "Values may be interpreted incorrectly."
+            )
+
+        out.append(obj)
+
+    return out
 
 
 def _is_spectral_axis(obj):
