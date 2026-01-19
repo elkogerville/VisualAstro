@@ -27,8 +27,11 @@ from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
-    interpolate, get_value,
-    mask_within_range, shift_by_radial_vel
+    interpolate,
+    get_value,
+    mask_within_range,
+    shift_by_radial_vel,
+    to_list
 )
 from .plot_utils import (
     return_stylename, set_axis_labels,
@@ -41,7 +44,7 @@ from .spectra_utils import (
     get_config_value
 )
 from .SpectrumPlus import SpectrumPlus
-from .units import check_units_consistency, convert_units
+from .units import convert_units
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
@@ -221,7 +224,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 
     # ensure cubes are iterable
-    cubes = check_units_consistency(cubes)
+    cubes = to_list(cubes)
 
     # set plot style and colors
     style = return_stylename(style)
@@ -451,7 +454,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             )
 
     # ensure extracted_spectra is iterable
-    extracted_spectra = check_units_consistency(extracted_spectra)
+    extracted_spectra = to_list(extracted_spectra)
     linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
@@ -636,7 +639,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     alphas = get_config_value(alphas, 'alpha')
 
     # ensure units match and that extracted_spectra is a list
-    extracted_spectra = check_units_consistency(extracted_spectra)
+    extracted_spectra = to_list(extracted_spectra)
     # hardcode behavior to avoid breaking
     if return_spectra:
         concatenate = True

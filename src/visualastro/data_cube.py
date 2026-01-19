@@ -29,14 +29,14 @@ from tqdm import tqdm
 from .data_cube_utils import get_spectral_slice_value, slice_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
-    get_data, shift_by_radial_vel
+    get_data, shift_by_radial_vel, to_list
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses,
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax
 )
-from .units import check_units_consistency, convert_units, to_latex_unit
+from .units import convert_units, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
@@ -344,7 +344,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     - If multiple cubes are provided, they are overplotted in sequence.
     '''
     # check cube units match and ensure cubes is iterable
-    cubes = check_units_consistency(cubes)
+    cubes = to_list(cubes)
     # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)
