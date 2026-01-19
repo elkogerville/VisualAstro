@@ -73,34 +73,37 @@ def get_value(obj: Any) -> NDArray:
     return np.asarray(value)
 
 
-def non_nan(obj, keep_units=False):
-    '''
-    Return the input data with all NaN values removed.
+def finite(obj, *, keep_units=True, keep_inf=False):
+    """
+    Filter NaN and optionally infinite values from array-like input.
 
     Parameters
     ----------
     obj : array_like
-        Input array or array-like object. This may be a NumPy
-        array, list, DataCube, FitsFile, or Quantity.
-    keep_units : bool, optional, default=False
-        If True, keep astropy units attached if present.
+        Input data. May be a NumPy array, list, DataCube, FitsFile,
+        Quantity, or any object compatible with `to_array`.
+    keep_units : bool, optional, default=True
+        If True, preserve astropy units if present on the input.
+    keep_inf : bool, optional, default=False
+        If False, remove all non-finite values (NaN, +inf, -inf).
+        If True, remove only NaNs and retain infinite values.
 
     Returns
     -------
-    ndarray
-        A 1-D array containing only the non-NaN elements from `obj`.
+    ndarray or Quantity
+        A 1-D array containing the filtered values. Units are preserved
+        if `keep_units=True` and the input carries units.
 
     Notes
     -----
-    This function converts the input to a NumPy array using
-    `to_array(obj)`, then removes entries where the value is NaN.
-    If the input contains units (e.g., an `astropy.units.Quantity`),
-    the returned object will retain the original units.
-    '''
+    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
+        and `~np.isnan` when `keep_inf=True`.
+    """
     data = to_array(obj, keep_units)
-    non_nans = ~np.isnan(data)
 
-    return data[non_nans]
+    mask = ~np.isnan(data) if keep_inf else np.isfinite(data)
+
+    return data[mask]
 
 
 def to_array(obj, keep_units=False):
@@ -185,7 +188,7 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
     Z : np.ndarray
         2D array of estimated density values on the grid (shape res×res).
     '''
-    # compute bounds with 20% padding
+    # compute bounds with % padding
     xmin, xmax = np.nanmin(x), np.nanmax(x)
     ymin, ymax = np.nanmin(y), np.nanmax(y)
     padding_x = (xmax - xmin) * padding
