@@ -19,6 +19,7 @@ from astropy.units import (
     UnitConversionError, UnitsError, StructuredUnit
 )
 from astropy.units.physical import PhysicalType
+from specutils import SpectralAxis
 from .numerical_utils import to_list
 from .config import get_config_value, config
 
@@ -109,16 +110,83 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if hasattr(obj, 'data'):
         data = obj.data
         if data is not obj:
-            unit = get_units(data)
+            unit = get_unit(data)
             if unit is not None:
                 return unit
 
     if hasattr(obj, 'header'):
         header = obj.header
         if header is not obj:
-            unit = get_units(header)
+            unit = get_unit(header)
             if unit is not None:
                 return unit
+
+    return None
+
+
+def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
+    """
+    Extract a spectral (wavelength/frequency/energy) unit
+    from an object, if one can be identified.
+
+    The function follows a recursive search strategy:
+
+    1. If `obj` is a `SpectralAxis`, its `.unit` attribute is returned.
+    2. If `obj` is an `astropy.units.Quantity`, its unit is
+       returned if it is convertible to a spectral unit using
+       `u.spectral()` equivalencies.
+    3. If `obj` has a `.spectral_unit` attribute.
+    4. If `obj` has a `.data` attribute, the function is applied
+       recursively to `obj.data`.
+    5. If `obj` has a `.spectral_axis` attribute, the function is applied
+       recursively to that object.
+
+    If no spectral unit can be identified, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Input object from which to extract a spectral unit:
+        - `astropy.coordinates.SpectralAxis`
+        - `astropy.units.Quantity` with spectral-equivalent units
+        - objects exposing a `.spectral_unit` attribute
+        - objects exposing a `.spectral_axis` attribute
+        - container objects with a `.data` attribute holding one of the above
+
+    Returns
+    -------
+    astropy.units.UnitBase or astropy.units.StructuredUnit or None
+        A spectral unit (e.g. micron, Angstrom, Hz, eV) if found and valid,
+        otherwise None.
+    """
+    if isinstance(obj, SpectralAxis):
+        return to_unit(obj.unit)
+
+    if isinstance(obj, Quantity) and obj.unit is not None:
+        try:
+            if obj.unit.is_equivalent(u.m, equivalencies=u.spectral()):
+                return to_unit(obj.unit)
+        except Exception:
+            pass
+        return None
+
+    unit = getattr(obj, 'spectral_unit', None)
+    if unit is not None:
+        return to_unit(unit)
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            unit = get_spectral_unit(data)
+            if unit is not None:
+                return to_unit(unit)
+
+    if hasattr(obj, 'spectral_axis'):
+        spectral_axis = obj.spectral_axis
+        if spectral_axis is not obj:
+            unit = get_spectral_unit(spectral_axis)
+            if unit is not None:
+                return to_unit(unit)
 
     return None
 
