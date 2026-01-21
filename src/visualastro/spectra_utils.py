@@ -24,7 +24,7 @@ import warnings
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
-from specutils import SpectralRegion, Spectrum
+from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
@@ -35,6 +35,47 @@ from .config import get_config_value, config
 
 # Science Spectrum Functions
 # --------------------------
+def get_spectral_axis(obj: Any):
+    """
+    Get the `spectral_axis` associated with an object, if one exists.
+
+    The function follows a recursive search strategy:
+
+    1. If `obj` is a `SpectralAxis`, it is returned directly.
+    2. If `obj` has a `.spectral_axis` attribute, that attribute is returned.
+    3. If `obj` has a `.data` attribute, the function is applied recursively
+        to `obj.data`.
+
+    If no spectral axis can be identified, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to extract a spectral axis. This may include:
+        - a `SpectralAxis` instance
+        - objects exposing a `.spectral_axis` attribute
+        - container objects with a `.data` attribute holding one of the above
+
+    Returns
+    -------
+    spectral_axis : astropy.coordinates.SpectralAxis or astropy.units.Quantity or None
+        The spectral axis associated with the object, or None if unavailable.
+    """
+    if isinstance(obj, SpectralAxis):
+        return obj
+
+    if hasattr(obj, 'spectral_axis'):
+        return obj.spectral_axis
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            spectral_axis = get_spectral_axis(data)
+            if spectral_axis is not None:
+                return spectral_axis
+
+    return None
+
 def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
