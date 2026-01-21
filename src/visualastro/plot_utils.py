@@ -42,7 +42,7 @@ from .numerical_utils import (
 )
 from .units import (
     to_latex_unit, get_physical_type,
-    get_units, _infer_physical_type_label
+    get_unit, _infer_physical_type_label
 )
 from .config import get_config_value, config, _default_flag
 
@@ -907,7 +907,7 @@ def _format_axis_label(
     obj : any
         An object from which physical type and unit information can be extracted.
         This may be an Astropy `Quantity`, a Spectrum-like object, or any object
-        compatible with `get_units` and `get_physical_type`.
+        compatible with `get_unit` and `get_physical_type`.
     label : str or None
         If a string is provided, use it as the physical label directly, overriding
         any auto-detected physical type. If None, the physical label is inferred
@@ -961,7 +961,7 @@ def _format_axis_label(
         physical_label = ''
 
     # format unit label
-    unit = get_units(obj)
+    unit = get_unit(obj)
     unit_str = to_latex_unit(unit, fmt=fmt)
 
     # create axis label

@@ -22,7 +22,7 @@ from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from .DataCube import DataCube
 from .FitsFile import FitsFile
 from .numerical_utils import get_data
-from .units import get_units
+from .units import get_unit
 
 
 # Cube Manipulation Functions

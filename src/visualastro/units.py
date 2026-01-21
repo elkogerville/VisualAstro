@@ -74,11 +74,11 @@ def convert_quantity(
         return quantity
 
 
-def get_units(obj: Any) -> UnitBase | StructuredUnit | None:
+def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     """
     Extract the unit from an object, if it exists.
 
-    This function checks if the object has a .unit attribute,
+    This function checks if the object has a `.unit` attribute,
     or if 'BUNIT' exists in `obj`.
 
     Parameters
@@ -133,14 +133,14 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
     Parameters
     ----------
     obj : any
-        Object from which a unit can be extracted via `get_units`.
+        Object from which a unit can be extracted via `get_unit`.
 
     Returns
     -------
     astropy.units.physical.PhysicalType or None
         Physical type of the unit, or None if unavailable.
     """
-    unit = get_units(obj)
+    unit = get_unit(obj)
 
     if unit is None:
         return None
@@ -253,7 +253,7 @@ def ensure_common_unit(
     on_mismatch = get_config_value(on_mismatch, 'unit_mismatch')
 
     objs = to_list(objs)
-    units = [get_units(obj) for obj in objs]
+    units = [get_unit(obj) for obj in objs]
 
     if all(u is None for u in units):
         return objs
@@ -319,7 +319,7 @@ def _is_spectral_axis(obj):
     if hasattr(obj, 'spectral_axis') or hasattr(obj, 'spectral_unit'):
         return True
 
-    unit = get_units(obj)
+    unit = get_unit(obj)
     if unit is None:
         return False
 
@@ -366,7 +366,7 @@ def _infer_physical_type_label(obj: Any) -> str | None:
     obj : any
         An object describing an axis or quantity. This may be an Astropy
         `Quantity`, a Spectrum-like object exposing spectral metadata, or
-        any object from which a unit can be extracted via `get_units`.
+        any object from which a unit can be extracted via `get_unit`.
 
     Returns
     -------
