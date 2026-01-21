@@ -4,6 +4,7 @@ from visualastro.FitsFile import FitsFile
 from visualastro.SpectrumPlus import SpectrumPlus
 
 # Submodules
+from visualastro.config import config
 from visualastro.data_cube import *
 from visualastro.data_cube_utils import *
 from visualastro.io import *
@@ -18,7 +19,7 @@ from visualastro.spectra import *
 from visualastro.spectra_utils import *
 from visualastro.text_utils import pretty_table, print_pretty_table
 from visualastro.units import *
-from visualastro.config import config
+from visualastro.validation import allclose
 from visualastro.visual_plots import *
 from visualastro.wcs_utils import crop2D, get_wcs, reproject_wcs
 
