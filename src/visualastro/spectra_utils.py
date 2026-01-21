@@ -21,6 +21,7 @@ Module Structure:
 from dataclasses import dataclass, fields
 from typing import Any, Optional
 import warnings
+from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
@@ -35,7 +36,7 @@ from .config import get_config_value, config
 
 # Science Spectrum Functions
 # --------------------------
-def get_spectral_axis(obj: Any):
+def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     """
     Get the `spectral_axis` associated with an object, if one exists.
 
