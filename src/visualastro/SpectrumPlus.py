@@ -14,6 +14,7 @@ Dependencies:
 
 import copy
 from astropy.io.fits import Header
+from astropy.units import Quantity
 import numpy as np
 from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
@@ -119,11 +120,11 @@ class SpectrumPlus:
     ):
 
         # kwargs and config
-        fit_method = kwargs.get('fit_method', None)
+        fit_method = kwargs.pop('fit_method', None)
         fit_method = get_config_value(
             fit_method, 'spectrum_continuum_fit_method'
         )
-        region = kwargs.get('region', None)
+        region = kwargs.pop('region', None)
         if region is not None and not isinstance(region, SpectralRegion):
             region = SpectralRegion(region)
 
@@ -263,6 +264,10 @@ class SpectrumPlus:
         log_file = self.log_file
 
         if not isinstance(region, SpectralRegion):
+            if (isinstance(region, (tuple, Quantity))
+                and len(region) == 2):
+                region = [region]
+
             region = SpectralRegion(region)
 
         # extract region
