@@ -1249,6 +1249,7 @@ def inline():
         return None
 
     try:
+        close()
         ipython.run_line_magic('matplotlib', 'inline')
     except Exception as e:
         print(f'Unable to set inline backend: {e}')
