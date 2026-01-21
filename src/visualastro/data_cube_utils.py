@@ -94,9 +94,11 @@ def get_spectral_slice_value(spectral_axis, idx):
 
 # Cube/Image Masking Functions
 # ----------------------------
-def mask_image(image, ellipse_region=None, region=None,
-               line_points=None, invert_region=False, above_line=True,
-               preserve_shape=True, existing_mask=None, **kwargs):
+def mask_image(
+    image, ellipse_region=None, region=None,
+    line_points=None, invert_region=False,
+    above_line=True, preserve_shape=True,
+    existing_mask=None, combine_method='union', **kwargs):
     '''
     Mask an image with modular filters.
     Supports applying an elliptical or annular region mask, an optional
@@ -122,6 +124,8 @@ def mask_image(image, ellipse_region=None, region=None,
         If False, return only the unmasked pixels.
     existing_mask : ndarray of bool, optional, default=None
         An existing mask to combine (union) with the new mask.
+    combine_method : {'union', 'intersect'}, optional, default=None
+        If 'union', combine masks with `|`. If 'intersect', use `&`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -136,8 +140,10 @@ def mask_image(image, ellipse_region=None, region=None,
             Height of ellipse.
         - angle : float, optional, default=0
             Rotation angle in degrees.
-        - tolerance : float, optional, default=2
-            Tolerance for annulus inner/outer radii
+        - tolerance : float, list, or tuple, optional, default=2
+            ±Tolerance (distance from radius) for annulus inner/outer radii.
+            If array-like, uses the first element as the minus bound,
+            and the second element as the positive.
     Returns
     -------
     masked_image : ndarray or SpectralCube
@@ -152,9 +158,16 @@ def mask_image(image, ellipse_region=None, region=None,
     h = kwargs.get('h', None)
     angle = kwargs.get('angle', 0)
     tolerance = kwargs.get('tolerance', 2)
+    if (isinstance(tolerance, (list, tuple))
+        and len(tolerance) == 2):
+        mtol = tolerance[0]
+        ptol = tolerance[1]
+    else:
+        mtol = tolerance
+        ptol = tolerance
 
     # extract units
-    unit = get_units(image)
+    unit = get_unit(image)
 
     # ensure working with array
     if isinstance(image, (DataCube, FitsFile)):
@@ -169,9 +182,10 @@ def mask_image(image, ellipse_region=None, region=None,
     masks = []
 
     # early return if just applying an existing mask
-    if ellipse_region is None and region is None and line_points is None and existing_mask is not None:
+    if (ellipse_region is None and region is None
+        and line_points is None and existing_mask is not None):
         if existing_mask.shape != image.shape[-2:]:
-            raise ValueError("existing_mask must have same shape as image")
+            raise ValueError('existing_mask must have same shape as image')
 
         if isinstance(image, np.ndarray):
             if preserve_shape:
@@ -208,10 +222,10 @@ def mask_image(image, ellipse_region=None, region=None,
         if region.lower() == 'annulus':
             region_obj = EllipseAnnulusPixelRegion(
                 center=PixCoord(center[0], center[1]), # type: ignore
-                inner_width=2*(a - tolerance),
-                inner_height=2*(b - tolerance),
-                outer_width=2*(a + tolerance),
-                outer_height=2*(b + tolerance),
+                inner_width=2*(a - mtol),
+                inner_height=2*(b - mtol),
+                outer_width=2*(a + ptol),
+                outer_height=2*(b + ptol),
                 angle=angle * u.deg
             )
         elif region.lower() == 'ellipse':
@@ -254,8 +268,16 @@ def mask_image(image, ellipse_region=None, region=None,
     # union with existing mask if provided
     if existing_mask is not None:
         if existing_mask.shape != mask.shape:
-            raise ValueError("existing_mask must have the same shape as the image")
-        mask |= existing_mask
+            raise ValueError('existing_mask must have the same shape as the image')
+        if combine_method == 'union':
+            mask |= existing_mask
+        elif combine_method == 'intersect':
+            mask &= existing_mask
+        else:
+            raise ValueError(
+                f"`combine_method` has to be 'union' or 'intersect'! "
+                f'Got {combine_method}.'
+            )
 
     # ---- Apply Mask ----
     # if numpy array:
