@@ -13,6 +13,7 @@ Module Structure:
 '''
 
 import copy
+from typing import Any
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -30,14 +31,14 @@ from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
 
-def get_wcs(header):
+def get_wcs(header: Any) -> WCS | list[WCS] | None:
     '''
     Extract WCS from header(s).
 
     Parameters
     ----------
-    header : Header or list of Header
-        Single header or list of headers.
+    header : Header or array-like of Header
+        Single Header or array-like of Headers.
 
     Returns
     -------
@@ -49,14 +50,14 @@ def get_wcs(header):
     if isinstance(header, WCS):
         return header
 
-    elif isinstance(header, Header):
+    if isinstance(header, Header):
         try:
             return WCS(header)
         except Exception:
             return None
 
     # if a list of headers extract a list of wcs
-    elif isinstance(header, (list, np.ndarray, tuple)):
+    if isinstance(header, (list, np.ndarray, tuple)):
         wcs_list = []
         for h in header:
             if not isinstance(h, Header):
@@ -68,8 +69,7 @@ def get_wcs(header):
                 wcs_list.append(None)
         return wcs_list
 
-    else:
-        return None
+    return None
 
 
 def _is_valid_wcs_slice(key):
