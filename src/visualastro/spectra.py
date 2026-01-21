@@ -26,28 +26,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
+from tqdm import tqdm
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     get_value,
     mask_within_range,
     shift_by_radial_vel,
+    to_array,
     to_list
 )
 from .numerical_utils import interpolate as _interpolate
 from .plot_utils import (
-    return_stylename, set_axis_labels,
+    return_stylename, sample_cmap, set_axis_labels,
     set_axis_limits, set_plot_colors
 )
 from .spectra_utils import (
     GaussianFitResult,
     deredden_flux,
     fit_continuum,
+    get_spectral_axis,
 )
 from .spectra_utils import gaussian as _gaussian
 from .spectra_utils import gaussian_continuum as _gaussian_continuum
 from .spectra_utils import gaussian_line as _gaussian_line
 from .SpectrumPlus import SpectrumPlus
-from .units import ensure_common_unit, convert_quantity
+from .units import ensure_common_unit, convert_quantity, get_unit
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 

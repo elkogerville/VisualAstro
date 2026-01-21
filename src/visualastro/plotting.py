@@ -27,7 +27,7 @@ from .plot_utils import (
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_vmin_vmax
 )
-from .units import ensure_common_unit, get_units, to_latex_unit
+from .units import ensure_common_unit, get_unit, to_latex_unit
 from .config import get_config_value, config, _default_flag
 
 
@@ -305,7 +305,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     if isinstance(ylabel, str):
         ax.set_ylabel(ylabel)
     # add colorbar
-    cbar_unit = to_latex_unit(get_units(datas[0]))
+    cbar_unit = to_latex_unit(get_unit(datas[0]))
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
     if colorbar:
