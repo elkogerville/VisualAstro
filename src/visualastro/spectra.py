@@ -294,6 +294,150 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     return spectra_out
 
 
+def extract_cube_pixel_spectra(
+    cube, plot_combined=False, combine_method=None,
+    cmap=None, style=None, **kwargs,
+):
+    """
+    Extract per-pixel spectra from a spectral cube, keeping only spatial
+    pixels that contain at least one non-NaN value along the spectral axis.
+
+    Optionally compute and plot a combined spectrum derived from the
+    extracted pixel spectra.
+
+    Parameters
+    ----------
+    cube : DataCube, SpectralCube, Quantity or array-like
+        Spectral cube with shape (T, N, M). If `cube`
+        has no units, it is assined `u.dimensionless_unscaled`.
+    plot_combined : bool, optional, default=False
+        If True, compute and plot a combined spectrum from all extracted
+        pixel spectra using `combine_method`.
+    combine_method : {'sum', 'mean', 'median'} or None, optional, default=None
+        Method used to combine per-pixel spectra when `plot_combined=True`.
+        If None, uses the default value from `config.flux_extract_method`.
+    cmap : str or None, optional, default=None
+        Colormap used to sample per-spectrum colors.
+        If None, uses the default value from `config.cmap`.
+    style : str or None, optional, default=None
+        Matplotlib style to use for plotting.
+        If None, uses the default value from `config.style`.
+    figsize : tuple, optional, default=(12,6)
+        Plot figsize.
+    fontsize : float, optional, default=8
+        Font size of the legend.
+    savefig : bool, optional, default=False
+        If True, saves figure to disk.
+
+    Returns
+    -------
+    spectra : list of SpectrumPlus
+        List of length A, where each element is a per-pixel spectrum with
+        shape (T,). A is the number of spatial pixels containing valid data.
+    combined_spec : SpectrumPlus
+        Combined spectrum, only returned if `plot_combined` is True.
+    """
+    figsize = kwargs.get('figsize', (12,6))
+    fontsize = kwargs.get('fontsize', 8)
+    savefig = kwargs.get('savefig', False)
+
+    combine_method = get_config_value(combine_method, 'flux_extract_method')
+    style = get_config_value(style, 'style')
+    cmap = get_config_value(cmap, 'cmap')
+
+    if plot_combined and combine_method not in {'sum', 'mean', 'median'}:
+        raise ValueError(
+            "`combine_method` must be one of {'sum', 'mean', 'median'} when "
+            "`plot_combined=True`."
+        )
+
+    spectral_axis = get_spectral_axis(cube)
+    if spectral_axis is None:
+        raise ValueError('Could not determine spectral_axis from cube')
+    data_unit = get_unit(cube)
+    if data_unit is None:
+        data_unit = u.dimensionless_unscaled
+
+    data = to_array(cube, keep_units=False)
+    if data.ndim != 3:
+        raise ValueError('cube must have shape (T, N, M)')
+
+    # spatial pixels (spectrums) that are not entirely NaN
+    valid_mask = ~np.all(np.isnan(data), axis=0)
+    ys, xs = np.where(valid_mask)
+
+    spec_list = []
+    labels = []
+    desc = 'looping over pixels'
+
+    for i, (y, x) in tqdm(enumerate(zip(ys, xs)), desc=desc):
+        flux = data[:, y, x]
+        flux = flux * data_unit
+
+        spec = SpectrumPlus(
+            Spectrum(spectral_axis=spectral_axis, flux=flux)
+        )
+
+        spec_list.append(spec)
+        labels.append(f'{i}: (x={x}, y={y})')
+
+    if not spec_list:
+        raise ValueError('No valid spatial pixels found in cube')
+
+    combined_spec = None
+    style = return_stylename(style)
+    with plt.style.context(style):
+        fig, ax = plt.subplots(figsize=figsize)
+        colors = sample_cmap(len(spec_list), cmap)
+
+        for spec, c, l in zip(spec_list, colors, labels):
+            plot_spectrum(
+                spec, ax, color=[c], label=l, plot_continuum_fit=False,
+            )
+
+        if plot_combined:
+            fluxes = [spec.flux for spec in spec_list]
+            flux_stack = np.stack(fluxes, axis=0)
+
+            if combine_method == 'sum':
+                combined_flux = np.nansum(flux_stack, axis=0)
+            elif combine_method == 'mean':
+                combined_flux = np.nanmean(flux_stack, axis=0)
+            elif combine_method == 'median':
+                combined_flux = np.nanmedian(flux_stack, axis=0)
+            else:
+                raise ValueError(f'Unknown combine_method: {combine_method}')
+
+            combined_spec = SpectrumPlus(
+                Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
+            )
+
+            plot_spectrum(
+                combined_spec, ax, color='k', ls='--',
+                label=f'combined ({combine_method})',
+                plot_continuum_fit=False,
+            )
+            set_axis_limits(spectral_axis, fluxes+[combined_flux], ax)
+
+        leg = ax.legend(
+            fontsize=fontsize,
+            loc='upper center',
+            bbox_to_anchor=(0.5, -0.15),
+            frameon=False,
+        )
+        fig.add_artist(leg)
+
+        if savefig:
+            save_figure_2_disk(**kwargs)
+
+        plt.show()
+
+    spec_list = _unwrap_if_single(spec_list)
+    if plot_combined:
+        return spec_list, combined_spec
+    return spec_list
+
+
 # Spectra Plotting Functions
 # --------------------------
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
@@ -665,7 +809,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         # index spectrum if list
         spectrum = spectrum[idx] if isinstance(spectrum, list) else spectrum
         # extract wavelength and flux
-        wavelength = spectrum.wavelength
+        wavelength = spectrum.spectral_axis
         flux = spectrum.normalize if plot_normalize else spectrum.flux
         # compute minimum and maximum wavelength values
         wmin = np.nanmin(get_value(wavelength))

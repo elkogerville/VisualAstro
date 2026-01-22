@@ -9,7 +9,6 @@ Dependencies:
     - numpy
 '''
 
-import copy
 from astropy.io.fits import Header
 from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
