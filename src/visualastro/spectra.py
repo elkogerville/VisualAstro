@@ -341,6 +341,7 @@ def extract_cube_pixel_spectra(
     """
     figsize = kwargs.get('figsize', (12,6))
     fontsize = kwargs.get('fontsize', 8)
+    ncols = kwargs.get('ncols', 8)
     savefig = kwargs.get('savefig', False)
 
     combine_method = get_config_value(combine_method, 'flux_extract_method')
@@ -394,11 +395,11 @@ def extract_cube_pixel_spectra(
 
         for spec, c, l in zip(spec_list, colors, labels):
             plot_spectrum(
-                spec, ax, color=[c], label=l, plot_continuum_fit=False,
+                spec, ax, color=[c], label=l, plot_continuum=False,
             )
 
+        fluxes = [spec.flux for spec in spec_list]
         if plot_combined:
-            fluxes = [spec.flux for spec in spec_list]
             flux_stack = np.stack(fluxes, axis=0)
 
             if combine_method == 'sum':
@@ -417,12 +418,15 @@ def extract_cube_pixel_spectra(
             plot_spectrum(
                 combined_spec, ax, color='k', ls='--',
                 label=f'combined ({combine_method})',
-                plot_continuum_fit=False,
+                plot_continuum=False,
             )
-            set_axis_limits(spectral_axis, fluxes+[combined_flux], ax)
+            fluxes += [combined_flux]
+
+        set_axis_limits(spectral_axis, fluxes, ax)
 
         leg = ax.legend(
             fontsize=fontsize,
+            ncols=ncols,
             loc='upper center',
             bbox_to_anchor=(0.5, -0.15),
             frameon=False,
