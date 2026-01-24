@@ -60,7 +60,7 @@ from .config import get_config_value, config, _default_flag
 def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=None,
                          region=None, radial_vel=_default_flag, rest_freq=_default_flag,
                          deredden=None, unit=_default_flag, emission_line=None,
-                         plot_continuum_fit=None, plot_norm_continuum=None, **kwargs):
+                         plot_continuum=None, plot_norm_continuum=None, **kwargs):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
@@ -116,7 +116,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         uses the default value set by `config.wavelength_unit`.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
-    plot_continuum_fit : bool or None, optional, default=None
+    plot_continuum : bool or None, optional, default=None
         Whether to overplot the continuum fit. If None, uses the
         default value set by `config.plot_continuum_fit`.
     plot_norm_continuum : bool or None, optional, default=None
@@ -226,7 +226,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     rest_freq = config.spectra_rest_frequency if rest_freq is _default_flag else rest_freq
     deredden = get_config_value(deredden, 'deredden_spectrum')
     unit = config.wavelength_unit if unit is _default_flag else unit
-    plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
+    plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 
     # ensure cubes are iterable
@@ -264,16 +264,16 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         )
 
         # compute continuum fit
-        continuum_fit = fit_continuum(spectrum, fit_method, region)
+        continuum = fit_continuum(spectrum, fit_method, region)
 
         # compute normalized flux
-        flux_normalized = spectrum / continuum_fit
+        flux_normalized = spectrum / continuum
 
         # save computed spectrum
         extracted_spectra.append(SpectrumPlus(
             spectrum=spectrum,
             normalized=flux_normalized.flux,
-            continuum_fit=continuum_fit,
+            continuum=continuum,
             fit_method=fit_method,
             region=region
         ))
@@ -283,7 +283,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         fig, ax = plt.subplots(figsize=figsize)
 
         _ = plot_spectrum(extracted_spectra, ax, plot_norm_continuum,
-                          plot_continuum_fit, emission_line, **kwargs)
+                          plot_continuum, emission_line, **kwargs)
         if savefig:
             save_figure_2_disk(dpi)
         plt.show()
@@ -326,6 +326,8 @@ def extract_cube_pixel_spectra(
         Plot figsize.
     fontsize : float, optional, default=8
         Font size of the legend.
+    ncols : int, optional, default=8
+        Number of columns for the legend.
     savefig : bool, optional, default=False
         If True, saves figure to disk.
 
@@ -429,7 +431,6 @@ def extract_cube_pixel_spectra(
 
         if savefig:
             save_figure_2_disk(**kwargs)
-
         plt.show()
 
     spec_list = _unwrap_if_single(spec_list)
@@ -441,8 +442,8 @@ def extract_cube_pixel_spectra(
 # Spectra Plotting Functions
 # --------------------------
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
-                  plot_continuum_fit=None, emission_line=None, wavelength=None,
-                  flux=None, continuum_fit=None, colors=None, **kwargs):
+                  plot_continuum=None, emission_line=None, wavelength=None,
+                  flux=None, continuum=None, colors=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
 
@@ -456,7 +457,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     plot_norm_continuum : bool, optional, default=None
         If True, plot normalized flux instead of raw flux.
         If None, uses the default value set by `plot_normalized_continuum`.
-    plot_continuum_fit : bool, optional, default=None
+    plot_continuum : bool, optional, default=None
         If True, overplot continuum fit. If None, uses
         the default value set by `config.plot_continuum_fit`.
     emission_line : str, optional, default=None
@@ -465,7 +466,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         Wavelength array (required if `extracted_spectrums` is None).
     flux : array-like, optional, default=None
         Flux array (required if `extracted_spectrums` is None).
-    continuum_fit : array-like, optional, default=None
+    continuum : array-like, optional, default=None
         Fitted continuum array.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
@@ -517,14 +518,12 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     lines : Line2D or list of Line2D, or PlotSpectrum
         The plotted line object(s) created by `Axes.plot`.
 
-        - If `plot_continuum_fit` is False, returns a single `Line2D` object
+        - If `plot_continuum` is False, returns a single `Line2D` object
           or a list of `Line2D` objects corresponding to the main spectrum.
-        - If `plot_continuum_fit` is True, returns a `PlotSpectrum` named tuple
+        - If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
           with the following fields:
-
             * `lines` : Line2D or list of Line2D
               The plotted spectrum line(s).
-
             * `continuum_lines` : Line2D or list of Line2D
               The plotted continuum fit line(s), if available.
     '''
@@ -551,7 +550,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
     # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
-    plot_continuum_fit = get_config_value(plot_continuum_fit, 'plot_continuum_fit')
+    plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
     colors = get_config_value(colors, 'colors')
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
@@ -561,17 +560,17 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     if ax is None:
         raise ValueError('ax must be a matplotlib axes object!')
 
-    # construct SpectrumPlus if user passes in wavelenght and flux
+    # construct SpectrumPlus if user passes in wavelength and flux
     if extracted_spectra is None:
 
         # disable normalization because the user provided raw arrays
         plot_norm_continuum = False
 
         # normalize continuum_fit into a list
-        if isinstance(continuum_fit, (list, tuple)):
-            continuum_fit_list = list(continuum_fit)
+        if isinstance(continuum, (list, tuple)):
+            continuum_list = list(continuum)
         else:
-            continuum_fit_list = [continuum_fit]
+            continuum_list = [continuum]
 
         # case 1: single wavelength/flux array
         if (
@@ -581,7 +580,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             extracted_spectra = SpectrumPlus(
                 wavelength=wavelength,
                 flux=flux,
-                continuum_fit=continuum_fit_list[0]
+                continuum=continuum_list[0]
             )
         # case 2: multiple arrays
         elif (
@@ -593,7 +592,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
                 SpectrumPlus(
                     wavelength=w,
                     flux=f,
-                    continuum_fit=continuum_fit_list[i % len(continuum_fit_list)]
+                    continuum=continuum_list[i % len(continuum_list)]
                 )
                 for i, (w, f) in enumerate(zip(wavelength, flux))
             ]
@@ -635,7 +634,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
         # mask wavelength within data range
         mask = mask_within_range(wavelength, xlim=xlim)
-        wavelength_list.append(wavelength[mask]) # type: ignore
+        wavelength_list.append(wavelength[mask])
 
         # define plot params
         color = colors[i%len(colors)]
@@ -647,17 +646,17 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
 
         # plot spectrum
-        l = ax.plot(wavelength[mask], flux[mask], c=color, # type: ignore
+        l = ax.plot(wavelength[mask], flux[mask], c=color,
                     ls=linestyle, lw=linewidth, alpha=alpha,
                     zorder=zorder, label=label, rasterized=rasterized)
         # plot continuum fit
-        if plot_continuum_fit and extracted_spectrum.continuum_fit is not None:
+        if plot_continuum and extracted_spectrum.continuum is not None:
             if plot_norm_continuum:
                 # normalize continuum fit
-                continuum_fit = extracted_spectrum.continuum_fit/extracted_spectrum.continuum_fit
+                continuum = extracted_spectrum.continuum/extracted_spectrum.continuum
             else:
-                continuum_fit = extracted_spectrum.continuum_fit
-            fl = ax.plot(wavelength[mask], continuum_fit[mask], c=fit_color, # type: ignore
+                continuum = extracted_spectrum.continuum
+            fl = ax.plot(wavelength[mask], continuum[mask], c=fit_color,
                          ls=linestyle, lw=linewidth, alpha=alpha, rasterized=rasterized)
 
             fit_lines.append(fl)
@@ -672,7 +671,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         ax.legend(loc=loc)
 
     lines = _unwrap_if_single(lines)
-    if plot_continuum_fit:
+    if plot_continuum:
         PlotHandles = namedtuple('PlotSpectrum', ['lines', 'continuum_lines'])
         fit_lines = _unwrap_if_single(fit_lines)
 
