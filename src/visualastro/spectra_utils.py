@@ -76,6 +76,119 @@ def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
 
     return None
 
+
+def get_flux(obj: Any) -> Quantity | None:
+    """
+    Get the flux associated with an object, if one exists.
+
+    The function follows a recursive search strategy:
+
+    1. If `obj` exposes a `.flux` attribute, that attribute is returned.
+    2. If `obj` is an `astropy.units.Quantity`, it is returned directly.
+    3. If `obj` exposes a `.data` attribute, the function is applied recursively
+       to `obj.data`.
+
+    If no flux can be identified, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to extract a flux array. This may include:
+        - objects exposing a `.flux` attribute
+        - an `astropy.units.Quantity`
+        - container objects with a `.data` attribute holding one of the above
+
+    Returns
+    -------
+    flux : astropy.units.Quantity or None
+        Flux array associated with the object, or None if unavailable.
+    """
+    if hasattr(obj, 'flux'):
+        return obj.flux
+
+    if isinstance(obj, Quantity):
+        return obj
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            return get_flux(data)
+
+    return None
+
+
+def get_continuum(
+    obj: Any,
+    fit_method: str = 'fit_continuum',
+    region: SpectralRegion | list[tuple] | None = None
+) -> Quantity | None:
+    """
+    Get or compute the continuum associated with an object, if possible.
+
+    The function follows a recursive search-and-construction strategy:
+
+    1. If `obj` exposes a `.continuum` attribute, that value is returned.
+    2. If `obj` is a `specutils.Spectrum`, a continuum is computed using
+       `fit_continuum`.
+    3. If `obj` exposes a `.spectrum` attribute, the function is applied
+       recursively to that attribute.
+    4. If both a spectral axis and flux can be extracted from `obj`,
+       a temporary `Spectrum` is constructed and a continuum is computed.
+
+    If no continuum can be retrieved or constructed, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to retrieve or compute a continuum. This may include:
+        - a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`
+        - a `specutils.Spectrum`
+        - container objects exposing `.spectrum`
+        - objects from which both a spectral axis and flux can be inferred
+    fit_method : str, optional
+        Continuum fitting method passed to `fit_continuum`.
+        Default is `'fit_continuum'`.
+    region : `SpectralRegion`, list of tuple, or None, optional
+        Spectral region(s) used during continuum fitting.
+
+    Returns
+    -------
+    continuum : astropy.units.Quantity or None
+        Continuum flux array evaluated on the spectral axis, or None if
+        no continuum can be determined.
+    """
+    if hasattr(obj, 'continuum'):
+        return obj.continuum
+
+    if isinstance(obj, Spectrum):
+        return fit_continuum(
+            obj, fit_method=fit_method, region=region
+        )
+
+    if hasattr(obj, 'spectrum'):
+        spectrum = obj.spectrum
+        if spectrum is not obj:
+            return get_continuum(
+                spectrum, fit_method=fit_method, region=region
+            )
+
+    spectral_axis = get_spectral_axis(obj)
+    flux = get_flux(obj)
+
+    if (
+        spectral_axis is not None and spectral_axis is not obj
+        and flux is not None and flux is not obj
+    ):
+        spectrum = Spectrum(
+            spectral_axis=spectral_axis, flux=flux
+        )
+        return get_continuum(
+            spectrum, fit_method=fit_method, region=region
+        )
+
+    return None
+
+
 def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     '''
     Fit the continuum of a 1D spectrum using a specified method.
