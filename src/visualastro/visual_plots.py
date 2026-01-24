@@ -436,8 +436,8 @@ class va:
 
     @staticmethod
     def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=None,
-                      plot_continuum_fit=None, emission_line=None, wavelength=None,
-                      flux=None, continuum_fit=None, colors=None, **kwargs):
+                      plot_continuum=None, emission_line=None, wavelength=None,
+                      flux=None, continuum=None, colors=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectrum`, which visualizes extracted
         spectra with optional continuum fits and emission-line overlays.
@@ -455,7 +455,7 @@ class va:
         plot_norm_continuum : bool, optional, default=None
             If True, plot normalized flux instead of raw flux.
             If None, uses the default value set by `plot_normalized_continuum`.
-        plot_continuum_fit : bool, optional, default=None
+        plot_continuum : bool, optional, default=None
             If True, overplot continuum fit. If None, uses
             the default value set by `config.plot_continuum_fit`.
         emission_line : str, optional, default=None
@@ -464,7 +464,7 @@ class va:
             Wavelength array (required if `extracted_spectrums` is None).
         flux : array-like, optional, default=None
             Flux array (required if `extracted_spectrums` is None).
-        continuum_fit : array-like, optional, default=None
+        continuum : array-like, optional, default=None
             Fitted continuum array.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
@@ -535,8 +535,8 @@ class va:
             fig, ax = plt.subplots(figsize=figsize)
 
             _ = plot_spectrum(extracted_spectrums, ax, plot_norm_continuum,
-                              plot_continuum_fit, emission_line, wavelength,
-                              flux, continuum_fit, colors, **kwargs)
+                              plot_continuum, emission_line, wavelength,
+                              flux, continuum, colors, **kwargs)
 
             if savefig:
                 save_figure_2_disk(dpi)

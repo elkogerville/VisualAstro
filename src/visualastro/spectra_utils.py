@@ -30,7 +30,6 @@ from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .text_utils import print_pretty_table
 from .numerical_utils import get_value, mask_within_range
-from .SpectrumPlus import SpectrumPlus
 from .config import get_config_value, config
 
 
@@ -103,7 +102,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
 
     Returns
     -------
-    continuum_fit : Quantity
+    continuum : Quantity
         Continuum flux values evaluated at `spectrum.spectral_axis`.
 
     Notes
@@ -136,9 +135,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
             fit = _fit_generic(spectrum)
 
     # fit the continuum of the provided spectral axis
-    continuum_fit = fit(spectral_axis)
-
-    return continuum_fit
+    return fit(spectral_axis)
 
 
 def deredden_flux(wavelength, flux, Rv=None, Ebv=None,

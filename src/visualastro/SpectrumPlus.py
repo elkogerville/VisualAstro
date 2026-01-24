@@ -39,8 +39,9 @@ class SpectrumPlus:
         Flux values of the spectrum. Units are inferred if possible.
     normalized : array-like or `~astropy.units.Quantity`, optional
         Normalized flux values of the spectrum, if available.
-    continuum_fit : array-like or callable, optional
-        Continuum fit to the spectrum or a callable used to generate it.
+    continuum : array-like or `~astropy.units.Quantity`, optional
+        Continuum flux values evaluated on the same spectral axis as the
+        spectrum. Must have the same shape and physical units as `flux`.
     log_file : Header
         Log file to track SpectrumPlus operations using
         `HISTORY` cards. Methods that return a new SpectrumPlus
@@ -51,10 +52,10 @@ class SpectrumPlus:
     spectrum : specutils.Spectrum
         Underlying Spectrum object containing the spectrum
         spectral axis and flux arrays.
-    continuum_fit : array-like or callable or None
-        Continuum fit data or fitting function.
-    normalized : array-like or None
-        Normalized flux array, if available.
+    continuum : Quantity
+        Quantity array of continuum values.
+    normalized : array-like
+        Normalized flux array.
     fit_method : {'fit_continuum', 'generic'}
         Method used to compute the continuum fit.
     region : SpectralRegion or None
@@ -116,10 +117,9 @@ class SpectrumPlus:
 
     def __init__(
         self, spectrum=None, *, spectral_axis=None, flux=None,
-        normalized=None, continuum_fit=None, log_file=None, **kwargs
+        normalized=None, continuum=None, log_file=None, **kwargs
     ):
 
-        # kwargs and config
         fit_method = kwargs.pop('fit_method', None)
         fit_method = get_config_value(
             fit_method, 'spectrum_continuum_fit_method'
@@ -145,7 +145,7 @@ class SpectrumPlus:
             spectrum,
             getattr(spectrum, 'flux', None),
             flux,
-            continuum_fit
+            continuum
         )
 
         _validate_common_unit(spectral_candidates, label='spectral axis')
@@ -160,15 +160,15 @@ class SpectrumPlus:
             **kwargs
         )
         # fit continuum and normalize
-        if continuum_fit is None:
-            continuum_fit = self._fit_continuum(spectrum, fit_method, region)
+        if continuum is None:
+            continuum = self._fit_continuum(spectrum, fit_method, region)
             _log_history(log_file, f"Computing continuum fit with '{fit_method}'")
 
         if normalized is None:
-            normalized = spectrum / continuum_fit
+            normalized = spectrum / continuum
 
         self.spectrum = spectrum
-        self.continuum_fit = continuum_fit
+        self.continuum = continuum
         self.normalized = normalized
         self.fit_method = fit_method
         self.region = region
@@ -568,12 +568,16 @@ class SpectrumPlus:
             Spectral region(s) to include in the continuum fit.
             Ex:
             region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+
+        Returns
+        -------
+        continuum : Quantity
+            Quantity array of continuum values.
         '''
         from .spectra_utils import fit_continuum
 
-        continuum_fit = fit_continuum(spectrum, fit_method, region)
+        return fit_continuum(spectrum, fit_method, region)
 
-        return continuum_fit
 
     def _construct_spectrum(
         self, *, spectrum=None, spectral_axis=None,
