@@ -22,7 +22,6 @@ from typing import Any
 from astropy import units as u
 from astropy.units import Quantity
 import numpy as np
-from numpy.typing import NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube

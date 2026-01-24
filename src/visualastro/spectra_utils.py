@@ -28,9 +28,11 @@ import numpy as np
 from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
-from .text_utils import print_pretty_table
-from .numerical_utils import get_value, mask_within_range
 from .config import get_config_value, config
+from .numerical_utils import get_value, mask_within_range, to_list
+from .text_utils import print_pretty_table
+from .units import get_unit
+from .utils import _unwrap_if_single
 
 
 # Science Spectrum Functions
@@ -314,6 +316,123 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
     dereddened_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
 
     return dereddened_flux
+
+
+def estimate_spectrum_line_flux(spectrum, spec_range):
+    """
+    Estimate the integrated line flux over a spectral interval.
+
+    This function supports both single-spectrum inputs and iterable
+    containers of spectra. For each spectrum, the continuum-subtracted
+    flux is numerically integrated over the specified spectral range
+    using the trapezoidal rule.
+
+    Parameters
+    ----------
+    spectrum : Any or iterable of Any
+        Spectral object(s) from which a spectral axis, flux, and continuum
+        can be extracted.
+    spec_range : array-like of length 2
+        Lower and upper bounds of the spectral interval over which to
+        integrate. Must be compatible with the spectral axis units.
+
+    Returns
+    -------
+    line_flux : astropy.units.Quantity or list of Quantity
+        Integrated line flux(es) over the specified interval.
+    """
+    spectrum_list = to_list(spectrum)
+    results = [
+        _estimate_spectrum_line_flux(spec, spec_range)
+        for spec in spectrum_list
+    ]
+
+    return _unwrap_if_single(results)
+
+
+def _estimate_spectrum_line_flux(spectrum, spec_range):
+    """
+    Estimate the integrated line flux over a spectral interval.
+
+    The line flux is computed by numerically integrating the
+    continuum-subtracted spectrum over the specified spectral range
+    using the trapezoidal rule. This provides a model-independent
+    estimate of the line strength.
+
+    Parameters
+    ----------
+    spectrum : Any
+        Spectral object from which a spectral axis, flux, and continuum
+        can be extracted. Typically a `Spectrum`, `SpectrumPlus`, or
+        compatible container.
+    spec_range : array-like of length 2
+        Lower and upper bounds of the spectral interval over which to
+        integrate. Values must be comparable to the spectral axis
+        (ideally with compatible units).
+
+    Returns
+    -------
+    line_flux : astropy.units.Quantity or float
+        Integrated line flux over the specified interval. If no spectral
+        samples fall within the interval, a zero-valued result is
+        returned (with units if available).
+
+    Raises
+    ------
+    ValueError
+        If the spectral axis, flux, or continuum cannot be determined,
+        or if `spec_range` is not a length-2 array-like object.
+    """
+    spectral_axis = get_spectral_axis(spectrum)
+    flux = get_flux(spectrum)
+    continuum = get_continuum(spectrum)
+
+    if spectral_axis is None or flux is None or continuum is None:
+        raise ValueError(
+            'Could not determine spectral_axis, flux, and continuum '
+            f'from the provided spectrum! Got: {type(spectral_axis)}, '
+            f'{type(flux)} and {type(continuum)}.'
+        )
+
+    if (not isinstance(spec_range, (list, tuple, np.ndarray, Quantity))
+        or len(spec_range) != 2):
+        raise ValueError(
+            'spec_range must be array-like of length 2, containing '
+            'the lower and upper bounds of the spectral axis'
+        )
+
+    spec_min, spec_max = spec_range
+
+    spec_unit = get_unit(spectral_axis)
+    flux_unit = get_unit(flux)
+
+    try:
+        if spec_unit is not None:
+            spec_min = Quantity(spec_min).to(spec_unit).value
+            spec_max = Quantity(spec_max).to(spec_unit).value
+        else:
+            spec_min = float(spec_min)
+            spec_max = float(spec_max)
+    except Exception as exc:
+        raise ValueError(
+            'spec_range units are incompatible with the spectral axis.'
+        ) from exc
+
+    x = np.asarray(spectral_axis)
+    y = np.asarray(flux - continuum)
+
+    mask = (x >= spec_min) & (x <= spec_max)
+    if not np.any(mask):
+        if flux_unit is not None and spec_unit is not None:
+            return Quantity(0, unit=flux_unit * spec_unit)
+        return 0
+
+    value = np.trapezoid(y[mask], x[mask])
+
+    if flux_unit is not None and spec_unit is not None:
+        return Quantity(value, unit=flux_unit * spec_unit)
+
+    return value
 
 
 def propagate_flux_errors(errors, method=None):
