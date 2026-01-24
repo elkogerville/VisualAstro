@@ -140,8 +140,9 @@ def sample_cmap(N, cmap=None, return_hex=False):
 
     Returns
     -------
-    list of tuple
-        A list of RGBA colors sampled evenly from the colormap.
+    array
+        An array of RGBA colors sampled evenly from the colormap,
+        or an array of hex colors if `return_hex=True`.
     '''
     # get default config values
     cmap = get_config_value(cmap, 'cmap')
