@@ -295,8 +295,9 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
 
 def extract_cube_pixel_spectra(
-    cube, plot_combined=False, combine_method=None,
-    cmap=None, style=None, **kwargs,
+    cube, *, idx=None, idx_range=None,
+    plot_combined=False, combine_method=None,
+    vline=None, cmap=None, style=None, **kwargs,
 ):
     """
     Extract per-pixel spectra from a spectral cube, keeping only spatial
@@ -310,12 +311,29 @@ def extract_cube_pixel_spectra(
     cube : DataCube, SpectralCube, Quantity or array-like
         Spectral cube with shape (T, N, M). If `cube`
         has no units, it is assined `u.dimensionless_unscaled`.
+    idx : int, sequence of int, or None, optional, default=None
+        Index or indices of the extracted per-pixel spectra to plot.
+        If None, all extracted pixel spectra are plotted.
+        If an int, only the spectrum with that index is plotted.
+        If a sequence of ints (e.g., list, tuple, or NumPy array),
+        only the spectra with those indices are plotted.
+        The indices correspond to the ordering shown in the legend,
+        where each entry is labeled as:
+            <index>: (x=<x>, y=<y>)
+    idx_range : sequence of two int or None, optional, default=None
+        Selects a range of indices of the extracted per-pixel spectra
+        to plot. Internally equivalent to `idx=np.arange(range[0],range[1]+1,1)`.
+        Overrides idx.
     plot_combined : bool, optional, default=False
         If True, compute and plot a combined spectrum from all extracted
         pixel spectra using `combine_method`.
     combine_method : {'sum', 'mean', 'median'} or None, optional, default=None
         Method used to combine per-pixel spectra when `plot_combined=True`.
         If None, uses the default value from `config.flux_extract_method`.
+    vline : Quantity or float or None, optional
+        If provided, draw a vertical dotted reference line at this wavelength.
+        If unitless, the value is assumed to be in the same units as the
+        spectral axis.
     cmap : str or None, optional, default=None
         Colormap used to sample per-spectrum colors.
         If None, uses the default value from `config.cmap`.
@@ -357,6 +375,7 @@ def extract_cube_pixel_spectra(
     spectral_axis = get_spectral_axis(cube)
     if spectral_axis is None:
         raise ValueError('Could not determine spectral_axis from cube')
+
     data_unit = get_unit(cube)
     if data_unit is None:
         data_unit = u.dimensionless_unscaled
@@ -365,89 +384,148 @@ def extract_cube_pixel_spectra(
     if data.ndim != 3:
         raise ValueError('cube must have shape (T, N, M)')
 
-    # spatial pixels (spectrums) that are not entirely NaN
-    valid_mask = ~np.all(np.isnan(data), axis=0)
-    ys, xs = np.where(valid_mask)
+    if idx_range is not None:
+        if (not isinstance(idx_range, (list, tuple, np.ndarray))
+            or len(idx_range) != 2):
+            raise TypeError(
+                'range must be a sequence of two integers (start, stop)'
+            )
 
-    spec_list = []
-    labels = []
-    desc = 'looping over pixels'
+        start, stop = map(int, idx_range)
+        if stop < start:
+            raise ValueError('range[1] must be >= range[0]')
 
-    for i, (y, x) in tqdm(enumerate(zip(ys, xs)), desc=desc):
-        flux = data[:, y, x]
-        flux = flux * data_unit
+        idx_set = set(range(start, stop + 1))
 
-        spec = SpectrumPlus(
-            Spectrum(spectral_axis=spectral_axis, flux=flux)
+    elif idx is None:
+        idx_set = None
+    elif isinstance(idx, (int, np.integer)):
+        idx_set = {int(idx)}
+    elif isinstance(idx, (list, tuple, np.ndarray)):
+        idx_set = {int(i) for i in idx}
+    else:
+        raise TypeError(
+            'idx must be None, an int, or a sequence of ints'
         )
 
-        spec_list.append(spec)
-        labels.append(f'{i}: (x={x}, y={y})')
+    # spatial pixels (spectrums) that are not entirely NaN
+    valid_mask = ~np.all(np.isnan(data), axis=0)
+    coords = np.column_stack(np.where(valid_mask))
 
-    if not spec_list:
-        raise ValueError('No valid spatial pixels found in cube')
+    if idx_set is None:
+        extract_idx = np.arange(len(coords))
+    else:
+        extract_idx = np.array(
+            [i for i in sorted(idx_set) if i < len(coords)],
+            dtype=int,
+        )
+    if extract_idx.size == 0:
+        raise ValueError('idx does not select any valid spectra')
+
+    coords = coords[extract_idx]
+    ys = coords[:, 0]
+    xs = coords[:, 1]
+
+    flux_matrix = data[:, ys, xs].T * data_unit
+    spectra = [
+        SpectrumPlus(
+            Spectrum(spectral_axis=spectral_axis, flux=flux)
+        )
+        for flux in flux_matrix
+    ]
+
+    labels = [
+        f"{i}: (x={x}, y={y})"
+        for i, (y, x) in zip(extract_idx, coords)
+    ]
+
+    n_plot = len(spectra)
 
     combined_spec = None
     style = return_stylename(style)
+
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
-        colors = sample_cmap(len(spec_list), cmap)
+        ax.set_autoscale_on(False)
 
-        for spec, c, l in zip(spec_list, colors, labels):
+        if isinstance(cmap, (list, tuple, np.ndarray)) and len(cmap) >= n_plot:
+            colors = list(cmap[:n_plot])
+        else:
+            colors = sample_cmap(n_plot, cmap)
+
+        for spec, label, color in zip(spectra, labels, colors):
             plot_spectrum(
-                spec, ax, color=[c], label=l, plot_continuum=False,
+                spec,
+                ax,
+                color=[color],
+                label=label,
+                plot_continuum=False,
             )
 
-        fluxes = [spec.flux for spec in spec_list]
-        if plot_combined:
-            flux_stack = np.stack(fluxes, axis=0)
+        fluxes = [spec.flux for spec in spectra]
 
+        if plot_combined:
             if combine_method == 'sum':
-                combined_flux = np.nansum(flux_stack, axis=0)
+                combined_flux = np.nansum(flux_matrix, axis=0)
             elif combine_method == 'mean':
-                combined_flux = np.nanmean(flux_stack, axis=0)
+                combined_flux = np.nanmean(flux_matrix, axis=0)
             elif combine_method == 'median':
-                combined_flux = np.nanmedian(flux_stack, axis=0)
+                combined_flux = np.nanmedian(flux_matrix, axis=0)
             else:
                 raise ValueError(f'Unknown combine_method: {combine_method}')
 
             combined_spec = SpectrumPlus(
                 Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
             )
-
             plot_spectrum(
-                combined_spec, ax, color='k', ls='--',
+                combined_spec,
+                ax,
+                color='k',
+                ls='--',
                 label=f'combined ({combine_method})',
                 plot_continuum=False,
             )
-            fluxes += [combined_flux]
 
-        set_axis_limits(spectral_axis, fluxes, ax)
+            fluxes.append(combined_flux)
 
-        leg = ax.legend(
+        if vline is not None:
+            if isinstance(vline, Quantity):
+                vline = vline.to(spectral_axis.unit).value
+            ax.axvline(
+                vline,
+                ls=':',
+                lw=1.0,
+                color='k',
+                alpha=0.7,
+                zorder=0,
+            )
+
+        set_axis_limits(spectral_axis, fluxes, ax, **kwargs)
+
+        ax.legend(
             fontsize=fontsize,
             ncols=ncols,
             loc='upper center',
             bbox_to_anchor=(0.5, -0.15),
             frameon=False,
         )
-        fig.add_artist(leg)
 
         if savefig:
             save_figure_2_disk(**kwargs)
+
         plt.show()
 
-    spec_list = _unwrap_if_single(spec_list)
+    spectra = _unwrap_if_single(spectra)
     if plot_combined:
-        return spec_list, combined_spec
-    return spec_list
+        return spectra, combined_spec
+    return spectra
 
 
 # Spectra Plotting Functions
 # --------------------------
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
                   plot_continuum=None, emission_line=None, wavelength=None,
-                  flux=None, continuum=None, colors=None, **kwargs):
+                  flux=None, continuum=None, colors=None, vline=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
 
@@ -476,6 +554,10 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         Colors to use for each scatter group or dataset.
         If None, uses the default color palette from
         `config.default_palette`.
+    vline : Quantity or float or None, optional
+        If provided, draw a vertical dotted reference line at this wavelength.
+        If unitless, the value is assumed to be in the same units as the
+        spectral axis.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -671,6 +753,19 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
                     xlabel, ylabel, use_brackets=use_brackets)
+
+    if vline is not None:
+        if isinstance(vline, Quantity):
+            vline = vline.to(extracted_spectrum.unit).value
+        ax.axvline(
+            vline,
+            ls=':',
+            lw=1.0,
+            color='k',
+            alpha=0.7,
+            zorder=0,
+        )
+
     if labels[0] is not None:
         ax.legend(loc=loc)
 
