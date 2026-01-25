@@ -340,6 +340,8 @@ def extract_cube_pixel_spectra(
     style : str or None, optional, default=None
         Matplotlib style to use for plotting.
         If None, uses the default value from `config.style`.
+    legend : bool, optional, default=True
+        If True, displays the legend below the plot.
     figsize : tuple, optional, default=(12,6)
         Plot figsize.
     fontsize : float, optional, default=8
@@ -357,6 +359,7 @@ def extract_cube_pixel_spectra(
     combined_spec : SpectrumPlus
         Combined spectrum, only returned if `plot_combined` is True.
     """
+    legend = kwargs.pop('legend', True)
     figsize = kwargs.get('figsize', (12,6))
     fontsize = kwargs.get('fontsize', 8)
     ncols = kwargs.get('ncols', 8)
@@ -453,12 +456,12 @@ def extract_cube_pixel_spectra(
         else:
             colors = sample_cmap(n_plot, cmap)
 
-        for spec, label, color in zip(spectra, labels, colors):
+        for i in tqdm(range(len(spectra)), desc='plotting'):
             plot_spectrum(
-                spec,
+                spectra[i],
                 ax,
-                color=[color],
-                label=label,
+                color=[colors[i]],
+                label=labels[i],
                 plot_continuum=False,
             )
 
@@ -501,14 +504,14 @@ def extract_cube_pixel_spectra(
             )
 
         set_axis_limits(spectral_axis, fluxes, ax, **kwargs)
-
-        ax.legend(
-            fontsize=fontsize,
-            ncols=ncols,
-            loc='upper center',
-            bbox_to_anchor=(0.5, -0.15),
-            frameon=False,
-        )
+        if legend:
+            ax.legend(
+                fontsize=fontsize,
+                ncols=ncols,
+                loc='upper center',
+                bbox_to_anchor=(0.5, -0.15),
+                frameon=False,
+            )
 
         if savefig:
             save_figure_2_disk(**kwargs)
