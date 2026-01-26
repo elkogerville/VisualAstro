@@ -551,10 +551,170 @@ def extract_cube_pixel_spectra(
 
         plt.show()
 
-    spectra = _unwrap_if_single(spectra)
-    if plot_combined:
-        return spectra, combined_spec
-    return spectra
+    result = PixelSpectraExtraction(
+        spectra=_unwrap_if_single(spectra),
+        extract_idx=extract_idx,
+        coords=coords,
+        colors=colors,
+        labels=labels,
+        combined_spectrum=combined_spec,
+    )
+
+    if plot_spatial_map:
+        plot_extracted_pixel_map(
+            cube,
+            pixel_spectra_extraction=result,
+            savefig=savefig,
+            **kwargs
+        )
+
+    return result
+
+
+def plot_extracted_pixel_map(
+    cube,
+    *,
+    pixel_spectra_extraction,
+    **kwargs
+):
+    """
+    Plot a 2D spatial map of extracted pixel locations from a spectral cube.
+
+    This function visualizes which spatial pixels were selected during a
+    per-pixel spectral extraction step. The spatial locations are overlaid
+    on a 2D slice of the cube and color-coded to match the corresponding
+    spectra in the spectral plot.
+
+    Parameters
+    ----------
+    cube : DataCube, SpectralCube, Quantity, or array-like
+        Spectral cube with shape `(T, N, M)` or a 2D spatial slice
+        with shape `(N, M)`. If 3D, either the first spectral slice
+        is shown or a slice specified by `idx`.
+    pixel_spectra_extraction : PixelSpectraExtraction
+        Object containing the results of a pixel-spectra extraction.
+        Must expose the following attributes:
+        - `extract_idx` : array-like of int
+          Indices of the extracted pixel spectra.
+        - `coords` : array-like, shape `(N, 2)`
+          Spatial pixel coordinates in `(y, x)` order.
+        - `colors` : sequence
+          Colors assigned to each extracted pixel, matching the spectral plot.
+    figsize : tuple, optional, default=(12, 6)
+        Size of the figure in inches.
+    style : str, optional
+        Matplotlib style name.
+    annotate : bool, optional, default=True
+        If True, annotate each extracted pixel with its index.
+    idx : int, optional
+        Spectral index to display when `cube` is 3D.
+    savefig : bool, optional, default=False
+        If True, save the figure to disk using `save_figure_2_disk`.
+    alpha : float, optional, default=0.8
+        Alpha value for individual pixel colors.
+    Any additional keyword arguments are forwarded to `imshow`.
+
+    Raises
+    ------
+    ValueError
+        If `coords` does not have shape `(N, 2)`, if the number of
+        coordinates and colors differ, or if `cube` has an invalid shape.
+    IndexError
+        If any extracted pixel coordinates fall outside the spatial
+        dimensions of the cube.
+
+    Notes
+    -----
+    - Spatial coordinates are interpreted in `(y, x)` order.
+    - Extracted pixels are rendered as an RGBA overlay for efficient,
+      vectorized plotting.
+    - This function is intended to be used in conjunction with
+      `extract_cube_pixel_spectra` and its returned extraction object.
+    """
+
+    figsize = kwargs.get('figsize', (12, 6))
+    style = kwargs.get('style', config.style)
+    savefig = kwargs.get('savefig', False)
+    annotate = kwargs.get('annotate', True)
+    idx = kwargs.pop('idx', None)
+    alpha = kwargs.pop('alpha', 0.8)
+    fontsize = kwargs.pop('fontsize', 8)
+
+    extract_idx = pixel_spectra_extraction.extract_idx
+    coords = pixel_spectra_extraction.coords
+    colors = pixel_spectra_extraction.colors
+
+    extract_idx = np.asarray(extract_idx, dtype=int)
+    coords = np.asarray(coords)
+    colors = list(colors)
+
+    if coords.ndim != 2 or coords.shape[1] != 2:
+        raise ValueError('coords must have shape (N, 2) as (y, x)')
+
+    if len(coords) != len(colors):
+        raise ValueError('coords and colors must have the same length')
+
+    background = to_array(cube, keep_units=False)
+    if background.ndim == 3:
+        if idx is not None:
+            background = slice_cube(background, idx)
+        else:
+            background = background[0]
+    elif background.ndim != 2:
+        raise ValueError('cube must be a 3D!')
+
+    ny, nx = background.shape
+    ys, xs = coords[:, 0], coords[:, 1]
+
+    if np.any(ys < 0) or np.any(ys >= ny) or np.any(xs < 0) or np.any(xs >= nx):
+        raise IndexError('Some coords fall outside cube spatial dimensions')
+
+    colors_rgba = np.array([to_rgba(c, alpha=alpha) for c in colors])
+    overlay = np.zeros((ny, nx, 4), dtype=float)
+    overlay[ys, xs] = colors_rgba
+
+    style = return_stylename(style)
+    with plt.style.context(style):
+        fig, ax = plt.subplots(figsize=figsize)
+        imshow(
+            background,
+            ax,
+            origin='lower',
+            cmap='gray',
+            colorbar=False,
+            **kwargs
+        )
+        imshow(
+            overlay,
+            ax,
+            origin='lower',
+            colorbar=False
+        )
+
+        if annotate:
+            for idx, y, x in zip(extract_idx, ys, xs):
+                ax.text(
+                    x, y, str(idx),
+                    ha='center',
+                    va='center',
+                    fontsize=fontsize,
+                    color='black',
+                    bbox=dict(
+                        boxstyle='round,pad=0.2',
+                        facecolor='white',
+                        edgecolor='none',
+                        alpha=0.7
+                    )
+                )
+
+        ax.set_xlabel('X pixel')
+        ax.set_ylabel('Y pixel')
+        ax.set_title(f'Extracted Pixel Locations (n={len(extract_idx)})')
+
+        if savefig:
+            save_figure_2_disk(**kwargs)
+
+        plt.show()
 
 
 # Spectra Plotting Functions
