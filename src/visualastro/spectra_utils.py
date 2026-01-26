@@ -18,6 +18,7 @@ Module Structure:
     - Model Fitting Functions
         Model fitting utility functions.
 '''
+from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import Any, Optional
 import warnings
@@ -25,11 +26,13 @@ from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
+from numpy.typing import NDArray
 from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .config import get_config_value, config
 from .numerical_utils import get_value, mask_within_range, to_list
+from .SpectrumPlus import SpectrumPlus
 from .text_utils import print_pretty_table
 from .units import get_unit
 from .utils import _unwrap_if_single
@@ -724,7 +727,7 @@ class GaussianFitResult:
     Notes
     -----
     - If new gaussian models are added, make sure to update
-      the `additional_parameters` list.
+      the `additional_parameters` and `parameters_labels` list.
     '''
     # fitted parameters
     amplitude: Any
@@ -822,3 +825,50 @@ class GaussianFitResult:
 
         lines.append(')')
         return '\n'.join(lines)
+
+
+@dataclass(frozen=True)
+class PixelSpectraExtraction:
+    """
+    spectra : SpectrumPlus or list of SpectrumPlus
+        Extracted per-pixel spectra. If a single index is selected,
+        this is returned as a single `SpectrumPlus` instance;
+        otherwise, a list is returned.
+    extract_idx : ndarray of int, shape (N,)
+        Indices of the extracted spectra corresponding to the ordering
+        of valid spatial pixels.
+    coords : ndarray of int, shape (N, 2)
+        Spatial coordinates of extracted pixels in `(y, x)` order.
+    colors : list
+        Colors assigned to each extracted pixel/spectrum.
+    labels : list of str
+        Human-readable labels of the form `"<idx>: (x=<x>, y=<y>)"`.
+    combined_spectrum : SpectrumPlus or None
+        Combined spectrum computed using `combine_method` if
+        `combine_spectra=True`; otherwise None.
+    """
+    spectra: SpectrumPlus | list[SpectrumPlus]
+    extract_idx: np.ndarray
+    coords: np.ndarray
+    colors: Sequence | NDArray
+    labels: Sequence[str]
+    combined_spectrum: Optional[object] = None
+
+    def __repr__(self) -> str:
+        n = len(self.extract_idx)
+
+        spectra_type = (
+            'SpectrumPlus'
+            if isinstance(self.spectra, SpectrumPlus)
+            else 'list[SpectrumPlus]'
+        )
+
+        combined = self.combined_spectrum is not None
+
+        return (
+            f'{self.__class__.__name__}('
+            f'N={n}, '
+            f'spectra={spectra_type}, '
+            f'coords_shape={self.coords.shape}, '
+            f'combined={combined})'
+        )
