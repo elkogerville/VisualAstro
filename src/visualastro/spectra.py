@@ -19,14 +19,17 @@ Module Structure:
         Fitting routines for spectra.
 '''
 
+
 from collections import namedtuple
 import astropy.units as u
 from astropy.units import Quantity
+from matplotlib.colors import to_rgba
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from specutils.spectra import Spectrum
 from tqdm import tqdm
+from .data_cube_utils import slice_cube
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     get_value,
@@ -40,8 +43,10 @@ from .plot_utils import (
     return_stylename, sample_cmap, set_axis_labels,
     set_axis_limits, set_plot_colors
 )
+from .plotting import imshow
 from .spectra_utils import (
     GaussianFitResult,
+    PixelSpectraExtraction,
     deredden_flux,
     fit_continuum,
     get_spectral_axis,
@@ -295,9 +300,17 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
 
 def extract_cube_pixel_spectra(
-    cube, *, idx=None, idx_range=None,
-    plot_combined=False, combine_method=None,
-    vline=None, cmap=None, style=None, **kwargs,
+    cube,
+    *,
+    idx=None,
+    idx_range=None,
+    combine_spectra=False,
+    combine_method=None,
+    plot_spatial_map=True,
+    vline=None,
+    cmap=None,
+    style=None,
+    **kwargs,
 ):
     """
     Extract per-pixel spectra from a spectral cube, keeping only spatial
@@ -309,8 +322,9 @@ def extract_cube_pixel_spectra(
     Parameters
     ----------
     cube : DataCube, SpectralCube, Quantity or array-like
-        Spectral cube with shape (T, N, M). If `cube`
-        has no units, it is assined `u.dimensionless_unscaled`.
+        Spectral cube with shape (T, N, M), where T is the spectral axis
+        and (N,M) the spatial dimensions. If `cube` has no units, it is
+        assined `u.dimensionless_unscaled`.
     idx : int, sequence of int, or None, optional, default=None
         Index or indices of the extracted per-pixel spectra to plot.
         If None, all extracted pixel spectra are plotted.
@@ -324,12 +338,15 @@ def extract_cube_pixel_spectra(
         Selects a range of indices of the extracted per-pixel spectra
         to plot. Internally equivalent to `idx=np.arange(range[0],range[1]+1,1)`.
         Overrides idx.
-    plot_combined : bool, optional, default=False
+    combine_spectra : bool, optional, default=False
         If True, compute and plot a combined spectrum from all extracted
         pixel spectra using `combine_method`.
     combine_method : {'sum', 'mean', 'median'} or None, optional, default=None
         Method used to combine per-pixel spectra when `plot_combined=True`.
         If None, uses the default value from `config.flux_extract_method`.
+    plot_spatial_map : bool, optional, default=True
+        If True, plot a 2D spatial map showing the locations of the
+        extracted pixels, color-coded to match the spectral plot.
     vline : Quantity or float or None, optional
         If provided, draw a vertical dotted reference line at this wavelength.
         If unitless, the value is assumed to be in the same units as the
@@ -350,14 +367,29 @@ def extract_cube_pixel_spectra(
         Number of columns for the legend.
     savefig : bool, optional, default=False
         If True, saves figure to disk.
+    Any additional keyword arguments are forwarded to `plot_extracted_pixel_map`.
 
     Returns
     -------
-    spectra : list of SpectrumPlus
-        List of length A, where each element is a per-pixel spectrum with
-        shape (T,). A is the number of spatial pixels containing valid data.
-    combined_spec : SpectrumPlus
-        Combined spectrum, only returned if `plot_combined` is True.
+    result : PixelSpectraExtraction
+        Container object holding the results of the extraction. It exposes
+        the following attributes:
+        - `spectra` : SpectrumPlus or list of SpectrumPlus
+            Extracted per-pixel spectra. If a single index is selected,
+            this is returned as a single `SpectrumPlus` instance;
+            otherwise, a list is returned.
+        - `extract_idx` : ndarray of int, shape (N,)
+            Indices of the extracted spectra corresponding to the ordering
+            of valid spatial pixels.
+        - `coords` : ndarray of int, shape (N, 2)
+            Spatial coordinates of extracted pixels in `(y, x)` order.
+        - `colors` : list
+            Colors assigned to each extracted pixel/spectrum.
+        - `labels` : list of str
+            Human-readable labels of the form `"<idx>: (x=<x>, y=<y>)"`.
+        - `combined_spectrum` : SpectrumPlus or None
+            Combined spectrum computed using `combine_method` if
+            `combine_spectra=True`; otherwise None.
     """
     legend = kwargs.pop('legend', True)
     figsize = kwargs.get('figsize', (12,6))
@@ -369,10 +401,10 @@ def extract_cube_pixel_spectra(
     style = get_config_value(style, 'style')
     cmap = get_config_value(cmap, 'cmap')
 
-    if plot_combined and combine_method not in {'sum', 'mean', 'median'}:
+    if combine_spectra and combine_method not in {'sum', 'mean', 'median'}:
         raise ValueError(
             "`combine_method` must be one of {'sum', 'mean', 'median'} when "
-            "`plot_combined=True`."
+            "`combine_spectra=True`."
         )
 
     spectral_axis = get_spectral_axis(cube)
@@ -438,14 +470,27 @@ def extract_cube_pixel_spectra(
     ]
 
     labels = [
-        f"{i}: (x={x}, y={y})"
+        f'{i}: (x={x}, y={y})'
         for i, (y, x) in zip(extract_idx, coords)
     ]
 
     n_plot = len(spectra)
-
     combined_spec = None
     style = return_stylename(style)
+
+    if combine_spectra:
+        if combine_method == 'sum':
+            combined_flux = np.nansum(flux_matrix, axis=0)
+        elif combine_method == 'mean':
+            combined_flux = np.nanmean(flux_matrix, axis=0)
+        elif combine_method == 'median':
+            combined_flux = np.nanmedian(flux_matrix, axis=0)
+        else:
+            raise ValueError(f'Unknown combine_method: {combine_method}')
+
+        combined_spec = SpectrumPlus(
+            Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
+        )
 
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
@@ -467,19 +512,7 @@ def extract_cube_pixel_spectra(
 
         fluxes = [spec.flux for spec in spectra]
 
-        if plot_combined:
-            if combine_method == 'sum':
-                combined_flux = np.nansum(flux_matrix, axis=0)
-            elif combine_method == 'mean':
-                combined_flux = np.nanmean(flux_matrix, axis=0)
-            elif combine_method == 'median':
-                combined_flux = np.nanmedian(flux_matrix, axis=0)
-            else:
-                raise ValueError(f'Unknown combine_method: {combine_method}')
-
-            combined_spec = SpectrumPlus(
-                Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
-            )
+        if combine_spectra and isinstance(combined_spec, SpectrumPlus):
             plot_spectrum(
                 combined_spec,
                 ax,
@@ -488,8 +521,7 @@ def extract_cube_pixel_spectra(
                 label=f'combined ({combine_method})',
                 plot_continuum=False,
             )
-
-            fluxes.append(combined_flux)
+            fluxes.append(combined_spec.flux)
 
         if vline is not None:
             if isinstance(vline, Quantity):
@@ -504,6 +536,7 @@ def extract_cube_pixel_spectra(
             )
 
         set_axis_limits(spectral_axis, fluxes, ax, **kwargs)
+
         if legend:
             ax.legend(
                 fontsize=fontsize,
