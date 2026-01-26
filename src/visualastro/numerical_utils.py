@@ -45,6 +45,8 @@ def get_data(obj):
     array-like
         `obj.data` if the attribute exists; otherwise `obj` itself.
     """
+    if isinstance(obj, (np.ndarray, Quantity)):
+        return obj
     return obj.data if hasattr(obj, 'data') else obj
 
 
@@ -106,7 +108,9 @@ def to_array(obj, keep_units=False):
         return np.asarray(value)
 
     if hasattr(obj, 'data'):
-        return to_array(obj.data, keep_units=keep_units)
+        data = obj.data
+        if data is not obj:
+            return to_array(obj.data, keep_units=keep_units)
 
     try:
         return np.asarray(obj)
