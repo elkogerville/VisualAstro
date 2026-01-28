@@ -38,6 +38,8 @@ And finally run:
 $ pip install visualastro
 ```
 
+NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then activate jupyter notebook!
+
 ## Compatible Data
 - 2D images
 - 3D spectral cubes
