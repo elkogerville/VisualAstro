@@ -67,6 +67,7 @@ astropy, dust_extinction, matplotlib, regions, reproject, spectral-cube, specuti
 VisualAstro includes Hershey-style TrueType fonts from the smplotlib project
 by Jiaxuan Li, used under the MIT License. Citation:
 
+```
 @software{jiaxuan_li_2023_8126529,
   author       = {Jiaxuan Li},
   title        = {AstroJacobLi/smplotlib: v0.0.9},
@@ -77,3 +78,4 @@ by Jiaxuan Li, used under the MIT License. Citation:
   doi          = {10.5281/zenodo.8126529},
   url          = {https://doi.org/10.5281/zenodo.8126529},
 }
+```
