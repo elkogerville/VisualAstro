@@ -25,7 +25,13 @@ $ conda activate envname
 ```
 Then install the dependencies with:
 ```
-$ conda install -c conda-forge astropy dust_extinction matplotlib numpy regions reproject scipy spectral-cube specutils tqdm
+$ conda install -c conda-forge \
+    astropy dust_extinction matplotlib numpy regions reproject scipy spectral-cube specutils tqdm
+```
+For additional interactive functionality inside of jupyter notebooks:
+```
+$ conda install -c conda-forge \
+    ipympl ipywidgets notebook jupyterlab jupyter_server notebook-shim
 ```
 And finally run:
 ```
