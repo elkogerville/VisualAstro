@@ -27,6 +27,7 @@ from matplotlib.colors import to_rgba
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
+from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
 from .data_cube_utils import slice_cube
@@ -304,6 +305,7 @@ def extract_cube_pixel_spectra(
     *,
     idx=None,
     idx_range=None,
+    drop_idx=None,
     combine_spectra=False,
     combine_method=None,
     plot_spatial_map=True,
@@ -326,18 +328,24 @@ def extract_cube_pixel_spectra(
         and (N,M) the spatial dimensions. If `cube` has no units, it is
         assined `u.dimensionless_unscaled`.
     idx : int, sequence of int, or None, optional, default=None
-        Index or indices of the extracted per-pixel spectra to plot.
-        If None, all extracted pixel spectra are plotted.
-        If an int, only the spectrum with that index is plotted.
-        If a sequence of ints (e.g., list, tuple, or NumPy array),
-        only the spectra with those indices are plotted.
-        The indices correspond to the ordering shown in the legend,
-        where each entry is labeled as:
+        Index or indices of the extracted per-pixel spectra to *select*.
+        This controls which spatial pixels are extracted, combined,
+        and plotted. If None, all valid spatial pixels are extracted.
+        If an int, only that extracted spectrum is kept. If a sequence
+        of ints (e.g., list, tuple, or NumPy array), only those extracted
+        spectra are kept. The indices correspond to the ordering shown
+        in the legend, where each entry is labeled as:
             <index>: (x=<x>, y=<y>)
     idx_range : sequence of two int or None, optional, default=None
-        Selects a range of indices of the extracted per-pixel spectra
-        to plot. Internally equivalent to `idx=np.arange(range[0],range[1]+1,1)`.
-        Overrides idx.
+        Inclusive range of indices of the extracted per-pixel spectra to *select*.
+        This controls which spatial pixels are extracted, combined, and plotted.
+        Equivalent to:
+            idx = np.arange(start, stop + 1)
+        Overrides `idx` if provided.
+    drop_idx : int, sequence of int, or None, optional, default=None
+        Index or indices of extracted per-pixel spectra to remove *after*
+        applying `idx` or `idx_range`. This allows excluding specific spectra
+        (e.g., bad pixels) without redefining the full selection.
     combine_spectra : bool, optional, default=False
         If True, compute and plot a combined spectrum from all extracted
         pixel spectra using `combine_method`.
@@ -446,6 +454,21 @@ def extract_cube_pixel_spectra(
     # spatial pixels (spectrums) that are not entirely NaN
     valid_mask = ~np.all(np.isnan(data), axis=0)
     coords = np.column_stack(np.where(valid_mask))
+
+    if drop_idx is not None:
+        if isinstance(drop_idx, (int, np.integer)):
+            drop_set = {int(drop_idx)}
+        elif isinstance(drop_idx, (list, tuple, np.ndarray)):
+            drop_set = {int(i) for i in drop_idx}
+        else:
+            raise TypeError(
+                'drop_idx must be None, an int, or a sequence of ints'
+            )
+
+        if idx_set is None:
+            idx_set = set(range(len(coords))) - drop_set
+        else:
+            idx_set = idx_set - drop_set
 
     if idx_set is None:
         extract_idx = np.arange(len(coords))
@@ -844,7 +867,6 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
     # construct SpectrumPlus if user passes in wavelength and flux
     if extracted_spectra is None:
-
         # disable normalization because the user provided raw arrays
         plot_norm_continuum = False
 
