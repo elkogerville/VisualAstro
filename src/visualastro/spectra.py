@@ -878,11 +878,11 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
         # case 1: single wavelength/flux array
         if (
-            isinstance(wavelength, (np.ndarray, Quantity)) and
+            isinstance(wavelength, (np.ndarray, Quantity, SpectralAxis)) and
             isinstance(flux, (np.ndarray, Quantity))
         ):
             extracted_spectra = SpectrumPlus(
-                wavelength=wavelength,
+                spectral_axis=wavelength,
                 flux=flux,
                 continuum=continuum_list[0]
             )
@@ -894,7 +894,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         ):
             extracted_spectra = [
                 SpectrumPlus(
-                    wavelength=w,
+                    spectral_axis=w,
                     flux=f,
                     continuum=continuum_list[i % len(continuum_list)]
                 )
