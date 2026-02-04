@@ -600,8 +600,12 @@ def extract_cube_pixel_spectra(
 
         plt.show()
 
+    masked_data = np.full_like(data, np.nan)
+    masked_data[:, ys, xs] = data[:, ys, xs]
+
     result = PixelSpectraExtraction(
         spectra=_unwrap_if_single(spectra),
+        cube_array=masked_data,
         extract_idx=extract_idx,
         coords=coords,
         colors=colors,
@@ -611,9 +615,10 @@ def extract_cube_pixel_spectra(
 
     if plot_spatial_map:
         plot_extracted_pixel_map(
-            cube,
-            pixel_spectra_extraction=result,
+            result,
+            cube=masked_data if background_cube is None else to_array(background_cube),
             savefig=savefig,
+            idx=map_idx,
             **kwargs
         )
 
