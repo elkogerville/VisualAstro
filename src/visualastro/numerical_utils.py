@@ -22,6 +22,7 @@ from typing import Any
 from astropy import units as u
 from astropy.units import Quantity
 import numpy as np
+from numpy.typing import NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
@@ -74,14 +75,15 @@ def get_value(obj: Any):
     return obj.value if hasattr(obj, 'value') else obj
 
 
-def to_array(obj, keep_units=False):
+def to_array(obj: Any, keep_units: bool = False) -> NDArray | Quantity:
     """
     Return input object as either a np.ndarray or Quantity.
 
     Parameters
     ----------
-    obj : array-like or Quantity
-        Array or DataCube object.
+    obj : array-like, np.ndarray, Quantity or SpectralCube
+        Any array-like object, or an object that exposes
+        a ``data`` or ``value`` attribute.
     keep_units : bool, optional, default=False
         If True, keep astropy units attached if present.
 
@@ -89,28 +91,42 @@ def to_array(obj, keep_units=False):
     -------
     array : np.ndarray
         Quantity array if `keep_units` is True, else a NumPy array.
+
+    Raises
+    ------
+    TypeError :
+        If obj is None.
     """
+    if obj is None:
+        raise TypeError('None cannot be converted to an array')
+
     if isinstance(obj, Quantity):
-        return obj if keep_units else obj.value
+        return obj if keep_units else np.asarray(obj.value)
 
     elif isinstance(obj, SpectralCube):
         q = obj.filled_data[:]
-        return q if keep_units else q.value
+        if not isinstance(q, Quantity):
+            q = Quantity(np.asarray(q), unit=obj.unit)
+        return q if keep_units else np.asarray(q.value)
 
-    if hasattr(obj, 'value'):
-        value = obj.value
-        unit = getattr(obj, 'unit', None)
-        if keep_units and unit is not None:
-            if isinstance(value, Quantity):
-                return value
-            return value * unit
+    elif isinstance(obj, np.ndarray):
+        return obj
 
-        return np.asarray(value)
+    # check if obj had data or value attributes
+    # with priority to data
+    for attr in ('data', 'value'):
+        if hasattr(obj, attr):
+            inner = getattr(obj, attr)
+            if inner is not obj:
+                result = to_array(inner, keep_units=keep_units)
 
-    if hasattr(obj, 'data'):
-        data = obj.data
-        if data is not obj:
-            return to_array(obj.data, keep_units=keep_units)
+                # check for unit in either obj or obj attribute
+                if keep_units and not isinstance(result, Quantity):
+                    unit = getattr(obj, 'unit', None) or getattr(inner, 'unit', None)
+                    if unit is not None:
+                        return Quantity(result, unit=unit)
+
+                return result
 
     try:
         return np.asarray(obj)
