@@ -571,13 +571,12 @@ def extract_cube_pixel_spectra(
             fluxes.append(combined_spec.flux)
 
         if vline is not None:
-            vline_value = (
-                vline.to(spectral_axis.unit).value
-                if isinstance(vline, Quantity)
-                else float(vline)
-            )
             ax.axvline(
-                vline_value,
+                (
+                    vline.to(spectral_axis.unit).value
+                    if isinstance(vline, Quantity)
+                    else float(vline)
+                ),
                 ls=':',
                 lw=1.0,
                 color='k',
@@ -589,8 +588,8 @@ def extract_cube_pixel_spectra(
 
         if legend:
             ax.legend(
-                fontsize=fontsize,
                 ncols=ncols,
+                fontsize=8,
                 loc='upper center',
                 bbox_to_anchor=(0.5, -0.15),
                 frameon=False,
