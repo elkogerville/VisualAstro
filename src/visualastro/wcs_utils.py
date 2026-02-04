@@ -13,7 +13,7 @@ Module Structure:
 '''
 
 import copy
-from typing import Any
+from typing import Any, cast
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -32,7 +32,7 @@ from .config import get_config_value, config, _default_flag
 
 
 def get_wcs(header: Any) -> WCS | list[WCS] | None:
-    '''
+    """
     Extract WCS from header(s).
 
     Parameters
@@ -42,11 +42,18 @@ def get_wcs(header: Any) -> WCS | list[WCS] | None:
 
     Returns
     -------
-    WCS, list of WCS/None, or None
-        - Single WCS if header is a Header and WCS extraction succeeds
-        - List of WCS/None if header is a list (None for failed extractions)
-        - None if header is a single Header and WCS extraction fails
-    '''
+    WCS, list of WCS, or None
+        - Single ``WCS`` if ``header`` is a ``Header`` and wcs extraction succeeds.
+        - List of ``WCS`` if ``header`` is a sequence and *all* headers yield
+            valid WCS objects.
+        - None if ``header`` is a single ``Header`` and WCS extraction fails,
+            or if a sequence is provided and *no* headers yield valid WCS.
+
+    Raises
+    ------
+    ValueError
+        If a sequence of headers is provided and only a subset yield valid WCS.
+    """
     if isinstance(header, WCS):
         return header
 
@@ -58,7 +65,7 @@ def get_wcs(header: Any) -> WCS | list[WCS] | None:
 
     # if a list of headers extract a list of wcs
     if isinstance(header, (list, np.ndarray, tuple)):
-        wcs_list = []
+        wcs_list: list[WCS | None] = []
         for h in header:
             if not isinstance(h, Header):
                 wcs_list.append(None)
@@ -67,7 +74,15 @@ def get_wcs(header: Any) -> WCS | list[WCS] | None:
                 wcs_list.append(WCS(h))
             except Exception:
                 wcs_list.append(None)
-        return wcs_list
+        if all(w is None for w in wcs_list):
+            return None
+
+        if any(w is None for w in wcs_list):
+            raise ValueError(
+                'Inconsistent WCS: some headers have WCS and some do not.'
+            )
+
+        return cast(list[WCS], [w for w in wcs_list if w is not None])
 
     return None
 
