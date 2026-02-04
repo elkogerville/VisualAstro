@@ -20,6 +20,7 @@ from astropy.units import Quantity, Unit, UnitsError
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 from spectral_cube import SpectralCube
 from tqdm import tqdm
 from .fits_utils import (
@@ -44,7 +45,7 @@ from .wcs_utils import (
 
 
 class DataCube:
-    '''
+    """
     Lightweight wrapper for handling 3D spectral_cubes
     or arrays with optional headers and error arrays.
     This class supports both `numpy.ndarray` and `SpectralCube`
@@ -181,15 +182,19 @@ class DataCube:
     >>> cube.data
     >>> cube.header
     >>> cube.inspect()
-    '''
+    """
 
-    def __init__(self, data, header=None, error=None, wcs=None):
-
+    def __init__(
+        self,
+        data: NDArray | Quantity | SpectralCube,
+        header: list[Header] | Header | NDArray | tuple[Header] | None = None,
+        error: NDArray | Quantity | None = None,
+        wcs: list[WCS] | WCS | tuple[WCS] | None = None
+    ):
         data = _validate_type(
             data, (np.ndarray, Quantity, SpectralCube),
             allow_none=False, name='data'
         )
-        assert data is not None
         header = _validate_type(
             header, (list, Header, np.ndarray, tuple),
             allow_none=True, name='header'
@@ -199,14 +204,14 @@ class DataCube:
             allow_none=True, name='error'
         )
         wcs = _validate_type(
-            wcs, (list, WCS), default=None,
+            wcs, (list, WCS, tuple), default=None,
             allow_none=True, name='wcs'
         )
-        if isinstance(wcs, list):
+        if isinstance(wcs, (list, tuple)):
             wcs = _validate_iterable_type(wcs, WCS, 'wcs')
 
         if header is None:
-            if isinstance(wcs, list):
+            if isinstance(wcs, (list, tuple)):
                 header = [Header() for _ in wcs]
             else:
                 header = Header()
@@ -314,9 +319,11 @@ class DataCube:
                     )
                 _update_header_from_wcs(header, wcs)
 
-        # extract non WCS info from header
-        nowcs_header = _strip_wcs_from_header(header)
-        _remove_history(nowcs_header)
+        if wcs is not None:
+            nowcs_header = _strip_wcs_from_header(header)
+            _remove_history(nowcs_header)
+        else:
+            nowcs_header = header
 
         # assign attributes
         self.data = data
