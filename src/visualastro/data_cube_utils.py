@@ -28,22 +28,24 @@ from .units import get_unit
 # Cube Manipulation Functions
 # ---------------------------
 def slice_cube(cube, idx):
-    '''
+    """
     Return a slice of a data cube along the first axis.
+
     Parameters
     ----------
     cube : np.ndarray
-        Input data cube, typically with shape (T, N, ...) where T is the first axis.
+        Input data cube, typically with shape ``(T, N, ...)`` where T is the first axis.
     idx : int or list of int
         Index or indices specifying the slice along the first axis:
-        - i -> returns 'cube[i]'
-        - [i] -> returns 'cube[i]'
-        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
+        - ``i`` -> returns ``cube[i]``
+        - ``[i]`` -> returns ``cube[i]``
+        - ``[i, j]`` -> returns ``cube[i:j+1].sum(axis=0)``
+
     Returns
     -------
     cube : np.ndarray
         Sliced cube with shape (N, ...).
-    '''
+    """
     cube = get_data(cube)
     # if index is integer
     if isinstance(idx, int):
@@ -58,13 +60,14 @@ def slice_cube(cube, idx):
             start, end = idx
             return cube[start:end+1].sum(axis=0)
 
-    raise ValueError("'idx' must be an int or a list of one or two integers")
+    raise ValueError("``idx`` must be an int or a list of one or two integers")
 
 
 def get_spectral_slice_value(spectral_axis, idx):
     '''
     Return a representative value from a spectral axis
     given an index or index range.
+
     Parameters
     ----------
     spectral_axis : Quantity
@@ -75,6 +78,7 @@ def get_spectral_slice_value(spectral_axis, idx):
         - i -> returns 'spectral_axis[i]'
         - [i] -> returns 'spectral_axis[i]'
         - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
+
     Returns
     -------
     spectral_value : float
@@ -103,6 +107,7 @@ def mask_image(
     Mask an image with modular filters.
     Supports applying an elliptical or annular region mask, an optional
     line cut (upper or lower half-plane), and combining with an existing mask.
+
     Parameters
     ----------
     image : array-like, DataCube, FitsFile, or SpectralCube
@@ -144,6 +149,7 @@ def mask_image(
             ±Tolerance (distance from radius) for annulus inner/outer radii.
             If array-like, uses the first element as the minus bound,
             and the second element as the positive.
+
     Returns
     -------
     masked_image : ndarray or SpectralCube
