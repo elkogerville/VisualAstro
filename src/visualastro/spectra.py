@@ -626,9 +626,9 @@ def extract_cube_pixel_spectra(
 
 
 def plot_extracted_pixel_map(
-    cube,
+    pixel_spectra_extraction: PixelSpectraExtraction,
     *,
-    pixel_spectra_extraction,
+    cube: DataCube | NDArray | Quantity | SpectralCube | None = None,
     **kwargs
 ):
     """
@@ -639,39 +639,52 @@ def plot_extracted_pixel_map(
     on a 2D slice of the cube and color-coded to match the corresponding
     spectra in the spectral plot.
 
+    NOTE : The spatial map may not be accurate unless ``idx`` is set properly!
+    By default ``idx=0``. Please set ``idx`` for optimal results.
+
     Parameters
     ----------
-    cube : DataCube, SpectralCube, Quantity, or array-like
-        Spectral cube with shape `(T, N, M)` or a 2D spatial slice
-        with shape `(N, M)`. If 3D, either the first spectral slice
-        is shown or a slice specified by `idx`.
     pixel_spectra_extraction : PixelSpectraExtraction
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
-        - `extract_idx` : array-like of int
+        - ``cube_array`` : 3D NDArray
+          Numpy 3D array to plot spatial map onto.
+        - ``extract_idx`` : array-like of int
           Indices of the extracted pixel spectra.
-        - `coords` : array-like, shape `(N, 2)`
-          Spatial pixel coordinates in `(y, x)` order.
-        - `colors` : sequence
+        - ``coords`` : array-like, shape ``(N, 2)``
+          Spatial pixel coordinates in ``(y, x)`` order.
+        - ``colors`` : sequence
           Colors assigned to each extracted pixel, matching the spectral plot.
+    cube : DataCube, SpectralCube, Quantity, or array-like, optional, default=None
+        Spectral cube with shape ``(T, N, M)`` or a 2D spatial slice
+        with shape ``(N, M)``. If 3D, either the first spectral slice
+        is shown or a slice specified by ``idx``. Overrides ``cube_array``
+        in ``pixel_spectra_extraction``. This is not entirely supported and
+        may cause misalignments since the spatial mapping was computed on
+        ``pixel_spectra_extraction.cube_array``.
     figsize : tuple, optional, default=(12, 6)
         Size of the figure in inches.
     style : str, optional
         Matplotlib style name.
     annotate : bool, optional, default=True
         If True, annotate each extracted pixel with its index.
-    idx : int, optional
-        Spectral index to display when `cube` is 3D.
+    idx : int, list of int, or None, optional, default=None
+        Index or indices specifying the slice along the first axis
+        for the spatial map plot:
+            - i -> returns ``cube[i]``
+            - [i] -> returns ``cube[i]``
+            - [i, j] -> returns ``cube[i:j+1].sum(axis=0)``
+        If None, uses ``idx=0``.
     savefig : bool, optional, default=False
-        If True, save the figure to disk using `save_figure_2_disk`.
+        If True, save the figure to disk using ``save_figure_2_disk``.
     alpha : float, optional, default=0.8
         Alpha value for individual pixel colors.
-    Any additional keyword arguments are forwarded to `imshow`.
+    Any additional keyword arguments are forwarded to ``imshow``.
 
     Raises
     ------
     ValueError
-        If `coords` does not have shape `(N, 2)`, if the number of
+        If ``coords`` does not have shape ``(N, 2)``, if the number of
         coordinates and colors differ, or if `cube` has an invalid shape.
     IndexError
         If any extracted pixel coordinates fall outside the spatial
@@ -679,11 +692,13 @@ def plot_extracted_pixel_map(
 
     Notes
     -----
-    - Spatial coordinates are interpreted in `(y, x)` order.
+    - Spatial coordinates are interpreted in ``(y, x)`` order.
     - Extracted pixels are rendered as an RGBA overlay for efficient,
       vectorized plotting.
     - This function is intended to be used in conjunction with
-      `extract_cube_pixel_spectra` and its returned extraction object.
+      ``extract_cube_pixel_spectra`` and its returned extraction object.
+    - For best results, set ``idx`` to the correct cube slice to preserve
+      the correct mapping between pixels and indices.
     """
 
     figsize = kwargs.get('figsize', (12, 6))
@@ -697,6 +712,7 @@ def plot_extracted_pixel_map(
     extract_idx = pixel_spectra_extraction.extract_idx
     coords = pixel_spectra_extraction.coords
     colors = pixel_spectra_extraction.colors
+    cube = pixel_spectra_extraction.cube_array if cube is None else cube
 
     extract_idx = np.asarray(extract_idx, dtype=int)
     coords = np.asarray(coords)
