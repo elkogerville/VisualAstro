@@ -74,9 +74,9 @@ def get_wcs(header: Any) -> WCS | list[WCS] | None:
                 wcs_list.append(WCS(h))
             except Exception:
                 wcs_list.append(None)
+
         if all(w is None for w in wcs_list):
             return None
-
         if any(w is None for w in wcs_list):
             raise ValueError(
                 'Inconsistent WCS: some headers have WCS and some do not.'

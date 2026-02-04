@@ -169,6 +169,12 @@ def load_data_cube(filepath, error=True, hdu=None,
 
     if all(w is None for w in wcs_list):
         wcs_list = None
+    elif any(w is None for w in wcs_list):
+        missing_indices = [i for i, w in enumerate(wcs_list) if w is None]
+        raise ValueError(
+            f'Inconsistent WCS: files at indices {missing_indices} have no WCS, '
+            f'but other files do. Either all files must have WCS or none should.'
+        )
 
     return DataCube(datacube, headers, error_array, wcs_list)
 
