@@ -274,8 +274,10 @@ class va:
             elif wcs_input is not None:
                 raise TypeError(f'Unsupported wcs_input type: {type(wcs_input)}')
 
-            if invert_wcs and isinstance(wcs, WCS):
-                wcs = wcs.swapaxes(0, 1) # type: ignore
+            if isinstance(wcs, WCS):
+                wcs = wcs.celestial
+                if invert_wcs:
+                    wcs = wcs.swapaxes(0, 1)
 
         style = return_stylename(style)
         with plt.style.context(style):
