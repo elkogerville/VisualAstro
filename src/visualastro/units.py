@@ -286,6 +286,7 @@ def ensure_common_unit(
     unit=None,
     on_mismatch=None,
     label=None,
+    return_unit=False
 ):
     """
     Check unit consistency across one or more objects.
@@ -304,10 +305,12 @@ def ensure_common_unit(
         encountered among the inputs is used.
     on_mismatch : {'warn', 'ignore', 'raise'}, optional, default=None
         Action to take when a unit mismatch is detected. If None, uses
-        the default value from `config.unit_mismatch`.
-    label : str or None, optional
+        the default value from ``config.unit_mismatch``.
+    label : str or None, optional, default=None
         Optional context label prepended to warnings or errors.
-
+        Is ignored if None.
+    return_unit : bool, optional, default=False
+        If True, return the common unit extracted instead of ``objs``.
     Returns
     -------
     objs : list
@@ -345,12 +348,14 @@ def ensure_common_unit(
 
         if on_mismatch == 'warn':
             warnings.warn(
-                f"{prefix}Unit mismatch at index {i}: {u} != {ref_unit}. "
-                "Values may be interpreted incorrectly."
+                f'{prefix}Unit mismatch at index {i}: {u} != {ref_unit}. '
+                'Values may be interpreted incorrectly.'
             )
 
         out.append(obj)
 
+    if return_unit:
+        return ref_unit
     return out
 
 
@@ -535,56 +540,3 @@ def _is_unitless(obj):
         return unit == dimensionless_unscaled
 
     return True
-
-
-def _validate_common_unit(objs, *, label=None):
-    '''
-    Extract units of each object in objs
-    and validate that units match. This is
-    an internal function used for input validation.
-
-    Parameters
-    ----------
-    obj : array-like
-        A single object or list/array of objects with unit data.
-        Can be Quantities, Headers with 'BUNIT', or a mix of both.
-
-    Returns
-    -------
-    None
-        If no units are present.
-    astropy.units.Unit
-        If units are present and are consistent.
-
-    Raises
-    ------
-    UnitsError
-        If units exist and do not match, or if BUNIT is invalid.
-    '''
-    if not isinstance(objs, (list, tuple)):
-        objs = [objs]
-
-    # create unique set of each unit
-    units = set()
-    for i, obj in enumerate(objs):
-        if isinstance(obj, Quantity):
-            units.add(obj.unit)
-        elif hasattr(obj, 'unit'):
-            units.add(obj.unit)
-        elif isinstance(obj, Header) and 'BUNIT' in obj:
-            try:
-                units.add(Unit(obj['BUNIT'])) # type: ignore
-            except Exception as e:
-                raise UnitsError(
-                    f'Invalid BUNIT in header at index {i}: '
-                    f"'{obj['BUNIT']}' ({e})"
-                )
-    # raise error if more than one unit found
-    if len(units) > 1:
-        prefix = f'{label} ' if label is not None else ''
-        raise UnitsError(
-            f'Inconsistent {prefix}units found: {units}'
-        )
-
-    # return either single unit or None
-    return next(iter(units), None)

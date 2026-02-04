@@ -18,7 +18,7 @@ from .fits_utils import (
     _log_history, _remove_history,
     _transfer_history, _update_header_key
 )
-from .units import _check_unit_equality, _validate_common_unit
+from .units import ensure_common_unit, _check_unit_equality
 from .validation import _check_shapes_match, _validate_type
 from .wcs_utils import (
     get_wcs, _is_valid_wcs_slice,
@@ -151,7 +151,10 @@ class FitsFile:
         unit = data.unit if isinstance(data, Quantity) else None
 
         # extract BUNIT from header(s)
-        hdr_unit = _validate_common_unit(header)
+        hdr_unit = ensure_common_unit(
+            header, on_mismatch='raise',
+            label='header', return_unit=True
+        )
 
         # check that data and header units are equal
         _check_unit_equality(unit, hdr_unit, 'data', 'header')

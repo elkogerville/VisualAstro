@@ -28,7 +28,7 @@ from .fits_utils import (
     _log_history, _remove_history,
     _transfer_history, _update_header_key,
 )
-from .units import _check_unit_equality, _validate_common_unit
+from .units import ensure_common_unit, _check_unit_equality
 from .config import get_config_value, _default_flag
 from .validation import (
     _check_shapes_match,
@@ -255,7 +255,10 @@ class DataCube:
         _log_history(primary_hdr, 'Initialized DataCube')
 
         # ensure that units are consistent across all headers
-        hdr_unit = _validate_common_unit(header)
+        hdr_unit = ensure_common_unit(
+            header, on_mismatch='raise',
+            label='header', return_unit=True
+        )
 
         # check that both units are equal
         _check_unit_equality(unit, hdr_unit, 'data', 'header')
