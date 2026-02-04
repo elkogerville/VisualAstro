@@ -571,10 +571,13 @@ def extract_cube_pixel_spectra(
             fluxes.append(combined_spec.flux)
 
         if vline is not None:
-            if isinstance(vline, Quantity):
-                vline = vline.to(spectral_axis.unit).value
+            vline_value = (
+                vline.to(spectral_axis.unit).value
+                if isinstance(vline, Quantity)
+                else float(vline)
+            )
             ax.axvline(
-                vline,
+                vline_value,
                 ls=':',
                 lw=1.0,
                 color='k',
