@@ -8,7 +8,7 @@ Dependencies:
     - astropy
 '''
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Tuple, Type, TypeVar
+from typing import Literal, Tuple, Type, TypeVar, overload
 from astropy.units import Quantity
 import numpy as np
 
@@ -132,6 +132,24 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
 
 T = TypeVar('T')
 C = TypeVar('C', bound=Sequence)
+
+@overload
+def _validate_type(
+    data: T | None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
+    allow_none: Literal[False] = ...,
+    name: str = 'data'
+) -> T: ...
+
+@overload
+def _validate_type(
+    data: T | None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
+    allow_none: bool = True,
+    name: str = 'data'
+) -> T | None: ...
 
 def _validate_type(
     data: T | None,
