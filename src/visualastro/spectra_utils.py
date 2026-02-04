@@ -335,7 +335,7 @@ def estimate_spectrum_line_flux(spectrum, spec_range):
     spectrum : Any or iterable of Any
         Spectral object(s) from which a spectral axis, flux, and continuum
         can be extracted.
-    spec_range : array-like of length 2
+    spec_range : Quantity of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Must be compatible with the spectral axis units.
 
@@ -368,7 +368,7 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
         Spectral object from which a spectral axis, flux, and continuum
         can be extracted. Typically a `Spectrum`, `SpectrumPlus`, or
         compatible container.
-    spec_range : array-like of length 2
+    spec_range : Quantity of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Values must be comparable to the spectral axis
         (ideally with compatible units).
@@ -848,8 +848,9 @@ class PixelSpectraExtraction:
         `combine_spectra=True`; otherwise None.
     """
     spectra: SpectrumPlus | list[SpectrumPlus]
-    extract_idx: np.ndarray
-    coords: np.ndarray
+    cube_array : NDArray
+    extract_idx: NDArray
+    coords: NDArray
     colors: Sequence | NDArray
     labels: Sequence[str]
     combined_spectrum: Optional[object] = None
