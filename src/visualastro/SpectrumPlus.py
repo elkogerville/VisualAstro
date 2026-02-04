@@ -20,7 +20,7 @@ from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
 from .fits_utils import _copy_headers, _get_history, _log_history
-from .units import _check_unit_equality, _validate_common_unit
+from .units import ensure_common_unit, _check_unit_equality
 from .config import get_config_value
 
 
@@ -148,8 +148,12 @@ class SpectrumPlus:
             continuum
         )
 
-        _validate_common_unit(spectral_candidates, label='spectral axis')
-        _validate_common_unit(flux_candidates, label='flux')
+        ensure_common_unit(
+            spectral_candidates, on_mismatch='raise', label='spectral axis'
+        )
+        ensure_common_unit(
+            flux_candidates, on_mismatch='raise', label='flux'
+        )
 
         # generate Spectrum
         spectrum = self._construct_spectrum(
