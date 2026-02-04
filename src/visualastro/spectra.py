@@ -479,14 +479,14 @@ def extract_cube_pixel_spectra(
     valid_mask = ~np.all(np.isnan(data), axis=0)
     coords = np.column_stack(np.where(valid_mask))
 
-    if drop_idx is not None:
-        if isinstance(drop_idx, (int, np.integer)):
-            drop_set = {int(drop_idx)}
-        elif isinstance(drop_idx, (list, tuple, np.ndarray)):
-            drop_set = {int(i) for i in drop_idx}
+    if idx_drop is not None:
+        if isinstance(idx_drop, (int, np.integer)):
+            drop_set = {int(idx_drop)}
+        elif isinstance(idx_drop, (list, tuple, np.ndarray)):
+            drop_set = {int(i) for i in idx_drop}
         else:
             raise TypeError(
-                'drop_idx must be None, an int, or a sequence of ints'
+                'idx_drop must be None, an int, or a sequence of ints'
             )
 
         if idx_set is None:
