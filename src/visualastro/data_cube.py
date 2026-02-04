@@ -167,6 +167,9 @@ def load_data_cube(filepath, error=True, hdu=None,
             error_array[i+1] = err.astype(dt)
         wcs_list[i+1] = wcs
 
+    if all(w is None for w in wcs_list):
+        wcs_list = None
+
     return DataCube(datacube, headers, error_array, wcs_list)
 
 
