@@ -30,8 +30,11 @@ $ conda install -c conda-forge \
 ```
 For additional interactive functionality inside of jupyter notebooks:
 ```
-$ conda install -c conda-forge \
-    ipympl ipywidgets notebook jupyterlab jupyter_server notebook-shim
+$ conda install -c conda-forge ipympl ipywidgets jupyterlab
+```
+For classic jupyter notebook users:
+```
+$ conda install -c conda-forge ipympl ipywidgets notebook jupyter_server notebook-shim
 ```
 And finally run:
 ```
