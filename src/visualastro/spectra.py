@@ -21,15 +21,21 @@ Module Structure:
 
 
 from collections import namedtuple
+from collections.abc import Sequence
+from typing import Literal
 import astropy.units as u
 from astropy.units import Quantity
 from matplotlib.colors import to_rgba
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 from scipy.optimize import curve_fit
+from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
+
+from .DataCube import DataCube
 from .data_cube_utils import slice_cube
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
@@ -301,19 +307,18 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
 
 def extract_cube_pixel_spectra(
-    cube,
+    cube: DataCube | SpectralCube | Quantity | NDArray,
     *,
-    idx=None,
-    idx_range=None,
-    drop_idx=None,
-    combine_spectra=False,
-    combine_method=None,
-    plot_spatial_map=True,
-    vline=None,
-    cmap=None,
-    style=None,
+    idx: int | Sequence[int] | None = None,
+    idx_range: Sequence[int] | None = None,
+    idx_drop: int | Sequence[int] | None = None,
+    combine_spectra: bool = False,
+    combine_method: Literal['sum', 'mean', 'median'] | None = None,
+    plot_spatial_map: bool = True,
+    vline: float | int | Quantity | None = None,
+    cmap: str | None = None,
     **kwargs,
-):
+) -> PixelSpectraExtraction:
     """
     Extract per-pixel spectra from a spectral cube, keeping only spatial
     pixels that contain at least one non-NaN value along the spectral axis.
