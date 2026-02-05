@@ -17,7 +17,7 @@ from collections import namedtuple
 from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
-from .data_cube import slice_cube
+from .data_cube_utils import stack_cube
 from .io import get_kwargs
 from .numerical_utils import to_array, to_list
 from .plot_utils import (
@@ -219,7 +219,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         data = to_array(data)
         # slice data with index if provided
         if idx is not None:
-            data = slice_cube(data, idx[i%len(idx)])
+            data = stack_cube(
+                data, idx=idx[i%len(idx)], method='sum', axis=0
+            )
 
         if mask_non_pos:
             data = np.where(data > 0.0, data, mask_out_val)

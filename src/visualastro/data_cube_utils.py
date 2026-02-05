@@ -19,6 +19,8 @@ import astropy.units as u
 from astropy.units import Quantity
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
+from spectral_cube import SpectralCube
+from .config import get_config_value
 from .DataCube import DataCube
 from .FitsFile import FitsFile
 from .numerical_utils import get_data
@@ -27,6 +29,72 @@ from .units import get_unit
 
 # Cube Manipulation Functions
 # ---------------------------
+
+_STACK_METHODS = {
+    'mean': np.nanmean,
+    'median': np.nanmedian,
+    'sum': np.nansum,
+    'max': np.nanmax,
+    'min': np.nanmin,
+    'std': np.nanstd,
+}
+
+def stack_cube(cube, *, idx=None, method=None, axis=0):
+    """
+    Stack or extract slices from a data cube.
+
+    Parameters
+    ----------
+    cube : ndarray, Quantity, SpectralCube, or DataCube
+        3D data cube to stack.
+    idx : int, list of int, or None, optional, default=None
+        Index specification:
+        - int: extract single slice
+        - [start, end]: extract range (inclusive)
+        - None: use entire cube
+    method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+        Stacking method. If None, uses the default value set
+        by ``config.stack_cube_method``.
+    axis : int, optional, default=0
+        Axis along which to stack.
+
+    Returns
+    -------
+    ndarray, Quantity, or SpectralCube
+        Stacked result (2D if axis=0) or extracted slice.
+    """
+    method = get_config_value(method, 'stack_cube_method')
+
+    if method not in _STACK_METHODS:
+        raise ValueError(
+            f"Unknown method '{method}'. "
+            f"Options: {', '.join(_STACK_METHODS.keys())}"
+        )
+
+    cube = get_data(cube)
+
+    if idx is not None:
+        if isinstance(idx, int):
+            return cube[idx]
+
+        if isinstance(idx, list):
+            if len(idx) == 1:
+                return cube[idx[0]]
+            if len(idx) != 2:
+                raise ValueError('idx must be an int, [start, end], or None')
+
+            start, end = idx
+            cube = cube[start:end+1]
+        else:
+            raise TypeError(f'idx must be int, list, or None; got {type(idx)}')
+
+    if isinstance(cube, SpectralCube):
+        stack_func = getattr(cube, method)
+        return stack_func(axis=axis)
+
+    return _STACK_METHODS[method](cube, axis=axis)
+
+
 def slice_cube(cube, idx):
     """
     Return a slice of a data cube along the first axis.
