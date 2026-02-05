@@ -404,11 +404,13 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
             'the lower and upper bounds of the spectral axis'
         )
 
-    spec_min, spec_max = spec_range
-
     spec_unit = get_unit(spectral_axis)
     flux_unit = get_unit(flux)
 
+    if not isinstance(spec_range, Quantity) and spec_unit is not None:
+        spec_range = Quantity(spec_range, unit=spec_unit)
+
+    spec_min, spec_max = spec_range
     try:
         if spec_unit is not None:
             spec_min = Quantity(spec_min).to(spec_unit).value
@@ -423,8 +425,8 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
 
     x = np.asarray(spectral_axis)
     y = np.asarray(flux - continuum)
-
     mask = (x >= spec_min) & (x <= spec_max)
+
     if not np.any(mask):
         if flux_unit is not None and spec_unit is not None:
             return Quantity(0, unit=flux_unit * spec_unit)
@@ -434,7 +436,6 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
 
     if flux_unit is not None and spec_unit is not None:
         return Quantity(value, unit=flux_unit * spec_unit)
-
     return value
 
 
