@@ -172,7 +172,7 @@ class VAConfig:
         self.radial_velocity = None
 
         # data cube params
-        self.stack_cube_method = 'mean'
+        self.stack_cube_method = 'sum'
 
         # extract_cube_spectrum params
         self.spectra_rest_frequency = None
