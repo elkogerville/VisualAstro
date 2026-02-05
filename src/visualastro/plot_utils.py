@@ -368,44 +368,57 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     return vmin, vmax
 
 
-def compute_cube_percentile(cube, slice_idx, vmin, vmax):
-    '''
-    Compute percentile-based intensity limits from a data cube slice.
-    This function is intended to be used to compute an image scaling.
+def nanpercentile_limits(
+    data,
+    vmin,
+    vmax,
+    *,
+    slice_idx=None,
+    stack_method=None,
+    axis=0,
+):
+    """
+    Compute NaN-safe percentile-based color limits.
+
+    If input is 3D, it is reduced to 2D before computing limits.
 
     Parameters
     ----------
-    cube : ndarray, SpectralCube, or DataCube
-        Input data cube of shape (N_frames, N, M).
-    slice_idx : int or list of int, optional
-        Index or indices specifying the slice along the first axis:
-        - i -> returns 'cube[i]'
-        - [i] -> returns 'cube[i]'
-        - [i, j] -> returns 'cube[i:j+1].sum(axis=0)'
-    vmin : float
-        Lower percentile (0–100) for intensity scaling.
-    vmax : float
-        Upper percentile (0–100) for intensity scaling.
+    data : array-like, SpectralCube, or DataCube
+        Input image or cube.
+    vmin, vmax : float
+        Lower and upper percentiles (0–100).
+    slice_idx : int, list of int, or None, optional, default=None
+        Optional slicing for cube-like inputs. If None,
+        is ignored.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
+        Reduction method if stacking is required. If None,
+        uses the default value set by ``config.stack_cube_method``.
+    axis : int, default=0
+        Axis to reduce if data.ndim > 2 and no slice_idx is given.
 
     Returns
     -------
-    vmin : float
-        Computed lower intensity value corresponding to the
-        specified 'vmin' percentile.
-    vmax : float
-        Computed upper intensity value corresponding to the
-        specified 'vmax' percentile.
-    '''
-    # ensure cube is stripped of metadata
-    cube = get_data(cube)
-    # slice cube
-    data = stack_cube(cube, idx=slice_idx, method='sum', axis=0)
-    data = get_value(data)
-    # compute vmin and vmax
-    vmin = np.nanpercentile(data, vmin)
-    vmax = np.nanpercentile(data, vmax)
+    vmin_val, vmax_val : float
+    """
+    stack_method = get_config_value(stack_method, 'stack_cube_method')
 
-    return vmin, vmax
+    data = get_data(data)
+
+    if slice_idx is not None:
+        data = stack_cube(
+            data, idx=slice_idx, method=stack_method, axis=axis
+        )
+
+    arr = to_array(get_value(data))
+
+    if arr.ndim > 2:
+        arr = getattr(np, f'nan{stack_method}')(arr, axis=axis)
+
+    return (
+        np.nanpercentile(arr, vmin),
+        np.nanpercentile(arr, vmax),
+    )
 
 
 # Axes Labels, Format, and Styling
