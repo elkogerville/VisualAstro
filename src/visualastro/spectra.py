@@ -53,7 +53,7 @@ from .plot_utils import (
 from .plotting import imshow
 from .spectra_utils import (
     GaussianFitResult,
-    PixelSpectraExtraction,
+    ExtractedPixelSpectra,
     deredden_flux,
     fit_continuum,
     get_spectral_axis,
@@ -318,7 +318,7 @@ def extract_cube_pixel_spectra(
     vline: float | int | Quantity | None = None,
     cmap: str | None = None,
     **kwargs,
-) -> PixelSpectraExtraction:
+) -> ExtractedPixelSpectra:
     """
     Extract per-pixel spectra from a spectral cube, keeping only spatial
     pixels that contain at least one non-NaN value along the spectral axis.
@@ -398,7 +398,7 @@ def extract_cube_pixel_spectra(
 
     Returns
     -------
-    result : PixelSpectraExtraction
+    result : ExtractedPixelSpectra
         Container object holding the results of the extraction. It exposes
         the following attributes:
         - ``spectra`` : SpectrumPlus or list of SpectrumPlus
@@ -603,8 +603,8 @@ def extract_cube_pixel_spectra(
     masked_data = np.full_like(data, np.nan)
     masked_data[:, ys, xs] = data[:, ys, xs]
 
-    result = PixelSpectraExtraction(
-        spectrum=_unwrap_if_single(spectra),
+    result = ExtractedPixelSpectra(
+        spectra=_unwrap_if_single(spectra),
         cube_array=masked_data,
         extract_idx=extract_idx,
         coords=coords,
@@ -626,7 +626,7 @@ def extract_cube_pixel_spectra(
 
 
 def plot_extracted_pixel_map(
-    pixel_spectra_extraction: PixelSpectraExtraction,
+    pixel_spectra_extraction: ExtractedPixelSpectra,
     *,
     cube: DataCube | NDArray | Quantity | SpectralCube | None = None,
     **kwargs
@@ -644,7 +644,7 @@ def plot_extracted_pixel_map(
 
     Parameters
     ----------
-    pixel_spectra_extraction : PixelSpectraExtraction
+    pixel_spectra_extraction : ExtractedPixelSpectra
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
         - ``cube_array`` : 3D NDArray
