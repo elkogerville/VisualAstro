@@ -311,6 +311,7 @@ def ensure_common_unit(
         Is ignored if None.
     return_unit : bool, optional, default=False
         If True, return the common unit extracted instead of ``objs``.
+
     Returns
     -------
     objs : list

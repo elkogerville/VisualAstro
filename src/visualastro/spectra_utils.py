@@ -34,7 +34,7 @@ from .config import get_config_value, config
 from .numerical_utils import get_value, mask_within_range, to_list
 from .SpectrumPlus import SpectrumPlus
 from .text_utils import print_pretty_table
-from .units import get_unit
+from .units import ensure_common_unit, get_unit
 from .utils import _unwrap_if_single
 
 
@@ -439,6 +439,79 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
     if flux_unit is not None and spec_unit is not None:
         return Quantity(value, unit=flux_unit * spec_unit)
     return value
+
+
+def sort_spectra_by_line_strength(
+    spectra,
+    spec_range,
+    descending=True,
+    emission_only=False
+):
+    """
+    Sort spectra by their integrated line flux over a spectral range.
+
+    Parameters
+    ----------
+    spectra : list, array-like, or ExtractedPixelSpectra
+        Spectrum objects to sort. If ``ExtractedPixelSpectra``, returns
+        a new ``ExtractedPixelSpectra`` with all attributes reordered.
+    spec_range : Quantity of length 2 or array-like
+        Lower and upper bounds of the spectral interval for integration.
+    descending : bool, default=True
+        If True, sort from strongest to weakest emission.
+    emission_only : bool or None, optional, default=None
+        If True, only return spectra with positive line flux (emission).
+        If False, only return spectra with negative line flux (absorption)
+        If None, return all spectra.
+
+    Returns
+    -------
+    If input is ExtractedPixelSpectra:
+        ExtractedPixelSpectra
+            New instance with all attributes sorted by line strength.
+    Otherwise:
+        sorted_indices : np.ndarray
+            Indices that would sort the input spectra by line strength.
+        line_strengths : Quantity
+            Integrated line flux for each spectrum, in sorted order.
+    """
+    spec_list = spectra.spectra if isinstance(spectra, ExtractedPixelSpectra) else spectra
+
+    fluxes = (
+        estimate_spectrum_line_flux(spec_list, spec_range)
+    )
+    unit = ensure_common_unit(fluxes, on_mismatch='ignore', return_unit=True)
+    line_strengths = Quantity(np.asarray(fluxes), unit=unit)
+
+    if emission_only is True:
+        valid_mask = line_strengths > 0
+    elif emission_only is False:
+        valid_mask = line_strengths < 0
+    else:
+        valid_mask = np.ones(len(line_strengths), dtype=bool)
+
+    valid_indices = np.where(valid_mask)[0]
+    valid_strengths = line_strengths[valid_mask]
+
+    sort_order = np.argsort(valid_strengths)
+    if descending:
+        sort_order = sort_order[::-1]
+
+    sorted_indices = valid_indices[sort_order]
+    sorted_strengths = valid_strengths[sort_order]
+
+    if isinstance(spectra, ExtractedPixelSpectra):
+        return ExtractedPixelSpectra(
+            spectra=[spec_list[i] for i in sorted_indices],
+            cube_array=spectra.cube_array,
+            extract_idx=spectra.extract_idx[sorted_indices],
+            coords=spectra.coords[sorted_indices],
+            colors=[spectra.colors[i] for i in sorted_indices],
+            labels=[spectra.labels[i] for i in sorted_indices],
+            combined_spectrum=spectra.combined_spectrum
+        )
+    else:
+        return sorted_indices, sorted_strengths
 
 
 def propagate_flux_errors(errors, method=None):
@@ -855,7 +928,7 @@ class ExtractedPixelSpectra:
     extract_idx: NDArray
     coords: NDArray
     colors: Sequence | NDArray
-    labels: Sequence[str]
+    labels: Sequence
     combined_spectrum: Optional[object] = None
 
     def __repr__(self) -> str:
