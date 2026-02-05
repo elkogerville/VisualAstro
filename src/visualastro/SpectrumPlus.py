@@ -550,11 +550,11 @@ class SpectrumPlus:
         )
 
     def _apply_region(self, spectrum, region, return_single_spectrum=False):
-        '''
+        """
         Apply a spectral region to a Spectrum object.
 
-        This is a thin wrapper around `specutils.manipulation.extract_region`.
-        If `region` is not already a `SpectralRegion`, it is coerced into one
+        This is a thin wrapper around ``specutils.manipulation.extract_region``.
+        If ``region`` is not already a ``SpectralRegion``, it is coerced into one
         before extraction.
 
         Parameters
@@ -564,24 +564,22 @@ class SpectrumPlus:
             the function returns None.
         region : SpectralRegion or array-like
             Spectral region to extract. If array-like, it is interpreted as
-            region bounds and converted to a `SpectralRegion`.
+            region bounds and converted to a ``SpectralRegion``.
 
         Returns
         -------
         Spectrum or None
-            A new `Spectrum` object containing only the portion defined
-            by `region`, or None if the input spectrum is None.
-        '''
-
-        if not isinstance(region, SpectralRegion):
-            region = SpectralRegion(region)
+            A new ``Spectrum`` object containing only the portion defined
+            by ``region``, or None if the input spectrum is None.
+        """
+        region = to_spectral_region(region)
 
         return _extract_region(
             spectrum, region, return_single_spectrum=return_single_spectrum
         )
 
     def _fit_continuum(self, spectrum, fit_method, region):
-        '''
+        """
         Fit spectrum continuum.
 
         Parameters
@@ -599,7 +597,7 @@ class SpectrumPlus:
         -------
         continuum : Quantity
             Quantity array of continuum values.
-        '''
+        """
         from .spectra_utils import fit_continuum
 
         return fit_continuum(spectrum, fit_method, region)
