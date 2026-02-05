@@ -19,9 +19,9 @@ import numpy as np
 from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
-from .fits_utils import _copy_headers, _get_history, _log_history
-from .units import ensure_common_unit, _check_unit_equality
 from .config import get_config_value
+from .fits_utils import _copy_headers, _get_history, _log_history
+from .units import ensure_common_unit, to_spectral_region, _check_unit_equality
 
 
 class SpectrumPlus:
@@ -125,8 +125,8 @@ class SpectrumPlus:
             fit_method, 'spectrum_continuum_fit_method'
         )
         region = kwargs.pop('region', None)
-        if region is not None and not isinstance(region, SpectralRegion):
-            region = SpectralRegion(region)
+        if region is not None:
+            region = to_spectral_region(region)
 
         if log_file is None:
             log_file = Header()
@@ -242,37 +242,57 @@ class SpectrumPlus:
 
     # Methods
     # -------
-    def extract_region(self, region, return_single_spectrum=False):
-        '''
+    def extract_region(
+        self, region, return_single_spectrum=False, continuum_region=None
+    ):
+        """
         Extract a spectral sub-region.
 
         Parameters
         ----------
         region : SpectralRegion or array-like of tuple
             Spectral region(s) to extract. If array-like,
-            it must be a sequence of `(lower, upper)`
-            bounds, typically as `Quantity`.
+            it must be a sequence of ``(lower, upper)``
+            bounds, typically as ``Quantity``.
             Ex : [(6.5*u.um, 8*u.um), (8.5*u.um, 9*u.um)]
             Ex : [(6000, 6200), (7000, 8000)] * u.AA
         return_single_spectrum : boolean, optional, default=False
             If True, the resulting spectra will be concatenated
             together into a single Spectrum object instead.
+        continuum_region : SpectralRegion, array-like, or list thereof, optional
+            Spectral region(s) to use when fitting the continuum.
+            - If ``return_single_spectrum=True`` :
+                single region specification
+            - If ``return_single_spectrum=False`` and multiple regions extracted :
+                must be a list with one region per extracted subregion, or None
 
         Returns
         -------
         SpectrumPlus or list of SpectrumPlus
             A new SpectrumPlus object (or list of objects) restricted
             to the specified region(s).
-        '''
+        """
         fit_method = self.fit_method
         log_file = self.log_file
 
-        if not isinstance(region, SpectralRegion):
-            if (isinstance(region, (tuple, Quantity))
-                and len(region) == 2):
-                region = [region]
+        region = to_spectral_region(region)
+        N_regions = len(region.subregions)
 
-            region = SpectralRegion(region)
+        if continuum_region is not None:
+            if not return_single_spectrum and N_regions > 1:
+                if not isinstance(continuum_region, list):
+                    raise ValueError(
+                        'When extracting multiple separate spectra, '
+                        'continuum_region must be a list with one region per subregion'
+                    )
+                if len(continuum_region) != N_regions:
+                    raise ValueError(
+                        f'continuum_region has {len(continuum_region)} elements '
+                        f'but {N_regions} spectral regions were specified'
+                    )
+                continuum_region = [to_spectral_region(cr) for cr in continuum_region]
+            else:
+                continuum_region = to_spectral_region(continuum_region)
 
         # extract region
         new_spectrum = self._apply_region(
