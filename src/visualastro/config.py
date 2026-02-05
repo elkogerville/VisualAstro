@@ -171,6 +171,9 @@ class VAConfig:
         self.wavelength_unit = None
         self.radial_velocity = None
 
+        # data cube params
+        self.stack_cube_method = 'mean'
+
         # extract_cube_spectrum params
         self.spectra_rest_frequency = None
         self.flux_extract_method = 'mean'
