@@ -19,7 +19,8 @@ from astropy.units import (
     UnitConversionError, UnitsError, StructuredUnit
 )
 from astropy.units.physical import PhysicalType
-from specutils import SpectralAxis
+import numpy as np
+from specutils import SpectralAxis, SpectralRegion
 from .numerical_utils import to_list
 from .config import get_config_value, config
 
@@ -278,6 +279,67 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
         return unit.to_string(fmt)
     except Exception:
         return None
+
+
+def to_spectral_region(obj):
+    """
+    Coerce input into a SpectralRegion with units.
+
+    Parameters
+    ----------
+    obj : SpectralRegion, Quantity, tuple, or list
+        Region specification. Accepted forms:
+
+        - SpectralRegion: returned as-is
+        - ``(low, high) * unit``: single region with shared unit
+        - ``[(low, high), ...] * unit``: multiple regions with shared unit
+        - ``(Quantity, Quantity)``: single region with explicit units
+        - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
+
+    Returns
+    -------
+    SpectralRegion
+        A SpectralRegion object containing one or more spectral subregions.
+
+    Raises
+    ------
+    ValueError
+        If a Quantity has incorrect shape (must be (2,) or (N, 2)).
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> # Single region with shared unit
+    >>> to_spectral_region((6.5, 6.6) * u.um)
+
+    >>> # Multiple regions with shared unit
+    >>> to_spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)
+
+    >>> # Single region with explicit units
+    >>> to_spectral_region((6.5*u.um, 6.6*u.um))
+
+    >>> # Multiple regions with explicit units
+    >>> to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
+    """
+    if isinstance(obj, SpectralRegion):
+        return obj
+
+    if isinstance(obj, Quantity):
+        arr = np.asarray(obj)
+        if arr.shape == (2,):
+            obj = [(obj[0], obj[1])]
+        elif arr.ndim == 2 and arr.shape[1] == 2:
+            obj = [(row[0], row[1]) for row in obj]
+        else:
+            raise ValueError(f'Quantity must have shape (2,) or (N,2), got {arr.shape}')
+
+    # case: quantities inside list/tuple
+    if (isinstance(obj, (tuple, list)) and
+        len(obj) == 2 and
+        all(isinstance(x, Quantity) for x in obj)):
+        obj = [obj]
+
+    return SpectralRegion(obj)
 
 
 def ensure_common_unit(
