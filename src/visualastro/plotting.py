@@ -35,8 +35,8 @@ from .config import get_config_value, config, _default_flag
 # ------------------
 def imshow(datas, ax, idx=None, vmin=_default_flag,
            vmax=_default_flag, norm=_default_flag,
-           percentile=_default_flag, origin=None,
-           cmap=None, aspect=_default_flag,
+           percentile=_default_flag, stack_method=None,
+           origin=None, cmap=None, aspect=_default_flag,
            mask_non_pos=None, wcs_grid=None,
            **kwargs):
     '''
@@ -78,6 +78,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         Default percentile range used to determine 'vmin' and 'vmax'.
         If `_default_flag`, uses default value from `config.percentile`.
         If None, use no percentile stretch.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+        Stacking method. If None, uses the default value set
+        by ``config.stack_cube_method``.
     origin : {'upper', 'lower'} or None, default=None
         Pixel origin convention for imshow. If None,
         uses the default value from `config.origin`.
@@ -192,6 +195,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     vmin = config.vmin if vmin is _default_flag else vmin
     vmax = config.vmax if vmax is _default_flag else vmax
     norm = config.norm if norm is _default_flag else norm
+    stack_method = get_config_value(stack_method, 'stack_cube_method')
     percentile = config.percentile if percentile is _default_flag else percentile
     origin = get_config_value(origin, 'origin')
     cmap = get_config_value(cmap, 'cmap')
@@ -220,7 +224,7 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
         # slice data with index if provided
         if idx is not None:
             data = stack_cube(
-                data, idx=idx[i%len(idx)], method='sum', axis=0
+                data, idx=idx[i%len(idx)], method=stack_method, axis=0
             )
 
         if mask_non_pos:

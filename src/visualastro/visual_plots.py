@@ -86,9 +86,9 @@ class va:
 
     @staticmethod
     def imshow(datas, idx=None, vmin=_default_flag, vmax=_default_flag,
-               norm=_default_flag, percentile=_default_flag, origin=None,
-               wcs_input=None, invert_wcs=False, cmap=None, aspect=_default_flag,
-               mask_non_pos=None, wcs_grid=None, **kwargs):
+               norm=_default_flag, percentile=_default_flag, stack_method=None,
+               origin=None, wcs_input=None, invert_wcs=False, cmap=None,
+               aspect=_default_flag, mask_non_pos=None, wcs_grid=None, **kwargs):
         '''
         Convenience wrapper for `imshow`, which displays a
         2D image with optional visual customization.
@@ -132,6 +132,9 @@ class va:
             Default percentile range used to determine 'vmin' and 'vmax'.
             If `_default_flag`, uses default value from `config.percentile`.
             If None, use no percentile stretch.
+        stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+            Stacking method. If None, uses the default value set
+            by ``config.stack_cube_method``.
         origin : {'upper', 'lower'} or None, default=None
             Pixel origin convention for imshow. If None,
             uses the default value from `config.origin`.
@@ -284,7 +287,7 @@ class va:
             plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
 
-            _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile,
+            _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile, stack_method,
                        origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs)
 
             if savefig:
