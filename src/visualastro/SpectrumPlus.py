@@ -301,13 +301,11 @@ class SpectrumPlus:
             return_single_spectrum=return_single_spectrum
         )
 
-        N_regions = len(region.subregions)
         # get lower and upper bound of each subregion
         rmins = [r.lower.to_string() for r in region]
         rmaxs = [r.upper.to_string() for r in region]
 
         if return_single_spectrum or N_regions == 1:
-
             new_log = _copy_headers(log_file)
             log = (
                 f'Extracting {N_regions} region(s) btwn : '
@@ -318,20 +316,24 @@ class SpectrumPlus:
             return SpectrumPlus(
                 spectrum=new_spectrum,
                 fit_method=fit_method,
-                log_file=new_log
+                log_file=new_log,
+                region=continuum_region
             )
 
         # convert each subregion to a SpectrumPlus
         spectrum_list = []
-        for spec, rmin, rmax in zip(new_spectrum, rmins, rmaxs):
+        for i, (spec, rmin, rmax) in enumerate(zip(new_spectrum, rmins, rmaxs)):
             new_log = _copy_headers(log_file)
             _log_history(new_log, f'Extracting region : {rmin} - {rmax}')
+
+            continuum_reg = continuum_region[i] if continuum_region is not None else None
 
             spectrum_list.append(
                 SpectrumPlus(
                     spectrum=spec,
                     fit_method=fit_method,
-                    log_file=new_log
+                    log_file=new_log,
+                    region=continuum_reg
                 )
             )
 
