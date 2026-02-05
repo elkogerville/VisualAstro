@@ -346,6 +346,9 @@ def estimate_spectrum_line_flux(spectra, spec_range):
     line_flux : astropy.units.Quantity or list of Quantity
         Integrated line flux(es) over the specified interval.
     """
+    if isinstance(spectra, ExtractedPixelSpectra):
+        spectra = spectra.spectra
+
     spectra_list = to_list(spectra)
     results = [
         _estimate_spectrum_line_flux(spec, spec_range)
@@ -481,7 +484,7 @@ def sort_spectra_by_line_strength(
         estimate_spectrum_line_flux(spec_list, spec_range)
     )
     unit = ensure_common_unit(fluxes, on_mismatch='ignore', return_unit=True)
-    line_strengths = Quantity(np.asarray(fluxes), unit=unit)
+    line_strengths = Quantity(fluxes, unit=unit)
 
     if emission_only is True:
         valid_mask = line_strengths > 0
