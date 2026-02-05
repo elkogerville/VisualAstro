@@ -244,9 +244,9 @@ def load_spectral_cube(filepath, hdu, error=True,
 # -----------------------
 def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
                        norm=_default_flag, percentile=_default_flag,
-                       radial_vel=None, unit=None, cmap=None, mask_non_pos=None,
-                       wcs_grid=None, **kwargs):
-    '''
+                       stack_method=None, radial_vel=None, unit=None,
+                       cmap=None, mask_non_pos=None, wcs_grid=None, **kwargs):
+    """
     Plot a single spectral slice from one or more spectral cubes.
 
     Parameters
@@ -277,6 +277,9 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         Default percentile range used to determine `vmin` and `vmax`.
         If None, use no percentile stretch (as long as vmin/vmax are None).
         If `_default_flag`, uses default value from `config.percentile`.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+        Stacking method. If None, uses the default value set
+        by ``config.stack_cube_method``.
     radial_vel : float or None, optional, default=None
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, uses the default
@@ -352,7 +355,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     Notes
     -----
     - If multiple cubes are provided, they are overplotted in sequence.
-    '''
+    """
     # check cube units match and ensure cubes is iterable
     cubes = to_list(cubes)
     cubes = ensure_common_unit(cubes)
@@ -390,6 +393,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     vmax = config.vmax if vmax is _default_flag else vmax
     norm = config.norm if norm is _default_flag else norm
     percentile = config.percentile if percentile is _default_flag else percentile
+    stack_method = get_config_value(stack_method, 'stack_cube_method')
     radial_vel = get_config_value(radial_vel, 'radial_velocity')
     cmap = get_config_value(cmap, 'cmap')
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
@@ -403,7 +407,9 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         cube = get_data(cube)
 
         # return data cube slices
-        cube_slice = stack_cube(cube, idx=idx, method='sum', axis=0)
+        cube_slice = stack_cube(
+            cube, idx=idx, method=stack_method, axis=0
+        )
         data = cube_slice.value
 
         if mask_non_pos:

@@ -295,8 +295,9 @@ class va:
     @staticmethod
     def plot_spectral_cube(cubes, idx, vmin=_default_flag,
                            vmax=_default_flag, norm=_default_flag,
-                           percentile=_default_flag, radial_vel=None,
-                           unit=None, cmap=None, mask_non_pos=None, **kwargs):
+                           percentile=_default_flag, stack_method=None,
+                           radial_vel=None, unit=None, cmap=None,
+                           mask_non_pos=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
         along a given slice.
@@ -332,6 +333,9 @@ class va:
             Default percentile range used to determine `vmin` and `vmax`.
             If None, use no percentile stretch (as long as vmin/vmax are None).
             If `_default_flag`, uses default value from `config.percentile`.
+        stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+            Stacking method. If None, uses the default value set
+            by ``config.stack_cube_method``.
         radial_vel : float or None, optional, default=None
             Radial velocity in km/s to shift the spectral axis.
             Astropy units are optional. If None, uses the default
@@ -428,8 +432,8 @@ class va:
                 ax.coords['dec'].set_ticks_position('bl')
 
             _ = plot_spectral_cube(cubes, idx, ax, vmin, vmax, norm,
-                                   percentile, radial_vel, unit, cmap,
-                                   mask_non_pos, **kwargs)
+                                   percentile, stack_method, radial_vel,
+                                   unit, cmap, mask_non_pos, **kwargs)
             if savefig:
                 save_figure_2_disk(dpi)
 
