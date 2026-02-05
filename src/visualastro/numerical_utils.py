@@ -68,7 +68,7 @@ def get_value(obj: Any):
 
     Returns
     -------
-    any
+    any :
         The underlying numeric value with units removed,
         if applicable.
     """
