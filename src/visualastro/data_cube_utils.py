@@ -119,11 +119,14 @@ def get_spectral_slice_value(spectral_axis, idx):
     '''
     if isinstance(idx, int):
         return spectral_axis[idx].value
-    elif isinstance(idx, list):
+
+    if isinstance(idx, list):
         if len(idx) == 1:
             return spectral_axis[idx[0]].value
         elif len(idx) == 2:
-            return (spectral_axis[idx[0]].value + spectral_axis[idx[1]+1].value)/2
+            return (
+                (spectral_axis[idx[0]].value + spectral_axis[idx[1]].value) / 2
+            )
 
     raise ValueError("'idx' must be an int or a list of one or two integers")
 
