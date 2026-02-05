@@ -335,9 +335,10 @@ def estimate_spectrum_line_flux(spectrum, spec_range):
     spectrum : Any or iterable of Any
         Spectral object(s) from which a spectral axis, flux, and continuum
         can be extracted.
-    spec_range : Quantity of length 2
+    spec_range : Quantity or array-like of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Must be compatible with the spectral axis units.
+        If no units, the units of ``spectrum`` are assumed.
 
     Returns
     -------
@@ -370,8 +371,8 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
         compatible container.
     spec_range : Quantity of length 2
         Lower and upper bounds of the spectral interval over which to
-        integrate. Values must be comparable to the spectral axis
-        (ideally with compatible units).
+        integrate. Values must be comparable to the spectral axis.
+        If no units, the units of ``spectrum`` are assumed.
 
     Returns
     -------
@@ -831,7 +832,7 @@ class GaussianFitResult:
 @dataclass(frozen=True)
 class PixelSpectraExtraction:
     """
-    spectra : SpectrumPlus or list of SpectrumPlus
+    spectrum : SpectrumPlus or list of SpectrumPlus
         Extracted per-pixel spectra. If a single index is selected,
         this is returned as a single `SpectrumPlus` instance;
         otherwise, a list is returned.
@@ -848,7 +849,7 @@ class PixelSpectraExtraction:
         Combined spectrum computed using `combine_method` if
         `combine_spectra=True`; otherwise None.
     """
-    spectra: SpectrumPlus | list[SpectrumPlus]
+    spectrum: SpectrumPlus | list[SpectrumPlus]
     cube_array : NDArray
     extract_idx: NDArray
     coords: NDArray
@@ -861,7 +862,7 @@ class PixelSpectraExtraction:
 
         spectra_type = (
             'SpectrumPlus'
-            if isinstance(self.spectra, SpectrumPlus)
+            if isinstance(self.spectrum, SpectrumPlus)
             else 'list[SpectrumPlus]'
         )
 
