@@ -36,7 +36,7 @@ import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
-from .data_cube_utils import slice_cube
+from .data_cube_utils import stack_cube
 from .numerical_utils import (
     compute_density_kde, get_data, get_value, to_array
 )
@@ -399,7 +399,7 @@ def compute_cube_percentile(cube, slice_idx, vmin, vmax):
     # ensure cube is stripped of metadata
     cube = get_data(cube)
     # slice cube
-    data = slice_cube(cube, slice_idx)
+    data = stack_cube(cube, idx=slice_idx, method='sum', axis=0)
     data = get_value(data)
     # compute vmin and vmax
     vmin = np.nanpercentile(data, vmin)

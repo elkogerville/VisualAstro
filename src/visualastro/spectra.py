@@ -36,7 +36,7 @@ from specutils.spectra import Spectrum
 from tqdm import tqdm
 
 from .DataCube import DataCube
-from .data_cube_utils import slice_cube
+from .data_cube_utils import stack_cube
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     get_value,
@@ -727,7 +727,9 @@ def plot_extracted_pixel_map(
     background = to_array(cube, keep_units=False)
     if background.ndim == 3:
         if idx is not None:
-            background = slice_cube(background, idx)
+            background = stack_cube(
+                background, idx=idx, method='sum', axis=0
+            )
         else:
             background = background[0]
     elif background.ndim != 2:

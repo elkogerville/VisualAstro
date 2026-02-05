@@ -27,7 +27,7 @@ from matplotlib.patches import Ellipse
 import numpy as np
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from .data_cube_utils import get_spectral_slice_value, slice_cube
+from .data_cube_utils import get_spectral_slice_value, stack_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
     get_data, shift_by_radial_vel, to_list
@@ -403,7 +403,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         cube = get_data(cube)
 
         # return data cube slices
-        cube_slice = slice_cube(cube, idx)
+        cube_slice = stack_cube(cube, idx=idx, method='sum', axis=0)
         data = cube_slice.value
 
         if mask_non_pos:
