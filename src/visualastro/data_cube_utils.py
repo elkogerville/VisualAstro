@@ -95,42 +95,6 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
     return _STACK_METHODS[method](cube, axis=axis)
 
 
-def slice_cube(cube, idx):
-    """
-    Return a slice of a data cube along the first axis.
-
-    Parameters
-    ----------
-    cube : np.ndarray
-        Input data cube, typically with shape ``(T, N, ...)`` where T is the first axis.
-    idx : int or list of int
-        Index or indices specifying the slice along the first axis:
-        - ``i`` -> returns ``cube[i]``
-        - ``[i]`` -> returns ``cube[i]``
-        - ``[i, j]`` -> returns ``cube[i:j+1].sum(axis=0)``
-
-    Returns
-    -------
-    cube : np.ndarray
-        Sliced cube with shape (N, ...).
-    """
-    cube = get_data(cube)
-    # if index is integer
-    if isinstance(idx, int):
-        return cube[idx]
-    # if index is list of integers
-    elif isinstance(idx, list):
-        # list of len 1
-        if len(idx) == 1:
-            return cube[idx[0]]
-        # list of len 2
-        elif len(idx) == 2:
-            start, end = idx
-            return cube[start:end+1].sum(axis=0)
-
-    raise ValueError("``idx`` must be an int or a list of one or two integers")
-
-
 def get_spectral_slice_value(spectral_axis, idx):
     '''
     Return a representative value from a spectral axis
