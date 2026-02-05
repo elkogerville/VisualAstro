@@ -626,7 +626,7 @@ def extract_cube_pixel_spectra(
 
 
 def plot_extracted_pixel_map(
-    pixel_spectra_extraction: ExtractedPixelSpectra,
+    extracted_pixel_spectra: ExtractedPixelSpectra,
     *,
     cube: DataCube | NDArray | Quantity | SpectralCube | None = None,
     **kwargs
@@ -644,7 +644,7 @@ def plot_extracted_pixel_map(
 
     Parameters
     ----------
-    pixel_spectra_extraction : ExtractedPixelSpectra
+    extracted_pixel_spectra : ExtractedPixelSpectra
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
         - ``cube_array`` : 3D NDArray
@@ -659,9 +659,9 @@ def plot_extracted_pixel_map(
         Spectral cube with shape ``(T, N, M)`` or a 2D spatial slice
         with shape ``(N, M)``. If 3D, either the first spectral slice
         is shown or a slice specified by ``idx``. Overrides ``cube_array``
-        in ``pixel_spectra_extraction``. This is not entirely supported and
+        in ``extracted_pixel_spectra``. This is not entirely supported and
         may cause misalignments since the spatial mapping was computed on
-        ``pixel_spectra_extraction.cube_array``.
+        ``extracted_pixel_spectra.cube_array``.
     figsize : tuple, optional, default=(12, 6)
         Size of the figure in inches.
     style : str, optional
@@ -709,10 +709,10 @@ def plot_extracted_pixel_map(
     alpha = kwargs.pop('alpha', 0.8)
     fontsize = kwargs.pop('fontsize', 8)
 
-    extract_idx = pixel_spectra_extraction.extract_idx
-    coords = pixel_spectra_extraction.coords
-    colors = pixel_spectra_extraction.colors
-    cube = pixel_spectra_extraction.cube_array if cube is None else cube
+    extract_idx = extracted_pixel_spectra.extract_idx
+    coords = extracted_pixel_spectra.coords
+    colors = extracted_pixel_spectra.colors
+    cube = extracted_pixel_spectra.cube_array if cube is None else cube
 
     extract_idx = np.asarray(extract_idx, dtype=int)
     coords = np.asarray(coords)
