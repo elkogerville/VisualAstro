@@ -604,7 +604,7 @@ def extract_cube_pixel_spectra(
     masked_data[:, ys, xs] = data[:, ys, xs]
 
     result = PixelSpectraExtraction(
-        spectra=_unwrap_if_single(spectra),
+        spectrum=_unwrap_if_single(spectra),
         cube_array=masked_data,
         extract_idx=extract_idx,
         coords=coords,
