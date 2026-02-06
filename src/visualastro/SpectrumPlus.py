@@ -20,7 +20,7 @@ from specutils import SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
 from .config import get_config_value
-from .fits_utils import _copy_headers, _get_history, _log_history
+from .fits_utils import _copy_headers, _get_history, _log_history, _region_to_history
 from .units import ensure_common_unit, to_spectral_region, _check_unit_equality
 
 
@@ -164,9 +164,14 @@ class SpectrumPlus:
             **kwargs
         )
         # fit continuum and normalize
+        if region is None:
+            region = to_spectral_region(
+                (spectrum.spectral_axis.min(), spectrum.spectral_axis.max())
+            )
         if continuum is None:
             continuum = self._fit_continuum(spectrum, fit_method, region)
-            _log_history(log_file, f"Computing continuum fit with '{fit_method}'")
+            region_log = _region_to_history(region)
+            _log_history(log_file, f'Computing continuum: {region_log}')
 
         if normalized is None:
             normalized = spectrum / continuum
@@ -308,7 +313,7 @@ class SpectrumPlus:
         if return_single_spectrum or N_regions == 1:
             new_log = _copy_headers(log_file)
             log = (
-                f'Extracting {N_regions} region(s) btwn : '
+                f'Extracting {N_regions} region(s) btwn: '
                 f'{rmins[0]} - {rmaxs[-1]}'
             )
             _log_history(new_log, log)
@@ -324,7 +329,7 @@ class SpectrumPlus:
         spectrum_list = []
         for i, (spec, rmin, rmax) in enumerate(zip(new_spectrum, rmins, rmaxs)):
             new_log = _copy_headers(log_file)
-            _log_history(new_log, f'Extracting region : {rmin} - {rmax}')
+            _log_history(new_log, f'Extracting region: {rmin} - {rmax}')
 
             continuum_reg = continuum_region[i] if continuum_region is not None else None
 
