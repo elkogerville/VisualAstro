@@ -171,7 +171,7 @@ def _region_to_history(region: SpectralRegion):
     """
     region = to_spectral_region(region)
     unit = region.lower.unit.to_string('fits')
-    parts = [f'({lo.value:.2f},{hi.value:.2f})' for lo, hi in region.subregions]
+    parts = [f'({lo.value:.2f}, {hi.value:.2f})' for lo, hi in region.subregions]
 
     return f'region[{unit}]: ' + ', '.join(parts)
 
