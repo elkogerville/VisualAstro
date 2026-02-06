@@ -344,6 +344,47 @@ class SpectrumPlus:
 
         return spectrum_list
 
+    def recompute_continuum(self, region=None, fit_method=None):
+        """
+        Recompute the continuum fit and normalized spectrum.
+
+        This method refits the continuum using the specified region and
+        fitting method, then updates both the stored continuum and the
+        normalized spectrum in-place.
+
+        Parameters
+        ----------
+        region : SpectralRegion or array-like of tuple, optional
+            Spectral region(s) to include in the continuum fit. If None,
+            the currently stored ``self.region`` is used. Input is coerced
+            via ``to_spectral_region``.
+        fit_method : {'fit_continuum', 'generic'} or str, optional
+            Continuum fitting method. If None, the currently stored
+            ``self.fit_method`` is used.
+
+        Returns
+        -------
+        None
+            Updates ``self.continuum``, ``self.normalized``,
+            ``self.region``, and ``self.fit_method`` in-place.
+        """
+        region = self.region if region is None else region
+        fit_method = self.fit_method if fit_method is None else fit_method
+
+        if region is not None:
+            region = to_spectral_region(region)
+
+        self.continuum = self._fit_continuum(self.spectrum, fit_method, region)
+        region_log = _region_to_history(region)
+        _log_history(
+            self.log_file, f'Recomputing continuum: {region_log}'
+        )
+
+        self.normalized = self.spectrum / self.continuum
+
+        self.region = region
+        self.fit_method = fit_method
+
     def remove_nonfinite(self, return_mask=False):
         '''
         Return a new SpectrumPlus with all samples removed
