@@ -12,6 +12,8 @@ Dependencies:
 from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
+from specutils import SpectralRegion
+from .units import to_spectral_region
 
 
 def _copy_headers(headers):
@@ -150,6 +152,28 @@ def _transfer_history(header1, header2):
             target_header.add_history(history)
 
     return header2
+
+
+def _region_to_history(region: SpectralRegion):
+    """
+    Format a SpectralRegion for inclusion in a FITS HISTORY card.
+
+    Parameters
+    ----------
+    region : specutils.SpectralRegion
+        Spectral region or set of sub-regions to encode.
+
+    Returns
+    -------
+    history_str : str
+        String representation of the spectral region bounds of the form:
+            region[unit]:(lo1,hi1),(lo2,hi2),...
+    """
+    region = to_spectral_region(region)
+    unit = region.lower.unit.to_string('fits')
+    parts = [f'({lo.value:.2f},{hi.value:.2f})' for lo, hi in region.subregions]
+
+    return f'region[{unit}]: ' + ', '.join(parts)
 
 
 def _update_header_key(key, value, header, primary_header=None):
