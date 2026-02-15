@@ -95,42 +95,6 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
     return _STACK_METHODS[method](cube, axis=axis)
 
 
-def get_spectral_slice_value(spectral_axis, idx):
-    '''
-    Return a representative value from a spectral axis
-    given an index or index range.
-
-    Parameters
-    ----------
-    spectral_axis : Quantity
-        The spectral axis (e.g., wavelength, frequency, or
-        velocity) as an 'astropy.units.Quantity' array.
-    idx : int or list of int
-        Index or indices specifying the slice along the first axis:
-        - i -> returns 'spectral_axis[i]'
-        - [i] -> returns 'spectral_axis[i]'
-        - [i, j] -> returns '(spectral_axis[i] + spectral_axis[j+1])/2'
-
-    Returns
-    -------
-    spectral_value : float
-        The spectral value at the specified index or index
-        range, in the units of 'spectral_axis'.
-    '''
-    if isinstance(idx, int):
-        return spectral_axis[idx].value
-
-    if isinstance(idx, list):
-        if len(idx) == 1:
-            return spectral_axis[idx[0]].value
-        elif len(idx) == 2:
-            return (
-                (spectral_axis[idx[0]].value + spectral_axis[idx[1]].value) / 2
-            )
-
-    raise ValueError("'idx' must be an int or a list of one or two integers")
-
-
 # Cube/Image Masking Functions
 # ----------------------------
 def mask_image(
