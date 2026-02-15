@@ -87,6 +87,7 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     ----------
     obj : Object
         The input object from which to extract a unit. This can be:
+        - an astropy UnitBase
         - an astropy.units.Quantity
         - a fits.Header with a 'BUNIT' key
         - any object with a .data attribute
@@ -97,6 +98,9 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         The unit associated with the input object, if it exists.
         Returns None if the object has no unit or if the unit cannot be parsed.
     """
+    if isinstance(obj, UnitBase):
+        return obj
+
     if isinstance(obj, Quantity):
         return obj.unit
 
