@@ -518,6 +518,112 @@ def sort_spectra_by_line_strength(
         return sorted_indices, sorted_strengths
 
 
+def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
+    """
+    Return a representative value from a spectral axis
+    given an index or index range.
+
+    Parameters
+    ----------
+    spectral_axis : Quantity
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an 'astropy.units.Quantity' array.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns ``spectral_axis[i]``
+        - [i] -> returns ``spectral_axis[i]``
+        - [i, j] -> returns ``(spectral_axis[i] + spectral_axis[j+1])/2``
+        - None -> returns ``(spectral_axis[0] + spectral_axis[-1]) / 2``
+    keep_unit : bool, optional, default=True
+        If True, return the result as an ``astropy.units.Quantity``.
+        If False, return the raw float value without units.
+
+    Returns
+    -------
+    spectral_value : float
+        The spectral value at the specified index or index
+        range, in the units of 'spectral_axis'.
+    """
+    if idx is None:
+        result = (spectral_axis[0] + spectral_axis[-1]) / 2
+
+    elif isinstance(idx, int):
+        result = spectral_axis[idx]
+
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            result = spectral_axis[idx[0]]
+        elif len(idx) == 2:
+            result = (
+                (spectral_axis[idx[0]] + spectral_axis[idx[1]]) / 2
+            )
+        else:
+            raise ValueError("'idx' must be an int or a list of one or two integers")
+    else:
+        raise ValueError("'idx' must be an int or a list of one or two integers")
+
+    return result if keep_unit else result.value
+
+
+def mask_spectral_region(x, spectral_region):
+    """
+    Return a boolean mask selecting values within a SpectralRegion.
+
+    This function constructs the union of all subregions in the input
+    SpectralRegion and returns a boolean array that is True for elements
+    of ``x`` that fall within any subregion.
+
+    Parameters
+    ----------
+    x : array-like or `~astropy.units.Quantity`
+        1D array of spectral coordinates (e.g., wavelength or frequency).
+        If a Quantity is provided, its values are converted to plain
+        numeric values via ``get_value``.
+
+    spectral_region : `~specutils.SpectralRegion` or region-like
+        Spectral region definition. May contain multiple disjoint
+        subregions. The mask is the logical union of all subregions.
+
+    Returns
+    -------
+    mask : ndarray of bool
+        Boolean mask with the same shape as ``x``. True where the spectral
+        coordinate lies within any subregion, False otherwise.
+
+    Raises
+    ------
+    TypeError
+        If ``spectral_region.subregions`` is None.
+
+    Notes
+    -----
+    - Subregions are combined using logical OR (union semantics).
+    - This function assumes that ``x`` and the subregion bounds are in
+        compatible units. No explicit unit conversion is performed.
+    - Boundary comparisons are inclusive (``>= xmin`` and ``<= xmax``).
+
+    Examples
+    --------
+    >>> mask = mask_spectral_region(wavelength, region)
+    >>> n_valid = np.count_nonzero(mask & np.isfinite(flux))
+    """
+    x = get_value(x)
+    spectral_region = require_spectral_region(spectral_region)
+    subregions = spectral_region.subregions
+    if subregions is None:
+        raise TypeError(
+            'spectral_region.subregions is None!'
+        )
+
+    mask = np.zeros(x.shape, dtype=bool)
+
+    for region in subregions:
+        xmin, xmax = region[0].value, region[1].value
+        mask |= (x >= xmin) & (x <= xmax)
+
+    return mask
+
+
 def propagate_flux_errors(errors, method=None):
     '''
     Compute propagated flux errors from individual pixel errors in a spectrum.
