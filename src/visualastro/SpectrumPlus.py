@@ -21,7 +21,7 @@ from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
 from .config import get_config_value
 from .fits_utils import _copy_headers, _get_history, _log_history, _region_to_history
-from .units import ensure_common_unit, to_spectral_region, _check_unit_equality
+from .units import ensure_common_unit, require_spectral_region, to_spectral_region, _check_unit_equality
 
 
 class SpectrumPlus:
@@ -125,8 +125,7 @@ class SpectrumPlus:
             fit_method, 'spectrum_continuum_fit_method'
         )
         region = kwargs.pop('region', None)
-        if region is not None:
-            region = to_spectral_region(region)
+        region = to_spectral_region(region)
 
         if log_file is None:
             log_file = Header()
@@ -166,8 +165,12 @@ class SpectrumPlus:
         # fit continuum and normalize
         if region is None:
             region = to_spectral_region(
-                (spectrum.spectral_axis.min(), spectrum.spectral_axis.max())
+                (spectrum.spectral_axis.min(),
+                 spectrum.spectral_axis.max())
             )
+
+        region = require_spectral_region(region)
+
         if continuum is None:
             continuum = self._fit_continuum(spectrum, fit_method, region)
             region_log = _region_to_history(region)
