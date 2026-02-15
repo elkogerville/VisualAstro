@@ -1,4 +1,4 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
 Date Modified: 2026-01-15
@@ -12,7 +12,7 @@ Dependencies:
 Module Structure:
     - DataCube
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
-'''
+"""
 
 import warnings
 from astropy.io.fits import Header
@@ -364,12 +364,22 @@ class DataCube:
         return self.unit * self.value
     @property
     def unit(self):
-        '''
+        """
         Returns
         -------
         Unit : Astropy.Unit of the data.
-        '''
+        """
         return getattr(self.data, 'unit', None)
+    @property
+    def spectral_unit(self):
+        """
+        Returns
+        -------
+        Unit : Astropy.Unit of the spectral axis or None if not found.
+        """
+        if isinstance(self.data, SpectralCube):
+            return self.data.spectral_axis.unit
+        return None
 
     # statistical properties
     @property
