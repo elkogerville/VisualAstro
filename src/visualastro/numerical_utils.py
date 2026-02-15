@@ -418,10 +418,9 @@ def mask_within_range(x, xlim=None):
         True where x is within the limits.
     '''
     x = get_value(x)
-    xlim = get_value(xlim)
 
-    xmin = xlim[0] if xlim is not None else np.nanmin(x)
-    xmax = xlim[1] if xlim is not None else np.nanmax(x)
+    xmin = get_value(xlim[0]) if xlim is not None else np.nanmin(x)
+    xmax = get_value(xlim[1]) if xlim is not None else np.nanmax(x)
 
     mask = (x >= xmin) & (x <= xmax)
 
