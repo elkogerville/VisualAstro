@@ -283,8 +283,13 @@ class SpectrumPlus:
         fit_method = self.fit_method
         log_file = self.log_file
 
-        region = to_spectral_region(region)
-        N_regions = len(region.subregions)
+        region = require_spectral_region(region)
+        subregions = region.subregions
+        if subregions is None:
+            raise ValueError(
+                'region.subregions is None!'
+            )
+        N_regions = len(subregions)
 
         if continuum_region is not None:
             if not return_single_spectrum and N_regions > 1:
