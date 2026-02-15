@@ -13,7 +13,7 @@ from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
 from specutils import SpectralRegion
-from .units import to_spectral_region
+from .units import require_spectral_region, to_spectral_region
 
 
 def _copy_headers(headers):
@@ -120,9 +120,9 @@ def _remove_history(header):
 
 def _transfer_history(header1, header2):
     '''
-    Transfer `HISTORY` cards from one
-    header to another. If header2 is a list
-    of headers, the HISTORY is written to header2[0].
+    Transfer `HISTORY` cards from one header (header1)
+    to another (header2). If header2 is a list of headers,
+    the HISTORY is written to header2[0].
 
     This is not a destructive action.
 
@@ -154,7 +154,7 @@ def _transfer_history(header1, header2):
     return header2
 
 
-def _region_to_history(region: SpectralRegion):
+def _region_to_history(region: SpectralRegion) -> str:
     """
     Format a SpectralRegion for inclusion in a FITS HISTORY card.
 
@@ -167,11 +167,16 @@ def _region_to_history(region: SpectralRegion):
     -------
     history_str : str
         String representation of the spectral region bounds of the form:
-            region[unit]:(lo1,hi1),(lo2,hi2),...
+            region[unit]: (lo1,hi1), (lo2,hi2), ...
     """
-    region = to_spectral_region(region)
+    region = require_spectral_region(region)
     unit = region.lower.unit.to_string('fits')
-    parts = [f'({lo.value:.2f}, {hi.value:.2f})' for lo, hi in region.subregions]
+
+    subregions = region.subregions
+    if subregions is None:
+        raise ValueError('SpectralRegion.subregions is None!')
+
+    parts = [f'({lo.value:.2f}, {hi.value:.2f})' for lo, hi in subregions]
 
     return f'region[{unit}]: ' + ', '.join(parts)
 
