@@ -14,8 +14,9 @@ Module Structure:
     - VisualAstro Help
         VisualAstro user help.
 '''
-
 from contextlib import contextmanager
+from glob import glob
+import os
 import warnings
 from astropy.io.fits import Header
 from astropy.wcs import WCS
@@ -23,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
-from .numerical_utils import get_data
+from .numerical_utils import get_data, to_list
 from .plotting import (
     imshow, plot_density_histogram,
     plot_histogram, plot_lines,
@@ -1444,8 +1445,14 @@ class va:
             Display a matplotlib or visualastro plotting style:
             >>> va.help.styles('classic')
             '''
-            style_names = ['astro', 'smplot', 'latex', 'minimal', 'default'] if style_name is None else [style_name]
-            colors = ['k', 'darkslateblue', 'slateblue', 'plum', 'palevioletred', '#D81B60']
+            from .plot_utils import set_plot_colors
+            if style_name is None:
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                style_files = glob(os.path.join(dir_path, 'stylelib', '*.mplstyle'))
+                style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
+            else:
+                style_names = to_list(style_name)
+            colors, _ = set_plot_colors('astro')
             print(
                 'Here are sample plot made with the available visualastro plot styles. '
                 '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
@@ -1454,6 +1461,12 @@ class va:
                 style = return_stylename(style_name)
                 with plt.style.context(style):
                     print(fr"Style : '{style_name}'")
+                    if style_name == 'cm10':
+                        warnings.warn(
+                            "\nWARNING: cm10 style sheet cannont properly render 'º'! "
+                            'This is mostly an issue for plots with WCSAxes. Either use '
+                            "'cmu' or 'latex' stylesheets to get around this issue."
+                        )
                     fig, ax = plt.subplots(figsize=(7,2))
                     ax.set_xscale('log')
 
