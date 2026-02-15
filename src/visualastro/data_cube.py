@@ -27,7 +27,7 @@ from matplotlib.patches import Ellipse
 import numpy as np
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from .data_cube_utils import get_spectral_slice_value, stack_cube
+from .data_cube_utils import stack_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
     get_data, shift_by_radial_vel, to_list
@@ -37,6 +37,7 @@ from .plot_utils import (
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax
 )
+from .spectra_utils import spectral_idx_2_world
 from .units import ensure_common_unit, convert_quantity, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
@@ -457,7 +458,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
         # compute spectral axis value of slice for label
         spectral_axis = convert_quantity(cube.spectral_axis, unit, equivalencies=u.spectral())
         spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-        spectral_value = get_spectral_slice_value(spectral_axis, idx)
+        spectral_value = spectral_idx_2_world(spectral_axis, idx, keep_unit=False)
         unit_label = to_latex_unit(spectral_axis.unit)
 
         # lambda for wavelength, f for frequency
