@@ -47,7 +47,7 @@ from .numerical_utils import (
 )
 from .numerical_utils import interpolate as _interpolate
 from .plot_utils import (
-    return_stylename, sample_cmap, set_axis_labels,
+    plot_vlines, return_stylename, sample_cmap, set_axis_labels,
     set_axis_limits, set_plot_colors
 )
 from .plotting import imshow
@@ -447,7 +447,7 @@ def extract_cube_pixel_spectra(
     if data_unit is None:
         data_unit = u.dimensionless_unscaled
 
-    data = to_array(cube, keep_units=False)
+    data = to_array(cube, keep_unit=False)
     if data.ndim != 3:
         raise ValueError('cube must have shape (T, N, M)')
 
@@ -724,7 +724,7 @@ def plot_extracted_pixel_map(
     if len(coords) != len(colors):
         raise ValueError('coords and colors must have the same length')
 
-    background = to_array(cube, keep_units=False)
+    background = to_array(cube, keep_unit=False)
     if background.ndim == 3:
         if idx is not None:
             background = stack_cube(
@@ -1021,17 +1021,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     set_axis_labels(wavelength, extracted_spectrum.flux, ax,
                     xlabel, ylabel, use_brackets=use_brackets)
 
-    if vline is not None:
-        if isinstance(vline, Quantity):
-            vline = vline.to(extracted_spectrum.unit).value
-        ax.axvline(
-            vline,
-            ls=':',
-            lw=1.0,
-            color='k',
-            alpha=0.7,
-            zorder=0,
-        )
+    plot_vlines(vline, ax, extracted_spectrum.unit)
 
     if labels[0] is not None:
         ax.legend(loc=loc)
