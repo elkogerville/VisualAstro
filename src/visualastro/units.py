@@ -285,30 +285,41 @@ def to_latex_unit(unit: Any, fmt=None) -> str | None:
         return None
 
 
-def to_spectral_region(obj):
+def to_spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+        | None
+    )
+) -> SpectralRegion | None:
     """
     Coerce input into a SpectralRegion with units.
 
     Parameters
     ----------
-    obj : SpectralRegion, Quantity, tuple, or list
+    obj : SpectralRegion, Quantity, tuple, list, or None
         Region specification. Accepted forms:
 
-        - SpectralRegion: returned as-is
+        - ``SpectralRegion``: returned as-is
         - ``(low, high) * unit``: single region with shared unit
         - ``[(low, high), ...] * unit``: multiple regions with shared unit
         - ``(Quantity, Quantity)``: single region with explicit units
         - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
+        - ``None``: returned as-is
 
     Returns
     -------
-    SpectralRegion
+    SpectralRegion :
         A SpectralRegion object containing one or more spectral subregions.
 
     Raises
     ------
-    ValueError
+    ValueError :
         If a Quantity has incorrect shape (must be (2,) or (N, 2)).
+    ValueError :
+        If the input ``obj`` cannot be coerced into a ``SpectralRegion``.
 
     Examples
     --------
@@ -325,25 +336,73 @@ def to_spectral_region(obj):
     >>> # Multiple regions with explicit units
     >>> to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
     """
+    if obj is None:
+        return None
+
     if isinstance(obj, SpectralRegion):
         return obj
 
-    if isinstance(obj, Quantity):
+    region: Any = obj
+
+    if isinstance(region, Quantity):
         arr = np.asarray(obj)
+
+        # single region
         if arr.shape == (2,):
-            obj = [(obj[0], obj[1])]
+            lo = region[0]
+            hi = region[1]
+            region = [(lo, hi)]
+
+        # multiple regions
         elif arr.ndim == 2 and arr.shape[1] == 2:
-            obj = [(row[0], row[1]) for row in obj]
+            region = [(row[0], row[1]) for row in region]
+
         else:
             raise ValueError(f'Quantity must have shape (2,) or (N,2), got {arr.shape}')
 
     # case: quantities inside list/tuple
-    if (isinstance(obj, (tuple, list)) and
-        len(obj) == 2 and
-        all(isinstance(x, Quantity) for x in obj)):
-        obj = [obj]
+    elif (isinstance(region, tuple) and
+        len(region) == 2 and
+        all(isinstance(x, Quantity) for x in region)):
+        region = [region]
 
-    return SpectralRegion(obj)
+    elif not isinstance(obj, (list, tuple)):
+        raise TypeError(
+            f'Expected SpectralRegion, Quantity, tuple, or list, got {type(region)}'
+        )
+
+    try:
+        return SpectralRegion(region)
+    except Exception as e:
+        raise ValueError(
+            f'Could not construct SpectralRegion from {type(region)}: {e}'
+        ) from e
+
+
+def require_spectral_region(obj) -> SpectralRegion:
+    """
+    Enforce that the input ``obj`` is a ``SpectralRegion``.
+
+    This is a wrapper of ``to_spectral_region``, which unlike
+    this function allows for None inputs.
+
+    Parameters
+    ----------
+    obj : SpectralRegion, Quantity, tuple, or list
+        Region specification. Accepted forms:
+
+        - ``SpectralRegion``: returned as-is
+        - ``(low, high) * unit``: single region with shared unit
+        - ``[(low, high), ...] * unit``: multiple regions with shared unit
+        - ``(Quantity, Quantity)``: single region with explicit units
+        - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
+        - ``None``: returned as-is
+    """
+    region = to_spectral_region(obj)
+
+    if region is None or not isinstance(region, SpectralRegion):
+        raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
+    return region
 
 
 def ensure_common_unit(
