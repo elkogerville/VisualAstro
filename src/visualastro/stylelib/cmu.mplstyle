@@ -107,11 +107,8 @@
 #toolbar:     toolbar2  # {None, toolbar2, toolmanager}
 #timezone:    UTC       # a pytz timezone string, e.g., US/Central or Europe/Paris
 
-## ***************************************************************************
-## * COLORS                                                        	     *
-## ***************************************************************************
+# Colors
 axes.prop_cycle: cycler('color', ["#785ef0", "#dc267f", "#648fff", "#ffb000", "#fe6100"])
-
 ## ***************************************************************************
 ## * LINES                                                                   *
 ## ***************************************************************************
@@ -269,10 +266,14 @@ lines.linestyle: -                 # solid line
 ## relative to font.size, using the following values: xx-small, x-small,
 ## small, medium, large, x-large, xx-large, larger, or smaller
 
-font.family:  modern
+font.family:  serif
+font.serif: CMU Serif, DejaVu Serif, serif #cmr10, serif
+font.sans-serif: CMU Sans Serif, DejaVu Sans, sans-serif #cmss10, sans-serif
+font.monospace: CMU Typewriter Text, DejaVu Sans Mono, monospace #cmtt10, monospace
+
 #font.style:   normal
 #font.variant: normal
-#font.weight:  normal
+font.weight:  normal
 #font.stretch: normal
 font.size:    14.0
 
@@ -320,7 +321,7 @@ font.size:    14.0
 ## ***************************************************************************
 ## For more information on LaTeX properties, see
 ## https://matplotlib.org/stable/users/explain/text/usetex.html
-text.usetex: True  # use latex for all text handling. The following fonts
+text.usetex: False  # use latex for all text handling. The following fonts
                      # are supported through the usual rc parameter settings:
                      # new century schoolbook, bookman, times, palatino,
                      # zapf chancery, charter, serif, sans-serif, helvetica,
@@ -343,24 +344,25 @@ text.usetex: True  # use latex for all text handling. The following fonts
                         # loaded, depending on your font settings.
 
 ## The following settings allow you to select the fonts in math mode.
-#mathtext.fontset: dejavusans  # Should be 'dejavusans' (default),
+mathtext.fontset: cm  # Should be 'dejavusans' (default),
                                # 'dejavuserif', 'cm' (Computer Modern), 'stix',
                                # 'stixsans' or 'custom'
-## "mathtext.fontset: custom" is defined by the mathtext.bf, .cal, .it, ...
+##"mathtext.fontset: custom" is defined by the mathtext.bf, .cal, .it, ...
 ## settings which map a TeX font name to a fontconfig font pattern.  (These
 ## settings are not used for other font sets.)
-#mathtext.bf:  sans:bold
+#mathtext.fontset: custom
+#mathtext.bf:  Courier New:bold
 #mathtext.bfit: sans:italic:bold
 #mathtext.cal: cursive
-#mathtext.it:  sans:italic
-#mathtext.rm:  sans
+#mathtext.it:  Courier New:italic
+#mathtext.rm:  Courier New
 #mathtext.sf:  sans
 #mathtext.tt:  monospace
-#mathtext.fallback: cm  # Select fallback font from ['cm' (Computer Modern), 'stix'
+#mathtext.fallback: Courier New  # Select fallback font from ['cm' (Computer Modern), 'stix'
                         # 'stixsans'] when a symbol cannot be found in one of the
                         # custom math fonts. Select 'None' to not perform fallback
                         # and replace the missing character by a dummy symbol.
-#mathtext.default: regular  # The default font to use for math.
+mathtext.default: regular  # The default font to use for math.
                        # Can be any of the LaTeX font names, including
                        # the special name "regular" for the same font
                        # used in regular text.
@@ -380,14 +382,14 @@ axes.linewidth:     0.5     # edge line width
 #axes.grid.which:    major   # grid lines at {major, minor, both} ticks
 #axes.titlelocation: center  # alignment of the title: {left, right, center}
 #axes.titlesize:     large   # font size of the axes title
-#axes.titleweight:   normal  # font weight of title
+axes.titleweight:   normal  # font weight of title
 #axes.titlecolor:    auto    # color of the axes title, auto falls back to
                              # text.color as default value
 #axes.titley:        None    # position title (axes relative units).  None implies auto
 #axes.titlepad:      6.0     # pad between axes and title in points
 axes.labelsize:     16  # font size of the x and y labels
 #axes.labelpad:      4.0     # space between label and axis
-#axes.labelweight:   normal  # weight of the x and y labels
+axes.labelweight:   normal  # weight of the x and y labels
 #axes.labelcolor:    black
 #axes.axisbelow:     line    # draw axis gridlines and ticks:
                              #     - below patches (True)
@@ -419,7 +421,7 @@ axes.formatter.useoffset: False  # If True, the tick label formatter
 #axes.spines.top:    True
 #axes.spines.right:  True
 
-#axes.unicode_minus: True  # use Unicode for the minus symbol rather than hyphen.  See
+axes.unicode_minus: False  # use Unicode for the minus symbol rather than hyphen.  See
                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
 #axes.prop_cycle: cycler('color', ['1f77b4', 'ff7f0e', '2ca02c', 'd62728', '9467bd', '8c564b', 'e377c2', '7f7f7f', 'bcbd22', '17becf'])
                   # color cycle for plot lines as list of string color specs:
@@ -486,12 +488,12 @@ axes.formatter.useoffset: False  # If True, the tick label formatter
 ## * TICKS                                                                   *
 ## ***************************************************************************
 ## See https://matplotlib.org/stable/api/axis_api.html#matplotlib.axis.Tick
-xtick.top:           False   # draw ticks on the top side
+xtick.top:           True   # draw ticks on the top side
 xtick.bottom:        True    # draw ticks on the bottom side
 xtick.labeltop:      False   # draw label on the top
 xtick.labelbottom:   True    # draw label on the bottom
-xtick.major.size:    3.5     # major tick size in points
-xtick.minor.size:    2       # minor tick size in points
+xtick.major.size:    7     # major tick size in points
+xtick.minor.size:    3.5       # minor tick size in points
 xtick.major.width:   0.5     # major tick width in points
 xtick.minor.width:   0.5     # minor tick width in points
 xtick.major.pad:     3.5     # distance to major tick label in points
@@ -499,21 +501,21 @@ xtick.minor.pad:     3.4     # distance to the minor tick label in points
 xtick.color:         black   # color of the ticks
 xtick.labelcolor:    inherit # color of the tick labels or inherit from xtick.color
 xtick.labelsize:     13  # font size of the tick labels
-xtick.direction:     out     # direction: {in, out, inout}
-xtick.minor.visible: False   # visibility of minor ticks on x-axis
-xtick.major.top:     False    # draw x axis top major ticks
+xtick.direction:     in     # direction: {in, out, inout}
+xtick.minor.visible: True   # visibility of minor ticks on x-axis
+xtick.major.top:     True    # draw x axis top major ticks
 xtick.major.bottom:  True    # draw x axis bottom major ticks
-xtick.minor.top:     False    # draw x axis top minor ticks
-xtick.minor.bottom:  False    # draw x axis bottom minor ticks
+xtick.minor.top:     True    # draw x axis top minor ticks
+xtick.minor.bottom:  True    # draw x axis bottom minor ticks
 xtick.minor.ndivs:   auto    # number of minor ticks between the major ticks on x-axis
 xtick.alignment:     center  # alignment of xticks
 
 ytick.left:          True    # draw ticks on the left side
-ytick.right:         False   # draw ticks on the right side
+ytick.right:         True   # draw ticks on the right side
 ytick.labelleft:     True    # draw tick labels on the left side
 ytick.labelright:    False   # draw tick labels on the right side
-ytick.major.size:    3.5     # major tick size in points
-ytick.minor.size:    2       # minor tick size in points
+ytick.major.size:    7.0     # major tick size in points
+ytick.minor.size:    3.5       # minor tick size in points
 ytick.major.width:   0.5     # major tick width in points
 ytick.minor.width:   0.5     # minor tick width in points
 ytick.major.pad:     3.5     # distance to major tick label in points
@@ -521,12 +523,12 @@ ytick.minor.pad:     3.4     # distance to the minor tick label in points
 ytick.color:         black   # color of the ticks
 ytick.labelcolor:    inherit # color of the tick labels or inherit from ytick.color
 ytick.labelsize:     13  # font size of the tick labels
-ytick.direction:     out     # direction: {in, out, inout}
-ytick.minor.visible: False   # visibility of minor ticks on y-axis
+ytick.direction:     in     # direction: {in, out, inout}
+ytick.minor.visible: True   # visibility of minor ticks on y-axis
 ytick.major.left:    True    # draw y axis left major ticks
-ytick.major.right:   False    # draw y axis right major ticks
-ytick.minor.left:    False    # draw y axis left minor ticks
-ytick.minor.right:   False    # draw y axis right minor ticks
+ytick.major.right:   True    # draw y axis right major ticks
+ytick.minor.left:    True    # draw y axis left minor ticks
+ytick.minor.right:   True    # draw y axis right minor ticks
 ytick.minor.ndivs:   auto    # number of minor ticks between the major ticks on y-axis
 ytick.alignment:     center_baseline  # alignment of yticks
 
@@ -576,7 +578,7 @@ legend.fontsize:      13
 #figure.titleweight: normal    # weight of the figure title
 #figure.labelsize:   large     # size of the figure label (``Figure.sup[x|y]label()``)
 #figure.labelweight: normal    # weight of the figure label
-figure.figsize:     6, 6  # figure size in inches
+figure.figsize:     7, 7  # figure size in inches
 #figure.dpi:         100       # figure dots per inch
 figure.facecolor:   white     # figure face color
 figure.edgecolor:   white     # figure edge color
