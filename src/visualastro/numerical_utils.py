@@ -295,7 +295,52 @@ def interpolate(xp, yp, x_range, N_samples, method='linear'):
     return x_interp, y_interp
 
 
-def finite(obj, *, keep_units=True, keep_inf=False):
+def percent_difference(a, b):
+    """
+    Compute the percent difference between two arrays.
+
+    The percent difference is defined as the absolute difference between
+    ``a`` and ``b`` divided by their mean, expressed as a percentage::
+
+        percent_difference = |a - b| / ((a + b) / 2) * 100
+
+    Parameters
+    ----------
+    a : array-like
+        First input array.
+    b : array-like
+        Second input array. Must be broadcastable with ``a``.
+
+    Returns
+    -------
+    numpy.ndarray
+        Percent difference between ``a`` and ``b``, element-wise.
+        Returns ``nan`` where both ``a`` and ``b`` are zero.
+
+    Notes
+    -----
+    Uses ``numpy.errstate`` to suppress division by zero and invalid
+    value warnings. Elements where the mean of ``a`` and ``b`` is zero
+    will produce ``nan`` in the output.
+
+    Examples
+    --------
+    >>> percent_difference(1.0, 2.0)
+    66.666...
+    >>> percent_difference(np.array([1, 2, 3]), np.array([2, 2, 4]))
+    array([66.666...,  0.    , 28.571...])
+    >>> percent_difference(0.0, 0.0)  # both zero → nan
+    nan
+    """
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    denom = (a + b) / 2
+    with np.errstate(invalid='ignore', divide='ignore'):
+        result = (np.abs(a - b) / denom) * 100
+    return result
+
+
+def finite(obj, *, keep_unit=True, keep_inf=False):
     """
     Filter NaN and optionally infinite values from
     array-like input. The output is always 1D.
