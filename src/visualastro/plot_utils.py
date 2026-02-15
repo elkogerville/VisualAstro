@@ -27,6 +27,7 @@ import os
 from typing import Any
 import warnings
 from functools import partial
+from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -38,11 +39,11 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import stack_cube
 from .numerical_utils import (
-    compute_density_kde, get_data, get_value, to_array
+    compute_density_kde, get_data, get_value, to_array, to_list
 )
 from .units import (
     to_latex_unit, get_physical_type,
-    get_unit, _infer_physical_type_label
+    get_unit, _infer_physical_type_label, to_unit
 )
 from .config import get_config_value, config, _default_flag
 
@@ -1240,6 +1241,86 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
         # loop through each set of points in points and plot
         for i, point in enumerate(points):
             ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
+
+
+def plot_vlines(vlines, ax, unit=None):
+    """
+    Plot one or more vertical reference lines on a Matplotlib axis.
+
+    Parameters
+    ----------
+    vlines : float, astropy.units.Quantity, iterable of float or Quantity, or None
+        X-axis coordinate(s) at which to draw vertical line(s). If a Quantity,
+        each value is converted to ``unit`` before plotting. If an iterable is
+        provided, a vertical line is drawn for each element. If None, no lines
+        are drawn.
+    ax : matplotlib.axes.Axes
+        Matplotlib Axes object on which to draw the vertical line(s).
+    unit : astropy.units.UnitBase or str, optional, default=None
+        Unit to which Quantity values in ``vlines`` are converted before plotting.
+        If None, Quantity inputs must already be in the axis unit system or must
+        not require conversion.
+
+    Notes
+    -----
+    Vertical lines are drawn using ``ax.axvline`` with a dotted linestyle,
+    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
+    """
+    if vlines is not None:
+        vlines = to_list(vlines)
+        unit = to_unit(unit)
+
+        for vline in vlines:
+            if isinstance(vline, Quantity):
+                vline = vline.to(unit).value
+            ax.axvline(
+                vline,
+                ls=':',
+                lw=1.0,
+                color='k',
+                alpha=0.7,
+                zorder=0,
+            )
+
+
+def plot_hlines(hlines, ax, unit=None):
+    """
+    Plot one or more horizontal reference lines on a Matplotlib axis.
+
+    Parameters
+    ----------
+    vlines : float, astropy.units.Quantity, iterable of float or Quantity, or None
+        Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,
+        each value is converted to ``unit`` before plotting. If an iterable is
+        provided, a horizontal line is drawn for each element. If None, no lines
+        are drawn.
+    ax : matplotlib.axes.Axes
+        Matplotlib Axes object on which to draw the horizontal line(s).
+    unit : astropy.units.UnitBase or str, optional, default=None
+        Unit to which Quantity values in ``hlines`` are converted before plotting.
+        If None, Quantity inputs must already be in the axis unit system or must
+        not require conversion.
+
+    Notes
+    -----
+    Horizontal lines are drawn using ``ax.axhline`` with a dotted linestyle,
+    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
+    """
+    if hlines is not None:
+        hlines = to_list(hlines)
+        unit = to_unit(unit)
+
+        for hline in hlines:
+            if isinstance(hline, Quantity):
+                hline = hline.to(unit).value
+            ax.axhline(
+                hline,
+                ls=':',
+                lw=1.0,
+                color='k',
+                alpha=0.7,
+                zorder=0,
+            )
 
 
 # Notebook Utils
