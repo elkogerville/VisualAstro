@@ -217,6 +217,7 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
 def shift_by_radial_vel(spectral_axis, radial_vel):
     '''
     Shift spectral axis to rest frame using a radial velocity.
+    If ``radial_vel`` is None, return ``spectral_axis`` unchanged.
 
     Parameters
     ----------
@@ -241,10 +242,10 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
             radial_vel = radial_vel.to(u.km/u.s).value # type: ignore
         # if spectral axis in units of frequency
         if spectral_axis.unit.is_equivalent(u.Unit('Hz')):
-            spectral_axis /= (1 - radial_vel / c)
+            return spectral_axis / (1 - radial_vel / c)
         # if spectral axis in units of wavelength
         else:
-            spectral_axis /= (1 + radial_vel / c)
+            return spectral_axis / (1 + radial_vel / c)
 
     return spectral_axis
 
