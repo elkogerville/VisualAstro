@@ -75,7 +75,7 @@ def get_value(obj: Any):
     return obj.value if hasattr(obj, 'value') else obj
 
 
-def to_array(obj: Any, keep_units: bool = False) -> NDArray | Quantity:
+def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
     """
     Return input object as either a np.ndarray or Quantity.
 
@@ -84,13 +84,13 @@ def to_array(obj: Any, keep_units: bool = False) -> NDArray | Quantity:
     obj : array-like, np.ndarray, Quantity or SpectralCube
         Any array-like object, or an object that exposes
         a ``data`` or ``value`` attribute.
-    keep_units : bool, optional, default=False
+    keep_unit : bool, optional, default=False
         If True, keep astropy units attached if present.
 
     Returns
     -------
     array : np.ndarray
-        Quantity array if `keep_units` is True, else a NumPy array.
+        Quantity array if `keep_unit` is True, else a NumPy array.
 
     Raises
     ------
@@ -101,13 +101,13 @@ def to_array(obj: Any, keep_units: bool = False) -> NDArray | Quantity:
         raise TypeError('None cannot be converted to an array')
 
     if isinstance(obj, Quantity):
-        return obj if keep_units else np.asarray(obj.value)
+        return obj if keep_unit else np.asarray(obj.value)
 
     elif isinstance(obj, SpectralCube):
         q = obj.filled_data[:]
         if not isinstance(q, Quantity):
             q = Quantity(np.asarray(q), unit=obj.unit)
-        return q if keep_units else np.asarray(q.value)
+        return q if keep_unit else np.asarray(q.value)
 
     elif isinstance(obj, np.ndarray):
         return obj
@@ -118,10 +118,10 @@ def to_array(obj: Any, keep_units: bool = False) -> NDArray | Quantity:
         if hasattr(obj, attr):
             inner = getattr(obj, attr)
             if inner is not obj:
-                result = to_array(inner, keep_units=keep_units)
+                result = to_array(inner, keep_unit=keep_unit)
 
                 # check for unit in either obj or obj attribute
-                if keep_units and not isinstance(result, Quantity):
+                if keep_unit and not isinstance(result, Quantity):
                     unit = getattr(obj, 'unit', None) or getattr(inner, 'unit', None)
                     if unit is not None:
                         return Quantity(result, unit=unit)
@@ -304,7 +304,7 @@ def finite(obj, *, keep_units=True, keep_inf=False):
     obj : array_like
         Input data. May be a NumPy array, list, DataCube, FitsFile,
         Quantity, or any object compatible with `to_array`.
-    keep_units : bool, optional, default=True
+    keep_unit : bool, optional, default=True
         If True, preserve astropy units if present on the input.
     keep_inf : bool, optional, default=False
         If True, keep ±inf values and remove only NaNs.
@@ -314,14 +314,14 @@ def finite(obj, *, keep_units=True, keep_inf=False):
     -------
     ndarray or Quantity
         A 1-D array containing the filtered values. Units are preserved
-        if `keep_units=True` and the input carries units.
+        if `keep_unit=True` and the input carries units.
 
     Notes
     -----
     - Filtering is performed using `np.isfinite` when `keep_inf=False`,
         and `~np.isnan` when `keep_inf=True`.
     """
-    data = to_array(obj, keep_units)
+    data = to_array(obj, keep_unit)
     mask = mask_finite(data, keep_inf=keep_inf)
 
     return data[mask]
@@ -336,8 +336,6 @@ def mask_finite(obj, *, keep_inf=False):
     obj : array_like
         Input data. May be a NumPy array, list, DataCube, FitsFile,
         Quantity, or any object compatible with `to_array`.
-    keep_units : bool, optional, default=True
-        Passed through to `to_array`. Units do not affect the mask.
     keep_inf : bool, optional, default=False
         If False, mask excludes NaN and ±inf values.
         If True, mask excludes only NaNs and retains ±inf values.
