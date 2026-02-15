@@ -34,7 +34,7 @@ from .config import get_config_value, config
 from .numerical_utils import get_value, mask_within_range, to_list
 from .SpectrumPlus import SpectrumPlus
 from .text_utils import print_pretty_table
-from .units import ensure_common_unit, get_unit
+from .units import ensure_common_unit, get_unit, require_spectral_region, to_spectral_region
 from .utils import _unwrap_if_single
 
 
@@ -227,6 +227,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     -----
     - Warnings during the fitting process are suppressed.
     '''
+    region = to_spectral_region(region)
     # if input spectrum is SpectrumPlus object
     # extract the spectrum attribute
     if not isinstance(spectrum, Spectrum):
@@ -597,8 +598,9 @@ def _convert_region_units(region, spectral_axis):
     --------
     >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
     '''
+    region = to_spectral_region(region)
     if region is None:
-        return region
+        return None
 
     # extract unit
     unit = spectral_axis.unit
