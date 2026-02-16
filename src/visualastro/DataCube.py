@@ -22,14 +22,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from spectral_cube import SpectralCube
+from specutils import Spectrum
 from tqdm import tqdm
+from .spectra_utils import fit_continuum, mask_spectral_region
+from .spectra_utils import spectral_idx_2_world as _spectral_idx_2_world
 from .fits_utils import (
     _copy_headers, _get_history,
     _log_history, _remove_history,
     _transfer_history, _update_header_key,
 )
-from .units import ensure_common_unit, _check_unit_equality
+from .numerical_utils import get_data
 from .config import get_config_value, _default_flag
+from .spectra_utils import get_flux, get_spectral_axis
+from .units import ensure_common_unit, _check_unit_equality, require_spectral_region
 from .validation import (
     _check_shapes_match,
     _validate_iterable_type,
@@ -952,7 +957,7 @@ class DataCube:
         if not isinstance(cube, SpectralCube):
             raise ValueError(
                 'cube must be or contain a SpectralCube, '
-                f'got {type(cube)} instead!'
+                f'got {type(cube).__name__} instead!'
             )
 
         region = require_spectral_region(region)
@@ -1116,8 +1121,8 @@ class DataCube:
 
         # update header BUNIT
         new_hdr = _copy_headers(self.header)
-        _update_header_key('BUNIT', unit, new_hdr)
         _log_history(new_hdr, f'Converted cube unit to {unit.to_string()}')
+        _update_header_key('BUNIT', unit, new_hdr)
 
         return DataCube(
             data=new_data,
