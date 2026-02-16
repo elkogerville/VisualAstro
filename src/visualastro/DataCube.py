@@ -797,6 +797,274 @@ class DataCube:
 
         return new_cube
 
+    def spectral_idx_2_world(self, idx):
+        """
+        Return the spectral value at a given index or index range.
+
+        Parameters
+        ----------
+        idx : int, list of int, or None
+            Index or indices specifying the position along the spectral axis:
+            - ``i``      -> returns ``spectral_axis[i]``
+            - ``[i]``    -> returns ``spectral_axis[i]``
+            - ``[i, j]`` -> returns ``(spectral_axis[i] + spectral_axis[j]) / 2``
+            - ``None``   -> returns ``(spectral_axis[0] + spectral_axis[-1]) / 2``
+
+        Returns
+        -------
+        float
+            Spectral value at the specified index, in the units of the
+            cube's spectral axis.
+
+        Raises
+        ------
+        ValueError
+            If ``self.data`` is not a ``SpectralCube``.
+        ValueError
+            If ``idx`` is not an int, a list of one or two ints, or None.
+
+        See Also
+        --------
+        spectral_world_2_idx : Inverse operation, maps spectral value to index.
+        """
+        if not isinstance(self.data, SpectralCube):
+            raise ValueError(
+                'DataCube.data must be a SpectralCube!'
+            )
+        return _spectral_idx_2_world(
+            self.data.spectral_axis, idx, keep_unit=True
+        )
+
+    def spectral_world_2_idx(self, value):
+        """
+        Return the index of the nearest spectral channel to a given value.
+        If ``value`` has no unit, the cube unit is assumed.
+
+        Parameters
+        ----------
+        value : Quantity
+            Spectral value in the same units as the cube's spectral axis.
+
+        Returns
+        -------
+        int :
+            Index of the nearest spectral channel.
+
+        Raises
+        ------
+        ValueError :
+            If ``data`` attribute is not a ``SpectralCube``.
+        """
+        if not isinstance(self.data, SpectralCube):
+            raise ValueError(
+                'DataCube.data must be a SpectralCube!'
+            )
+        if not isinstance(value, Quantity):
+            value = value * self.spectral_unit
+
+        axis = self.data.spectral_axis
+        return int(np.argmin(np.abs(axis - value)))
+
+    def subtract_continuum(
+        self,
+        region,
+        fit_method=None,
+        min_valid_pixels='auto',
+        print_info=None,
+        auto_percentile=10,
+        minimum_floor=3
+    ):
+        """
+        Subtract a fitted continuum from each spatial pixel in the cube.
+
+        For each pixel, a continuum is fitted using only the spectral channels
+        within the specified region(s), then subtracted from all channels in
+        that pixel. This is useful for isolating emission or absorption features
+        by removing the underlying continuum.
+
+        The cube is first slabbed to the full spectral range encompassing all
+        subregions before fitting. For example, with region = [(6.5, 6.7),
+        (7.2, 7.5)] µm, the continuum fit uses only those two ranges but is
+        applied across the entire 6.5-7.5 µm span.
+
+        Note
+        ----
+        The error attribute of the DataCube is dropped during this operation.
+
+        Parameters
+        ----------
+        region : SpectralRegion or region input
+            Spectral region(s) to use for continuum fitting. Can be:
+            - SpectralRegion object
+            - (low, high) * unit for single region
+            - [(low, high), ...] * unit for multiple regions
+            - [(low * unit, high * unit), ...] for single or multiple regions
+            Regions outside emission/absorption features are typically chosen.
+        fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
+            Method used for fitting the continuum.
+            - 'fit_continuum': uses `fit_continuum` with a specified window
+            - 'generic' : uses `fit_generic_continuum`
+            If None, uses the default value from ``config.spectrum_continuum_fit_method``.
+        min_valid_pixels : int or 'auto', optional, default='auto'
+            Minimum valid flux data points needed in order to attempt a continuum fit.
+            If ``'auto'``, will compute a percentile-based threshold for valid pixels
+            along the spectral axis to use as the threshold.
+        auto_percentile : float, optional, default=10
+            Percentile of the nonzero valid-spectral-point counts used to automatically
+            set ``min_valid_pixels`` when ``min_valid_pixels='auto'``. Lower values are
+            more permissive; higher values are more restrictive. Must be between 0 and 100.
+        minimum_floor : int, optional, default=3
+            Lower limit for the minimum number of valid pixels. If the computed
+            or user-provided ``min_valid_pixels`` falls below this value, a ``ValueError``
+            is raised. This prevents continuum fitting attempts on pixels with
+            insufficient spectral data.
+        print_info : bool or None, optional, default=None
+            If True, will print the value of ``min_valid_pixels``.
+            If None, uses the default value set by ``config.print_info``.
+
+        Returns
+        -------
+        DataCube
+            A new DataCube with the fitted continuum subtracted from each pixel.
+            The spectral axis covers the full range of the input region.
+
+        Raises
+        ------
+        ValueError :
+            If ``self.data`` is not a SpectralCube.
+        UnitsError :
+            If the cube's spectral axis and region units are incompatible.
+        ValueError :
+            If no valid pixels are found in the region.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> # Subtract continuum fitted from two spectral windows
+        >>> # i.e. excluding an emission peak between 6.7-7.2 um
+        >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
+        >>> cube_sub = datacube.subtract_continuum(region)
+        """
+        fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
+        print_info = get_config_value(print_info, 'print_info')
+
+        cube = self.data
+        if not isinstance(cube, SpectralCube):
+            raise ValueError(
+                'cube must be or contain a SpectralCube, '
+                f'got {type(cube)} instead!'
+            )
+
+        region = require_spectral_region(region)
+        ensure_common_unit([cube.spectral_axis, region.lower], on_mismatch='raise')
+
+        spec_min = region.lower
+        spec_max = region.upper
+        subcube = cube.spectral_slab(spec_min, spec_max)
+        continuum_cube = np.full(subcube.shape, np.nan) * subcube.unit
+
+        ny, nx = subcube.shape[1:]
+        region_mask = mask_spectral_region(subcube.spectral_axis, region)
+
+        flux_data = subcube.filled_data[:]
+        finite_flux = np.isfinite(flux_data)
+        # 3D mask representing which x,y pixels are both
+        # within the region and finite for each spectral channel
+        valid_mask = finite_flux & region_mask[:, None, None]
+        # sum across spectral channels to get number of valid voxels
+        # along a single pixel column. this is a 2d map where each
+        # pixel contains the number of valid voxels in that column
+        N_valid = valid_mask.sum(axis=0)
+
+        # compute median number of valid flux pixels in cube
+        if str(min_valid_pixels).lower() == 'auto':
+
+            N_valid_flat = N_valid.ravel()
+            N_nonzero = N_valid_flat[N_valid_flat > 0]
+
+            if N_nonzero.size == 0:
+                raise ValueError(
+                    'No valid spectral pixels found in region. '
+                    'Continuum fitting is not possible.'
+                )
+
+            min_valid_pixels = int(
+                np.ceil(np.percentile(N_nonzero, auto_percentile))
+            )
+        else:
+            min_valid_pixels = int(min_valid_pixels)
+
+        if min_valid_pixels < minimum_floor:
+            raise ValueError(
+                f'Auto min_valid_pixels={min_valid_pixels} is below '
+                f'minimum_floor={minimum_floor}. '
+                'Widen the region or lower minimum_floor.'
+            )
+
+        # check if any spatial pixels have enough valid spectral points
+        # for continuum fitting. otherwise the output would be all NaNs.
+        if (N_valid >= min_valid_pixels).sum() == 0:
+            raise ValueError(
+                f'No pixels have enough valid points for continuum fitting. '
+                f'Required: {min_valid_pixels}, Maximum available: {N_valid.max()}. '
+                f'Try widening the region, lowering min_valid_pixels, or '
+                f'setting minimum_floor lower.'
+            )
+
+        if print_info:
+            # all valid pixels (finite and inside region)
+            n_any = (N_valid > 0).sum()
+            # valid pixels passing threshold
+            n_meeting = (N_valid >= min_valid_pixels).sum()
+
+            N_flat = N_valid.ravel()
+            N_nonzero = N_flat[N_flat > 0]
+
+            print(f'Minimum pixel threshold: {min_valid_pixels}')
+            print(f'Pixels with any valid data: {n_any}/{ny*nx} '
+                  f'({100*n_any/(ny*nx):.1f}%)')
+            print(f'Usable pixels passing threshold: {n_meeting}/{n_any} '
+                  f'({100*n_meeting/n_any:.1f}%)')
+
+            print(f'Valid spectral points per pixel (nonzero only): '
+                  f'min={N_nonzero.min()}, '
+                  f'mean={np.mean(N_nonzero):.0f}, '
+                  f'median={np.median(N_nonzero):.0f}, '
+                  f'max={N_nonzero.max()}')
+
+        for j in tqdm(range(ny), desc='Fitting continuum'):
+            for i in range(nx):
+
+                if N_valid[j, i] < min_valid_pixels:
+                    continue
+
+                pixel_flux = subcube[:, j, i]
+                spec = Spectrum(spectral_axis=subcube.spectral_axis, flux=pixel_flux)
+                cont_spec = fit_continuum(spec, fit_method, region)
+                continuum_cube[:, j, i] = cont_spec
+
+        continuum_subtracted_cube = subcube - continuum_cube
+
+        new_hdr = _copy_headers(self.header)
+        wcs_new = continuum_subtracted_cube.wcs.to_header()
+        # spectral axis only
+        for key in ('CRPIX3', 'CRVAL3', 'CDELT3', 'CUNIT3', 'CTYPE3'):
+            if key in wcs_new:
+                new_hdr[key] = wcs_new[key] # type: ignore
+
+        # PC/CD terms involving spectral axis
+        for key, val in wcs_new.items():
+            if key.startswith(('PC', 'CD')):
+                if key.endswith('3') or '_3' in key:
+                    new_hdr[key] = val
+
+        _log_history(new_hdr, 'Subtracted continuum from cube')
+
+        return DataCube(
+            data=continuum_subtracted_cube,
+            header=new_hdr
+        )
+
     def to(self, unit, equivalencies=None):
         '''
         Convert the DataCube data to a new physical unit.
