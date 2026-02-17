@@ -1,7 +1,7 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2025-10-22
+Date Modified: 2026-02-16
 Description:
     Spectra science functions.
 Dependencies:
@@ -10,6 +10,7 @@ Dependencies:
     - numpy
     - scipy
     - specutils
+    - tqdm
 Module Structure:
     - Spectra Extraction Functions
         Functions for extracting spectra from data.
@@ -17,7 +18,7 @@ Module Structure:
         Functions for plotting extracted spectra.
     - Spectra Fitting Functions
         Fitting routines for spectra.
-'''
+"""
 
 
 from collections import namedtuple
@@ -34,18 +35,17 @@ from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
-
 from .DataCube import DataCube
 from .data_cube_utils import stack_cube
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
     get_value,
+    interpolate as _interpolate,
     mask_within_range,
     shift_by_radial_vel,
     to_array,
-    to_list
+    to_list,
 )
-from .numerical_utils import interpolate as _interpolate
 from .plot_utils import (
     plot_vlines, return_stylename, sample_cmap, set_axis_labels,
     set_axis_limits, set_plot_colors
@@ -56,11 +56,11 @@ from .spectra_utils import (
     ExtractedPixelSpectra,
     deredden_flux,
     fit_continuum,
+    gaussian as _gaussian,
+    gaussian_continuum as _gaussian_continuum,
+    gaussian_line as _gaussian_line,
     get_spectral_axis,
 )
-from .spectra_utils import gaussian as _gaussian
-from .spectra_utils import gaussian_continuum as _gaussian_continuum
-from .spectra_utils import gaussian_line as _gaussian_line
 from .SpectrumPlus import SpectrumPlus
 from .units import ensure_common_unit, convert_quantity, get_unit
 from .utils import _unwrap_if_single
@@ -1018,8 +1018,9 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
     # set plot axis limits and labels
     set_axis_limits(wavelength_list, None, ax, xlim, ylim)
-    set_axis_labels(wavelength, extracted_spectrum.flux, ax,
-                    xlabel, ylabel, use_brackets=use_brackets)
+    set_axis_labels(
+        wavelength, flux, ax, xlabel, ylabel, use_brackets=use_brackets
+    )
 
     plot_vlines(vline, ax, extracted_spectrum.unit)
 
