@@ -136,15 +136,16 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
 
     The function follows a recursive search strategy:
 
-    1. If `obj` is a `SpectralAxis`, its `.unit` attribute is returned.
-    2. If `obj` is an `astropy.units.Quantity`, its unit is
+    1. If ``obj`` is a ``SpectralAxis``, its ``.unit`` attribute is returned.
+    2. If ``obj`` is an ``astropy.units.Quantity``, its unit is
        returned if it is convertible to a spectral unit using
-       `u.spectral()` equivalencies.
-    3. If `obj` has a `.spectral_unit` attribute.
-    4. If `obj` has a `.data` attribute, the function is applied
-       recursively to `obj.data`.
-    5. If `obj` has a `.spectral_axis` attribute, the function is applied
-       recursively to that object.
+       ``u.spectral()`` or ``u.doppler_radio`` equivalencies.
+    3. If ``obj`` has a ``.spectral_unit`` attribute, the function
+       is applied recursively to ``obj.spectral_unit``.
+    4. If ``obj`` has a ``.data`` attribute, the function is applied
+       recursively to ``obj.data``.
+    5. If ``obj`` has a ``.spectral_axis`` attribute, the function is applied
+       recursively to ``obj.spectral_axis``.
 
     If no spectral unit can be identified, the function returns None.
 
@@ -444,7 +445,7 @@ def ensure_common_unit(
 
     Raises
     ------
-    UnitsError
+    UnitsError :
         If a unit mismatch is detected and `on_mismatch='raise'`.
     """
     on_mismatch = get_config_value(on_mismatch, 'unit_mismatch')
