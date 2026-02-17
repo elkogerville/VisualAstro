@@ -168,16 +168,11 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, SpectralAxis):
         return to_unit(obj.unit)
 
-    if isinstance(obj, Quantity) and obj.unit is not None:
-        try:
-            if obj.unit.is_equivalent(u.m, equivalencies=u.spectral()):
-                return to_unit(obj.unit)
-        except Exception:
-            pass
-        return None
+    if isinstance(obj, Quantity) and _is_spectral_axis(obj):
+        return to_unit(obj.unit)
 
     unit = getattr(obj, 'spectral_unit', None)
-    if unit is not None:
+    if unit is not None and _is_spectral_axis(unit):
         return to_unit(unit)
 
     if hasattr(obj, 'data'):
@@ -185,14 +180,14 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         if data is not obj:
             unit = get_spectral_unit(data)
             if unit is not None:
-                return to_unit(unit)
+                return unit
 
     if hasattr(obj, 'spectral_axis'):
         spectral_axis = obj.spectral_axis
         if spectral_axis is not obj:
             unit = get_spectral_unit(spectral_axis)
             if unit is not None:
-                return to_unit(unit)
+                return unit
 
     return None
 
@@ -486,58 +481,69 @@ def ensure_common_unit(
     return out
 
 
-def _is_spectral_axis(obj):
+def _is_spectral_axis(obj: Any) -> bool:
     """
-    Determine whether an object represents a spectral axis.
+    Determine whether an object represents a spectral axis or a spectral quantity.
 
-    An object is considered a spectral axis if it explicitly exposes
-    spectral metadata (e.g., `spectral_axis` or `spectral_unit`), or if
-    its unit corresponds to a spectral quantity such as wavelength,
-    frequency, energy, or Doppler velocity. Length units are only treated
-    as spectral when they are convertible via Astropy spectral
-    equivalencies.
+    An object is considered spectral if any of the following is true:
+    1. It is a ``SpectralAxis`` instance.
+    2. It exposes a ``.spectral_axis`` or ``.spectral_unit`` attribute that itself
+        represents a spectral axis.
+    3. Its unit corresponds to a spectral quantity such as wavelength, frequency,
+        energy, or Doppler velocity, as determined via Astropy's ``u.spectral()``
+        or ``u.doppler_radio()`` equivalencies.
 
     Parameters
     ----------
-    obj : any
-        An object describing an axis. This may be a SpectralCube,
-        Spectrum1D, Quantity, or any object exposing a unit.
+    obj : Any
+        The object to evaluate. This may be a ``SpectralAxis``, ``Quantity``,
+        unit, or any object exposing spectral metadata.
 
     Returns
     -------
     bool
-        True if the object represents a spectral axis, False otherwise.
+        True if the object represents a spectral axis or spectral quantity, False otherwise.
 
     Notes
     -----
-    - Length units (e.g., meters, microns) are only interpreted as
-      wavelengths when spectral context can be inferred.
-    - Plain length quantities without spectral context are not
-      automatically treated as spectral axes.
+    - Length units (e.g., meters, microns) are only treated as spectral when
+        they can be converted to frequency using ``u.spectral()`` equivalencies.
+    - Plain length quantities without spectral context are not automatically
+        considered spectral axes.
+    - Doppler velocity units are recognized only if they can be converted
+        to a spectral representation using ``u.doppler_radio()`` equivalencies.
     """
-
-    if hasattr(obj, 'spectral_axis') or hasattr(obj, 'spectral_unit'):
+    if isinstance(obj, SpectralAxis):
         return True
+
+    for attr in ('spectral_axis', 'spectral_unit'):
+        val = getattr(obj, attr, None)
+        if val is not None and _is_spectral_axis(val):
+            return True
 
     unit = get_unit(obj)
+    physical_type = get_physical_type(obj)
     if unit is None:
         return False
+    if physical_type is None:
+        return False
 
-    physical_type = unit.physical_type
-
-    if physical_type in {
-        physical.frequency,
-        physical.energy,
-        physical.speed,
-    }:
-        return True
-
-    if physical_type is physical.length:
+    if physical_type == 'length':
         try:
             unit.to(u.Hz, equivalencies=u.spectral())
             return True
-        except Exception:
-            pass
+        except UnitConversionError:
+            return False
+
+    if physical_type == 'speed':
+        try:
+            unit.to(u.Hz, equivalencies=u.doppler_radio(u.Hz))
+            return True
+        except UnitConversionError:
+            return False
+
+    if physical_type in {'frequency', 'energy'}:
+        return True
 
     return False
 
