@@ -24,8 +24,12 @@ from numpy.typing import NDArray
 from spectral_cube import SpectralCube
 from specutils import Spectrum
 from tqdm import tqdm
-from .spectra_utils import fit_continuum, mask_spectral_region
-from .spectra_utils import spectral_idx_2_world as _spectral_idx_2_world
+from .spectra_utils import (
+    fit_continuum,
+    mask_spectral_region,
+    spectral_idx_2_world as _spectral_idx_2_world,
+    spectral_world_2_idx as _spectral_world_2_idx
+)
 from .fits_utils import (
     _copy_headers, _get_history,
     _log_history, _remove_history,
@@ -864,11 +868,10 @@ class DataCube:
             raise ValueError(
                 'DataCube.data must be a SpectralCube!'
             )
-        if not isinstance(value, Quantity):
-            value = value * self.spectral_unit
 
-        axis = self.data.spectral_axis
-        return int(np.argmin(np.abs(axis - value)))
+        return _spectral_world_2_idx(
+            self.data.spectral_axis, value
+        )
 
     def subtract_continuum(
         self,
