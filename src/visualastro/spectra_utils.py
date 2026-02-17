@@ -22,7 +22,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import Any, Optional
 import warnings
-from astropy.units import Quantity
+import astropy.units as u
+from astropy.units import Quantity, UnitConversionError
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
@@ -34,7 +35,13 @@ from .config import get_config_value, config
 from .numerical_utils import get_value, mask_within_range, to_list
 from .SpectrumPlus import SpectrumPlus
 from .text_utils import print_pretty_table
-from .units import ensure_common_unit, get_unit, require_spectral_region, to_spectral_region
+from .units import (
+    ensure_common_unit,
+    get_unit,
+    require_spectral_region,
+    to_spectral_region,
+    _is_spectral_axis
+)
 from .utils import _unwrap_if_single
 
 
@@ -69,8 +76,12 @@ def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     if isinstance(obj, SpectralAxis):
         return obj
 
-    if hasattr(obj, 'spectral_axis'):
-        return obj.spectral_axis
+    if isinstance(obj, Quantity) and _is_spectral_axis(obj):
+        return obj
+
+    spectral_axis = getattr(obj, 'spectral_axis', None)
+    if spectral_axis is not None and _is_spectral_axis(spectral_axis):
+        return spectral_axis
 
     if hasattr(obj, 'data'):
         data = obj.data
