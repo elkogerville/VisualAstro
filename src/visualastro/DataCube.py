@@ -16,7 +16,10 @@ Module Structure:
 
 import warnings
 from astropy.io.fits import Header
-from astropy.units import Quantity, Unit, UnitsError
+from astropy.units import (
+    Quantity, Unit, UnitBase,
+    UnitsError, StructuredUnit
+)
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
@@ -349,12 +352,12 @@ class DataCube:
     # Properties
     # ----------
     @property
-    def value(self):
-        '''
+    def value(self) -> NDArray:
+        """
         Returns
         -------
         np.ndarray : View of the underlying numpy array.
-        '''
+        """
         if isinstance(self.data, SpectralCube):
             return self.data.filled_data[:].value
         if isinstance(self.data, Quantity):
@@ -362,17 +365,20 @@ class DataCube:
         else:
             return np.asarray(self.data)
     @property
-    def quantity(self):
-        '''
+    def quantity(self) -> Quantity | None:
+        """
         Returns
         -------
-        Quantity : Quantity array of data values (values + astropy units).
-        '''
+        Quantity or None :
+            Quantity array of data values (values + astropy units),
+            of None if no units.
+
+        """
         if self.unit is None:
             return None
         return self.unit * self.value
     @property
-    def unit(self):
+    def unit(self) -> UnitBase | StructuredUnit | None:
         """
         Returns
         -------
@@ -380,7 +386,7 @@ class DataCube:
         """
         return getattr(self.data, 'unit', None)
     @property
-    def spectral_unit(self):
+    def spectral_unit(self) -> UnitBase | None:
         """
         Returns
         -------
@@ -392,127 +398,127 @@ class DataCube:
 
     # statistical properties
     @property
-    def min(self):
-        '''
+    def min(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Minimum value in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('min')
     @property
-    def max(self):
-        '''
+    def max(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Maximum value in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('max')
     @property
-    def mean(self):
-        '''
+    def mean(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Mean of all values in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('mean')
     @property
-    def median(self):
-        '''
+    def median(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Median of all values in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('median')
     @property
-    def sum(self):
-        '''
+    def sum(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Sum of all values in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('sum')
     @property
-    def std(self):
-        '''
+    def std(self) -> float | Quantity:
+        """
         Returns
         -------
         Quantity or float
             Standard deviation of all values in the cube, ignoring NaNs.
-        '''
+        """
         return self._stat('std')
 
     # array properties
     @property
-    def shape(self):
-        '''
+    def shape(self) -> tuple:
+        """
         Returns
         -------
         tuple : Shape of cube data.
-        '''
+        """
         return self.value.shape
     @property
-    def size(self):
-        '''
+    def size(self) -> int:
+        """
         Returns
         -------
         int : Size of cube data.
-        '''
+        """
         return self.value.size
     @property
-    def ndim(self):
-        '''
+    def ndim(self) -> int:
+        """
         Returns
         -------
         int : Number of dimensions of cube data.
-        '''
+        """
         return self.value.ndim
     @property
-    def dtype(self):
-        '''
+    def dtype(self) -> np.dtype:
+        """
         Returns
         -------
         np.dtype : Datatype of the cube data.
-        '''
+        """
         return self.value.dtype
     @property
-    def has_nan(self):
-        '''
+    def has_nan(self) -> np.bool:
+        """
         Returns
         -------
         bool : Returns True if there are NaNs in the cube.
-        '''
+        """
         return np.isnan(self.value).any()
     @property
-    def itemsize(self):
-        '''
+    def itemsize(self) -> int:
+        """
         Returns
         -------
         int : Length of 1 array element in bytes.
-        '''
+        """
         return self.value.itemsize
     @property
-    def nbytes(self):
-        '''
+    def nbytes(self) -> int:
+        """
         Returns
         -------
         int : Total number of bytes used by the data array.
-        '''
+        """
         return self.value.nbytes
     @property
-    def log(self):
-        '''
+    def log(self) -> list[str] | None:
+        """
         Get the processing history from the FITS HISTORY cards.
 
         Returns
         -------
         list of str or None
             List of HISTORY entries, or None if no header exists.
-        '''
+        """
         return _get_history(self.primary_header)
 
     # Methods
@@ -1350,8 +1356,8 @@ class DataCube:
         return self.value.reshape(*shape)
 
     # statistical property helper
-    def _stat(self, func):
-        '''
+    def _stat(self, func: str) -> float | Quantity:
+        """
         Compute a statistical property of the data, handling Quantity and SpectralCube
         objects.
 
@@ -1368,7 +1374,7 @@ class DataCube:
 
         Returns
         -------
-        value : float, `astropy.units.Quantity`, or scalar-like
+        value : float or `astropy.units.Quantity`
             The computed statistical value. If the underlying data includes
             units, the returned value is a `Quantity`; otherwise it is a unitless
             NumPy scalar.
@@ -1377,7 +1383,7 @@ class DataCube:
         ------
         KeyError
             If an unsupported statistic name is provided.
-        '''
+        """
         _STAT_FUNCS = {
             'min': np.nanmin,
             'max': np.nanmax,
