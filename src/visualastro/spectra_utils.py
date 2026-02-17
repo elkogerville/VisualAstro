@@ -536,9 +536,10 @@ def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
 
     Parameters
     ----------
-    spectral_axis : Quantity
+    spectral_axis : Quantity or SpectralAxis
         The spectral axis (e.g., wavelength, frequency, or
-        velocity) as an 'astropy.units.Quantity' array.
+        velocity) as an ``astropy.units.Quantity`` or a
+        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
     idx : int or list of int
         Index or indices specifying the slice along the first axis:
         - i -> returns ``spectral_axis[i]``
@@ -551,7 +552,7 @@ def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
 
     Returns
     -------
-    spectral_value : float
+    spectral_value : float or Quantity
         The spectral value at the specified index or index
         range, in the units of 'spectral_axis'.
     """
@@ -574,6 +575,45 @@ def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
         raise ValueError("'idx' must be an int or a list of one or two integers")
 
     return result if keep_unit else result.value
+
+
+def spectral_world_2_idx(spectral_axis, value):
+    """
+    Return the index of the nearest spectral channel to a given value.
+    If ``value`` has no unit, the cube unit is assumed.
+
+    Parameters
+    ----------
+    spectral_axis : Quantity or SpectralAxis
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an ``astropy.units.Quantity`` or a
+        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
+    value : Quantity
+        Spectral value in the same units as the cube's spectral axis.
+
+    Returns
+    -------
+    int :
+        Index of the nearest spectral channel.
+
+    Raises
+    ------
+    ValueError :
+        If ``spectral_axis`` is not a ``SpectralAxis`` or ``Quantity``.
+    UnitsError :
+        If a unit mismatch is detected.
+    """
+    spectral_axis = get_spectral_axis(spectral_axis)
+    if not isinstance(spectral_axis, (Quantity, SpectralAxis)):
+        raise ValueError(
+            'spectral_axis must be a Quantity or SpectralAxis!'
+        )
+    if not isinstance(value, Quantity):
+        value = value * spectral_axis.unit
+    else:
+        ensure_common_unit([spectral_axis, value], on_mismatch='raise')
+
+    return int(np.argmin(np.abs(spectral_axis - value)))
 
 
 def mask_spectral_region(x, spectral_region):
