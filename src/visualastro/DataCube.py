@@ -1,20 +1,22 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-01-15
+Date Modified: 2026-02-18
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
 Dependencies:
     - astropy
+    - matplotlib
     - numpy
     - spectral_cube
+    - specutils
+    - tqdm
 Module Structure:
     - DataCube
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
-from typing import Any
 import warnings
 from astropy.io.fits import Header
 from astropy.units import (
@@ -39,10 +41,11 @@ from .fits_utils import (
     _log_history, _remove_history,
     _transfer_history, _update_header_key,
 )
-from .numerical_utils import get_data
 from .config import get_config_value, _default_flag
-from .spectra_utils import get_flux, get_spectral_axis
-from .units import ensure_common_unit, _check_unit_equality, require_spectral_region, to_unit
+from .units import (
+    ensure_common_unit, _check_unit_equality,
+    require_spectral_region, to_unit
+)
 from .validation import (
     _check_shapes_match,
     _validate_iterable_type,
