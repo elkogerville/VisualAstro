@@ -450,7 +450,11 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
             ax.add_patch(e)
         # plot default/interactive ellipse
         else:
-            plot_interactive_ellipse(center, w, h, ax, text_loc, text_color, highlight)
+            plot_interactive_ellipse(
+                center, w, h, ax, text_loc,
+                text_color, highlight,
+                rotation_step=kwargs.get('rotation_step', 5)
+            )
             draw_spectral_label = False
 
     # plot wavelength/frequency of current spectral slice, and emission line
