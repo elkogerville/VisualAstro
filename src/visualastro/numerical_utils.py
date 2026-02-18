@@ -252,6 +252,36 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
 
 # Numerical Operation Functions
 # -----------------------------
+def flatten(data: Any) -> NDArray | None:
+    """
+    Flatten a dataset or a list of datasets into
+    a single 1D array.
+
+    Parameters
+    ----------
+    data : array-like or list of array-like
+        Dataset(s) to flatten.
+
+    Returns
+    -------
+    flat_array : np.ndarray
+        Flattened array.
+    """
+    if data is None:
+        return None
+
+    if isinstance(data, (list, tuple)):
+        arrays = [
+            np.asarray(d).ravel()
+            for d in data
+            if d is not None and np.size(d) > 0
+        ]
+        return np.concatenate(arrays) if arrays else None
+
+    array = np.asarray(data).ravel()
+    return array if array.size > 0 else None
+
+
 def interpolate(xp, yp, x_range, N_samples, method='linear'):
     '''
     Interpolate a 1D array over a specified range.
