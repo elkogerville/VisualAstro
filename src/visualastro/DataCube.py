@@ -14,6 +14,7 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
+from typing import Any
 import warnings
 from astropy.io.fits import Header
 from astropy.units import (
@@ -41,7 +42,7 @@ from .fits_utils import (
 from .numerical_utils import get_data
 from .config import get_config_value, _default_flag
 from .spectra_utils import get_flux, get_spectral_axis
-from .units import ensure_common_unit, _check_unit_equality, require_spectral_region
+from .units import ensure_common_unit, _check_unit_equality, require_spectral_region, to_unit
 from .validation import (
     _check_shapes_match,
     _validate_iterable_type,
@@ -229,15 +230,7 @@ class DataCube:
                 header = Header()
 
         # extract array view for validation
-        if isinstance(data, SpectralCube):
-            array = data.filled_data[:].value
-            unit = data.unit
-        elif isinstance(data, Quantity):
-            array = data.value
-            unit = data.unit
-        else:
-            array = np.asarray(data)
-            unit = None
+        array, unit = self._get_value(data)
 
         # shape validation
         if array.ndim != 3:
@@ -341,13 +334,13 @@ class DataCube:
             nowcs_header = header
 
         # assign attributes
-        self.data = data
-        self.primary_header = primary_hdr
-        self.header = header
-        self.nowcs_header = nowcs_header
-        self.error = error
-        self.wcs = wcs
-        self.footprint = None
+        self.data: NDArray | Quantity | SpectralCube = data
+        self.primary_header: Header = primary_hdr
+        self.header: Header | list[Header] = header
+        self.nowcs_header: Header | list[Header]  = nowcs_header
+        self.error: NDArray | Quantity | None = error
+        self.wcs: WCS | list[WCS] | tuple[WCS] | None = wcs
+        self.footprint: NDArray | None = None
 
     # Properties
     # ----------
@@ -358,12 +351,9 @@ class DataCube:
         -------
         np.ndarray : View of the underlying numpy array.
         """
-        if isinstance(self.data, SpectralCube):
-            return self.data.filled_data[:].value
-        if isinstance(self.data, Quantity):
-            return self.data.value
-        else:
-            return np.asarray(self.data)
+        value, unit = self._get_value(self.data)
+        return value
+
     @property
     def quantity(self) -> Quantity | None:
         """
@@ -1355,7 +1345,35 @@ class DataCube:
         '''
         return self.value.reshape(*shape)
 
-    # statistical property helper
+
+    # HELPER FUNCTIONS
+    # ----------------
+    def _get_value(self, data):
+        """
+        Get the underlying array representation of the data.
+
+        Parameters
+        ----------
+        data : array-like, Quantity, or SpectralCube
+            Data object containing an np.ndarray
+
+        Returns
+        -------
+        value :
+            np.ndarray
+        """
+        if isinstance(data, SpectralCube):
+            array = data.filled_data[:].value
+            unit = to_unit(data.unit)
+        elif isinstance(data, Quantity):
+            array = data.value
+            unit = to_unit(data.unit)
+        else:
+            array = np.asarray(data)
+            unit = None
+
+        return array, unit
+
     def _stat(self, func: str) -> float | Quantity:
         """
         Compute a statistical property of the data, handling Quantity and SpectralCube
