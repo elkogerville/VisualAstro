@@ -27,6 +27,7 @@ import os
 from typing import Any
 import warnings
 from functools import partial
+import astropy.units as u
 from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
@@ -36,10 +37,11 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
+from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import stack_cube
 from .numerical_utils import (
-    compute_density_kde, get_data, get_value, to_array, to_list
+    compute_density_kde, flatten, get_data, get_value, to_array, to_list
 )
 from .units import (
     to_latex_unit, get_physical_type,
@@ -744,75 +746,129 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
     return cs
 
 
-def set_axis_limits(xdata, ydata, ax, xlim=None, ylim=None, **kwargs):
-    '''
-    Set axis limits based on concatenated data or user-provided limits.
+def set_axis_limits(
+    xdata=None,
+    ydata=None,
+    *,
+    ax=None,
+    xlim=None,
+    ylim=None,
+    **kwargs,
+):
+    """
+    Set axis limits on a Matplotlib Axes based on data range
+    and optional user-specified limits.
 
     Parameters
     ----------
-    xdata : list/tuple of arrays or array
-        X-axis data from multiple datasets.
-    ydata : list/tuple of arrays or array
-        Y-axis data from multiple datasets.
-    ax : matplotlib axis
-        The matplotlib axes object on which to set the axis limits.
-    xlim : tuple/list, optional
-        User-defined x-axis limits.
-    ylim : tuple/list, optional
-        User-defined y-axis limits.
+    xdata : array-like, list of array-like, or None, optional
+        X-axis data. Can be a single array, a list of arrays, or None.
+        If None, the X-axis will be autoscaled unless ``xlim`` is provided.
+    ydata : array-like, list of array-like, or None, optional
+        Y-axis data. Can be a single array, a list of arrays, or None.
+        If None, the Y-axis will be autoscaled unless ``ylim`` is provided.
+    ax : matplotlib.axes.Axes
+        The Axes object on which to set the limits. Required.
+    xlim : tuple of float, optional
+        User-defined X-axis limits. If provided, only data within this range
+        is considered when computing Y-axis limits automatically.
+    ylim : tuple of float, optional
+        User-defined Y-axis limits. If provided, only data within this range
+        is considered when computing X-axis limits automatically.
+    xpad : float or None, optional, default=None
+        Fractional padding to apply to X-axis limits. If None,
+        uses the default value from ``config.xpad``.
+    ypad : float or None, optional, default=None
+        Fractional padding to apply to Y-axis limits. If None,
+        uses the default value from ``config.ypad``.
 
-    **kwargs : dict, optional
-        Additional parameters.
+    Returns
+    -------
+    xlim_out : tuple of float
+        The X-axis limits that were applied to the Axes.
+    ylim_out : tuple of float
+        The Y-axis limits that were applied to the Axes.
 
-        Supported keywords:
+    Notes
+    -----
+    - If both ``xdata`` and ``ydata`` are provided as lists, they must have the same length
+        or be broadcastable (single array broadcast across multiple arrays of the other axis).
+    - Data outside user-provided ``xlim`` or ``ylim`` is ignored when computing automatic limits.
+    - Both scalar and multi-dimensional arrays are flattened before processing.
+    - If all data is ``None`` or empty, the corresponding axis will not be modified.
+    """
+    xpad_frac = kwargs.get('xpad', config.xpad)
+    ypad_frac = kwargs.get('ypad', config.ypad)
 
-        - `xpad`/`ypad` : float, optional, default=`config.xpad`/`config.ypad`
-            Padding along x and y axis used when computing axis limits.
-            Defined as:
-                xmax/min ±= xpad * (xmax - xmin)
-                ymax/min ±= ypad * (ymax - ymin)
-    '''
-    # ---- KWARGS ----
-    xpad = kwargs.get('xpad', config.xpad)
-    ypad = kwargs.get('ypad', config.ypad)
+    if ax is None:
+        raise ValueError('ax must be an axes instance')
 
-    if xdata is not None:
-        # concatenate list of data into single array
-        if isinstance(xdata, (list, tuple)):
-            xdata = np.concatenate(xdata)
-        else:
-            xdata = np.asarray(xdata)
-        # min and max values across data sets
-        xmin = get_value(np.nanmin(xdata))
-        xmax = get_value(np.nanmax(xdata))
-        # pad xlim
-        if xpad > 0:
-            dx = xmax - xmin
-            xmin -= xpad * dx
-            xmax += xpad * dx
-        # use computed limits unless user overides
-        xlim = xlim if xlim is not None else [xmin, xmax]
+    if xdata is not None and ydata is not None:
+        xdata = to_list(xdata)
+        ydata = to_list(ydata)
 
-    if ydata is not None:
-        # concatenate list of data into single array
-        if isinstance(ydata, (list, tuple)):
-            ydata = np.concatenate(ydata)
-        else:
-            ydata = np.asarray(ydata)
-        # min and max values across data sets
-        ymin = get_value(np.nanmin(ydata))
-        ymax = get_value(np.nanmax(ydata))
-        # pad ylim
-        if ypad > 0:
-            dy = ymax - ymin
-            ymin -= ypad * dy
-            ymax += ypad * dy
-        # use computed limits unless user overides
-        ylim = ylim if ylim is not None else [ymin, ymax]
+        if len(xdata) == 1:
+            xdata = xdata * len(ydata)
+        if len(ydata) == 1:
+            ydata = ydata * len(xdata)
+        if len(xdata) != len(ydata):
+            raise ValueError('Cannot broadcast xdata and ydata')
 
-    # set x and y limits
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
+        xs, ys = [], []
+        for x, y in zip(xdata, ydata):
+            if x is None or y is None:
+                continue
+
+            x = np.asarray(x).ravel()
+            y = np.asarray(y).ravel()
+            if x.shape != y.shape:
+                raise ValueError('Each x/y pair must match in shape')
+
+            mask = np.ones_like(x, bool)
+            if xlim is not None:
+                mask &= (x >= get_value(xlim[0])) & (x <= get_value(xlim[1]))
+            if ylim is not None:
+                mask &= (y >= get_value(ylim[0])) & (y <= get_value(ylim[1]))
+
+            if np.any(mask):
+                xs.append(x[mask])
+                ys.append(y[mask])
+
+        xvals = np.concatenate(xs) if xs else None
+        yvals = np.concatenate(ys) if ys else None
+
+    else:
+        xvals = None
+        if xdata is not None:
+            xvals = flatten(xdata)
+            if xvals is not None and xlim is not None:
+                mask = (xvals >= get_value(xlim[0])) & (xvals <= get_value(xlim[1]))
+                xvals = xvals[mask] if np.any(mask) else xvals
+
+        yvals = None
+        if ydata is not None:
+            yvals = flatten(ydata)
+            if yvals is not None and ylim is not None:
+                mask = (yvals >= get_value(ylim[0])) & (yvals <= get_value(ylim[1]))
+                yvals = yvals[mask] if np.any(mask) else yvals
+
+    if xlim is None and xvals is not None and len(xvals) > 0:
+        xmin, xmax = np.nanmin(xvals), np.nanmax(xvals)
+        xpad = xpad_frac * (xmax - xmin)
+        xlim = (xmin - xpad, xmax + xpad)
+
+    if ylim is None and yvals is not None and len(yvals) > 0:
+        ymin, ymax = np.nanmin(yvals), np.nanmax(yvals)
+        ypad = ypad_frac * (ymax - ymin)
+        ylim = (ymin - ypad, ymax + ypad)
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+    return xlim, ylim
 
 
 def set_axis_labels(
