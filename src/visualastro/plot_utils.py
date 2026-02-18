@@ -1136,7 +1136,7 @@ def copy_ellipse(ellipse):
 
 
 def plot_ellipses(ellipses, ax):
-    '''
+    """
     Plots an ellipse or list of ellipses to an axes.
 
     Parameters
@@ -1145,66 +1145,89 @@ def plot_ellipses(ellipses, ax):
         The Ellipse or list of Ellipses to plot.
     ax : matplotlib.axes.Axes
         Matplotlib axis on which to plot the ellipses(s).
-    '''
+    """
     if ellipses is not None:
         # ensure ellipses is iterable
-        ellipses = ellipses if isinstance(ellipses, list) else [ellipses]
+        ellipses = to_list(ellipses)
         # plot each ellipse
         for ellipse in ellipses:
             ax.add_patch(copy_ellipse(ellipse))
 
 
 def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
-                             text_color=None, highlight=None):
-    '''
-    Create an interactive ellipse selector on an Axes
-    along with an interactive text window displaying
-    the current ellipse center, width, and height.
+                             text_color=None, highlight=None,
+                             angle=0.0, rotation_step=5.0):
 
-    Parameters
-    ----------
-    center : tuple of float
-        (x, y) coordinates of the ellipse center in data units.
-    w : float
-        Width of the ellipse.
-    h : float
-        Height of the ellipse.
-    ax : matplotlib.axes.Axes
-        The Axes on which to draw the ellipse selector.
-    text_loc : list of float or None, optional, default=None
-        Position of the text label in Axes coordinates, given as [x, y].
-        If None, uses the default value set in `config.text_loc`.
-    text_color : str or None, optional, default=None
-        Color of the annotation text. If None, uses
-        the default value set in `config.text_color`.
-    highlight : bool or None, optional, default=None
-        If True, adds a bbox to highlight the text. If None,
-        uses the default value set in `config.highlight`.
-
-    Notes
-    -----
-    Ensure an interactive backend is active. This can be
-    activated with use_interactive().
-    '''
-    # get default config values
     text_loc = get_config_value(text_loc, 'ellipse_label_loc')
     text_color = get_config_value(text_color, 'text_color')
     highlight = get_config_value(highlight, 'highlight')
 
-    # define text for ellipse data display
     facecolor = 'k' if text_color == 'w' else 'w'
     bbox = dict(facecolor=facecolor, alpha=0.6, edgecolor="none") if highlight else None
-    text = ax.text(text_loc[0], text_loc[1], '',
-                   transform=ax.transAxes,
-                   size='small', color=text_color,
-                   bbox=bbox)
-    # define ellipse
-    ellipse_region = EllipsePixelRegion(center=PixCoord(x=center[0], y=center[1]),
-                                        width=w, height=h)
-    # define interactive ellipse
-    selector = ellipse_region.as_mpl_selector(ax, callback=partial(_update_ellipse_region, text=text))
-    # bind ellipse to axes
+
+    text = ax.text(
+        text_loc[0], text_loc[1], '',
+        transform=ax.transAxes,
+        size='small',
+        color=text_color,
+        bbox=bbox
+    )
+
+    # create and store region explicitly
+    region = EllipsePixelRegion(
+        center=PixCoord(x=center[0], y=center[1]),
+        width=w,
+        height=h,
+        angle=angle * u.deg
+    )
+
+    selector = region.as_mpl_selector(
+        ax,
+        callback=partial(_update_ellipse_region, text=text)
+    )
+
     ax._ellipse_selector = selector
+    ax._ellipse_region = region
+
+    artist = selector._selection_artist
+    artist.angle = angle
+
+    # initialize display
+    _update_ellipse_region(region, text=text)
+
+    def _rotate(event):
+
+        key = event.key
+
+        if key not in ('e', 'f', 't', 'o'):
+            return
+
+        artist = selector._selection_artist
+        region = ax._ellipse_region
+
+        if key == 'e':
+            artist.angle -= rotation_step
+
+        elif key == 'f':
+            artist.angle += rotation_step
+
+        elif key == 't':
+            artist.angle = 0.0
+
+        elif key == 'o':
+            selector.set_active(not selector.active)
+            return
+
+        # synchronize region ← artist
+        region.angle = -artist.angle * u.deg
+
+        artist.figure.canvas.draw_idle()
+
+        _update_ellipse_region(region, text=text)
+
+    ax.figure.canvas.mpl_connect("key_press_event", _rotate)
+
+    return selector
 
 
 def _update_ellipse_region(region, text):
@@ -1224,6 +1247,7 @@ def _update_ellipse_region(region, text):
     y_center = region.center.y
     width = region.width
     height = region.height
+    angle = region.angle
     major = max(width, height)
     minor = min(width, height)
     # display properties
@@ -1231,11 +1255,12 @@ def _update_ellipse_region(region, text):
         f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
         f'Major: {major:.1f}\n'
         f'Minor: {minor:.1f}\n'
+        f'Angle: {angle:.1f}\n'
     )
 
 
-def return_ellipse_region(center, w, h, angle=0, fill=False):
-    '''
+def ellipse_patch(center, w, h, angle=0, fill=False):
+    """
     Create a matplotlib.patches.Ellipse object.
 
     Parameters
@@ -1246,21 +1271,19 @@ def return_ellipse_region(center, w, h, angle=0, fill=False):
         Width of the ellipse (along x-axis before rotation).
     h : float
         Height of the ellipse (along y-axis before rotation).
-    angle : float, default=0
+    angle : float, optional, default=0
         Rotation angle of the ellipse in degrees (counterclockwise).
-    fill : bool, default=False
+    fill : bool, optional, default=False
         Whether the ellipse should be filled (True) or only outlined (False).
 
     Returns
     -------
-    matplotlib.patches.Ellipse
+    ellipse : matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
-    '''
-    ellipse = Ellipse(
+    """
+    return Ellipse(
         xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill
     )
-
-    return ellipse
 
 
 def plot_points(points, ax, color='r', size=20, marker='*'):
