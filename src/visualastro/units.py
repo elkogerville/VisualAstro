@@ -406,15 +406,14 @@ def ensure_common_unit(
     *,
     unit=None,
     on_mismatch=None,
-    label=None,
-    return_unit=False
+    label=None
 ):
     """
     Check unit consistency across one or more objects.
 
     This function verifies that all objects with defined units share the same
-    unit. No unit conversion is performed; objects are returned unchanged.
-    The function will either raise an UnitsError, issue a warning, or ignore.
+    unit. No unit conversion is performed. The function will either raise an
+    UnitsError, issue a warning, or ignore.
 
     Parameters
     ----------
@@ -430,13 +429,11 @@ def ensure_common_unit(
     label : str or None, optional, default=None
         Optional context label prepended to warnings or errors.
         Is ignored if None.
-    return_unit : bool, optional, default=False
-        If True, return the common unit extracted instead of ``objs``.
 
     Returns
     -------
-    objs : list
-        List of input objects, returned unchanged.
+    ref_unit : UnitBase
+        Common unit between ``objs``.
 
     Raises
     ------
@@ -449,7 +446,7 @@ def ensure_common_unit(
     units = [get_unit(obj) for obj in objs]
 
     if all(u is None for u in units):
-        return objs
+        return None
 
     ref_unit = Unit(unit) if unit is not None else next(
         u for u in units if u is not None
@@ -457,10 +454,8 @@ def ensure_common_unit(
 
     prefix = f'{label}: ' if isinstance(label, str) else ''
 
-    out = []
-    for i, (obj, u) in enumerate(zip(objs, units)):
+    for i, u in enumerate(units):
         if u is None or u == ref_unit:
-            out.append(obj)
             continue
 
         if on_mismatch == 'raise':
@@ -474,11 +469,7 @@ def ensure_common_unit(
                 'Values may be interpreted incorrectly.'
             )
 
-        out.append(obj)
-
-    if return_unit:
-        return ref_unit
-    return out
+    return ref_unit
 
 
 def _is_spectral_axis(obj: Any) -> bool:
