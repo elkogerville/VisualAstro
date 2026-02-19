@@ -359,7 +359,7 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     """
     # check cube units match and ensure cubes is iterable
     cubes = to_list(cubes)
-    cubes = ensure_common_unit(cubes)
+    ensure_common_unit(cubes)
     # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)

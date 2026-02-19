@@ -265,7 +265,7 @@ class DataCube:
         # ensure that units are consistent across all headers
         hdr_unit = ensure_common_unit(
             header, on_mismatch='raise',
-            label='header', return_unit=True
+            label='header'
         )
 
         # check that both units are equal
@@ -548,7 +548,7 @@ class DataCube:
             raise ValueError(f'Unsupported header type.')
 
     def inspect(self, figsize=(10,6), style=None):
-        '''
+        """
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
 
@@ -564,7 +564,7 @@ class DataCube:
         -----
         This method visualizes the mean and standard deviation of flux across
         each 2D slice of the cube as a function of slice index.
-        '''
+        """
         from .plot_utils import return_stylename
 
         # get default config values

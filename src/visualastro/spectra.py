@@ -243,7 +243,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
 
     # ensure cubes are iterable
     cubes = to_list(cubes)
-    cubes = ensure_common_unit(cubes)
+    ensure_common_unit(cubes)
 
     # set plot style and colors
     style = return_stylename(style)
@@ -566,25 +566,13 @@ def extract_cube_pixel_spectra(
                 color='k',
                 ls='--',
                 label=f'combined ({combine_method})',
-                plot_continuum=False,
+                plot_continuum=False
             )
             fluxes.append(combined_spec.flux)
 
-        if vline is not None:
-            ax.axvline(
-                (
-                    vline.to(spectral_axis.unit).value
-                    if isinstance(vline, Quantity)
-                    else float(vline)
-                ),
-                ls=':',
-                lw=1.0,
-                color='k',
-                alpha=0.7,
-                zorder=0,
-            )
+        plot_vlines(vline, ax, fluxes[0].unit)
 
-        set_axis_limits(spectral_axis, fluxes, ax, **kwargs)
+        set_axis_limits(spectral_axis, fluxes, ax=ax, **kwargs)
 
         if legend:
             ax.legend(
@@ -958,7 +946,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 
     # ensure extracted_spectra is iterable
     extracted_spectra = to_list(extracted_spectra)
-    extracted_spectra = ensure_common_unit(extracted_spectra)
+    ensure_common_unit(extracted_spectra)
     linestyles = linestyles if isinstance(linestyles, (list, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, tuple)) else [alphas]
@@ -1017,7 +1005,9 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         lines.append(l)
 
     # set plot axis limits and labels
-    set_axis_limits(wavelength_list, None, ax, xlim, ylim)
+    set_axis_limits(
+        wavelength_list, None, ax=ax, xlim=xlim, ylim=ylim
+    )
     set_axis_labels(
         wavelength, flux, ax, xlabel, ylabel, use_brackets=use_brackets
     )
@@ -1148,7 +1138,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
     # ensure units match and that extracted_spectra is a list
     extracted_spectra = to_list(extracted_spectra)
-    extracted_spectra = ensure_common_unit(extracted_spectra)
+    ensure_common_unit(extracted_spectra)
     # hardcode behavior to avoid breaking
     if return_spectra:
         concatenate = True
@@ -1562,7 +1552,11 @@ def fit_gaussian_2_spec(
         set_axis_labels(
             spectral_axis, flux, ax, xlabel, ylabel, use_brackets
         )
-        set_axis_limits(x0[plot_mask], [y0[plot_mask], gaussian[gauss_mask]], ax, xlim=xlim)
+        set_axis_limits(
+            [x0[plot_mask], x_sub[gauss_mask]],
+            [y0[plot_mask], gaussian[gauss_mask]],
+            ax=ax, xlim=xlim
+        )
 
         plt.legend()
         if savefig:

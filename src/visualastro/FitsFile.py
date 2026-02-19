@@ -153,7 +153,7 @@ class FitsFile:
         # extract BUNIT from header(s)
         hdr_unit = ensure_common_unit(
             header, on_mismatch='raise',
-            label='header', return_unit=True
+            label='header'
         )
 
         # check that data and header units are equal
