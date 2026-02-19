@@ -1424,22 +1424,39 @@ class DataCube:
         return value if self.unit is None else self.unit * value
 
     def __repr__(self):
-        '''
+        """
         Returns
         -------
         str : String representation of DataCube.
-        '''
+        """
         if isinstance(self.data, SpectralCube):
+
             flux_unit = self.unit
-            wave_unit = self.data.spectral_axis.unit
+            ns, ny, nx = self.shape
+            dtype = self.dtype
+
+            wx, wy = self.data.world_extrema
+            wx_unit = wx.unit.to_string()
+            wy_unit = wy.unit.to_string()
+
+            spec = self.data.spectral_axis
+            spec_unit = spec.unit.to_string()
+
             return (
-                f'<DataCube[SpectralCube]: wavelength={wave_unit}, '
-                f'flux={flux_unit}, shape={self.shape}, dtype={self.dtype}>'
+                f"DataCube[SpectralCube]: unit={flux_unit}, shape=({ns}, {ny}, {nx}), dtype={dtype}\n"
+                f"  {'nx:':<6}{nx:>6}    {'unit:':<6}{wx_unit:<6}  "
+                f"{'range:':<7}{wx[0]:>12.6f}, {wx[1]:>12.6f}\n"
+                f"  {'ny:':<6}{ny:>6}    {'unit:':<6}{wy_unit:<6}  "
+                f"{'range:':<7}{wy[0]:>12.6f}, {wy[1]:>12.6f}\n"
+                f"  {'ns:':<6}{ns:>6}    {'unit:':<6}{spec_unit:<6}  "
+                f"{'range:':<7}{spec.min():>12.4g}, {spec.max():>12.4g}"
             )
 
-        datatype = 'np.ndarray' if self.unit is None else 'Quantity'
+        if isinstance(self.data, Quantity):
+            return (
+                f'<DataCube[Quantity]: unit={self.unit}, shape={self.shape}, dtype={self.dtype}>'
+            )
 
         return (
-            f'<DataCube[{datatype}]: unit={self.unit}, '
-            f'shape={self.shape}, dtype={self.dtype}>'
+            f'<DataCube[NDArray]: shape={self.shape}, dtype={self.dtype}>'
         )
