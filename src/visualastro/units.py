@@ -402,12 +402,12 @@ def require_spectral_region(obj) -> SpectralRegion:
 
 
 def ensure_common_unit(
-    objs,
+    objs: Any,
     *,
-    unit=None,
-    on_mismatch=None,
-    label=None
-):
+    unit: UnitBase | str | None = None,
+    on_mismatch: str | None = None,
+    label: str | None = None
+) -> UnitBase | StructuredUnit | None:
     """
     Check unit consistency across one or more objects.
 
@@ -448,9 +448,12 @@ def ensure_common_unit(
     if all(u is None for u in units):
         return None
 
-    ref_unit = Unit(unit) if unit is not None else next(
-        u for u in units if u is not None
-    )
+    if unit is None:
+        ref_unit = next(u for u in units if u is not None)
+    elif isinstance(unit, (UnitBase, StructuredUnit)):
+        ref_unit = unit
+    else:
+        ref_unit = Unit(unit)
 
     prefix = f'{label}: ' if isinstance(label, str) else ''
 
