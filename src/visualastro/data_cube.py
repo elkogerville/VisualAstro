@@ -383,9 +383,7 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     mask_out_val = kwargs.get('mask_out_val', config.mask_out_value)
     # plot ellipse
     ellipses = kwargs.get('ellipses', None)
-    plot_ellipse = (
-        True if ellipses is not None else kwargs.get('plot_ellipse', False)
-    )
+    plot_ellipse = kwargs.get('plot_ellipse', False)
     _, X, Y = get_data(cubes[0]).shape
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
@@ -452,23 +450,20 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     if colorbar:
         add_colorbar(im, ax, cbar_width, cbar_pad, clabel, rasterized=rasterized)
 
-    # plot ellipses
+    if ellipses is not None:
+        plot_ellipses(ellipses, ax)
+    # plot ellipse with angle
+    elif angle is not None:
+        e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
+        ax.add_patch(e)
+
     if plot_ellipse:
-        # plot Ellipse objects
-        if ellipses is not None:
-            plot_ellipses(ellipses, ax)
-        # plot ellipse with angle
-        elif angle is not None:
-            e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
-            ax.add_patch(e)
-        # plot default/interactive ellipse
-        else:
-            plot_interactive_ellipse(
-                center, w, h, ax, text_loc,
-                text_color, highlight,
-                rotation_step=kwargs.get('rotation_step', 5)
-            )
-            draw_spectral_label = False
+        plot_interactive_ellipse(
+            center, w, h, ax, text_loc,
+            text_color, highlight,
+            rotation_step=kwargs.get('rotation_step', 5)
+        )
+        draw_spectral_label = False
 
     # plot wavelength/frequency of current spectral slice, and emission line
     if draw_spectral_label:
