@@ -495,7 +495,7 @@ def sort_spectra_by_line_strength(
     fluxes = (
         estimate_spectrum_line_flux(spec_list, spec_range)
     )
-    unit = ensure_common_unit(fluxes, on_mismatch='ignore', return_unit=True)
+    unit = ensure_common_unit(fluxes, on_mismatch='ignore')
     line_strengths = Quantity(fluxes, unit=unit)
 
     if emission_only is True:
