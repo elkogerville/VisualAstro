@@ -243,10 +243,11 @@ def load_spectral_cube(filepath, hdu, error=True,
 
 # Cube Plotting Functions
 # -----------------------
-def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
-                       norm=_default_flag, percentile=_default_flag,
-                       stack_method=None, radial_vel=None, unit=None,
-                       cmap=None, mask_non_pos=None, wcs_grid=None, **kwargs):
+def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
+                       vmax=_default_flag, norm=_default_flag,
+                       percentile=_default_flag, stack_method=None,
+                       radial_vel=None, unit=None, cmap=None,
+                       mask_non_pos=None, wcs_grid=None, **kwargs):
     """
     Plot a single spectral slice from one or more spectral cubes.
 
@@ -254,8 +255,10 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     ----------
     cubes : DataCube, SpectralCube, or list of such
         One or more spectral cubes to plot. All cubes should have consistent units.
-    idx : int
+    idx : int or None, optional, default=None
         Index along the spectral axis corresponding to the slice to plot.
+        If None, collapses the entire cube into a 2D map according
+        to ``stack_method``.
     ax : matplotlib.axes.Axes or WCSAxes
         The axes on which to draw the slice.
     vmin : float or None, optional, default=`_default_flag`
@@ -400,12 +403,22 @@ def plot_spectral_cube(cubes, idx, ax, vmin=_default_flag, vmax=_default_flag,
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
+    if ax is None:
+        raise ValueError(
+            'ax must be an axes instance!'
+        )
+
     images = []
     cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
 
     for i, cube in enumerate(cubes):
         # extract data component
         cube = get_data(cube)
+        if not isinstance(cube, SpectralCube):
+            raise ValueError(
+                'Input cubes must contain a SpectralCube! '
+                'For non SpectralCube data, use imshow.'
+            )
 
         # return data cube slices
         cube_slice = stack_cube(

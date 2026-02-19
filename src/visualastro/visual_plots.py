@@ -297,7 +297,7 @@ class va:
 
 
     @staticmethod
-    def plot_spectral_cube(cubes, idx, vmin=_default_flag,
+    def plot_spectral_cube(cubes, idx=None, vmin=_default_flag,
                            vmax=_default_flag, norm=_default_flag,
                            percentile=_default_flag, stack_method=None,
                            radial_vel=None, unit=None, cmap=None,
@@ -317,6 +317,8 @@ class va:
             One or more spectral cubes to plot. All cubes should have consistent units.
         idx : int
             Index along the spectral axis corresponding to the slice to plot.
+            If None, collapses the entire cube into a 2D map according
+            to ``stack_method``.
         vmin : float or None, optional, default=`_default_flag`
             Lower limit for colormap scaling; overides `percentile[0]`.
             If None, values are determined from `percentile[0]`.
@@ -435,9 +437,20 @@ class va:
                 ax.coords['ra'].set_ticks_position('bl')
                 ax.coords['dec'].set_ticks_position('bl')
 
-            _ = plot_spectral_cube(cubes, idx, ax, vmin, vmax, norm,
-                                   percentile, stack_method, radial_vel,
-                                   unit, cmap, mask_non_pos, **kwargs)
+            _ = plot_spectral_cube(
+                cubes, idx,
+                ax=ax,
+                vmin=vmin,
+                vmax=vmax,
+                norm=norm,
+                percentile=percentile,
+                stack_method=stack_method,
+                radial_vel=radial_vel,
+                unit=unit,
+                cmap=cmap,
+                mask_non_pos=mask_non_pos,
+                **kwargs
+            )
             if savefig:
                 save_figure_2_disk(dpi)
 
