@@ -822,7 +822,10 @@ def set_axis_limits(
             x = np.asarray(x).ravel()
             y = np.asarray(y).ravel()
             if x.shape != y.shape:
-                raise ValueError('Each x/y pair must match in shape')
+                raise ValueError(
+                    'Each x/y pair must match in shape! '
+                    f'Got: x.shape: {x.shape}, y.shape: {y.shape}'
+                )
 
             mask = np.ones_like(x, bool)
             if xlim is not None:
