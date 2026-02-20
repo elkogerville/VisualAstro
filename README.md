@@ -28,7 +28,7 @@ Then install the dependencies with:
 $ conda install -c conda-forge \
     astropy dust_extinction matplotlib numpy regions reproject spectral-cube specutils scipy tqdm
 ```
-For additional interactive functionality inside of jupyter notebooks:
+For additional interactive functionality inside of jupyter lab:
 ```
 $ conda install -c conda-forge ipympl ipywidgets jupyterlab
 ```
