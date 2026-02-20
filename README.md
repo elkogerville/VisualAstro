@@ -61,7 +61,7 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 
-astropy, dust_extinction, matplotlib, regions, reproject, spectral-cube, specutils, scipy, and tqdm.
+astropy, dust_extinction, matplotlib, numpy, regions, reproject, spectral-cube, specutils, scipy, and tqdm.
 
 
 ## Credits
