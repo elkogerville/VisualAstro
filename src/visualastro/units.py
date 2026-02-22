@@ -536,7 +536,7 @@ def _is_spectral_axis(obj: Any) -> bool:
         except UnitConversionError:
             return False
 
-    if physical_type in {'frequency', 'energy'}:
+    if str(physical_type) in {'frequency', 'energy'}:
         return True
 
     return False
