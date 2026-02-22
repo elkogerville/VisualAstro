@@ -41,10 +41,11 @@ from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 from .data_cube_utils import stack_cube
 from .numerical_utils import (
-    compute_density_kde, flatten, get_data, get_value, to_array, to_list
+    compute_density_kde, flatten, get_data, get_value, shift_by_radial_vel, to_array, to_list
 )
+from .spectra_utils import get_spectral_axis, spectral_idx_2_world
 from .units import (
-    to_latex_unit, get_physical_type,
+    convert_quantity, to_latex_unit, get_physical_type,
     get_unit, _infer_physical_type_label, to_unit
 )
 from .config import get_config_value, config, _default_flag
@@ -1234,7 +1235,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
 
 
 def _update_ellipse_region(region, text):
-    '''
+    """
     Update ellipse information text when the
     interactive region is modified.
 
@@ -1244,8 +1245,7 @@ def _update_ellipse_region(region, text):
         The ellipse region being updated.
     text : matplotlib.text.Text
         The text object used to display ellipse parameters.
-    '''
-    # extract properties from ellipse object
+    """
     x_center = region.center.x
     y_center = region.center.y
     width = region.width
@@ -1253,6 +1253,7 @@ def _update_ellipse_region(region, text):
     angle = region.angle
     major = max(width, height)
     minor = min(width, height)
+
     # display properties
     text.set_text(
         f'Center: [{x_center:.1f}, {y_center:.1f}]\n'
