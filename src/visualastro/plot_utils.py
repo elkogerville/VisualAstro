@@ -1112,9 +1112,36 @@ def plot_circles(
             ax.add_patch(circle_patch)
 
 
-def copy_ellipse(ellipse):
+def plot_ellipses(ellipses, ax):
+    """
+    Plots an ellipse or list of ellipses to an axes.
+
+    Parameters
+    ----------
+    ellipses : matplotlib.patches.Ellipse or list
+        The Ellipse or list of Ellipses to plot.
+    ax : matplotlib.axes.Axes
+        Matplotlib axis on which to plot the ellipses(s).
+    """
+    if ellipses is not None:
+        ellipses = to_list(ellipses)
+
+        for ellipse in ellipses:
+            if not isinstance(ellipse, Ellipse):
+                raise ValueError(
+                    'ellipses must contain matplotlib.patches.Ellipse instances! '
+                    f'got: {type(ellipse).__name__}'
+                )
+            ax.add_patch(_copy_ellipse(ellipse))
+
+
+def _copy_ellipse(ellipse):
     '''
     Returns a copy of an Ellipse object.
+
+    This function is used to avoid running into
+    a matplotlib error when plotting the same
+    artist onto multiple figures.
 
     Parameters
     ----------
@@ -1137,25 +1164,6 @@ def copy_ellipse(ellipse):
         ls=ellipse.get_linestyle(),
         alpha=ellipse.get_alpha()
     )
-
-
-def plot_ellipses(ellipses, ax):
-    """
-    Plots an ellipse or list of ellipses to an axes.
-
-    Parameters
-    ----------
-    ellipses : matplotlib.patches.Ellipse or list
-        The Ellipse or list of Ellipses to plot.
-    ax : matplotlib.axes.Axes
-        Matplotlib axis on which to plot the ellipses(s).
-    """
-    if ellipses is not None:
-        # ensure ellipses is iterable
-        ellipses = to_list(ellipses)
-        # plot each ellipse
-        for ellipse in ellipses:
-            ax.add_patch(copy_ellipse(ellipse))
 
 
 def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
