@@ -20,7 +20,6 @@ Module Structure:
 import glob
 import warnings
 from astropy.io import fits
-import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from astropy.wcs import WCS
 from matplotlib.patches import Ellipse
@@ -30,15 +29,15 @@ from tqdm import tqdm
 from .data_cube_utils import stack_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
-    get_data, shift_by_radial_vel, to_list
+    get_data, get_value, to_list
 )
 from .plot_utils import (
     add_colorbar, plot_ellipses,
     plot_interactive_ellipse,
-    return_imshow_norm, set_vmin_vmax
+    return_imshow_norm, set_vmin_vmax,
+    _spectral_axis_label,
 )
-from .spectra_utils import spectral_idx_2_world
-from .units import ensure_common_unit, convert_quantity, to_latex_unit
+from .units import ensure_common_unit, to_latex_unit
 from .config import get_config_value, config, _default_flag
 from .DataCube import DataCube
 
@@ -422,7 +421,7 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
         cube_slice = stack_cube(
             cube, idx=idx, method=stack_method, axis=0
         )
-        data = cube_slice.value
+        data = get_value(cube_slice)
 
         if mask_non_pos:
             data = np.where(data > 0.0, data, mask_out_val)

@@ -517,7 +517,7 @@ class DataCube:
     # Methods
     # -------
     def header_get(self, key):
-        '''
+        """
         Retrieve a header value by key from one or multiple headers.
         If a Header is missing a key, None is returned.
 
@@ -535,7 +535,7 @@ class DataCube:
         ------
         ValueError
             If headers are of an unsupported type or `key` is not found.
-        '''
+        """
         # case 1: single Header
         if isinstance(self.header, Header):
             return self.header.get(key, None)
@@ -599,7 +599,7 @@ class DataCube:
         parallel=None,
         block_size=_default_flag
     ):
-        '''
+        """
         Reproject DataCube to a new WCS grid.
 
         All WCS related metadata is updated in the
@@ -650,7 +650,7 @@ class DataCube:
           when applicable.
         - If `return_footprint=True`, the reprojection footprint is attached
           to the returned DataCube as the `.footprint` attribute.
-        '''
+        """
         return_footprint = get_config_value(return_footprint, 'return_footprint')
 
         if self.wcs is None and self.header is None:
@@ -1073,7 +1073,7 @@ class DataCube:
         )
 
     def to(self, unit, equivalencies=None):
-        '''
+        """
         Convert the DataCube data to a new physical unit.
         This method supports Quantity objects as well as
         SpectralCubes, but only for 'flux' units. To convert
@@ -1090,7 +1090,7 @@ class DataCube:
         -------
         DataCube
             New cube with converted units.
-        '''
+        """
         # convert unit to astropy unit
         unit = Unit(unit)
 
@@ -1133,7 +1133,7 @@ class DataCube:
         )
 
     def with_mask(self, mask):
-        '''
+        """
         Apply a boolean mask to the cube and return the
         masked data as a new DataCube.
 
@@ -1154,7 +1154,7 @@ class DataCube:
         ------
         TypeError
             If masking is unsupported for the data type.
-        '''
+        """
         # check mask shape
         mask = np.asarray(mask)
 
@@ -1207,7 +1207,7 @@ class DataCube:
         )
 
     def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
-        '''
+        """
         Convert the spectral axis of the DataCube to a new unit.
 
         Parameters
@@ -1224,7 +1224,7 @@ class DataCube:
         -------
         DataCube
             New cube with converted spectral axis.
-        '''
+        """
         if not isinstance(self.data, SpectralCube):
             raise TypeError(
                 'with_spectral_unit() can only be used when DataCube.data '
@@ -1261,17 +1261,17 @@ class DataCube:
     # Array Interface
     # ---------------
     def __array__(self):
-        '''
+        """
         Return the underlying data as a NumPy array.
         Returns
         ----------
         np.ndarray
             The underlying 3D array representation.
-        '''
+        """
         return self.value
 
     def __getitem__(self, key):
-        '''
+        """
         Return a slice of the data.
 
         The method attempts to slice the WCS. The Header
@@ -1287,7 +1287,7 @@ class DataCube:
         -------
         slice : DataCube
             The corresponding subset of the data.
-        '''
+        """
         new_data = self.data[key]
         new_error = self.error[key] if self.error is not None else None
 
@@ -1325,17 +1325,17 @@ class DataCube:
         )
 
     def __len__(self):
-        '''
+        """
         Return the number of spectral slices along the first axis.
         Returns
         -------
         int
             Length of the first dimension (T).
-        '''
+        """
         return len(self.value)
 
     def reshape(self, *shape):
-        '''
+        """
         Return a reshaped view of the cube data.
         Parameters
         ----------
@@ -1345,7 +1345,7 @@ class DataCube:
         -------
         np.ndarray
             Reshaped data array.
-        '''
+        """
         return self.value.reshape(*shape)
 
 
