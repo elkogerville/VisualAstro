@@ -11,7 +11,8 @@ from visualastro.io import *
 from visualastro.numerical_utils import (
     get_data, get_value, to_array, to_list,
     compute_density_kde, shift_by_radial_vel,
-    interpolate, finite, mask_finite, mask_within_range
+    flatten, interpolate, percent_difference,
+    finite, mask_finite, mask_within_range
 )
 from visualastro.plotting import *
 from visualastro.plot_utils import *
