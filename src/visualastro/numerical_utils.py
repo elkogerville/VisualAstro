@@ -330,7 +330,7 @@ def percent_difference(a, b):
     Compute the percent difference between two arrays.
 
     The percent difference is defined as the absolute difference between
-    ``a`` and ``b`` divided by their mean, expressed as a percentage::
+    ``a`` and ``b`` divided by their mean, expressed as a percentage:
 
         percent_difference = |a - b| / ((a + b) / 2) * 100
 
@@ -359,14 +359,14 @@ def percent_difference(a, b):
     66.666...
     >>> percent_difference(np.array([1, 2, 3]), np.array([2, 2, 4]))
     array([66.666...,  0.    , 28.571...])
-    >>> percent_difference(0.0, 0.0)  # both zero → nan
+    >>> percent_difference(0.0, 0.0)
     nan
     """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
-    denom = (a + b) / 2
+    denominator = (a + b) / 2
     with np.errstate(invalid='ignore', divide='ignore'):
-        result = (np.abs(a - b) / denom) * 100
+        result = (np.abs(a - b) / denominator) * 100
     return result
 
 
