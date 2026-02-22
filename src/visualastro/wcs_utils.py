@@ -1,4 +1,4 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-12-06
 Date Modified: 2025-12-06
@@ -10,7 +10,7 @@ Dependencies:
 Module Structure:
     - Data Transformations
         Lightweight data class for fits files.
-'''
+"""
 
 import copy
 from typing import Any, cast
@@ -88,7 +88,7 @@ def get_wcs(header: Any) -> WCS | list[WCS] | None:
 
 
 def _is_valid_wcs_slice(key):
-    '''
+    """
     Check if a key is a valid slice for a WCS object.
 
     Parameters
@@ -100,7 +100,7 @@ def _is_valid_wcs_slice(key):
     -------
     bool :
         If key is a valid WCS slice.
-    '''
+    """
     if isinstance(key, slice):
         return True
 
@@ -113,7 +113,7 @@ def _is_valid_wcs_slice(key):
 # Data Transformations
 # --------------------
 def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origin_idx=0):
-    '''
+    """
     Create a Cutout2D from array-like data using WCS and a world/pixel position.
 
     Parameters
@@ -164,7 +164,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     - If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,
         the method will automatically attempt to correct for inverted RA/Dec axes.
 
-    '''
+    """
     if isinstance(wcs, WCS):
         wcs = wcs.celestial
     elif hasattr(data, 'wcs'):
@@ -249,7 +249,7 @@ def _reproject_wcs(
     log_file=None,
     **kwargs
 ):
-    '''
+    """
     Reproject data or Quantity arrays onto a reference WCS.
 
     Units are conserved if present in `input_data`.
@@ -311,7 +311,7 @@ def _reproject_wcs(
     ------
     ValueError
         If the inputs are not able to be reprojected.
-    '''
+    """
     description = kwargs.get('description', None)
 
     method = get_config_value(method, 'reproject_method')
@@ -413,7 +413,7 @@ def reproject_wcs(
     log_file=None,
     **kwargs
 ):
-    '''
+    """
     Parameters
     ----------
     input_data_list : tuple or list of tuple
@@ -474,7 +474,7 @@ def reproject_wcs(
     ------
     ValueError
         If the inputs are not able to be reprojected.
-    '''
+    """
     if not isinstance(input_data_list, list):
         input_data_list = [input_data_list]
 
@@ -512,7 +512,7 @@ def reproject_wcs(
 
 
 def _copy_wcs(wcs):
-    '''
+    """
     Copy a single or list of WCS.
 
     Parameters
@@ -523,7 +523,7 @@ def _copy_wcs(wcs):
     Returns
     -------
     WCS or list of WCS
-    '''
+    """
     if wcs is None:
         return None
 
@@ -543,7 +543,7 @@ def _copy_wcs(wcs):
 
 
 def _normalize_reproject_input(input_data):
-    '''
+    """
     Ensures that the reprojection input is a valid (data, WCS) tuple.
 
     Parameters
@@ -566,7 +566,7 @@ def _normalize_reproject_input(input_data):
         If WCS/Header is not a recognized type.
     ValueError
         If `data` in input_data is neither 2D or 3D.
-    '''
+    """
     if not (isinstance(input_data, tuple) and len(input_data) == 2):
         raise TypeError(
             'Input must be a (data, header/WCS) tuple.'
@@ -599,7 +599,7 @@ def _normalize_reproject_input(input_data):
 
 
 def _strip_wcs_from_header(header):
-    '''
+    """
     Strip all WCS information from a Header.
 
     Uses `spectral_cube.wcs_utils.strip_wcs_from_header` under the hood.
@@ -613,7 +613,7 @@ def _strip_wcs_from_header(header):
     -------
     nowcs_header : Header or array-like of Headers
         Header(s) with no WCS information.
-    '''
+    """
 
     if isinstance(header, (list, tuple)):
         return [strip_wcs_from_header(h) for h in header]
@@ -625,7 +625,7 @@ def _strip_wcs_from_header(header):
 
 
 def _update_header_from_wcs(header, wcs):
-    '''
+    """
     Update Header key-value pairs in place using a WCS object.
 
     The WCS is converted to a Header, then each key-value
@@ -640,7 +640,7 @@ def _update_header_from_wcs(header, wcs):
         Astropy Header object to update.
     wcs : WCS
         WCS object to update header with.
-    '''
+    """
     if not isinstance(header, Header):
         raise ValueError(
             'header must be a Fits Header!'
