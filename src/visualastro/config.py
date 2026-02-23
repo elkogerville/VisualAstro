@@ -13,9 +13,12 @@ Module Structure:
         Configuration parameters related to science functions.
 '''
 
+from astropy.wcs import WCS
 import numpy as np
+from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+from numpy.typing import DTypeLike
 
 
 class VAConfig:
@@ -37,30 +40,30 @@ class VAConfig:
         # ---------------
 
         # I/O params
-        self.unit_mismatch = 'warn'
-        self.default_unit = np.float64
-        self.hdu_idx = 0
-        self.print_info = False
-        self.transpose = False
-        self.mask_non_positive = False
-        self.mask_out_value = np.nan
-        self.invert_wcs_if_transpose = True
-        self.target_wcs = None
+        self.unit_mismatch: str = 'warn'
+        self.default_unit: DTypeLike = np.float64
+        self.hdu_idx: int = 0
+        self.print_info: bool = False
+        self.transpose: bool = False
+        self.mask_non_positive: bool = False
+        self.mask_out_value: float = np.nan
+        self.invert_wcs_if_transpose: bool = True
+        self.target_wcs: Header | WCS | None = None
 
         # figure params
-        self.style = 'astro' # default style
-        self.style_fallback = 'default.mplstyle' # style if default style fails
-        self.figsize = (6, 6)
-        self.grid_figsize = (12, 6)
-        self.figsize3d = (10, 10)
-        self.colors = None # if None, defaults to `self.default_palette`. To define a custom default palette,
+        self.style: str = 'astro' # default style
+        self.style_fallback: str = 'default.mplstyle' # style if default style fails
+        self.figsize: tuple = (6, 6)
+        self.grid_figsize: tuple = (12, 6)
+        self.figsize3d: tuple = (10, 10)
+        self.colors: str | None = None # if None, defaults to `self.default_palette`. To define a custom default palette,
                            # define it in `set_plot_colors` and change the `default_palette`.
-        self.default_palette = 'ibm_contrast' # see `set_plot_colors` in plot_utils.py
-        self.alpha = 1
-        self.nrows = 1 # make_grid_plot() nrows
-        self.ncols = 2 # make_grid_plot() ncols
-        self.rasterized = False # rasterize plot artists wherever possible
-        self.wcs_grid = False
+        self.default_palette: str = 'ibm_contrast' # see `set_plot_colors` in plot_utils.py
+        self.alpha: int = 1
+        self.nrows: int = 1 # make_grid_plot() nrows
+        self.ncols: int = 2 # make_grid_plot() ncols
+        self.rasterized: bool = False # rasterize plot artists wherever possible
+        self.wcs_grid: bool = False
 
         # data params
         self.normalize_data = False
