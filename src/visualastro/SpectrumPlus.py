@@ -13,15 +13,17 @@ Dependencies:
 '''
 
 import copy
+from typing import cast
 from astropy.io.fits import Header
-from astropy.units import Quantity
+from astropy.units import Quantity, StructuredUnit, UnitBase
 import numpy as np
-from specutils import SpectralRegion
+from specutils import SpectralAxis, SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
 from .config import get_config_value
 from .fits_utils import _copy_headers, _get_history, _log_history, _region_to_history
 from .units import ensure_common_unit, require_spectral_region, to_spectral_region, _check_unit_equality
+from .utils import _type_name
 
 
 class SpectrumPlus:
@@ -125,14 +127,14 @@ class SpectrumPlus:
             fit_method, 'spectrum_continuum_fit_method'
         )
         region = kwargs.pop('region', None)
-        region = to_spectral_region(region)
+        region: SpectralRegion | None = to_spectral_region(region)
 
         if log_file is None:
             log_file = Header()
-        elif not isinstance(log_file, Header):
+        if not isinstance(log_file, Header):
             raise ValueError(
                 'log_file should be a astropy.fits.Header! '
-                f'Got type: {type(log_file)}'
+                f'Got type: {_type_name(log_file)}'
             )
 
         # validate that spectral axis and flux units are consistent
@@ -179,73 +181,79 @@ class SpectrumPlus:
         if normalized is None:
             normalized = spectrum / continuum
 
-        self.spectrum = spectrum
-        self.continuum = continuum
-        self.normalized = normalized
-        self.fit_method = fit_method
-        self.region = region
-        self.log_file = log_file
+        self.spectrum: Spectrum = spectrum
+        self.continuum: Quantity = continuum
+        self.normalized: Quantity = normalized
+        self.fit_method: str = fit_method
+        self.region: SpectralRegion = region
+        self.log_file: Header = log_file
 
     # Properties
     # ----------
     @property
-    def spectral_axis(self):
-        '''
+    def spectral_axis(self) -> SpectralAxis | Quantity:
+        """
         Returns
         -------
-        Quantity or SpectralAxis : Spectral axis array.
-        '''
+        SpectralAxis or Quantity : Spectral axis array.
+        """
         return self.spectrum.spectral_axis
+
     @property
-    def wavelength(self):
-        '''
+    def wavelength(self) -> SpectralAxis | Quantity:
+        """
         Returns
         -------
-        Quantity or SpectralAxis : Wavelength array in Å units.
-        '''
+        SpectralAxis or Quantity : Wavelength array in Å units.
+        """
         return self.spectrum.wavelength
+
     @property
-    def frequency(self):
-        '''
+    def frequency(self) -> SpectralAxis | Quantity:
+        """
         Returns
         -------
-        Quantity or SpectralAxis : wavelength array in GHz units.
-        '''
+        SpectralAxis or Quantity : wavelength array in GHz units.
+        """
         return self.spectrum.frequency
+
     @property
-    def flux(self):
-        '''
+    def flux(self) -> Quantity:
+        """
         Returns
         -------
         Quantity : Flux array.
-        '''
+        """
         return self.spectrum.flux
+
     @property
-    def spectral_unit(self):
-        '''
+    def spectral_unit(self) -> UnitBase:
+        """
         Returns
         -------
         Unit : Spectral axis unit.
-        '''
+        """
         return self.spectrum.spectral_axis.unit
+
     @property
-    def unit(self):
-        '''
+    def unit(self) -> UnitBase:
+        """
         Returns
         -------
         Unit : Flux unit.
-        '''
-        return self.spectrum.flux.unit
+        """
+        return cast(UnitBase, self.spectrum.flux.unit)
+
     @property
-    def log(self):
-        '''
+    def log(self) -> list[str] | None:
+        """
         Get the processing history from the FITS HISTORY cards.
 
         Returns
         -------
         list of str or None
             List of HISTORY entries, or None if no header exists.
-        '''
+        """
         return _get_history(self.log_file)
 
     # Methods
