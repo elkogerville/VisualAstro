@@ -35,7 +35,7 @@ from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
-from .DataCube import DataCube
+from .datacube import DataCube
 from .data_cube_utils import stack_cube
 from .io import get_kwargs, save_figure_2_disk
 from .numerical_utils import (
@@ -61,7 +61,7 @@ from .spectra_utils import (
     gaussian_line as _gaussian_line,
     get_spectral_axis,
 )
-from .SpectrumPlus import SpectrumPlus
+from .spectrumplus import SpectrumPlus
 from .units import ensure_common_unit, convert_quantity, get_unit
 from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
