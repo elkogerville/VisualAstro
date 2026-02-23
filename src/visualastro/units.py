@@ -1,22 +1,23 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2026-01-18
+Date Modified: 2026-02-23
 Description:
     Utility functions for astropy units.
 Dependencies:
     - astropy
     - numpy
-'''
+    - specutils
+"""
 
 import warnings
-from typing import Any
+from typing import Any, overload
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import (
-    dimensionless_unscaled, physical,
-    Quantity, Unit, UnitBase,
-    UnitConversionError, UnitsError, StructuredUnit
+    dimensionless_unscaled,
+    Quantity, StructuredUnit, Unit, UnitBase,
+    UnitConversionError, UnitsError
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
@@ -30,7 +31,7 @@ def convert_quantity(
     unit,
     *,
     equivalencies=None,
-    on_failure='warn',
+    on_failure: str = 'warn',
 ):
     """
     Convert an Astropy Quantity to a specified unit.
@@ -44,7 +45,7 @@ def convert_quantity(
     equivalencies : list or None, optional
         Unit equivalencies to use during conversion
         (e.g. `spectral()`). Default is None.
-    on_failure : {'warn', 'ignore', 'raise'}, optional
+    on_failure : {'warn', 'ignore', 'raise'}, optional, default='warn'
         Behavior if unit conversion fails.
 
     Returns
@@ -98,6 +99,9 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         The unit associated with the input object, if it exists.
         Returns None if the object has no unit or if the unit cannot be parsed.
     """
+    if obj is None:
+        return None
+
     if isinstance(obj, UnitBase):
         return obj
 
@@ -105,7 +109,7 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         return obj.unit
 
     if isinstance(obj, Header):
-        bunit = obj.get('BUNIT')
+        bunit = obj.get('BUNIT', None)
         return to_unit(bunit)
 
     unit = getattr(obj, 'unit', None)
@@ -234,6 +238,9 @@ def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     -------
     unit : astropy.units.Unit or None
     """
+    if obj is None:
+        return None
+
     if isinstance(obj, UnitBase):
         return obj
 
