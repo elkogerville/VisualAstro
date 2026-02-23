@@ -13,7 +13,7 @@ from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
 from specutils import SpectralRegion
-from .units import require_spectral_region, to_spectral_region
+from .units import require_spectral_region
 
 
 def _copy_headers(headers):
