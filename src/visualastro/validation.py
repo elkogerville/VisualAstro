@@ -8,9 +8,10 @@ Dependencies:
     - astropy
 '''
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Literal, Tuple, Type, TypeVar, overload
+from typing import Literal, Tuple, Type, TypeVar, cast, overload
 from astropy.units import Quantity
 import numpy as np
+from .utils import _type_name
 
 
 def allclose(a, b, rtol=1e-05, atol=1e-08, equal_nan=True):
@@ -131,33 +132,34 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
         )
 
 T = TypeVar('T')
+U = TypeVar('U')
 C = TypeVar('C', bound=Sequence)
 
 @overload
 def _validate_type(
-    data: T | None,
-    types: Type[T] | Tuple[Type[T], ...],
-    default: T | None = None,
+    data: object,
+    types: Type[U] | Tuple[Type[U], ...],
+    default: U | None = None,
     allow_none: Literal[False] = ...,
-    name: str = 'data'
-) -> T: ...
+    name: str = 'data',
+) -> U: ...
 
 @overload
 def _validate_type(
-    data: T | None,
-    types: Type[T] | Tuple[Type[T], ...],
-    default: T | None = None,
+    data: object,
+    types: Type[U] | Tuple[Type[U], ...],
+    default: U | None = None,
     allow_none: bool = True,
-    name: str = 'data'
-) -> T | None: ...
+    name: str = 'data',
+) -> U | None: ...
 
 def _validate_type(
-    data: T | None,
-    types: Type[T] | Tuple[Type[T], ...],
-    default: T | None = None,
+    data: object,
+    types: Type[U] | Tuple[Type[U], ...],
+    default: U | None = None,
     allow_none: bool = True,
-    name: str = 'data'
-) -> T | None:
+    name: str = 'data',
+) -> U | None:
     """
     Validate that `data` is an instance of one of the allowed types.
 
@@ -199,17 +201,17 @@ def _validate_type(
         if not isinstance(default, types):
             allowed = ', '.join(t.__name__ for t in types)
             raise TypeError(
-                f"'default' must be one of: {allowed}; got {type(default).__name__}."
+                f"'default' must be one of: {allowed}; got {_type_name(default)}."
             )
         return default
 
     if not isinstance(data, types):
         allowed = ', '.join(t.__name__ for t in types)
         raise TypeError(
-            f"'{name}' must be one of: {allowed}; got {type(data).__name__}."
+            f"'{name}' must be one of: {allowed}; got {_type_name(data)}."
         )
 
-    return data
+    return cast(U, data)
 
 
 def _validate_iterable_type(
