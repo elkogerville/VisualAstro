@@ -1,4 +1,4 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
 Date Modified: 2025-10-07
@@ -13,7 +13,7 @@ Module Structure:
         Utility functions used when manipulating datacubes numerically.
     - Cube/Image Masking Functions
         Utility functions used when masking datacubes.
-'''
+"""
 
 import astropy.units as u
 from astropy.units import Quantity
@@ -21,10 +21,11 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from .config import get_config_value
-from .DataCube import DataCube
-from .FitsFile import FitsFile
+from .datacube import DataCube
+from .fitsfile import FitsFile
 from .numerical_utils import get_data
 from .units import get_unit
+from .utils import _type_name
 
 
 # Cube Manipulation Functions
@@ -86,7 +87,7 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
             start, end = idx
             cube = cube[start:end+1]
         else:
-            raise TypeError(f'idx must be int, list, or None; got {type(idx)}')
+            raise TypeError(f'idx must be int, list, or None; got {_type_name(idx)}')
 
     if isinstance(cube, SpectralCube):
         stack_func = getattr(cube, method)
