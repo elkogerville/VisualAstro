@@ -382,6 +382,21 @@ def to_fits_unit(
     return unit_2_string(unit, fmt='fits')
 
 
+@overload
+def to_spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+    )
+) -> SpectralRegion: ...
+
+@overload
+def to_spectral_region(
+    obj: None
+) -> None: ...
+
 def to_spectral_region(
     obj: (
         SpectralRegion
