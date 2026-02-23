@@ -315,9 +315,10 @@ def to_latex_unit(
     unit : str or astropy.Unit
         The astropy.Unit or unit string to convert.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
-        The format of the unit label. 'latex_inline' and 'inline' uses
-        negative exponents while 'latex' uses fractions. If None, uses
-        the default value set by `config.unit_label_format`.
+        The format of the unit label. ``'latex_inline'`` and ``'inline'``
+        (alias for ``'latex_inline'``) uses negative exponents while
+        ``'latex'`` uses fractions. If ``None``, uses
+        the default value set by ``config.unit_label_format``.
 
     Returns
     -------
@@ -326,15 +327,48 @@ def to_latex_unit(
         Returns None if the unit is invalid.
     """
     fmt = get_config_value(fmt, 'unit_label_format')
-
-    if fmt.lower() == 'inline':
-        fmt = 'latex_inline'
+    fmt = str(fmt).lower()
+    if fmt not in {'latex', 'latex_inline', 'inline'}:
+        raise ValueError(
+            "format must be: {'latex', 'latex_inline', 'inline'}"
+            f'got: {fmt}'
+        )
 
     try:
-        unit = to_unit(unit)
-        return unit.to_string(fmt)
+        return unit_2_string(unit, fmt=fmt)
     except Exception:
         return None
+
+
+@overload
+def to_fits_unit(
+    unit: Quantity | UnitBase | StructuredUnit | str
+) -> str: ...
+
+@overload
+def to_fits_unit(
+    unit: None
+) -> None: ...
+
+def to_fits_unit(
+    unit: Quantity | UnitBase | StructuredUnit | str | None
+) -> str | None:
+    """
+    Convert an astropy unit into a fits compliant label.
+    Returns None if no unit is found.
+
+    Parameters
+    ----------
+    unit : Quantity | UnitBase | StructuredUnit | str | None
+        Unit to convert.
+
+    Returns
+    -------
+    str or None :
+        Unit converted as a fits formatted string or ``None``
+        if no unit is found.
+    """
+    return unit_2_string(unit, fmt='fits')
 
 
 def to_spectral_region(
