@@ -252,12 +252,12 @@ def _validate_iterable_type(
         types = (types,)
 
     if (
-        not isinstance(obj, Iterable) or
-        isinstance(obj, (Iterator, str, bytes))
+        not isinstance(obj, Sequence) or
+        isinstance(obj, (str, bytes))
     ):
         raise TypeError(
             f'{name} must be a non-iterator iterable (e.g. list or tuple), '
-            f'got {type(obj).__name__}.'
+            f'got {_type_name(obj)}.'
         )
 
     allowed = ', '.join(t.__name__ for t in types)
@@ -265,7 +265,7 @@ def _validate_iterable_type(
         if not isinstance(item, types):
             raise TypeError(
                 f'Element {i} of {name} must be instance of {allowed}, '
-                f'got {type(item).__name__}.'
+                f'got {_type_name(item)}.'
             )
 
     return obj
