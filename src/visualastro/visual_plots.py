@@ -1,7 +1,7 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2025-10-20
+Date Modified: 2026-02-23
 Description:
     Visualastro user interface for publication ready plots.
 Dependencies:
@@ -13,7 +13,7 @@ Module Structure:
         Publication ready plots.
     - VisualAstro Help
         VisualAstro user help.
-'''
+"""
 from contextlib import contextmanager
 from glob import glob
 import os
@@ -22,6 +22,7 @@ from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from .config import get_config_value, config, _default_flag
 from .data_cube import plot_spectral_cube
 from .io import save_figure_2_disk
 from .numerical_utils import get_data, to_list
@@ -32,7 +33,7 @@ from .plotting import (
 )
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
-from .config import get_config_value, config, _default_flag
+from .utils import _type_name
 
 class va:
     @contextmanager
@@ -276,7 +277,7 @@ class va:
                 wcs = wcs_input
 
             elif wcs_input is not None:
-                raise TypeError(f'Unsupported wcs_input type: {type(wcs_input)}')
+                raise TypeError(f'Unsupported wcs_input type: {_type_name(wcs_input)}')
 
             if isinstance(wcs, WCS):
                 wcs = wcs.celestial
