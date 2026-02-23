@@ -22,8 +22,9 @@ from astropy.units import (
 from astropy.units.physical import PhysicalType
 import numpy as np
 from specutils import SpectralAxis, SpectralRegion
-from .numerical_utils import to_list
 from .config import get_config_value, config
+from .numerical_utils import to_list
+from .utils import _type_name
 
 
 def convert_quantity(
@@ -464,18 +465,25 @@ def to_spectral_region(
 
     elif not isinstance(obj, (list, tuple)):
         raise TypeError(
-            f'Expected SpectralRegion, Quantity, tuple, or list, got {type(region)}'
+            f'Expected SpectralRegion, Quantity, tuple, or list, got {_type_name(region)}'
         )
 
     try:
         return SpectralRegion(region)
     except Exception as e:
         raise ValueError(
-            f'Could not construct SpectralRegion from {type(region)}: {e}'
+            f'Could not construct SpectralRegion from {_type_name(region)}: {e}'
         ) from e
 
 
-def require_spectral_region(obj) -> SpectralRegion:
+def require_spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+    )
+) -> SpectralRegion:
     """
     Enforce that the input ``obj`` is a ``SpectralRegion``.
 
@@ -492,12 +500,22 @@ def require_spectral_region(obj) -> SpectralRegion:
         - ``[(low, high), ...] * unit``: multiple regions with shared unit
         - ``(Quantity, Quantity)``: single region with explicit units
         - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
-        - ``None``: returned as-is
+
+    Returns
+    -------
+    SpectralRegion :
+        Input region as a SpectralRegion
+
+    Raises
+    ------
+    ValueError :
+        If input ``obj`` results in ``None`` when converted to
+        a SpectralRegion.
     """
     region = to_spectral_region(obj)
 
     if region is None or not isinstance(region, SpectralRegion):
-        raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
+        raise ValueError(f'A SpectralRegion is required; got {_type_name(region)}')
     return region
 
 
