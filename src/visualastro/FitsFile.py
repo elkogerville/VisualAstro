@@ -201,169 +201,191 @@ class FitsFile:
         # try extracting WCS
         if wcs is None:
             wcs = get_wcs(header)
-            assert isinstance(wcs, WCS)
 
         if wcs is not None:
+            if not isinstance(wcs, WCS):
+                raise ValueError(
+                    'wcs must be a WCS instance! '
+                    f'got: {_type_name(wcs)}'
+                )
             _update_header_from_wcs(header, wcs)
 
         # extract non WCS info from header
         nowcs_header = _strip_wcs_from_header(header)
+        assert isinstance(nowcs_header, Header)
         _remove_history(nowcs_header)
 
-        self.data = data
-        self.primary_header = header
-        self.header = header
-        self.nowcs_header = nowcs_header
-        self.error = error
-        self.wcs = wcs
-        self.footprint = None
+        self.data: NDArray | Quantity = data
+        self.primary_header: Header = header
+        self.header: Header = header
+        self.nowcs_header: Header = nowcs_header
+        self.error: NDArray | Quantity | None = error
+        self.wcs: WCS | None = wcs
+        self.footprint: NDArray | None = None
 
     # Properties
     # ----------
     @property
-    def value(self):
-        '''
+    def value(self) -> NDArray:
+        """
         Returns
         -------
         np.ndarray : View of the underlying numpy array.
-        '''
+        """
         return np.asarray(self.data)
+
     @property
-    def quantity(self):
-        '''
+    def quantity(self) -> Quantity | None:
+        """
         Returns
         -------
-        Quantity : Quantity array of data values (values + astropy units).
-        '''
+        Quantity or None :
+            Quantity array of data values (values + astropy units),
+            of None if no units.
+        """
         if self.unit is None:
             return None
         return self.unit * self.value
+
     @property
-    def unit(self):
-        '''
+    def unit(self) -> UnitBase | None:
+        """
         Returns
         -------
-        Unit : Astropy.Unit of the data.
-        '''
+        Unit, StructuredUnit, or None :
+            Astropy.Unit of the data or None if no units found.
+        """
         return getattr(self.data, 'unit', None)
 
     # statistical properties
     @property
-    def min(self):
-        '''
+    def min(self) -> float | Quantity:
+        """
         Returns
         -------
-        float : Minimum value in the data, ignoring NaNs.
-        '''
+        float or Quantity : Minimum value in the data, ignoring NaNs.
+        """
         return np.nanmin(self.data)
+
     @property
-    def max(self):
-        '''
+    def max(self) -> float | Quantity:
+        """
         Returns
         -------
-        float : Maximum value in the data, ignoring NaNs.
-        '''
+        float or Quantity : Maximum value in the data, ignoring NaNs.
+        """
         return np.nanmax(self.data)
+
     @property
-    def mean(self):
-        '''
+    def mean(self) -> float | Quantity:
+        """
         Returns
         -------
-        float : Mean of all values in the data, ignoring NaNs.
-        '''
-        return np.nanmean(self.data)
+        float or Quantity : Mean of all values in the data, ignoring NaNs.
+        """
+        return cast(float | Quantity, np.nanmean(self.data))
+
     @property
-    def median(self):
-        '''
+    def median(self) -> float | Quantity:
+        """
         Returns
         -------
-        float : Median of all values in the data, ignoring NaNs.
-        '''
-        return np.nanmedian(self.data)
+        float or Quantity : Median of all values in the data, ignoring NaNs.
+        """
+        return cast(float | Quantity, np.nanmedian(self.data))
+
     @property
-    def sum(self):
-        '''
+    def sum(self) -> float | Quantity:
+        """
         Returns
         -------
-        float : sum of all values in the data, ignoring NaNs.
-        '''
+        float or Quantity : sum of all values in the data, ignoring NaNs.
+        """
         return np.nansum(self.data)
+
     @property
-    def std(self):
-        '''
+    def std(self) -> float | Quantity:
+        """
         Returns
         -------
         float : Standard deviation of all values in the data, ignoring NaNs.
-        '''
-        return np.nanstd(self.data)
+        """
+        return cast(float | Quantity, np.nanstd(self.data))
 
     # array properties
     @property
-    def shape(self):
-        '''
+    def shape(self) -> tuple:
+        """
         Returns
         -------
         tuple : Shape of data.
-        '''
+        """
         return self.value.shape
+
     @property
-    def size(self):
-        '''
+    def size(self) -> int:
+        """
         Returns
         -------
         int : Size of data.
-        '''
+        """
         return self.value.size
+
     @property
-    def ndim(self):
-        '''
+    def ndim(self) -> int:
+        """
         Returns
         -------
         int : Number of dimensions of data.
-        '''
+        """
         return self.value.ndim
+
     @property
-    def dtype(self):
-        '''
+    def dtype(self) -> np.dtype:
+        """
         Returns
         -------
         np.dtype : Datatype of the data.
-        '''
+        """
         return self.value.dtype
+
     @property
-    def has_nan(self):
-        '''
+    def has_nan(self) -> np.bool:
+        """
         Returns
         -------
         bool : Returns True if there are NaNs.
-        '''
+        """
         return np.isnan(self.value).any()
+
     @property
-    def itemsize(self):
-        '''
+    def itemsize(self) -> int:
+        """
         Returns
         -------
         int : Length of 1 array element in bytes.
-        '''
+        """
         return self.value.itemsize
+
     @property
-    def nbytes(self):
-        '''
+    def nbytes(self) -> int:
+        """
         Returns
         -------
         int : Total number of bytes used by the data array.
-        '''
+        """
         return self.value.nbytes
+
     @property
-    def log(self):
-        '''
+    def log(self) -> list[str] | None:
+        """
         Get the processing history from the FITS HISTORY cards.
 
         Returns
         -------
         list of str or None
             List of HISTORY entries, or None if no header exists.
-        '''
+        """
         return _get_history(self.primary_header)
 
     # Methods
