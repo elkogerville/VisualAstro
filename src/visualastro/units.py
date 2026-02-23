@@ -732,31 +732,34 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
     UnitsError
         If units differ (either convertible or incompatible).
     """
-    # case 1: either of the units are None
-    if unit1 is None or unit2 is None:
-        return
-
     try:
-        u1 = Unit(unit1)
-        u2 = Unit(unit2)
+        u1 = to_unit(unit1)
+        u2 = to_unit(unit2)
     except Exception:
         raise UnitsError('Invalid unit(s) supplied')
 
+    # case 1: either of the units are None
+    if u1 is None or u2 is None:
+        return None
+
+    u1_str = unit_2_string(u1)
+    u2_str = unit_2_string(u2)
+
     # case 1: units are exactly equal
     if u1 == u2:
-        return
+        return None
 
     # case 2: equivalent but not equal
     if u1.is_equivalent(u2):
         raise UnitsError(
             f'{name1} and {name2} units are equivalent but not equal '
-            f'({u1} vs {u2}). Convert one to match.'
+            f'({u1_str} vs {u2_str}). Convert one to match.'
         )
 
     # case 3: mismatch
     raise UnitsError(
         f'{name1} and {name2} have incompatible units: '
-        f'{u1} vs {u2}.'
+        f'{u1_str} vs {u2_str}.'
     )
 
 
