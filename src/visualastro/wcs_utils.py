@@ -598,7 +598,9 @@ def _normalize_reproject_input(input_data):
     return (value, wcs), unit
 
 
-def _strip_wcs_from_header(header):
+def _strip_wcs_from_header(
+    header: Header | list[Header] | tuple[Header]
+) -> Header | list[Header]:
     """
     Strip all WCS information from a Header.
 
@@ -614,7 +616,6 @@ def _strip_wcs_from_header(header):
     nowcs_header : Header or array-like of Headers
         Header(s) with no WCS information.
     """
-
     if isinstance(header, (list, tuple)):
         return [strip_wcs_from_header(h) for h in header]
 
