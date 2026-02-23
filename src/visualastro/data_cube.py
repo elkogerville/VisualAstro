@@ -39,7 +39,7 @@ from .plot_utils import (
 )
 from .units import ensure_common_unit, to_latex_unit
 from .config import get_config_value, config, _default_flag
-from .DataCube import DataCube
+from .datacube import DataCube
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
@@ -361,12 +361,11 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     """
     # check cube units match and ensure cubes is iterable
     cubes = to_list(cubes)
-    ensure_common_unit(cubes)
+    ref_unit = ensure_common_unit(cubes)
     # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)
     # labels
-    title = kwargs.get('title', False)
     emission_line = kwargs.get('emission_line', None)
     text_loc = kwargs.get('text_loc', config.text_loc)
     text_color = kwargs.get('text_color', config.text_color)
