@@ -1136,7 +1136,7 @@ def plot_ellipses(ellipses, ax):
 
 
 def _copy_ellipse(ellipse):
-    '''
+    """
     Returns a copy of an Ellipse object.
 
     This function is used to avoid running into
@@ -1152,7 +1152,7 @@ def _copy_ellipse(ellipse):
     -------
     matplotlib.patches.Ellipse
         A new Ellipse object with the same properties as the input.
-    '''
+    """
     return Ellipse(
         xy=ellipse.center,
         width=ellipse.width,
@@ -1169,7 +1169,36 @@ def _copy_ellipse(ellipse):
 def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
                              text_color=None, highlight=None,
                              angle=0.0, rotation_step=5.0):
+    """
+    Create an interactive ellipse selector on an Axes
+    along with an interactive text window displaying
+    the current ellipse center, width, and height.
 
+    Parameters
+    ----------
+    center : tuple of float
+        (x, y) coordinates of the ellipse center in data units.
+    w : float
+        Width of the ellipse.
+    h : float
+        Height of the ellipse.
+    ax : matplotlib.axes.Axes
+        The Axes on which to draw the ellipse selector.
+    text_loc : list of float or None, optional, default=None
+        Position of the text label in Axes coordinates, given as [x, y].
+        If None, uses the default value set in `config.text_loc`.
+    text_color : str or None, optional, default=None
+        Color of the annotation text. If None, uses
+        the default value set in `config.text_color`.
+    highlight : bool or None, optional, default=None
+        If True, adds a bbox to highlight the text. If None,
+        uses the default value set in `config.highlight`.
+
+    Notes
+    -----
+    Ensure an interactive backend is active. This can be
+    activated with use_interactive().
+    """
     text_loc = get_config_value(text_loc, 'ellipse_label_loc')
     text_color = get_config_value(text_color, 'text_color')
     highlight = get_config_value(highlight, 'highlight')
@@ -1271,7 +1300,10 @@ def _update_ellipse_region(region, text):
     )
 
 
-def ellipse_patch(center, w, h, angle=0, fill=False):
+def ellipse_patch(
+    center, w, h, angle=0, fill=False,
+    edgecolor='k', facecolor=None, **kwargs
+):
     """
     Create a matplotlib.patches.Ellipse object.
 
@@ -1287,14 +1319,24 @@ def ellipse_patch(center, w, h, angle=0, fill=False):
         Rotation angle of the ellipse in degrees (counterclockwise).
     fill : bool, optional, default=False
         Whether the ellipse should be filled (True) or only outlined (False).
+    edgecolor : str, optional, default='k'
+        Color of patch edges.
+    facecolor : str, optional, default=None
+        Color of patch face. If not ``None``,
+        sets ``fill=True``.
 
     Returns
     -------
     ellipse : matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
     """
+    if facecolor is not None:
+        fill = True
+
     return Ellipse(
-        xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=fill
+        xy=(center[0], center[1]), width=w, height=h,
+        angle=angle, fill=fill, edgecolor=edgecolor,
+        facecolor=facecolor, **kwargs
     )
 
 
