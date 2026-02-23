@@ -157,42 +157,38 @@ class FitsFile:
         )
         wcs = _validate_type(wcs, WCS, allow_none=True, name='wcs')
 
+        if header is None:
+            header = Header()
+
         array = np.asarray(data)
-        # extract unit
-        unit = data.unit if isinstance(data, Quantity) else None
+        unit = get_unit(data)
+        hdr_unit = get_unit(header)
 
-        # extract BUNIT from header(s)
-        hdr_unit = ensure_common_unit(
-            header, on_mismatch='raise',
-            label='header'
-        )
-
-        # check that data and header units are equal
         _check_unit_equality(unit, hdr_unit, 'data', 'header')
 
         # use BUNIT if unit is None
         if unit is None and hdr_unit is not None:
             unit = hdr_unit
             _log_history(
-                header, f'Using header BUNIT: {hdr_unit}'
+                header, f'Using header BUNIT: {to_fits_unit(hdr_unit)}'
             )
 
         # add BUNIT to header if missing
         if (
             unit is not None and
-            isinstance(header, Header) and
             'BUNIT' not in header
         ):
-            header['BUNIT'] = unit.to_string() # type: ignore
+            unit_str = to_fits_unit(unit)
+            header['BUNIT'] = unit_str
             _log_history(
-                header, f'Added missing BUNIT={unit} to header'
+                header, f'Added missing BUNIT={unit_str} to header'
             )
 
         # attatch units to data if bare numpy array
         if not isinstance(data, Quantity) and unit is not None:
             data = array * unit
             _log_history(
-                header, f'Attached unit to data: unit={unit}'
+                header, f'Attached unit to data: unit={to_fits_unit(unit)}'
             )
 
         # error validation
