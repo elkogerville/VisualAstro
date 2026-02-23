@@ -555,18 +555,22 @@ class FitsFile:
         -------
         np.ndarray
             Reshaped data array.
-        '''
+        """
         return self.data.reshape(*shape)
 
-    def __repr__(self):
-        '''
+    def __repr__(self) -> str:
+        """
         Returns
         -------
-        str : String representation of `FitsFile`.
-        '''
-        datatype = 'np.ndarray' if self.unit is None else 'Quantity'
+        str :
+            String representation of ``FitsFile``.
+        """
+        if isinstance(self.data, Quantity):
+            return (
+                f'<FitsFile[Quantity]: unit={self.unit}, '
+                f'shape={self.shape}, dtype={self.dtype}>'
+            )
 
         return (
-            f'<FitsFile[{datatype}]: unit={self.unit}, '
-            f'shape={self.shape}, dtype={self.dtype}>'
+            f'<FitsFile[NDArray]: shape={self.shape}, dtype={self.dtype}>'
         )
