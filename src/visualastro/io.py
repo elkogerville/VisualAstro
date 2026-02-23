@@ -1,7 +1,7 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-10-20
+Date Modified: 2026-02-23
 Description:
     Functions for I/O operations within visualastro.
 Dependencies:
@@ -14,7 +14,7 @@ Module Structure:
         Functions to handle Fits files I/O operations.
     - Figure I/O Operations
         Functions to handle matplotlib figure I/O operations.
-'''
+"""
 
 import os
 import warnings
@@ -25,9 +25,10 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-from .numerical_utils import to_array
-from .FitsFile import FitsFile
 from .config import get_config_value, config, _default_flag
+from .FitsFile import FitsFile
+from .numerical_utils import to_array
+from .utils import _type_name
 from .wcs_utils import _reproject_wcs
 
 
@@ -154,7 +155,7 @@ def load_fits(filepath, header=True, error=True,
             )
 
         dt = get_dtype(data, dtype)
-        data = data.astype(dt, copy=False) # type: ignore
+        data = data.astype(dt, copy=False)
         # get errors
         if error:
             errors = get_errors(hdul, dt, transpose)
@@ -169,7 +170,7 @@ def load_fits(filepath, header=True, error=True,
                 wcs = target_wcs
             else:
                 raise ValueError(
-                    f'target_wcs must be Header or WCS, got {type(target_wcs)}'
+                    f'target_wcs must be Header or WCS, got {_type_name(target_wcs)}'
                 )
             input_wcs = WCS(fits_header).celestial
             data, footprint = _reproject_wcs((data, input_wcs), wcs,
@@ -306,7 +307,7 @@ def get_errors(hdul, dtype=None, transpose=False):
 
 
 def write_cube_2_fits(cube, filename, overwrite=False):
-    '''
+    """
     Write a 3D data cube to a series of FITS files.
 
     Parameters
@@ -315,7 +316,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         Data cube containing N_frames images of shape (N, M).
     filename : str
         Base filename (without extension). Each
-        output file will be saved as "{filename}_i.fits".
+        output file will be saved as ``'{filename}_i.fits'``.
     overwrite : bool, optional, default=False
         If True, existing files with the same name
         will be overwritten.
@@ -324,11 +325,11 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     -----
     Prints a message indicating the number of
     frames and the base filename.
-    '''
+    """
     N_frames, N, M = cube.shape
-    print(f"Writing {N_frames} fits files to {filename}_i.fits")
+    print(f'Writing {N_frames} fits files to {filename}_i.fits')
     for i in tqdm(range(N_frames)):
-        output_name = filename + f"_{i}.fits"
+        output_name = filename + f'_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
 
