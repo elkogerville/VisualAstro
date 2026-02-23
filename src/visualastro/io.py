@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from .config import get_config_value, config, _default_flag
-from .FitsFile import FitsFile
+from .fitsfile import FitsFile
 from .numerical_utils import to_array
 from .utils import _type_name
 from .wcs_utils import _reproject_wcs

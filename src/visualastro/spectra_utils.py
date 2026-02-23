@@ -33,7 +33,7 @@ from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 from .config import get_config_value, config
 from .numerical_utils import get_value, mask_within_range, to_list
-from .SpectrumPlus import SpectrumPlus
+from .spectrumplus import SpectrumPlus
 from .text_utils import print_pretty_table
 from .units import (
     ensure_common_unit,
@@ -42,7 +42,7 @@ from .units import (
     to_spectral_region,
     _is_spectral_axis
 )
-from .utils import _unwrap_if_single
+from .utils import _type_name, _unwrap_if_single
 
 
 # Science Spectrum Functions
@@ -248,7 +248,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
             raise ValueError (
                 'Input object is not a Spectrum '
                 "or has no `spectrum` attribute. "
-                f'type: {type(spectrum)}'
+                f'type: {_type_name(spectrum)}'
             )
     # extract spectral axis
     spectral_axis = spectrum.spectral_axis
