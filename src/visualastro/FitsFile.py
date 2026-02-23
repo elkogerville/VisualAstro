@@ -415,7 +415,7 @@ class FitsFile:
             raise ValueError(f"Unsupported header type or key '{key}' not found.")
 
     def to(self, unit, equivalencies=None):
-        '''
+        """
         Convert the FitsFile data to a new physical unit.
         The `data` attribute must be a Quantity object.
         This returns a new FitsFile object.
@@ -431,21 +431,27 @@ class FitsFile:
         -------
         FitsFile
             New cube with converted units.
-        '''
-        # convert unit to astropy unit
-        unit = Unit(unit)
+        """
+        unit = to_unit(unit)
+        data = self.data
 
-        _validate_type(
-            self.data, Quantity, allow_none=False, name='data'
-        )
+        if unit is None:
+            raise ValueError(
+                'unit cannot be None!'
+            )
+
+        if not isinstance(data, Quantity):
+            raise ValueError(
+                'data must be a Quantity to convert units!'
+            )
 
         try:
-            new_data = self.data.to(unit, equivalencies=equivalencies)
+            new_data = data.to(unit, equivalencies=equivalencies)
         except Exception as e:
             raise UnitsError(
                 f'Unit conversion failed: {e}'
             )
-        # convert errors if present
+
         if self.error is not None:
             if isinstance(self.error, Quantity):
                 new_error = self.error.to(unit, equivalencies=equivalencies)
@@ -539,7 +545,7 @@ class FitsFile:
         return len(self.data)
 
     def reshape(self, *shape):
-        '''
+        """
         Return a reshaped view of the data.
         Parameters
         ----------
