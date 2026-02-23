@@ -370,7 +370,10 @@ def estimate_spectrum_line_flux(spectra, spec_range):
     return _unwrap_if_single(results)
 
 
-def _estimate_spectrum_line_flux(spectrum, spec_range):
+def _estimate_spectrum_line_flux(
+    spectrum: Any,
+    spec_range: Quantity | tuple[float, float] | list[float] | NDArray
+) -> Quantity | float:
     """
     Estimate the integrated line flux over a spectral interval.
 
@@ -410,8 +413,8 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
     if spectral_axis is None or flux is None or continuum is None:
         raise ValueError(
             'Could not determine spectral_axis, flux, and continuum '
-            f'from the provided spectrum! Got: {type(spectral_axis)}, '
-            f'{type(flux)} and {type(continuum)}.'
+            f'from the provided spectrum! Got: {_type_name(spectral_axis)}, '
+            f'{_type_name(flux)} and {_type_name(continuum)}.'
         )
 
     if (not isinstance(spec_range, (list, tuple, np.ndarray, Quantity))
@@ -453,14 +456,14 @@ def _estimate_spectrum_line_flux(spectrum, spec_range):
 
     if flux_unit is not None and spec_unit is not None:
         return Quantity(value, unit=flux_unit * spec_unit)
-    return value
+    return float(value)
 
 
 def sort_spectra_by_line_strength(
     spectra,
     spec_range,
     descending=True,
-    emission_only=False
+    emission_only=None
 ):
     """
     Sort spectra by their integrated line flux over a spectral range.
@@ -496,6 +499,7 @@ def sort_spectra_by_line_strength(
         estimate_spectrum_line_flux(spec_list, spec_range)
     )
     unit = ensure_common_unit(fluxes, on_mismatch='ignore')
+    # flatten list[Quantity] -> Quantity
     line_strengths = Quantity(fluxes, unit=unit)
 
     if emission_only is True:
@@ -731,7 +735,7 @@ def propagate_flux_errors(errors, method=None):
 # Science Helper Functions
 # ------------------------
 def _convert_region_units(region, spectral_axis):
-    '''
+    """
     Convert the units of a list of spectral regions to match
     a given spectral axis. Helper function used when fitting
 
@@ -754,7 +758,7 @@ def _convert_region_units(region, spectral_axis):
     Examples
     --------
     >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
-    '''
+    """
     region = to_spectral_region(region)
     if region is None:
         return None
@@ -775,7 +779,7 @@ def _convert_region_units(region, spectral_axis):
         return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
 
     else:
-        raise TypeError(f"region must be SpectralRegion or list of tuples, got {type(region)}")
+        raise TypeError(f'region must be SpectralRegion or list of tuples, got {_type_name(region)}')
 
 
 # Model Fitting Functions
