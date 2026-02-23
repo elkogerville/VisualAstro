@@ -1,4 +1,4 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
 Date Modified: 2025-12-10
@@ -7,18 +7,25 @@ Description:
 Dependencies:
     - astropy
     - numpy
-'''
+"""
 
+from typing import cast
 from astropy.io.fits import Header
-from astropy.units import Quantity, Unit, UnitsError
+from astropy.units import (
+    Quantity, UnitBase, UnitsError
+)
 from astropy.wcs import WCS
 import numpy as np
+from numpy.typing import NDArray
 from .fits_utils import (
     _copy_headers, _get_history,
     _log_history, _remove_history,
     _transfer_history, _update_header_key
 )
-from .units import ensure_common_unit, _check_unit_equality
+from .units import (
+    get_unit, to_fits_unit, to_unit, _check_unit_equality
+)
+from .utils import _type_name
 from .validation import _check_shapes_match, _validate_type
 from .wcs_utils import (
     get_wcs, _is_valid_wcs_slice,
@@ -28,7 +35,7 @@ from .wcs_utils import (
 
 
 class FitsFile:
-    '''
+    """
     Lightweight container for FITS image data and metadata.
 
     Parameters
@@ -130,14 +137,18 @@ class FitsFile:
         - If `error` units do not match `data` units.
     ValueError
         - If `error` shape does not match `data` shape.
-    '''
+    """
 
-    def __init__(self, data, header=None, error=None, wcs=None):
-
+    def __init__(
+        self,
+        data: NDArray | Quantity,
+        header: Header | None = None,
+        error: NDArray | Quantity | None = None,
+        wcs: WCS | None = None
+    ):
         data = _validate_type(
             data, (np.ndarray, Quantity), allow_none=False, name='data'
         )
-        assert data is not None
         header = _validate_type(
             header, Header, default=Header(), allow_none=True, name='header'
         )
