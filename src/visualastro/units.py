@@ -302,6 +302,16 @@ def unit_2_string(
     return unit.to_string()
 
 
+@overload
+def to_latex_unit(
+    unit: Quantity | UnitBase | StructuredUnit | str
+) -> str: ...
+
+@overload
+def to_latex_unit(
+    unit: None
+) -> None: ...
+
 def to_latex_unit(
     unit: Quantity | UnitBase | StructuredUnit | str | None,
     fmt: str | None = None
