@@ -255,10 +255,59 @@ def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
 
     return None
 
+@overload
+def unit_2_string(
+    unit: None,
+    fmt: str | None = None
+) -> None: ...
 
-def to_latex_unit(unit: Any, fmt=None) -> str | None:
+@overload
+def unit_2_string(
+    unit: Quantity | UnitBase | StructuredUnit | str,
+    fmt: str | None = None
+) -> str: ...
+
+def unit_2_string(
+    unit: Quantity | UnitBase | StructuredUnit | str | None,
+    fmt: str | None = None
+) -> str | None:
     """
-    Convert an astropy unit string into a LaTeX-formatted label
+    Convert an astropy unit to a fits compliant string representation.
+
+    Parameters
+    ----------
+    unit : Quantity, Unit, str, or None
+        Astropy unit. If ``Quantity``, uses
+        the unit of the ``Quantity``.
+    fmt : {'latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'} or None, optional, default=None
+        String format for returned unit. ``'inline'`` works as an alias for
+        ``'latex_inline'``. If ``None``, does not use a format.
+
+    Returns
+    -------
+    str :
+        Fits compliant string representation of the unit.
+    """
+    unit = to_unit(unit)
+    if unit is None:
+        return None
+
+    if isinstance(fmt, str):
+        fmt = fmt.lower()
+        if fmt == 'inline':
+            fmt = 'latex_inline'
+
+        return unit.to_string(format=fmt)
+
+    return unit.to_string()
+
+
+def to_latex_unit(
+    unit: Quantity | UnitBase | StructuredUnit | str | None,
+    fmt: str | None = None
+) -> str | None:
+    """
+    Convert an astropy unit into a LaTeX-formatted label
     for plotting. Returns None if no unit is found.
 
     Parameters
