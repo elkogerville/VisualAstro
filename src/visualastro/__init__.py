@@ -1,7 +1,7 @@
 # Core Classes
-from visualastro.DataCube import DataCube
-from visualastro.FitsFile import FitsFile
-from visualastro.SpectrumPlus import SpectrumPlus
+from visualastro.datacube import DataCube
+from visualastro.fitsfile import FitsFile
+from visualastro.spectrumplus import SpectrumPlus
 
 # Submodules
 from visualastro.config import config
