@@ -1472,8 +1472,8 @@ class DataCube:
             dtype = self.dtype
 
             wx, wy = self.data.world_extrema
-            wx_unit = wx.unit.to_string()
-            wy_unit = wy.unit.to_string()
+            wx_unit = unit_2_string(wx.unit)
+            wy_unit = unit_2_string(wy.unit)
 
             spec = self.data.spectral_axis
             spec_unit = spec.unit.to_string()
