@@ -20,15 +20,14 @@ Module Structure:
 import warnings
 from astropy.io.fits import Header
 from astropy.units import (
-    Quantity, Unit, UnitBase,
-    UnitsError, StructuredUnit
+    Quantity, Unit, UnitBase, UnitsError
 )
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from spectral_cube import SpectralCube
-from specutils import Spectrum
+from specutils import SpectralRegion, Spectrum
 from tqdm import tqdm
 from .spectra_utils import (
     fit_continuum,
@@ -44,8 +43,9 @@ from .fits_utils import (
 from .config import get_config_value, _default_flag
 from .units import (
     ensure_common_unit, _check_unit_equality,
-    require_spectral_region, to_unit
+    require_spectral_region, to_unit, unit_2_string
 )
+from .utils import _type_name
 from .validation import (
     _check_shapes_match,
     _validate_iterable_type,
@@ -365,25 +365,41 @@ class DataCube:
         Quantity or None :
             Quantity array of data values (values + astropy units),
             of None if no units.
-
         """
         if self.unit is None:
             return None
         return self.unit * self.value
+
     @property
-    def unit(self) -> UnitBase | StructuredUnit | None:
+    def spectral_axis(self) -> Quantity | None:
         """
         Returns
         -------
-        Unit : Astropy.Unit of the data.
+        Quantity or None:
+            Spectral axis of the data or None if data
+            is not a ``spectral_cube``.
+        """
+        if isinstance(self.data, SpectralCube):
+            return self.data.spectral_axis
+        return None
+
+    @property
+    def unit(self) -> UnitBase | None:
+        """
+        Returns
+        -------
+        UnitBase or None :
+            Astropy.Unit of the data or None if no units found.
         """
         return getattr(self.data, 'unit', None)
+
     @property
     def spectral_unit(self) -> UnitBase | None:
         """
         Returns
         -------
-        Unit : Astropy.Unit of the spectral axis or None if not found.
+        UnitBase or None:
+            Astropy.Unit of the spectral axis or None if not found.
         """
         if isinstance(self.data, SpectralCube):
             return self.data.spectral_axis.unit
