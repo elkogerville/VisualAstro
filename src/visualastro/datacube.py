@@ -415,6 +415,7 @@ class DataCube:
             Minimum value in the cube, ignoring NaNs.
         """
         return self._stat('min')
+
     @property
     def max(self) -> float | Quantity:
         """
@@ -424,6 +425,7 @@ class DataCube:
             Maximum value in the cube, ignoring NaNs.
         """
         return self._stat('max')
+
     @property
     def mean(self) -> float | Quantity:
         """
@@ -433,6 +435,7 @@ class DataCube:
             Mean of all values in the cube, ignoring NaNs.
         """
         return self._stat('mean')
+
     @property
     def median(self) -> float | Quantity:
         """
@@ -442,6 +445,7 @@ class DataCube:
             Median of all values in the cube, ignoring NaNs.
         """
         return self._stat('median')
+
     @property
     def sum(self) -> float | Quantity:
         """
@@ -451,6 +455,7 @@ class DataCube:
             Sum of all values in the cube, ignoring NaNs.
         """
         return self._stat('sum')
+
     @property
     def std(self) -> float | Quantity:
         """
@@ -470,6 +475,7 @@ class DataCube:
         tuple : Shape of cube data.
         """
         return self.value.shape
+
     @property
     def size(self) -> int:
         """
@@ -478,6 +484,7 @@ class DataCube:
         int : Size of cube data.
         """
         return self.value.size
+
     @property
     def ndim(self) -> int:
         """
@@ -486,6 +493,7 @@ class DataCube:
         int : Number of dimensions of cube data.
         """
         return self.value.ndim
+
     @property
     def dtype(self) -> np.dtype:
         """
@@ -494,6 +502,7 @@ class DataCube:
         np.dtype : Datatype of the cube data.
         """
         return self.value.dtype
+
     @property
     def has_nan(self) -> np.bool:
         """
@@ -502,6 +511,7 @@ class DataCube:
         bool : Returns True if there are NaNs in the cube.
         """
         return np.isnan(self.value).any()
+
     @property
     def itemsize(self) -> int:
         """
@@ -510,6 +520,7 @@ class DataCube:
         int : Length of 1 array element in bytes.
         """
         return self.value.itemsize
+
     @property
     def nbytes(self) -> int:
         """
@@ -518,6 +529,7 @@ class DataCube:
         int : Total number of bytes used by the data array.
         """
         return self.value.nbytes
+
     @property
     def log(self) -> list[str] | None:
         """
