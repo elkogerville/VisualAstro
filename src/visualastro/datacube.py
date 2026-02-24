@@ -1451,10 +1451,13 @@ class DataCube:
         if isinstance(self.data, SpectralCube):
             method = getattr(self.data, func)
             return method()
+
         # otherwise evaluate with numpy and re-attach unit
         np_func = _STAT_FUNCS[func]
         value = np_func(self.data)
-        return value if self.unit is None else self.unit * value
+        if not isinstance(value, Quantity) and self.unit is not None:
+            value = value * self.unit
+        return value
 
     def __repr__(self):
         """
