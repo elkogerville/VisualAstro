@@ -902,7 +902,7 @@ class DataCube:
 
     def subtract_continuum(
         self,
-        region,
+        region=None,
         fit_method=None,
         min_valid_pixels='auto',
         print_info=None,
@@ -928,12 +928,13 @@ class DataCube:
 
         Parameters
         ----------
-        region : SpectralRegion or region input
+        region : SpectralRegion, region input, or None
             Spectral region(s) to use for continuum fitting. Can be:
             - SpectralRegion object
             - (low, high) * unit for single region
             - [(low, high), ...] * unit for multiple regions
             - [(low * unit, high * unit), ...] for single or multiple regions
+            - None (uses the entire spectral_axis range)
             Regions outside emission/absorption features are typically chosen.
         fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
             Method used for fitting the continuum.
@@ -987,9 +988,13 @@ class DataCube:
         if not isinstance(cube, SpectralCube):
             raise ValueError(
                 'cube must be or contain a SpectralCube, '
-                f'got {type(cube).__name__} instead!'
+                f'got {_type_name(cube)} instead!'
             )
 
+        if region is None:
+            region = SpectralRegion(
+                cube.spectral_axis.min(), cube.spectral_axis.max()
+            )
         region = require_spectral_region(region)
         ensure_common_unit([cube.spectral_axis, region.lower], on_mismatch='raise')
 
@@ -1214,7 +1219,7 @@ class DataCube:
             new_data[~mask] = np.nan
         else:
             raise TypeError(
-                f'Cannot apply mask to data of type {type(self.data)}'
+                f'Cannot apply mask to data of type {_type_name(self.data)}'
             )
 
         # mask errors
@@ -1343,7 +1348,7 @@ class DataCube:
             except (AttributeError, TypeError, ValueError) as e:
                 new_wcs = None
                 new_hdr = _transfer_history(new_hdr, Header())
-                _log_history(new_hdr, f'Header and WCS dropped due to {type(e).__name__}')
+                _log_history(new_hdr, f'Header and WCS dropped due to {_type_name(e)}')
 
         return DataCube(
             data=new_data,
