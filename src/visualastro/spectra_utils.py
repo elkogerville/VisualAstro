@@ -633,7 +633,7 @@ def mask_spectral_region(x, spectral_region):
     x : array-like or `~astropy.units.Quantity`
         1D array of spectral coordinates (e.g., wavelength or frequency).
         If a Quantity is provided, its values are converted to plain
-        numeric values via ``get_value``.
+        numeric values.
 
     spectral_region : `~specutils.SpectralRegion` or region-like
         Spectral region definition. May contain multiple disjoint
@@ -829,6 +829,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     p0.extend(args)
 
     return p0
+
 
 def gaussian(x, A, mu, sigma):
     '''
@@ -1076,10 +1077,13 @@ class ExtractedPixelSpectra:
         Extracted per-pixel spectra. If a single index is selected,
         this is returned as a single `SpectrumPlus` instance;
         otherwise, a list is returned.
-    extract_idx : ndarray of int, shape (N,)
+    cube_array : np.ndarray
+        Cube of array values corresponding to the extracted pixels.
+        All other pixels are set to NaN.
+    extract_idx : np.ndarray of int, shape (N,)
         Indices of the extracted spectra corresponding to the ordering
         of valid spatial pixels.
-    coords : ndarray of int, shape (N, 2)
+    coords : np.ndarray of int, shape (N, 2)
         Spatial coordinates of extracted pixels in `(y, x)` order.
     colors : list
         Colors assigned to each extracted pixel/spectrum.
