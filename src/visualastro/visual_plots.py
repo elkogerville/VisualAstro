@@ -34,6 +34,7 @@ from .plotting import (
 from .plot_utils import return_stylename, set_plot_colors
 from .spectra import plot_combine_spectrum, plot_spectrum
 from .utils import _type_name
+from .wcs_utils import get_wcs_celestial
 
 class va:
     @contextmanager
@@ -426,13 +427,18 @@ class va:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        cubes = cubes if isinstance(cubes, (list, np.ndarray, tuple)) else [cubes]
+        cubes = to_list(cubes)
 
         # define wcs figure axes
         style = return_stylename(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
-            wcs2d = get_data(cubes[0]).wcs.celestial
+            wcs2d = get_wcs_celestial(cubes[0])
+            if not isinstance(wcs2d, WCS):
+                raise ValueError(
+                    'input data must have a valid WCS! '
+                    f'got: {_type_name(wcs2d)}'
+                )
             ax = fig.add_subplot(111, projection=wcs2d)
             if style.split('/')[-1] == 'minimal.mplstyle':
                 ax.coords['ra'].set_ticks_position('bl')
