@@ -12,6 +12,7 @@ Module Structure:
         Lightweight data class for fits files.
 """
 
+from collections.abc import Sequence
 import copy
 from typing import Any, cast
 from astropy.coordinates import SkyCoord
@@ -135,7 +136,7 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
     return None
 
 
-def get_header_wcs(header: Any) -> WCS | list[WCS] | None:
+def get_header_wcs(header: Header | Sequence[Header]) -> WCS | list[WCS] | None:
     """
     Extract WCS from header(s).
 
@@ -158,26 +159,12 @@ def get_header_wcs(header: Any) -> WCS | list[WCS] | None:
     ValueError
         If a sequence of headers is provided and only a subset yield valid WCS.
     """
-    if isinstance(header, WCS):
-        return header
-
     if isinstance(header, Header):
-        try:
-            return WCS(header)
-        except Exception:
-            return None
+        return get_wcs(header)
 
     # if a list of headers extract a list of wcs
     if isinstance(header, (list, np.ndarray, tuple)):
-        wcs_list: list[WCS | None] = []
-        for h in header:
-            if not isinstance(h, Header):
-                wcs_list.append(None)
-                continue
-            try:
-                wcs_list.append(WCS(h))
-            except Exception:
-                wcs_list.append(None)
+        wcs_list = [get_wcs(h) if isinstance(h, Header) else None for h in header]
 
         if all(w is None for w in wcs_list):
             return None
