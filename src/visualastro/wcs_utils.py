@@ -31,7 +31,111 @@ from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
 
 
-def get_wcs(header: Any) -> WCS | list[WCS] | None:
+def get_wcs(obj: Any) -> WCS | None:
+    """
+    Extract the WCS from an object, if it exists.
+
+    This function attempts to retrieve a World Coordinate System (WCS)
+    associated with the input object. The extraction proceeds in the
+    following order:
+
+    - If the object is already a ``WCS`` instance, it is returned directly.
+    - If the object is a FITS ``Header``, a ``WCS`` is constructed from it.
+    - If the object has a ``.wcs`` attribute, that attribute is recursively
+      inspected until a ``WCS`` or ``Header`` is found.
+    - If the object has a ``.data`` attribute, that attribute is recursively
+      inspected until a ``WCS`` or ``Header`` is found.
+    - Otherwise, None is returned.
+
+    Parameters
+    ----------
+    obj : object
+        The input object from which to extract a WCS. This can be:
+        - an astropy.wcs.WCS instance
+        - an astropy.io.fits.Header
+        - any object with a ``.wcs`` attribute
+        - any object with a ``.data`` attribute
+        - any other object (returns None)
+
+    Returns
+    -------
+    astropy.wcs.WCS or None
+        The WCS associated with the input object, if it exists and can be
+        constructed. Returns None if no valid WCS is found or extraction fails.
+
+    Notes
+    -----
+    This function follows attribute references recursively via ``.wcs`` and
+    ``.data`` to support nested container objects such as NDData, SpectralCube,
+    or custom data structures.
+    """
+    if isinstance(obj, WCS):
+        return obj
+
+    if isinstance(obj, Header):
+        try:
+            return WCS(obj)
+        except Exception:
+            return None
+
+    if hasattr(obj, 'wcs'):
+        wcs_attr = obj.wcs
+        if wcs_attr is not obj:
+            wcs = get_wcs(wcs_attr)
+            if isinstance(wcs, WCS):
+                return wcs
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            wcs = get_wcs(data)
+            if isinstance(wcs, WCS):
+                return wcs
+
+    return None
+
+
+def get_wcs_celestial(obj: Any) -> WCS | None:
+    """
+    Extract the celestial WCS from an object, if it exists.
+
+    This function retrieves the World Coordinate System (WCS) associated
+    with the input object using ``get_wcs`` and returns its celestial
+    component. The celestial WCS contains only the sky-coordinate axes
+    (e.g., right ascension and declination), excluding spectral, temporal,
+    or other non-celestial axes.
+
+    Parameters
+    ----------
+    obj : object
+        The input object from which to extract a celestial WCS. This can be:
+        - an astropy.wcs.WCS instance
+        - an astropy.io.fits.Header
+        - any object with a ``.wcs`` attribute
+        - any object with a ``.data`` attribute
+        - any nested combination of the above
+
+    Returns
+    -------
+    astropy.wcs.WCS or None
+        The celestial component of the object's WCS, if it exists.
+        Returns None if no valid WCS is found or if the WCS has no
+        celestial axes.
+
+    Notes
+    -----
+    The returned WCS is a reduced WCS containing only celestial axes.
+    For example, a 3D WCS with axes (RA, Dec, wavelength) will return
+    a 2D WCS containing only (RA, Dec).
+    """
+    wcs = get_wcs(obj)
+    if wcs is not None:
+        return wcs.celestial
+
+    return None
+
+
+def get_header_wcs(header: Any) -> WCS | list[WCS] | None:
     """
     Extract WCS from header(s).
 
