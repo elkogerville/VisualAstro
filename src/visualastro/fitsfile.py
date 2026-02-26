@@ -28,7 +28,8 @@ from .units import (
 from .utils import _type_name
 from .validation import _check_shapes_match, _validate_type
 from .wcs_utils import (
-    get_wcs, _is_valid_wcs_slice,
+    get_header_wcs,
+    _is_valid_wcs_slice,
     _strip_wcs_from_header,
     _update_header_from_wcs
 )
@@ -200,7 +201,7 @@ class FitsFile:
 
         # try extracting WCS
         if wcs is None:
-            wcs = get_wcs(header)
+            wcs = get_header_wcs(header)
 
         if wcs is not None:
             if not isinstance(wcs, WCS):

@@ -52,7 +52,7 @@ from .validation import (
     _validate_type
 )
 from .wcs_utils import (
-    get_wcs,
+    get_header_wcs,
     _is_valid_wcs_slice,
     _reproject_wcs,
     _strip_wcs_from_header,
@@ -306,7 +306,7 @@ class DataCube:
 
         # try extracting WCS from headers
         if wcs is None:
-            wcs = get_wcs(header)
+            wcs = get_header_wcs(header)
 
         # ensure header and wcs are in sync
         if wcs is not None:
