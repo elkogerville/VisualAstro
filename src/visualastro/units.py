@@ -305,12 +305,14 @@ def unit_2_string(
 
 @overload
 def to_latex_unit(
-    unit: Quantity | UnitBase | StructuredUnit | str
+    unit: Quantity | UnitBase | StructuredUnit | str,
+    fmt: str | None = None
 ) -> str: ...
 
 @overload
 def to_latex_unit(
-    unit: None
+    unit: None,
+    fmt: str | None = None
 ) -> None: ...
 
 def to_latex_unit(
