@@ -465,29 +465,14 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
 
     # plot wavelength/frequency of current spectral slice, and emission line
     if draw_spectral_label:
-        # compute spectral axis value of slice for label
-        spectral_axis = convert_quantity(cube.spectral_axis, unit, equivalencies=u.spectral())
-        spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
-        spectral_value = spectral_idx_2_world(spectral_axis, idx, keep_unit=False)
-        unit_label = to_latex_unit(spectral_axis.unit)
-
-        # lambda for wavelength, f for frequency
-        spectral_type = r'\lambda = ' if spectral_axis.unit.physical_type == 'length' else r'f = '
-        # replace spectral type with emission line if provided
-        if emission_line is None:
-            slice_label = fr'${spectral_type}{spectral_value:0.2f}\,{unit_label.strip("$")}$'
-        else:
-            # replace spaces with latex format
-            emission_line = emission_line.replace(' ', r'\ ')
-            slice_label = fr'$\mathrm{{{emission_line}}}\,{spectral_value:0.2f}\,{unit_label.strip("$")}$'
-            # display label as either a title or text in figure
-        if title:
-            ax.set_title(slice_label, color=text_color, loc='center')
-        else:
-            bbox = dict(facecolor='white', edgecolor='w') if highlight else None
-            ax.text(text_loc[0], text_loc[1], slice_label,
-                    transform=ax.transAxes, color=text_color,
-                    bbox=bbox)
+        spectral_axis_label(
+            cubes[0], idx, ax,
+            ref_unit=spectral_unit,
+            radial_vel=radial_vel,
+            emission_line=emission_line,
+            as_title=as_title,
+            **kwargs
+        )
 
     # set axes labels
     ax.coords['ra'].set_axislabel(xlabel)
