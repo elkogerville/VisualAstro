@@ -511,9 +511,8 @@ def sort_spectra_by_line_strength(
     """
     spec_list = spectra.spectra if isinstance(spectra, ExtractedPixelSpectra) else spectra
 
-    fluxes = (
-        estimate_spectrum_line_flux(spec_list, spec_range)
-    )
+    fluxes = estimate_spectrum_line_flux(spec_list, spec_range)
+
     unit = ensure_common_unit(fluxes, on_mismatch='ignore')
     # flatten list[Quantity] -> Quantity
     line_strengths = Quantity(fluxes, unit=unit)
@@ -601,7 +600,7 @@ def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=
     return result if keep_unit else get_value(result)
 
 
-def spectral_world_2_idx(spectral_axis, value):
+def spectral_world_2_idx(spectral_axis, value) -> int:
     """
     Return the index of the nearest spectral channel to a given value.
     If ``value`` has no unit, the cube unit is assumed.
