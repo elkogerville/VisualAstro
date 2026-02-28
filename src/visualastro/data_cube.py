@@ -21,11 +21,14 @@ import glob
 import warnings
 from astropy.io import fits
 from astropy.utils.exceptions import AstropyWarning
+from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
 from matplotlib.patches import Ellipse
 import numpy as np
 from spectral_cube import SpectralCube
 from tqdm import tqdm
+from .config import get_config_value, config, _default_flag
+from .datacube import DataCube
 from .data_cube_utils import stack_cube
 from .io import get_dtype, get_errors
 from .numerical_utils import (
@@ -35,11 +38,10 @@ from .plot_utils import (
     add_colorbar, plot_ellipses,
     plot_interactive_ellipse,
     return_imshow_norm, set_vmin_vmax,
-    _spectral_axis_label,
+    spectral_axis_label,
 )
 from .units import ensure_common_unit, to_latex_unit
-from .config import get_config_value, config, _default_flag
-from .datacube import DataCube
+from .utils import _unwrap_if_single
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
@@ -245,7 +247,7 @@ def load_spectral_cube(filepath, hdu, error=True,
 def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
                        vmax=_default_flag, norm=_default_flag,
                        percentile=_default_flag, stack_method=None,
-                       radial_vel=None, unit=None, cmap=None,
+                       radial_vel=None, spectral_unit=None, cmap=None,
                        mask_non_pos=None, wcs_grid=None, **kwargs):
     """
     Plot a single spectral slice from one or more spectral cubes.
@@ -287,7 +289,7 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, uses the default
         value set by `config.radial_velocity`.
-    unit : astropy.units.Unit or str, optional, default=None
+    spectral_unit : astropy.units.Unit or str, optional, default=None
         Desired spectral axis unit for labeling.
     cmap : str, list or tuple of str, or None, default=None
         Colormap(s) to use for plotting. If None,
@@ -365,8 +367,9 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     # ---- Kwargs ----
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)
+    as_title = kwargs.get('as_title', False)
     # labels
-    emission_line = kwargs.get('emission_line', None)
+    emission_line = kwargs.pop('emission_line', None)
     text_loc = kwargs.get('text_loc', config.text_loc)
     text_color = kwargs.get('text_color', config.text_color)
     colorbar = kwargs.get('colorbar', config.cbar)
@@ -399,16 +402,15 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
-    if ax is None:
+    if not isinstance(ax, WCSAxes):
         raise ValueError(
-            'ax must be an axes instance!'
+            'ax must be a WCSAxes instance!'
         )
 
     images = []
     cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
 
     for i, cube in enumerate(cubes):
-        # extract data component
         cube = get_data(cube)
         if not isinstance(cube, SpectralCube):
             raise ValueError(
@@ -440,20 +442,18 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
         images.append(im)
 
     # determine unit of colorbar
-    cbar_unit = to_latex_unit(cubes[0].unit)
+    cbar_unit = to_latex_unit(ref_unit)
     # set colorbar label
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
     # set colorbar
     if colorbar:
-        add_colorbar(im, ax, cbar_width, cbar_pad, clabel, rasterized=rasterized)
+        add_colorbar(
+            images[0], ax, cbar_width, cbar_pad, clabel, rasterized=rasterized
+        )
 
     if ellipses is not None:
         plot_ellipses(ellipses, ax)
-    # plot ellipse with angle
-    elif angle is not None:
-        e = Ellipse(xy=(center[0], center[1]), width=w, height=h, angle=angle, fill=False)
-        ax.add_patch(e)
 
     if plot_ellipse:
         plot_interactive_ellipse(
@@ -496,6 +496,6 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     if wcs_grid:
         ax.coords.grid(True, color='white', ls='dotted')
 
-    images = images[0] if len(images) == 1 else images
+    images = _unwrap_if_single(images)
 
     return images
