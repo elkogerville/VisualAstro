@@ -549,7 +549,7 @@ def sort_spectra_by_line_strength(
         return sorted_indices, sorted_strengths
 
 
-def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
+def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=True):
     """
     Return a representative value from a spectral axis
     given an index or index range.
@@ -576,6 +576,7 @@ def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
         The spectral value at the specified index or index
         range, in the units of 'spectral_axis'.
     """
+    spec_unit = get_spectral_unit(spectral_axis)
     if idx is None:
         result = (spectral_axis[0] + spectral_axis[-1]) / 2
 
@@ -594,7 +595,10 @@ def spectral_idx_2_world(spectral_axis, idx, keep_unit=True):
     else:
         raise ValueError("'idx' must be an int or a list of one or two integers")
 
-    return result if keep_unit else result.value
+    if spec_unit is not None:
+        result = result * spec_unit if get_spectral_unit(result) is None else result
+
+    return result if keep_unit else get_value(result)
 
 
 def spectral_world_2_idx(spectral_axis, value):
