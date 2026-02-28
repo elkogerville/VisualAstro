@@ -1297,7 +1297,7 @@ def plot_ellipses(ellipses, ax):
             if not isinstance(ellipse, Ellipse):
                 raise ValueError(
                     'ellipses must contain matplotlib.patches.Ellipse instances! '
-                    f'got: {type(ellipse).__name__}'
+                    f'got: {_type_name(ellipse)}'
                 )
             ax.add_patch(_copy_ellipse(ellipse))
 
@@ -1491,6 +1491,11 @@ def ellipse_patch(
     facecolor : str, optional, default=None
         Color of patch face. If not ``None``,
         sets ``fill=True``.
+    linestyle or ls : {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}, optional
+        Linestyle of ellipse patch.
+    linewidth or lw : float or None, optional
+        Linewidth of ellipse patch.
+    Any other kwargs accepted by matplotlib.patches.Ellipse
 
     Returns
     -------
