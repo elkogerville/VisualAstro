@@ -20,7 +20,7 @@ Module Structure:
 '''
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import Any, Optional
+from typing import Any, Optional, overload
 import warnings
 import astropy.units as u
 from astropy.units import Quantity, UnitConversionError
@@ -37,6 +37,7 @@ from .spectrumplus import SpectrumPlus
 from .text_utils import print_pretty_table
 from .units import (
     ensure_common_unit,
+    get_spectral_unit,
     get_unit,
     require_spectral_region,
     to_spectral_region,
@@ -47,6 +48,21 @@ from .utils import _type_name, _unwrap_if_single
 
 # Science Spectrum Functions
 # --------------------------
+@overload
+def get_spectral_axis(
+    obj: SpectralAxis | Quantity
+) -> SpectralAxis | Quantity: ...
+
+@overload
+def get_spectral_axis(
+    obj: None
+) -> None: ...
+
+@overload
+def get_spectral_axis(
+    obj: Any
+) -> SpectralAxis | Quantity | None: ...
+
 def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     """
     Get the `spectral_axis` associated with an object, if one exists.
