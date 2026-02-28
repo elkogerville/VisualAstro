@@ -302,7 +302,7 @@ class va:
     def plot_spectral_cube(cubes, idx=None, vmin=_default_flag,
                            vmax=_default_flag, norm=_default_flag,
                            percentile=_default_flag, stack_method=None,
-                           radial_vel=None, unit=None, cmap=None,
+                           radial_vel=None, spectral_unit=None, cmap=None,
                            mask_non_pos=None, **kwargs):
         '''
         Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
@@ -348,7 +348,7 @@ class va:
             Radial velocity in km/s to shift the spectral axis.
             Astropy units are optional. If None, uses the default
             value set by `config.radial_velocity`.
-        unit : astropy.units.Unit or str, optional, default=None
+        spectral_unit : astropy.units.Unit or str, optional, default=None
             Desired spectral axis unit for labeling.
         cmap : str, list or tuple of str, or None, default=None
             Colormap(s) to use for plotting. If None,
@@ -453,7 +453,7 @@ class va:
                 percentile=percentile,
                 stack_method=stack_method,
                 radial_vel=radial_vel,
-                unit=unit,
+                spectral_unit=spectral_unit,
                 cmap=cmap,
                 mask_non_pos=mask_non_pos,
                 **kwargs
