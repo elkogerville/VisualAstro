@@ -346,7 +346,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 
 
 def _reproject_wcs(
-    input_data: tuple[NDArray, WCS | Header],
+    input_data: tuple[NDArray | Quantity, WCS | Header],
     reference_wcs: WCS | Header,
     method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
@@ -363,9 +363,9 @@ def _reproject_wcs(
     Parameters
     ----------
     input_data : tuple
-        A `(np.ndarray, WCS)` or `(np.ndarray, Header)` tuple
+        A `(np.ndarray | Quantity, WCS)` or `(np.ndarray, Header)` tuple
         Note:
-            - [np.ndarray, WCS/Header] is not allowed! Ensure they are all tuples.
+            - [np.ndarray | Quantity, WCS/Header] is not allowed! Ensure they are all tuples.
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
@@ -509,7 +509,7 @@ def _reproject_wcs(
 
 
 def reproject_wcs(
-    input_data_list: tuple[NDArray, WCS | Header] | list[tuple[NDArray, WCS | Header]],
+    input_data_list: tuple[NDArray | Quantity, WCS | Header] | list[tuple[NDArray, WCS | Header]],
     reference_wcs: WCS | Header,
     method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
@@ -739,7 +739,7 @@ def _update_header_from_wcs(header, wcs):
     The WCS is converted to a Header, then each key-value
     pair is iterated over to update the original header.
     This should only update WCS related keys. It is ideal
-    to call `_strip_wcs_from_header` before calling this function,
+    to call ``_strip_wcs_from_header`` before calling this function,
     to avoid stale WCS keywords.
 
     Parameters
