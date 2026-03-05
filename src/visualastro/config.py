@@ -210,7 +210,7 @@ class VAConfig:
 
         # reprojection parameters
         self.reproject_method = 'interp'
-        self.return_footprint = False
+        self.return_footprint: bool = False
         self.reproject_block_size = None
         self.reproject_parallel = False
 

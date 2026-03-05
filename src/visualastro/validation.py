@@ -7,7 +7,7 @@ Description:
 Dependencies:
     - astropy
 '''
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Sequence
 from typing import Literal, Tuple, Type, TypeVar, cast, overload
 from astropy.units import Quantity
 import numpy as np
