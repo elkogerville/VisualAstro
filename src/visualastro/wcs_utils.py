@@ -14,23 +14,32 @@ Module Structure:
 
 from collections.abc import Sequence
 import copy
-from typing import Any, cast
+from typing import Any, cast, overload
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
 import astropy.units as u
-from astropy.units import Quantity
+from astropy.units import Quantity, Unit
 from astropy.wcs import WCS
 import numpy as np
+from numpy.typing import NDArray
 from reproject import reproject_interp, reproject_exact
 from spectral_cube import SpectralCube
 from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
-from .fits_utils import _log_history
-from .utils import _unwrap_if_single
 from .config import get_config_value, config, _default_flag
+from .fits_utils import _log_history
+from .numerical_utils import to_list
+from .units import get_unit
+from .utils import _type_name, _unwrap_if_single
 
+
+@overload
+def get_wcs(obj: Header | WCS) -> WCS: ...
+
+@overload
+def get_wcs(obj: Any) -> WCS | None: ...
 
 def get_wcs(obj: Any) -> WCS | None:
     """
@@ -95,6 +104,12 @@ def get_wcs(obj: Any) -> WCS | None:
 
     return None
 
+
+@overload
+def get_wcs_celestial(obj: Header | WCS) -> WCS: ...
+
+@overload
+def get_wcs_celestial(obj: Any) -> WCS | None: ...
 
 def get_wcs_celestial(obj: Any) -> WCS | None:
     """
