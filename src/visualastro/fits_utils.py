@@ -9,14 +9,21 @@ Dependencies:
     - numpy
 '''
 
+from collections.abc import Sequence
+from typing import overload
 from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
 from specutils import SpectralRegion
 from .units import require_spectral_region
 
+@overload
+def _copy_headers(headers: Header) -> Header: ...
 
-def _copy_headers(headers):
+@overload
+def _copy_headers(headers: Sequence[Header]) -> list[Header]: ...
+
+def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
     '''
     Copy a single or list of fits.Header.
 
