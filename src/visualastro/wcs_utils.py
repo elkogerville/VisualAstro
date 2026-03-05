@@ -20,7 +20,7 @@ from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
 import astropy.units as u
-from astropy.units import Quantity, Unit
+from astropy.units import Quantity, UnitBase
 from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
@@ -511,7 +511,7 @@ def _reproject_wcs(
 def reproject_wcs(
     input_data_list: tuple[NDArray, WCS | Header] | list[tuple[NDArray, WCS | Header]],
     reference_wcs: WCS | Header,
-    method: str | None = None,
+    method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
     parallel: bool | int | str | None = None,
     block_size=_default_flag,
@@ -580,8 +580,7 @@ def reproject_wcs(
     ValueError
         If the inputs are not able to be reprojected.
     """
-    if not isinstance(input_data_list, list):
-        input_data_list = [input_data_list]
+    input_data_list = to_list(input_data_list)
 
     if log_file is not None and not isinstance(log_file, Header):
         raise TypeError(
@@ -647,7 +646,9 @@ def _copy_wcs(wcs):
         )
 
 
-def _normalize_reproject_input(input_data):
+def _normalize_reproject_input(
+    input_data: tuple[NDArray, WCS | Header]
+) -> tuple[tuple[NDArray, WCS], UnitBase | None]:
     """
     Ensures that the reprojection input is a valid (data, WCS) tuple.
 
@@ -685,7 +686,7 @@ def _normalize_reproject_input(input_data):
         wcs = wcs_or_header
     else:
         raise TypeError(
-            f'WCS must be a Header or WCS object, got {type(wcs_or_header).__name__}'
+            f'WCS must be a Header or WCS object, got {_type_name(wcs_or_header)}'
         )
 
     if isinstance(data, SpectralCube):
@@ -693,14 +694,15 @@ def _normalize_reproject_input(input_data):
         unit  = data.unit
     else:
         value = np.asarray(data)
-        unit = getattr(data, 'unit', None)
+        unit = get_unit(data)
 
     if value.ndim not in (2, 3):
         raise ValueError(
             f'Data must be 2D or 3D for reprojection, got ndim={value.ndim}'
         )
+    unit_cast: UnitBase | None = cast(UnitBase | None, unit)
 
-    return (value, wcs), unit
+    return (value, wcs), unit_cast
 
 
 def _strip_wcs_from_header(
