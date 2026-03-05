@@ -346,13 +346,13 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 
 
 def _reproject_wcs(
-    input_data,
-    reference_wcs,
-    method=None,
-    return_footprint=None,
-    parallel=None,
+    input_data: tuple[NDArray, WCS | Header],
+    reference_wcs: WCS | Header,
+    method: str | None = None,
+    return_footprint: bool | None = None,
+    parallel: bool | int | str | None = None,
     block_size=_default_flag,
-    log_file=None,
+    log_file: Header | None = None,
     **kwargs
 ):
     """
@@ -431,18 +431,17 @@ def _reproject_wcs(
     if isinstance(reference_wcs, fits.Header):
         reference_wcs = WCS(reference_wcs)
 
-    if log_file is not None:
-        if not isinstance(log_file, Header):
-            raise TypeError(
-                'log_file must be a Header!'
-            )
+    if log_file is not None and not isinstance(log_file, Header):
+        raise TypeError(
+            'log_file must be a fits.Header or None!'
+        )
 
     obj, unit = _normalize_reproject_input(input_data)
 
     reproject_func = {
         'interp': reproject_interp,
         'exact': reproject_exact
-    }.get(method, reproject_interp)
+    }.get(str(method), reproject_interp)
 
     if log_file is not None:
         _log_history(
@@ -455,7 +454,7 @@ def _reproject_wcs(
 
     # 3D data -> 2D reference: reproject each slice
     if data_ndim == 3 and ref_ndim == 2:
-        wcs_celestial = wcs.celestial if wcs.naxis > 2 else wcs
+        wcs_celestial = get_wcs_celestial(wcs)
 
         reprojects = []
         footprints_slice = []
@@ -503,20 +502,20 @@ def _reproject_wcs(
             parallel=parallel, block_size=block_size
         )
 
-    if unit is not None:
+    if unit is not None and get_unit(reprojected) is None:
         reprojected *= unit
 
     return (reprojected, footprint) if return_footprint else reprojected
 
 
 def reproject_wcs(
-    input_data_list,
-    reference_wcs,
-    method=None,
-    return_footprint=None,
-    parallel=None,
+    input_data_list: tuple[NDArray, WCS | Header] | list[tuple[NDArray, WCS | Header]],
+    reference_wcs: WCS | Header,
+    method: str | None = None,
+    return_footprint: bool | None = None,
+    parallel: bool | int | str | None = None,
     block_size=_default_flag,
-    log_file=None,
+    log_file: Header | None = None,
     **kwargs
 ):
     """
