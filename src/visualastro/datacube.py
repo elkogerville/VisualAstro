@@ -17,6 +17,7 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
+from typing import Literal, cast
 import warnings
 from astropy.io.fits import Header
 from astropy.units import (
@@ -42,7 +43,7 @@ from .fits_utils import (
 )
 from .config import get_config_value, _default_flag
 from .units import (
-    ensure_common_unit, _check_unit_equality,
+    ensure_common_unit, _check_unit_equality, get_unit,
     require_spectral_region, to_unit, unit_2_string
 )
 from .utils import _type_name
@@ -621,10 +622,10 @@ class DataCube:
 
     def reproject(
         self,
-        reference_wcs,
-        method=None,
-        return_footprint=None,
-        parallel=None,
+        reference_wcs: WCS | Header,
+        method: Literal['interp', 'exact'] | None = None,
+        return_footprint: bool | None = None,
+        parallel: bool | int | None = None,
         block_size=_default_flag
     ):
         """
@@ -690,7 +691,8 @@ class DataCube:
             reference_wcs = WCS(reference_wcs)
         elif not isinstance(reference_wcs, WCS):
             raise TypeError(
-                'reference_wcs must be a WCS or fits.Header'
+                'reference_wcs must be a WCS or fits.Header! '
+                f'got {_type_name(reference_wcs)}'
             )
 
         wcs_info = self.wcs if self.wcs is not None else self.header
@@ -700,11 +702,10 @@ class DataCube:
         new_header = _transfer_history(self.primary_header, new_header)
         _log_history(new_header, f'Reprojected DataCube')
 
+        data = self.value
+
         # timeseries case, 3d cube with a list of headers/wcs
         if isinstance(wcs_info, list):
-            data = self.value
-            if self.unit is not None:
-                data = self.unit * data
             reprojected_cube = []
             footprint = []
 
@@ -748,14 +749,14 @@ class DataCube:
 
         else:
             new_data, footprint = _reproject_wcs(
-                (self.data, wcs_info),
+                (data, wcs_info),
                 reference_wcs,
                 method=method,
                 return_footprint=True,
                 parallel=parallel,
                 block_size=block_size,
                 description='Reprojecting data slices',
-                log_file=new_header
+                log_file=cast(Header, new_header)
             )
 
             if self.error is not None:
