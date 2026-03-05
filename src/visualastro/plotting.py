@@ -17,6 +17,7 @@ from collections import namedtuple
 from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
+from .config import get_config_value, config, _default_flag
 from .data_cube_utils import stack_cube
 from .io import get_kwargs
 from .numerical_utils import to_array, to_list
@@ -28,7 +29,7 @@ from .plot_utils import (
     set_plot_colors, set_vmin_vmax
 )
 from .units import ensure_common_unit, get_unit, to_latex_unit
-from .config import get_config_value, config, _default_flag
+from .utils import _unwrap_if_single
 
 
 # Plotting Functions
@@ -185,8 +186,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     ellipses = kwargs.get('ellipses', None)
     plot_ellipse = kwargs.get('plot_ellipse', False)
     # default ellipse parameters
-    data = to_array(datas)
-    X, Y = (data[0].shape if isinstance(datas, list) else data.shape)[-2:]
+    datas = to_list(datas)
+    data = to_array(datas[0])
+    X, Y = data.shape[-2:]
     center = kwargs.get('center', [X//2, Y//2])
     w = kwargs.get('w', X//5)
     h = kwargs.get('h', Y//5)
@@ -204,7 +206,6 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
     # ensure inputs are iterable or conform to standard
-    datas = to_list(datas)
     ensure_common_unit(datas)
     cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
     if idx is not None:
@@ -315,9 +316,9 @@ def imshow(datas, ax, idx=None, vmin=_default_flag,
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
     if colorbar:
-        add_colorbar(im, ax, cbar_width, cbar_pad, clabel)
+        add_colorbar(images[0], ax, cbar_width, cbar_pad, clabel)
 
-    images = images[0] if len(images) == 1 else images
+    images = _unwrap_if_single(images)
 
     return images
 
