@@ -14,7 +14,7 @@ Module Structure:
 
 from collections.abc import Sequence
 import copy
-from typing import Any, cast, overload
+from typing import Any, Literal, cast, overload
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
@@ -348,13 +348,13 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 def _reproject_wcs(
     input_data: tuple[NDArray, WCS | Header],
     reference_wcs: WCS | Header,
-    method: str | None = None,
+    method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
     parallel: bool | int | str | None = None,
     block_size=_default_flag,
     log_file: Header | None = None,
     **kwargs
-):
+) -> NDArray | Quantity | tuple[NDArray | Quantity, NDArray]:
     """
     Reproject data or Quantity arrays onto a reference WCS.
 
