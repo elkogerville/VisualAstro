@@ -775,29 +775,43 @@ class DataCube:
         if self.error is not None:
             _log_history(new_header, f'Reprojected errors')
 
+        ref_wcs = reference_wcs.celestial
         # update new header with reference WCS
         if isinstance(new_header, list):
             # timeseries cube
-            if reference_wcs.naxis == 2:
-                for hdr in new_header:
-                    _update_header_from_wcs(hdr, reference_wcs)
+
+            for hdr in new_header:
+                _update_header_from_wcs(hdr, ref_wcs)
                 _log_history(new_header, 'Assigned 2D reference WCS to all slices')
-            else:
-                warnings.warn(
-                    'Reference WCS is not 2D; dropping WCS for timeseries cube.'
-                )
-                _log_history(new_header, 'Dropped WCS due to dim mismatch')
+            # else:
+            #     warnings.warn(
+            #         'Reference WCS is not 2D; dropping WCS for timeseries cube.'
+            #     )
+            #     _log_history(new_header, 'Dropped WCS due to dim mismatch')
         else:
             # non-timeseries cube
             if reference_wcs.naxis == new_data.ndim:
                 _update_header_from_wcs(new_header, reference_wcs)
                 _log_history(new_header, 'Updated all WCS keys in header')
             else:
-                warnings.warn(
-                    'Reference WCS dimensionality does not match data; '
-                    'cube-level WCS not assigned.'
-                )
-                _log_history(new_header, 'Dropped WCS due to dim mismatch')
+                new_wcs = WCS(naxis=3)
+                new_wcs.crpix[:2] = ref_wcs.crpix
+                new_wcs.cdelt[:2] = ref_wcs.cdelt
+                new_wcs.crval[:2] = ref_wcs.crval
+                new_wcs.ctype[:2] = ref_wcs.ctype
+
+                # spectral from original cube
+                data_wcs = wcs_info if isinstance(wcs_info, WCS) else WCS(wcs_info)
+                new_wcs.wcs.crpix[2] = data_wcs.crpix[2]
+                new_wcs.wcs.cdelt[2] = data_wcs.cdelt[2]
+                new_wcs.wcs.crval[2] = data_wcs.crval[2]
+                new_wcs.wcs.ctype[2] = data_wcs.ctype[2]
+                # warnings.warn(
+                #     'Reference WCS dimensionality does not match data; '
+                #     'cube-level WCS not assigned.'
+                # )
+                # _log_history(new_header, 'Dropped WCS due to dim mismatch')
+                _log_history(new_header, 'Created 3D WCS from 2D WCS')
 
         if np.all(np.isnan(new_data)):
             raise ValueError(
@@ -805,11 +819,17 @@ class DataCube:
                 'This likely indicates a WCS round-tripping failure.'
             )
 
+        if self.unit is not None:
+            if get_unit(new_data) is None:
+                new_data *= self.unit
+            if get_unit(new_error) is None:
+                new_error *= self.unit
+
         if isinstance(self.data, SpectralCube):
             if isinstance(new_header, list):
                 raise RuntimeError(
                     'SpectralCube reprojection resulted in per-slice headers; '
-                    'this is not supported.'
+                    'this is not supported and should not happen.'
                 )
 
             new_wcs = WCS(new_header)
