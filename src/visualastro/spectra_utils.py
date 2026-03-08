@@ -718,7 +718,7 @@ def propagate_flux_errors(errors, method=None):
         1D array of propagated flux errors (shape N_spectra).
     '''
     # get default config value
-    method = get_config_value(method, 'propagate_flux_error_method').lower()
+    method = str(get_config_value(method, 'propagate_flux_error_method')).lower()
     if method is None:
         raise ValueError(
             "method must be : {'mean', 'sum', 'median'}"
