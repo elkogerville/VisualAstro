@@ -11,7 +11,7 @@ Dependencies:
 """
 
 import warnings
-from typing import Any, overload
+from typing import Any, Literal, overload
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import (
@@ -32,7 +32,7 @@ def convert_quantity(
     unit,
     *,
     equivalencies=None,
-    on_failure: str = 'warn',
+    on_failure: Literal['warn', 'ignore', 'raise'] = 'warn',
 ):
     """
     Convert an Astropy Quantity to a specified unit.
@@ -778,30 +778,3 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
         f'{name1} and {name2} have incompatible units: '
         f'{u1_str} vs {u2_str}.'
     )
-
-
-def _is_unitless(obj):
-    """
-    Validate that an object has no unit.
-
-    u.dimensionless_unscaled is treated
-    as no units.
-
-    Parameters
-    ----------
-    obj : object
-        Object to check if unitless.
-
-    Returns
-    -------
-    bool :
-        If object has a unit.
-    """
-    if isinstance(obj, Quantity):
-        return obj.unit == dimensionless_unscaled
-
-    unit = getattr(obj, 'unit', None)
-    if isinstance(unit, UnitBase):
-        return unit == dimensionless_unscaled
-
-    return True
