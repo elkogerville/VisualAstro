@@ -24,7 +24,7 @@ from .numerical_utils import to_array, to_list
 from .plot_utils import (
     add_colorbar, add_contours,
     plot_circles, plot_ellipses,
-    plot_interactive_ellipse, plot_points,
+    plot_interactive_ellipse, plot_points, plot_vlines,
     return_imshow_norm, set_axis_limits,
     set_plot_colors, set_vmin_vmax
 )
@@ -565,14 +565,18 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     return PlotHandles(scatters, histx, histy)
 
 
-def plot_histogram(datas, ax,
-                   bins=None,
-                   xlog=None,
-                   ylog=None,
-                   histtype=None,
-                   normalize=None,
-                   colors=None,
-                   **kwargs):
+def plot_histogram(
+    datas,
+    ax,
+    bins=None,
+    xlog=None,
+    ylog=None,
+    histtype=None,
+    normalize=None,
+    colors=None,
+    vlines=None,
+    **kwargs
+):
     '''
     Plot one or more histograms on a given Axes object.
 
@@ -671,7 +675,7 @@ def plot_histogram(datas, ax,
 
     # ensure inputs are iterable or conform to standard
     datas = to_list(datas)
-    ensure_common_unit(datas)
+    ref_unit = ensure_common_unit(datas)
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
     colors, _ = set_plot_colors(colors, cmap=cmap)
@@ -680,8 +684,6 @@ def plot_histogram(datas, ax,
     # set axes
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
-    if xlim: ax.set_xlim(xlim)
-    if ylim: ax.set_ylim(ylim)
 
     hists = []
 
@@ -693,7 +695,6 @@ def plot_histogram(datas, ax,
         data = to_array(data)
         if data.ndim == 2:
             data = data.flatten()
-        data_list.append(data)
         h = ax.hist(
             data,
             bins=bins,
@@ -703,7 +704,7 @@ def plot_histogram(datas, ax,
             label=label,
             rasterized=rasterized
         )
-
+        data_list.append(data)
         hists.append(h)
 
     # set axes labels
@@ -712,7 +713,12 @@ def plot_histogram(datas, ax,
     if labels[0] is not None:
         ax.legend(loc=loc)
 
-    hists = hists[0] if len(hists) == 1 else hists
+    if vlines is not None:
+        plot_vlines(vlines, ax=ax, unit=ref_unit)
+
+    set_axis_limits(data_list, ax=ax, xlim=xlim, ylim=ylim)
+
+    hists = _unwrap_if_single(hists)
 
     return hists
 
