@@ -7,10 +7,12 @@ Description:
 '''
 
 
-from typing import Any
+from typing import Any, Sequence
+import numpy as np
+from numpy.typing import NDArray
 
 
-def _unwrap_if_single(array):
+def _unwrap_if_single(array: Sequence | NDArray):
     '''
     Unwrap an array-like object if it contains exactly one element.
 
@@ -31,7 +33,9 @@ def _unwrap_if_single(array):
         The sole element if `len(array) == 1`, otherwise the original
         input sequence.
     '''
-    return array[0] if len(array) == 1 else array
+    if isinstance(array, (Sequence, np.ndarray)):
+        return array[0] if len(array) == 1 else array
+    return array
 
 
 def _type_name(obj: Any) -> str:
