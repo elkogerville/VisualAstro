@@ -42,13 +42,16 @@ from .numerical_utils import (
     get_value,
     interpolate as _interpolate,
     mask_within_range,
-    shift_by_radial_vel,
     to_array,
     to_list,
 )
 from .plot_utils import (
-    plot_vlines, return_stylename, sample_cmap, set_axis_labels,
-    set_axis_limits, set_plot_colors
+    plot_vlines,
+    return_stylename,
+    sample_cmap,
+    set_axis_labels,
+    set_axis_limits,
+    set_plot_colors
 )
 from .plotting import imshow
 from .spectra_utils import (
@@ -60,6 +63,7 @@ from .spectra_utils import (
     gaussian_continuum as _gaussian_continuum,
     gaussian_line as _gaussian_line,
     get_spectral_axis,
+    shift_by_radial_vel,
 )
 from .spectrumplus import SpectrumPlus
 from .units import ensure_common_unit, convert_quantity, get_unit
