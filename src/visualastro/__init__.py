@@ -1,30 +1,51 @@
-# Core Classes
-from visualastro.datacube import DataCube
-from visualastro.fitsfile import FitsFile
-from visualastro.spectrumplus import SpectrumPlus
+# core classes
+# ------------
+from visualastro.dataclasses.datacube import DataCube
+from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.dataclasses.spectrumplus import SpectrumPlus
 
-# Submodules
-from visualastro.config import config
-from visualastro.data_cube import (
+# submodules
+# ----------
+from visualastro.analysis.image_utils import (
     load_data_cube,
+    load_fits,
     load_spectral_cube,
-    plot_spectral_cube
+    stack_cube,
+    mask_image,
+    compute_line
 )
-from visualastro.data_cube_utils import (
-    stack_cube, mask_image, compute_line
+from visualastro.analysis.spectra_utils import (
+    GaussianFitResult,
+    ExtractedPixelSpectra,
+    construct_gaussian_p0,
+    deredden_flux,
+    estimate_spectrum_line_flux,
+    fit_continuum,
+    gaussian,
+    gaussian_continuum,
+    gaussian_line,
+    get_continuum,
+    get_flux,
+    get_spectral_axis,
+    mask_spectral_region,
+    propagate_flux_errors,
+    shift_by_radial_vel,
+    sort_spectra_by_line_strength,
+    spectral_idx_2_world,
+    spectral_world_2_idx
 )
-from visualastro.io import (
+from visualastro.core.config import config
+from visualastro.core.io import (
     get_dtype,
     get_errors,
     get_kwargs,
-    load_fits,
     load_quantity,
     save_array,
     save_figure_2_disk,
     save_quantity,
     write_cube_2_fits
 )
-from visualastro.numerical_utils import (
+from visualastro.core.numerical_utils import (
     compute_density_kde,
     finite,
     flatten,
@@ -37,15 +58,25 @@ from visualastro.numerical_utils import (
     to_array,
     to_list
 )
-from visualastro.plotting import (
-    imshow,
-    plot_density_histogram,
-    plot_histogram,
-    plot_lines,
-    plot_scatter,
-    scatter3D
+from visualastro.core.units import (
+    convert_quantity,
+    ensure_common_unit,
+    get_physical_type,
+    get_spectral_unit,
+    get_unit,
+    require_spectral_region,
+    to_unit,
+    to_fits_unit,
+    to_latex_unit,
+    to_spectral_region,
+    unit_2_string
 )
-from visualastro.plot_utils import (
+from visualastro.core.validation import allclose
+from visualastro.plotting.image_plots import (
+    imshow,
+    plot_spectral_cube
+)
+from visualastro.plotting.plot_utils import (
     add_colorbar,
     add_contours,
     add_subplot,
@@ -68,9 +99,17 @@ from visualastro.plot_utils import (
     set_axis_limits,
     set_plot_colors,
     set_vmin_vmax,
-    spectral_axis_label
+    spectral_axis_label,
+    style
 )
-from visualastro.spectra import (
+from visualastro.plotting.plots import (
+    plot_density_histogram,
+    plot_histogram,
+    plot_lines,
+    plot_scatter,
+    scatter3D
+)
+from visualastro.plotting.spectra_plots import (
     extract_cube_pixel_spectra,
     extract_cube_spectra,
     fit_gaussian_2_spec,
@@ -78,46 +117,12 @@ from visualastro.spectra import (
     plot_extracted_pixel_map,
     plot_spectrum
 )
-from visualastro.spectra_utils import (
-    GaussianFitResult,
-    ExtractedPixelSpectra,
-    construct_gaussian_p0,
-    deredden_flux,
-    estimate_spectrum_line_flux,
-    fit_continuum,
-    gaussian,
-    gaussian_continuum,
-    gaussian_line,
-    get_continuum,
-    get_flux,
-    get_spectral_axis,
-    mask_spectral_region,
-    propagate_flux_errors,
-    shift_by_radial_vel,
-    sort_spectra_by_line_strength,
-    spectral_idx_2_world,
-    spectral_world_2_idx
-)
-from visualastro.text_utils import (
+from visualastro.plotting.visual_plots import ax
+from visualastro.utils.text_utils import (
     pretty_table,
     print_pretty_table
 )
-from visualastro.units import (
-    convert_quantity,
-    ensure_common_unit,
-    get_physical_type,
-    get_spectral_unit,
-    get_unit,
-    require_spectral_region,
-    to_unit,
-    to_fits_unit,
-    to_latex_unit,
-    to_spectral_region,
-    unit_2_string
-)
-from visualastro.validation import allclose
-from visualastro.visual_plots import va
-from visualastro.wcs_utils import (
+from visualastro.utils.wcs_utils import (
     crop2D,
     get_header_wcs,
     get_wcs,
