@@ -1,4 +1,4 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
 Date Modified: 2025-10-20
@@ -20,7 +20,7 @@ Module Structure:
         Plotting matplotlib shapes utility functions.
     - Notebook Utils
         Notebook utility functions.
-'''
+"""
 
 from collections.abc import Sequence
 import os
@@ -28,7 +28,7 @@ from typing import Any
 import warnings
 from functools import partial
 import astropy.units as u
-from astropy.units import Quantity, UnitBase
+from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
@@ -37,18 +37,30 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
-from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 from specutils import SpectralAxis
 from .config import get_config_value, config, _default_flag
 from .data_cube_utils import stack_cube
 from .numerical_utils import (
-    compute_density_kde, flatten, get_data, get_value, shift_by_radial_vel, to_array, to_list
+    compute_density_kde,
+    flatten,
+    get_data,
+    get_value,
+    to_array,
+    to_list
 )
-from .spectra_utils import get_spectral_axis, spectral_idx_2_world
+from .spectra_utils import (
+    get_spectral_axis,
+    shift_by_radial_vel,
+    spectral_idx_2_world
+)
 from .units import (
-    convert_quantity, to_latex_unit, get_physical_type,
-    get_unit, _infer_physical_type_label, to_unit
+    convert_quantity,
+    get_physical_type,
+    get_unit,
+    to_latex_unit,
+    to_unit,
+    _infer_physical_type_label
 )
 from .utils import _type_name
 
