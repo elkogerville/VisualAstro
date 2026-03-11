@@ -1560,7 +1560,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
             ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
 
 
-def plot_vlines(vlines, ax, unit=None):
+def plot_vlines(vlines, ax, unit=None, equivalencies=None):
     """
     Plot one or more vertical reference lines on a Matplotlib axis.
 
@@ -1588,8 +1588,8 @@ def plot_vlines(vlines, ax, unit=None):
         unit = to_unit(unit)
 
         for vline in vlines:
-            if isinstance(vline, Quantity):
-                vline = vline.to(unit).value
+            if isinstance(vline, Quantity) and unit is not None:
+                vline = vline.to(unit, equivalencies=equivalencies).value
             ax.axvline(
                 vline,
                 ls=':',
@@ -1600,7 +1600,7 @@ def plot_vlines(vlines, ax, unit=None):
             )
 
 
-def plot_hlines(hlines, ax, unit=None):
+def plot_hlines(hlines, ax, unit=None, equivalencies=None):
     """
     Plot one or more horizontal reference lines on a Matplotlib axis.
 
@@ -1628,8 +1628,8 @@ def plot_hlines(hlines, ax, unit=None):
         unit = to_unit(unit)
 
         for hline in hlines:
-            if isinstance(hline, Quantity):
-                hline = hline.to(unit).value
+            if isinstance(hline, Quantity) and unit is not None:
+                hline = hline.to(unit, equivalencies=equivalencies).value
             ax.axhline(
                 hline,
                 ls=':',
