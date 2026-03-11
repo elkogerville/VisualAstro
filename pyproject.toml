@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visualastro"
-version = "0.1.2"
+version = "0.1.3"
 description = "Astro data analysis and plotting package"
 authors = [
     {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
@@ -50,9 +50,6 @@ where = ["src"]
 ]
 
 exclude = [
-    "ANIMATIONS*",
-    "DOCUMENTATION*",
-    "Initial_Conditions*",
     "Tests*",
     "build*",
     "dist*",
