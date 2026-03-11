@@ -14,10 +14,10 @@ Module Structure:
 '''
 
 from astropy.wcs import WCS
-import numpy as np
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+import numpy as np
 from numpy.typing import DTypeLike
 
 
