@@ -1577,6 +1577,8 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
         Unit to which Quantity values in ``vlines`` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
+    equivalencies : astropy.units.equivalencies or None, optional, default=None
+        Equivalencies for converting units. If None, is ignored.
 
     Notes
     -----
@@ -1617,6 +1619,8 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
         Unit to which Quantity values in ``hlines`` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
+    equivalencies : astropy.units.equivalencies or None, optional, default=None
+        Equivalencies for converting units. If None, is ignored.
 
     Notes
     -----
