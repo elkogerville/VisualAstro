@@ -17,7 +17,7 @@
 ## Installation
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro)](https://pypi.org/project/visualastro)
 
-Currently, the most stable version of python for visualastro is version 3.11.
+Currently, the most stable version of python for visualastro is version >=3.10.
 To install visualastro, it is advised to create a new conda environment if possible:
 ```
 $ conda create envname -c conda-forge python=3.11
