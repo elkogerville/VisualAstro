@@ -214,42 +214,6 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
     return xgrid, ygrid, Z
 
 
-def shift_by_radial_vel(spectral_axis, radial_vel):
-    '''
-    Shift spectral axis to rest frame using a radial velocity.
-    If ``radial_vel`` is None, return ``spectral_axis`` unchanged.
-
-    Parameters
-    ----------
-    spectral_axis : astropy.units.Quantity
-        The spectral axis to shift. Can be in frequency or wavelength units.
-    radial_vel : float, astropy.units.Quantity or None
-        Radial velocity in km/s (astropy units are optional). Positive values
-        correspond to a redshift (moving away). If None, no shift is applied.
-
-    Returns
-    -------
-    shifted_axis : astropy.units.Quantity
-        The spectral axis shifted to the rest frame according to the given
-        radial velocity. If the input is in frequency units, the classical
-        Doppler formula for frequency is applied; otherwise, the classical
-        formula for wavelength is applied.
-    '''
-    # speed of light in km/s in vacuum
-    c = 299792.458 # [km/s]
-    if radial_vel is not None:
-        if isinstance(radial_vel, Quantity):
-            radial_vel = radial_vel.to(u.km/u.s).value # type: ignore
-        # if spectral axis in units of frequency
-        if spectral_axis.unit.is_equivalent(u.Unit('Hz')):
-            return spectral_axis / (1 - radial_vel / c)
-        # if spectral axis in units of wavelength
-        else:
-            return spectral_axis / (1 + radial_vel / c)
-
-    return spectral_axis
-
-
 # Numerical Operation Functions
 # -----------------------------
 def flatten(data: Any) -> NDArray | None:
