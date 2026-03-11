@@ -781,6 +781,11 @@ def propagate_flux_errors(errors, method=None):
         # statistically correct median error scaling
         flux_errors = 1.253 * (quad_sum / N)
 
+    elif method == 'interquantile':
+        q1 = np.percentile(errors, 25, axis=1)
+        q3 = np.percentile(errors, 75, axis=1)
+        flux_errors = q3 - q1
+
     else:
         raise ValueError(f"Unknown flux extraction method '{method}'.")
 
