@@ -19,6 +19,7 @@ Module Structure:
 import warnings
 from astropy.utils.exceptions import AstropyWarning
 from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
@@ -303,7 +304,7 @@ def imshow(
 
             # determine which pixel axis this world coordinate
             # primarily affects by checking the PC/CD matrix
-            wcs = ax.wcs
+            wcs: WCS = ax.wcs
             if hasattr(wcs, 'pixel_to_world_values'):
                 # check which pixel axis (0=x, 1=y) this world axis varies most with
                 # look at the absolute values in the transformation matrix

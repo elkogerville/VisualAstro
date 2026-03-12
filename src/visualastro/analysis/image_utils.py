@@ -3,7 +3,7 @@ Author: Elko Gerville-Reache
 Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
-    Utility functions for DataCube manipulations.
+    Utility functions for image manipulations.
 Dependencies:
     - astropy
     - numpy

@@ -10,13 +10,13 @@ from visualastro.analysis.image_utils import (
     load_data_cube,
     load_fits,
     load_spectral_cube,
-    stack_cube,
+    compute_line,
     mask_image,
-    compute_line
+    stack_cube
 )
 from visualastro.analysis.spectra_utils import (
-    GaussianFitResult,
     ExtractedPixelSpectra,
+    GaussianFitResult,
     construct_gaussian_p0,
     deredden_flux,
     estimate_spectrum_line_flux,
@@ -80,6 +80,7 @@ from visualastro.plotting.plot_utils import (
     add_colorbar,
     add_contours,
     add_subplot,
+    close,
     ellipse_patch,
     inline,
     interactive,

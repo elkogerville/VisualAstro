@@ -23,7 +23,6 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from visualastro.core.config import (
-    get_config_value,
     config,
     _default_flag
 )
@@ -41,6 +40,7 @@ from visualastro.plotting.plots import (
 from visualastro.plotting.plot_utils import return_stylename, set_plot_colors
 from visualastro.plotting.spectra_plots import plot_combine_spectrum, plot_spectrum
 from visualastro.utils.wcs_utils import get_wcs_celestial
+
 
 class ax:
     @staticmethod
@@ -1421,7 +1421,7 @@ class ax:
             Display a matplotlib or visualastro plotting style:
             >>> va.help.styles('classic')
             '''
-            from .plot_utils import set_plot_colors
+            from visualastro.plotting.plot_utils import set_plot_colors
             if style_name is None:
                 dir_path = os.path.dirname(os.path.realpath(__file__))
                 style_files = glob(os.path.join(dir_path, 'stylelib', '*.mplstyle'))

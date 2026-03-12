@@ -352,6 +352,113 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     return crop_data, crop_wcs
 
 
+def reproject_wcs(
+    input_data_list: tuple[NDArray | Quantity, WCS | Header] | list[tuple[NDArray, WCS | Header]],
+    reference_wcs: WCS | Header,
+    method: Literal['interp', 'exact'] | None = None,
+    return_footprint: bool | None = None,
+    parallel: bool | int | str | None = None,
+    block_size=_default_flag,
+    log_file: Header | None = None,
+    **kwargs
+):
+    """
+    Parameters
+    ----------
+    input_data_list : tuple or list of tuple
+        A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
+        Note:
+            - [np.ndarray, WCS/Header] is not allowed!
+              Ensure they follow the format:
+                - [(np.ndarray, WCS/Header), ...]
+    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+        The target WCS or FITS header to which `input_data` will be reprojected.
+        Dimensional handling:
+        Input WCS → Reference WCS
+            - 2D → 2D: Direct reprojection
+            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
+            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
+            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+    method : {'interp', 'exact'} or None, default=None
+        Reprojection method:
+            - 'interp' : use `reproject_interp`
+            - 'exact' : use `reproject_exact`
+        If None, uses the default value
+        set by `config.reproject_method`.
+    return_footprint : bool or None, optional, default=None
+        If True, return both reprojected data and reprojection
+        footprints. If False, return only the reprojected data.
+        If None, uses the default value set by `config.return_footprint`.
+    parallel : bool, int, str, or None, optional, default=None
+        If True, the reprojection is carried out in parallel,
+        and if a positive integer, this specifies the number
+        of threads to use. The reprojection will be parallelized
+        over output array blocks specified by `block_size` (if the
+        block size is not set, it will be determined automatically).
+        If None, uses the default value set by `config.reproject_parallel`.
+    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+        The size of blocks in terms of output array pixels that each block
+        will handle reprojecting. Extending out from (0,0) coords positively,
+        block sizes are clamped to output space edges when a block would extend
+        past edge. Specifying 'auto' means that reprojection will be done in
+        blocks with the block size automatically determined. If `block_size` is
+        not specified or set to None, the reprojection will not be carried out in blocks.
+        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
+    log_file : fits.Header or None, optional, default=None
+        If provided, reprojection details are logged to this header's
+        HISTORY. Intended for internal use within VisualAstro.
+    description : str or None, optional, default=None
+        Description message for the progress bar. If None, a default message
+        is used. Intended for internal use within VisualAstro.
+
+    Returns
+    -------
+    reprojected_data : ndarray or list of ndarray
+        Reprojected data. A single array is returned if a single input
+        was provided; otherwise a list of arrays.
+    footprint : ndarray or list of ndarray, optional
+        Reprojection footprint(s), returned only if `return_footprint=True`.
+
+    Raises
+    ------
+    ValueError
+        If the inputs are not able to be reprojected.
+    """
+    input_data_list = to_list(input_data_list)
+
+    if log_file is not None and not isinstance(log_file, Header):
+        raise TypeError(
+            'log_file must be a fits.Header or None!'
+        )
+    if log_file is not None and len(input_data_list) > 1:
+        _log_history(
+            log_file,
+            f'Reprojected batch of {len(input_data_list)} datasets'
+        )
+
+    reprojected_data = []
+    footprints = []
+
+    for i, item in enumerate(input_data_list):
+        log_once = log_file if i == 0 else None
+        reprojected, footprint = _reproject_wcs(
+            item, reference_wcs,
+            method=method,
+            return_footprint=True,
+            parallel=parallel,
+            block_size=block_size,
+            log_file=log_once,
+            **kwargs
+        )
+        reprojected_data.append(reprojected)
+        footprints.append(footprint)
+
+    reprojected_data = _unwrap_if_single(reprojected_data)
+    footprints = _unwrap_if_single(footprints)
+
+    return (reprojected_data, footprints) if return_footprint else reprojected_data
+
+
 def _reproject_wcs(
     input_data: tuple[NDArray | Quantity, WCS | Header],
     reference_wcs: WCS | Header,
@@ -513,113 +620,6 @@ def _reproject_wcs(
         reprojected *= unit
 
     return (reprojected, footprint) if return_footprint else reprojected
-
-
-def reproject_wcs(
-    input_data_list: tuple[NDArray | Quantity, WCS | Header] | list[tuple[NDArray, WCS | Header]],
-    reference_wcs: WCS | Header,
-    method: Literal['interp', 'exact'] | None = None,
-    return_footprint: bool | None = None,
-    parallel: bool | int | str | None = None,
-    block_size=_default_flag,
-    log_file: Header | None = None,
-    **kwargs
-):
-    """
-    Parameters
-    ----------
-    input_data_list : tuple or list of tuple
-        A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
-        Note:
-            - [np.ndarray, WCS/Header] is not allowed!
-              Ensure they follow the format:
-                - [(np.ndarray, WCS/Header), ...]
-    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
-        The target WCS or FITS header to which `input_data` will be reprojected.
-        Dimensional handling:
-        Input WCS → Reference WCS
-            - 2D → 2D: Direct reprojection
-            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
-            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
-            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
-    method : {'interp', 'exact'} or None, default=None
-        Reprojection method:
-            - 'interp' : use `reproject_interp`
-            - 'exact' : use `reproject_exact`
-        If None, uses the default value
-        set by `config.reproject_method`.
-    return_footprint : bool or None, optional, default=None
-        If True, return both reprojected data and reprojection
-        footprints. If False, return only the reprojected data.
-        If None, uses the default value set by `config.return_footprint`.
-    parallel : bool, int, str, or None, optional, default=None
-        If True, the reprojection is carried out in parallel,
-        and if a positive integer, this specifies the number
-        of threads to use. The reprojection will be parallelized
-        over output array blocks specified by `block_size` (if the
-        block size is not set, it will be determined automatically).
-        If None, uses the default value set by `config.reproject_parallel`.
-    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
-        The size of blocks in terms of output array pixels that each block
-        will handle reprojecting. Extending out from (0,0) coords positively,
-        block sizes are clamped to output space edges when a block would extend
-        past edge. Specifying 'auto' means that reprojection will be done in
-        blocks with the block size automatically determined. If `block_size` is
-        not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
-    log_file : fits.Header or None, optional, default=None
-        If provided, reprojection details are logged to this header's
-        HISTORY. Intended for internal use within VisualAstro.
-    description : str or None, optional, default=None
-        Description message for the progress bar. If None, a default message
-        is used. Intended for internal use within VisualAstro.
-
-    Returns
-    -------
-    reprojected_data : ndarray or list of ndarray
-        Reprojected data. A single array is returned if a single input
-        was provided; otherwise a list of arrays.
-    footprint : ndarray or list of ndarray, optional
-        Reprojection footprint(s), returned only if `return_footprint=True`.
-
-    Raises
-    ------
-    ValueError
-        If the inputs are not able to be reprojected.
-    """
-    input_data_list = to_list(input_data_list)
-
-    if log_file is not None and not isinstance(log_file, Header):
-        raise TypeError(
-            'log_file must be a fits.Header or None!'
-        )
-    if log_file is not None and len(input_data_list) > 1:
-        _log_history(
-            log_file,
-            f'Reprojected batch of {len(input_data_list)} datasets'
-        )
-
-    reprojected_data = []
-    footprints = []
-
-    for i, item in enumerate(input_data_list):
-        log_once = log_file if i == 0 else None
-        reprojected, footprint = _reproject_wcs(
-            item, reference_wcs,
-            method=method,
-            return_footprint=True,
-            parallel=parallel,
-            block_size=block_size,
-            log_file=log_once,
-            **kwargs
-        )
-        reprojected_data.append(reprojected)
-        footprints.append(footprint)
-
-    reprojected_data = _unwrap_if_single(reprojected_data)
-    footprints = _unwrap_if_single(footprints)
-
-    return (reprojected_data, footprints) if return_footprint else reprojected_data
 
 
 def _copy_wcs(wcs):

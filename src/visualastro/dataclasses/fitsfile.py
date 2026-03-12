@@ -401,7 +401,7 @@ class FitsFile:
     # Methods
     # -------
     def header_get(self, key):
-        '''
+        """
         Retrieve a header value by key from a header.
 
         Parameters
@@ -418,7 +418,7 @@ class FitsFile:
         ------
         ValueError
             If headers are of an unsupported type or `key` is not found.
-        '''
+        """
         if isinstance(self.header, Header):
             return self.header.get(key, None)
         else:
@@ -486,18 +486,18 @@ class FitsFile:
     # Array Interface
     # ---------------
     def __array__(self):
-        '''
+        """
         Return the underlying data as a NumPy array.
 
         Returns
         -------
         np.ndarray
             The underlying 2D array representation.
-        '''
+        """
         return self.value
 
     def __getitem__(self, key):
-        '''
+        """
         Return a slice of the data.
 
         The method attempts to slice the WCS. The Header
@@ -513,7 +513,7 @@ class FitsFile:
         -------
         slice : FitsFile
             The corresponding subset of the data.
-        '''
+        """
         new_data = self.data[key]
         new_error = self.error[key] if self.error is not None else None
         new_hdr = _copy_headers(self.primary_header)
@@ -545,13 +545,13 @@ class FitsFile:
         )
 
     def __len__(self):
-        '''
+        """
         Return the number of spectral slices along the first axis.
         Returns
         -------
         int
             Length of the first dimension.
-        '''
+        """
         return len(self.data)
 
     def reshape(self, *shape):
