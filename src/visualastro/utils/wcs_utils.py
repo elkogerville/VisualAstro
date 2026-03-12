@@ -1,12 +1,15 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-06
-Date Modified: 2025-12-06
+Date Modified: 2026-03-11
 Description:
     WCS utility functions.
 Dependencies:
     - astropy
     - numpy
+    - reproject
+    - spectral-cube
+    - tqdm
 Module Structure:
     - Data Transformations
         Lightweight data class for fits files.
@@ -28,11 +31,15 @@ from reproject import reproject_interp, reproject_exact
 from spectral_cube import SpectralCube
 from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
-from .config import get_config_value, config, _default_flag
-from .fits_utils import _log_history
-from .numerical_utils import to_list
-from .units import get_unit
-from .utils import _type_name, _unwrap_if_single
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _default_flag
+)
+from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.core.units import get_unit
+from visualastro.core.validation import _type_name
+from visualastro.utils.fits_utils import _log_history
 
 
 @overload

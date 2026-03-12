@@ -4,5 +4,4 @@ build/
 dist/
 *.egg-info/
 *.pyc
-TODO.txt
-deprecated.py
+src/visualastro/dev/

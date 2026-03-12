@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-12-10
+Date Modified: 2026-03-11
 Description:
     FitsFile data structure for 2D Fits data.
 Dependencies:
@@ -17,17 +17,26 @@ from astropy.units import (
 from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
-from .fits_utils import (
-    _copy_headers, _get_history,
-    _log_history, _remove_history,
-    _transfer_history, _update_header_key
+from visualastro.core.units import (
+    get_unit,
+    to_fits_unit,
+    to_unit,
+    _check_unit_equality
 )
-from .units import (
-    get_unit, to_fits_unit, to_unit, _check_unit_equality
+from visualastro.core.validation import (
+    _check_shapes_match,
+    _type_name,
+    _validate_type
 )
-from .utils import _type_name
-from .validation import _check_shapes_match, _validate_type
-from .wcs_utils import (
+from visualastro.utils.fits_utils import (
+    _copy_headers,
+    _get_history,
+    _log_history,
+    _remove_history,
+    _transfer_history,
+    _update_header_key
+)
+from visualastro.utils.wcs_utils import (
     get_header_wcs,
     _is_valid_wcs_slice,
     _strip_wcs_from_header,

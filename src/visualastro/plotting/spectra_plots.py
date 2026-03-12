@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-02-16
+Date Modified: 2026-03-11
 Description:
     Spectra science functions.
 Dependencies:
@@ -20,7 +20,6 @@ Module Structure:
         Fitting routines for spectra.
 """
 
-
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Literal
@@ -35,26 +34,8 @@ from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
-from .datacube import DataCube
-from .data_cube_utils import stack_cube
-from .io import get_kwargs, save_figure_2_disk
-from .numerical_utils import (
-    get_value,
-    interpolate as _interpolate,
-    mask_within_range,
-    to_array,
-    to_list,
-)
-from .plot_utils import (
-    plot_vlines,
-    return_stylename,
-    sample_cmap,
-    set_axis_labels,
-    set_axis_limits,
-    set_plot_colors
-)
-from .plotting import imshow
-from .spectra_utils import (
+from visualastro.analysis.image_utils import stack_cube
+from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
     ExtractedPixelSpectra,
     deredden_flux,
@@ -65,10 +46,36 @@ from .spectra_utils import (
     get_spectral_axis,
     shift_by_radial_vel,
 )
-from .spectrumplus import SpectrumPlus
-from .units import ensure_common_unit, convert_quantity, get_unit
-from .utils import _unwrap_if_single
-from .config import get_config_value, config, _default_flag
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _default_flag
+)
+from visualastro.core.io import get_kwargs, save_figure_2_disk
+from visualastro.core.numerical_utils import (
+    get_value,
+    interpolate as _interpolate,
+    mask_within_range,
+    to_array,
+    to_list,
+    _unwrap_if_single
+)
+from visualastro.core.units import (
+    ensure_common_unit,
+    convert_quantity,
+    get_unit
+)
+from visualastro.dataclasses.datacube import DataCube
+from visualastro.dataclasses.spectrumplus import SpectrumPlus
+from visualastro.plotting.image_plots import imshow
+from visualastro.plotting.plot_utils import (
+    plot_vlines,
+    return_stylename,
+    sample_cmap,
+    set_axis_labels,
+    set_axis_limits,
+    set_plot_colors
+)
 
 
 # Spectra Extraction Functions
