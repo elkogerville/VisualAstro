@@ -1,0 +1,1188 @@
+"""
+Author: Elko Gerville-Reache
+Date Created: 2025-09-22
+Date Modified: 2026-03-11
+Description:
+    Spectra utility functions.
+Dependencies:
+    - astropy
+    - dust_extinction
+    - numpy
+    - specutils
+Module Structure:
+    - Science Spectrum Functions
+        Utility functions for scientific spectra work.
+    - Science Helper Functions
+        Utility functions for Science Spectrum Functions.
+    - Axes Labels, Format, and Styling
+        Axes related utility functions.
+    - Model Fitting Functions
+        Model fitting utility functions.
+"""
+
+from collections.abc import Sequence
+from dataclasses import dataclass, fields
+from typing import Any, Optional, overload
+import warnings
+import astropy.units as u
+from astropy.units import Quantity
+from dust_extinction.parameter_averages import M14, G23
+from dust_extinction.grain_models import WD01
+import numpy as np
+from numpy.typing import NDArray
+from specutils import SpectralAxis, SpectralRegion, Spectrum
+from specutils.fitting import fit_continuum as _fit_continuum
+from specutils.fitting import fit_generic_continuum as _fit_generic
+from visualastro.core.config import get_config_value, config
+from visualastro.core.numerical_utils import (
+    get_value,
+    mask_within_range,
+    to_list,
+    _unwrap_if_single
+)
+from visualastro.core.units import (
+    ensure_common_unit,
+    get_spectral_unit,
+    get_unit,
+    require_spectral_region,
+    to_spectral_region,
+    _is_spectral_axis
+)
+from visualastro.core.validation import _type_name
+from visualastro.dataclasses.spectrumplus import SpectrumPlus
+from visualastro.utils.text_utils import print_pretty_table
+
+
+# Science Spectrum Functions
+# --------------------------
+@overload
+def get_spectral_axis(
+    obj: SpectralAxis | Quantity
+) -> SpectralAxis | Quantity: ...
+
+@overload
+def get_spectral_axis(
+    obj: None
+) -> None: ...
+
+@overload
+def get_spectral_axis(
+    obj: Any
+) -> SpectralAxis | Quantity | None: ...
+
+def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
+    """
+    Get the `spectral_axis` associated with an object, if one exists.
+
+    The function follows a recursive search strategy:
+
+    1. If `obj` is a `SpectralAxis`, it is returned directly.
+    2. If `obj` has a `.spectral_axis` attribute, that attribute is returned.
+    3. If `obj` has a `.data` attribute, the function is applied recursively
+        to `obj.data`.
+
+    If no spectral axis can be identified, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to extract a spectral axis. This may include:
+        - a `SpectralAxis` instance
+        - objects exposing a `.spectral_axis` attribute
+        - container objects with a `.data` attribute holding one of the above
+
+    Returns
+    -------
+    spectral_axis : astropy.coordinates.SpectralAxis or astropy.units.Quantity or None
+        The spectral axis associated with the object, or None if unavailable.
+    """
+    if isinstance(obj, SpectralAxis):
+        return obj
+
+    if isinstance(obj, Quantity) and _is_spectral_axis(obj):
+        return obj
+
+    spectral_axis = getattr(obj, 'spectral_axis', None)
+    if spectral_axis is not None and _is_spectral_axis(spectral_axis):
+        return spectral_axis
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            spectral_axis = get_spectral_axis(data)
+            if spectral_axis is not None:
+                return spectral_axis
+
+    return None
+
+
+def get_flux(obj: Any) -> Quantity | None:
+    """
+    Get the flux associated with an object, if one exists.
+
+    The function follows a recursive search strategy:
+
+    1. If `obj` exposes a `.flux` attribute, that attribute is returned.
+    2. If `obj` is an `astropy.units.Quantity`, it is returned directly.
+    3. If `obj` exposes a `.data` attribute, the function is applied recursively
+       to `obj.data`.
+
+    If no flux can be identified, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to extract a flux array. This may include:
+        - objects exposing a `.flux` attribute
+        - an `astropy.units.Quantity`
+        - container objects with a `.data` attribute holding one of the above
+
+    Returns
+    -------
+    flux : astropy.units.Quantity or None
+        Flux array associated with the object, or None if unavailable.
+    """
+    if hasattr(obj, 'flux'):
+        return obj.flux
+
+    if isinstance(obj, Quantity):
+        return obj
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            return get_flux(data)
+
+    return None
+
+
+def get_continuum(
+    obj: Any,
+    fit_method: str = 'fit_continuum',
+    region: SpectralRegion | list[tuple] | None = None
+) -> Quantity | None:
+    """
+    Get or compute the continuum associated with an object, if possible.
+
+    The function follows a recursive search-and-construction strategy:
+
+    1. If `obj` exposes a `.continuum` attribute, that value is returned.
+    2. If `obj` is a `specutils.Spectrum`, a continuum is computed using
+       `fit_continuum`.
+    3. If `obj` exposes a `.spectrum` attribute, the function is applied
+       recursively to that attribute.
+    4. If both a spectral axis and flux can be extracted from `obj`,
+       a temporary `Spectrum` is constructed and a continuum is computed.
+
+    If no continuum can be retrieved or constructed, the function returns None.
+
+    Parameters
+    ----------
+    obj : Any
+        Object from which to retrieve or compute a continuum. This may include:
+        - a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`
+        - a `specutils.Spectrum`
+        - container objects exposing `.spectrum`
+        - objects from which both a spectral axis and flux can be inferred
+    fit_method : str, optional
+        Continuum fitting method passed to `fit_continuum`.
+        Default is `'fit_continuum'`.
+    region : `SpectralRegion`, list of tuple, or None, optional
+        Spectral region(s) used during continuum fitting.
+
+    Returns
+    -------
+    continuum : astropy.units.Quantity or None
+        Continuum flux array evaluated on the spectral axis, or None if
+        no continuum can be determined.
+    """
+    if hasattr(obj, 'continuum'):
+        return obj.continuum
+
+    if isinstance(obj, Spectrum):
+        return fit_continuum(
+            obj, fit_method=fit_method, region=region
+        )
+
+    if hasattr(obj, 'spectrum'):
+        spectrum = obj.spectrum
+        if spectrum is not obj:
+            return get_continuum(
+                spectrum, fit_method=fit_method, region=region
+            )
+
+    spectral_axis = get_spectral_axis(obj)
+    flux = get_flux(obj)
+
+    if (
+        spectral_axis is not None and spectral_axis is not obj
+        and flux is not None and flux is not obj
+    ):
+        spectrum = Spectrum(
+            spectral_axis=spectral_axis, flux=flux
+        )
+        return get_continuum(
+            spectrum, fit_method=fit_method, region=region
+        )
+
+    return None
+
+
+def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
+    '''
+    Fit the continuum of a 1D spectrum using a specified method.
+
+    Parameters
+    ----------
+    spectrum : Spectrum or SpectrumPlus
+        Input 1D spectrum object containing flux and spectral_axis.
+    fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
+        Method used for fitting the continuum.
+        - 'fit_continuum': uses `fit_continuum` with a specified window
+        - 'generic' : uses `fit_generic_continuum`
+    region : array-like of tuple, optional
+        Spectral region(s) to include in the continuum fit when
+        `fit_method='fit_continuum'`. Each region is specified as a
+        `(lower, upper)` bound in wavelength or pixel coordinates
+        (typically `Quantity`). Multiple regions may be provided to
+        restrict the fit to selected portions of the spectrum. This
+        is commonly used to exclude strong emission or absorption features
+        that would otherwise bias the continuum model.Ignored for all
+        other fitting methods.
+        Ex: Remove strong emission peak at 7um from fit
+        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+
+    Returns
+    -------
+    continuum : Quantity
+        Continuum flux values evaluated at `spectrum.spectral_axis`.
+
+    Notes
+    -----
+    - Warnings during the fitting process are suppressed.
+    '''
+    region = to_spectral_region(region)
+    # if input spectrum is SpectrumPlus object
+    # extract the spectrum attribute
+    if not isinstance(spectrum, Spectrum):
+        if hasattr(spectrum, 'spectrum'):
+            spectrum = spectrum.spectrum
+        else:
+            raise ValueError (
+                'Input object is not a Spectrum '
+                "or has no `spectrum` attribute. "
+                f'type: {_type_name(spectrum)}'
+            )
+    # extract spectral axis
+    spectral_axis = spectrum.spectral_axis
+
+    # suppress warnings during continuum fitting
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        # fit continuum with selected method
+        if fit_method=='fit_continuum':
+            # convert region to default units
+            region = _convert_region_units(region, spectral_axis)
+            fit = _fit_continuum(spectrum, window=region)
+        else:
+            fit = _fit_generic(spectrum)
+
+    # fit the continuum of the provided spectral axis
+    return fit(spectral_axis)
+
+
+def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
+                  deredden_method=None, region=None):
+    '''
+    Apply extinction correction (dereddening) to a spectrum.
+    Default values are for LMC parameters.
+
+    Parameters
+    ----------
+    wavelength : array-like
+        Wavelength array (in Angstroms, microns, or units expected by the
+        extinction law being used).
+    flux : array-like
+        Observed flux values at the corresponding wavelengths. Must be in
+        linear units (e.g., erg/s/cm^2/Å, Jy).
+    Rv : float or None, optional, default=None
+        Ratio of total-to-selective extinction (A_V / E(B-V)).
+        If None, uses default value set by `config.Rv`.
+    Ebv : float or None, optional, default=None
+        Color excess E(B-V), representing the amount of reddening.
+        If None, uses default value set by `config.Ebv`.
+    deredden_method : {'G23', 'WD01', 'M14'} or None, optional, default=None
+        Choice of extinction law:
+        - 'G23' : Gordon et al. (2023)
+        - 'WD01': Weingartner & Draine (2001)
+        - 'M14' : Maíz Apellániz et al. (2014)
+        If None, uses default value set by `config.deredden_method`.
+    region : str or None, optional, default=None
+        For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
+        'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
+        If None, uses default value set by `config.deredden_region`.
+
+    Returns
+    -------
+    deredden_flux : array-like
+        Flux array corrected for extinction.
+    '''
+    # get default config values
+    Rv = get_config_value(Rv, 'Rv')
+    Ebv = get_config_value(Ebv, 'Ebv')
+    deredden_method = get_config_value(deredden_method, 'deredden_method')
+    region = get_config_value(region, 'deredden_region')
+
+    # select appropriate dereddening method
+    methods = {
+        'G23': G23,
+        'WD01': WD01,
+        'M14': M14
+    }
+    if deredden_method not in methods:
+        raise ValueError(
+            f"Unknown deredden_method '{deredden_method}'. "
+            "Choose from 'G23', 'WD01', or 'M14'."
+        )
+    deredden = methods[deredden_method]
+
+    if deredden_method == 'WD01':
+        extinction = deredden(region)
+    else:
+        extinction = deredden(Rv=Rv)
+    # deredden flux
+    dereddened_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
+
+    return dereddened_flux
+
+
+def shift_by_radial_vel(spectral_axis, radial_vel):
+    '''
+    Shift spectral axis to rest frame using a radial velocity.
+    If ``radial_vel`` is None, return ``spectral_axis`` unchanged.
+
+    Parameters
+    ----------
+    spectral_axis : astropy.units.Quantity
+        The spectral axis to shift. Can be in frequency or wavelength units.
+    radial_vel : float, astropy.units.Quantity or None
+        Radial velocity in km/s (astropy units are optional). Positive values
+        correspond to a redshift (moving away). If None, no shift is applied.
+
+    Returns
+    -------
+    shifted_axis : astropy.units.Quantity
+        The spectral axis shifted to the rest frame according to the given
+        radial velocity. If the input is in frequency units, the classical
+        Doppler formula for frequency is applied; otherwise, the classical
+        formula for wavelength is applied.
+    '''
+    # speed of light in km/s in vacuum
+    c = 299792.458 # [km/s]
+    if radial_vel is not None:
+        if isinstance(radial_vel, Quantity):
+            radial_vel = radial_vel.to(u.km/u.s).value # type: ignore
+        # if spectral axis in units of frequency
+        if spectral_axis.unit.is_equivalent(u.Unit('Hz')):
+            return spectral_axis / (1 - radial_vel / c)
+        # if spectral axis in units of wavelength
+        else:
+            return spectral_axis / (1 + radial_vel / c)
+
+    return spectral_axis
+
+
+def estimate_spectrum_line_flux(spectra, spec_range):
+    """
+    Estimate the integrated line flux over a spectral interval.
+
+    This function supports both single-spectrum inputs and iterable
+    containers of spectra. For each spectrum, the continuum-subtracted
+    flux is numerically integrated over the specified spectral range
+    using the trapezoidal rule.
+
+    Parameters
+    ----------
+    spectrum : Any or iterable of Any
+        Spectral object(s) from which a spectral axis, flux, and continuum
+        can be extracted. This includes ``ExtractedPixelSpectra`` or
+        lists of ``SpectrumPlus``.
+    spec_range : Quantity or array-like of length 2
+        Lower and upper bounds of the spectral interval over which to
+        integrate. Must be compatible with the spectral axis units.
+        If no units, the units of ``spectrum`` are assumed.
+
+    Returns
+    -------
+    line_flux : astropy.units.Quantity or list of Quantity
+        Integrated line flux(es) over the specified interval.
+    """
+    if isinstance(spectra, ExtractedPixelSpectra):
+        spectra = spectra.spectra
+
+    spectra_list = to_list(spectra)
+    results = [
+        _estimate_spectrum_line_flux(spec, spec_range)
+        for spec in spectra_list
+    ]
+
+    return _unwrap_if_single(results)
+
+
+def _estimate_spectrum_line_flux(
+    spectrum: Any,
+    spec_range: Quantity | tuple[float, float] | list[float] | NDArray
+) -> Quantity | float:
+    """
+    Estimate the integrated line flux over a spectral interval.
+
+    The line flux is computed by numerically integrating the
+    continuum-subtracted spectrum over the specified spectral range
+    using the trapezoidal rule. This provides a model-independent
+    estimate of the line strength.
+
+    Parameters
+    ----------
+    spectrum : Any
+        Spectral object from which a spectral axis, flux, and continuum
+        can be extracted. Typically a `Spectrum`, `SpectrumPlus`,
+        ``ExtractedPixelSpectra`` or compatible container.
+    spec_range : Quantity of length 2
+        Lower and upper bounds of the spectral interval over which to
+        integrate. Values must be comparable to the spectral axis.
+        If no units, the units of ``spectrum`` are assumed.
+
+    Returns
+    -------
+    line_flux : astropy.units.Quantity or float
+        Integrated line flux over the specified interval. If no spectral
+        samples fall within the interval, a zero-valued result is
+        returned (with units if available).
+
+    Raises
+    ------
+    ValueError
+        If the spectral axis, flux, or continuum cannot be determined,
+        or if `spec_range` is not a length-2 array-like object.
+    """
+    spectral_axis = get_spectral_axis(spectrum)
+    flux = get_flux(spectrum)
+    continuum = get_continuum(spectrum)
+
+    if spectral_axis is None or flux is None or continuum is None:
+        raise ValueError(
+            'Could not determine spectral_axis, flux, and continuum '
+            f'from the provided spectrum! Got: {_type_name(spectral_axis)}, '
+            f'{_type_name(flux)} and {_type_name(continuum)}.'
+        )
+
+    if (not isinstance(spec_range, (list, tuple, np.ndarray, Quantity))
+        or len(spec_range) != 2):
+        raise ValueError(
+            'spec_range must be array-like of length 2, containing '
+            'the lower and upper bounds of the spectral axis'
+        )
+
+    spec_unit = get_unit(spectral_axis)
+    flux_unit = get_unit(flux)
+
+    if not isinstance(spec_range, Quantity) and spec_unit is not None:
+        spec_range = Quantity(spec_range, unit=spec_unit)
+
+    spec_min, spec_max = spec_range
+    try:
+        if spec_unit is not None:
+            spec_min = Quantity(spec_min).to(spec_unit).value
+            spec_max = Quantity(spec_max).to(spec_unit).value
+        else:
+            spec_min = float(spec_min)
+            spec_max = float(spec_max)
+    except Exception as exc:
+        raise ValueError(
+            'spec_range units are incompatible with the spectral axis.'
+        ) from exc
+
+    x = np.asarray(spectral_axis)
+    y = np.asarray(flux - continuum)
+    mask = (x >= spec_min) & (x <= spec_max)
+
+    if not np.any(mask):
+        if flux_unit is not None and spec_unit is not None:
+            return Quantity(0, unit=flux_unit * spec_unit)
+        return 0
+
+    value = np.trapezoid(y[mask], x[mask])
+
+    if flux_unit is not None and spec_unit is not None:
+        return Quantity(value, unit=flux_unit * spec_unit)
+    return float(value)
+
+
+def sort_spectra_by_line_strength(
+    spectra,
+    spec_range,
+    descending=True,
+    emission_only=None
+):
+    """
+    Sort spectra by their integrated line flux over a spectral range.
+
+    Parameters
+    ----------
+    spectra : list, array-like, or ExtractedPixelSpectra
+        Spectrum objects to sort. If ``ExtractedPixelSpectra``, returns
+        a new ``ExtractedPixelSpectra`` with all attributes reordered.
+    spec_range : Quantity of length 2 or array-like
+        Lower and upper bounds of the spectral interval for integration.
+    descending : bool, default=True
+        If True, sort from strongest to weakest emission.
+    emission_only : bool or None, optional, default=None
+        If True, only return spectra with positive line flux (emission).
+        If False, only return spectra with negative line flux (absorption)
+        If None, return all spectra.
+
+    Returns
+    -------
+    If input is ExtractedPixelSpectra:
+        ExtractedPixelSpectra
+            New instance with all attributes sorted by line strength.
+    Otherwise:
+        sorted_indices : np.ndarray
+            Indices that would sort the input spectra by line strength.
+        line_strengths : Quantity
+            Integrated line flux for each spectrum, in sorted order.
+    """
+    spec_list = spectra.spectra if isinstance(spectra, ExtractedPixelSpectra) else spectra
+
+    fluxes = estimate_spectrum_line_flux(spec_list, spec_range)
+
+    unit = ensure_common_unit(fluxes, on_mismatch='ignore')
+    # flatten list[Quantity] -> Quantity
+    line_strengths = Quantity(fluxes, unit=unit)
+
+    if emission_only is True:
+        valid_mask = line_strengths > 0
+    elif emission_only is False:
+        valid_mask = line_strengths < 0
+    else:
+        valid_mask = np.ones(len(line_strengths), dtype=bool)
+
+    valid_indices = np.where(valid_mask)[0]
+    valid_strengths = line_strengths[valid_mask]
+
+    sort_order = np.argsort(valid_strengths)
+    if descending:
+        sort_order = sort_order[::-1]
+
+    sorted_indices = valid_indices[sort_order]
+    sorted_strengths = valid_strengths[sort_order]
+
+    if isinstance(spectra, ExtractedPixelSpectra):
+        return ExtractedPixelSpectra(
+            spectra=[spec_list[i] for i in sorted_indices],
+            cube_array=spectra.cube_array,
+            extract_idx=spectra.extract_idx[sorted_indices],
+            coords=spectra.coords[sorted_indices],
+            colors=[spectra.colors[i] for i in sorted_indices],
+            labels=[spectra.labels[i] for i in sorted_indices],
+            combined_spectrum=spectra.combined_spectrum
+        )
+    else:
+        return sorted_indices, sorted_strengths
+
+
+def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=True):
+    """
+    Return a representative value from a spectral axis
+    given an index or index range.
+
+    Parameters
+    ----------
+    spectral_axis : Quantity or SpectralAxis
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an ``astropy.units.Quantity`` or a
+        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
+    idx : int or list of int
+        Index or indices specifying the slice along the first axis:
+        - i -> returns ``spectral_axis[i]``
+        - [i] -> returns ``spectral_axis[i]``
+        - [i, j] -> returns ``(spectral_axis[i] + spectral_axis[j+1])/2``
+        - None -> returns ``(spectral_axis[0] + spectral_axis[-1]) / 2``
+    keep_unit : bool, optional, default=True
+        If True, return the result as an ``astropy.units.Quantity``.
+        If False, return the raw float value without units.
+
+    Returns
+    -------
+    spectral_value : float or Quantity
+        The spectral value at the specified index or index
+        range, in the units of 'spectral_axis'.
+    """
+    spec_unit = get_spectral_unit(spectral_axis)
+    if idx is None:
+        result = (spectral_axis[0] + spectral_axis[-1]) / 2
+
+    elif isinstance(idx, int):
+        result = spectral_axis[idx]
+
+    elif isinstance(idx, list):
+        if len(idx) == 1:
+            result = spectral_axis[idx[0]]
+        elif len(idx) == 2:
+            result = (
+                (spectral_axis[idx[0]] + spectral_axis[idx[1]]) / 2
+            )
+        else:
+            raise ValueError("'idx' must be an int or a list of one or two integers")
+    else:
+        raise ValueError("'idx' must be an int or a list of one or two integers")
+
+    if spec_unit is not None:
+        result = result * spec_unit if get_spectral_unit(result) is None else result
+
+    return result if keep_unit else get_value(result)
+
+
+def spectral_world_2_idx(spectral_axis, value) -> int:
+    """
+    Return the index of the nearest spectral channel to a given value.
+    If ``value`` has no unit, the cube unit is assumed.
+
+    Parameters
+    ----------
+    spectral_axis : Quantity or SpectralAxis
+        The spectral axis (e.g., wavelength, frequency, or
+        velocity) as an ``astropy.units.Quantity`` or a
+        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
+    value : Quantity
+        Spectral value in the same units as the cube's spectral axis.
+
+    Returns
+    -------
+    int :
+        Index of the nearest spectral channel.
+
+    Raises
+    ------
+    ValueError :
+        If ``spectral_axis`` is not a ``SpectralAxis`` or ``Quantity``.
+    UnitsError :
+        If a unit mismatch is detected.
+    """
+    spectral_axis = get_spectral_axis(spectral_axis)
+    if not isinstance(spectral_axis, (Quantity, SpectralAxis)):
+        raise ValueError(
+            'spectral_axis must be a Quantity or SpectralAxis!'
+        )
+    if not isinstance(value, Quantity):
+        value = value * spectral_axis.unit
+    else:
+        ensure_common_unit([spectral_axis, value], on_mismatch='raise')
+
+    return int(np.argmin(np.abs(spectral_axis - value)))
+
+
+def mask_spectral_region(x, spectral_region):
+    """
+    Return a boolean mask selecting values within a SpectralRegion.
+
+    This function constructs the union of all subregions in the input
+    SpectralRegion and returns a boolean array that is True for elements
+    of ``x`` that fall within any subregion.
+
+    Parameters
+    ----------
+    x : array-like or `~astropy.units.Quantity`
+        1D array of spectral coordinates (e.g., wavelength or frequency).
+        If a Quantity is provided, its values are converted to plain
+        numeric values.
+
+    spectral_region : `~specutils.SpectralRegion` or region-like
+        Spectral region definition. May contain multiple disjoint
+        subregions. The mask is the logical union of all subregions.
+
+    Returns
+    -------
+    mask : ndarray of bool
+        Boolean mask with the same shape as ``x``. True where the spectral
+        coordinate lies within any subregion, False otherwise.
+
+    Raises
+    ------
+    TypeError
+        If ``spectral_region.subregions`` is None.
+
+    Notes
+    -----
+    - Subregions are combined using logical OR (union semantics).
+    - This function assumes that ``x`` and the subregion bounds are in
+        compatible units. No explicit unit conversion is performed.
+    - Boundary comparisons are inclusive (``>= xmin`` and ``<= xmax``).
+
+    Examples
+    --------
+    >>> mask = mask_spectral_region(wavelength, region)
+    >>> n_valid = np.count_nonzero(mask & np.isfinite(flux))
+    """
+    x = get_value(x)
+    spectral_region = require_spectral_region(spectral_region)
+    subregions = spectral_region.subregions
+    if subregions is None:
+        raise TypeError(
+            'spectral_region.subregions is None!'
+        )
+
+    mask = np.zeros(x.shape, dtype=bool)
+
+    for region in subregions:
+        xmin, xmax = region[0].value, region[1].value
+        mask |= (x >= xmin) & (x <= xmax)
+
+    return mask
+
+
+def propagate_flux_errors(errors, method=None):
+    '''
+    Compute propagated flux errors from individual pixel errors in a spectrum.
+
+    Parameters
+    ----------
+    errors : np.ndarray
+        Either:
+        - 2D array with shape (N_spectra, N_pixels), or
+        - 1D array with shape (N_pixels,) for a single spectrum.
+    method : {'mean', 'sum', 'median'} or None, optional
+        Flux extraction method. If None, uses the default
+        value set by `config.propagate_flux_error_method`.
+
+    Returns
+    -------
+    flux_errors : np.ndarray
+        1D array of propagated flux errors (shape N_spectra).
+    '''
+    # get default config value
+    method = str(get_config_value(method, 'propagate_flux_error_method')).lower()
+    if method is None:
+        raise ValueError(
+            "method must be : {'mean', 'sum', 'median'}"
+        )
+
+    # ensure errors are 2-dimensional
+    if errors.ndim == 1:
+        errors = errors[np.newaxis, :]
+
+    # number of valid (non-NaN) pixels per spectrum
+    N = np.sum(~np.isnan(errors), axis=1)
+
+    # quadratic sum per spectrum
+    quad_sum = np.sqrt( np.nansum(errors**2, axis=1) )
+
+    # propagation method based on flux extraction method
+    if method == 'mean':
+        flux_errors = quad_sum / N
+
+    elif method == 'sum':
+        flux_errors = quad_sum
+
+    elif method == 'median':
+        # statistically correct median error scaling
+        flux_errors = 1.253 * (quad_sum / N)
+
+    elif method == 'interquantile':
+        q1 = np.percentile(errors, 25, axis=1)
+        q3 = np.percentile(errors, 75, axis=1)
+        flux_errors = q3 - q1
+
+    else:
+        raise ValueError(f"Unknown flux extraction method '{method}'.")
+
+    return flux_errors
+
+
+# Science Helper Functions
+# ------------------------
+def _convert_region_units(region, spectral_axis):
+    """
+    Convert the units of a list of spectral regions to match
+    a given spectral axis. Helper function used when fitting
+
+    a spectrum continuum.
+    Parameters
+    ----------
+    region : list of tuple of astropy.units.Quantity or None
+        Each element is a tuple `(rmin, rmax)` defining a spectral region.
+        Both `rmin` and `rmax` should be `Quantity` objects with units.
+        If `None`, the function returns `None`.
+    spectral_axis : astropy.units.Quantity
+        The spectral axis whose unit is used for conversion.
+
+    Returns
+    -------
+    list of tuple of astropy.units.Quantity or None
+        The input regions converted to the same unit as 'spectral_axis'.
+        Returns `None` if `region` is `None`.
+
+    Examples
+    --------
+    >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
+    """
+    region = to_spectral_region(region)
+    if region is None:
+        return None
+
+    # extract unit
+    unit = spectral_axis.unit
+
+    # convert each element to spectral axis units
+    if isinstance(region, SpectralRegion):
+        converted_bounds = []
+        for subregion in region:
+            rmin = subregion.lower.to(unit)
+            rmax = subregion.upper.to(unit)
+            converted_bounds.append((rmin, rmax))
+        return converted_bounds
+
+    elif isinstance(region, list):
+        return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
+
+    else:
+        raise TypeError(f'region must be SpectralRegion or list of tuples, got {_type_name(region)}')
+
+
+# Model Fitting Functions
+# -----------------------
+def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
+    '''
+    Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
+
+    Parameters
+    ----------
+    extracted_spectrum : `SpectrumPlus`
+        `SpectrumPlus` object containing `wavelength` and `flux` attributes.
+        These can be `numpy.ndarray` or `astropy.units.Quantity`.
+    args : list or array-like
+        Additional parameters to append to the initial guess after
+        amplitude and center (e.g., sigma, linear continuum slope/intercept).
+    xlim : tuple of float, optional, default=None
+        Wavelength range `(xmin, xmax)` to restrict the fitting region.
+        If None, the full spectrum is used.
+
+    Returns
+    -------
+    p0 : list of float
+        Initial guess for Gaussian fitting parameters:
+        - First element: amplitude (`max(flux)` in the region)
+        - Second element: center (`wavelength` at max flux)
+        - Remaining elements: values from `args`
+
+    Notes
+    -----
+    - Useful for feeding into `scipy.optimize.curve_fit`
+      or similar fitting routines.
+    '''
+    # extract wavelength and flux from SpectrumPlus object
+    wavelength = get_value(extracted_spectrum.spectral_axis)
+    flux = get_value(extracted_spectrum.flux)
+    # clip arrays by xlim
+    if xlim is not None:
+        mask = mask_within_range(wavelength, xlim)
+        wavelength = wavelength[mask]
+        flux = flux[mask]
+    # compute index of peak flux value
+    peak_idx = int(np.argmax(flux))
+    # compute max amplitude and corresponding wavelength value
+    p0 = [np.nanmax(flux), wavelength[peak_idx]]
+    # extend any arguments needed for gaussian fitting
+    p0.extend(args)
+
+    return p0
+
+
+def gaussian(x, A, mu, sigma):
+    '''
+    Compute a gaussian curve.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        (N,) shaped range of x values (pixel indices) to
+        compute the gaussian function over.
+    A : float
+        Amplitude of gaussian function.
+    mu : float
+        Mean or center of gaussian function.
+    sigma : float
+        Standard deviation of gaussian function.
+
+    Returns
+    -------
+    y : np.ndarray
+        (N,) shaped array of values of gaussian function
+        evaluated at each `x`.
+    '''
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+    return y
+
+def gaussian_line(x, A, mu, sigma, m, b):
+    '''
+    Compute a Gaussian curve with a linear continuum.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        (N,) shaped array of x values (e.g., pixel indices)
+        to evaluate the Gaussian.
+    A : float
+        Amplitude of the Gaussian.
+    mu : float
+        Mean or center of the Gaussian.
+    sigma : float
+        Standard deviation of the Gaussian.
+    m : float
+        Slope of the linear continuum.
+    b : float
+        Y-intercept of the linear continuum.
+
+    Returns
+    -------
+    y : np.ndarray
+        (N,) shaped array of the Gaussian function evaluated
+        at each `x`, including the linear continuum `m*x + b`.
+    '''
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2) + m*x+b
+
+    return y
+
+def gaussian_continuum(x, A, mu, sigma, continuum):
+    '''
+    Compute a Gaussian curve with a continuum offset.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        (N,) shaped array of x values (e.g., pixel indices)
+        to evaluate the Gaussian.
+    A : float
+        Amplitude of the Gaussian.
+    mu : float
+        Mean or center of the Gaussian.
+    sigma : float
+        Standard deviation of the Gaussian.
+    continuum : np.ndarray or array-like
+        Continuum values to add to the Gaussian.
+        Must be the same shape as `x`.
+
+    Returns
+    -------
+    y : np.ndarray
+        (N,) shaped array of the Gaussian function evaluated
+        at `x`, including the continuum offset.
+    '''
+    y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+    return y + continuum
+
+
+@dataclass
+class GaussianFitResult:
+    '''
+    Lightweight dataclass for gaussian fitting results.
+
+    Attributes
+    ----------
+    amplitude : Any
+        Amplitude of gaussian.
+    amplitude_error : Any
+        Error on `amplitude`.
+    mu : Any
+        Mu or center of gaussian.
+    mu_error : Any
+        Error on `mu`.
+    sigma : Any
+        Sigma or standard deviation of gaussian.
+    sigma_error : Any
+        Error on `sigma`.
+    flux : Any
+        Integrated flux of gaussian.
+    flux_error : Any
+        Error on `flux`.
+    FWHM : Any
+        Full width at half maxixum or the width of
+        the gaussian at half of its maximum value.
+    FWHM_error : Any
+        Error on `FWHM`.
+    slope : Any
+        Slope of continuum, if modelled as a linear line
+        using the `gaussian_line` model.
+    slope_error : Any
+        Error on `slope`.
+    intercept : Any
+        Y-intercept of continuum, if modelled as a linear
+        line using the `gaussian_line` model.
+    intercept_error : Any
+        Error on `intercept`.
+    popt : Any
+        Optimal values for the parameters so that the sum of the
+        squared residuals of `f(xdata, *popt) - ydata` is minimized.
+        Returned by `scipy.optimize.curve_fit`.
+    pcov : Any
+        The estimated approximate covariance of popt. The diagonals
+        provide the variance of the parameter estimate. Returned by
+        `scipy.optimize.curve_fit`.
+    perr : Any
+        The one standard deviation errors on the parameters.
+        Computed as `perr = np.sqrt(np.diag(pcov))`.
+
+    Notes
+    -----
+    - If new gaussian models are added, make sure to update
+      the `additional_parameters` and `parameters_labels` list.
+    '''
+    # fitted parameters
+    amplitude: Any
+    amplitude_error: Any
+    mu: Any
+    mu_error: Any
+    sigma: Any
+    sigma_error: Any
+
+    # derived quantities
+    flux: Any
+    flux_error: Any
+    FWHM: Any
+    FWHM_error: Any
+
+    # additional parameters
+    slope: Optional[Any] = None
+    slope_error: Optional[Any] = None
+    intercept: Optional[Any] = None
+    intercept_error: Optional[Any] = None
+
+    # NOTE: ensure these are updated!
+    additional_parameters = ['slope', 'intercept']
+    parameters_labels = ['Slope (m)', 'Intercept (b)']
+
+    # raw curve fit results
+    popt: Optional[Any] = None
+    pcov: Optional[Any] = None
+    perr: Optional[Any] = None
+    p0: Optional[Any] = None
+    fit_config: Optional[dict] = None
+
+    def pretty_print(self, **kwargs):
+        '''
+        Pretty print the results in table format.
+        '''
+
+        precision = kwargs.get('precision', config.table_precision)
+        sci_notation = kwargs.get('sci_notation', config.table_sci_notation)
+        pad = kwargs.get('pad', config.table_column_pad)
+
+        fitted_data = [
+            ['Amplitude', self.amplitude, self.amplitude_error],
+            ['Mu (μ)', self.mu, self.mu_error],
+            ['Sigma (σ)', self.sigma, self.sigma_error],
+        ]
+        for param, name in zip(
+            self.additional_parameters, self.parameters_labels
+        ):
+            if getattr(self, param, None) is not None:
+                value = getattr(self, param)
+                error = getattr(self, param+'_error', '')
+                fitted_data.append([name, value, error])
+
+        print('Fitted Parameters:')
+        print_pretty_table(
+            headers=['Parameter', 'Value', 'Error'],
+            data=fitted_data,
+            precision=precision,
+            sci_notation=sci_notation,
+            pad=pad
+        )
+
+        print('\nDerived Parameters: ')
+        print_pretty_table(
+            headers=None,
+            data=[
+                ['Integrated Flux', self.flux, self.flux_error],
+                ['FWHM', self.FWHM, self.FWHM_error],
+            ],
+            precision=precision,
+            sci_notation=sci_notation,
+            pad=pad
+        )
+
+    def __repr__(self):
+        '''
+        Returns values ± errors.
+        '''
+        exclude = {'popt', 'pcov', 'perr', 'additional_parameters', 'parameters_labels'}
+
+        lines = ['GaussianFitResult(']
+
+        for field in fields(self):
+            if field.name in exclude or field.name.endswith('_error'):
+                continue
+
+            value = getattr(self, field.name)
+            if value is not None:
+                error = getattr(self, f'{field.name}_error', None)
+                if error is not None:
+                    lines.append(f'  {field.name} : {value} ± {error}')
+                else:
+                    lines.append(f'  {field.name} : {value}')
+
+        lines.append(')')
+        return '\n'.join(lines)
+
+
+@dataclass(frozen=True)
+class ExtractedPixelSpectra:
+    """
+    spectra : SpectrumPlus or list of SpectrumPlus
+        Extracted per-pixel spectra. If a single index is selected,
+        this is returned as a single `SpectrumPlus` instance;
+        otherwise, a list is returned.
+    cube_array : np.ndarray
+        Cube of array values corresponding to the extracted pixels.
+        All other pixels are set to NaN.
+    extract_idx : np.ndarray of int, shape (N,)
+        Indices of the extracted spectra corresponding to the ordering
+        of valid spatial pixels.
+    coords : np.ndarray of int, shape (N, 2)
+        Spatial coordinates of extracted pixels in `(y, x)` order.
+    colors : list
+        Colors assigned to each extracted pixel/spectrum.
+    labels : list of str
+        Human-readable labels of the form `"<idx>: (x=<x>, y=<y>)"`.
+    combined_spectrum : SpectrumPlus or None
+        Combined spectrum computed using `combine_method` if
+        `combine_spectra=True`; otherwise None.
+    """
+    spectra: SpectrumPlus | list[SpectrumPlus]
+    cube_array : NDArray
+    extract_idx: NDArray
+    coords: NDArray
+    colors: Sequence | NDArray
+    labels: Sequence
+    combined_spectrum: Optional[object] = None
+
+    def __repr__(self) -> str:
+        n = len(self.extract_idx)
+
+        spectra_type = (
+            'SpectrumPlus'
+            if isinstance(self.spectra, SpectrumPlus)
+            else 'list[SpectrumPlus]'
+        )
+
+        combined = self.combined_spectrum is not None
+
+        return (
+            f'{self.__class__.__name__}('
+            f'N={n}, '
+            f'spectra={spectra_type}, '
+            f'coords_shape={self.coords.shape}, '
+            f'combined={combined})'
+        )
