@@ -56,4 +56,5 @@ exclude = [
     "*egg-info*",
     "*.egg-info",
     "EGG-INFO*",
+    "src/visualastro/dev/*"
 ]
