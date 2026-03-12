@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2026-02-23
+Date Modified: 2026-03-11
 Description:
     Visualastro user interface for publication ready plots.
 Dependencies:
@@ -14,7 +14,7 @@ Module Structure:
     - VisualAstro Help
         VisualAstro user help.
 """
-from contextlib import contextmanager
+
 from glob import glob
 import os
 import warnings
@@ -22,71 +22,27 @@ from astropy.io.fits import Header
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
-from .config import get_config_value, config, _default_flag
-from .data_cube import plot_spectral_cube
-from .io import save_figure_2_disk
-from .numerical_utils import get_data, to_list
-from .plotting import (
-    imshow, plot_density_histogram,
-    plot_histogram, plot_lines,
-    plot_scatter, scatter3D
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _default_flag
 )
-from .plot_utils import return_stylename, set_plot_colors
-from .spectra import plot_combine_spectrum, plot_spectrum
-from .utils import _type_name
-from .wcs_utils import get_wcs_celestial
+from visualastro.core.io import save_figure_2_disk
+from visualastro.core.numerical_utils import to_list
+from visualastro.core.validation import _type_name
+from visualastro.plotting.image_plots import imshow, plot_spectral_cube
+from visualastro.plotting.plots import (
+    plot_density_histogram,
+    plot_histogram,
+    plot_lines,
+    plot_scatter,
+    scatter3D
+)
+from visualastro.plotting.plot_utils import return_stylename, set_plot_colors
+from visualastro.plotting.spectra_plots import plot_combine_spectrum, plot_spectrum
+from visualastro.utils.wcs_utils import get_wcs_celestial
 
-class va:
-    @contextmanager
-    def style(name=None, rc=None, **rc_kwargs):
-        '''
-        Context manager to temporarily apply a Matplotlib or VisualAstro style,
-        with optional rcParams overrides.
-
-        Parameters
-        ----------
-        name : str or None
-            Matplotlib or VisualAstro style name. If None, uses the default
-            value from `config.style`. Ex: 'astro' or 'latex'.
-        rc : dict, optional
-            Dictionary of rcParams overrides.
-            Ex: {'font.size': 14}
-        **rc_kwargs
-            Additional rcParams overrides supplied as keyword arguments.
-            Use underscores in place of dots: font_size → font.size
-
-        Examples
-        --------
-        >>> with style('latex', font_size=23, axes_labelsize=40):
-        ...     plt.plot(x, y)
-
-        >>> with style('paper', rc={'font.size': 14, 'lines.linewidth': 2}):
-        ...     fig, ax = plt.subplots()
-
-        >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
-        ...     # rc dict and kwargs are merged (kwargs take precedence)
-        ...     plt.plot(x, y)
-        '''
-       # get visualastro style
-        name = get_config_value(name, 'style')
-        style_name = return_stylename(name)
-
-        # update rcParams, with priority to kwargs
-        rc_combined = {}
-        if rc is not None:
-            rc_combined.update(rc)
-        if rc_kwargs:
-            # replace '_' with '.' for rcParams
-            rc_combined.update({
-                k.replace('_', '.'): v for k, v in rc_kwargs.items()
-            })
-
-        context = [style_name, rc_combined] if rc_combined else style_name
-
-        with plt.style.context(context): # type: ignore
-            yield
-
-
+class ax:
     @staticmethod
     def imshow(datas, idx=None, vmin=_default_flag, vmax=_default_flag,
                norm=_default_flag, percentile=_default_flag, stack_method=None,

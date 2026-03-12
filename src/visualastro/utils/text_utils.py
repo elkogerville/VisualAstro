@@ -1,13 +1,12 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-12-23
-Date Modified: 2025-12-23
+Date Modified: 2026-03-11
 Description:
     Text utility functions.
-'''
+"""
 
-
-from visualastro.config import get_config_value
+from visualastro.core.config import get_config_value
 
 
 def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):

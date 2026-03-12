@@ -1,13 +1,14 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2025-12-10
+Date Modified: 2026-03-11
 Description:
     Utility functions for Astropy Fits files.
 Dependencies:
     - astropy
     - numpy
-'''
+    - specutils
+"""
 
 from collections.abc import Sequence
 from typing import overload
@@ -15,7 +16,8 @@ from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
 from specutils import SpectralRegion
-from .units import require_spectral_region
+from visualastro.core.units import require_spectral_region
+
 
 @overload
 def _copy_headers(headers: Header) -> Header: ...

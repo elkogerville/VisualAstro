@@ -1,7 +1,7 @@
-'''
+"""
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2025-25-05
+Date Modified: 2026-03-11
 Description:
     SpectrumPlus data structure for 1D spectrum objects.
     This is an extension of the specutils.Spectrum class
@@ -10,20 +10,30 @@ Dependencies:
     - astropy
     - numpy
     - specutils
-'''
+"""
 
 import copy
 from typing import cast
 from astropy.io.fits import Header
-from astropy.units import Quantity, StructuredUnit, UnitBase
+from astropy.units import Quantity, UnitBase
 import numpy as np
 from specutils import SpectralAxis, SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
-from .config import get_config_value
-from .fits_utils import _copy_headers, _get_history, _log_history, _region_to_history
-from .units import ensure_common_unit, require_spectral_region, to_spectral_region, _check_unit_equality
-from .utils import _type_name
+from visualastro.core.config import get_config_value
+from visualastro.core.units import (
+    ensure_common_unit,
+    require_spectral_region,
+    to_spectral_region,
+    _check_unit_equality
+)
+from visualastro.core.validation import _type_name
+from visualastro.utils.fits_utils import (
+    _copy_headers,
+    _get_history,
+    _log_history,
+    _region_to_history
+)
 
 
 class SpectrumPlus:

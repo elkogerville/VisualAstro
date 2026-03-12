@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2025-10-20
+Date Modified: 2026-03-11
 Description:
     Plotting utility functions.
 Dependencies:
@@ -9,6 +9,7 @@ Dependencies:
     - matplotlib
     - numpy
     - regions
+    - specutils
 Module Structure:
     - Plot Style and Color Functions
         Utility functions to set plotting style.
@@ -23,6 +24,7 @@ Module Structure:
 """
 
 from collections.abc import Sequence
+from contextlib import contextmanager
 import os
 from typing import Any
 import warnings
@@ -39,9 +41,18 @@ import matplotlib.ticker as ticker
 import numpy as np
 from regions import PixCoord, EllipsePixelRegion
 from specutils import SpectralAxis
-from .config import get_config_value, config, _default_flag
-from .data_cube_utils import stack_cube
-from .numerical_utils import (
+from visualastro.analysis.image_utils import stack_cube
+from visualastro.analysis.spectra_utils import (
+    get_spectral_axis,
+    shift_by_radial_vel,
+    spectral_idx_2_world
+)
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _default_flag
+)
+from visualastro.core.numerical_utils import (
     compute_density_kde,
     flatten,
     get_data,
@@ -49,12 +60,7 @@ from .numerical_utils import (
     to_array,
     to_list
 )
-from .spectra_utils import (
-    get_spectral_axis,
-    shift_by_radial_vel,
-    spectral_idx_2_world
-)
-from .units import (
+from visualastro.core.units import (
     convert_quantity,
     get_physical_type,
     get_unit,
@@ -62,12 +68,62 @@ from .units import (
     to_unit,
     _infer_physical_type_label
 )
-from .utils import _type_name
+from visualastro.core.validation import _type_name
+
+
+@contextmanager
+def style(name=None, rc=None, **rc_kwargs):
+    '''
+    Context manager to temporarily apply a Matplotlib or VisualAstro style,
+    with optional rcParams overrides.
+
+    Parameters
+    ----------
+    name : str or None
+        Matplotlib or VisualAstro style name. If None, uses the default
+        value from `config.style`. Ex: 'astro' or 'latex'.
+    rc : dict, optional
+        Dictionary of rcParams overrides.
+        Ex: {'font.size': 14}
+    **rc_kwargs
+        Additional rcParams overrides supplied as keyword arguments.
+        Use underscores in place of dots: font_size → font.size
+
+    Examples
+    --------
+    >>> with style('latex', font_size=23, axes_labelsize=40):
+    ...     plt.plot(x, y)
+
+    >>> with style('paper', rc={'font.size': 14, 'lines.linewidth': 2}):
+    ...     fig, ax = plt.subplots()
+
+    >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
+    ...     # rc dict and kwargs are merged (kwargs take precedence)
+    ...     plt.plot(x, y)
+    '''
+   # get visualastro style
+    name = get_config_value(name, 'style')
+    style_name = return_stylename(name)
+
+    # update rcParams, with priority to kwargs
+    rc_combined = {}
+    if rc is not None:
+        rc_combined.update(rc)
+    if rc_kwargs:
+        # replace '_' with '.' for rcParams
+        rc_combined.update({
+            k.replace('_', '.'): v for k, v in rc_kwargs.items()
+        })
+
+    context = [style_name, rc_combined] if rc_combined else style_name
+
+    with plt.style.context(context): # type: ignore
+        yield
 
 
 # Plot Style and Color Functions
 # ------------------------------
-def return_stylename(style):
+def return_stylename(style: str) -> str:
     '''
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters.
@@ -101,9 +157,10 @@ def return_stylename(style):
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
         return style
+
     # if style is a visualastro stylesheet
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    style_path = os.path.join(dir_path, 'stylelib', f'{style}.mplstyle')
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    style_path = os.path.join(base_dir, 'stylelib', f'{style}.mplstyle')
     # ensure that style works on computer, otherwise return default style
     try:
         with plt.style.context(style_path):
@@ -113,9 +170,9 @@ def return_stylename(style):
     except Exception as e:
         warnings.warn(
             f"[visualastro] Could not apply style '{style}' ({e}). "
-            "Falling back to 'default' style."
+            f"Falling back to '{config.style_fallback}' style."
         )
-        fallback = os.path.join(dir_path, 'stylelib', config.style_fallback)
+        fallback = os.path.join(base_dir, 'stylelib', config.style_fallback)
         return fallback
 
 
@@ -1416,7 +1473,13 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     _update_ellipse_region(region, text=text)
 
     def _rotate(event):
+        """
+        Rotate the ellipse region based on key press events.
 
+        Parameters
+        ----------
+        event :
+        """
         key = event.key
 
         if key not in ('e', 'f', 't', 'o'):
