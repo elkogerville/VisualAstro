@@ -37,7 +37,7 @@ from visualastro.utils.fits_utils import (
 
 
 class SpectrumPlus:
-    '''
+    """
     Lightweight extension of specutils.Spectrum, offering convenience methods.
 
     Parameters
@@ -125,7 +125,7 @@ class SpectrumPlus:
     _construct_spectrum
         Helper method to construct a Spectrum object.
 
-    '''
+    """
 
     def __init__(
         self, spectrum=None, *, spectral_axis=None, flux=None,
@@ -670,7 +670,7 @@ class SpectrumPlus:
         continuum : Quantity
             Quantity array of continuum values.
         """
-        from .spectra_utils import fit_continuum
+        from visualastro.analysis.spectra_utils import fit_continuum
 
         return fit_continuum(spectrum, fit_method, region)
 

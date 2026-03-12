@@ -20,7 +20,6 @@ import os
 import warnings
 from astropy.io import fits
 import astropy.units as u
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm

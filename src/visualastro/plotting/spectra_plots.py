@@ -9,6 +9,7 @@ Dependencies:
     - matplotlib
     - numpy
     - scipy
+    - spectral-cube
     - specutils
     - tqdm
 Module Structure:
