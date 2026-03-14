@@ -71,7 +71,7 @@ from visualastro.dataclasses.spectrumplus import SpectrumPlus
 from visualastro.plotting.image_plots import imshow
 from visualastro.plotting.plot_utils import (
     plot_vlines,
-    return_stylename,
+    get_stylepath,
     sample_cmap,
     set_axis_labels,
     set_axis_limits,
@@ -258,7 +258,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     ensure_common_unit(cubes)
 
     # set plot style and colors
-    style = return_stylename(style)
+    style = get_stylepath(style)
 
     extracted_spectra = []
 
@@ -535,7 +535,7 @@ def extract_cube_pixel_spectra(
 
     n_plot = len(spectra)
     combined_spec = None
-    style = return_stylename(style)
+    style = get_stylepath(style)
 
     if combine_spectra:
         if combine_method == 'sum':
@@ -745,7 +745,7 @@ def plot_extracted_pixel_map(
     overlay = np.zeros((ny, nx, 4), dtype=float)
     overlay[ys, xs] = colors_rgba
 
-    style = return_stylename(style)
+    style = get_stylepath(style)
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)
         imshow(
@@ -1529,7 +1529,7 @@ def fit_gaussian_2_spec(
 
     # set plot style and colors
     colors, _ = set_plot_colors(colors)
-    style = return_stylename(style)
+    style = get_stylepath(style)
 
     with plt.style.context(style):
         fig, ax = plt.subplots(figsize=figsize)

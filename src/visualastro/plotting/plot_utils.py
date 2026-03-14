@@ -104,7 +104,7 @@ def style(name=None, rc=None, **rc_kwargs):
     """
    # get visualastro style
     name = get_config_value(name, 'style')
-    style_name = return_stylename(name)
+    style_name = get_stylepath(name)
 
     # update rcParams, with priority to kwargs
     rc_combined = {}
@@ -124,7 +124,7 @@ def style(name=None, rc=None, **rc_kwargs):
 
 # Plot Style and Color Functions
 # ------------------------------
-def return_stylename(style: str) -> str:
+def get_stylepath(style: str) -> str:
     """
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters.
