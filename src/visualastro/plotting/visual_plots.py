@@ -37,7 +37,7 @@ from visualastro.plotting.plots import (
     plot_scatter,
     scatter3D
 )
-from visualastro.plotting.plot_utils import apply_style_modifiers, return_stylename, set_plot_colors
+from visualastro.plotting.plot_utils import apply_style_modifiers, get_stylepath, set_plot_colors
 from visualastro.plotting.spectra_plots import plot_combine_spectrum, plot_spectrum
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
@@ -241,7 +241,7 @@ class ax:
                 if invert_wcs:
                     wcs = wcs.swapaxes(0, 1)
 
-        stylepath = return_stylename(style)
+        stylepath = get_stylepath(style)
         with plt.style.context(stylepath):
             plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
@@ -387,7 +387,7 @@ class ax:
         cubes = to_list(cubes)
 
         # define wcs figure axes
-        stylepath = return_stylename(style)
+        stylepath = get_stylepath(style)
         with plt.style.context(stylepath):
             fig = plt.figure(figsize=figsize)
             wcs2d = get_wcs_celestial(cubes[0])
@@ -514,7 +514,7 @@ class ax:
         dpi = kwargs.get('dpi', config.dpi)
 
         # set plot style
-        style = return_stylename(style)
+        style = get_stylepath(style)
 
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
@@ -635,7 +635,7 @@ class ax:
         dpi = kwargs.get('dpi', config.dpi)
 
         # set plot style
-        style = return_stylename(style)
+        style = get_stylepath(style)
 
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
@@ -757,7 +757,7 @@ class ax:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        style = return_stylename(style)
+        style = get_stylepath(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
             # adjust grid layout to prevent overlap
@@ -865,7 +865,7 @@ class ax:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        style = return_stylename(style)
+        style = get_stylepath(style)
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
@@ -987,7 +987,7 @@ class ax:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        style = return_stylename(style)
+        style = get_stylepath(style)
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
@@ -1124,7 +1124,7 @@ class ax:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        style = return_stylename(style)
+        style = get_stylepath(style)
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
@@ -1283,7 +1283,7 @@ class ax:
         savefig = kwargs.get('savefig', config.savefig)
         dpi = kwargs.get('dpi', config.dpi)
 
-        style = return_stylename(style)
+        style = get_stylepath(style)
         with plt.style.context(style):
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot(111, projection='3d')
@@ -1326,7 +1326,7 @@ class ax:
             Display only the 'astro' palette, including plot and model colors:
             >>> va.help.colors('astro')
             '''
-            style = return_stylename('astro')
+            style = get_stylepath('astro')
             # visualastro default color schemes
             color_map = ['visualastro', 'ibm_contrast', 'astro', 'MSG', 'ibm', 'ibm_r', 'smplot']
             if user_color is None:
@@ -1433,7 +1433,7 @@ class ax:
                 '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
             )
             for i, style_name in enumerate(style_names):
-                style = return_stylename(style_name)
+                style = get_stylepath(style_name)
                 with plt.style.context(style):
                     print(fr"Style : '{style_name}'")
                     if style_name == 'cm10':

@@ -94,7 +94,7 @@ from visualastro.plotting.plot_utils import (
     plot_points,
     plot_vlines,
     return_imshow_norm,
-    return_stylename,
+    get_stylepath,
     sample_cmap,
     set_axis_labels,
     set_axis_limits,
