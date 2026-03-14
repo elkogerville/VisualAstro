@@ -583,7 +583,12 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     ax.coords['dec'].set_axislabel(ylabel)
     ax.coords['dec'].set_ticklabel(rotation=90)
     if wcs_grid:
-        ax.coords.grid(True, color='white', ls='dotted')
+        ax.coords.grid(
+            True,
+            color=config.wcs_grid_color,
+            alpha=config.grid_alpha,
+            ls=config.wcs_grid_linestyle
+        )
 
     images = _unwrap_if_single(images)
 
