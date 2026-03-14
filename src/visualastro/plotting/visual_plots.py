@@ -37,7 +37,7 @@ from visualastro.plotting.plots import (
     plot_scatter,
     scatter3D
 )
-from visualastro.plotting.plot_utils import return_stylename, set_plot_colors
+from visualastro.plotting.plot_utils import apply_style_modifiers, return_stylename, set_plot_colors
 from visualastro.plotting.spectra_plots import plot_combine_spectrum, plot_spectrum
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
@@ -241,10 +241,11 @@ class ax:
                 if invert_wcs:
                     wcs = wcs.swapaxes(0, 1)
 
-        style = return_stylename(style)
-        with plt.style.context(style):
+        stylepath = return_stylename(style)
+        with plt.style.context(stylepath):
             plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
+            apply_style_modifiers(ax, style)
 
             _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile, stack_method,
                        origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs)
@@ -386,8 +387,8 @@ class ax:
         cubes = to_list(cubes)
 
         # define wcs figure axes
-        style = return_stylename(style)
-        with plt.style.context(style):
+        stylepath = return_stylename(style)
+        with plt.style.context(stylepath):
             fig = plt.figure(figsize=figsize)
             wcs2d = get_wcs_celestial(cubes[0])
             if not isinstance(wcs2d, WCS):
@@ -396,9 +397,7 @@ class ax:
                     f'got: {_type_name(wcs2d)}'
                 )
             ax = fig.add_subplot(111, projection=wcs2d)
-            if style.split('/')[-1] == 'minimal.mplstyle':
-                ax.coords['ra'].set_ticks_position('bl')
-                ax.coords['dec'].set_ticks_position('bl')
+            apply_style_modifiers(ax, style)
 
             _ = plot_spectral_cube(
                 cubes, idx,
