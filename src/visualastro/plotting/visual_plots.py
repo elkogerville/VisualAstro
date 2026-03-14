@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2026-03-11
+Date Modified: 2026-03-14
 Description:
     Visualastro user interface for publication ready plots.
 Dependencies:
