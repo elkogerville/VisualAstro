@@ -785,38 +785,26 @@ class DataCube:
         # update new header with reference WCS
         if isinstance(new_header, list):
             # timeseries cube
-
+            new_wcs: list[WCS] = []
             for hdr in new_header:
                 _update_header_from_wcs(hdr, ref_wcs)
+                new_wcs.append(WCS(hdr))
                 _log_history(new_header, 'Assigned 2D reference WCS to all slices')
-            # else:
-            #     warnings.warn(
-            #         'Reference WCS is not 2D; dropping WCS for timeseries cube.'
-            #     )
-            #     _log_history(new_header, 'Dropped WCS due to dim mismatch')
         else:
             # non-timeseries cube
             if reference_wcs.naxis == new_data.ndim:
                 _update_header_from_wcs(new_header, reference_wcs)
                 _log_history(new_header, 'Updated all WCS keys in header')
+                new_wcs = WCS(new_header)
             else:
-                new_wcs = WCS(naxis=3)
-                new_wcs.crpix[:2] = ref_wcs.crpix
-                new_wcs.cdelt[:2] = ref_wcs.cdelt
-                new_wcs.crval[:2] = ref_wcs.crval
-                new_wcs.ctype[:2] = ref_wcs.ctype
-
-                # spectral from original cube
                 data_wcs = wcs_info if isinstance(wcs_info, WCS) else WCS(wcs_info)
-                new_wcs.wcs.crpix[2] = data_wcs.crpix[2]
-                new_wcs.wcs.cdelt[2] = data_wcs.cdelt[2]
-                new_wcs.wcs.crval[2] = data_wcs.crval[2]
-                new_wcs.wcs.ctype[2] = data_wcs.ctype[2]
-                # warnings.warn(
-                #     'Reference WCS dimensionality does not match data; '
-                #     'cube-level WCS not assigned.'
-                # )
-                # _log_history(new_header, 'Dropped WCS due to dim mismatch')
+                new_wcs = data_wcs.deepcopy()
+
+                new_wcs.wcs.crpix[:2] = ref_wcs.wcs.crpix
+                new_wcs.wcs.cdelt[:2] = ref_wcs.wcs.cdelt
+                new_wcs.wcs.crval[:2] = ref_wcs.wcs.crval
+                new_wcs.wcs.pc[:2, :2] = ref_wcs.wcs.pc
+                new_wcs.wcs.ctype = tuple(ref_wcs.wcs.ctype) + (data_wcs.wcs.ctype[2],)
                 _log_history(new_header, 'Created 3D WCS from 2D WCS')
 
         if np.all(np.isnan(new_data)):
@@ -838,21 +826,18 @@ class DataCube:
                     'this is not supported and should not happen.'
                 )
 
-            new_wcs = WCS(new_header)
-
             new_data = SpectralCube(
                 data=new_data,
                 wcs=new_wcs,
-                meta=self.data.meta
             )
-
             new_data._spectral_unit = self.data._spectral_unit
             new_data._spectral_scale = self.data._spectral_scale
 
         new_cube = DataCube(
             data=new_data,
             header=new_header,
-            error=new_error
+            error=new_error,
+            wcs=new_wcs
         )
 
         if return_footprint:
