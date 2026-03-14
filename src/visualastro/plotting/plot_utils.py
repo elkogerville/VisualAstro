@@ -32,6 +32,7 @@ from functools import partial
 import astropy.units as u
 from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
+from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib import colors as mcolors
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 from matplotlib.patches import Circle, Ellipse
@@ -73,7 +74,7 @@ from visualastro.core.validation import _type_name
 
 @contextmanager
 def style(name=None, rc=None, **rc_kwargs):
-    '''
+    """
     Context manager to temporarily apply a Matplotlib or VisualAstro style,
     with optional rcParams overrides.
 
@@ -100,7 +101,7 @@ def style(name=None, rc=None, **rc_kwargs):
     >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
     ...     # rc dict and kwargs are merged (kwargs take precedence)
     ...     plt.plot(x, y)
-    '''
+    """
    # get visualastro style
     name = get_config_value(name, 'style')
     style_name = return_stylename(name)
@@ -124,7 +125,7 @@ def style(name=None, rc=None, **rc_kwargs):
 # Plot Style and Color Functions
 # ------------------------------
 def return_stylename(style: str) -> str:
-    '''
+    """
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters.
     Avaliable styles:
@@ -153,14 +154,15 @@ def return_stylename(style: str) -> str:
     -------
     style_path : str
         Path to matplotlib stylesheet.
-    '''
+    """
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
         return style
 
     # if style is a visualastro stylesheet
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    style_path = os.path.join(base_dir, 'stylelib', f'{style}.mplstyle')
+    base_style = style.split('_')[0] if '_' in style else style
+    style_path = os.path.join(base_dir, 'stylelib', f'{base_style}.mplstyle')
     # ensure that style works on computer, otherwise return default style
     try:
         with plt.style.context(style_path):
