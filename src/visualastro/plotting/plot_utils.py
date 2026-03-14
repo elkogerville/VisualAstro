@@ -178,6 +178,98 @@ def return_stylename(style: str) -> str:
         return fallback
 
 
+def apply_style_modifiers(ax, style: str):
+    """
+    Apply programmatic style modifiers based on underscore-separated suffixes.
+    This updates an axes instance in place with stylistic modifiers.
+
+    Modifiers are appended to the base style name with underscores and can be
+    chained together in any order (e.g., 'astro_minimal_grid' or 'latex_bare').
+    This function is mostly for internal use by plotting functions in the
+    visualastro.visual_plots module.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes or astropy.visualization.wcsaxes.WCSAxes
+        Axes object to apply style modifiers to.
+    style : str
+        Full style string including base style and optional modifiers.
+        Format: 'basestyle_modifier1_modifier2_...'
+        Example: 'astro_minimal_grid'
+
+    Notes
+    -----
+    Supported modifiers:
+        - minimal : Remove minor ticks and show ticks only on bottom-left axes.
+                    For WCSAxes, uses coords positioning. For regular axes,
+                    disables top and right ticks.
+        - nominor : Remove minor tick marks only, keeping major ticks unchanged.
+        - bare : Remove all frame elements including ticks, tick labels, and
+                spines/frame. Creates a minimal plot with data only.
+        - grid : Add a background grid. Uses config settings for color, alpha,
+                and linestyle. Grid style differs between WCSAxes and regular axes.
+
+    Examples
+    --------
+    >>> fig, ax = plt.subplots()
+    >>> apply_style_modifiers(ax, 'astro_minimal')
+    >>> apply_style_modifiers(ax, 'latex_grid_nominor')
+    >>> apply_style_modifiers(ax, 'default_bare')
+    """
+    if '_' not in style:
+        return
+
+    parts = style.split('_')
+    modifiers = parts[1:]
+
+    for modifier in modifiers:
+
+        modifier = modifier.lower()
+
+        if modifier == 'minimal':
+            # remove minor ticks
+            ax.tick_params(which='minor', length=0)
+            if isinstance(ax, WCSAxes):
+                ax.coords['ra'].set_ticks_position('bl')
+                ax.coords['dec'].set_ticks_position('bl')
+            else:
+                ax.tick_params(top=False, right=False)
+
+        elif modifier == 'nominor':
+            ax.tick_params(which='minor', length=0)
+
+        elif modifier == 'bare':
+            # remove the frame, ticks, and ticklabels
+            if isinstance(ax, WCSAxes):
+                ax.coords['ra'].set_ticklabel_visible(False)
+                ax.coords['dec'].set_ticklabel_visible(False)
+                ax.coords['ra'].set_ticks_visible(False)
+                ax.coords['dec'].set_ticks_visible(False)
+                ax.coords.frame.set_linewidth(0)
+            else:
+                ax.tick_params(which='both', length=0)
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+
+        elif modifier == 'grid':
+            if isinstance(ax, WCSAxes):
+                 ax.coords.grid(
+                     True,
+                     color=config.wcs_grid_color,
+                     alpha=config.grid_alpha,
+                     ls=config.wcs_grid_linestyle
+                 )
+            else:
+                ax.grid(
+                    True,
+                    color=config.grid_color,
+                    alpha=config.grid_alpha,
+                    ls=config.grid_linestyle
+                )
+
+
 def lighten_color(color, mix=0.5):
     '''
     Lightens the given matplotlib color by mixing it with white.
