@@ -64,7 +64,16 @@ class VAConfig:
         self.nrows: int = 1 # make_grid_plot() nrows
         self.ncols: int = 2 # make_grid_plot() ncols
         self.rasterized: bool = False # rasterize plot artists wherever possible
+
+        # figure grid params
+        self.grid_alpha: float = 1
+        self.grid_color: 'str' = 'k'
+        self.grid_linestyle: 'str' = 'solid'
+
         self.wcs_grid: bool = False
+        self.wcs_grid_color: 'str' = 'w'
+        self.wcs_grid_linestyle: 'str' = 'dotted'
+
 
         # data params
         self.normalize_data = False
