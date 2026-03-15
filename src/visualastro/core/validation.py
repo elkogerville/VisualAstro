@@ -101,7 +101,7 @@ def allclose(a, b, rtol=1e-05, atol=1e-08, equal_nan=True):
 
 
 def _check_shapes_match(a, b, name_a='a', name_b='b'):
-    '''
+    """
     Check that two input arrays have the same shape.
 
     Parameters
@@ -109,9 +109,9 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
     a : array-like
     b : array-like
     name_a : str, optional, default='a'
-        Name to use for array 'a' in error messages.
+        Name to use for array ``a`` in error messages.
     name_b : str, optional, default='b'
-        Name to use for array 'b' in error messages.
+        Name to use for array ``b`` in error messages.
 
     Returns
     -------
@@ -123,8 +123,7 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
     ------
     ValueError :
         Arrays have differing shapes.
-    '''
-
+    """
     A = np.asarray(a)
     B = np.asarray(b)
     if A.shape != B.shape:

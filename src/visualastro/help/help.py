@@ -150,8 +150,8 @@ class help:
         """
 
         if style_name is None:
-            dir_path = os.path.dirname(os.path.realpath(__file__))
-            style_files = glob(os.path.join(dir_path, 'stylelib', '*.mplstyle'))
+            base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            style_files = glob(os.path.join(base_dir, 'stylelib', '*.mplstyle'))
             style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
         else:
             style_names = to_list(style_name)
