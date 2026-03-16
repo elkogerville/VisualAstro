@@ -789,8 +789,8 @@ def propagate_flux_errors(errors, method=None):
         flux_errors = 1.253 * (quad_sum / N)
 
     elif method == 'interquantile':
-        q1 = np.percentile(errors, 25, axis=1)
-        q3 = np.percentile(errors, 75, axis=1)
+        q1 = np.nanpercentile(errors, 25, axis=1)
+        q3 = np.nanpercentile(errors, 75, axis=1)
         flux_errors = q3 - q1
 
     else:
