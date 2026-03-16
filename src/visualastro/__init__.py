@@ -43,7 +43,7 @@ from visualastro.core.io import (
     save_array,
     save_figure_2_disk,
     save_quantity,
-    write_arrays_to_file,
+    write_arrays_2_file,
     write_cube_2_fits
 )
 from visualastro.core.numerical_utils import (
