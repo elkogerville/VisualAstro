@@ -22,9 +22,11 @@ from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
 from visualastro.core.config import get_config_value, config, _default_flag
-from visualastro.core.numerical_utils import to_array
+from visualastro.core.numerical_utils import to_array, to_list
+from visualastro.core.units import get_units
 
 
 def get_dtype(data, dtype=None, default_dtype=None):
@@ -125,6 +127,82 @@ def get_errors(hdul, dtype=None, transpose=False):
         errors = errors.T
 
     return errors
+
+
+def write_arrays_2_file(
+    arrays: NDArray | u.Quantity | list[NDArray | u.Quantity],
+    filename: str,
+    headers: list[str] | None = None,
+    delimiter: str = '\t',
+    precision: int = 16,
+) -> None:
+    """
+    Save multiple 1D arrays as columns to a text file with optional headers and units.
+
+    Parameters
+    ----------
+    arrays : NDArray, Quantity, or list of (NDArray or Quantity)
+        One or more 1D arrays to be written as columns.
+    filename : str
+        Output filename.
+    headers : list of str, optional
+        Column header labels. If fewer headers than arrays are given,
+        remaining headers are left blank.
+    delimiter : str, optional
+        Column delimiter written between values.
+    precision : int, optional
+        Number of digits in scientific notation for numeric values.
+
+    Notes
+    -----
+    If arrays contain quantities, their units are written on a second header
+    line using the format '[unit]'. Numeric values are written in scientific
+    notation.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> arr1 = np.array([1.23e-5, 4.56e-3, 7.89e2]) * u.m
+    >>> arr2 = np.array([9.87e6, 6.54e4, 3.21e-1]) * u.s
+    >>> save_arrays_to_file([arr1, arr2], 'data.txt', headers=['Distance', 'Time'])
+    """
+
+    arrays = to_list(arrays)
+
+    lengths = [len(a) for a in arrays]
+    if len(set(lengths)) != 1:
+        raise ValueError(f'All arrays must have the same length. Got lengths: {lengths}')
+
+    n_cols = len(arrays)
+
+    if headers is None:
+        headers = [''] * n_cols
+    else:
+        headers = list(headers) + [''] * (n_cols - len(headers))
+
+    units = get_units(arrays)
+    unit_strs = [f'[{u.to_string()}]' if u is not None else '' for u in units]
+
+    data_arrays = [getattr(a, 'value', np.asarray(a)) for a in arrays]
+
+    data = np.column_stack(data_arrays)
+
+    fmt = f'%.{precision}e'
+    sample = fmt % data.flat[0]
+    col_width = max(len(sample), *(len(h) for h in headers), *(len(u) for u in unit_strs))
+
+    header_line = delimiter.join(h.center(col_width) for h in headers)
+    unit_line = delimiter.join(u.center(col_width) for u in unit_strs)
+
+    np.savetxt(
+        filename,
+        data,
+        fmt=f'%{col_width}.{precision}e',
+        delimiter=delimiter,
+        header=header_line + '\n' + unit_line,
+        comments=''
+    )
 
 
 def write_cube_2_fits(cube, filename, overwrite=False):
