@@ -18,7 +18,7 @@ Module Structure:
         Utility functions related to numerical computations.
 """
 
-from typing import Any, Sequence
+from typing import Any, Sequence, TypeVar, Union, overload
 from astropy import units as u
 from astropy.units import Quantity
 import numpy as np
@@ -421,7 +421,21 @@ def mask_within_range(x, xlim=None):
     return mask
 
 
-def _unwrap_if_single(array: Sequence | NDArray):
+T = TypeVar('T')
+
+@overload
+def _unwrap_if_single(
+    array: list[T]
+) -> T | list[T]: ...
+
+@overload
+def _unwrap_if_single(
+    array: tuple[T]
+) -> T | tuple[T]: ...
+
+def _unwrap_if_single(
+    array: Sequence[T] | NDArray[Any]
+) -> T | Sequence[T] | NDArray[Any]:
     """
     Unwrap an array-like object if it contains exactly one element.
 
