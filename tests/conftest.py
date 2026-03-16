@@ -6,7 +6,16 @@ import pytest
 
 @pytest.fixture
 def generate_test_cube():
-    """Generate a small 3D test cube."""
+    """
+    Generate a small 3D test cube along along with
+    a valid WCS. The 3rd dimension is a spectral axis.
+
+    Returns
+    -------
+    hdu : astropy.io.fits.PrimaryHDU
+        HDU object containing the data and header extensions.
+
+    """
     data = np.random.randn(10, 50, 50) + 5
 
     wcs = WCS(naxis=3)
@@ -23,6 +32,7 @@ def generate_test_cube():
 
     data = hdu.data
     header = hdu.header
+
     assert isinstance(data, np.ndarray)
     assert isinstance(header, fits.Header)
 
