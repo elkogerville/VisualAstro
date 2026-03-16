@@ -26,7 +26,7 @@ from astropy.units.physical import PhysicalType
 import numpy as np
 from specutils import SpectralAxis, SpectralRegion
 from visualastro.core.config import get_config_value, config
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.numerical_utils import to_list, _unwrap_if_single
 from visualastro.core.validation import _type_name
 
 
@@ -135,6 +135,46 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
                 return unit
 
     return None
+
+
+@overload
+def get_units(
+    objs: list
+) -> list[UnitBase | StructuredUnit | None]: ...
+
+@overload
+def get_units(
+    objs: Any
+) -> UnitBase | StructuredUnit | None | list[UnitBase | StructuredUnit | None]: ...
+
+def get_units(
+    objs: Any
+) -> UnitBase | StructuredUnit | None | list[UnitBase | StructuredUnit | None]:
+    """
+    Extract the unit from a list of objects, if it exists.
+
+    This function checks if the object has a `.unit` attribute,
+    or if 'BUNIT' exists in `obj`.
+
+    Parameters
+    ----------
+    objs : Object or list of Object
+        The input object(s) from which to extract a unit. These can be:
+        - an astropy UnitBase
+        - an astropy.units.Quantity
+        - a fits.Header with a 'BUNIT' key
+        - any object with a .data attribute
+        - any object with a .header attribute
+    Returns
+    -------
+    list of units or None, or unit or None
+        The associated unit(s) of the input object(s), if they exist.
+        Returns None if the object has no unit or if the unit cannot be parsed.
+    """
+    objs = to_list(objs)
+    units = [get_unit(obj) for obj in objs]
+
+    return _unwrap_if_single(units)
 
 
 def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
