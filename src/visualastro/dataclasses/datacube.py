@@ -1393,6 +1393,18 @@ class DataCube:
         """
         return self.value.reshape(*shape)
 
+    def add_history(self, history):
+        """
+        Add to the ``HISTORY`` cards of the cube
+        for logging purposes. This returns nothing.
+
+        Parameters
+        ----------
+        history : str
+            Logging message to add.
+        """
+        _log_history(self.header, history)
+
 
     # HELPER FUNCTIONS
     # ----------------
