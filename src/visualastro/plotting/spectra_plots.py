@@ -455,13 +455,13 @@ def extract_cube_pixel_spectra(
     if spectral_axis is None:
         raise ValueError('Could not determine spectral_axis from cube')
 
-    data_unit = get_unit(cube)
-    if data_unit is None:
-        data_unit = u.dimensionless_unscaled
+    data_unit = get_unit(cube) or u.dimensionless_unscaled
 
     data = to_array(cube, keep_unit=False)
     if data.ndim != 3:
         raise ValueError('cube must have shape (T, N, M)')
+
+    error_cube = getattr(cube, 'error', None)
 
     if idx_range is not None:
         if (not isinstance(idx_range, (list, tuple, np.ndarray))
@@ -520,6 +520,9 @@ def extract_cube_pixel_spectra(
     ys = coords[:, 0]
     xs = coords[:, 1]
 
+    # the transpose is necessary to ensure that flux_matrix
+    # has shape Npixels x T, so that looping over flux_matrix
+    # gives you each spectrum along a column of voxels
     flux_matrix = data[:, ys, xs].T * data_unit
     spectra = [
         SpectrumPlus(
@@ -527,6 +530,32 @@ def extract_cube_pixel_spectra(
         )
         for flux in flux_matrix
     ]
+
+    masked_data = np.full_like(data, np.nan)
+    masked_data[:, ys, xs] = data[:, ys, xs]
+    if (
+        get_unit(masked_data) is None and
+        data_unit != u.dimensionless_unscaled
+    ):
+        masked_data = masked_data * data_unit
+
+    if error_cube is not None:
+        err_data = to_array(error_cube, keep_unit=False)
+        err_unit = get_unit(error_cube) or u.dimensionless_unscaled
+
+        if err_data.shape != data.shape:
+            raise ValueError('error cube must have same shape as cube')
+
+        masked_err = np.full_like(err_data, np.nan)
+        masked_err[:, ys, xs] = err_data[:, ys, xs]
+
+        if (
+            get_unit(masked_err) is None and
+            err_unit != u.dimensionless_unscaled
+        ):
+            masked_err = masked_err * err_unit
+    else:
+        masked_err = None
 
     labels = [
         f'{i}: (x={x}, y={y})'
@@ -600,12 +629,10 @@ def extract_cube_pixel_spectra(
 
         plt.show()
 
-    masked_data = np.full_like(data, np.nan)
-    masked_data[:, ys, xs] = data[:, ys, xs]
-
     result = ExtractedPixelSpectra(
         spectra=_unwrap_if_single(spectra),
         cube_array=masked_data,
+        error_array=masked_err,
         extract_idx=extract_idx,
         coords=coords,
         colors=colors,
@@ -616,7 +643,7 @@ def extract_cube_pixel_spectra(
     if plot_spatial_map:
         plot_extracted_pixel_map(
             result,
-            cube=masked_data if background_cube is None else to_array(background_cube),
+            cube=masked_data if background_cube is None else background_cube,
             savefig=savefig,
             idx=map_idx,
             **kwargs
