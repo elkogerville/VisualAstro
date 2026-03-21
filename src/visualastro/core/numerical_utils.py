@@ -18,7 +18,7 @@ Module Structure:
         Utility functions related to numerical computations.
 """
 
-from typing import Any, Sequence, TypeVar, Union, overload
+from typing import Any, Literal, Sequence, TypeVar, overload
 from astropy import units as u
 from astropy.units import Quantity
 import numpy as np
@@ -26,6 +26,7 @@ from numpy.typing import NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
+from visualastro.core.validation import _type_name
 
 
 # Type Checking Arrays and Objects
@@ -74,6 +75,15 @@ def get_value(obj: Any):
     """
     return obj.value if hasattr(obj, 'value') else obj
 
+
+@overload
+def to_array(obj: Any, keep_unit: Literal[False] = False) -> NDArray: ...
+
+@overload
+def to_array(obj: Any, keep_unit: Literal[True]) -> NDArray | Quantity: ...
+
+@overload
+def to_array(obj: Any, keep_unit: bool) -> NDArray | Quantity: ...
 
 def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
     """
@@ -132,7 +142,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
         return np.asarray(obj)
     except Exception:
         raise TypeError(
-            f'Object of type {type(obj).__name__} cannot be converted to an array'
+            f'Object of type {_type_name(obj)} cannot be converted to an array'
         )
 
 
