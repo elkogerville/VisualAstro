@@ -1144,9 +1144,13 @@ class ExtractedPixelSpectra:
         Extracted per-pixel spectra. If a single index is selected,
         this is returned as a single `SpectrumPlus` instance;
         otherwise, a list is returned.
-    cube_array : np.ndarray
+    cube_array : np.ndarray or Quantity
         Cube of array values corresponding to the extracted pixels.
         All other pixels are set to NaN.
+    error_array : np.ndarray, Quantity, or None, optional
+        Cube of error values corresponding to the extracted pixels.
+        All other pixels are set to NaN. Set to None if no error
+        extension is present.
     extract_idx : np.ndarray of int, shape (N,)
         Indices of the extracted spectra corresponding to the ordering
         of valid spatial pixels.
@@ -1161,7 +1165,8 @@ class ExtractedPixelSpectra:
         `combine_spectra=True`; otherwise None.
     """
     spectra: SpectrumPlus | list[SpectrumPlus]
-    cube_array : NDArray
+    cube_array : NDArray | Quantity
+    error_array : NDArray | Quantity | None
     extract_idx: NDArray
     coords: NDArray
     colors: Sequence | NDArray
