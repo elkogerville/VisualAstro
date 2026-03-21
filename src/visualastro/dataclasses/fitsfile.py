@@ -568,6 +568,18 @@ class FitsFile:
         """
         return self.data.reshape(*shape)
 
+    def add_history(self, history: str) -> None:
+        """
+        Add to the ``HISTORY`` cards of the cube
+        for logging purposes. This returns nothing.
+
+        Parameters
+        ----------
+        history : str
+            Logging message to add.
+        """
+        _log_history(self.primary_header, history)
+
     def __repr__(self) -> str:
         """
         Returns
