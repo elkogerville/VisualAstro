@@ -140,7 +140,7 @@ class VAConfig:
         self.text_loc = [0.03, 0.03]
 
         # label params
-        self.use_brackets = False # display units as [unit] instead of (unit)
+        self.use_brackets = True # display units as [unit] instead of (unit)
         self.right_ascension = 'Right Ascension'
         self.declination = 'Declination'
         self.highlight = True
