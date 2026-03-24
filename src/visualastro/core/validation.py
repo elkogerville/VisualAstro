@@ -214,11 +214,25 @@ def _validate_type(
     return cast(U, data)
 
 
+@overload
 def _validate_iterable_type(
-    obj: C,
+    obj: list[Any],
+    types: type[T] | tuple[type[T], ...],
+    name: str = 'object',
+) -> list[T]: ...
+
+@overload
+def _validate_iterable_type(
+    obj: tuple[Any, ...],
+    types: type[T] | tuple[type[T], ...],
+    name: str = 'object',
+) -> tuple[T, ...]: ...
+
+def _validate_iterable_type(
+    obj: Sequence[Any],
     types: Type[T] | Tuple[Type[T], ...],
     name: str = 'object',
-) -> C:
+) -> Sequence[T]:
     """
     Validate that `obj` is a non-iterator iterable whose elements are all
     instances of the given type(s).
