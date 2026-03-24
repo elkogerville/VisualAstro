@@ -5,13 +5,8 @@ Date Modified: 2026-03-14
 Description:
     VisualAstro help documentation class.
 Dependencies:
-    - astropy
     - matplotlib
     - numpy
-    - scipy
-    - spectral-cube
-    - specutils
-    - tqdm
 Module Structure:
     - Spectra Extraction Functions
         Functions for extracting spectra from data.
