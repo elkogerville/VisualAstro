@@ -47,12 +47,12 @@ from visualastro.core.io import (
     write_cube_2_fits
 )
 from visualastro.core.numerical_utils import (
-    compute_density_kde,
     finite,
     flatten,
     get_data,
     get_value,
     interpolate,
+    kde2d,
     mask_finite,
     mask_within_range,
     percent_difference,

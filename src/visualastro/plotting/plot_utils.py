@@ -54,7 +54,7 @@ from visualastro.core.config import (
     _default_flag
 )
 from visualastro.core.numerical_utils import (
-    compute_density_kde,
+    kde2d,
     flatten,
     get_data,
     get_value,
@@ -819,13 +819,13 @@ def add_colorbar(im, ax, cbar_width=None,
 
 
 def add_contours(x, y, ax, levels=20, contour_method='contour',
-                 bw_method='scott', resolution=200, padding=0.2,
+                 bw_method='scott', gridsize=200, padding=0.2,
                  cslabel=False, zdir=None, offset=None, cmap=None,
                  **kwargs):
-    '''
+    """
     Add 2D or 3D Gaussian KDE density contours to an axis.
     This function computes a 2D Gaussian kernel density estimate (KDE)
-    from input data (`x`, `y`) using `compute_density_kde` and plots
+    from input data (`x`, `y`) using ``kde2d`` and plots
     contour lines or filled contours using either `ax.contour` or
     `ax.contourf`. If `zdir` and `offset` are provided, the contours
     are projected onto a plane in 3D space.
@@ -850,7 +850,7 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         - a scalar constant: directly used as the bandwidth factor.
         - a callable: should take a `scipy.stats.gaussian_kde` instance as its
             sole argument and return a scalar bandwidth factor.
-    resolution : int, default=200
+    gridsize : int, default=200
         Number of grid points used per axis for density estimation.
     padding : float, default=0.2
         Fractional padding applied to the data range when generating
@@ -878,34 +878,39 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
     -------
     cs : matplotlib.contour.QuadContourSet or mpl_toolkits.mplot3d.art3d.QuadContourSet3D
         The contour set object created by Matplotlib.
-    '''
+    """
     # ---- KWARGS ----
     fontsize = kwargs.get('fontsize', config.fontsize)
-    # get default config values
     cmap = get_config_value(cmap, 'cmap')
-    # get contour plotting method
     contour_method = {
         'contour': ax.contour,
         'contourf': ax.contourf
     }.get(contour_method.lower(), ax.contour)
 
     # compute kde density
-    X, Y, Z = compute_density_kde(x, y, bw_method=bw_method, resolution=resolution, padding=padding)
+    X, Y, Z = kde2d(
+        x, y, bw_method=bw_method, gridsize=gridsize, padding=padding
+    )
 
     # plot contours as either 3D projections or a simple 2D plot
     valid_zdirs = {'x', 'y', 'z'}
     zdir = zdir.lower() if isinstance(zdir, str) else None
     if zdir in valid_zdirs and offset is not None:
         if zdir == 'z':
-            cs = contour_method(X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+            cs = contour_method(
+                X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            )
         elif zdir == 'y':
-            cs = contour_method(X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+            cs = contour_method(
+                X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            )
         else:
-            cs = contour_method(Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset)
+            cs = contour_method(
+                Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            )
     else:
         cs = contour_method(X, Y, Z, levels=levels, cmap=cmap)
 
-    # add labels
     if cslabel:
         ax.clabel(cs, fontsize=fontsize)
 

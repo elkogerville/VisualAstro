@@ -168,8 +168,8 @@ def to_list(obj: Any) -> list:
 
 # Science Operation Functions
 # ---------------------------
-def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
-    '''
+def kde2d(x, y, bw_method='scott', gridsize=200, padding=0.2):
+    """
     Estimate the 2D density of a set of particles using a Gaussian KDE.
 
     Parameters
@@ -185,7 +185,7 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
         - a scalar constant: directly used as the bandwidth factor.
         - a callable: should take a `scipy.stats.gaussian_kde` instance as its
             sole argument and return a scalar bandwidth factor.
-    resolution : int, optional, default=200
+    gridsize : int, optional, default=200
         Grid resolution for the KDE.
     padding : float, optional, default=0.2
         Fractional padding applied to the data range when generating
@@ -203,7 +203,7 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
         2D array of y-coordinates for the evaluation grid (shape res×res).
     Z : np.ndarray
         2D array of estimated density values on the grid (shape res×res).
-    '''
+    """
     # compute bounds with % padding
     xmin, xmax = np.nanmin(x), np.nanmax(x)
     ymin, ymax = np.nanmin(y), np.nanmax(y)
@@ -212,8 +212,8 @@ def compute_density_kde(x, y, bw_method='scott', resolution=200, padding=0.2):
 
     # generate grid
     xgrid, ygrid = np.mgrid[
-        (xmin - padding_x):(xmax + padding_x):complex(resolution),
-        (ymin - padding_y):(ymax + padding_y):complex(resolution)
+        (xmin - padding_x):(xmax + padding_x):complex(gridsize),
+        (ymin - padding_y):(ymax + padding_y):complex(gridsize)
     ]
     # KDE evaluation
     values = np.vstack([x, y])
