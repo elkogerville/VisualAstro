@@ -788,7 +788,7 @@ def propagate_flux_errors(errors, method=None):
         # statistically correct median error scaling
         flux_errors = 1.253 * (quad_sum / N)
 
-    elif method == 'interquantile':
+    elif method == 'interquartile':
         q1 = np.nanpercentile(errors, 25, axis=1)
         q3 = np.nanpercentile(errors, 75, axis=1)
         flux_errors = q3 - q1
