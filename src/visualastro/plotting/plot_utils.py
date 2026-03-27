@@ -1754,6 +1754,8 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
         for vline in vlines:
             if isinstance(vline, Quantity) and unit is not None:
                 vline = vline.to(unit, equivalencies=equivalencies).value
+            else:
+                vline = get_value(vline)
             ax.axvline(
                 vline,
                 ls=':',
@@ -1796,6 +1798,8 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
         for hline in hlines:
             if isinstance(hline, Quantity) and unit is not None:
                 hline = hline.to(unit, equivalencies=equivalencies).value
+            else:
+                hline = get_value(hline)
             ax.axhline(
                 hline,
                 ls=':',
