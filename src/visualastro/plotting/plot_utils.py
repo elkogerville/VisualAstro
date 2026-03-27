@@ -564,7 +564,7 @@ def nanpercentile_limits(
         Reduction method if stacking is required. If None,
         uses the default value set by ``config.stack_cube_method``.
     axis : int, default=0
-        Axis to reduce if data.ndim > 2 and no slice_idx is given.
+        Axis to flatten if data.ndim > 2 and no slice_idx is given.
 
     Returns
     -------
