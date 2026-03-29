@@ -13,10 +13,84 @@ Module Structure:
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
+import astropy.units as u
+from astropy.wcs import WCS
 import numpy as np
-from visualastro.core.numerical_utils import _unwrap_if_single
+from spectral_cube import SpectralCube
+from tests.conftest import generate_test_cube
+from visualastro.core.numerical_utils import (
+    interpolate,
+    to_array,
+    _unwrap_if_single
+)
+from visualastro.dataclasses.datacube import DataCube
+from visualastro.dataclasses.fitsfile import FitsFile
+
+class TestToArray:
+
+    def test_toarray_keep_unit(self, generate_test_cube):
+        """Test that to array returns either array or Quantity."""
+        a = np.random.rand(10)
+        b = np.random.rand(10) * u.erg
+        hdu = generate_test_cube
+        c = SpectralCube.read(hdu)
+        d = np.random.rand(10, 10, 10) * u.erg
+        e = DataCube(data=d)
+        f = FitsFile(data=d)
+
+        assert isinstance(to_array(a), np.ndarray)
+        assert isinstance(to_array(a, keep_unit=False), np.ndarray)
+        assert isinstance(to_array(b, keep_unit=False), np.ndarray)
+        assert isinstance(to_array(c, keep_unit=False), np.ndarray)
+        assert isinstance(to_array(e, keep_unit=False), np.ndarray)
+        assert isinstance(to_array(f, keep_unit=False), np.ndarray)
+
+        assert not isinstance(to_array(a, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(b, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(c, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(e, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(f, keep_unit=True), u.Quantity)
+
+
+class TestInterpolate:
+
+    def test_basic_linear_interpolation(self):
+        """Test basic linear interpolation."""
+        xp = np.array([0, 1, 2])
+        yp = np.array([0, 1, 4])
+        x_interp, y_interp = interpolate(xp, yp, x_range=(0, 2), N_samples=5)
+
+        assert len(x_interp) == 5
+        assert len(y_interp) == 5
+        assert x_interp[0] == 0
+        assert x_interp[-1] == 2
+        assert np.allclose(y_interp[0], 0)
+        assert np.allclose(y_interp[-1], 4)
+
+    def test_cubic_interpolation(self):
+        """Test cubic interpolation."""
+        xp = np.array([0, 1, 2, 3])
+        yp = np.array([0, 1, 4, 9])
+        x_interp, y_interp = interpolate(
+            xp, yp, x_range=(0, 3), N_samples=10, method='cubic'
+        )
+
+        assert len(x_interp) == 10
+        assert len(y_interp) == 10
+
+    def test_cubic_spline_interpolation(self):
+        """Test cubic spline interpolation."""
+        xp = np.array([0, 1, 2, 3])
+        yp = np.array([0, 1, 4, 9])
+        x_interp, y_interp = interpolate(
+            xp, yp, x_range=(0, 3), N_samples=10, method='cubic_spline'
+        )
+
+        assert len(x_interp) == 10
+        assert len(y_interp) == 10
 
 class TestNumericalUtils:
+
     def test_unwrap_if_single(self):
         """
         Test that _unwrap_if_single unwraps an object
