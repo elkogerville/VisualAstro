@@ -256,6 +256,15 @@ def flatten(data: Any) -> NDArray | None:
     return array if array.size > 0 else None
 
 
+@overload
+def interpolate(
+    xp: Quantity,
+    yp: Quantity,
+    x_range: Sequence | NDArray,
+    N_samples: int,
+    method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
+) -> tuple[Quantity, Quantity]: ...
+
 def interpolate(
     xp: NDArray | Quantity,
     yp: NDArray | Quantity,
@@ -334,6 +343,11 @@ def interpolate(
 
     # interpolate over new samples
     y_interp = f_interp(x_interp)
+
+    if x_unit is not None:
+        x_interp *= x_unit
+    if y_unit is not None:
+        y_interp *= y_unit
 
     return x_interp, y_interp
 
