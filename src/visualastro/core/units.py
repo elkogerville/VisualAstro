@@ -582,8 +582,8 @@ def require_spectral_region(
 def ensure_common_unit(
     objs: Any,
     *,
-    unit: UnitBase | str | None = None,
-    on_mismatch: str | None = None,
+    unit: UnitBase |  StructuredUnit | str | None = None,
+    on_mismatch: Literal['warn', 'ignore', 'raise'] | None = None,
     label: str | None = None
 ) -> UnitBase | StructuredUnit | None:
     """
@@ -641,12 +641,12 @@ def ensure_common_unit(
 
         if on_mismatch == 'raise':
             raise UnitsError(
-                f"{prefix}Unit mismatch at index {i}: {u} != {ref_unit}"
+                f"{prefix} Unit mismatch at index {i}: {u} != {ref_unit}"
             )
 
         if on_mismatch == 'warn':
             warnings.warn(
-                f'{prefix}Unit mismatch at index {i}: {u} != {ref_unit}. '
+                f'{prefix} Unit mismatch at index {i}: {u} != {ref_unit}. '
                 'Values may be interpreted incorrectly.'
             )
 

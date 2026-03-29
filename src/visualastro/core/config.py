@@ -271,6 +271,6 @@ def get_config_value(var, attribute):
         The user-specified `var` if provided, otherwise the
         corresponding default value from `config`.
     """
-    if var is _UNSET:
+    if var is None:
         return getattr(config, attribute)
     return var
