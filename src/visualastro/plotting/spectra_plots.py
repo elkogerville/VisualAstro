@@ -1430,6 +1430,32 @@ def fit_gaussian_2_spec(
     else:
         continuum = None
 
+    # clip values outside wavelength range
+    spectral_mask = mask_within_range(x0, spectral_range)
+
+    x0 = x0[spectral_mask]
+    y0 = y0[spectral_mask]
+    if yerror is not None:
+        yerror = yerror[spectral_mask]
+    if model == 'gaussian_continuum' and continuum is not None:
+        continuum = continuum[spectral_mask]
+
+    finite_mask = np.isfinite(x0) & np.isfinite(y0)
+
+    x0 = x0[finite_mask]
+    y0 = y0[finite_mask]
+
+    if yerror is not None:
+        yerror = yerror[finite_mask]
+
+    if model == 'gaussian_continuum' and continuum is not None:
+        continuum = continuum[finite_mask]
+
+    if len(x0) == 0:
+        raise ValueError(
+            f'No data points within spectral_range {spectral_range}'
+        )
+
     # interpolate arrays
     if interpolate:
         # interpolate wavelength and flux arrays
@@ -1449,23 +1475,9 @@ def fit_gaussian_2_spec(
     else:
         x, y = x0, y0
 
-    # clip values outside wavelength range
-    spectral_mask = mask_within_range(x, spectral_range)
-
-    x_sub = x[spectral_mask]
-    y_sub = y[spectral_mask]
-    yerr_sub = yerror[spectral_mask] if yerror is not None else None
-
-    if len(x_sub) == 0:
-        raise ValueError(
-            f'No data points within spectral_range {spectral_range}'
-        )
-
     if model == 'gaussian_continuum' and continuum is not None:
-        continuum_sub = continuum[spectral_mask]
-
         def function(x, A, mu, sigma):
-            return _gaussian_continuum(x, A, mu, sigma, continuum_sub)
+            return _gaussian_continuum(x, A, mu, sigma, continuum)
 
     elif model == 'gaussian_line':
         function = _gaussian_line
@@ -1475,11 +1487,8 @@ def fit_gaussian_2_spec(
 
     # fit gaussian model to data
     popt, pcov = curve_fit(
-        function,
-        x_sub,
-        y_sub,
-        p0,
-        sigma=yerr_sub,
+        function, x, y, p0,
+        sigma=yerror,
         absolute_sigma=absolute_sigma,
         method=fit_method
     )
@@ -1574,15 +1583,15 @@ def fit_gaussian_2_spec(
         # clip values outisde of plotting range
         xlim = spectral_range if xlim is None else xlim
         plot_mask = mask_within_range(x0, xlim)
-        gauss_mask = mask_within_range(x_sub, xlim)
+        gauss_mask = mask_within_range(x, xlim)
         label = label if label is not None else 'Spectrum'
 
         plt_plot(x0[plot_mask], y0[plot_mask],
                  c=colors[0%len(colors)], label=label)
         # plot gaussian model
-        gaussian = function(x_sub, *popt)
+        gaussian = function(x, *popt)
         ax.plot(
-            x_sub,
+            x,
             gaussian,
             c=colors[1%len(colors)],
             label='Gaussian Model'
@@ -1592,7 +1601,7 @@ def fit_gaussian_2_spec(
             spectral_axis, flux, ax, xlabel, ylabel, use_brackets
         )
         set_axis_limits(
-            [x0[plot_mask], x_sub[gauss_mask]],
+            [x0[plot_mask], x[gauss_mask]],
             [y0[plot_mask], gaussian[gauss_mask]],
             ax=ax, xlim=xlim
         )
