@@ -36,21 +36,41 @@ class TestDataCubeInit:
         wcs: WCS,
         unit: u.UnitBase
     ):
+        """
+        Test DataCube attribute types.
+        """
         assert isinstance(cube.value, np.ndarray)
         assert isinstance(cube.quantity, u.Quantity)
         assert isinstance(cube.header, Header)
         assert isinstance(cube.wcs, WCS)
 
         assert np.array_equal(cube.value, data)
-        assert cube.data is not data
 
         assert cube.unit == unit
         assert cube.shape == data.shape
         assert cube.wcs.wcs.compare(wcs.wcs)
-        assert cube.header is cube.primary_header
+
+    def assert_DataCube_attributes(self, cube):
+        """
+        Test important DataCube attribute properties.
+        """
+        if isinstance(cube.header, list):
+            assert cube.header[0] is cube.primary_header
+            assert cube.header[0] is not cube.nowcs_header
+            assert len(cube.header) == cube.value.shape[0]
+            if cube.wcs is not None:
+                assert isinstance(cube.wcs, list)
+                assert len(cube.wcs) == len(cube.header)
+
+        else:
+            assert cube.header is cube.primary_header
+            assert cube.header is not cube.nowcs_header
+            if cube.wcs is not None:
+                assert isinstance(cube.wcs, WCS)
 
     def test_quantity_init(self, generate_test_cube):
         """
+        Test the initialization of a DataCube from a Quantity.
         """
         hdu = generate_test_cube
         data = hdu.data
@@ -62,9 +82,11 @@ class TestDataCubeInit:
 
         assert isinstance(cube.data, u.Quantity)
         self.assert_valid_cube(cube, data, header, wcs, unit)
+        self.assert_DataCube_attributes(cube)
 
     def test_spectralcube_init(self, generate_test_cube):
         """
+        Test the initialization of a DataCube from a SpectralCube.
         """
         hdu = generate_test_cube
         data = hdu.data
@@ -77,9 +99,11 @@ class TestDataCubeInit:
 
         assert isinstance(cube.data, SpectralCube)
         self.assert_valid_cube(cube, data, header, wcs, unit)
+        self.assert_DataCube_attributes(cube)
 
     def test_ndarray_init(self, generate_test_cube):
         """
+        Test the initialization of a DataCube from a np.ndarray.
         """
         hdu = generate_test_cube
         data = hdu.data
@@ -91,9 +115,8 @@ class TestDataCubeInit:
         cube = DataCube(data=data, header=header)
 
         assert isinstance(cube.data, np.ndarray)
-        self.assert_valid_cube(
-            cube, data, header, wcs, unit
-        )
+        self.assert_valid_cube(cube, data, header, wcs, unit)
+        self.assert_DataCube_attributes(cube)
 
     def test_ndarray_2_quantity(self, generate_test_cube):
         """
@@ -107,5 +130,6 @@ class TestDataCubeInit:
         assert header['BUNIT'] == 'MJy / sr'
 
         cube = DataCube(data=data, header=header)
+        self.assert_DataCube_attributes(cube)
 
         assert cube.unit == u.Unit(header['BUNIT'])
