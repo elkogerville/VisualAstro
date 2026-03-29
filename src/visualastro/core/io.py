@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from tqdm import tqdm
-from visualastro.core.config import get_config_value, config, _default_flag
+from visualastro.core.config import get_config_value, config, _UNSET
 from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 
@@ -357,7 +357,7 @@ def save_figure_2_disk(
     dpi=None,
     pdf_compression=None,
     transparent=False,
-    bbox_inches=_default_flag,
+    bbox_inches=_UNSET,
     **kwargs
 ):
     '''
@@ -379,10 +379,10 @@ def save_figure_2_disk(
         If True, the Axes patches will all be transparent;
         the Figure patch will also be transparent unless
         facecolor and/or edgecolor are specified via kwargs.
-    bbox_inches : str, Bbox, or None, default=`_default_flag`
+    bbox_inches : str, Bbox, or None, default=`_UNSET`
         Bounding box in inches: only the given portion of the
         figure is saved. If 'tight', try to figure out the
-        tight bbox of the figure. If `_default_flag`, uses
+        tight bbox of the figure. If `_UNSET`, uses
         the default value set by `config.bbox_inches`.
 
     **kwargs : dict, optional
@@ -404,7 +404,7 @@ def save_figure_2_disk(
     # get default config values
     dpi = get_config_value(dpi, 'dpi')
     pdf_compression = get_config_value(pdf_compression, 'pdf_compression')
-    bbox_inches = config.bbox_inches if bbox_inches is _default_flag else bbox_inches
+    bbox_inches = config.bbox_inches if bbox_inches is _UNSET else bbox_inches
 
     allowed_formats = config.allowed_formats
     # prompt user for filename, and extract extension

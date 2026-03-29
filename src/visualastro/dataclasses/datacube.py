@@ -35,7 +35,7 @@ from visualastro.analysis.spectra_utils import (
     spectral_idx_2_world as _spectral_idx_2_world,
     spectral_world_2_idx as _spectral_world_2_idx
 )
-from visualastro.core.config import get_config_value, _default_flag
+from visualastro.core.config import get_config_value, _UNSET
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
@@ -157,7 +157,7 @@ class DataCube:
         Useful for quickly identifying slices of interest in the cube.
     reproject(
         reference_wcs, method=None, return_footprint=None,
-        parallel=None, block_size=_default_flag
+        parallel=None, block_size=_UNSET
     )
         Reproject the data onto a new target WCS and return a new cube.
     to(unit, equivalencies=None)
@@ -632,7 +632,7 @@ class DataCube:
         method: Literal['interp', 'exact'] | None = None,
         return_footprint: bool | None = None,
         parallel: bool | int | None = None,
-        block_size=_default_flag
+        block_size=_UNSET
     ):
         """
         Reproject DataCube to a new WCS grid.
@@ -668,7 +668,7 @@ class DataCube:
             past edge. Specifying 'auto' means that reprojection will be done in
             blocks with the block size automatically determined. If `block_size` is
             not specified or set to None, the reprojection will not be carried out in blocks.
-            If `_default_flag`, uses the default value set by `config.reproject_block_size`.
+            If `_UNSET`, uses the default value set by `config.reproject_block_size`.
 
         Returns
         -------

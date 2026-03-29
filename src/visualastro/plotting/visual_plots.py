@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from visualastro.core.config import (
     config,
-    _default_flag
+    _UNSET
 )
 from visualastro.core.io import save_figure_2_disk
 from visualastro.core.numerical_utils import to_list
@@ -42,10 +42,10 @@ from visualastro.utils.wcs_utils import get_wcs_celestial
 
 class ax:
     @staticmethod
-    def imshow(datas, idx=None, vmin=_default_flag, vmax=_default_flag,
-               norm=_default_flag, percentile=_default_flag, stack_method=None,
+    def imshow(datas, idx=None, vmin=_UNSET, vmax=_UNSET,
+               norm=_UNSET, percentile=_UNSET, stack_method=None,
                origin=None, wcs_input=None, invert_wcs=False, cmap=None,
-               aspect=_default_flag, mask_non_pos=None, wcs_grid=None, **kwargs):
+               aspect=_UNSET, mask_non_pos=None, wcs_grid=None, **kwargs):
         '''
         Convenience wrapper for `imshow`, which displays a
         2D image with optional visual customization.
@@ -69,25 +69,25 @@ class ax:
             If 'datas' is a list of cubes, you may also pass a list of
             indeces.
             ex: passing indeces for 2 cubes-> [[i,j], k].
-        vmin : float or None, optional, default=`_default_flag`
+        vmin : float or None, optional, default=`_UNSET`
             Lower limit for colormap scaling; overides `percentile[0]`.
             If None, values are determined from `percentile[0]`.
-            If `_default_flag`, uses the default value in `config.vmin`.
-        vmax : float or None, optional, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.vmin`.
+        vmax : float or None, optional, default=`_UNSET`
             Upper limit for colormap scaling; overides `percentile[1]`.
             If None, values are determined from `percentile[1]`.
-            If `_default_flag`, uses the default value in `config.vmax`.
-        norm : str or None, optional, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.vmax`.
+        norm : str or None, optional, default=`_UNSET`
             Normalization algorithm for colormap scaling.
             - 'asinh' -> asinh stretch using 'ImageNormalize'
             - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
             - 'log' -> logarithmic scaling using 'LogNorm'
             - 'powernorm' -> power-law normalization using 'PowerNorm'
             - 'linear', 'none', or None -> no normalization applied
-            If `_default_flag`, uses the default value in `config.norm`.
-        percentile : list or tuple of two floats, or None, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.norm`.
+        percentile : list or tuple of two floats, or None, default=`_UNSET`
             Default percentile range used to determine 'vmin' and 'vmax'.
-            If `_default_flag`, uses default value from `config.percentile`.
+            If `_UNSET`, uses default value from `config.percentile`.
             If None, use no percentile stretch.
         stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
             Stacking method. If None, uses the default value set
@@ -116,12 +116,12 @@ class ax:
             Matplotlib colormap name or list of colormaps, cycled across images.
             If None, uses the default value from `config.cmap`.
             ex: ['turbo', 'RdPu_r']
-        aspect : {'auto', 'equal'}, float, or None, optional, default=`_default_flag`
+        aspect : {'auto', 'equal'}, float, or None, optional, default=`_UNSET`
             Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
             results in fixed axes with the aspect adjusted to fit the axes. 'equal`
             sets an aspect ratio of 1. None defaults to 'equal', however, if the
             image uses a transform that does not contain the axes data transform,
-            then None means to not modify the axes aspect at all. If `_default_flag`,
+            then None means to not modify the axes aspect at all. If `_UNSET`,
             uses the default value from `config.aspect`.
         mask_non_pos : bool or None, optional, default=None
             If True, mask out non-positive data values. Useful for displaying
@@ -254,9 +254,9 @@ class ax:
 
 
     @staticmethod
-    def plot_spectral_cube(cubes, idx=None, vmin=_default_flag,
-                           vmax=_default_flag, norm=_default_flag,
-                           percentile=_default_flag, stack_method=None,
+    def plot_spectral_cube(cubes, idx=None, vmin=_UNSET,
+                           vmax=_UNSET, norm=_UNSET,
+                           percentile=_UNSET, stack_method=None,
                            radial_vel=None, spectral_unit=None, cmap=None,
                            mask_non_pos=None, **kwargs):
         '''
@@ -276,26 +276,26 @@ class ax:
             Index along the spectral axis corresponding to the slice to plot.
             If None, collapses the entire cube into a 2D map according
             to ``stack_method``.
-        vmin : float or None, optional, default=`_default_flag`
+        vmin : float or None, optional, default=`_UNSET`
             Lower limit for colormap scaling; overides `percentile[0]`.
             If None, values are determined from `percentile[0]`.
-            If `_default_flag`, uses the default value in `config.vmin`.
-        vmax : float or None, optional, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.vmin`.
+        vmax : float or None, optional, default=`_UNSET`
             Upper limit for colormap scaling; overides `percentile[1]`.
             If None, values are determined from `percentile[1]`.
-            If `_default_flag`, uses the default value in `config.vmax`.
-        norm : str or None, optional, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.vmax`.
+        norm : str or None, optional, default=`_UNSET`
             Normalization algorithm for colormap scaling.
             - 'asinh' -> asinh stretch using 'ImageNormalize'
             - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
             - 'log' -> logarithmic scaling using 'LogNorm'
             - 'powernorm' -> power-law normalization using 'PowerNorm'
             - 'linear', 'none', or None -> no normalization applied
-            If `_default_flag`, uses the default value in `config.norm`.
-        percentile : list or tuple of two floats, or None, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.norm`.
+        percentile : list or tuple of two floats, or None, default=`_UNSET`
             Default percentile range used to determine `vmin` and `vmax`.
             If None, use no percentile stretch (as long as vmin/vmax are None).
-            If `_default_flag`, uses default value from `config.percentile`.
+            If `_UNSET`, uses default value from `config.percentile`.
         stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
             Stacking method. If None, uses the default value set
             by ``config.stack_cube_method``.
@@ -1002,8 +1002,8 @@ class ax:
     @staticmethod
     def scatter(X, Y, xerr=None, yerr=None, normalize=False,
                 xlog=None, ylog=None, colors=None, size=None,
-                marker=None, alpha=None, edgecolors=_default_flag,
-                facecolors=_default_flag, **kwargs):
+                marker=None, alpha=None, edgecolors=_UNSET,
+                facecolors=_UNSET, **kwargs):
         '''
         Convenience wrapper for `plot_scatter`, to scatter plot one or more distributions.
 
@@ -1046,18 +1046,18 @@ class ax:
         alpha : float, list of float, or None, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
             If None, uses the default value from `config.alpha`.
-        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
             The edge color of the marker. Possible values:
             - 'face': The edge color will always be the same as the face color.
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
-            If `_default_flag`, uses the default value in `config.edgecolor`.
-        facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
+            If `_UNSET`, uses the default value in `config.edgecolor`.
+        facecolors : {'none'}, color, list of colors, or None, default=`_UNSET`
             The face color of the marker. Possible values:
             - 'none': Sets the face color to transparent
             - A color or sequence of colors
             - None: No face color is set (facecolor is set to marker color).
-            If `_default_flag`, uses the default value in `config.facecolor`.
+            If `_UNSET`, uses the default value in `config.facecolor`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -1079,7 +1079,7 @@ class ax:
                 Aliases for `alpha`.
             - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
                 Aliases for `edgecolors`.
-            - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+            - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_UNSET`
                 Aliases for `facecolors`.
             - `cmap` : str, optional, default=`config.cmap`
                 Colormap to use if `colors` is not provided.
@@ -1140,7 +1140,7 @@ class ax:
     def scatter3D(X, Y, Z, elev=90, azim=-90, roll=0,
                   scale=None, axes_off=False, grid_lines=False,
                   colors=None, size=None, marker=None, alpha=None,
-                  edgecolors=_default_flag, plot_contours=None, **kwargs):
+                  edgecolors=_UNSET, plot_contours=None, **kwargs):
         '''
         Convenience wrapper for `scatter3D`, to scatter plot one or more
         distributions in 3-Dimensional space.
@@ -1181,12 +1181,12 @@ class ax:
         alpha : float, list of float, or None, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
             If None, uses the default value from `config.alpha`.
-        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
             The edge color of the marker. Possible values:
             - 'face': The edge color will always be the same as the face color.
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
-            If `_default_flag`, uses the default value in `config.edgecolor`.
+            If `_UNSET`, uses the default value in `config.edgecolor`.
         plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
             Specifies which contour projections to draw onto the side planes of the 3D axes.
             Each entry indicates the axis *normal* to the projection plane:

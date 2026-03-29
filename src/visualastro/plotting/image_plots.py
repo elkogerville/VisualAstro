@@ -27,7 +27,7 @@ from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
     get_config_value,
     config,
-    _default_flag
+    _UNSET
 )
 from visualastro.core.numerical_utils import (
     get_data,
@@ -57,10 +57,10 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
 def imshow(
-    datas, ax, idx=None, vmin=_default_flag,
-    vmax=_default_flag, norm=_default_flag,
-    percentile=_default_flag, stack_method=None,
-    origin=None, cmap=None, aspect=_default_flag,
+    datas, ax, idx=None, vmin=_UNSET,
+    vmax=_UNSET, norm=_UNSET,
+    percentile=_UNSET, stack_method=None,
+    origin=None, cmap=None, aspect=_UNSET,
     mask_non_pos=None, wcs_grid=None, **kwargs
 ):
     """
@@ -82,25 +82,25 @@ def imshow(
         If 'datas' is a list of cubes, you may also pass a list of
         indeces.
         ex: passing indeces for 2 cubes-> [[i,j], k].
-    vmin : float or None, optional, default=`_default_flag`
+    vmin : float or None, optional, default=`_UNSET`
         Lower limit for colormap scaling; overides `percentile[0]`.
         If None, values are determined from `percentile[0]`.
-        If `_default_flag`, uses the default value in `config.vmin`.
-    vmax : float or None, optional, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.vmin`.
+    vmax : float or None, optional, default=`_UNSET`
         Upper limit for colormap scaling; overides `percentile[1]`.
         If None, values are determined from `percentile[1]`.
-        If `_default_flag`, uses the default value in `config.vmax`.
-    norm : str or None, optional, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.vmax`.
+    norm : str or None, optional, default=`_UNSET`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
         - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
-        If `_default_flag`, uses the default value in `config.norm`.
-    percentile : list or tuple of two floats, or None, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.norm`.
+    percentile : list or tuple of two floats, or None, default=`_UNSET`
         Default percentile range used to determine 'vmin' and 'vmax'.
-        If `_default_flag`, uses default value from `config.percentile`.
+        If `_UNSET`, uses default value from `config.percentile`.
         If None, use no percentile stretch.
     stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
         Stacking method. If None, uses the default value set
@@ -112,12 +112,12 @@ def imshow(
         Matplotlib colormap name or list of colormaps, cycled across images.
         If None, uses the default value from `config.cmap`.
         ex: ['turbo', 'RdPu_r']
-    aspect : {'auto', 'equal'}, float, or None, optional, default=`_default_flag`
+    aspect : {'auto', 'equal'}, float, or None, optional, default=`_UNSET`
         Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
         results in fixed axes with the aspect adjusted to fit the axes. 'equal`
         sets an aspect ratio of 1. None defaults to 'equal', however, if the
         image uses a transform that does not contain the axes data transform,
-        then None means to not modify the axes aspect at all. If `_default_flag`,
+        then None means to not modify the axes aspect at all. If `_UNSET`,
         uses the default value from `config.aspect`.
     mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
@@ -217,14 +217,14 @@ def imshow(
     h = kwargs.get('h', Y//5)
 
     # get default config values
-    vmin = config.vmin if vmin is _default_flag else vmin
-    vmax = config.vmax if vmax is _default_flag else vmax
-    norm = config.norm if norm is _default_flag else norm
+    vmin = config.vmin if vmin is _UNSET else vmin
+    vmax = config.vmax if vmax is _UNSET else vmax
+    norm = config.norm if norm is _UNSET else norm
     stack_method = get_config_value(stack_method, 'stack_cube_method')
-    percentile = config.percentile if percentile is _default_flag else percentile
+    percentile = config.percentile if percentile is _UNSET else percentile
     origin = get_config_value(origin, 'origin')
     cmap = get_config_value(cmap, 'cmap')
-    aspect = config.aspect if aspect is _default_flag else aspect
+    aspect = config.aspect if aspect is _UNSET else aspect
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
@@ -348,9 +348,9 @@ def imshow(
     return images
 
 
-def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
-                       vmax=_default_flag, norm=_default_flag,
-                       percentile=_default_flag, stack_method=None,
+def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
+                       vmax=_UNSET, norm=_UNSET,
+                       percentile=_UNSET, stack_method=None,
                        radial_vel=None, spectral_unit=None, cmap=None,
                        mask_non_pos=None, wcs_grid=None, **kwargs):
     """
@@ -366,26 +366,26 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
         to ``stack_method``.
     ax : matplotlib.axes.Axes or WCSAxes
         The axes on which to draw the slice.
-    vmin : float or None, optional, default=`_default_flag`
+    vmin : float or None, optional, default=`_UNSET`
         Lower limit for colormap scaling; overides `percentile[0]`.
         If None, values are determined from `percentile[0]`.
-        If `_default_flag`, uses the default value in `config.vmin`.
-    vmax : float or None, optional, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.vmin`.
+    vmax : float or None, optional, default=`_UNSET`
         Upper limit for colormap scaling; overides `percentile[1]`.
         If None, values are determined from `percentile[1]`.
-        If `_default_flag`, uses the default value in `config.vmax`.
-    norm : str or None, optional, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.vmax`.
+    norm : str or None, optional, default=`_UNSET`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
         - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
-        If `_default_flag`, uses the default value in `config.norm`.
-    percentile : list or tuple of two floats, or None, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.norm`.
+    percentile : list or tuple of two floats, or None, default=`_UNSET`
         Default percentile range used to determine `vmin` and `vmax`.
         If None, use no percentile stretch (as long as vmin/vmax are None).
-        If `_default_flag`, uses default value from `config.percentile`.
+        If `_UNSET`, uses default value from `config.percentile`.
     stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
         Stacking method. If None, uses the default value set
         by ``config.stack_cube_method``.
@@ -496,10 +496,10 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_default_flag,
     angle = kwargs.get('angle', None)
 
     # get default config values
-    vmin = config.vmin if vmin is _default_flag else vmin
-    vmax = config.vmax if vmax is _default_flag else vmax
-    norm = config.norm if norm is _default_flag else norm
-    percentile = config.percentile if percentile is _default_flag else percentile
+    vmin = config.vmin if vmin is _UNSET else vmin
+    vmax = config.vmax if vmax is _UNSET else vmax
+    norm = config.norm if norm is _UNSET else norm
+    percentile = config.percentile if percentile is _UNSET else percentile
     stack_method = get_config_value(stack_method, 'stack_cube_method')
     radial_vel = get_config_value(radial_vel, 'radial_velocity')
     cmap = get_config_value(cmap, 'cmap')

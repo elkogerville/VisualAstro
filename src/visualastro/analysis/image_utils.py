@@ -27,7 +27,7 @@ import numpy as np
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from visualastro.core.config import config, get_config_value, _default_flag
+from visualastro.core.config import config, get_config_value, _UNSET
 from visualastro.core.io import get_dtype, get_errors
 from visualastro.core.numerical_utils import get_data
 from visualastro.core.units import get_unit
@@ -174,7 +174,7 @@ def load_data_cube(filepath, error=True, hdu=None,
 
 def load_fits(filepath, header=True, error=True,
               print_info=None, transpose=None,
-              dtype=None, target_wcs=_default_flag,
+              dtype=None, target_wcs=_UNSET,
               invert_wcs=None, **kwargs):
     '''
     Load a FITS file and return its data, header, and errors.
@@ -203,11 +203,11 @@ def load_fits(filepath, header=True, error=True,
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
         np.float64 if not floating.
-    target_wcs : Header, WCS or None, optional, default=`_default_flag`
+    target_wcs : Header, WCS or None, optional, default=`_UNSET`
         Reproject the input data onto the WCS of another
         data set. Input data must have a valid header
         to extract WCS from. If None, will not reproject
-        the input data. If `_default_flag`, uses the default
+        the input data. If `_UNSET`, uses the default
         value set by `config.target_wcs`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
@@ -261,7 +261,7 @@ def load_fits(filepath, header=True, error=True,
     # get default config values
     print_info = get_config_value(print_info, 'print_info')
     transpose = get_config_value(transpose, 'transpose')
-    target_wcs = config.target_wcs if target_wcs is _default_flag else target_wcs
+    target_wcs = config.target_wcs if target_wcs is _UNSET else target_wcs
     invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
 
     # disable transpose if reprojecting

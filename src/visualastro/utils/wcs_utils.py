@@ -34,7 +34,7 @@ from tqdm import tqdm
 from visualastro.core.config import (
     get_config_value,
     config,
-    _default_flag
+    _UNSET
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
 from visualastro.core.units import get_unit
@@ -358,7 +358,7 @@ def reproject_wcs(
     method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
     parallel: bool | int | str | None = None,
-    block_size=_default_flag,
+    block_size=_UNSET,
     log_file: Header | None = None,
     **kwargs
 ):
@@ -396,14 +396,14 @@ def reproject_wcs(
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
         If None, uses the default value set by `config.reproject_parallel`.
-    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+    block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
         block sizes are clamped to output space edges when a block would extend
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
+        If `_UNSET`, uses the default value set by `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -465,7 +465,7 @@ def _reproject_wcs(
     method: Literal['interp', 'exact'] | None = None,
     return_footprint: bool | None = None,
     parallel: bool | int | str | None = None,
-    block_size=_default_flag,
+    block_size=_UNSET,
     log_file: Header | None = None,
     **kwargs
 ) -> NDArray | Quantity | tuple[NDArray | Quantity, NDArray]:
@@ -505,14 +505,14 @@ def _reproject_wcs(
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
         If None, uses the default value set by `config.reproject_parallel`.
-    block_size : tuple, ‘auto’, or None, optional, default=`_default_flag`
+    block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
         block sizes are clamped to output space edges when a block would extend
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_default_flag`, uses the default value set by `config.reproject_block_size`.
+        If `_UNSET`, uses the default value set by `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -537,7 +537,7 @@ def _reproject_wcs(
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')
     parallel = get_config_value(parallel, 'reproject_parallel')
-    block_size = config.reproject_block_size if block_size is _default_flag else block_size
+    block_size = config.reproject_block_size if block_size is _UNSET else block_size
 
     if isinstance(reference_wcs, (list, tuple)):
         raise ValueError('reference_wcs must be a single WCS or Header')

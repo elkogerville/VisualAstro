@@ -15,7 +15,7 @@ Module Structure:
 from collections import namedtuple
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
-from visualastro.core.config import get_config_value, config, _default_flag
+from visualastro.core.config import get_config_value, config, _UNSET
 from visualastro.core.io import get_kwargs
 from visualastro.core.numerical_utils import (
     to_array,
@@ -609,8 +609,8 @@ def plot_lines(X, Y, ax, normalize=None,
 
 def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
                  xlog=None, ylog=None, colors=None, size=None,
-                 marker=None, alpha=None, edgecolors=_default_flag,
-                 facecolors=_default_flag, **kwargs):
+                 marker=None, alpha=None, edgecolors=_UNSET,
+                 facecolors=_UNSET, **kwargs):
     '''
     Plot a scatter plot (optionally with error bars) on a given Axes object.
 
@@ -648,19 +648,19 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     alpha : float, list of float, or None, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
         If None, uses the default value from `config.alpha`.
-    edgecolors : {'face', 'none'}, color, list of color, or None, default=`_default_flag`
+    edgecolors : {'face', 'none'}, color, list of color, or None, default=`_UNSET`
         The edge color of the marker. Possible values:
         - 'face': The edge color will always be the same as the face color.
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
         - None: no edgecolor is set (edgecolor is set to marker color).
-        If `_default_flag`, uses the default value in `config.edgecolor`.
-    facecolors : {'none'}, color, list of colors, or None, default=`_default_flag`
+        If `_UNSET`, uses the default value in `config.edgecolor`.
+    facecolors : {'none'}, color, list of colors, or None, default=`_UNSET`
         The face color of the marker. Possible values:
         - 'none': Sets the face color to transparent
         - A color or sequence of colors
         - None: No facecolor is set (facecolor is set to marker color).
-        If `_default_flag`, uses the default value in `config.facecolor`.
+        If `_UNSET`, uses the default value in `config.facecolor`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -682,7 +682,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
             Aliases for `alpha`.
         - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
             Aliases for `edgecolors`.
-        - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_default_flag`
+        - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_UNSET`
             Aliases for `facecolors`.
         - `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
@@ -749,8 +749,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
-    edgecolors = config.edgecolor if edgecolors is _default_flag else edgecolors
-    facecolors = config.facecolor if facecolors is _default_flag else facecolors
+    edgecolors = config.edgecolor if edgecolors is _UNSET else edgecolors
+    facecolors = config.facecolor if facecolors is _UNSET else facecolors
     ecolors = get_config_value(ecolors, 'ecolors')
 
     X = to_list(X)
@@ -831,7 +831,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
 def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
               scale=None, axes_off=False, grid_lines=False,
               colors=None, size=None, marker=None, alpha=None,
-              edgecolors=_default_flag, plot_contours=None, **kwargs):
+              edgecolors=_UNSET, plot_contours=None, **kwargs):
     '''
     Scatter plot in 3D with support for multiple datasets.
 
@@ -868,12 +868,12 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     alpha : float, list of float, or None, default=None
         The alpha blending value, between 0 (transparent) and 1 (opaque).
         If None, uses the default value from `config.alpha`.
-    edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_default_flag`
+    edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
         The edge color of the marker. Possible values:
         - 'face': The edge color will always be the same as the face color.
         - 'none': No patch boundary will be drawn.
         - A color or sequence of colors.
-        If `_default_flag`, uses the default value in `config.edgecolor`.
+        If `_UNSET`, uses the default value in `config.edgecolor`.
     plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
         Specifies which contour projections to draw onto the side planes of the 3D axes.
         Each entry indicates the axis *normal* to the projection plane:
@@ -975,7 +975,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
-    edgecolors = config.edgecolor if edgecolors is _default_flag else edgecolors
+    edgecolors = config.edgecolor if edgecolors is _UNSET else edgecolors
 
     X = to_list(X)
     Y = to_list(Y)
