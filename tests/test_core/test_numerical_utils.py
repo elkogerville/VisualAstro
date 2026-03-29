@@ -21,10 +21,12 @@ from tests.conftest import generate_test_cube
 from visualastro.core.numerical_utils import (
     interpolate,
     to_array,
+    to_list,
     _unwrap_if_single
 )
 from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.fitsfile import FitsFile
+
 
 class TestToArray:
 
@@ -50,6 +52,19 @@ class TestToArray:
         assert isinstance(to_array(c, keep_unit=True), u.Quantity)
         assert isinstance(to_array(e, keep_unit=True), u.Quantity)
         assert isinstance(to_array(f, keep_unit=True), u.Quantity)
+
+
+class TestToList:
+
+    def test_to_list(self):
+        """Test that inputs are converted to a list"""
+        a = [1, 2, 3]
+        b = (1, 2, 3)
+        c = np.random.rand(10)
+
+        assert to_list(a) is a
+        assert to_list(b) == list(b)
+        assert to_list(c) == [c]
 
 
 class TestInterpolate:
@@ -99,6 +114,7 @@ class TestInterpolate:
 
         assert x_interp.unit == u.AA
         assert y_interp.unit == u.MJy
+
 
 class TestNumericalUtils:
 
