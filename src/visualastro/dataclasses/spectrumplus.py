@@ -541,8 +541,8 @@ class SpectrumPlus:
             )
 
     def __getitem__(self, key):
-        '''
-        Slice the underlying `Spectrum` object, and return a new
+        """
+        Slice the underlying ``Spectrum`` object, and return a new
         SpectrumPlus. The continuum fit and normalized spectra
         are automatically recomputed for the spectra slice.
 
@@ -555,9 +555,9 @@ class SpectrumPlus:
         Returns
         -------
         SpectrumPlus
-            A new `SpectrumPlus` instance containing the sliced
+            A new ``SpectrumPlus`` instance containing the sliced
             spectrum object.
-        '''
+        """
         sub_spectrum = self.spectrum[key]
         fit_method = self.fit_method
         new_log = _copy_headers(self.log_file)
@@ -571,13 +571,13 @@ class SpectrumPlus:
         )
 
     def __mul__(self, factor):
-        '''
+        """
         Multiply spectrum by a scalar.
 
         Parameters
         ----------
         factor : scalar
-        '''
+        """
         scaled_spectrum = self.spectrum * factor
         fit_method = self.fit_method
         region = copy.copy(self.region)
@@ -595,13 +595,13 @@ class SpectrumPlus:
     __rmul__ = __mul__
 
     def __truediv__(self, factor):
-        '''
+        """
         Divide spectrum by a scalar.
 
         Parameters
         ----------
         factor : scalar
-        '''
+        """
         scaled_spectrum = self.spectrum / factor
         fit_method = self.fit_method
         region = copy.copy(self.region)
@@ -678,8 +678,8 @@ class SpectrumPlus:
     def _construct_spectrum(
         self, *, spectrum=None, spectral_axis=None,
         flux=None, log_file=None, **kwargs
-    ):
-        '''
+    ) -> Spectrum:
+        """
         Construct and return a Spectrum instance from either an existing spectrum
         or from spectral axis and flux arrays.
 
@@ -715,7 +715,7 @@ class SpectrumPlus:
             If both `spectrum` and (`wavelength` or `flux`) are provided, if neither
             input path is fully specified, or if `spectrum` is not a `Spectrum`
             instance.
-        '''
+        """
 
         if spectrum is not None:
             if spectral_axis is not None or flux is not None:
@@ -748,11 +748,11 @@ class SpectrumPlus:
             **kwargs
         )
 
-    def __dir__(self):
-        '''
+    def __dir__(self) -> list[str]:
+        """
         Ensure both `SpectrumPlus` and `specutils.Spectrum`
         attributes are included in dir().
-        '''
+        """
         return sorted(
             set(
                 dir(type(self)) +
@@ -761,12 +761,12 @@ class SpectrumPlus:
             )
         )
 
-    def __repr__(self):
-        '''
+    def __repr__(self) -> str:
+        """
         Returns
         -------
-        str : String representation of `SpectrumPlus`.
-        '''
+        str : String representation of ``SpectrumPlus``.
+        """
         flux = (
             f'flux=({self.flux.value[0]:.3e} ... {self.flux.value[-1]:.3e}) '
             f'[{self.unit}]; '
