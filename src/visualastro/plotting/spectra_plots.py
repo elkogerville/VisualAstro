@@ -50,7 +50,7 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     get_config_value,
     config,
-    _default_flag
+    _UNSET
 )
 from visualastro.core.io import get_kwargs, save_figure_2_disk
 from visualastro.core.numerical_utils import (
@@ -82,8 +82,8 @@ from visualastro.plotting.plot_utils import (
 # Spectra Extraction Functions
 # ----------------------------
 def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=None,
-                         region=None, radial_vel=_default_flag, rest_freq=_default_flag,
-                         deredden=None, unit=_default_flag, emission_line=None,
+                         region=None, radial_vel=_UNSET, rest_freq=_UNSET,
+                         deredden=None, unit=_UNSET, emission_line=None,
                          plot_continuum=None, plot_norm_continuum=None, **kwargs):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
@@ -123,20 +123,20 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         avoid skewing the fit up or down.
         Ex: Remove strong emission peak at 7um from fit
         region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    radial_vel : float or None, optional, default=`_default_flag`
+    radial_vel : float or None, optional, default=`_UNSET`
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, ignores the radial velocity.
-        If `_default_flag`, uses the default value set by `config.radial_velocity`.
-    rest_freq : float or None, optional, default=`_default_flag`
+        If `_UNSET`, uses the default value set by `config.radial_velocity`.
+    rest_freq : float or None, optional, default=`_UNSET`
         Rest-frame frequency or wavelength of the spectrum. If None,
-        ignores the rest frequency for unit conversions. If `_default_flag`,
+        ignores the rest frequency for unit conversions. If `_UNSET`,
         uses the default value set by `config.spectra_rest_frequency`.
     deredden : bool or None, optional, default=None
         Whether to apply dereddening to the flux using deredden_flux().
         If None, uses the default value set by `config.deredden_spectrum`.
-    unit : str, astropy.units.Unit, or None, optional, default=`_default_flag`
+    unit : str, astropy.units.Unit, or None, optional, default=`_UNSET`
         Desired units for the wavelength axis. Converts the default
-        units if possible. If None, does not try and convert. If `_default_flag`,
+        units if possible. If None, does not try and convert. If `_UNSET`,
         uses the default value set by `config.wavelength_unit`.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
@@ -245,11 +245,11 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             f"Invalid flux_extract_method '{flux_extract_method}'. "
             f'Choose from {list(methods.keys())}.'
         )
-    fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
-    radial_vel = config.radial_velocity if radial_vel is _default_flag else radial_vel
-    rest_freq = config.spectra_rest_frequency if rest_freq is _default_flag else rest_freq
+    fit_method = fit_method if fit_method is not _UNSET else config.spectrum_continuum_fit_method
+    radial_vel = config.radial_velocity if radial_vel is _UNSET else radial_vel
+    rest_freq = config.spectra_rest_frequency if rest_freq is _UNSET else rest_freq
     deredden = get_config_value(deredden, 'deredden_spectrum')
-    unit = config.wavelength_unit if unit is _default_flag else unit
+    unit = config.wavelength_unit if unit is _UNSET else unit
     plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 

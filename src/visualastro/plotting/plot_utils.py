@@ -51,7 +51,7 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     get_config_value,
     config,
-    _default_flag
+    _UNSET
 )
 from visualastro.core.numerical_utils import (
     kde2d,
@@ -488,7 +488,7 @@ def return_imshow_norm(vmin, vmax, norm, **kwargs):
     return norm_map[norm]
 
 
-def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
+def set_vmin_vmax(data, percentile=_UNSET, vmin=None, vmax=None):
     '''
     Compute vmin and vmax for image display. By default uses the
     data nanpercentile using `percentile`, but optionally vmin and/or
@@ -500,9 +500,9 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     ----------
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, or None, default=`_default_flag`
+    percentile : list or tuple of two floats, or None, default=`_UNSET`
         Percentile range '[pmin, pmax]' to compute vmin and vmax.
-        If None, sets vmin and vmax to None. If `_default_flag`, uses
+        If None, sets vmin and vmax to None. If `_UNSET`, uses
         default value from `config.percentile`.
     vmin : float or None, default=None
         If provided, overrides the computed vmin.
@@ -516,7 +516,7 @@ def set_vmin_vmax(data, percentile=_default_flag, vmin=None, vmax=None):
     vmax : float or None
         Maximum value for image scaling.
     '''
-    percentile = config.percentile if percentile is _default_flag else percentile
+    percentile = config.percentile if percentile is _UNSET else percentile
     # check if data is an array
     data = to_array(data)
     # check if data is boolean
@@ -593,9 +593,9 @@ def nanpercentile_limits(
 # Axes Labels, Format, and Styling
 # --------------------------------
 def make_plot_grid(nrows=None, ncols=None, figsize=None,
-                   sharex=None, sharey=None, hspace=_default_flag,
-                   wspace=_default_flag, width_ratios=None, height_ratios=None,
-                   fancy_axes=False, Nticks=_default_flag, aspect=None):
+                   sharex=None, sharey=None, hspace=_UNSET,
+                   wspace=_UNSET, width_ratios=None, height_ratios=None,
+                   fancy_axes=False, Nticks=_UNSET, aspect=None):
     '''
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
@@ -617,15 +617,15 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     sharey : bool or None, default=None
         If True, share the y-axis among all subplots. If None,
         uses the default value set in `config.sharey`.
-    hspace : float or None, default=`_default_flag`
+    hspace : float or None, default=`_UNSET`
         Height padding between subplots. If None,
         Matplotlib’s default spacing is used. If
-        `_default_flag`, uses the default value set in
+        `_UNSET`, uses the default value set in
         `config.hspace`.
-    wspace : float or None, default=`_default_flag`
+    wspace : float or None, default=`_UNSET`
         Width padding between subplots. If None,
         Matplotlib’s default spacing is used. If
-        `_default_flag`, uses the default value set in
+        `_UNSET`, uses the default value set in
         `config.wspace`.
     width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
@@ -640,9 +640,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
         - inward ticks on all sides
         - axes labels on outer grid axes
         - h/wspace = 0.0
-    Nticks : int or None, default=`_default_flag`
+    Nticks : int or None, default=`_UNSET`
         Maximum number of major ticks per axis. If None,
-        uses the default matplotlib settings. If `_default_flag`,
+        uses the default matplotlib settings. If `_UNSET`,
         uses the default value set in `config.Nticks`.
     aspect : float or None, default=None
         Changes the physical dimensions of the Axes,
@@ -664,9 +664,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     figsize = get_config_value(figsize, 'grid_figsize')
     sharex = get_config_value(sharex, 'sharex')
     sharey = get_config_value(sharey, 'sharey')
-    hspace = config.hspace if hspace is _default_flag else hspace
-    wspace = config.wspace if wspace is _default_flag else wspace
-    Nticks = config.Nticks if Nticks is _default_flag else Nticks
+    hspace = config.hspace if hspace is _UNSET else hspace
+    wspace = config.wspace if wspace is _UNSET else wspace
+    Nticks = config.Nticks if Nticks is _UNSET else Nticks
 
     Nx = nrows
     Ny = ncols

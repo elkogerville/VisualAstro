@@ -14,6 +14,7 @@ Module Structure:
         Configuration parameters related to science functions.
 """
 
+from typing import TypeVar, overload
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
@@ -22,8 +23,8 @@ import numpy as np
 from numpy.typing import DTypeLike
 
 
-class VAConfig:
-    '''
+class VisualAstroConfig:
+    """
     Global configuration object for controlling default behavior
     across the visualastro package.
 
@@ -34,7 +35,7 @@ class VAConfig:
     --------
     >>> config.style = 'minimal'
     >>> config.figsize = (8, 8)
-    '''
+    """
 
     def __init__(self):
         # Plotting Params
@@ -191,7 +192,7 @@ class VAConfig:
         self.spectra_rest_frequency = None
         self.flux_extract_method = 'mean'
         self.spectral_cube_extraction_mode = 'cube'
-        self.spectrum_continuum_fit_method = 'fit_continuum'
+        self.spectrum_continuum_fit_method: str = 'fit_continuum'
         self.deredden_spectrum = False
         self.plot_normalized_continuum = False
         self.plot_continuum_fit = False
@@ -239,21 +240,21 @@ class VAConfig:
         self.save_format = '.npy'
 
     def reset_defaults(self):
-        '''
+        """
         Reset all configuration values to default.
-        '''
+        """
         self.__init__()
 
 # instantiate config class
-config = VAConfig()
+config = VisualAstroConfig()
 # placeholder flag for default values by
 # default, the placeholder flag is `None`,
 # but when an argument can also take in
-# `None`, `_default_flag` should be used.
-_default_flag = object()
+# `None`, `_UNSET` should be used.
+_UNSET = object()
 
 def get_config_value(var, attribute):
-    '''
+    """
     Retrieve a configuration value, falling back to the
     default from `config` if `var` is None.
 
@@ -269,7 +270,7 @@ def get_config_value(var, attribute):
     value : any
         The user-specified `var` if provided, otherwise the
         corresponding default value from `config`.
-    '''
-    if var is None:
+    """
+    if var is _UNSET:
         return getattr(config, attribute)
     return var
