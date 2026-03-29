@@ -256,33 +256,72 @@ def flatten(data: Any) -> NDArray | None:
     return array if array.size > 0 else None
 
 
-def interpolate(xp, yp, x_range, N_samples, method='linear'):
+def interpolate(
+    xp: NDArray | Quantity,
+    yp: NDArray | Quantity,
+    x_range: Sequence | NDArray,
+    N_samples: int,
+    method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
+) -> tuple[NDArray | Quantity, NDArray | Quantity]:
     """
     Interpolate a 1D array over a specified range.
 
     Parameters
     ----------
     xp : array-like
-        The x-coordinates of the data points.
+        The x-coordinates of the data points. Must be 1D.
     yp : array-like
-        The y-coordinates of the data points.
+        The y-coordinates of the data points. Must be 1D.
     x_range : tuple of float
         The (min, max) range over which to interpolate.
     N_samples : int
         Number of points in the interpolated output.
     method : {'linear', 'cubic', 'cubic_spline'}, default='linear'
         Interpolation method. Options:
-        - 'linear' : linear interpolation
-        - 'cubic' : cubic interpolation using 'interp1d'
-        - 'cubic_spline' : cubic spline interpolation using 'CubicSpline'
+        - ``'linear'`` : linear interpolation
+        - ``'cubic'`` : cubic interpolation using ``interp1d``
+        - ``'cubic_spline'`` : cubic spline interpolation using ``CubicSpline``
 
     Returns
     -------
     x_interp : np.ndarray
         The evenly spaced x-coordinates over the specified range.
     y_interp : np.ndarray
-        The interpolated y-values corresponding to 'x_interp'.
+        The interpolated y-values corresponding to ``x_interp``.
     """
+    x_unit = xp.unit if isinstance(xp, Quantity) else None
+    y_unit = yp.unit if isinstance(yp, Quantity) else None
+    xp = np.asarray(xp)
+    yp = np.asarray(yp)
+
+    if xp.ndim != 1 or yp.ndim != 1:
+        raise ValueError("'xp' and 'yp' must be 1D arrays")
+
+    if len(xp) != len(yp):
+        raise ValueError(
+            f"'xp' and 'yp' must have the same length. "
+            f"Got xp: {len(xp)}, yp: {len(yp)}"
+        )
+    if len(xp) < 2:
+        raise ValueError(f'need at least 2 points for interpolation, got{len(xp)}')
+
+    if not isinstance(N_samples, (int, np.integer)) or N_samples < 2:
+        raise ValueError(f"'N_samples' must be an integer >= 2, got {N_samples}")
+
+    if not isinstance(x_range, (Sequence, np.ndarray)) or len(x_range) != 2:
+        raise ValueError(f"'x_range' must be a tuple of (min, max), got {x_range}")
+    if x_range[0] >= x_range[1]:
+        raise ValueError(
+            f"'x_range' must be (min, max) with min < max, "
+            f'got ({x_range[0]}, {x_range[1]})'
+        )
+
+    valid_methods = {'linear', 'cubic', 'cubic_spline'}
+    if method not in valid_methods:
+        raise ValueError(
+            f"'method' must be one of {valid_methods}, got '{method}'"
+        )
+
     # generate new interpolation samples
     x_interp = np.linspace(x_range[0], x_range[1], N_samples)
 
