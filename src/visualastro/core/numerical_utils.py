@@ -257,7 +257,7 @@ def flatten(data: Any) -> NDArray | None:
 
 
 def interpolate(xp, yp, x_range, N_samples, method='linear'):
-    '''
+    """
     Interpolate a 1D array over a specified range.
 
     Parameters
@@ -270,7 +270,7 @@ def interpolate(xp, yp, x_range, N_samples, method='linear'):
         The (min, max) range over which to interpolate.
     N_samples : int
         Number of points in the interpolated output.
-    method : str, default='linear'
+    method : {'linear', 'cubic', 'cubic_spline'}, default='linear'
         Interpolation method. Options:
         - 'linear' : linear interpolation
         - 'cubic' : cubic interpolation using 'interp1d'
@@ -282,7 +282,7 @@ def interpolate(xp, yp, x_range, N_samples, method='linear'):
         The evenly spaced x-coordinates over the specified range.
     y_interp : np.ndarray
         The interpolated y-values corresponding to 'x_interp'.
-    '''
+    """
     # generate new interpolation samples
     x_interp = np.linspace(x_range[0], x_range[1], N_samples)
 
@@ -440,8 +440,13 @@ def _unwrap_if_single(
 
 @overload
 def _unwrap_if_single(
-    array: tuple[T]
-) -> T | tuple[T]: ...
+    array: tuple[T, ...]
+) -> T | tuple[T, ...]: ...
+
+@overload
+def _unwrap_if_single(
+    array: Any
+) -> Any: ...
 
 def _unwrap_if_single(
     array: Sequence[T] | NDArray[Any]
