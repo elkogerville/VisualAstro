@@ -146,6 +146,17 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
         )
 
 
+T = TypeVar('T')
+
+@overload
+def to_list(obj: list[T]) -> list[T]: ...
+
+@overload
+def to_list(obj: tuple[T, ...]) -> list[T]: ...
+
+@overload
+def to_list(obj: T) -> list[T]: ...
+
 def to_list(obj: Any) -> list:
     """
     Normalize input to a list.
@@ -264,6 +275,15 @@ def interpolate(
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
 ) -> tuple[Quantity, Quantity]: ...
+
+@overload
+def interpolate(
+    xp: NDArray,
+    yp: NDArray,
+    x_range: Sequence | NDArray,
+    N_samples: int,
+    method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
+) -> tuple[NDArray, NDArray]: ...
 
 def interpolate(
     xp: NDArray | Quantity,
