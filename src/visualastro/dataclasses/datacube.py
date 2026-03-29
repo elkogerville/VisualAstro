@@ -20,7 +20,7 @@ Module Structure:
 from typing import Literal, cast
 from astropy.io.fits import Header
 from astropy.units import (
-    Quantity, Unit, UnitBase, UnitsError
+    Quantity, StructuredUnit, Unit, UnitBase, UnitsError
 )
 from astropy.wcs import WCS
 import matplotlib.pyplot as plt
@@ -210,138 +210,24 @@ class DataCube:
     def __init__(
         self,
         data: NDArray | Quantity | SpectralCube,
-        header: list[Header] | Header | NDArray | tuple[Header] | None = None,
+        header: Header | list[Header] | tuple[Header] | None = None,
         error: NDArray | Quantity | None = None,
-        wcs: list[WCS] | WCS | tuple[WCS] | None = None
+        wcs: WCS | list[WCS] | tuple[WCS] | None = None
     ):
-        data = _validate_type(
-            data, (np.ndarray, Quantity, SpectralCube),
-            allow_none=False, name='data'
-        )
-        header = _validate_type(
-            header, (list, Header, np.ndarray, tuple),
-            allow_none=True, name='header'
-        )
-        error = _validate_type(
-            error, (np.ndarray, Quantity), default=None,
-            allow_none=True, name='error'
-        )
-        wcs = _validate_type(
-            wcs, (list, WCS, tuple), default=None,
-            allow_none=True, name='wcs'
-        )
-        if isinstance(wcs, (list, tuple)):
-            wcs = _validate_iterable_type(wcs, WCS, 'wcs')
+        data, header, error, wcs = self._validate_input_types(data, header, error, wcs)
 
-        if header is None:
-            if isinstance(wcs, (list, tuple)):
-                header = [Header() for _ in wcs]
-            else:
-                header = Header()
+        array, unit = self._validate_data_and_error(data, error)
 
-        # extract array view for validation
-        array, unit = self._get_value(data)
+        header, primary_hdr = self._initialize_headers(header, wcs, array.shape[0])
 
-        # shape validation
-        if array.ndim != 3:
-            raise ValueError(
-                f"'data' must be 3D (T, N, M), got shape {array.shape}."
-            )
+        data, unit = self._validate_units(data, unit, header, primary_hdr)
 
-        # header(s) validation
-        if isinstance(header, (list, np.ndarray, tuple)):
-            header = list(header)
+        wcs = self._initialize_wcs(wcs, header, primary_hdr)
 
-            if len(header) == 0:
-                raise ValueError(
-                    'Header list cannot be empty.'
-                )
-            if array.shape[0] != len(header):
-                raise ValueError(
-                    f'Mismatch between T dimension and number of headers: '
-                    f'T={array.shape[0]}, header={len(header)}.'
-                )
-            header = _validate_iterable_type(header, Header, 'header')
-
-            primary_hdr = header[0]
-        else:
-            primary_hdr = header
-
-        _log_history(primary_hdr, 'Initialized DataCube')
-
-        # ensure that units are consistent across all headers
-        hdr_unit = ensure_common_unit(
-            header, on_mismatch='raise',
-            label='header'
-        )
-
-        # check that both units are equal
-        _check_unit_equality(unit, hdr_unit, 'data', 'header')
-
-        # use BUNIT if unit is None
-        if unit is None and hdr_unit is not None:
-            unit = hdr_unit
-            _log_history(
-                primary_hdr, f'Using header BUNIT: {hdr_unit}'
-            )
-
-        # add BUNIT to header(s) if not there
-        if (
-            unit is not None and
-            isinstance(primary_hdr, Header) and
-            'BUNIT' not in primary_hdr
-        ):
-            _log_history(
-                primary_hdr, f'Using data unit: {unit}'
-            )
-            _update_header_key('BUNIT', unit, header, primary_hdr)
-
-        # attatch units to data if is bare numpy array
-        if not isinstance(data, (Quantity, SpectralCube)):
-            if unit is not None:
-                data = array * unit
-                _log_history(
-                    primary_hdr, f'Attached unit to data: unit={unit}'
-                )
-
-        # error validation
-        if error is not None:
-            _check_shapes_match(array, error, 'data', 'error')
-
-            if isinstance(error, Quantity) and unit is not None:
-                _check_unit_equality(error.unit, unit, 'error unit', 'data unit')
-
-        # try extracting WCS from headers
-        if wcs is None:
-            wcs = get_header_wcs(header)
-
-        # ensure header and wcs are in sync
+        nowcs_header = primary_hdr.copy()
         if wcs is not None:
-            if isinstance(header, list):
-                if not isinstance(wcs, list):
-                    raise ValueError(
-                        'If header is a list, wcs must be a list of same length!'
-                    )
-                if len(header) != len(wcs):
-                    raise ValueError(
-                        f'Header list length ({len(header)}) must match '
-                        f'WCS list length ({len(wcs)})'
-                    )
-                for hdr, w in zip(header, wcs):
-                    _update_header_from_wcs(hdr, w)
-            else:
-                # single header case
-                if isinstance(wcs, list):
-                    raise ValueError(
-                        'If wcs is a list, header must also be a list'
-                    )
-                _update_header_from_wcs(header, wcs)
-
-        if wcs is not None:
-            nowcs_header = _strip_wcs_from_header(header)
-            _remove_history(nowcs_header)
-        else:
-            nowcs_header = header
+            _strip_wcs_from_header(nowcs_header)
+        _remove_history(nowcs_header)
 
         # assign attributes
         self.data: NDArray | Quantity | SpectralCube = data
@@ -351,6 +237,182 @@ class DataCube:
         self.error: NDArray | Quantity | None = error
         self.wcs: WCS | list[WCS] | tuple[WCS] | None = wcs
         self.footprint: NDArray | None = None
+
+
+    def _validate_input_types(
+        self,
+        data: NDArray | Quantity | SpectralCube,
+        header: Header | list[Header] | tuple[Header, ...] | None = None,
+        error: NDArray | Quantity | None = None,
+        wcs: WCS | list[WCS] | tuple[WCS, ...] | None = None,
+    ) -> tuple[
+        NDArray | Quantity | SpectralCube,
+        Header | list[Header] | None,
+        NDArray | Quantity | None,
+        WCS | list[WCS] | None,
+    ]:
+        """
+        Ensure that the DataCube inputs are of the correct types.
+
+        Normalizes headers and WCS to lists if they are sequences.
+        """
+        data = _validate_type(
+            data, (np.ndarray, Quantity, SpectralCube),
+            allow_none=False, name='data'
+        )
+        header = _validate_type(
+            header, (Header, list, tuple),
+            allow_none=True, name='header'
+        )
+        error = _validate_type(
+            error, (np.ndarray, Quantity), default=None,
+            allow_none=True, name='error'
+        )
+        wcs = _validate_type(
+            wcs, (WCS, list, tuple), default=None,
+            allow_none=True, name='wcs'
+        )
+
+        if isinstance(header, (list, tuple)):
+            header = list(_validate_iterable_type(header, Header, 'header'))
+        if isinstance(wcs, (list, tuple)):
+            wcs = list(_validate_iterable_type(wcs, WCS, 'wcs'))
+
+        return data, header, error, wcs
+
+    def _validate_data_and_error(
+        self,
+        data: NDArray | Quantity | SpectralCube,
+        error: NDArray | Quantity | None
+    ) -> tuple[NDArray, UnitBase | StructuredUnit | None]:
+        """
+        Validate data is 3D and error shape/units match data.
+
+        Returns raw array and unit from data.
+        """
+        array, unit = self._get_value(data)
+        if array.ndim != 3:
+            raise ValueError(
+                f"'data' must be 3D (T, N, M), got shape {array.shape}."
+            )
+
+        if error is not None:
+            err_array, err_unit = self._get_value(error)
+            _check_shapes_match(array, err_array, 'data', 'error')
+            if err_unit is not None and unit is not None:
+                ensure_common_unit(
+                    [unit, err_unit], unit=unit,
+                    on_mismatch='warn', label='data and error'
+                )
+
+        return array, unit
+
+    def _initialize_headers(
+        self,
+        header: Header | list[Header] | None,
+        wcs: WCS | list[WCS] | None,
+        N: int
+    ) -> tuple[Header | list[Header], Header]:
+        """
+        Initialize header(s) and primary header.
+        """
+        if header is None:
+            if isinstance(wcs, list):
+                header = [Header() for _ in wcs]
+            else:
+                header = Header()
+
+        if isinstance(header, list):
+            if len(header) != N:
+                raise ValueError(
+                    f'Mismatch between data T dimension and number of headers: '
+                    f'T={N}, header={len(header)}.'
+                )
+
+            primary_hdr = header[0]
+        else:
+            primary_hdr = header
+
+        _log_history(primary_hdr, 'Initialized DataCube')
+
+        return header, primary_hdr
+
+    def _validate_units(
+        self,
+        data: NDArray | Quantity | SpectralCube,
+        unit: UnitBase | StructuredUnit | None,
+        header: Header | list[Header],
+        primary_hdr: Header
+    ) -> tuple[NDArray | Quantity | SpectralCube,  UnitBase | StructuredUnit | None]:
+        """
+        Ensure data unit and header BUNIT are equivalent.
+
+        If data unit is None use BUNIT if available.
+        """
+        # ensure that units are consistent across all headers
+        hdr_unit = ensure_common_unit(
+            header, on_mismatch='raise', label='header'
+        )
+        _check_unit_equality(unit, hdr_unit, 'data', 'header')
+
+        # use BUNIT if data has no unit
+        if unit is None and hdr_unit is not None:
+            unit = hdr_unit
+            _log_history(primary_hdr, f'Using header BUNIT: {hdr_unit}')
+
+        # add BUNIT to header(s) if not there
+        if unit is not None and 'BUNIT' not in primary_hdr:
+            _log_history(primary_hdr, f'Using data unit: {unit}')
+            _update_header_key('BUNIT', unit, header, primary_hdr)
+
+        # attatch units to data if is bare numpy array
+        if not isinstance(data, (Quantity, SpectralCube)):
+            if unit is not None:
+                data = data * unit
+                _log_history(primary_hdr, f'Attached unit to data: unit={unit}')
+
+        return data, unit
+
+    def _initialize_wcs(
+        self,
+        wcs: WCS | list[WCS] | None,
+        header: Header | list[Header],
+        primary_hdr: Header
+    ) -> WCS | list[WCS] | None:
+        """
+        Overwrite Header WCS if ``wcs`` is provided.
+
+        If ``wcs`` is None, try using Header WCS.
+        """
+        if wcs is None:
+            wcs = get_header_wcs(header)
+            if wcs is not None:
+                _log_history(primary_hdr, 'Extracted WCS from header(s)')
+            return wcs
+
+        header = _strip_wcs_from_header(header)
+
+        if isinstance(header, list):
+            if not isinstance(wcs, list):
+                raise ValueError(
+                    'If header is a list, wcs must be a list of same length!'
+                )
+            if len(header) != len(wcs):
+                raise ValueError(
+                    f'Header list length ({len(header)}) must match '
+                    f'WCS list length ({len(wcs)})'
+                )
+            for hdr, w in zip(header, wcs):
+                _update_header_from_wcs(hdr, w)
+        else:
+            # single header case
+            if isinstance(wcs, list):
+                raise ValueError(
+                    'If wcs is a list, header must also be a list'
+                )
+            _update_header_from_wcs(header, wcs)
+
+        return wcs
 
     # Properties
     # ----------
