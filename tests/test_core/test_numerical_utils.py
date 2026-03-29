@@ -89,6 +89,17 @@ class TestInterpolate:
         assert len(x_interp) == 10
         assert len(y_interp) == 10
 
+    def test_interpolate_with_units(self):
+        """Test interpolation conserves units."""
+        xp = np.array([0, 1, 2, 3]) * u.AA
+        yp = np.array([0, 1, 4, 9]) * u.MJy
+        x_interp, y_interp = interpolate(
+            xp, yp, x_range=(0, 3), N_samples=10, method='cubic_spline'
+        )
+
+        assert x_interp.unit == u.AA
+        assert y_interp.unit == u.MJy
+
 class TestNumericalUtils:
 
     def test_unwrap_if_single(self):
