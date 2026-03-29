@@ -6,11 +6,8 @@ Description:
     Tests for DataCube datastructure.
 Dependencies:
     - astropy
-    - matplotlib
     - numpy
     - spectral_cube
-    - specutils
-    - tqdm
 Module Structure:
     - DataCube
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
@@ -50,6 +47,7 @@ class TestDataCubeInit:
         assert cube.unit == unit
         assert cube.shape == data.shape
         assert cube.wcs.wcs.compare(wcs.wcs)
+        assert cube.header is cube.primary_header
 
     def test_quantity_init(self, generate_test_cube):
         """
@@ -96,3 +94,18 @@ class TestDataCubeInit:
         self.assert_valid_cube(
             cube, data, header, wcs, unit
         )
+
+    def test_ndarray_2_quantity(self, generate_test_cube):
+        """
+        Test that DataCube assigns the BUNIT to data if
+        data has no unit
+        """
+        hdu = generate_test_cube
+        data = np.asarray(hdu.data)
+        header = hdu.header
+        assert not isinstance(data, u.Quantity)
+        assert header['BUNIT'] == 'MJy / sr'
+
+        cube = DataCube(data=data, header=header)
+
+        assert cube.unit == u.Unit(header['BUNIT'])

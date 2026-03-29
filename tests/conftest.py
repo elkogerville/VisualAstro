@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.fixture
-def generate_test_cube():
+def generate_test_cube() -> fits.PrimaryHDU:
     """
     Generate a small 3D test cube along along with
     a valid WCS. The 3rd dimension is a spectral axis.
