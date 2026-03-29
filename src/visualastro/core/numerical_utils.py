@@ -406,7 +406,7 @@ def mask_finite(obj, *, keep_inf=False):
 
 
 def mask_within_range(x, xlim=None):
-    '''
+    """
     Return a boolean mask for values of x within the given limits.
 
     Parameters
@@ -420,7 +420,7 @@ def mask_within_range(x, xlim=None):
     -------
     mask : ndarray of bool
         True where x is within the limits.
-    '''
+    """
     x = get_value(x)
 
     xmin = get_value(xlim[0]) if xlim is not None else np.nanmin(x)
