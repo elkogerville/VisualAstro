@@ -56,12 +56,12 @@ def convert_quantity(
     -------
     astropy.units.Quantity
         Converted quantity, or the original quantity if conversion
-        fails and `on_failure` is not 'raise'.
+        fails and ``on_failure`` is not ``'raise'``.
 
     Raises
     ------
     UnitConversionError
-        If conversion fails and `on_failure='raise'`.
+        If conversion fails and ``on_failure='raise'``.
     """
     if unit is None:
         return quantity
@@ -106,7 +106,7 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if obj is None:
         return None
 
-    if isinstance(obj, UnitBase):
+    if isinstance(obj, (UnitBase, StructuredUnit)):
         return obj
 
     if isinstance(obj, Quantity):
@@ -285,7 +285,7 @@ def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if obj is None:
         return None
 
-    if isinstance(obj, UnitBase):
+    if isinstance(obj, (UnitBase, StructuredUnit)):
         return obj
 
     elif isinstance(obj, Quantity):
