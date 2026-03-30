@@ -14,7 +14,6 @@ Module Structure:
 """
 
 import astropy.units as u
-from astropy.wcs import WCS
 import numpy as np
 from spectral_cube import SpectralCube
 from tests.conftest import generate_test_cube
@@ -30,7 +29,7 @@ from visualastro.dataclasses.fitsfile import FitsFile
 
 class TestToArray:
 
-    def test_toarray_keep_unit(self, generate_test_cube):
+    def test_to_array_keep_unit(self, generate_test_cube):
         """Test that to array returns either array or Quantity."""
         a = np.random.rand(10)
         b = np.random.rand(10) * u.erg
@@ -106,8 +105,8 @@ class TestInterpolate:
 
     def test_interpolate_with_units(self):
         """Test interpolation conserves units."""
-        xp = np.array([0, 1, 2, 3]) * u.AA
-        yp = np.array([0, 1, 4, 9]) * u.MJy
+        xp: u.Quantity = np.array([0, 1, 2, 3]) * u.AA
+        yp: u.Quantity = np.array([0, 1, 4, 9]) * u.MJy
         x_interp, y_interp = interpolate(
             xp, yp, x_range=(0, 3), N_samples=10, method='cubic_spline'
         )
