@@ -2,6 +2,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 import numpy as np
 import pytest
+from spectral_cube import SpectralCube
 
 
 @pytest.fixture
@@ -38,6 +39,18 @@ def generate_test_cube() -> fits.PrimaryHDU:
 
     return hdu
 
+
+@pytest.fixture
+def generate_test_spectralcube(generate_test_cube) -> SpectralCube:
+    """
+    Generate test SpectralCube
+    """
+    hdu = generate_test_cube
+    cube = SpectralCube.read(hdu)
+
+    assert isinstance(cube, SpectralCube)
+
+    return cube
 
 @pytest.fixture
 def generate_test_image() -> fits.PrimaryHDU:
