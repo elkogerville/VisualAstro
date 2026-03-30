@@ -81,7 +81,7 @@ from visualastro.plotting.plot_utils import (
 
 # Spectra Extraction Functions
 # ----------------------------
-def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=None,
+def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=_UNSET,
                          region=None, radial_vel=_UNSET, rest_freq=_UNSET,
                          deredden=None, unit=_UNSET, emission_line=None,
                          plot_continuum=None, plot_norm_continuum=None, **kwargs):
