@@ -493,12 +493,12 @@ def get_imshow_norm(
 def get_vmin_vmax(
     data: NDArray | Quantity | DataCube | SpectralCube,
     percentile: Sequence[float] | None | _Unset = _UNSET,
-    vmin: float | None = None,
-    vmax: float | None = None
-):
-    '''
+    vmin: float | np.floating | None = None,
+    vmax: float | np.floating | None = None
+) -> tuple[float | np.floating | int | None, float | np.floating | int | None]:
+    """
     Compute vmin and vmax for image display. By default uses the
-    data nanpercentile using `percentile`, but optionally vmin and/or
+    data nanpercentile using ``percentile``, but optionally vmin and/or
     vmax can be set by the user. Setting percentile to None results in
     no stretch. Passing in a boolean array uses vmin=0, vmax=1. This
     function is used internally by plotting functions.
@@ -507,13 +507,13 @@ def get_vmin_vmax(
     ----------
     data : array-like
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, or None, default=`_UNSET`
-        Percentile range '[pmin, pmax]' to compute vmin and vmax.
-        If None, sets vmin and vmax to None. If `_UNSET`, uses
-        default value from `config.percentile`.
-    vmin : float or None, default=None
+    percentile : list or tuple of two floats, or None, default=``_UNSET``
+        Percentile range ``[pmin, pmax]`` to compute vmin and vmax.
+        If None, sets vmin and vmax to None. If ``_UNSET``, uses
+        default value from ``config.percentile``.
+    vmin : float or None, default=``None``
         If provided, overrides the computed vmin.
-    vmax : float or None, default=None
+    vmax : float or None, default=``None``
         If provided, overrides the computed vmax.
 
     Returns
@@ -522,7 +522,7 @@ def get_vmin_vmax(
         Minimum value for image scaling.
     vmax : float or None
         Maximum value for image scaling.
-    '''
+    """
     percentile = config.percentile if percentile is _UNSET else percentile
     # check if data is an array
     data = to_array(data)
@@ -536,10 +536,6 @@ def get_vmin_vmax(
             vmin = np.nanpercentile(data, percentile[0])
         if vmax is None:
             vmax = np.nanpercentile(data, percentile[1])
-    # if vmin or vmax is provided overide and use those instead
-    elif vmin is None and vmax is None:
-        vmin = None
-        vmax = None
 
     return vmin, vmax
 
