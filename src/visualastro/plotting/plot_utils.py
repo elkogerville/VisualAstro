@@ -832,9 +832,9 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
     """
     Add 2D or 3D Gaussian KDE density contours to an axis.
     This function computes a 2D Gaussian kernel density estimate (KDE)
-    from input data (`x`, `y`) using ``kde2d`` and plots
-    contour lines or filled contours using either `ax.contour` or
-    `ax.contourf`. If `zdir` and `offset` are provided, the contours
+    from input data (``x``, ``y``) using ``kde2d`` and plots
+    contour lines or filled contours using either ``ax.contour`` or
+    ``ax.contourf``. If ``zdir`` and ``offset`` are provided, the contours
     are projected onto a plane in 3D space.
 
     Parameters
@@ -849,13 +849,13 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         Number or list of contour levels to draw.
     contour_method : {'contour', 'contourf'}, default='contour'
         Method used to draw contours. 'contour' draws lines, while
-        'contourf' draws filled contours.
+        ``'contourf'`` draws filled contours.
     bw_method : str, scalar or callable, optional, default='scott'
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
-        - 'scott' or 'silverman': use standard rules of thumb.
+        - ``'scott'`` or ``'silverman'``: use standard rules of thumb.
         - a scalar constant: directly used as the bandwidth factor.
-        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
+        - a callable: should take a ``scipy.stats.gaussian_kde`` instance as its
             sole argument and return a scalar bandwidth factor.
     gridsize : int, default=200
         Number of grid points used per axis for density estimation.
@@ -869,8 +869,8 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         Direction normal to the plane where contours are drawn.
         If None, contours are plotted in 2D.
     offset : float or None, default=None
-        Offset along the `zdir` direction for projecting contours in 3D space.
-    cmap : str, optional, default=`config.cmap`
+        Offset along the ``zdir`` direction for projecting contours in 3D space.
+    cmap : str, optional, default=config.cmap
         Colormap used for plotting contours.
 
     **kwargs : dict, optional
@@ -878,12 +878,12 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
 
         Supported keywords:
 
-        - `fontsize` : float, default=`config.fontsize`
+        - ``fontsize`` : float, default=``config.fontsize``
             Fontsize of contour labels.
 
     Returns
     -------
-    cs : matplotlib.contour.QuadContourSet or mpl_toolkits.mplot3d.art3d.QuadContourSet3D
+    cs : ``matplotlib.contour.QuadContourSet`` or ``mpl_toolkits.mplot3d.art3d.QuadContourSet3D``
         The contour set object created by Matplotlib.
     """
     # ---- KWARGS ----
@@ -932,7 +932,7 @@ def set_axis_limits(
     xlim=None,
     ylim=None,
     **kwargs,
-):
+) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
     """
     Set axis limits on a Matplotlib Axes based on data range
     and optional user-specified limits.
