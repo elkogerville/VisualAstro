@@ -14,7 +14,8 @@ Module Structure:
         Configuration parameters related to science functions.
 """
 
-from typing import TypeVar, overload
+from collections.abc import Sequence
+from enum import Enum
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
@@ -106,11 +107,11 @@ class VisualAstroConfig:
         self.cmap = 'turbo'
         self.origin = 'lower'
         self.norm = 'asinh'
-        self.linear_width = 1 # AsinhNorm linear width
-        self.gamma = 0.5 # PowerNorm exponent
+        self.linear_width: float = 1 # AsinhNorm linear width
+        self.gamma: float = 0.5 # PowerNorm exponent
         self.vmin = None
         self.vmax = None
-        self.percentile = [3.0, 99.5]
+        self.percentile: Sequence = [3.0, 99.5]
         self.aspect = None
 
         # axes params
@@ -251,7 +252,10 @@ config = VisualAstroConfig()
 # default, the placeholder flag is `None`,
 # but when an argument can also take in
 # `None`, `_UNSET` should be used.
-_UNSET = object()
+class _Unset(Enum):
+    UNSET = 'UNSET'
+
+_UNSET = _Unset.UNSET
 
 def get_config_value(var, attribute):
     """
