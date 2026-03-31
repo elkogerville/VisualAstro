@@ -26,7 +26,7 @@ Module Structure:
 from collections.abc import Sequence
 from contextlib import contextmanager
 import os
-from typing import Any
+from typing import Any, Literal
 import warnings
 from functools import partial
 import astropy.units as u
@@ -40,7 +40,9 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
+from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
+from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.analysis.spectra_utils import (
@@ -51,6 +53,7 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     get_config_value,
     config,
+    _Unset,
     _UNSET
 )
 from visualastro.core.numerical_utils import (
@@ -70,6 +73,7 @@ from visualastro.core.units import (
     _infer_physical_type_label
 )
 from visualastro.core.validation import _type_name
+from visualastro.dataclasses.datacube import DataCube
 
 
 @contextmanager
@@ -423,72 +427,75 @@ def set_plot_colors(user_colors=None, cmap=None):
 
 # Imshow Stretch Functions
 # ------------------------
-def return_imshow_norm(vmin, vmax, norm, **kwargs):
-    '''
+def get_imshow_norm(
+    vmin: float | None,
+    vmax: float | None,
+    norm: Literal['asinh', 'asinhnorm', 'linear', 'log', 'powernorm', 'none'] | None,
+    **kwargs
+) -> AsinhNorm | ImageNormalize | LogNorm | PowerNorm | None:
+    """
     Return a matplotlib or astropy normalization object for image display.
 
     Parameters
     ----------
-    vmin : float or None
+    vmin : float | None
         Minimum value for normalization.
-    vmax : float or None
+    vmax : float | None
         Maximum value for normalization.
-    norm : str or None
+    norm : str | None
         Normalization algorithm for colormap scaling.
-        - 'asinh' -> asinh stretch using 'ImageNormalize'
-        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
-        - 'linear' -> no normalization applied
-        - 'log' -> logarithmic scaling using 'LogNorm'
-        - 'powernorm' -> power-law normalization using 'PowerNorm'
-        - 'none' -> no normalization applied
+        - ``'asinh'`` -> asinh stretch using ``ImageNormalize``
+        - ``'asinhnorm'`` -> asinh stretch using ``AsinhNorm``
+        - ``'linear'`` -> no normalization applied
+        - ``'log'`` -> logarithmic scaling using ``LogNorm``
+        - ``'powernorm'`` -> power-law normalization using ``PowerNorm``
+        - ``'none'`` / ``None`` -> no normalization applied
 
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `linear_width` : float, optional, default=`config.linear_width`
-            The effective width of the linear region, beyond
-            which the transformation becomes asymptotically logarithmic.
-            Only used in 'asinhnorm'.
-        - `gamma` : float, optional, default=`config.gamma`
-            Power law exponent.
+    linear_width : float, optional, default=``config.linear_width``
+        The effective width of the linear region, beyond
+        which the transformation becomes asymptotically logarithmic.
+    gamma` : float, optional, default=``config.gamma``
+        Power law exponent.
 
     Returns
     -------
-    norm_obj : None or matplotlib.colors.Normalize or astropy.visualization.ImageNormalize
+    norm_obj : AsinhNorm | ImageNormalize | LogNorm | PowerNorm | None
         Normalization object to pass to `imshow`. None if `norm` is 'none'.
-    '''
-    linear_width = kwargs.get('linear_width', config.linear_width)
-    gamma = kwargs.get('gamma', config.gamma)
+    """
+    linear_width: float = kwargs.get('linear_width', config.linear_width)
+    gamma: float = kwargs.get('gamma', config.gamma)
 
     # use linear stretch if plotting boolean array
-    if vmin==0 and vmax==1:
+    if vmin == 0 and vmax == 1:
         return None
 
     # ensure norm is a string
-    norm = 'none' if norm is None else norm
-    # ensure case insensitivity
-    norm = norm.lower()
+    norm_str = 'none' if norm is None else norm.lower()
+
     # dict containing possible stretch algorithms
     norm_map = {
-        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()), # type: ignore
+        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
         'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
         'log': LogNorm(vmin=vmin, vmax=vmax),
         'powernorm': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
         'linear': None,
         'none': None
     }
-    if norm not in norm_map:
+    if norm_str not in norm_map:
         raise ValueError(
-            f'ERROR: unsupported norm: {norm}. '
+            f'ERROR: unsupported norm: {norm_str}. '
             f'\nsupported norms are {list(norm_map.keys())}'
         )
 
-    return norm_map[norm]
+    return norm_map[norm_str]
 
 
-def set_vmin_vmax(data, percentile=_UNSET, vmin=None, vmax=None):
+def get_vmin_vmax(
+    data: NDArray | Quantity | DataCube | SpectralCube,
+    percentile: Sequence[float] | None | _Unset = _UNSET,
+    vmin: float | None = None,
+    vmax: float | None = None
+):
     '''
     Compute vmin and vmax for image display. By default uses the
     data nanpercentile using `percentile`, but optionally vmin and/or
