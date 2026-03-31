@@ -47,8 +47,8 @@ from visualastro.plotting.plot_utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    return_imshow_norm,
-    set_vmin_vmax,
+    get_imshow_norm,
+    get_vmin_vmax,
     spectral_axis_label,
 )
 
@@ -255,8 +255,8 @@ def imshow(
             data = np.where(data > 0.0, data, mask_out_val)
 
         # set image stretch
-        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-        img_norm = return_imshow_norm(vmin, vmax, norm, **kwargs)
+        vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
+        img_norm = get_imshow_norm(vmin, vmax, norm, **kwargs)
 
         # imshow image
         if img_norm is None:
@@ -532,8 +532,8 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
             data = np.where(data > 0.0, data, mask_out_val)
 
         # compute imshow stretch
-        vmin, vmax = set_vmin_vmax(data, percentile, vmin, vmax)
-        cube_norm = return_imshow_norm(vmin, vmax, norm)
+        vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
+        cube_norm = get_imshow_norm(vmin, vmax, norm)
 
         # imshow data
         if norm is None:

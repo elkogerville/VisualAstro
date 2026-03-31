@@ -96,13 +96,13 @@ from visualastro.plotting.plot_utils import (
     plot_interactive_ellipse,
     plot_points,
     plot_vlines,
-    return_imshow_norm,
+    get_imshow_norm,
     get_stylepath,
     sample_cmap,
     set_axis_labels,
     set_axis_limits,
     set_plot_colors,
-    set_vmin_vmax,
+    get_vmin_vmax,
     spectral_axis_label,
     style
 )
