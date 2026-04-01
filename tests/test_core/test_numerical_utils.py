@@ -27,45 +27,6 @@ from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.fitsfile import FitsFile
 
 
-class TestToArray:
-
-    def test_to_array_keep_unit(self, generate_test_cube):
-        """Test that to array returns either array or Quantity."""
-        a = np.random.rand(10)
-        b = np.random.rand(10) * u.erg
-        hdu = generate_test_cube
-        c = SpectralCube.read(hdu)
-        d = np.random.rand(10, 10, 10) * u.erg
-        e = DataCube(data=d)
-        f = FitsFile(data=d)
-
-        assert isinstance(to_array(a), np.ndarray)
-        assert isinstance(to_array(a, keep_unit=False), np.ndarray)
-        assert isinstance(to_array(b, keep_unit=False), np.ndarray)
-        assert isinstance(to_array(c, keep_unit=False), np.ndarray)
-        assert isinstance(to_array(e, keep_unit=False), np.ndarray)
-        assert isinstance(to_array(f, keep_unit=False), np.ndarray)
-
-        assert not isinstance(to_array(a, keep_unit=True), u.Quantity)
-        assert isinstance(to_array(b, keep_unit=True), u.Quantity)
-        assert isinstance(to_array(c, keep_unit=True), u.Quantity)
-        assert isinstance(to_array(e, keep_unit=True), u.Quantity)
-        assert isinstance(to_array(f, keep_unit=True), u.Quantity)
-
-
-class TestToList:
-
-    def test_to_list(self):
-        """Test that inputs are converted to a list"""
-        a = [1, 2, 3]
-        b = (1, 2, 3)
-        c = np.random.rand(10)
-
-        assert to_list(a) is a
-        assert to_list(b) == list(b)
-        assert to_list(c) == [c]
-
-
 class TestInterpolate:
 
     def test_basic_linear_interpolation(self):
@@ -117,6 +78,52 @@ class TestInterpolate:
 
 class TestNumericalUtils:
 
+    def test_to_array_keep_unit(self, generate_test_cube):
+        """Test that to array returns either array or Quantity."""
+        a = np.random.rand(10)
+        b = np.random.rand(10, 10, 10) * u.erg
+        hdu = generate_test_cube
+        c = SpectralCube.read(hdu)
+        d = DataCube(data=b)
+        e = FitsFile(data=b)
+
+        A = to_array(a)
+        AA = to_array(a, keep_unit=False)
+        B = to_array(b, keep_unit=False)
+        C = to_array(c, keep_unit=False)
+        D = to_array(d, keep_unit=False)
+        E = to_array(e, keep_unit=False)
+
+        assert isinstance(A, np.ndarray)
+        assert isinstance(AA, np.ndarray)
+        assert isinstance(B, np.ndarray)
+        assert isinstance(C, np.ndarray)
+        assert isinstance(D, np.ndarray)
+        assert isinstance(E, np.ndarray)
+
+        assert not isinstance(A, u.Quantity)
+        assert not isinstance(AA, u.Quantity)
+        assert not isinstance(B, u.Quantity)
+        assert not isinstance(C, u.Quantity)
+        assert not isinstance(D, u.Quantity)
+        assert not isinstance(E, u.Quantity)
+
+        assert not isinstance(to_array(a, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(b, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(c, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(d, keep_unit=True), u.Quantity)
+        assert isinstance(to_array(e, keep_unit=True), u.Quantity)
+
+    def test_to_list(self):
+        """Test that inputs are converted to a list"""
+        a = [1, 2, 3]
+        b = (1, 2, 3)
+        c = np.random.rand(10)
+
+        assert to_list(a) is a
+        assert to_list(b) == list(b)
+        assert to_list(c) == [c]
+
     def test_unwrap_if_single(self):
         """
         Test that _unwrap_if_single unwraps an object
@@ -127,7 +134,7 @@ class TestNumericalUtils:
         C = (1)
         D = (1, 2)
         E = (1,)
-        F = np.ndarray(1)
+        F = np.asarray([2.0])
         G = np.random.rand(1)
         H = np.random.rand(3)
         I = np.random.rand(10, 10)
