@@ -24,9 +24,7 @@ from visualastro.dataclasses.datacube import DataCube
 
 
 class TestDataCubeInit:
-    """
-
-    """
+    """Test suite for DataCube __init__"""
 
     def assert_valid_cube(
         self,
