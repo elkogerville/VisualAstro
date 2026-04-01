@@ -16,7 +16,10 @@ Module Structure:
 from astropy.visualization import ImageNormalize
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import pytest
-from visualastro.plotting.plot_utils import get_imshow_norm
+from tests.conftest import generate_test_cube
+from visualastro.plotting.plot_utils import (
+    get_imshow_norm, get_vmin_vmax
+)
 
 
 class TestPlotUtils:
@@ -36,3 +39,5 @@ class TestPlotUtils:
         # Test invalid norm raises ValueError
         with pytest.raises(ValueError, match='unsupported norm'):
             get_imshow_norm(0.2, 99, 'invalid')
+
+    def test_get_vmin_vmax(self, generate_test_cube):
