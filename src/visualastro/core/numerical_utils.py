@@ -29,6 +29,8 @@ from spectral_cube import SpectralCube
 from visualastro.core.validation import _type_name
 
 
+T = TypeVar('T')
+
 # Type Checking Arrays and Objects
 # --------------------------------
 def get_data(obj):
@@ -52,20 +54,26 @@ def get_data(obj):
     return obj.data if hasattr(obj, 'data') else obj
 
 
+@overload
+def get_value(obj: u.Quantity) -> NDArray | float | int: ...
+
+@overload
+def get_value(obj: T) -> T: ...
+
 def get_value(obj: Any):
     """
     Return the numeric value of an object,
     stripping units if present.
 
-   If the object exposes a `value` attribute
-   (e.g., an Astropy `Quantity`), that attribute
-   is returned. Otherwise, the object itself is
-   returned unchanged.
+    If the object exposes a ``value`` attribute
+    (e.g., an Astropy ``Quantity``), that attribute
+    is returned. Otherwise, the object itself is
+    returned unchanged.
 
-   Parameters
-   ----------
+    Parameters
+    ----------
     obj : any
-        Object that may expose a `value` attribute.
+        Object that may expose a ``value`` attribute.
 
     Returns
     -------
@@ -144,9 +152,6 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
         raise TypeError(
             f'Object of type {_type_name(obj)} cannot be converted to an array'
         )
-
-
-T = TypeVar('T')
 
 @overload
 def to_list(obj: list[T]) -> list[T]: ...
@@ -503,8 +508,6 @@ def mask_within_range(x, xlim=None):
 
     return mask
 
-
-T = TypeVar('T')
 
 @overload
 def _unwrap_if_single(
