@@ -122,7 +122,7 @@ def style(name=None, rc=None, **rc_kwargs):
 
     context = [style_name, rc_combined] if rc_combined else style_name
 
-    with plt.style.context(context): # type: ignore
+    with plt.style.context(context):
         yield
 
 
