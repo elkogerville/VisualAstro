@@ -52,7 +52,7 @@ from visualastro.core.config import (
     config,
     _UNSET
 )
-from visualastro.core.io import get_kwargs, save_figure_2_disk
+from visualastro.core.io import get_kwargs, savefig
 from visualastro.core.numerical_utils import (
     get_value,
     interpolate as _interpolate,
@@ -309,7 +309,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         _ = plot_spectrum(extracted_spectra, ax, plot_norm_continuum,
                           plot_continuum, emission_line, **kwargs)
         if savefig:
-            save_figure_2_disk(dpi)
+            savefig(dpi)
         plt.show()
 
     # ensure a list is only returned if returning more than 1 spectrum
@@ -625,7 +625,7 @@ def extract_cube_pixel_spectra(
             )
 
         if savefig:
-            save_figure_2_disk(**kwargs)
+            savefig(**kwargs)
 
         plt.show()
 
@@ -703,7 +703,7 @@ def plot_extracted_pixel_map(
             - [i, j] -> returns ``cube[i:j+1].sum(axis=0)``
         If None, uses ``idx=0``.
     savefig : bool, optional, default=False
-        If True, save the figure to disk using ``save_figure_2_disk``.
+        If True, save the figure to disk using ``savefig``.
     alpha : float, optional, default=0.8
         Alpha value for individual pixel colors.
     Any additional keyword arguments are forwarded to ``imshow``.
@@ -811,7 +811,7 @@ def plot_extracted_pixel_map(
         ax.set_title(f'Extracted Pixel Locations (n={len(extract_idx)})')
 
         if savefig:
-            save_figure_2_disk(**kwargs)
+            savefig(**kwargs)
 
         plt.show()
 
@@ -1608,7 +1608,7 @@ def fit_gaussian_2_spec(
 
         plt.legend()
         if savefig:
-            save_figure_2_disk(dpi=dpi)
+            savefig(dpi=dpi)
         plt.show()
 
     if print_vals:

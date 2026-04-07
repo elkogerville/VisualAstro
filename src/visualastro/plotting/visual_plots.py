@@ -24,7 +24,7 @@ from visualastro.core.config import (
     config,
     _UNSET
 )
-from visualastro.core.io import save_figure_2_disk
+from visualastro.core.io import savefig
 from visualastro.core.numerical_utils import to_list
 from visualastro.core.validation import _type_name
 from visualastro.plotting.image_plots import imshow, plot_spectral_cube
@@ -185,7 +185,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -249,7 +249,7 @@ class ax:
                        origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs)
 
             if savefig:
-                    save_figure_2_disk(dpi)
+                    savefig(dpi)
             plt.show()
 
 
@@ -366,7 +366,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
@@ -412,7 +412,7 @@ class ax:
                 **kwargs
             )
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
 
             plt.show()
 
@@ -499,7 +499,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -522,7 +522,7 @@ class ax:
                               flux, continuum, colors, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
 
@@ -609,7 +609,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
@@ -649,7 +649,7 @@ class ax:
                                       use_samecolor, colors, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
         if return_spectra:
@@ -744,7 +744,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -773,7 +773,7 @@ class ax:
                                        histtype, normalize, colors, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
 
@@ -851,7 +851,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -872,7 +872,7 @@ class ax:
                                colors, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
 
@@ -974,7 +974,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -995,7 +995,7 @@ class ax:
                            alpha=alpha, zorder=zorder, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
 
@@ -1111,7 +1111,7 @@ class ax:
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
         '''
@@ -1132,7 +1132,7 @@ class ax:
                              facecolors=facecolors, **kwargs)
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
 
 
@@ -1248,7 +1248,7 @@ class ax:
             - `tight_layout` : bool, optional, default=True
                 If True, uses `plt.tight_layout()`.
             - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `save_figure_2_disk`.
+                If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.dpi`
                 Resolution (dots per inch) for saved figure.
 
@@ -1295,5 +1295,5 @@ class ax:
                 plt.tight_layout()
 
             if savefig:
-                save_figure_2_disk(dpi)
+                savefig(dpi)
             plt.show()
