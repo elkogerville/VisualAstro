@@ -34,11 +34,13 @@ from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib import colors as mcolors
+import matplotlib.axes as maxes
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
+import matplotlib.transforms as mtransforms
 import numpy as np
 from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
@@ -66,6 +68,7 @@ from visualastro.core.numerical_utils import (
 )
 from visualastro.core.units import (
     convert_quantity,
+    ensure_common_unit,
     get_physical_type,
     get_unit,
     to_latex_unit,
@@ -918,6 +921,151 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         ax.clabel(cs, fontsize=fontsize)
 
     return cs
+
+
+def spectral_line_marker(
+    *x: float | u.Quantity,
+    y: float | u.Quantity,
+    h: float | u.Quantity,
+    ax: maxes.Axes,
+    label: str | None = None,
+    direction: Literal['up', 'down'] | _Unset = _UNSET,
+    label_offset_points: tuple[float, float] | _Unset = _UNSET,
+    label_position: Literal['center', 'left', 'right'] | _Unset = _UNSET,
+    label_anchor: Literal['center', 'left', 'right', 'auto'] | _Unset = _UNSET,
+    rotation: float | _Unset = _UNSET,
+    hline_extend: float | u.Quantity | None = None,
+    **kwargs
+) -> None:
+    """
+    Plot multi-prong spectral line markers with an optional grouped label.
+
+    Parameters
+    ----------
+    *x : float or astropy.units.Quantity
+        X-coordinates of the spectral lines.
+    y : float or astropy.units.Quantity
+        Y-coordinate of the base of the markers.
+    h : float or astropy.units.Quantity
+        Height of the vertical markers.
+    ax : matplotlib.axes.Axes
+        Matplotlib Axes object on which to draw the markers.
+    label : str, optional
+        Label for the group of lines.
+    direction : Literal['up', 'down'] | _Unset, optional, default=_UNSET
+        Direction of the prongs. If ``_UNSET``, uses the default value
+        from ``config.spectral_line_marker.marker_direction``.
+    label_offset_points : tuple[float, float], optional, default=_UNSET
+        (dx, dy) offset of the label in points (display coordinates).
+        If ``_UNSET``, uses the default value from
+        ``config.spectral_line_marker.label_offset_points``.
+    label_position : {'center', 'left', 'right'}, optional, default=_UNSET
+        Position of label relative to markers. If ``_UNSET``, uses the
+        default value from ``config.spectral_line_marker.label_position``.
+    label_anchor : {'center', 'left', 'right', 'auto'}, optional, default=_UNSET
+        Text alignment (maps to matplotlib `ha`). Independent of position.
+        If ``'auto'``, is set to ``label_position``. If ``_UNSET``, uses
+        the default value from ``config.spectral_line_marker.label_anchor``.
+    rotation : float, optional, default=_UNSET
+        Rotation angle of the label in degrees. If ``_UNSET``, uses the
+        default value from ``config.spectral_line_marker.text_rotation``.
+    hline_extend : float or astropy.units.Quantity or None, optional
+        Horizontal line extension distance. If None (default), draws connector
+        between all x values when len(x) > 1. If provided, draws horizontal
+        line extending in direction specified by ``label_position``:
+        - ``'left'``: extends leftward from leftmost x
+        - ``'right'``: extends rightward from rightmost x
+        - ``'center'``: extends symmetrically from center
+    **kwargs
+        Additional keyword arguments passed to vlines and hlines.
+
+    Returns
+    -------
+    None : Modifies ``ax`` in place.
+    """
+    marker_direction = (
+        config.spectral_line_marker.marker_direction
+        if direction is _UNSET else direction
+    )
+    label_offset_points = (
+        config.spectral_line_marker.label_offset_points
+        if label_offset_points is _UNSET else label_offset_points
+    )
+    label_position = (
+        config.spectral_line_marker.label_position
+        if label_position is _UNSET else label_position
+    )
+    label_anchor = (
+        config.spectral_line_marker.label_anchor
+        if label_anchor is _UNSET else label_anchor
+    )
+    rotation = (
+        config.spectral_line_marker.text_rotation
+        if rotation is _UNSET else rotation
+    )
+    if label_anchor == 'auto': label_anchor = label_position
+
+    x_list = list(x)
+    ensure_common_unit(x_list + [y, h, hline_extend])
+
+    x_vals = [get_value(xval) for xval in x_list]
+    y_val = get_value(y)
+    h_val = get_value(h)
+    h_val = -h_val if marker_direction == 'up' else h_val
+    extend_val = get_value(hline_extend)
+
+    for x_val in x_vals:
+        ax.vlines(x_val, y_val, y_val + h_val, **kwargs)
+
+    if extend_val is not None:
+        if label_position == 'left':
+            x0, x1 = x_vals[0] - extend_val, x_vals[0]
+        elif label_position == 'right':
+            x0, x1 = x_vals[-1], x_vals[-1] + extend_val
+        else:
+            x_mid = 0.5 * (x_vals[0] + x_vals[-1])
+            x0, x1 = x_mid - extend_val / 2, x_mid + extend_val / 2
+
+        ax.hlines(y_val + h_val, x0, x1, **kwargs)
+
+    elif len(x_vals) > 1:
+        ax.hlines(y_val + h_val, x_vals[0], x_vals[-1], **kwargs)
+
+    if label is not None:
+        if label_position == 'left':
+            x_text = x_vals[0] - (extend_val if extend_val is not None else 0)
+        elif label_position == 'right':
+            x_text = x_vals[-1] + (extend_val if extend_val is not None else 0)
+        else:
+            x_text = 0.5 * (x_vals[0] + x_vals[-1])
+
+        dx, dy = label_offset_points
+
+        y_text = float(y_val) + float(h_val)
+        if marker_direction == 'down':
+            va = 'bottom'
+            dy = abs(dy)
+        else:
+            va = 'top'
+            dy = -abs(dy)
+
+        text_transform = mtransforms.offset_copy(
+            ax.transData,
+            fig=None,
+            x=dx,
+            y=dy,
+            units='points'
+        )
+
+        ax.text(
+            float(x_text),
+            y_text,
+            label,
+            transform=text_transform,
+            ha=label_anchor,
+            va=va,
+            rotation=rotation
+        )
 
 
 def set_axis_limits(
