@@ -154,7 +154,7 @@ def _validate_type(
 ) -> U | None: ...
 
 def _validate_type(
-    data: object,
+    data: object | None,
     types: Type[U] | Tuple[Type[U], ...],
     default: U | None = None,
     allow_none: bool = True,
@@ -165,7 +165,7 @@ def _validate_type(
 
     Parameters
     ----------
-    data : T or None
+    data : object | None
         The object to validate. Can be any type.
     types : type[T] or tuple of type[T]
         A type or tuple of types that `data` is allowed to be.
