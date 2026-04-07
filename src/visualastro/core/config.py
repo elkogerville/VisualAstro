@@ -16,13 +16,32 @@ Module Structure:
 
 from collections.abc import Sequence
 from enum import Enum
+from typing import Literal
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
 import numpy as np
 from numpy.typing import DTypeLike
+from regions.io.fits.write import dataclass
 
+
+@dataclass
+class CurveFitConfig:
+    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
+    absolute_sigma: bool = False
+    sample: int = 10000
+    interpolate: bool = False
+    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+
+@dataclass
+class SpectralLineConfig:
+    marker_direction: Literal['up', 'down'] = 'down'
+    label_offset_points: tuple[float, float] = (0.0, 4.0)
+    label_position: Literal['center', 'left', 'right'] = 'center'
+    text_rotation: float = 0
+    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
 
 class VisualAstroConfig:
     """
@@ -239,6 +258,9 @@ class VisualAstroConfig:
 
         # numpy save
         self.save_format = '.npy'
+
+        self.spectral_line_marker = SpectralLineConfig()
+
 
     def reset_defaults(self):
         """
