@@ -26,7 +26,7 @@ Module Structure:
 from collections.abc import Sequence
 from contextlib import contextmanager
 import os
-from typing import Any, Literal
+from typing import Any, Literal, cast
 import warnings
 from functools import partial
 import astropy.units as u
@@ -36,6 +36,7 @@ from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib import colors as mcolors
 import matplotlib.axes as maxes
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
+from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
@@ -1008,7 +1009,7 @@ def spectral_line_marker(
     x_list = list(x)
     ensure_common_unit(x_list + [y, h, hline_extend])
 
-    x_vals = [get_value(xval) for xval in x_list]
+    x_vals = sorted(get_value(xval) for xval in x_list)
     y_val = get_value(y)
     h_val = get_value(h)
     h_val = -h_val if marker_direction == 'up' else h_val
@@ -1051,7 +1052,7 @@ def spectral_line_marker(
 
         text_transform = mtransforms.offset_copy(
             ax.transData,
-            fig=None,
+            fig=cast(Figure, ax.figure),
             x=dx,
             y=dy,
             units='points'
