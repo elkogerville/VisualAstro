@@ -353,7 +353,7 @@ def load_quantity(filename):
         return f['data'] * u.Unit(f['unit'].item())
 
 
-def save_figure_2_disk(
+def savefig(
     dpi=None,
     pdf_compression=None,
     transparent=False,

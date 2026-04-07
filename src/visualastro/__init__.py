@@ -41,7 +41,7 @@ from visualastro.core.io import (
     get_kwargs,
     load_quantity,
     save_array,
-    save_figure_2_disk,
+    savefig,
     save_quantity,
     write_arrays_2_file,
     write_cube_2_fits
