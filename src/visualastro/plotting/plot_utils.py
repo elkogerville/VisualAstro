@@ -457,8 +457,8 @@ def get_imshow_norm(
     norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
         Normalization object to pass to ``imshow``. ``None`` if ``norm=None``.
     """
-    linear_width: float = kwargs.get('linear_width', config.linear_width)
-    gamma: float = kwargs.get('gamma', config.gamma)
+    linear_width: float = kwargs.pop('linear_width', config.linear_width)
+    gamma: float = kwargs.pop('gamma', config.gamma)
 
     # use linear stretch if plotting boolean array
     if vmin == 0 and vmax == 1:
@@ -555,7 +555,8 @@ def compute_imshow_scale(
     norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None,
     vmin: float | np.floating | None,
     vmax: float | np.floating | None,
-    percentile: tuple[float, float] | None
+    percentile: tuple[float, float] | None,
+    **kwargs
 ) -> tuple[
     ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None,
     float | np.floating | None,
@@ -606,6 +607,12 @@ def compute_imshow_scale(
     percentile : tuple[float, float] or None
         Percentile range ``(pmin, pmax)`` used to compute ``vmin`` and
         ``vmax``. If None, no automatic clipping is applied.
+    linear_width : float, optional, default=``config.linear_width``
+        The effective width of the linear region, beyond
+        which the transformation becomes asymptotically logarithmic.
+        Used for ``norm='asinhnorm'``.
+    gamma : float, optional, default=``config.gamma``
+        Power law exponent. Used for ``norm='power'``.
 
     Returns
     -------
@@ -634,7 +641,7 @@ def compute_imshow_scale(
             'vmin and vmax must not be None if norm is not None! '
             f'got: norm: {norm}, vmin: {vmin}, vmax: {vmax}'
         )
-    img_norm = get_imshow_norm(norm, vmin, vmax)
+    img_norm = get_imshow_norm(norm, vmin, vmax, **kwargs)
 
     return img_norm, vmin, vmax
 

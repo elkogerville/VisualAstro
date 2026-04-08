@@ -48,8 +48,6 @@ from visualastro.plotting.plot_utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    get_imshow_norm,
-    get_vmin_vmax,
 )
 from visualastro.plotting.spectra_plot_utils import (
     spectral_axis_label
