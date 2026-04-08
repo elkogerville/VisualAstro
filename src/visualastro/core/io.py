@@ -22,7 +22,7 @@ from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import DTypeLike, NDArray
 from tqdm import tqdm
 from visualastro.core.config import get_config_value, config, _UNSET
 from visualastro.core.numerical_utils import to_array, to_list
@@ -68,9 +68,9 @@ def get_dtype(data, dtype=None, default_dtype=None):
 
 def get_errors(
     hdul: fits.HDUList,
-    dtype=None,
-    transpose=False
-):
+    dtype: DTypeLike | str | None = None,
+    transpose: bool = False
+) -> u.Quantity | NDArray | None:
     """
     Return the error array from an HDUList, falling back to square root
     of variance if needed. If a unit is found from the header, return
@@ -78,21 +78,25 @@ def get_errors(
 
     Parameters
     ----------
-    hdul : astropy.io.fits.HDUList
+    hdul : fits.HDUList
         The HDUList object containing FITS extensions to search for errors or variance.
-    dtype : data-type, optional, default=np.float64
+    dtype : np.dtype | str | None, optional, default=None
         The desired NumPy dtype of the returned error array.
+        If None, uses the default unit set in ``config.default_dtype``.
 
     Returns
     -------
-    errors : np.ndarray or None
+    errors : u.Quantity | np.ndarray | None
         The error array if found, or None if no suitable extension is present.
     """
-    errors = None
+    errors: NDArray | None = None
     error_unit = None
 
     for hdu in hdul[1:]:
-        if not isinstance(hdu, (fits.ImageHDU, fits.BinTableHDU, fits.CompImageHDU)) or hdu.data is None:
+        if (
+            not isinstance(hdu, (fits.ImageHDU, fits.BinTableHDU, fits.CompImageHDU))
+            or hdu.data is None
+        ):
             continue
 
         extname = str(hdu.header.get('EXTNAME', '')).upper()
@@ -101,20 +105,24 @@ def get_errors(
             dt = get_dtype(hdu.data, dtype)
             errors = hdu.data.astype(dt, copy=False)
 
-            try:
-                error_unit = u.Unit(hdu.header.get('BUNIT'))
-                errors *= error_unit
-            except Exception:
-                warnings.warn(
-                    'Error extension has invalid BUNIT; returning errors without units.'
-                )
+            if hdu.header is not None:
+                try:
+                    error_unit = u.Unit(str(hdu.header.get('BUNIT')))
+                    errors *= error_unit
+                except Exception:
+                    warnings.warn(
+                        'Error extension has invalid BUNIT; returning errors without units.'
+                    )
 
             break
 
     # fallback to variance if no explicit errors
     if errors is None:
         for hdu in hdul[1:]:
-            if not isinstance(hdu, (fits.ImageHDU, fits.BinTableHDU, fits.CompImageHDU)) or hdu.data is None:
+            if (
+                not isinstance(hdu, (fits.ImageHDU, fits.BinTableHDU, fits.CompImageHDU))
+                or hdu.data is None
+            ):
                 continue
 
             extname = str(hdu.header.get('EXTNAME', '')).upper()
@@ -123,16 +131,17 @@ def get_errors(
                 dt = get_dtype(hdu.data, dtype)
                 variance = hdu.data.astype(dt, copy=False)
 
-                try:
-                    var_unit = u.Unit(hdu.header.get('BUNIT'))
-                    errors = np.sqrt(variance * var_unit)
-                except (ValueError, TypeError, KeyError):
-                    warnings.warn(
-                        f'Variance extension {extname} has invalid or missing BUNIT; '
-                        'returning errors without units.',
-                        UserWarning
-                    )
-                    errors = np.sqrt(variance)
+                if hdu.header is not None:
+                    try:
+                        var_unit = u.Unit(str(hdu.header.get('BUNIT')))
+                        errors = np.sqrt(variance * var_unit)
+                    except (ValueError, TypeError, KeyError):
+                        warnings.warn(
+                            f'Variance extension {extname} has invalid or missing BUNIT; '
+                            'returning errors without units.',
+                            UserWarning
+                        )
+                        errors = np.sqrt(variance)
                 break
 
     if transpose and errors is not None:
