@@ -43,6 +43,7 @@ from visualastro.core.units import (
 )
 from visualastro.plotting.plot_utils import (
     add_colorbar,
+    compute_imshow_scale,
     plot_circles,
     plot_ellipses,
     plot_interactive_ellipse,
@@ -256,9 +257,9 @@ def imshow(
         if mask_non_pos:
             data = np.where(data > 0.0, data, mask_out_val)
 
-        # set image stretch
-        vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
-        img_norm = get_imshow_norm(vmin, vmax, norm, **kwargs)
+        img_norm, vmin, vmax = compute_imshow_scale(
+            data, norm, vmin, vmax, percentile, **kwargs
+        )
 
         # imshow image
         if img_norm is None:
@@ -533,9 +534,9 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
         if mask_non_pos:
             data = np.where(data > 0.0, data, mask_out_val)
 
-        # compute imshow stretch
-        vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
-        cube_norm = get_imshow_norm(vmin, vmax, norm)
+        cube_norm, vmin, vmax = compute_imshow_scale(
+            data, norm, vmin, vmax, percentile, **kwargs
+        )
 
         # imshow data
         if norm is None:
