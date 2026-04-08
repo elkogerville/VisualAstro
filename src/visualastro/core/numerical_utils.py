@@ -485,45 +485,48 @@ def mask_finite(
 
     Parameters
     ----------
-    obj : array_like
-        Input data. May be a NumPy array, list, DataCube, FitsFile,
-        Quantity, or any object compatible with `to_array`.
-    keep_inf : bool, optional, default=False
-        If False, mask excludes NaN and ±inf values.
-        If True, mask excludes only NaNs and retains ±inf values.
+    obj : ArrayLike
+        Input data. May be a ``np.ndarray``, ``list``, ``DataCube``,
+        ``FitsFile``, ``u.Quantity``, or any object compatible with ``to_array``.
+    keep_inf : bool, default=False
+        If ``False``, mask excludes NaN and ±inf values.
+        If ``True``, mask excludes only NaNs and retains ±inf values.
 
     Returns
     -------
-    ndarray of bool
+    np.ndarray[bool]
         Boolean mask with the same shape as the input data.
-        True indicates values that are kept.
+        ``True`` indicates values that are kept.
 
     Notes
     -----
-    - Uses `np.isfinite` when `keep_inf=False`.
-    - Uses `~np.isnan` when `keep_inf=True`.
+    - Uses ``np.isfinite`` when ``keep_inf=False``.
+    - Uses ``~np.isnan`` when ``keep_inf=True``.
     """
     data = to_array(obj)
     return ~np.isnan(data) if keep_inf else np.isfinite(data)
 
 
-def mask_within_range(x, xlim=None):
+def mask_within_range(
+    x: ArrayLike,
+    xlim: tuple[float, float] | None = None
+) -> NDArray[np.bool_]:
     """
     Return a boolean mask for values of x within the given limits.
 
     Parameters
     ----------
     x : array-like
-        Data array (e.g., wavelength or flux values)
-    xlim : tuple or list, optional
-        (xmin, xmax) range. If None, uses the min/max of x.
+        Data array (e.g., wavelength or flux values).
+    xlim : tuple[float, float] or None, optional, default=None
+        (xmin, xmax) range. If None, uses the min/max of ``x``.
 
     Returns
     -------
     mask : ndarray of bool
         True where x is within the limits.
     """
-    x = get_value(x)
+    x = np.asarray(get_value(x), dtype=float)
 
     xmin = get_value(xlim[0]) if xlim is not None else np.nanmin(x)
     xmax = get_value(xlim[1]) if xlim is not None else np.nanmax(x)
