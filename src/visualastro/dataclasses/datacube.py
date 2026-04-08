@@ -218,7 +218,7 @@ class DataCube:
 
         array, unit = self._validate_data_and_error(data, error)
 
-        header, primary_hdr = self._initialize_headers(header, wcs, array.shape[0])
+        header, primary_hdr = self._initialize_headers(data, header, wcs, array.shape[0])
 
         data, unit = self._validate_units(data, unit, header, primary_hdr)
 
@@ -309,6 +309,7 @@ class DataCube:
 
     def _initialize_headers(
         self,
+        data: NDArray | Quantity | SpectralCube,
         header: Header | list[Header] | None,
         wcs: WCS | list[WCS] | None,
         N: int
@@ -319,6 +320,8 @@ class DataCube:
         if header is None:
             if isinstance(wcs, list):
                 header = [Header() for _ in wcs]
+            elif isinstance(data, SpectralCube):
+                header = data.header
             else:
                 header = Header()
 
