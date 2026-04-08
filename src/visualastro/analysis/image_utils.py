@@ -28,7 +28,7 @@ from numpy.typing import DTypeLike
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from visualastro.core.config import _Unset, config, get_config_value, _UNSET
+from visualastro.core.config import config, get_config_value, resolve_default, _Unset, _UNSET
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data
 from visualastro.core.units import get_unit
@@ -40,41 +40,50 @@ from visualastro.utils.wcs_utils import _reproject_wcs
 
 # I/O Functions
 # -------------
-def load_data_cube(filepath, error=True, hdu=None,
-                   dtype=None, print_info=None,
-                   transpose=None, invert_wcs=None):
-    '''
+def load_data_cube(
+    filepath: str,
+    error: bool = True,
+    hdu: int | _Unset = _UNSET,
+    dtype: DTypeLike | str | _Unset = _UNSET,
+    print_info: bool | _Unset =_UNSET,
+    transpose: bool | _Unset = _UNSET,
+    invert_wcs: bool | _Unset = _UNSET
+) -> DataCube:
+    """
     Load a sequence of FITS files into a 3D data cube.
 
     This function searches for all FITS files matching a
     given path pattern, loads them into a NumPy array of shape
     (T, M, N), and bundles the data, headers, errors, and WCS
-    into a `DataCube` object.
+    into a ``DataCube`` object.
 
     Parameters
     ----------
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
-        Example: 'Spectro-Module/raw/HARPS*.fits'
-    hdu : int or None, default=None
-        Hdu extension to use. If None, uses the
-        default value set by `config.hdu_idx`.
-    dtype : numpy.dtype, optional, default=None
-        Data type for the loaded FITS data. If None, will use
+        ie. ``'Spectro-Module/raw/HARPS*.fits'``
+    error : bool, optional, default=True
+        If ``True``, try to extract the error extension.
+        Converts variance to errors using ``get_errors``.
+    hdu : int | _Unset, optional, default=_UNSET
+        Hdu extension to use. If ``_UNSET``, uses the
+        default value set by ``config.hdu_idx``.
+    dtype : np.dtype | str | _Unset, optional, default=_UNSET
+        Data type for the loaded FITS data. If ``_UNSET``, will use
         the dtype of the provided data, promoting integer or
-        unsigned to `np.float64`.
-    print_info : bool or None, optional, default=None
+        unsigned to ``config.default_dtype``.
+    print_info : bool | _Unset, optional, default=_UNSET
         If True, print summary information about the loaded cube.
-        If None, uses the default value set by `config.print_info`.
-    transpose : bool or None, optional, default=None
+        If ``_UNSET``, uses the default value set by ``config.print_info``.
+    transpose : bool | _Unset, optional, default=_UNSET
         If True, transpose each 2D image before stacking into the cube.
         This will also transpose each error array if available and
         swap the WCS axes for consistency. The swapping of the WCS
-        can be disabled by `config.invert_wcs_if_transpose`.
-        If None, uses the default value set by `config.transpose`.
-    invert_wcs : bool or None, optional, default=None
-        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
-        If None, uses the default value set by `config.invert_wcs_if_transpose`.
+        can be disabled by ``config.invert_wcs_if_transpose``.
+        If ``_UNSET``, uses the default value set by `config.transpose`.
+    invert_wcs : bool | _Unset, optional, default=_UNSET
+        If True, will perform a swapaxes(0,1) on the wcs if ``transpose=True``.
+        If ``_UNSET``, uses the default value set by ``config.invert_wcs_if_transpose``.
 
     Returns
     -------
@@ -89,12 +98,12 @@ def load_data_cube(filepath, error=True, hdu=None,
     --------
     Search for all fits files starting with 'HARPS' with .fits extention and load them:
         >>> filepath = 'Spectro-Module/raw/HARPS.*.fits'
-    '''
-    # get default config values
-    hdu = get_config_value(hdu, 'hdu_idx')
-    print_info = get_config_value(print_info, 'print_info')
-    transpose = get_config_value(transpose, 'transpose')
-    invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
+    """
+    hdu = resolve_default(hdu, config.hdu_idx)
+    dtype = resolve_default(dtype, config.default_dtype)
+    print_info = resolve_default(print_info, config.print_info)
+    transpose = resolve_default(transpose, config.transpose)
+    invert_wcs = resolve_default(invert_wcs, config.invert_wcs_if_transpose)
 
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
@@ -126,13 +135,13 @@ def load_data_cube(filepath, error=True, hdu=None,
         if err is not None:
             err = err.T
 
-    # Preallocate data cube and headers
+    # preallocate data cube and headers
     datacube = np.zeros((n_files, data.shape[0], data.shape[1]), dtype=dt)
     datacube[0] = data.astype(dt)
-    headers = [None] * n_files
-    headers[0] = header
-    wcs_list = [None] * n_files
-    wcs_list[0] = wcs
+    headers = []
+    headers.append(header)
+    wcs_list = []
+    wcs_list.append(wcs)
     # preallocate error array if needed and error exists
     error_array = None
     if error and err is not None:
@@ -143,7 +152,7 @@ def load_data_cube(filepath, error=True, hdu=None,
     for i, file in enumerate(tqdm(fits_files[1:], desc='Loading FITS')):
         with fits.open(file) as hdul:
             data = hdul[hdu].data
-            headers[i+1] = hdul[hdu].header
+            headers.append(hdul[hdu].header)
             err = get_errors(hdul, dt)
             try:
                 wcs = WCS(headers[i+1])
@@ -159,7 +168,7 @@ def load_data_cube(filepath, error=True, hdu=None,
         datacube[i+1] = data.astype(dt)
         if error_array is not None and err is not None:
             error_array[i+1] = err.astype(dt)
-        wcs_list[i+1] = wcs
+        wcs_list.append(wcs)
 
     if all(w is None for w in wcs_list):
         wcs_list = None
