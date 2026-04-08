@@ -22,7 +22,7 @@ Module Structure:
 
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import Any, Optional, overload
+from typing import Any, overload
 import warnings
 import astropy.units as u
 from astropy.units import Quantity
@@ -1056,27 +1056,25 @@ class GaussianFitResult:
     FWHM_error: Any
 
     # additional parameters
-    slope: Optional[Any] = None
-    slope_error: Optional[Any] = None
-    intercept: Optional[Any] = None
-    intercept_error: Optional[Any] = None
-    peak_height: Optional[Any] = None
+    slope: Any | None = None
+    slope_error: Any | None = None
+    intercept: Any | None = None
+    intercept_error: Any | None = None
+    peak_height: Any | None = None
 
     # NOTE: ensure these are updated!
     additional_parameters = ['slope', 'intercept', 'peak_height']
     parameters_labels = ['Slope (m)', 'Intercept (b)', 'Peak Height']
 
     # raw curve fit results
-    popt: Optional[Any] = None
-    pcov: Optional[Any] = None
-    perr: Optional[Any] = None
-    p0: Optional[Any] = None
-    fit_config: Optional[dict] = None
+    popt: Any | None = None
+    pcov: Any | None = None
+    perr: Any | None = None
+    p0: Any | None = None
+    fit_config: dict | None = None
 
     def pretty_print(self, **kwargs):
-        '''
-        Pretty print the results in table format.
-        '''
+        """Pretty print the results in table format."""
 
         precision = kwargs.get('precision', config.table_precision)
         sci_notation = kwargs.get('sci_notation', config.table_sci_notation)
@@ -1116,10 +1114,8 @@ class GaussianFitResult:
             pad=pad
         )
 
-    def __repr__(self):
-        '''
-        Returns values ± errors.
-        '''
+    def __repr__(self) -> str:
+        """Returns values ± errors."""
         exclude = {'popt', 'pcov', 'perr', 'additional_parameters', 'parameters_labels'}
 
         lines = ['GaussianFitResult(']
@@ -1174,7 +1170,7 @@ class ExtractedPixelSpectra:
     coords: NDArray
     colors: Sequence | NDArray
     labels: Sequence
-    combined_spectrum: Optional[object] = None
+    combined_spectrum: object | None = None
 
     def __repr__(self) -> str:
         n = len(self.extract_idx)
