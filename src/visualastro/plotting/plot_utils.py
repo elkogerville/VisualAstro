@@ -537,7 +537,7 @@ def get_vmin_vmax(
         )
 
     # check if data is an array
-    data = to_array(data)
+    data = to_array(data, keep_unit=False)
     # check if data is boolean
     if data.dtype == bool:
         return 0, 1
