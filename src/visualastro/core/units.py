@@ -158,7 +158,7 @@ def get_units(
 
     Parameters
     ----------
-    objs : Object or list of Object
+    objs : Any | list[Any]
         The input object(s) from which to extract a unit. These can be:
         - an astropy UnitBase
         - an astropy.units.Quantity
@@ -167,7 +167,7 @@ def get_units(
         - any object with a .header attribute
     Returns
     -------
-    list of units or None, or unit or None
+    list[UnitBase | StructuredUnit | None] | UnitBase | StructuredUnit | None
         The associated unit(s) of the input object(s), if they exist.
         Returns None if the object has no unit or if the unit cannot be parsed.
     """
