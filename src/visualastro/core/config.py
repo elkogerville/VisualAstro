@@ -157,15 +157,15 @@ class VisualAstroConfig:
         self.clabel = True
 
         # text params
-        self.fontsize = 10
-        self.text_color = 'k'
-        self.text_loc = [0.03, 0.03]
+        self.fontsize: float = 10
+        self.text_color: str = 'k'
+        self.text_loc: tuple[float, float] = (0.03, 0.03)
 
         # label params
         self.use_brackets = True # display units as [unit] instead of (unit)
         self.right_ascension = 'Right Ascension'
         self.declination = 'Declination'
-        self.highlight = True
+        self.highlight: bool = True
         self.loc = 'best'
         self.use_type_label = True
         self.use_unit_label = True
