@@ -934,6 +934,7 @@ def spectral_line_marker(
     label_offset_points: tuple[float, float] | _Unset = _UNSET,
     label_position: Literal['center', 'left', 'right'] | _Unset = _UNSET,
     label_anchor: Literal['center', 'left', 'right', 'auto'] | _Unset = _UNSET,
+    label_reference: Literal['marker', 'hline', 'auto'] | _Unset = _UNSET,
     rotation: float | _Unset = _UNSET,
     hline_extend: float | u.Quantity | None = None,
     **kwargs
@@ -967,9 +968,17 @@ def spectral_line_marker(
         Text alignment (maps to matplotlib `ha`). Independent of position.
         If ``'auto'``, is set to ``label_position``. If ``_UNSET``, uses
         the default value from ``config.spectral_line_marker.label_anchor``.
+    label_reference : {'marker', 'hline', 'auto'}, optional, default=_UNSET
+        Reference point for label x-position:
+        - ``'marker'``: Position relative to marker x-values (ignores hline extension)
+        - ``'hline'``: Position relative to hline endpoints (includes extension)
+        - ``'auto'``: Uses 'hline' if hline_extend is set, otherwise 'marker'
+        If ``_UNSET``, uses the default value from
+        ``config.spectral_line_marker.label_reference``.
+
     rotation : float, optional, default=_UNSET
         Rotation angle of the label in degrees. If ``_UNSET``, uses the
-        default value from ``config.spectral_line_marker.text_rotation``.
+        default value from ``config.spectral_line_marker.label_rotation``.
     hline_extend : float or astropy.units.Quantity or None, optional
         Horizontal line extension distance. If None (default), draws connector
         between all x values when len(x) > 1. If provided, draws horizontal
@@ -1000,11 +1009,17 @@ def spectral_line_marker(
         config.spectral_line_marker.label_anchor
         if label_anchor is _UNSET else label_anchor
     )
+    label_reference = (
+            config.spectral_line_marker.label_reference
+            if label_reference is _UNSET else label_reference
+        )
     rotation = (
-        config.spectral_line_marker.text_rotation
+        config.spectral_line_marker.label_rotation
         if rotation is _UNSET else rotation
     )
     if label_anchor == 'auto': label_anchor = label_position
+    if label_reference == 'auto':
+        label_reference = 'hline' if hline_extend is not None else 'marker'
 
     x_list = list(x)
     ensure_common_unit(x_list + [y, h, hline_extend])
@@ -1033,12 +1048,20 @@ def spectral_line_marker(
         ax.hlines(y_val + h_val, x_vals[0], x_vals[-1], **kwargs)
 
     if label is not None:
-        if label_position == 'left':
-            x_text = x_vals[0] - (extend_val if extend_val is not None else 0)
-        elif label_position == 'right':
-            x_text = x_vals[-1] + (extend_val if extend_val is not None else 0)
+        if label_reference == 'marker':
+            if label_position == 'left':
+                x_text = x_vals[0]
+            elif label_position == 'right':
+                x_text = x_vals[-1]
+            else:
+                x_text = 0.5 * (x_vals[0] + x_vals[-1])
         else:
-            x_text = 0.5 * (x_vals[0] + x_vals[-1])
+            if label_position == 'left':
+                x_text = x_vals[0] - (extend_val if extend_val is not None else 0)
+            elif label_position == 'right':
+                x_text = x_vals[-1] + (extend_val if extend_val is not None else 0)
+            else:
+                x_text = 0.5 * (x_vals[0] + x_vals[-1])
 
         dx, dy = label_offset_points
 
