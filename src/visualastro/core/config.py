@@ -256,6 +256,7 @@ class VisualAstroConfig:
         """
         self.__init__()
 
+
 @dataclass
 class CurveFitConfig:
     """scipy.curve_fit config"""
@@ -288,6 +289,7 @@ class _Unset(Enum):
     UNSET = 'UNSET'
 
 _UNSET = _Unset.UNSET
+
 
 def resolve_default(value: T | _Unset, fallback: T) -> T:
     """

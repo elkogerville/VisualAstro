@@ -24,15 +24,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import DTypeLike, NDArray
 from tqdm import tqdm
-from visualastro.core.config import get_config_value, config, _UNSET
+from visualastro.core.config import get_config_value, config, _UNSET, resolve_default
 from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 
 
-def get_dtype(data, dtype=None, default_dtype=None):
-    '''
+def get_dtype(data, dtype=None, default_dtype=_UNSET):
+    """
     Returns the dtype from the provided data. Promotes
     integers to floats if needed.
+
     Parameters
     ----------
     data : array-like
@@ -43,15 +44,15 @@ def get_dtype(data, dtype=None, default_dtype=None):
         `np.float64` if integer or unsigned.
     default_dtype : data-type, optional, default=None
         Float type to use if `data` is integer or unsigned.
-        If None, uses the default unit set in `config.default_dtype`.
+        If None, uses the default unit set in ``config.default_dtype``.
+
     Returns
     -------
     dtype : np.dtype
         NumPy dtype object: user dtype if given, otherwise the array's
         float dtype or `default_dtype` if array is integer/unsigned.
-    '''
-    # get default config values
-    default_dtype = get_config_value(default_dtype, 'default_unit')
+    """
+    default_dtype = resolve_default(default_dtype, config.default_dtype)
 
     # return user dtype if passed in
     if dtype is not None:
@@ -188,7 +189,6 @@ def write_arrays_2_file(
     >>> arr2 = np.array([9.87e6, 6.54e4, 3.21e-1]) * u.s
     >>> save_arrays_to_file([arr1, arr2], 'data.txt', headers=['Distance', 'Time'])
     """
-
     arrays = to_list(arrays)
 
     lengths = [len(a) for a in arrays]
