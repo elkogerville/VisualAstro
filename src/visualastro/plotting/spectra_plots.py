@@ -1258,7 +1258,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 def fit_gaussian_2_spec(
     extracted_spectrum, p0, *, model=None, spectral_range=None,
     fit_method=None, absolute_sigma=None, yerror=None,
-    interpolate=None, samples=None, interp_method=None,
+    interpolate=_UNSET, samples=None, interp_method=None,
     error_interp_method=None, return_fit_params=None,
     plot_interp=False, print_vals=None, **kwargs
 ):
@@ -1304,10 +1304,10 @@ def fit_gaussian_2_spec(
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
         This is passed to `curve_fit` as the `sigma` parameter.
-    interpolate : bool or None, default=None
+    interpolate : bool | _Unset, default=_UNSET
         Whether to interpolate the spectrum over a regular wavelength grid.
-        The number of samples is controlled by `samples`. If None, uses the
-        default value set by `config.curve_fit_interpolate`.
+        The number of samples is controlled by `samples`. If ``_UNSET``, uses the
+        default value set by ``config.curve_fit.interpolate``.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
         None, uses the default value set by `config.interpolation_samples`.
@@ -1397,7 +1397,7 @@ def fit_gaussian_2_spec(
     model = get_config_value(model, 'gaussian_model')
     fit_method = get_config_value(fit_method, 'curve_fit_method')
     absolute_sigma = get_config_value(absolute_sigma, 'curve_fit_absolute_sigma')
-    interpolate = get_config_value(interpolate, 'curve_fit_interpolate')
+    interpolate = config.curve_fit.interpolate if interpolate is _UNSET else interpolate
     interp_method = get_config_value(interp_method, 'interpolation_method')
     error_interp_method = get_config_value(error_interp_method, 'error_interpolation_method')
     samples = get_config_value(samples, 'interpolation_samples')
