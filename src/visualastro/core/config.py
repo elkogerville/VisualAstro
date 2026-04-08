@@ -40,8 +40,9 @@ class SpectralLineConfig:
     marker_direction: Literal['up', 'down'] = 'down'
     label_offset_points: tuple[float, float] = (0.0, 4.0)
     label_position: Literal['center', 'left', 'right'] = 'center'
-    text_rotation: float = 0
     label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
+    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
+    label_rotation: float = 0
 
 class VisualAstroConfig:
     """
