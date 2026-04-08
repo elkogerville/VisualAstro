@@ -18,11 +18,11 @@ Module Structure:
         Utility functions related to numerical computations.
 """
 
-from typing import Any, Literal, Sequence, TypeVar, overload
+from typing import Any, Callable, Literal, Sequence, TypeVar, overload
 from astropy import units as u
 from astropy.units import Quantity
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
@@ -184,7 +184,13 @@ def to_list(obj: Any) -> list:
 
 # Science Operation Functions
 # ---------------------------
-def kde2d(x, y, bw_method='scott', gridsize=200, padding=0.2):
+def kde2d(
+    x: NDArray,
+    y: NDArray,
+    bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott',
+    gridsize: int = 200,
+    padding: float = 0.2
+) -> tuple[NDArray, NDArray, NDArray]:
     """
     Estimate the 2D density of a set of particles using a Gaussian KDE.
 
@@ -194,21 +200,22 @@ def kde2d(x, y, bw_method='scott', gridsize=200, padding=0.2):
         1D array of x-coordinates of shape (N,).
     y : np.ndarray
         1D array of y-coordinates of shape (N,).
-    bw_method : {'scott', 'silverman'}, scalar or callable, optional, default='scott'
+    bw_method : {'scott', 'silverman'} | scalar | callable, optional, default='scott'
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
-        - 'scott' or 'silverman': use standard rules of thumb.
+        - ``'scott'`` or ``'silverman'``: use standard rules of thumb.
         - a scalar constant: directly used as the bandwidth factor.
-        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
+        - a callable: should take a ``scipy.stats.gaussian_kde`` instance as its
             sole argument and return a scalar bandwidth factor.
+
     gridsize : int, optional, default=200
         Grid resolution for the KDE.
     padding : float, optional, default=0.2
         Fractional padding applied to the data range when generating
         the evaluation grid, expressed as a fraction of the total span
-        along each axis. For example, a value of `0.2` expands the grid
+        along each axis. For example, a value of 0.2 expands the grid
         limits by 20% beyond the minimum and maximum of the data in both
-        `x` and `y` directions. This helps capture the tails of the
+        ``x`` and ``y`` directions. This helps capture the tails of the
         Gaussian kernel near the plot boundaries.
 
     Returns
@@ -220,6 +227,10 @@ def kde2d(x, y, bw_method='scott', gridsize=200, padding=0.2):
     Z : np.ndarray
         2D array of estimated density values on the grid (shape res×res).
     """
+    x = np.asarray(x)
+    y = np.asarray(y)
+    gridsize = int(gridsize)
+
     # compute bounds with % padding
     xmin, xmax = np.nanmin(x), np.nanmax(x)
     ymin, ymax = np.nanmin(y), np.nanmax(y)
