@@ -132,34 +132,32 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
         )
 
 T = TypeVar('T')
-U = TypeVar('U')
-C = TypeVar('C', bound=Sequence)
 
 @overload
 def _validate_type(
     data: object,
-    types: Type[U] | Tuple[Type[U], ...],
-    default: U | None = None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
     allow_none: Literal[False] = ...,
     name: str = 'data',
-) -> U: ...
+) -> T: ...
 
 @overload
 def _validate_type(
     data: object,
-    types: Type[U] | Tuple[Type[U], ...],
-    default: U | None = None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
     allow_none: bool = True,
     name: str = 'data',
-) -> U | None: ...
+) -> T | None: ...
 
 def _validate_type(
     data: object | None,
-    types: Type[U] | Tuple[Type[U], ...],
-    default: U | None = None,
+    types: Type[T] | Tuple[Type[T], ...],
+    default: T | None = None,
     allow_none: bool = True,
     name: str = 'data',
-) -> U | None:
+) -> T | None:
     """
     Validate that `data` is an instance of one of the allowed types.
 
@@ -211,7 +209,7 @@ def _validate_type(
             f"'{name}' must be one of: {allowed}; got {_type_name(data)}."
         )
 
-    return cast(U, data)
+    return cast(T, data)
 
 
 @overload
