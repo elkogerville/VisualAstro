@@ -49,7 +49,9 @@ from visualastro.plotting.plot_utils import (
     plot_points,
     get_imshow_norm,
     get_vmin_vmax,
-    spectral_axis_label,
+)
+from visualastro.plotting.spectra_plot_utils import (
+    spectral_axis_label
 )
 
 
