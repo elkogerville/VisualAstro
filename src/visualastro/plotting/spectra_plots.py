@@ -1421,7 +1421,7 @@ def fit_gaussian_2_spec(
 
     # compute default wavelength range from wavelength
     if spectral_range is None:
-        spectral_range = [np.nanmin(x0), np.nanmax(x0)]
+        spectral_range = (np.nanmin(x0), np.nanmax(x0))
 
     if model == 'gaussian_continuum':
         # remove continuum values to ensure it is not
@@ -1468,7 +1468,7 @@ def fit_gaussian_2_spec(
                 x0, yerror, spectral_range, samples, method=error_interp_method
             )
         # interpolate continuum array
-        if model == 'gaussian_continuum':
+        if model == 'gaussian_continuum' and continuum is not None:
             _, continuum = _interpolate(
                 x0, continuum, spectral_range, samples, method=interp_method
             )
@@ -1497,24 +1497,24 @@ def fit_gaussian_2_spec(
     perr = np.sqrt(np.diag(pcov))
 
     # extract physical quantities from model fitting
-    amplitude = popt[0] * flux_unit
-    amplitude_error = perr[0] * flux_unit
+    amplitude: Quantity = popt[0] * flux_unit
+    amplitude_error: Quantity = perr[0] * flux_unit
 
-    mu = popt[1] * spectral_unit
-    mu_error = perr[1] * spectral_unit
+    mu: Quantity = popt[1] * spectral_unit
+    mu_error: Quantity = perr[1] * spectral_unit
 
-    sigma = popt[2] * spectral_unit
-    sigma_error = perr[2] * spectral_unit
+    sigma: Quantity = popt[2] * spectral_unit
+    sigma_error: Quantity = perr[2] * spectral_unit
 
     # compute integrated flux, FWHM, and their errors
-    integrated_flux = amplitude * sigma * np.sqrt(2*np.pi)
-    flux_error = integrated_flux * np.sqrt(
+    integrated_flux: Quantity = amplitude * sigma * np.sqrt(2*np.pi)
+    flux_error: Quantity = integrated_flux * np.sqrt(
         (amplitude_error / amplitude)**2 +
         (sigma_error / sigma)**2
     )
 
-    FWHM = 2*sigma * np.sqrt(2*np.log(2))
-    FWHM_error = 2*sigma_error * np.sqrt(2*np.log(2))
+    FWHM: Quantity = 2*sigma * np.sqrt(2*np.log(2))
+    FWHM_error: Quantity = 2*sigma_error * np.sqrt(2*np.log(2))
 
     if model == 'gaussian_line' and len(popt) > 3:
         m = popt[3] * (flux_unit / spectral_unit)
@@ -1526,6 +1526,12 @@ def fit_gaussian_2_spec(
         m_error = None
         b = None
         b_error = None
+
+    if model == 'gaussian_continuum' and continuum is not None:
+        continuum_at_mu = np.interp(mu.value, x, continuum)
+        peak_flux = (amplitude.value + continuum_at_mu) * flux_unit
+    else:
+        peak_flux = function(mu.value, *popt) * flux_unit
 
     fit_config={
         'gaussian_model': model,
@@ -1555,12 +1561,12 @@ def fit_gaussian_2_spec(
         slope_error=m_error,
         intercept=b,
         intercept_error=b_error,
+        peak_height=peak_flux,
         popt=popt,
         pcov=pcov,
         perr=perr,
         p0=p0,
         fit_config=fit_config
-
     )
 
     # set plot style and colors
