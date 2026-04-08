@@ -1,22 +1,20 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-03-14
+Date Modified: 2026-04-08
 Description:
     Visualastro configuration interface to update function defaults.
 Dependencies:
     - astropy
     - numpy
 Module Structure:
-    - Plotting Params
-        Confguration parameters related to plotting functions.
-    - Science Params
-        Configuration parameters related to science functions.
+    - visualastro config class
+    - function specific configuration dataclasses
+    - _Unset value and related functions
 """
 
-from collections.abc import Sequence
 from enum import Enum
-from typing import Literal
+from typing import Literal, TypeVar
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
@@ -25,37 +23,24 @@ import numpy as np
 from numpy.typing import DTypeLike
 from regions.io.fits.write import dataclass
 
-
-@dataclass
-class CurveFitConfig:
-    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
-    absolute_sigma: bool = False
-    sample: int = 10000
-    interpolate: bool = False
-    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
-    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
-
-@dataclass
-class SpectralLineConfig:
-    marker_direction: Literal['up', 'down'] = 'down'
-    label_offset_points: tuple[float, float] = (0.0, 4.0)
-    label_position: Literal['center', 'left', 'right'] = 'center'
-    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
-    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
-    label_rotation: float = 0
+T = TypeVar('T')
 
 class VisualAstroConfig:
     """
     Global configuration object for controlling default behavior
     across the visualastro package.
 
-    Users can modify attributes to update default values for
-    plotting functions globally.
+    visualastro function parameters are often set to ``_UNSET``,
+    which at runtime gets resolved to the default hardcoded value
+    set in ``VisualAstroConfig``. Modifying this file will update
+    the default values.
 
-    Examples
-    --------
-    >>> config.style = 'minimal'
-    >>> config.figsize = (8, 8)
+    Users can also modify attributes at runtime by modifying the config
+    object attributes. This avoids permanently changing the default values.
+    ie:
+        >>> import visualastro as va
+        >>> va.config.style = 'latex'
+        >>> va.config.figsize = (6, 6)
     """
 
     def __init__(self):
@@ -64,7 +49,7 @@ class VisualAstroConfig:
 
         # I/O params
         self.unit_mismatch: str = 'warn'
-        self.default_unit: DTypeLike = np.float64
+        self.default_dtype: DTypeLike = np.float64
         self.hdu_idx: int = 0
         self.print_info: bool = False
         self.transpose: bool = False
@@ -271,16 +256,64 @@ class VisualAstroConfig:
         """
         self.__init__()
 
-# instantiate config class
+@dataclass
+class CurveFitConfig:
+    """scipy.curve_fit config"""
+    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
+    absolute_sigma: bool = False
+    sample: int = 10000
+    interpolate: bool = False
+    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+
+@dataclass
+class SpectralLineConfig:
+    """spectral_line_marker config"""
+    marker_direction: Literal['up', 'down'] = 'down'
+    label_offset_points: tuple[float, float] = (0.0, 4.0)
+    label_position: Literal['center', 'left', 'right'] = 'center'
+    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
+    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
+    label_rotation: float = 0
+
+
 config = VisualAstroConfig()
-# placeholder flag for default values by
-# default, the placeholder flag is `None`,
-# but when an argument can also take in
-# `None`, `_UNSET` should be used.
+
+
 class _Unset(Enum):
+    """
+    Default placeholder sentinel value for
+    visualastro functions.
+    """
     UNSET = 'UNSET'
 
 _UNSET = _Unset.UNSET
+
+def resolve_default(value: T | _Unset, fallback: T) -> T:
+    """
+    Fallback to a default configuration value if
+    value is ``_UNSET``.
+
+    Parameters
+    ----------
+    value : T | _Unset
+        Variable to be resolved.
+
+    fallback : T
+        Default value if ``value`` is ``_UNSET``.
+        Should be a ``config`` attribute.
+        ie. ``config.figsize``.
+
+    Returns
+    -------
+    resolved_value : T
+        Either ``value`` if value is not ``_UNSET``
+        or ``fallback`` if ``value`` is ``_UNSET``.
+    """
+    if value is _UNSET:
+        return fallback
+    return value
+
 
 def get_config_value(var, attribute):
     """
