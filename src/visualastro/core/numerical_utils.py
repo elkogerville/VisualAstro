@@ -253,7 +253,7 @@ def kde2d(
 
 # Numerical Operation Functions
 # -----------------------------
-def flatten(data: Any) -> NDArray | None:
+def flatten(data: ArrayLike) -> NDArray | None:
     """
     Flatten a dataset or a list of datasets into
     a single 1D array.
@@ -388,7 +388,7 @@ def interpolate(
     return x_interp, y_interp
 
 
-def percent_difference(a, b):
+def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     """
     Compute the percent difference between two arrays.
 
