@@ -986,7 +986,7 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
 
 @dataclass
 class GaussianFitResult:
-    '''
+    """
     Lightweight dataclass for gaussian fitting results.
 
     Attributes
@@ -994,34 +994,36 @@ class GaussianFitResult:
     amplitude : Any
         Amplitude of gaussian.
     amplitude_error : Any
-        Error on `amplitude`.
+        Error on ``amplitude``.
     mu : Any
         Mu or center of gaussian.
     mu_error : Any
-        Error on `mu`.
+        Error on ``mu``.
     sigma : Any
         Sigma or standard deviation of gaussian.
     sigma_error : Any
-        Error on `sigma`.
+        Error on ``sigma``.
     flux : Any
         Integrated flux of gaussian.
     flux_error : Any
-        Error on `flux`.
+        Error on ``flux``.
     FWHM : Any
         Full width at half maxixum or the width of
         the gaussian at half of its maximum value.
     FWHM_error : Any
-        Error on `FWHM`.
+        Error on ``FWHM``.
     slope : Any
         Slope of continuum, if modelled as a linear line
-        using the `gaussian_line` model.
+        using the ``gaussian_line`` model.
     slope_error : Any
-        Error on `slope`.
+        Error on ``slope``.
     intercept : Any
         Y-intercept of continuum, if modelled as a linear
-        line using the `gaussian_line` model.
+        line using the ``gaussian_line`` model.
     intercept_error : Any
-        Error on `intercept`.
+        Error on ``intercept``.
+    peak_height : Any
+        Height (y value) of gaussian peak.
     popt : Any
         Optimal values for the parameters so that the sum of the
         squared residuals of `f(xdata, *popt) - ydata` is minimized.
@@ -1038,7 +1040,7 @@ class GaussianFitResult:
     -----
     - If new gaussian models are added, make sure to update
       the `additional_parameters` and `parameters_labels` list.
-    '''
+    """
     # fitted parameters
     amplitude: Any
     amplitude_error: Any
@@ -1058,10 +1060,11 @@ class GaussianFitResult:
     slope_error: Optional[Any] = None
     intercept: Optional[Any] = None
     intercept_error: Optional[Any] = None
+    peak_height: Optional[Any] = None
 
     # NOTE: ensure these are updated!
-    additional_parameters = ['slope', 'intercept']
-    parameters_labels = ['Slope (m)', 'Intercept (b)']
+    additional_parameters = ['slope', 'intercept', 'peak_height']
+    parameters_labels = ['Slope (m)', 'Intercept (b)', 'Peak Height']
 
     # raw curve fit results
     popt: Optional[Any] = None
