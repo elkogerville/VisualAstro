@@ -20,7 +20,6 @@ Module Structure:
 
 from typing import Any, Callable, Literal, Sequence, TypeVar, overload
 from astropy import units as u
-from astropy.units import Quantity
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy import stats
@@ -49,7 +48,7 @@ def get_data(obj):
     array-like
         `obj.data` if the attribute exists; otherwise `obj` itself.
     """
-    if isinstance(obj, (np.ndarray, Quantity)):
+    if isinstance(obj, (np.ndarray, u.Quantity)):
         return obj
     return obj.data if hasattr(obj, 'data') else obj
 
@@ -66,7 +65,7 @@ def get_value(obj: Any):
     stripping units if present.
 
     If the object exposes a ``value`` attribute
-    (e.g., an Astropy ``Quantity``), that attribute
+    (e.g., an Astropy ``u.Quantity``), that attribute
     is returned. Otherwise, the object itself is
     returned unchanged.
 
@@ -88,18 +87,18 @@ def get_value(obj: Any):
 def to_array(obj: Any, keep_unit: Literal[False] = False) -> NDArray: ...
 
 @overload
-def to_array(obj: Any, keep_unit: Literal[True]) -> NDArray | Quantity: ...
+def to_array(obj: Any, keep_unit: Literal[True]) -> NDArray | u.Quantity: ...
 
 @overload
-def to_array(obj: Any, keep_unit: bool) -> NDArray | Quantity: ...
+def to_array(obj: Any, keep_unit: bool) -> NDArray | u.Quantity: ...
 
-def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
+def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
     """
-    Return input object as either a np.ndarray or Quantity.
+    Return input object as either a np.ndarray or u.Quantity.
 
     Parameters
     ----------
-    obj : array-like, np.ndarray, Quantity or SpectralCube
+    obj : array-like, np.ndarray, u.Quantity or SpectralCube
         Any array-like object, or an object that exposes
         a ``data`` or ``value`` attribute.
     keep_unit : bool, optional, default=False
@@ -108,7 +107,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
     Returns
     -------
     array : np.ndarray
-        Quantity array if `keep_unit` is True, else a NumPy array.
+        u.Quantity array if `keep_unit` is True, else a NumPy array.
 
     Raises
     ------
@@ -118,13 +117,13 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
     if obj is None:
         raise TypeError('None cannot be converted to an array')
 
-    if isinstance(obj, Quantity):
+    if isinstance(obj, u.Quantity):
         return obj if keep_unit else np.asarray(obj.value)
 
     elif isinstance(obj, SpectralCube):
         q = obj.filled_data[:]
-        if not isinstance(q, Quantity):
-            q = Quantity(np.asarray(q), unit=obj.unit)
+        if not isinstance(q, u.Quantity):
+            q = u.Quantity(np.asarray(q), unit=obj.unit)
         return q if keep_unit else np.asarray(q.value)
 
     elif isinstance(obj, np.ndarray):
@@ -139,10 +138,10 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | Quantity:
                 result = to_array(inner, keep_unit=keep_unit)
 
                 # check for unit in either obj or obj attribute
-                if keep_unit and not isinstance(result, Quantity):
+                if keep_unit and not isinstance(result, u.Quantity):
                     unit = getattr(obj, 'unit', None) or getattr(inner, 'unit', None)
                     if unit is not None:
-                        return Quantity(result, unit=unit)
+                        return u.Quantity(result, unit=unit)
 
                 return result
 
@@ -285,12 +284,12 @@ def flatten(data: ArrayLike) -> NDArray | None:
 
 @overload
 def interpolate(
-    xp: Quantity,
-    yp: Quantity,
+    xp: u.Quantity,
+    yp: u.Quantity,
     x_range: Sequence | NDArray,
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
-) -> tuple[Quantity, Quantity]: ...
+) -> tuple[u.Quantity, u.Quantity]: ...
 
 @overload
 def interpolate(
@@ -302,12 +301,12 @@ def interpolate(
 ) -> tuple[NDArray, NDArray]: ...
 
 def interpolate(
-    xp: NDArray | Quantity,
-    yp: NDArray | Quantity,
+    xp: NDArray | u.Quantity,
+    yp: NDArray | u.Quantity,
     x_range: Sequence | NDArray,
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
-) -> tuple[NDArray | Quantity, NDArray | Quantity]:
+) -> tuple[NDArray | u.Quantity, NDArray | u.Quantity]:
     """
     Interpolate a 1D array over a specified range.
 
@@ -336,8 +335,8 @@ def interpolate(
     y_interp : np.ndarray
         The interpolated y-values corresponding to ``x_interp``.
     """
-    x_unit = xp.unit if isinstance(xp, Quantity) else None
-    y_unit = yp.unit if isinstance(yp, Quantity) else None
+    x_unit = xp.unit if isinstance(xp, u.Quantity) else None
+    y_unit = yp.unit if isinstance(yp, u.Quantity) else None
     xp = np.asarray(xp)
     yp = np.asarray(yp)
 
@@ -443,7 +442,7 @@ def finite(
     *,
     keep_unit: bool = True,
     keep_inf: bool = False
-) -> NDArray | Quantity:
+) -> NDArray | u.Quantity:
     """
     Filter NaN and optionally infinite values from
     array-like input. The output is always 1D.
@@ -452,7 +451,7 @@ def finite(
     ----------
     obj : ArrayLike
         Input data. May be a ``np.ndarray``, ``list``, ``DataCube``,
-        ``FitsFile``, ``Quantity``, or any object compatible with ``to_array``.
+        ``FitsFile``, ``u.Quantity``, or any object compatible with ``to_array``.
     keep_unit : bool, optional, default=True
         If ``True``, preserve astropy units if present on the input.
     keep_inf : bool, optional, default=False
@@ -461,7 +460,7 @@ def finite(
 
     Returns
     -------
-    ndarray or Quantity
+    np.ndarray or u.Quantity
         A 1-D array containing the filtered values. Units are preserved
         if `keep_unit=True` and the input carries units.
 
@@ -476,7 +475,11 @@ def finite(
     return data[mask]
 
 
-def mask_finite(obj, *, keep_inf=False):
+def mask_finite(
+    obj: ArrayLike,
+    *,
+    keep_inf: bool = False
+) -> NDArray[np.bool_]:
     """
     Return a boolean mask identifying finite values in array-like input.
 
