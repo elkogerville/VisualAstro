@@ -94,9 +94,13 @@ class TestDataCubeInit:
         spectral_cube = SpectralCube.read(hdu)
 
         cube = DataCube(data=spectral_cube, header=header)
+        cube2 = DataCube(data=spectral_cube)
 
         assert isinstance(cube.data, SpectralCube)
+        assert isinstance(cube2.data, SpectralCube)
+
         self.assert_valid_cube(cube, data, header, wcs, unit)
+        self.assert_valid_cube(cube2, data, header, wcs, unit)
         self.assert_DataCube_attributes(cube)
 
     def test_ndarray_init(self, generate_test_cube):
