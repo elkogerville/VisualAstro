@@ -33,20 +33,30 @@ class TestPlotUtils:
 
     def test_get_imshow_norm(self):
 
-        assert isinstance(get_imshow_norm(0.1, 9, 'asinh'), ImageNormalize)
-        assert isinstance(get_imshow_norm(0.1, 9, 'log'), LogNorm)
-        assert isinstance(get_imshow_norm(0.1, 9, 'powernorm'), PowerNorm)
-        assert isinstance(get_imshow_norm(0.1, 9, 'asinhnorm'), AsinhNorm)
-        assert get_imshow_norm(0.1, 1.2, 'none') is None
-        assert get_imshow_norm(0., 1.2, None) is None
+        # norm is None
+        assert get_imshow_norm(None, 0.0, 2.0) is None
+        assert get_imshow_norm(None, None, None) is None
+
+        assert isinstance(get_imshow_norm('asinh', 0.1, 9), ImageNormalize)
+        assert isinstance(get_imshow_norm('log', 0.1, 9), LogNorm)
+        assert isinstance(get_imshow_norm( 'power', 0.1, 9), PowerNorm)
+        assert isinstance(get_imshow_norm('asinhnorm', 0.1, 9), AsinhNorm)
+
         # for plotting boolean maps:
-        assert get_imshow_norm(0, 1, None) is None
-        assert isinstance(get_imshow_norm(0.1, 1.2, 'ASINH'), ImageNormalize)
+        assert get_imshow_norm(None, 0, 1) is None
+        assert get_imshow_norm(None, 0.0, 1.0) is None
+        assert get_imshow_norm('asinh', 0, 1) is None
 
-        # Test invalid norm raises ValueError
-        with pytest.raises(ValueError, match='unsupported norm'):
-            get_imshow_norm(0.2, 99, 'invalid')
+        # check case insensitive
+        assert isinstance(get_imshow_norm('ASINH', 0.1, 1.2), ImageNormalize)
 
+        # test invalid norm raises ValueError
+        with pytest.raises(ValueError):
+            get_imshow_norm('invalid', 0.2, 99)
+
+        # test valid norm with no vmin/vmax raises ValueError
+        with pytest.raises(ValueError):
+            get_imshow_norm('asinh', None, None)
 
     def _validate_vmin_vmax(self, cube):
 
