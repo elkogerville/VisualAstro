@@ -208,6 +208,112 @@ def spectral_line_marker(
     return None
 
 
+def mark_spectral_lines(
+    fit_results: GaussianFitResult | list[GaussianFitResult],
+    h: u.Quantity | float,
+    ax: maxes.Axes,
+    labels: list[str] | Literal['auto'] | None = None,
+    y_offset: u.Quantity | float | None = None,
+    y_reference: Literal['peak'] | float = 'peak',
+    label_formatter=None,
+    style_cycle=None,
+    **kwargs
+) -> None:
+    """
+    Mark spectral lines on a plot from Gaussian fit results.
+
+    The function automatically labels each fitted spectral line
+    using the fit parameters ``peak_height`` and ``mu``.
+
+    Parameters
+    ----------
+    fit_results : GaussianFitResult | list[GaussianFitResult]
+        Fitted line results containing mu and peak_height.
+    h : u.Quantity | float
+        Height of marker prongs.
+    ax : matplotlib.axes.Axes
+        Axes to draw on.
+    labels : list[str] | None, optional, default=None
+        Line labels. If ``None``, no labels shown. Can also be
+        ``'auto'`` to format from mu values.
+    y_offset : u.Quantity | float | None, optional, default=None
+        Offset to add to y-position.
+    y_reference : {'peak'} | float, optional, default='peak'
+        Base y-position for markers:
+        - 'peak': Use peak_height from fit
+        - float | Quantity: Start from ``y=float``
+    label_formatter : callable or None, optional
+        Function taking (result, index) and returning label string.
+        Overrides labels parameter if provided.
+    style_cycle : list of dict or None, optional
+        List of style dicts to cycle through for different lines.
+        Each dict can contain color, linestyle, linewidth, etc.
+    **kwargs
+        Additional arguments passed to spectral_line_marker.
+
+    Examples
+    --------
+    # Simple usage
+    mark_spectral_lines(fits, h=0.5, ax=ax, labels=['Hα', 'Hβ'])
+
+    # Auto-format labels from wavelength
+    mark_spectral_lines(
+        fits, h=0.5, ax=ax,
+        label_formatter=lambda r, i: f"{r.mu.value:.2f} μm"
+    )
+
+    # Cycle through colors
+    mark_spectral_lines(
+        fits, h=0.5, ax=ax, labels=['Hα', 'Hβ'],
+        style_cycle=[{'color': 'red'}, {'color': 'blue'}]
+    )
+    """
+    if not isinstance(fit_results, list):
+        fit_results = [fit_results]
+
+    if labels == 'auto':
+        labels = [f'{r.mu.value:.3f}' for r in fit_results]
+
+    for i, result in enumerate(fit_results):
+        if y_reference == 'peak':
+            y_pos = result.peak_height
+
+        elif isinstance(y_reference, (float, int, u.Quantity)):
+            y_pos = get_value(y_reference)
+            unit = get_unit(result.peak_height)
+            if unit is not None:
+                y_pos *= unit
+
+        else:
+            raise ValueError(f'Invalid y_reference: {y_reference}')
+
+        if y_offset is not None:
+            y_pos = get_value(y_pos) + get_value(y_offset)
+
+        if label_formatter is not None:
+            label = label_formatter(result, i)
+        elif labels is not None:
+            label = labels[i]
+        else:
+            label = None
+
+        marker_kwargs = kwargs.copy()
+        if style_cycle is not None:
+            style = style_cycle[i % len(style_cycle)]
+            marker_kwargs.update(style)
+
+        spectral_line_marker(
+            result.mu,
+            y=y_pos,
+            h=h,
+            ax=ax,
+            label=label,
+            **marker_kwargs
+        )
+
+    return None
+
+
 def spectral_axis_label(
     spectral_axis: SpectralAxis | u.Quantity,
     idx: int | tuple[int, int] | None,
