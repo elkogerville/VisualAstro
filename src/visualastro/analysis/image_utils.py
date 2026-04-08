@@ -24,11 +24,12 @@ import astropy.units as u
 from astropy.units import Quantity
 from astropy.wcs import WCS
 import numpy as np
+from numpy.typing import DTypeLike
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from visualastro.core.config import config, get_config_value, _UNSET
-from visualastro.core.io import get_dtype, get_errors
+from visualastro.core.config import _Unset, config, get_config_value, _UNSET
+from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data
 from visualastro.core.units import get_unit
 from visualastro.core.validation import _type_name
@@ -111,7 +112,7 @@ def load_data_cube(filepath, error=True, hdu=None,
         header = hdul[hdu].header
         err = get_errors(hdul, dtype)
 
-    dt = get_dtype(data, dtype)
+    dt = _get_dtype(data, dtype)
 
     try:
         wcs = WCS(header)
@@ -292,7 +293,7 @@ def load_fits(filepath, header=True, error=True,
                 f'No image HDU with data found in file: {filepath}!'
             )
 
-        dt = get_dtype(data, dtype)
+        dt = _get_dtype(data, dtype)
         data = data.astype(dt, copy=False)
         # get errors
         if error:

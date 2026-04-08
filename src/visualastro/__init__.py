@@ -36,7 +36,6 @@ from visualastro.analysis.spectra_utils import (
 )
 from visualastro.core.config import config
 from visualastro.core.io import (
-    get_dtype,
     get_errors,
     get_kwargs,
     load_quantity,
@@ -44,7 +43,8 @@ from visualastro.core.io import (
     savefig,
     save_quantity,
     write_arrays_2_file,
-    write_cube_2_fits
+    write_cube_2_fits,
+    _get_dtype
 )
 from visualastro.core.numerical_utils import (
     finite,
