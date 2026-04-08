@@ -67,6 +67,7 @@ from visualastro.core.units import (
 )
 from visualastro.core.validation import _type_name
 from visualastro.dataclasses.datacube import DataCube
+from visualastro.dataclasses.fitsfile import FitsFile
 
 
 @contextmanager
@@ -421,39 +422,40 @@ def set_plot_colors(user_colors=None, cmap=None):
 # Imshow Stretch Functions
 # ------------------------
 def get_imshow_norm(
-    vmin: float | None,
-    vmax: float | None,
-    norm: Literal['asinh', 'asinhnorm', 'linear', 'log', 'powernorm', 'none'] | None,
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None,
+    vmin: float | np.floating | None,
+    vmax: float | np.floating | None,
     **kwargs
-) -> AsinhNorm | ImageNormalize | LogNorm | PowerNorm | None:
+) -> ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None:
     """
     Return a matplotlib or astropy normalization object for image display.
 
+    Returns ``None`` if ``norm=None``.
+
     Parameters
     ----------
+    norm : {'asinh', 'asinhnorm', 'log', 'power'} | None
+        Normalization algorithm for colormap scaling.
+        - ``'asinh'`` -> asinh stretch using ``ImageNormalize``
+        - ``'asinhnorm'`` -> asinh stretch using ``AsinhNorm``
+        - ``'log'`` -> logarithmic scaling using ``LogNorm``
+        - ``'power'`` -> power-law normalization using ``PowerNorm``
+
     vmin : float | None
         Minimum value for normalization.
     vmax : float | None
         Maximum value for normalization.
-    norm : str | None
-        Normalization algorithm for colormap scaling.
-        - ``'asinh'`` -> asinh stretch using ``ImageNormalize``
-        - ``'asinhnorm'`` -> asinh stretch using ``AsinhNorm``
-        - ``'linear'`` -> no normalization applied
-        - ``'log'`` -> logarithmic scaling using ``LogNorm``
-        - ``'powernorm'`` -> power-law normalization using ``PowerNorm``
-        - ``'none'`` / ``None`` -> no normalization applied
-
     linear_width : float, optional, default=``config.linear_width``
         The effective width of the linear region, beyond
         which the transformation becomes asymptotically logarithmic.
-    gamma` : float, optional, default=``config.gamma``
-        Power law exponent.
+        Used for ``norm='asinhnorm'``.
+    gamma : float, optional, default=``config.gamma``
+        Power law exponent. Used for ``norm='power'``.
 
     Returns
     -------
-    norm_obj : AsinhNorm | ImageNormalize | LogNorm | PowerNorm | None
-        Normalization object to pass to `imshow`. None if `norm` is 'none'.
+    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
+        Normalization object to pass to ``imshow``. ``None`` if ``norm=None``.
     """
     linear_width: float = kwargs.get('linear_width', config.linear_width)
     gamma: float = kwargs.get('gamma', config.gamma)
@@ -461,18 +463,26 @@ def get_imshow_norm(
     # use linear stretch if plotting boolean array
     if vmin == 0 and vmax == 1:
         return None
+    elif norm is None:
+        return None
+    else:
+        if vmin is None or vmax is None:
+            raise ValueError(
+                'vmin and vmax must not be None if norm is not None! '
+                f'got: vmin: {vmin}, vmax: {vmax}'
+            )
 
-    # ensure norm is a string
-    norm_str = 'none' if norm is None else norm.lower()
+    vmin = float(vmin)
+    vmax = float(vmax)
+
+    norm_str = norm.lower()
 
     # dict containing possible stretch algorithms
     norm_map = {
         'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
         'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
         'log': LogNorm(vmin=vmin, vmax=vmax),
-        'powernorm': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
-        'linear': None,
-        'none': None
+        'power': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax)
     }
     if norm_str not in norm_map:
         raise ValueError(
