@@ -26,7 +26,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
           channels: conda-forge
           channel-priority: strict
-          conda-remove-defaults: true
           activate-environment: test-env
 
       - name: Install dependencies
