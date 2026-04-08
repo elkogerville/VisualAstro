@@ -313,10 +313,12 @@ def interpolate(
 
     Parameters
     ----------
-    xp : array-like
+    xp : ArrayLike
         The x-coordinates of the data points. Must be 1D.
-    yp : array-like
+        Must be convertable to an array with ``np.asarray``.
+    yp : ArrayLike
         The y-coordinates of the data points. Must be 1D.
+        Must be convertable to an array with ``np.asarray``.
     x_range : tuple of float
         The (min, max) range over which to interpolate.
     N_samples : int
@@ -399,10 +401,12 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
 
     Parameters
     ----------
-    a : array-like
-        First input array.
-    b : array-like
+    a : np.ndarray
+        First input array. Must be convertable to an array
+        with ``np.asarray``.
+    b : np.ndarray
         Second input array. Must be broadcastable with ``a``.
+        Must be convertable to an array with ``np.asarray``.
 
     Returns
     -------
@@ -430,24 +434,30 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     denominator = (a + b) / 2
     with np.errstate(invalid='ignore', divide='ignore'):
         result = (np.abs(a - b) / denominator) * 100
+
     return result
 
 
-def finite(obj, *, keep_unit=True, keep_inf=False):
+def finite(
+    obj: ArrayLike,
+    *,
+    keep_unit: bool = True,
+    keep_inf: bool = False
+) -> NDArray | Quantity:
     """
     Filter NaN and optionally infinite values from
     array-like input. The output is always 1D.
 
     Parameters
     ----------
-    obj : array_like
-        Input data. May be a NumPy array, list, DataCube, FitsFile,
-        Quantity, or any object compatible with `to_array`.
+    obj : ArrayLike
+        Input data. May be a ``np.ndarray``, ``list``, ``DataCube``,
+        ``FitsFile``, ``Quantity``, or any object compatible with ``to_array``.
     keep_unit : bool, optional, default=True
-        If True, preserve astropy units if present on the input.
+        If ``True``, preserve astropy units if present on the input.
     keep_inf : bool, optional, default=False
-        If True, keep ±inf values and remove only NaNs.
-        If False, remove NaN and ±inf values.
+        If ``True``, keep ±inf values and remove only NaNs.
+        If ``False``, remove NaN and ±inf values.
 
     Returns
     -------
@@ -457,8 +467,8 @@ def finite(obj, *, keep_unit=True, keep_inf=False):
 
     Notes
     -----
-    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
-        and `~np.isnan` when `keep_inf=True`.
+    - Filtering is performed using ``np.isfinite`` when ``keep_inf=False``,
+        and ``~np.isnan`` when ``keep_inf=True``.
     """
     data = to_array(obj, keep_unit)
     mask = mask_finite(data, keep_inf=keep_inf)
