@@ -103,8 +103,6 @@ from visualastro.plotting.plot_utils import (
     set_axis_labels,
     set_axis_limits,
     set_plot_colors,
-    spectral_line_marker,
-    spectral_axis_label,
     style
 )
 from visualastro.plotting.plots import (
@@ -121,6 +119,11 @@ from visualastro.plotting.spectra_plots import (
     plot_combine_spectrum,
     plot_extracted_pixel_map,
     plot_spectrum
+)
+from visualastro.plotting.spectra_plot_utils import (
+    mark_spectral_lines,
+    spectral_axis_label,
+    spectral_line_marker
 )
 from visualastro.plotting.visual_plots import ax
 from visualastro.utils.text_utils import (
