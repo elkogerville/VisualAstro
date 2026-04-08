@@ -126,12 +126,12 @@ class VisualAstroConfig:
         # imshow params
         self.cmap = 'turbo'
         self.origin = 'lower'
-        self.norm = 'asinh'
+        self.norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None = 'asinh'
         self.linear_width: float = 1 # AsinhNorm linear width
         self.gamma: float = 0.5 # PowerNorm exponent
         self.vmin = None
         self.vmax = None
-        self.percentile: Sequence = [3.0, 99.5]
+        self.percentile: tuple[float, float] | None = (3.0, 99.5)
         self.aspect = None
 
         # axes params
@@ -228,6 +228,8 @@ class VisualAstroConfig:
         self.deredden_region = None
 
         # curve_fit params
+        #
+        self.curve_fit = CurveFitConfig()
         self.curve_fit_interpolate = False
         self.curve_fit_method = 'trf'
         self.curve_fit_absolute_sigma = False
