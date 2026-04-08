@@ -494,53 +494,149 @@ def get_imshow_norm(
 
 
 def get_vmin_vmax(
-    data: NDArray | Quantity | DataCube | SpectralCube,
-    percentile: Sequence[float] | None | _Unset = _UNSET,
+    data: NDArray | Quantity | DataCube | FitsFile | SpectralCube,
+    percentile: tuple[float, float] | _Unset = _UNSET,
     vmin: float | np.floating | None = None,
     vmax: float | np.floating | None = None
-) -> tuple[float | np.floating | int | None, float | np.floating | int | None]:
+) -> tuple[float | np.floating | int, float | np.floating | int]:
     """
     Compute vmin and vmax for image display. By default uses the
     data nanpercentile using ``percentile``, but optionally vmin and/or
-    vmax can be set by the user. Setting percentile to None results in
-    no stretch. Passing in a boolean array uses vmin=0, vmax=1. This
-    function is used internally by plotting functions.
+    vmax can be set by the user.
+
+    Passing in a boolean array returns ``vmin=0``, ``vmax=1``.
+    This function is used internally by  ``compute_imshow_scale``.
 
     Parameters
     ----------
-    data : array-like
+    data : ArrayLike
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-    percentile : list or tuple of two floats, or None, default=``_UNSET``
+        Must be convertable to an array via ``to_array``.
+    percentile : tuple[float, float] |  _Unset, optional, default=_UNSET
         Percentile range ``[pmin, pmax]`` to compute vmin and vmax.
         If None, sets vmin and vmax to None. If ``_UNSET``, uses
         default value from ``config.percentile``.
-    vmin : float or None, default=``None``
+    vmin : float | None, optional, default=``None``
         If provided, overrides the computed vmin.
-    vmax : float or None, default=``None``
+    vmax : float | None, optional, default=``None``
         If provided, overrides the computed vmax.
 
     Returns
     -------
-    vmin : float or None
+    vmin : float | int | None
         Minimum value for image scaling.
-    vmax : float or None
+    vmax : float | int | None
         Maximum value for image scaling.
     """
-    percentile = config.percentile if percentile is _UNSET else percentile
+    percentile_range = config.percentile if percentile is _UNSET else percentile
+    if percentile_range is None:
+        raise ValueError(
+            'get_vmin_vmax requires a valid percentile range. '
+            'Received None. This function should only be called '
+            'when percentile-based scaling is enabled.'
+        )
+
     # check if data is an array
     data = to_array(data)
     # check if data is boolean
     if data.dtype == bool:
         return 0, 1
 
-    # by default use percentile range
-    if percentile is not None:
-        if vmin is None:
-            vmin = np.nanpercentile(data, percentile[0])
-        if vmax is None:
-            vmax = np.nanpercentile(data, percentile[1])
+    if vmin is None:
+        vmin = np.nanpercentile(data, percentile_range[0])
+    if vmax is None:
+        vmax = np.nanpercentile(data, percentile_range[1])
 
     return vmin, vmax
+
+
+def compute_imshow_scale(
+    data: NDArray | Quantity | DataCube | FitsFile | SpectralCube,
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None,
+    vmin: float | np.floating | None,
+    vmax: float | np.floating | None,
+    percentile: tuple[float, float] | None
+) -> tuple[
+    ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None,
+    float | np.floating | None,
+    float | np.floating | None
+]:
+    """
+    Compute normalization and intensity scaling parameters for ``plt.imshow``.
+
+    Resolves interaction between ``norm``, ``vmin``, ``vmax``, and
+    ``percentile`` into consistent display parameters.
+
+
+    Modes
+    -----
+    1. Normalized scaling (``norm`` is not None):
+    - ``vmin``/``vmax`` from ``percentile`` or explicit values (required)
+    - Returns ``(norm_obj, vmin, vmax)``
+
+    2. Linear with percentile (``norm`` is None, ``percentile`` provided):
+    - ``vmin``/``vmax`` from ``percentile`` (unless explicit)
+    - Returns ``(None, vmin, vmax)``
+
+    3. Linear with explicit limits (``norm`` is None, ``vmin`` or ``vmax`` set):
+    - Missing bounds from ``percentile`` if available, else None
+    - Returns ``(None, vmin, vmax)``
+
+    4. Matplotlib autoscaling (all None):
+    - Returns ``(None, None, None)``
+
+    5. Boolean data (dtype is bool):
+    - Forces ``vmin=0``, ``vmax=1``
+    - Returns ``(None, 0, 1)``
+
+    Parameters
+    ----------
+    data : ndarray, Quantity, DataCube, FitsFile, or SpectralCube
+        Input image data. Must be convertible to a NumPy array via
+        ``to_array``.
+    norm : {'asinh', 'asinhnorm', 'log', 'power'} or None
+        Normalization algorithm for colormap scaling.
+        If None, linear scaling is used.
+    vmin : float or None
+        Lower bound for intensity scaling. If None, may be computed
+        from ``percentile`` or left unset depending on mode.
+    vmax : float or None
+        Upper bound for intensity scaling. If None, may be computed
+        from ``percentile`` or left unset depending on mode.
+    percentile : tuple[float, float] or None
+        Percentile range ``(pmin, pmax)`` used to compute ``vmin`` and
+        ``vmax``. If None, no automatic clipping is applied.
+
+    Returns
+    -------
+    norm_obj : ImageNormalize, AsinhNorm, LogNorm, PowerNorm, or None
+        Normalization object for ``imshow``. None indicates linear scaling.
+    vmin : float or None
+        Lower intensity bound for ``imshow``.
+    vmax : float or None
+        Upper intensity bound for ``imshow``.
+    """
+    data = to_array(data)
+    if data.dtype == bool:
+        return None, 0, 1
+
+    if norm is None:
+        if percentile is not None:
+            vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
+
+        return None, vmin, vmax
+
+    if percentile is not None:
+        vmin, vmax = get_vmin_vmax(data, percentile, vmin, vmax)
+
+    elif vmin is None or vmax is None:
+        raise ValueError(
+            'vmin and vmax must not be None if norm is not None! '
+            f'got: norm: {norm}, vmin: {vmin}, vmax: {vmax}'
+        )
+    img_norm = get_imshow_norm(norm, vmin, vmax)
+
+    return img_norm, vmin, vmax
 
 
 def nanpercentile_limits(
