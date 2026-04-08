@@ -22,49 +22,11 @@ from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import DTypeLike, NDArray
+from numpy.typing import ArrayLike, DTypeLike, NDArray
 from tqdm import tqdm
 from visualastro.core.config import get_config_value, config, _UNSET, resolve_default
 from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
-
-
-def get_dtype(data, dtype=None, default_dtype=_UNSET):
-    """
-    Returns the dtype from the provided data. Promotes
-    integers to floats if needed.
-
-    Parameters
-    ----------
-    data : array-like
-        Input array whose dtype will be checked.
-    dtype : data-type, optional, default=None
-        If provided, this dtype is returned directly.
-        If None, returns `data.dtype` if floating or
-        `np.float64` if integer or unsigned.
-    default_dtype : data-type, optional, default=None
-        Float type to use if `data` is integer or unsigned.
-        If None, uses the default unit set in ``config.default_dtype``.
-
-    Returns
-    -------
-    dtype : np.dtype
-        NumPy dtype object: user dtype if given, otherwise the array's
-        float dtype or `default_dtype` if array is integer/unsigned.
-    """
-    default_dtype = resolve_default(default_dtype, config.default_dtype)
-
-    # return user dtype if passed in
-    if dtype is not None:
-        return np.dtype(dtype)
-
-    data = to_array(data)
-    # by default use data dtype if floating
-    # if unsigned or int use default_dtype
-    if np.issubdtype(data.dtype, np.floating):
-        return np.dtype(data.dtype)
-    else:
-        return np.dtype(default_dtype)
 
 
 def get_errors(
@@ -103,7 +65,7 @@ def get_errors(
         extname = str(hdu.header.get('EXTNAME', '')).upper()
 
         if extname in {'ERR', 'ERROR', 'UNCERT'}:
-            dt = get_dtype(hdu.data, dtype)
+            dt = _get_dtype(hdu.data, dtype)
             errors = hdu.data.astype(dt, copy=False)
 
             if hdu.header is not None:
@@ -129,7 +91,7 @@ def get_errors(
             extname = str(hdu.header.get('EXTNAME', '')).upper()
 
             if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
-                dt = get_dtype(hdu.data, dtype)
+                dt = _get_dtype(hdu.data, dtype)
                 variance = hdu.data.astype(dt, copy=False)
 
                 if hdu.header is not None:
@@ -457,3 +419,49 @@ def savefig(
             edgecolor=edgecolor,
             dpi=dpi
         )
+
+
+def _get_dtype(
+    data: ArrayLike | u.Quantity,
+    dtype=None,
+    default_dtype=_UNSET
+) -> DTypeLike:
+    """
+    Returns the dtype from the provided data. Promotes
+    integers and unsigned to floats.
+
+    Used internally by visualastro data I/O functions.
+
+    Parameters
+    ----------
+    data : ArrayLike | u.Quantity
+        Input array whose dtype will be checked.
+        Can be anything convertible to an NDArray
+        by ``to_array``.
+    dtype : data-type, optional, default=None
+        If provided, this dtype is returned directly.
+        If None, returns ``data.dtype`` if floating or
+        ``default_dtype`` if integer or unsigned.
+    default_dtype : data-type, optional, default=None
+        Float type to use if ``data`` is integer or unsigned.
+        If None, uses the default unit set in ``config.default_dtype``.
+
+    Returns
+    -------
+    dtype : np.dtype
+        User dtype if given, otherwise the array's float dtype
+        or ``default_dtype`` if array is integer/unsigned.
+    """
+    default_dtype = resolve_default(default_dtype, config.default_dtype)
+
+    # return user dtype if passed in
+    if dtype is not None:
+        return np.dtype(dtype)
+
+    data = to_array(data)
+    # by default use data dtype if floating
+    # if unsigned or int use default_dtype
+    if np.issubdtype(data.dtype, np.floating):
+        return np.dtype(data.dtype)
+    else:
+        return np.dtype(default_dtype)
