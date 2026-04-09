@@ -304,7 +304,6 @@ def load_fits(filepath, header=True, error=True,
 
         dt = _get_dtype(data, dtype)
         data = data.astype(dt, copy=False)
-        # get errors
         if error:
             errors = get_errors(hdul, dt, transpose)
 
