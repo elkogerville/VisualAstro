@@ -291,6 +291,19 @@ class SpectralLineConfig:
     label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
     label_rotation: float = 0
 
+@dataclass
+class HDUConfig:
+    """HDU config"""
+    index: int = 0
+    error_extensions: list[str] = field(
+        default_factory=lambda: [
+        'ERR', 'ERROR', 'UNCERT'
+    ])
+    variance_extensions: list[str] = field(
+        default_factory=lambda: [
+        'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE', 'STAT'
+    ])
+
 
 config = VisualAstroConfig()
 
