@@ -34,8 +34,11 @@ T = TypeVar('T')
 # --------------------------------
 def get_data(obj):
     """
-    Return the `data` attribute of an object if present;
-    otherwise return the object unchanged.
+    Return the ``data`` attribute of an object if present;
+    otherwise return the object unchanged. In visualastro,
+    the data extension represents the high level datastructure
+    used to hold data. This is usually a ``np.ndarray``,
+    ``u.Quantity``, or ``SpectralCube``.
 
     Parameters
     ----------

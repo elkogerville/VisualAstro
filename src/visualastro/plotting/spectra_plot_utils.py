@@ -250,6 +250,8 @@ def mark_spectral_lines(
     The function automatically labels each fitted spectral line
     using the fit parameters ``peak_height`` and ``mu``.
 
+    Internally calls ``spectral_line_marker``.
+
     Parameters
     ----------
     fit_results : GaussianFitResult | list[GaussianFitResult]
