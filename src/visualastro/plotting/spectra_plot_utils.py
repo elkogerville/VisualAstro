@@ -240,7 +240,7 @@ def mark_spectral_lines(
     style: Literal['vline', 'marker'] = 'marker',
     labels: list[str] | Literal['auto'] | None = 'auto',
     y_offset: u.Quantity | float | None = None,
-    y_reference: Literal['peak'] | float = 'peak',
+    y_reference: Literal['peak'] | u.Quantity | float | Sequence[u.Quantity | float] = 'peak',
     style_cycle=None,
     **kwargs
 ) -> None:
@@ -258,6 +258,10 @@ def mark_spectral_lines(
         Height of marker prongs.
     ax : matplotlib.axes.Axes
         Axes to draw on.
+    style : {'marker', 'vline'}, optional, default='marker'
+        If ``'marker'``, plots a multi-prong marker delineating
+        each spectral peak location. If ``'vline'``, plots a
+        ax.axvline at the location of the peak of each line.
     labels : list[str] | None, optional, default=None
         Line labels. If ``None``, no labels shown. Can also be
         ``'auto'`` to format from mu values.
@@ -265,8 +269,9 @@ def mark_spectral_lines(
         Offset to add to y-position.
     y_reference : {'peak'} | float, optional, default='peak'
         Base y-position for markers:
-        - 'peak': Use peak_height from fit
-        - float | Quantity: Start from ``y=float``
+        - ``'peak'``: Use peak_height from fit
+        - ``u.Quantity`` | ``float``: Start from ``y=float``
+        - ``Sequence[u.Quantity | float]``: Cycle through y-positions for each line
     style_cycle : list of dict or None, optional
         List of style dicts to cycle through for different lines.
         Each dict can contain color, linestyle, linewidth, etc.
@@ -284,13 +289,16 @@ def mark_spectral_lines(
         style_cycle=[{'color': 'red'}, {'color': 'blue'}]
     )
     """
+    if str(style).lower() == 'vline':
+        label_offset_points = kwargs.get('label_offset_points', [0, 0])
+    else:
+        label_offset_points = kwargs.get(
+            'label_offset_points',
+            config.spectral_line_marker.label_offset_points
+        )
+
     if not isinstance(fit_results, list):
         fit_results = [fit_results]
-
-    if str(style).lower() not in {'vline', 'marker'}:
-        raise ValueError(
-            f"style must be either 'vline' or 'marker'! got: {style}"
-        )
 
     if labels == 'auto':
         labels = [f'{r.mu.value:.3f}' for r in fit_results]
@@ -298,6 +306,13 @@ def mark_spectral_lines(
     for i, result in enumerate(fit_results):
         if y_reference == 'peak':
             y_pos = result.peak_height
+
+        elif isinstance(y_reference, Sequence):
+            y_ref = y_reference[i % len(y_reference)]
+            y_pos = get_value(y_ref)
+            unit = get_unit(result.peak_height)
+            if unit is not None:
+                y_pos *= unit
 
         elif isinstance(y_reference, (float, int, u.Quantity)):
             y_pos = get_value(y_reference)
@@ -311,35 +326,23 @@ def mark_spectral_lines(
         if y_offset is not None:
             y_pos = get_value(y_pos) + get_value(y_offset)
 
-        if labels is not None:
-            label = labels[i]
-        else:
-            label = None
+        label = labels[i] if labels is not None else None
 
         marker_kwargs = kwargs.copy()
         if style_cycle is not None:
             style_i = style_cycle[i % len(style_cycle)]
             marker_kwargs.update(style_i)
 
-        if str(style).lower() == 'marker':
-            spectral_line_marker(
-                result.mu,
-                y=y_pos,
-                h=h,
-                ax=ax,
-                label=label,
-                **marker_kwargs
-            )
-
-        elif str(style).lower() == 'vline':
-            ax.axvline(
-                result.mu.value,
-                ls=config.axline.linestyle,
-                lw=config.axline.linewidth,
-                color=config.axline.color,
-                alpha=config.axline.alpha,
-                zorder=config.axline.zorder
-            )
+        spectral_line_marker(
+            result.mu,
+            y=y_pos,
+            h=h,
+            ax=ax,
+            style=style,
+            label=label,
+            label_offset_points=label_offset_points
+            **marker_kwargs
+        )
 
     return None
 
