@@ -209,10 +209,10 @@ def mark_spectral_lines(
     fit_results: GaussianFitResult | list[GaussianFitResult],
     h: u.Quantity | float,
     ax: maxes.Axes,
-    labels: list[str] | Literal['auto'] | None = None,
+    style: Literal['vline', 'marker'] = 'marker',
+    labels: list[str] | Literal['auto'] | None = 'auto',
     y_offset: u.Quantity | float | None = None,
     y_reference: Literal['peak'] | float = 'peak',
-    label_formatter=None,
     style_cycle=None,
     **kwargs
 ) -> None:
@@ -239,9 +239,6 @@ def mark_spectral_lines(
         Base y-position for markers:
         - 'peak': Use peak_height from fit
         - float | Quantity: Start from ``y=float``
-    label_formatter : callable or None, optional
-        Function taking (result, index) and returning label string.
-        Overrides labels parameter if provided.
     style_cycle : list of dict or None, optional
         List of style dicts to cycle through for different lines.
         Each dict can contain color, linestyle, linewidth, etc.
@@ -250,16 +247,10 @@ def mark_spectral_lines(
 
     Examples
     --------
-    # Simple usage
+    # simple usage
     mark_spectral_lines(fits, h=0.5, ax=ax, labels=['Hα', 'Hβ'])
 
-    # Auto-format labels from wavelength
-    mark_spectral_lines(
-        fits, h=0.5, ax=ax,
-        label_formatter=lambda r, i: f"{r.mu.value:.2f} μm"
-    )
-
-    # Cycle through colors
+    # cycle through colors
     mark_spectral_lines(
         fits, h=0.5, ax=ax, labels=['Hα', 'Hβ'],
         style_cycle=[{'color': 'red'}, {'color': 'blue'}]
@@ -267,6 +258,11 @@ def mark_spectral_lines(
     """
     if not isinstance(fit_results, list):
         fit_results = [fit_results]
+
+    if str(style).lower() not in {'vline', 'marker'}:
+        raise ValueError(
+            f"style must be either 'vline' or 'marker'! got: {style}"
+        )
 
     if labels == 'auto':
         labels = [f'{r.mu.value:.3f}' for r in fit_results]
@@ -287,26 +283,35 @@ def mark_spectral_lines(
         if y_offset is not None:
             y_pos = get_value(y_pos) + get_value(y_offset)
 
-        if label_formatter is not None:
-            label = label_formatter(result, i)
-        elif labels is not None:
+        if labels is not None:
             label = labels[i]
         else:
             label = None
 
         marker_kwargs = kwargs.copy()
         if style_cycle is not None:
-            style = style_cycle[i % len(style_cycle)]
-            marker_kwargs.update(style)
+            style_i = style_cycle[i % len(style_cycle)]
+            marker_kwargs.update(style_i)
 
-        spectral_line_marker(
-            result.mu,
-            y=y_pos,
-            h=h,
-            ax=ax,
-            label=label,
-            **marker_kwargs
-        )
+        if str(style).lower() == 'marker':
+            spectral_line_marker(
+                result.mu,
+                y=y_pos,
+                h=h,
+                ax=ax,
+                label=label,
+                **marker_kwargs
+            )
+
+        elif str(style).lower() == 'vline':
+            ax.axvline(
+                result.mu.value,
+                ls=config.axline.linestyle,
+                lw=config.axline.linewidth,
+                color=config.axline.color,
+                alpha=config.axline.alpha,
+                zorder=config.axline.zorder
+            )
 
     return None
 
