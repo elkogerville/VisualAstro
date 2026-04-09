@@ -64,7 +64,7 @@ def get_errors(
 
         extname = str(hdu.header.get('EXTNAME', '')).upper()
 
-        if extname in {'ERR', 'ERROR', 'UNCERT'}:
+        if extname in config.hdu.error_extensions:
             dt = _get_dtype(hdu.data, dtype)
             errors = hdu.data.astype(dt, copy=False)
 
@@ -90,7 +90,7 @@ def get_errors(
 
             extname = str(hdu.header.get('EXTNAME', '')).upper()
 
-            if extname in {'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE'}:
+            if extname in config.hdu.variance_extensions:
                 dt = _get_dtype(hdu.data, dtype)
                 variance = hdu.data.astype(dt, copy=False)
 
