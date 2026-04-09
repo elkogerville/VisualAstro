@@ -56,21 +56,21 @@ from visualastro.utils.text_utils import print_pretty_table
 # Science Spectrum Functions
 # --------------------------
 @overload
-def get_spectral_axis(
+def _get_spectral_axis(
     obj: SpectralAxis | Quantity
 ) -> SpectralAxis | Quantity: ...
 
 @overload
-def get_spectral_axis(
+def _get_spectral_axis(
     obj: None
 ) -> None: ...
 
 @overload
-def get_spectral_axis(
+def _get_spectral_axis(
     obj: Any
 ) -> SpectralAxis | Quantity | None: ...
 
-def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
+def _get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     """
     Get the `spectral_axis` associated with an object, if one exists.
 
@@ -109,7 +109,7 @@ def get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     if hasattr(obj, 'data'):
         data = obj.data
         if data is not obj:
-            spectral_axis = get_spectral_axis(data)
+            spectral_axis = _get_spectral_axis(data)
             if spectral_axis is not None:
                 return spectral_axis
 
@@ -211,7 +211,7 @@ def get_continuum(
                 spectrum, fit_method=fit_method, region=region
             )
 
-    spectral_axis = get_spectral_axis(obj)
+    spectral_axis = _get_spectral_axis(obj)
     flux = get_flux(obj)
 
     if (
@@ -465,7 +465,7 @@ def _estimate_spectrum_line_flux(
         If the spectral axis, flux, or continuum cannot be determined,
         or if `spec_range` is not a length-2 array-like object.
     """
-    spectral_axis = get_spectral_axis(spectrum)
+    spectral_axis = _get_spectral_axis(spectrum)
     flux = get_flux(spectrum)
     continuum = get_continuum(spectrum)
 
@@ -669,7 +669,7 @@ def spectral_world_2_idx(spectral_axis, value) -> int:
     UnitsError :
         If a unit mismatch is detected.
     """
-    spectral_axis = get_spectral_axis(spectral_axis)
+    spectral_axis = _get_spectral_axis(spectral_axis)
     if not isinstance(spectral_axis, (Quantity, SpectralAxis)):
         raise ValueError(
             'spectral_axis must be a Quantity or SpectralAxis!'
