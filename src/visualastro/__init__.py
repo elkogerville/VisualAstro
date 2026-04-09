@@ -26,13 +26,13 @@ from visualastro.analysis.spectra_utils import (
     gaussian_line,
     get_continuum,
     get_flux,
-    get_spectral_axis,
     mask_spectral_region,
     propagate_flux_errors,
     shift_by_radial_vel,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
-    spectral_world_2_idx
+    spectral_world_2_idx,
+    _get_spectral_axis
 )
 from visualastro.core.config import config
 from visualastro.core.io import (

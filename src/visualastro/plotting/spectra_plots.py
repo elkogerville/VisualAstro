@@ -44,8 +44,8 @@ from visualastro.analysis.spectra_utils import (
     gaussian as _gaussian,
     gaussian_continuum as _gaussian_continuum,
     gaussian_line as _gaussian_line,
-    get_spectral_axis,
     shift_by_radial_vel,
+    _get_spectral_axis
 )
 from visualastro.core.config import (
     get_config_value,
@@ -451,7 +451,7 @@ def extract_cube_pixel_spectra(
             "`combine_spectra=True`."
         )
 
-    spectral_axis = get_spectral_axis(cube)
+    spectral_axis = _get_spectral_axis(cube)
     if spectral_axis is None:
         raise ValueError('Could not determine spectral_axis from cube')
 

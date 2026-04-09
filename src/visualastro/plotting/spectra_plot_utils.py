@@ -19,9 +19,9 @@ import matplotlib.transforms as mtransforms
 from specutils import SpectralAxis
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
-    get_spectral_axis,
     shift_by_radial_vel,
-    spectral_idx_2_world
+    spectral_idx_2_world,
+    _get_spectral_axis,
 )
 from visualastro.core.config import (
     config,
@@ -417,7 +417,7 @@ def spectral_axis_label(
     text_color: str = kwargs.get('text_color', config.text_color)
     highlight: bool = kwargs.get('highlight', config.highlight)
 
-    spectral_axis = get_spectral_axis(spectral_axis)
+    spectral_axis = _get_spectral_axis(spectral_axis)
     if spectral_axis is None:
         raise ValueError(
             'spectral_axis cannot be None! '
