@@ -25,7 +25,8 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     config,
     _Unset,
-    _UNSET
+    _UNSET,
+    resolve_default
 )
 from visualastro.core.numerical_utils import get_value, to_list
 from visualastro.core.units import (
@@ -99,6 +100,7 @@ def spectral_line_marker(
         - ``'left'``: extends leftward from leftmost x
         - ``'right'``: extends rightward from rightmost x
         - ``'center'``: extends symmetrically from center
+
     **kwargs
         Additional keyword arguments passed to vlines and hlines.
 
@@ -106,30 +108,25 @@ def spectral_line_marker(
     -------
     None : Modifies ``ax`` in place.
     """
-    marker_direction = (
-        config.spectral_line_marker.marker_direction
-        if direction is _UNSET else direction
+    marker_direction = resolve_default(
+        direction, config.spectral_line_marker.marker_direction
     )
-    label_offset_points = (
-        config.spectral_line_marker.label_offset_points
-        if label_offset_points is _UNSET else label_offset_points
+    label_offset_points = resolve_default(
+        label_offset_points, config.spectral_line_marker.label_offset_points
     )
-    label_position = (
-        config.spectral_line_marker.label_position
-        if label_position is _UNSET else label_position
+    label_position = resolve_default(
+        label_position, config.spectral_line_marker.label_position
     )
-    label_anchor = (
-        config.spectral_line_marker.label_anchor
-        if label_anchor is _UNSET else label_anchor
+    label_anchor = resolve_default(
+        label_anchor, config.spectral_line_marker.label_anchor
     )
-    label_reference = (
-            config.spectral_line_marker.label_reference
-            if label_reference is _UNSET else label_reference
-        )
-    rotation = (
-        config.spectral_line_marker.label_rotation
-        if rotation is _UNSET else rotation
+    label_reference = resolve_default(
+        label_reference, config.spectral_line_marker.label_reference
     )
+    rotation = resolve_default(
+        rotation, config.spectral_line_marker.label_rotation
+    )
+
     if label_anchor == 'auto': label_anchor = label_position
     if label_reference == 'auto':
         label_reference = 'hline' if hline_extend is not None else 'marker'
