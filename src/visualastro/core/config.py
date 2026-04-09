@@ -13,15 +13,18 @@ Module Structure:
     - _Unset value and related functions
 """
 
+from dataclasses import field
 from enum import Enum
 from typing import Literal, TypeVar
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
 from regions.io.fits.write import dataclass
+
 
 T = TypeVar('T')
 
@@ -57,6 +60,7 @@ class VisualAstroConfig:
         self.mask_out_value: float = np.nan
         self.invert_wcs_if_transpose: bool = True
         self.target_wcs: Header | WCS | None = None
+        self.hdu = HDUConfig()
 
         # figure params
         self.style: str = 'astro' # default style
@@ -81,7 +85,6 @@ class VisualAstroConfig:
         self.wcs_grid_color: 'str' = 'w'
         self.wcs_grid_linestyle: 'str' = 'dotted'
 
-
         # data params
         self.normalize_data = False
 
@@ -93,6 +96,8 @@ class VisualAstroConfig:
         # line2D params
         self.linestyle = '-'
         self.linewidth = 0.8
+
+        self.axline = AXLineConfig()
 
         # scatter params
         self.scatter_size = 10
@@ -266,6 +271,15 @@ class CurveFitConfig:
     interpolate: bool = False
     interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+
+@dataclass
+class AXLineConfig:
+    """ax.vline / ax.hline config"""
+    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
+    linewidth: float = 1.0
+    color: ColorType = 'k'
+    alpha: float | None = 0.7
+    zorder: float = 0
 
 @dataclass
 class SpectralLineConfig:
