@@ -1715,11 +1715,11 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
                 vline = get_value(vline)
             ax.axvline(
                 vline,
-                ls=':',
-                lw=1.0,
-                color='k',
-                alpha=0.7,
-                zorder=0,
+                ls=config.axline.linestyle,
+                lw=config.axline.linewidth,
+                color=config.axline.color,
+                alpha=config.axline.alpha,
+                zorder=config.axline.zorder
             )
 
 
@@ -1759,11 +1759,11 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
                 hline = get_value(hline)
             ax.axhline(
                 hline,
-                ls=':',
-                lw=1.0,
-                color='k',
-                alpha=0.7,
-                zorder=0,
+                ls=config.axline.linestyle,
+                lw=config.axline.linewidth,
+                color=config.axline.color,
+                alpha=config.axline.alpha,
+                zorder=config.axline.zorder
             )
 
 
