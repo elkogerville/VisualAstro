@@ -10,6 +10,7 @@ Dependencies:
     - specutils
 """
 
+from collections.abc import Sequence
 from typing import Literal, cast
 import astropy.units as u
 import matplotlib.axes as maxes
@@ -43,6 +44,7 @@ def spectral_line_marker(
     y: float | u.Quantity,
     h: float | u.Quantity,
     ax: maxes.Axes,
+    style: Literal['marker', 'vline'] = 'marker',
     label: str | None = None,
     direction: Literal['up', 'down'] | _Unset = _UNSET,
     label_offset_points: tuple[float, float] | _Unset = _UNSET,
@@ -54,7 +56,8 @@ def spectral_line_marker(
     **kwargs
 ) -> None:
     """
-    Plot multi-prong spectral line markers with an optional grouped label.
+    Plot spectral line markers with an optional grouped label. Available
+    in multi-prong marker mode or vline mode.
 
     Parameters
     ----------
@@ -66,6 +69,10 @@ def spectral_line_marker(
         Height of the vertical markers.
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the markers.
+    style : {'marker', 'vline'}, optional, default='marker'
+        If ``'marker'``, plots a multi-prong marker delineating
+        each spectral peak location. If ``'vline'``, plots a
+        ax.axvline at the location of the peak of each line.
     label : str, optional
         Label for the group of lines.
     direction : Literal['up', 'down'] | _Unset, optional, default=_UNSET
@@ -127,7 +134,18 @@ def spectral_line_marker(
         rotation, config.spectral_line_marker.label_rotation
     )
 
-    if label_anchor == 'auto': label_anchor = label_position
+    if str(style).lower() not in {'vline', 'marker'}:
+        raise ValueError(
+            f"style must be either 'vline' or 'marker'! got: {style}"
+        )
+
+    if label_anchor == 'auto':
+        if str(style).lower() == 'vline':
+            label_anchor = {'left': 'right', 'right': 'left'}.get(
+                label_position, label_position) # type: ignore[assignment]
+        else:
+            label_anchor = label_position
+
     if label_reference == 'auto':
         label_reference = 'hline' if hline_extend is not None else 'marker'
 
@@ -142,21 +160,31 @@ def spectral_line_marker(
     extend_val = get_value(hline_extend)
 
     for x_val in x_vals:
-        ax.vlines(x_val, y_val, y_val + h_val, **kwargs)
+        if str(style).lower() == 'marker':
+            ax.vlines(x_val, y_val, y_val + h_val, **kwargs)
+        elif str(style).lower() == 'vline':
+            ax.axvline(
+                x_val.value if isinstance(x_val, u.Quantity) else x_val,
+                ls=config.axline.linestyle,
+                lw=config.axline.linewidth,
+                color=config.axline.color,
+                alpha=config.axline.alpha,
+                zorder=config.axline.zorder
+            )
+    if str(style).lower() == 'marker':
+        if extend_val is not None:
+            if label_position == 'left':
+                x0, x1 = x_vals[0] - extend_val, x_vals[0]
+            elif label_position == 'right':
+                x0, x1 = x_vals[-1], x_vals[-1] + extend_val
+            else:
+                x_mid = 0.5 * (x_vals[0] + x_vals[-1])
+                x0, x1 = x_mid - extend_val / 2, x_mid + extend_val / 2
 
-    if extend_val is not None:
-        if label_position == 'left':
-            x0, x1 = x_vals[0] - extend_val, x_vals[0]
-        elif label_position == 'right':
-            x0, x1 = x_vals[-1], x_vals[-1] + extend_val
-        else:
-            x_mid = 0.5 * (x_vals[0] + x_vals[-1])
-            x0, x1 = x_mid - extend_val / 2, x_mid + extend_val / 2
+            ax.hlines(y_val + h_val, x0, x1, **kwargs)
 
-        ax.hlines(y_val + h_val, x0, x1, **kwargs)
-
-    elif len(x_vals) > 1:
-        ax.hlines(y_val + h_val, x_vals[0], x_vals[-1], **kwargs)
+        elif len(x_vals) > 1:
+            ax.hlines(y_val + h_val, x_vals[0], x_vals[-1], **kwargs)
 
     if label is not None:
         if label_reference == 'marker':
