@@ -23,9 +23,9 @@ from specutils.spectra import Spectrum
 from visualastro.core.config import get_config_value
 from visualastro.core.units import (
     ensure_common_unit,
-    require_spectral_region,
     to_spectral_region,
-    _check_unit_equality
+    _check_unit_equality,
+    _require_spectral_region
 )
 from visualastro.core.validation import _type_name
 from visualastro.utils.fits_utils import (
@@ -181,7 +181,7 @@ class SpectrumPlus:
                  spectrum.spectral_axis.max())
             )
 
-        region = require_spectral_region(region)
+        region = _require_spectral_region(region)
 
         if continuum is None:
             continuum = self._fit_continuum(spectrum, fit_method, region)
@@ -301,7 +301,7 @@ class SpectrumPlus:
         fit_method = self.fit_method
         log_file = self.log_file
 
-        region = require_spectral_region(region)
+        region = _require_spectral_region(region)
         subregions = region.subregions
         if subregions is None:
             raise ValueError(

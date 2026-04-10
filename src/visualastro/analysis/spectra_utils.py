@@ -44,9 +44,9 @@ from visualastro.core.units import (
     ensure_common_unit,
     get_spectral_unit,
     get_unit,
-    require_spectral_region,
     to_spectral_region,
-    _is_spectral_axis
+    _is_spectral_axis,
+    _require_spectral_region
 )
 from visualastro.core.validation import _type_name
 from visualastro.dataclasses.spectrumplus import SpectrumPlus
@@ -552,7 +552,7 @@ def mask_spectral_region(x, spectral_region):
     >>> n_valid = np.count_nonzero(mask & np.isfinite(flux))
     """
     x = get_value(x)
-    spectral_region = require_spectral_region(spectral_region)
+    spectral_region = _require_spectral_region(spectral_region)
     subregions = spectral_region.subregions
     if subregions is None:
         raise TypeError(

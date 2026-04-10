@@ -39,10 +39,10 @@ from visualastro.core.config import get_config_value, _UNSET
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
-    require_spectral_region,
     to_unit,
     unit_2_string,
     _check_unit_equality,
+    _require_spectral_region
 )
 from visualastro.core.validation import (
     _check_shapes_match,
@@ -1072,7 +1072,7 @@ class DataCube:
             region = SpectralRegion(
                 cube.spectral_axis.min(), cube.spectral_axis.max()
             )
-        region = require_spectral_region(region)
+        region = _require_spectral_region(region)
         ensure_common_unit([cube.spectral_axis, region.lower], on_mismatch='raise')
 
         spec_min = region.lower
