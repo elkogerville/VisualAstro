@@ -16,7 +16,7 @@ from astropy.io.fits import Header
 from astropy.time import Time
 import numpy as np
 from specutils import SpectralRegion
-from visualastro.core.units import require_spectral_region
+from visualastro.core.units import _require_spectral_region
 
 
 @overload
@@ -178,7 +178,7 @@ def _region_to_history(region: SpectralRegion) -> str:
         String representation of the spectral region bounds of the form:
             region[unit]: (lo1,hi1), (lo2,hi2), ...
     """
-    region = require_spectral_region(region)
+    region = _require_spectral_region(region)
     unit = region.lower.unit.to_string('fits')
 
     subregions = region.subregions

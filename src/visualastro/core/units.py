@@ -536,7 +536,7 @@ def to_spectral_region(
         ) from e
 
 
-def require_spectral_region(
+def _require_spectral_region(
     obj: (
         SpectralRegion
         | Quantity
