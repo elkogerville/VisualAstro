@@ -29,10 +29,7 @@ from visualastro.analysis.spectra_utils import (
     shift_by_radial_vel,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
-    spectral_world_2_idx,
-    _get_continuum,
-    _get_flux,
-    _get_spectral_axis
+    spectral_world_2_idx
 )
 from visualastro.core.config import config
 from visualastro.core.io import (
@@ -43,8 +40,7 @@ from visualastro.core.io import (
     savefig,
     save_quantity,
     write_arrays_2_file,
-    write_cube_2_fits,
-    _get_dtype
+    write_cube_2_fits
 )
 from visualastro.core.numerical_utils import (
     finite,
@@ -66,7 +62,6 @@ from visualastro.core.units import (
     get_spectral_unit,
     get_unit,
     get_units,
-    require_spectral_region,
     to_unit,
     to_fits_unit,
     to_latex_unit,
