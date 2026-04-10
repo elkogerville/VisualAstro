@@ -116,7 +116,7 @@ def _get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     return None
 
 
-def get_flux(obj: Any) -> Quantity | None:
+def _get_flux(obj: Any) -> Quantity | None:
     """
     Get the flux associated with an object, if one exists.
 
@@ -151,12 +151,12 @@ def get_flux(obj: Any) -> Quantity | None:
     if hasattr(obj, 'data'):
         data = obj.data
         if data is not obj:
-            return get_flux(data)
+            return _get_flux(data)
 
     return None
 
 
-def get_continuum(
+def _get_continuum(
     obj: Any,
     fit_method: str = 'fit_continuum',
     region: SpectralRegion | list[tuple] | None = None
@@ -207,12 +207,12 @@ def get_continuum(
     if hasattr(obj, 'spectrum'):
         spectrum = obj.spectrum
         if spectrum is not obj:
-            return get_continuum(
+            return _get_continuum(
                 spectrum, fit_method=fit_method, region=region
             )
 
     spectral_axis = _get_spectral_axis(obj)
-    flux = get_flux(obj)
+    flux = _get_flux(obj)
 
     if (
         spectral_axis is not None and spectral_axis is not obj
@@ -221,7 +221,7 @@ def get_continuum(
         spectrum = Spectrum(
             spectral_axis=spectral_axis, flux=flux
         )
-        return get_continuum(
+        return _get_continuum(
             spectrum, fit_method=fit_method, region=region
         )
 
@@ -466,8 +466,8 @@ def _estimate_spectrum_line_flux(
         or if `spec_range` is not a length-2 array-like object.
     """
     spectral_axis = _get_spectral_axis(spectrum)
-    flux = get_flux(spectrum)
-    continuum = get_continuum(spectrum)
+    flux = _get_flux(spectrum)
+    continuum = _get_continuum(spectrum)
 
     if spectral_axis is None or flux is None or continuum is None:
         raise ValueError(
