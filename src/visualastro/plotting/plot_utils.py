@@ -33,8 +33,7 @@ import astropy.units as u
 from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
-from matplotlib import colors as mcolors
-from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
+from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
@@ -434,12 +433,13 @@ def get_imshow_norm(
 
     Parameters
     ----------
-    norm : {'asinh', 'asinhnorm', 'log', 'power'} | None
+    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | None
         Normalization algorithm for colormap scaling.
         - ``'asinh'`` -> asinh stretch using ``ImageNormalize``
         - ``'asinhnorm'`` -> asinh stretch using ``AsinhNorm``
         - ``'log'`` -> logarithmic scaling using ``LogNorm``
         - ``'power'`` -> power-law normalization using ``PowerNorm``
+        - ``'twoslope'`` -> normalize centered around ``vcenter`` using ``TwoSlopeNorm``
 
     vmin : float | None
         Minimum value for normalization.
@@ -451,6 +451,10 @@ def get_imshow_norm(
         Used for ``norm='asinhnorm'``.
     gamma : float, optional, default=``config.gamma``
         Power law exponent. Used for ``norm='power'``.
+    vcenter : float, optional, default=None
+        Center point of normalization. Must be in between
+        ``vmin`` and ``vmax``. If ``None``, is the midpoint between
+        ``vmin`` and ``vmax``.
 
     Returns
     -------
@@ -459,6 +463,7 @@ def get_imshow_norm(
     """
     linear_width: float = kwargs.pop('linear_width', config.linear_width)
     gamma: float = kwargs.pop('gamma', config.gamma)
+    vcenter: float | None = kwargs.pop('vcenter', None)
 
     # use linear stretch if plotting boolean array
     if vmin == 0 and vmax == 1:
@@ -474,6 +479,7 @@ def get_imshow_norm(
 
     vmin = float(vmin)
     vmax = float(vmax)
+    vcenter = (vmax - vmin)/2 if vcenter is None else vcenter
 
     norm_str = norm.lower()
 
@@ -482,7 +488,8 @@ def get_imshow_norm(
         'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
         'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
         'log': LogNorm(vmin=vmin, vmax=vmax),
-        'power': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax)
+        'power': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
+        'twoslope': TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
     }
     if norm_str not in norm_map:
         raise ValueError(
@@ -552,13 +559,13 @@ def get_vmin_vmax(
 
 def compute_imshow_scale(
     data: NDArray | Quantity | DataCube | FitsFile | SpectralCube,
-    norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None,
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None,
     vmin: float | np.floating | None,
     vmax: float | np.floating | None,
     percentile: tuple[float, float] | None,
     **kwargs
 ) -> tuple[
-    ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None,
+    ImageNormalize | AsinhNorm | LogNorm | PowerNorm | TwoSlopeNorm | None,
     float | np.floating | None,
     float | np.floating | None
 ]:
@@ -582,7 +589,7 @@ def compute_imshow_scale(
     - Missing bounds from ``percentile`` if available, else None
     - Returns ``(None, vmin, vmax)``
 
-    4. Matplotlib autoscaling (all None):
+    4. Matplotlib autoscaling (all None), or norm='linear':
     - Returns ``(None, None, None)``
 
     5. Boolean data (dtype is bool):
@@ -623,8 +630,12 @@ def compute_imshow_scale(
         Upper intensity bound for ``imshow``.
     """
     data = to_array(data)
+
     if data.dtype == bool:
         return None, 0, 1
+
+    if norm == 'linear':
+        return None, None, None
 
     if norm is None:
         if percentile is not None:
@@ -772,9 +783,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     figsize = get_config_value(figsize, 'grid_figsize')
     sharex = get_config_value(sharex, 'sharex')
     sharey = get_config_value(sharey, 'sharey')
-    hspace = config.hspace if hspace is _UNSET else hspace
-    wspace = config.wspace if wspace is _UNSET else wspace
-    Nticks = config.Nticks if Nticks is _UNSET else Nticks
+    hspace = resolve_default(hspace, config.hspace)
+    wspace = resolve_default(wspace, config.wspace)
+    Nticks = resolve_default(Nticks, config.Nticks)
 
     Nx = nrows
     Ny = ncols
