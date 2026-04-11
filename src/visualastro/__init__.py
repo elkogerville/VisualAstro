@@ -74,6 +74,11 @@ from visualastro.plotting.image_plots import (
     imshow,
     plot_spectral_cube
 )
+from visualastro.plotting.colors import (
+    create_colormap,
+    get_colors,
+    sample_cmap,
+)
 from visualastro.plotting.plot_utils import (
     add_colorbar,
     add_contours,
@@ -85,7 +90,6 @@ from visualastro.plotting.plot_utils import (
     get_vmin_vmax,
     inline,
     interactive,
-    lighten_color,
     make_plot_grid,
     nanpercentile_limits,
     plot_circles,
@@ -94,10 +98,8 @@ from visualastro.plotting.plot_utils import (
     plot_interactive_ellipse,
     plot_points,
     plot_vlines,
-    sample_cmap,
     set_axis_labels,
     set_axis_limits,
-    set_plot_colors,
     style
 )
 from visualastro.plotting.plots import (
