@@ -78,9 +78,11 @@ class VisualAstroConfig:
         self.figsize: tuple = (6, 6)
         self.grid_figsize: tuple = (12, 6)
         self.figsize3d: tuple = (10, 10)
-        self.colors: str | None = None # if None, defaults to `self.default_palette`. To define a custom default palette,
-                           # define it in `get_colors` and change the `default_palette`.
-        self.default_palette: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
+        # if _UNSET, defaults to ``self.default_colorset``.
+        # To define a custom default colorset,
+        # define it in `get_colors` and change the `default_colorset`.
+        self.colors: str | _Unset = _UNSET
+        self.default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
         self.alpha: int = 1
         self.nrows: int = 1 # make_grid_plot() nrows
         self.ncols: int = 2 # make_grid_plot() ncols
