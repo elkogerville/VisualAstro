@@ -29,6 +29,22 @@ from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 
 
+def get_sci_from_hdul(
+    hdul: fits.HDUList,
+) -> tuple[NDArray, list[fits.Header]]:
+
+    sci = [h for h in hdul if h.name == 'SCI' or h.name == 'DATA'] # type: ignore
+
+    if len(sci) == 0:
+        raise ValueError('No SCI HDUs found')
+
+    data = np.stack([h.data for h in sci], axis=0) # type: ignore
+
+    headers = [h.header for h in sci] # type: ignore
+
+    return data, headers
+
+
 def get_errors(
     hdul: fits.HDUList,
     dtype: DTypeLike | str | None = None,
