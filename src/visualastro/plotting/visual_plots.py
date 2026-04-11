@@ -46,156 +46,20 @@ class ax:
                norm=_UNSET, percentile=_UNSET, stack_method=None,
                origin=None, wcs_input=None, invert_wcs=False, cmap=None,
                aspect=_UNSET, mask_non_pos=None, wcs_grid=None, **kwargs):
-        '''
-        Convenience wrapper for `imshow`, which displays a
-        2D image with optional visual customization.
+        """
+        Wrapper for ``imshow`` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `imshow` routine with the provided parameters.
-        This method is intended for rapid visualization and consistent figure
-        formatting, while preserving full configurability through **kwargs.
+        See ``va.imshow`` for full documentation.
 
-        Parameters
-        ----------
-        datas : np.ndarray or list of np.ndarray
-            Image array or list of image arrays to plot. Each array should
-            be 2D (Ny, Nx) or 3D (Nz, Nx, Ny) if using 'idx' to slice a cube.
-        idx : int or list of int, optional, default=None
-            Index for slicing along the first axis if 'datas'
-            contains a cube.
-            - i -> returns cube[i]
-            - [i] -> returns cube[i]
-            - [i, j] -> returns the sum of cube[i:j+1] along axis 0
-            If 'datas' is a list of cubes, you may also pass a list of
-            indeces.
-            ex: passing indeces for 2 cubes-> [[i,j], k].
-        vmin : float or None, optional, default=`_UNSET`
-            Lower limit for colormap scaling; overides `percentile[0]`.
-            If None, values are determined from `percentile[0]`.
-            If `_UNSET`, uses the default value in `config.vmin`.
-        vmax : float or None, optional, default=`_UNSET`
-            Upper limit for colormap scaling; overides `percentile[1]`.
-            If None, values are determined from `percentile[1]`.
-            If `_UNSET`, uses the default value in `config.vmax`.
-        norm : str or None, optional, default=`_UNSET`
-            Normalization algorithm for colormap scaling.
-            - 'asinh' -> asinh stretch using 'ImageNormalize'
-            - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
-            - 'log' -> logarithmic scaling using 'LogNorm'
-            - 'powernorm' -> power-law normalization using 'PowerNorm'
-            - 'linear', 'none', or None -> no normalization applied
-            If `_UNSET`, uses the default value in `config.norm`.
-        percentile : list or tuple of two floats, or None, default=`_UNSET`
-            Default percentile range used to determine 'vmin' and 'vmax'.
-            If `_UNSET`, uses default value from `config.percentile`.
-            If None, use no percentile stretch.
-        stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
-            Stacking method. If None, uses the default value set
-            by ``config.stack_cube_method``.
-        origin : {'upper', 'lower'} or None, default=None
-            Pixel origin convention for imshow. If None,
-            uses the default value from `config.origin`.
-        wcs_input : `astropy.wcs.WCS`, `astropy.io.fits.Header`, list, tuple, or bool, optional
-            World Coordinate System (WCS) definition for the input data. If `None`,
-            the method will attempt to infer a WCS from the provided data if it is a
-            `DataCube` or `FitsFile` instance. If `False`, no WCS projection is used
-            and a standard Matplotlib axis is created.
+        Equivalent to::
 
-            Supported types:
-                - `WCS` : a pre-constructed WCS object.
-                - `Header` : a FITS header from which a WCS can be constructed.
-                - `list` or `tuple` : sequence of headers, in which case the first
-                    element is used to build the WCS.
-                - `None` : attempt automatic inference, or fall back to default axes.
-            Invalid types will raise a `TypeError`.
-        invert_wcs : bool, optional
-            If `True`, swaps the WCS axes (i.e., RA and DEC) using `WCS.swapaxes(0, 1)`.
-            Useful for correcting coordinate orientation in cases where the FITS header
-            or image orientation is flipped. Ignored if no valid WCS is present.
-        cmap : str, list of str or None, default=None
-            Matplotlib colormap name or list of colormaps, cycled across images.
-            If None, uses the default value from `config.cmap`.
-            ex: ['turbo', 'RdPu_r']
-        aspect : {'auto', 'equal'}, float, or None, optional, default=`_UNSET`
-            Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
-            results in fixed axes with the aspect adjusted to fit the axes. 'equal`
-            sets an aspect ratio of 1. None defaults to 'equal', however, if the
-            image uses a transform that does not contain the axes data transform,
-            then None means to not modify the axes aspect at all. If `_UNSET`,
-            uses the default value from `config.aspect`.
-        mask_non_pos : bool or None, optional, default=None
-            If True, mask out non-positive data values. Useful for displaying
-            log scaling of images with non-positive values. If None, uses the
-            default value set by `config.mask_non_positive`.
-        wcs_grid : bool or None, optional, default=None
-            If True, display WCS grid ontop of plot. If None,
-            uses the default value set by `config.wcs_grid`.
-
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `invert_xaxis` : bool, optional, default=False
-                Invert the x-axis if True.
-            - `invert_yaxis` : bool, optional, default=False
-                Invert the y-axis if True.
-            - `text_loc` : list of float, optional, default=`config.text_loc`
-                Relative axes coordinates for text placement when
-                plotting interactive ellipses.
-            - `text_color` : str, optional, default=`config.text_color`
-                Color of the ellipse annotation text.
-            - `xlabel` : str, optional, default=None
-                X-axis label.
-            - `ylabel` : str, optional, default=None
-                Y-axis label.
-            - `colorbar` : bool, optional, default=`config.cbar`
-                Add colorbar if True.
-            - `clabel` : str or bool, optional, default=`config.clabel`
-                Colorbar label. If True, use default label; if None or False, no label.
-            - `cbar_width` : float, optional, default=`config.cbar_width`
-                Width of the colorbar.
-            - `cbar_pad` : float, optional, default=`config.cbar_pad`
-                Padding between plot and colorbar.
-            - `circles` : list, optional, default=None
-                List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
-            - `ellipses` : list, optional, default=None
-                List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.
-                Single Ellipse objects can also be passed directly.
-            - `points` : array-like, shape (2,) or (N, 2), optional, default=None
-                Coordinates of points to overplot. Can be a single point `[x, y]`
-                or a list/array of points `[[x1, y1], [x2, y2], ...]`.
-                Points are plotted as red stars by default.
-            - `plot_ellipse` : bool, optional, default=False
-                If True, plot an interactive ellipse overlay. Requires an interactive backend.
-            - `center` : list of float, optional, default=[Nx//2, Ny//2]
-                Center of the default interactive ellipse (x, y).
-            - `w` : float, optional, default=X//5
-                Width of the default interactive ellipse.
-            - `h` : float, optional, default=Y//5
-                Height of the default interactive ellipse.
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.dpi`
-                Resolution (dots per inch) for saved figure.
-        '''
-        # ---- KWARGS ----
-        # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
-        # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+            ax = va.add_subplot()
+            va.imshow(data, ax=ax, **kwargs)
+        """
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         # by default plot WCS if available
         wcs = None
@@ -245,8 +109,10 @@ class ax:
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
             apply_style_modifiers(ax, style)
 
-            _ = imshow(datas, ax, idx, vmin, vmax, norm, percentile, stack_method,
-                       origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs)
+            imshow(
+                datas, ax, idx, vmin, vmax, norm, percentile, stack_method,
+                origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs
+            )
 
             if savefig:
                     savefig(dpi)
