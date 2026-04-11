@@ -27,6 +27,7 @@ dependencies = [
     "scipy",
     "spectral_cube",
     "specutils",
+    "tol-colors",
     "tqdm",
 ]
 
