@@ -22,6 +22,8 @@ import warnings
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np
+
+from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
 from visualastro.plotting.colors import get_colors
 from visualastro.plotting.plot_utils import get_stylepath
@@ -151,7 +153,7 @@ class help:
             style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
         else:
             style_names = to_list(style_name)
-        colors, _ = get_colors('astro')
+        colors, _ = get_colors(config.default_palette)
         print(
             'Here are sample plot made with the available visualastro plot styles. '
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
