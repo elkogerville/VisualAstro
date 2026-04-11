@@ -77,7 +77,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         If None, uses the default value from `config.normalize_hist`.
     colors : list of colors, str, or None, optional, default=None
         Colors for each dataset. If None, uses the
-        default color palette from `config.default_palette`.
+        default color colorset from `config.default_colorset`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -208,7 +208,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ax_histy.xaxis.set_label_position('bottom')
 
     # set plot colors
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
 
     sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
     markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
@@ -314,7 +314,7 @@ def plot_histogram(
         If None, uses the default value from `config.normalize_hist`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each dataset. If None,
-        uses the default color palette from `config.default_palette`.
+        uses the default color colorset from `config.default_colorset`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -386,7 +386,7 @@ def plot_histogram(
     ref_unit = ensure_common_unit(datas)
     labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
     data_list = []
 
     # set axes
@@ -458,7 +458,7 @@ def plot_lines(X, Y, ax, normalize=None,
         If None, uses the default value from `config.ylog`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each line. If None, uses the
-        default color palette from `config.default_palette`.
+        default color colorset from `config.default_colorset`.
     linestyle : str, list of str, or None, optional, default=None
         Line style(s) to use for plotting. Can be a single string or a list of
         styles for multiple lines. Accepted values are:
@@ -558,7 +558,7 @@ def plot_lines(X, Y, ax, normalize=None,
     if np.ndim(Y[0]) == 0:
         Y = [Y]
 
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
     linestyles = linestyles if isinstance(linestyles, (list, np.ndarray, tuple)) else [linestyles]
     linewidths = linewidths if isinstance(linewidths, (list, np.ndarray, tuple)) else [linewidths]
     alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
@@ -637,8 +637,8 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         None, uses the default value in `config.ylog`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color palette from
-        `config.default_palette`.
+        If None, uses the default color colorset from
+        `config.default_colorset`.
     size : float, list of float, or None, optional, default=None
         Size of scatter dots. If None, uses the default
         value in `config.scatter_size`.
@@ -768,7 +768,7 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
         yerr = yerr if isinstance(yerr, (list, np.ndarray, tuple)) else [yerr]
 
     xerror, yerror = None, None
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
     sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
     markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
     alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
@@ -857,8 +857,8 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
         If False, disables gridlines on the 3D plot.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color palette from
-        `config.default_palette`.
+        If None, uses the default color colorset from
+        `config.default_colorset`.
     size : float, list of float, or None, optional, default=None
         Size of scatter dots. If None, uses the default
         value in `config.scatter_size`.
@@ -990,7 +990,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
             f'\n(got {len(X)}, {len(Y)}, and {len(Z)}).'
         )
 
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
     sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
     markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
     alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]

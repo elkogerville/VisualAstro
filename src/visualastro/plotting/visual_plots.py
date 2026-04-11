@@ -317,8 +317,8 @@ class ax:
             Fitted continuum array.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color palette from
-            `config.default_palette`.
+            If None, uses the default color colorset from
+            `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -436,8 +436,8 @@ class ax:
             `use_samecolor` is also set to True.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color palette from
-            `config.default_palette`.
+            If None, uses the default color colorset from
+            `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -566,7 +566,7 @@ class ax:
             If None, uses the default value from `config.normalize_hist`.
         colors : list of colors, str, or None, optional, default=None
             Colors for each dataset. If None, uses the
-            default color palette from `config.default_palette`.
+            default color colorset from `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -683,7 +683,7 @@ class ax:
             If None, uses the default value from `config.normalize_hist`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each dataset. If None,
-            uses the default color palette from `config.default_palette`.
+            uses the default color colorset from `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -780,7 +780,7 @@ class ax:
             If None, uses the default value from `config.ylog`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each line. If None, uses the
-            default color palette from `config.default_palette`.
+            default color colorset from `config.default_colorset`.
         linestyle : str, list of str, or None, optional, default=None
             Line style(s) to use for plotting. Can be a single string or a list of
             styles for multiple lines. Accepted values are:
@@ -901,8 +901,8 @@ class ax:
             None, uses the default value in `config.ylog`.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color palette from
-            `config.default_palette`.
+            If None, uses the default color colorset from
+            `config.default_colorset`.
         size : float, list of float, or None, optional, default=None
             Size of scatter dots. If None, uses the default
             value in `config.scatter_size`.
@@ -1036,8 +1036,8 @@ class ax:
             If False, disables gridlines on the 3D plot.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color palette from
-            `config.default_palette`.
+            If None, uses the default color colorset from
+            `config.default_colorset`.
         size : float, list of float, or None, optional, default=None
             Size of scatter dots. If None, uses the default
             value in `config.scatter_size`.
