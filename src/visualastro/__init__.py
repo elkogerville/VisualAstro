@@ -75,6 +75,7 @@ from visualastro.plotting.image_plots import (
     plot_spectral_cube
 )
 from visualastro.plotting.colors import (
+    as_color,
     create_colormap,
     get_colors,
     sample_cmap,
