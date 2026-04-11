@@ -25,6 +25,7 @@ from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
 from spectral_cube import SpectralCube
+
 from visualastro.core.validation import _type_name
 
 
@@ -560,6 +561,35 @@ def mask_within_range(
     mask = (x >= xmin) & (x <= xmax)
 
     return mask
+
+
+def _cycle(data, i):
+    """
+    Cycle through a list cotinously. When
+    the bounds are reached, the index is reset
+    to zero.
+
+    This function is meant to be called inside
+    of a loop, when lists of different lengths
+    need to be iterated upon concurently.
+
+    Parameters
+    ----------
+    data : list[T]
+        Input data list.
+    i : int
+        Loop index.
+
+    Returns
+    -------
+    T :
+        ``data`` element.
+    """
+    if not isinstance(data, list):
+        raise ValueError(
+            'data must be a list!'
+        )
+    return data[i % len(data)]
 
 
 @overload
