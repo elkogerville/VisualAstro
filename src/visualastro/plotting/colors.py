@@ -82,11 +82,11 @@ def create_colormap(
 def sample_cmap(
     N: int,
     cmap: str | mcolors.Colormap | _Unset = _UNSET,
-    as_hex: bool = False
-) -> NDArray:
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | RGBTuple | RGBATuple]:
     """
     Sample N distinct colors from a given matplotlib colormap
-    returned as RGBA tuples in an array of shape (N,4).
+    returned as a list of colors in a specified format.
 
     Parameters
     ----------
@@ -95,119 +95,136 @@ def sample_cmap(
     cmap : str | Colormap | _Unset, optional, default=_UNSET
         Name of the matplotlib colormap or Colormap object. If
         ``_UNSET`` uses the default value in ``config.cmap``.
-    as_hex : bool, optional, default=False
-        If True, return colors as hex strings.
+    fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
 
     Returns
     -------
-    NDArray
-        Array of shape (N, 4) containing RGBA colors if ``as_hex=False``,
-        or array of shape (N,) containing hex strings if ``as_hex=True``.
+    list[str] :
+        If ``fmt='hex'``.
+    list[tuple[float, float, float]] :
+        If ``fmt='rgb'``.
+    list[tuple[float, float, float, float]] :
+        If ``fmt='rgba'``.
     """
     cmap = resolve_default(cmap, config.cmap)
-
     colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
-    if as_hex:
-        colors = np.array([mcolors.to_hex(c) for c in colors])
 
-    return colors
+    return [_convert_color(c, fmt) for c in colors]
 
 
-def get_colors(user_colors=None, cmap=_UNSET):
-    '''
-    Returns plot and model colors based on predefined palettes or user input.
+def get_colors(
+    colors: str | ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
+    cmap: mcolors.Colormap | str | _Unset = _UNSET,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | RGBTuple | RGBATuple]:
+    """
+    Get colors from colorset name, colormap sampling, or explicit colors.
 
     Parameters
     ----------
-    user_colors : str, list, or None, optional, default=None
-        - None: returns the default palette (`config.default_palette`).
-        - str:
-            * If the string matches a palette name, returns that palette.
-            * If the string ends with '_r', returns the reversed version of the palette.
-            * If the string is a single color (hex or matplotlib color name), returns
-              that color and a lighter version for the model.
-        - list:
-            * A list of colors (hex or matplotlib color names). Returns the list
-              for plotting and lighter versions for models.
-        - int:
-            * An integer specifying how many colors to sample from a matplolib cmap
-              using sample_cmap(). By default uses 'turbo'.
-    cmap : str, list of str, or None, default=_UNSET
-        Matplotlib colormap name. If ``_UNSET``, uses
-        the default value in ``config.cmap``.
+    colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
+        - ``UNSET``: Use default colorset
+        - ``str``:  visualastro colorset name (with optional '_r' suffix) or single color
+        - ``ColorType``: Explicit color
+        - ``int``: Number of colors to sample from cmap
+        - ``Sequence[ColorType]``: Explicit list of colors
+
+        If ``_UNSET``, uses the default value from ``config.default_colorset``.
+    cmap : Colormap | str | _Unset, optional, default=_UNSET
+        Colormap for sampling when colors is int. If ``_UNSET``,
+        uses the default value from ``config.cmap``.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output format.
 
     Returns
     -------
-    plot_colors : list of str
-        Colors for plotting the data.
-    model_colors : list of str
-        Colors for plotting the model (contrasting or lighter versions).
-    '''
-    palettes = {
-        'visualastro': {
-            'plot':  ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-            'model': ['#D62728', '#1F77B4', '#E45756', '#17BECF', '#9467BD']
-        },
-        'va': {
-            'plot':  ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-            'model': ['#D62728', '#1F77B4', '#E45756', '#17BECF', '#9467BD']
-        },
-        'ibm_contrast': {
-            'plot':  ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-            'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#1F77B4', '#8C564B']
-        },
-        'astro': {
-            'plot':  ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
-            'model': ['#D62728', '#1F77B4', '#9467BD', '#2CA02C', '#E45756', '#17BECF', '#8C564B', '#FFD700']
-        },
-        'MSG': {
-            'plot':  ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
-            'model': ['#D62728', '#1F77B4', '#2CA02C', '#9467BD', '#17BECF']
-        },
-        'ibm': {
-            'plot':  ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-            'model': ['#D62728', '#2CA02C', '#9467BD', '#17BECF', '#E45756']
-        },
-        'smplot': {
-            'plot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00'],
-            'model': ['#808080', '#FF6B6B', '#6B6BFF', '#6BFF6B', '#6BFFFF', '#FF6BFF', '#FFFF6B']
-        }
-    }
-    # get default config values
-    cmap = resolve_default(cmap, config.cmap)
-    default_palette = config.default_palette
+    list[str] :
+        If ``fmt='hex'``.
+    list[tuple[float, float, float]] :
+        If ``fmt='rgb'``.
+    list[tuple[float, float, float, float]] :
+        If ``fmt='rgba'``.
+    """
 
-    # default case
-    if user_colors is None:
-        palette = palettes[default_palette]
-        return palette['plot'], palette['model']
-    # if user passes a color string
-    if isinstance(user_colors, str):
-        # if palette in visualastro palettes
-        # return a reversed palette if palette
+    cmap = resolve_default(cmap, config.cmap)
+
+    if colors is _UNSET:
+        colorset = COLORSETS.get(config.default_colorset, COLORSETS['va'])
+        return as_list(as_color(colorset, fmt=fmt))
+
+    if isinstance(colors, str):
+        # if colorset in visualastro colorsets
+        # return a reversed colorset if colorset
         # ends with '_r'
-        if user_colors.rstrip('_r') in palettes:
-            base_name = user_colors.rstrip('_r')
-            palette = palettes[base_name]
-            plot_colors = palette['plot']
-            model_colors = palette['model']
-            # if '_r', reverse palette
-            if user_colors.endswith('_r'):
-                plot_colors = plot_colors[::-1]
-                model_colors = model_colors[::-1]
-            return plot_colors, model_colors
+        if colors.removesuffix('_r') in COLORSETS:
+            base_name = colors.removesuffix('_r')
+            colorset = COLORSETS[base_name]
+            # if '_r', reverse colorset
+            if colors.endswith('_r'):
+                colorset = colorset[::-1]
+            return as_list(as_color(colorset, fmt))
+
         else:
-            return [user_colors], [_lighten_color(user_colors)]
-    # if user passes a list or array of colors
-    if isinstance(user_colors, (list, np.ndarray)):
-        return user_colors, [_lighten_color(c) for c in user_colors]
+            return as_list(as_color(colors, fmt))
+
+    if isinstance(colors, (np.ndarray, Sequence)):
+        return as_list(as_color(colors, fmt))
+
     # if user passes an integer N, sample a cmap for N colors
-    if isinstance(user_colors, int):
-        colors = sample_cmap(user_colors, cmap=cmap)
-        return colors, [_lighten_color(c) for c in colors]
-    raise ValueError(
-        'user_colors must be None, a str palette name, a str color, a list of colors, or an integer'
+    if isinstance(colors, int):
+        return as_list(sample_cmap(colors, cmap=cmap, fmt=fmt))
+
+    raise TypeError(
+        'colors must be None, a str colorset name, a str color, '
+        f'a list of colors, or an integer! got {_type_name(colors)}'
     )
+
+
+def as_color(
+    c: ColorType | Sequence[ColorType],
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> (
+    str
+    | RGBTuple
+    | RGBATuple
+    | list[str | RGBTuple | RGBATuple]
+):
+    """
+    Convert a matplotlib ``ColorType`` or a ``list[ColorType]`` into
+    one of the following formats: ``'hex`'', ``'rgb'``, or ``'rgba'``.
+
+    Parameters
+    ----------
+    c : ColorType | List[ColorType]
+        Matplotlib color(s). Can be named colors, rgb/rgba, hex, etc...
+    fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If ``fmt='hex'``.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If ``fmt='rgb'``.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If ``fmt='rgba'``.
+    """
+    color_list = as_list(c)
+    color_list = [_convert_color(c) for c in color_list] # type: ignore
+
+    return _unwrap_if_single(color_list)
+
+
+def _convert_color(
+    c: ColorType,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+)-> str | tuple[float, float, float] | tuple[float, float, float, float]:
+    """
+    Convert a matplotlib ``ColorType`` into one of the following
+    formats: ``'hex`'', ``'rgb'``, or ``'rgba'``.
+    """
+    return getattr(mcolors, f'to_{fmt}')(c)
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
@@ -255,14 +272,3 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
 
     return mcolors.to_hex(rgb_new)
-
-
-palettes = {
-    'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-    'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-    'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-    'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
-    'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
-    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-    'smplot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00']
-}
