@@ -29,7 +29,7 @@ from visualastro.core.config import (
     _UNSET,
     resolve_default
 )
-from visualastro.core.numerical_utils import get_value, to_list
+from visualastro.core.numerical_utils import get_value, _cycle
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
@@ -310,7 +310,7 @@ def mark_spectral_lines(
             y_pos = result.peak_height
 
         elif isinstance(y_reference, Sequence):
-            y_ref = y_reference[i % len(y_reference)]
+            y_ref = _cycle(y_reference, i)
             y_pos = get_value(y_ref)
             unit = get_unit(result.peak_height)
             if unit is not None:
@@ -332,7 +332,7 @@ def mark_spectral_lines(
 
         marker_kwargs = kwargs.copy()
         if style_cycle is not None:
-            style_i = style_cycle[i % len(style_cycle)]
+            style_i = _cycle(style_cycle, i)
             marker_kwargs.update(style_i)
 
         spectral_line_marker(
