@@ -69,13 +69,12 @@ from visualastro.core.units import (
 from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.spectrumplus import SpectrumPlus
 from visualastro.plotting.image_plots import imshow
+from visualastro.plotting.colors import get_colors, sample_cmap
 from visualastro.plotting.plot_utils import (
     plot_vlines,
     get_stylepath,
-    sample_cmap,
     set_axis_labels,
     set_axis_limits,
-    set_plot_colors
 )
 
 
@@ -993,7 +992,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
     # set plot style and colors
-    colors, fit_colors = set_plot_colors(colors, cmap=cmap)
+    colors, fit_colors = get_colors(colors, cmap=cmap)
     # add emission line text
     if emission_line is not None:
         ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
@@ -1185,7 +1184,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         use_samecolor = True
 
     # set plot style and colors
-    colors, _ = set_plot_colors(colors, cmap=cmap)
+    colors, _ = get_colors(colors, cmap=cmap)
 
     wave_list = []
     flux_list = []
@@ -1570,7 +1569,7 @@ def fit_gaussian_2_spec(
     )
 
     # set plot style and colors
-    colors, _ = set_plot_colors(colors)
+    colors, _ = get_colors(colors)
     style = get_stylepath(style)
 
     with plt.style.context(style):

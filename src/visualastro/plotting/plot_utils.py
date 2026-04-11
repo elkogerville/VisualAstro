@@ -43,12 +43,14 @@ import numpy as np
 from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 from spectral_cube import SpectralCube
+
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
     get_config_value,
     config,
     _Unset,
-    _UNSET
+    _UNSET,
+    resolve_default
 )
 from visualastro.core.numerical_utils import (
     kde2d,
@@ -120,8 +122,6 @@ def style(name=None, rc=None, **rc_kwargs):
         yield
 
 
-# Plot Style and Color Functions
-# ------------------------------
 def get_stylepath(style: str) -> str:
     """
     Returns the path to a visualastro mpl stylesheet for
@@ -567,7 +567,6 @@ def compute_imshow_scale(
 
     Resolves interaction between ``norm``, ``vmin``, ``vmax``, and
     ``percentile`` into consistent display parameters.
-
 
     Modes
     -----
