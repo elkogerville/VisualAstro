@@ -28,6 +28,15 @@ from regions.io.fits.write import dataclass
 
 T = TypeVar('T')
 
+class _Unset(Enum):
+    """
+    Default placeholder sentinel value for
+    visualastro functions.
+    """
+    UNSET = 'UNSET'
+
+_UNSET = _Unset.UNSET
+
 class VisualAstroConfig:
     """
     Global configuration object for controlling default behavior
@@ -307,16 +316,6 @@ class HDUConfig:
 
 
 config = VisualAstroConfig()
-
-
-class _Unset(Enum):
-    """
-    Default placeholder sentinel value for
-    visualastro functions.
-    """
-    UNSET = 'UNSET'
-
-_UNSET = _Unset.UNSET
 
 
 def resolve_default(value: T | _Unset, fallback: T) -> T:
