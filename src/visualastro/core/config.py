@@ -37,6 +37,7 @@ class _Unset(Enum):
 
 _UNSET = _Unset.UNSET
 
+
 class VisualAstroConfig:
     """
     Global configuration object for controlling default behavior
@@ -61,7 +62,7 @@ class VisualAstroConfig:
         # ---------------
 
         # I/O params
-        self.unit_mismatch: str = 'warn'
+        self.unit_mismatch: Literal['warn', 'ignore', 'raise'] | None = 'warn'
         self.default_dtype: DTypeLike = np.float64
         self.hdu_idx: int = 0
         self.print_info: bool = False
@@ -76,6 +77,7 @@ class VisualAstroConfig:
         self.style: str = 'astro' # default style
         self.style_fallback: str = 'default.mplstyle' # style if default style fails
         self.figsize: tuple = (6, 6)
+        self.reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
         self.grid_figsize: tuple = (12, 6)
         self.figsize3d: tuple = (10, 10)
         # if _UNSET, defaults to ``self.default_colorset``.
@@ -230,7 +232,6 @@ class VisualAstroConfig:
         self.deredden_region = None
 
         # curve_fit params
-        #
         self.curve_fit = CurveFitConfig()
         self.curve_fit_interpolate = False
         self.curve_fit_method = 'trf'

@@ -580,7 +580,7 @@ def _require_spectral_region(
 
 
 def ensure_common_unit(
-    objs: Any,
+    objs: Any | list[Any],
     *,
     unit: UnitBase |  StructuredUnit | str | None = None,
     on_mismatch: Literal['warn', 'ignore', 'raise'] | None = None,
