@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-04-10
+Date Modified: 2026-04-11
 Description:
     Functions related to colors and colormaps in plotting.
 Dependencies:
@@ -9,14 +9,42 @@ Dependencies:
     - numpy
 """
 
+from collections.abc import Sequence
 import colorsys
+from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
-from numpy.typing import NDArray
+import tol_colors as tc
 
 from visualastro.core.config import config, resolve_default, _Unset, _UNSET
+from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
+from visualastro.core.validation import _type_name
+
+
+RGBTuple: TypeAlias = tuple[float, float, float]
+RGBATuple: TypeAlias = tuple[float, float, float, float]
+
+
+COLORSETS: dict[str, list[str]] = {
+    'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+    'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
+    'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
+    'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+    'smplot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00'],
+    'bright': [mcolors.to_hex(c) for c in tc.bright],
+    'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
+    'muted': [mcolors.to_hex(c) for c in tc.muted],
+    'light': [mcolors.to_hex(c) for c in tc.light],
+    'dark': [mcolors.to_hex(c) for c in tc.dark],
+    'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast][1:],
+    'high_contrast': [mcolors.to_hex(c) for c in tc.high_contrast],
+    'land_cover': [mcolors.to_hex(c) for c in tc.land_cover],
+    'okabe_ito': ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000']
+}
+COLORNAMES = [key for key in COLORSETS.keys()]
 
 
 def create_colormap(
