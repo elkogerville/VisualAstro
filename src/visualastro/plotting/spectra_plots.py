@@ -846,8 +846,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         Fitted continuum array.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color palette from
-        `config.default_palette`.
+        If None, uses the default color colorset from
+        `config.default_colorset`.
     vline : Quantity or float or None, optional
         If provided, draw a vertical dotted reference line at this wavelength.
         If unitless, the value is assumed to be in the same units as the
@@ -1105,8 +1105,8 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         `use_samecolor` is also set to True.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color palette from
-        `config.default_palette`.
+        If None, uses the default color colorset from
+        `config.default_colorset`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -1184,7 +1184,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         use_samecolor = True
 
     # set plot style and colors
-    colors, _ = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
 
     wave_list = []
     flux_list = []
@@ -1201,9 +1201,9 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         wavelength_lims.append( [wmin, wmax] )
         # mask wavelength and flux if user passes in limits
         if wave_cuttofs is not None:
-            wave_min = wave_cuttofs[i]
-            wave_max = wave_cuttofs[i+1]
-            mask = mask_within_range(get_value(wavelength), [wave_min, wave_max])
+            wave_min: float = wave_cuttofs[i]
+            wave_max: float = wave_cuttofs[i+1]
+            mask = mask_within_range(get_value(wavelength), (wave_min, wave_max))
             wavelength = wavelength[mask]
             flux = flux[mask]
 
@@ -1349,7 +1349,7 @@ def fit_gaussian_2_spec(
         - `ylabel` : str, optional, default=None
             Plot y-axis label.
         - `colors` : str or list, optional, default=`config.colors`
-            Plot colors. If None, will use default visualastro color palette.
+            Plot colors. If None, will use default visualastro color colorset.
         - `use_brackets` : bool, optional, default=`config.use_brackets`
             If True, use square brackets for plot units. If False, use parentheses.
         - `savefig` : bool, optional, default=`config.savefig`
@@ -1569,7 +1569,7 @@ def fit_gaussian_2_spec(
     )
 
     # set plot style and colors
-    colors, _ = get_colors(colors)
+    colors = get_colors(colors)
     style = get_stylepath(style)
 
     with plt.style.context(style):
