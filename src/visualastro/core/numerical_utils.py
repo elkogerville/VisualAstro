@@ -155,18 +155,15 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
             f'Object of type {_type_name(obj)} cannot be converted to an array'
         )
 
-@overload
-def to_list(obj: list[T]) -> list[T]: ...
 
-@overload
-def to_list(obj: tuple[T, ...]) -> list[T]: ...
-
-@overload
-def to_list(obj: T) -> list[T]: ...
-
-def to_list(obj: Any) -> list:
+def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
     """
-    Normalize input to a list.
+    Normalize input to a list. If input is a tuple,
+    convert it to a list via ``tuple(obj)``. To simply
+    wrap in a list an object that isnt a list, use ``as_list``.
+
+    Thus ``to_list((1,2,3))`` returns ``[1,2,3]``
+    while ``as_list((1,2,3))`` returns ``[(1,2,3)]``
 
     Parameters
     ----------
@@ -176,12 +173,38 @@ def to_list(obj: Any) -> list:
     Returns
     -------
     list
-        A list containing `obj` if a single object was provided,
-        or `obj` converted to a list if it was already a list or tuple.
+        A list containing ``obj`` if a single object was provided,
+        or ``obj`` converted to a list if it was already a list or tuple.
     """
-    return obj if isinstance(obj, list) else (
-        list(obj) if isinstance(obj, tuple) else [obj]
-    )
+    if isinstance(obj, list):
+        return obj
+    if isinstance(obj, tuple):
+        return list(obj)
+    return [obj]
+
+
+def as_list(obj: T | list[T]) -> list[T]:
+    """
+    Ensure return value is always a list.
+    If ``obj`` is not a list, wrap it in a list.
+    Otherwise, return ``obj``. To simply
+    convert a tuple into a list use ``to_list``.
+
+    Thus ``to_list((1,2,3))`` returns ``[1,2,3]``
+    while ``as_list((1,2,3))`` returns ``[(1,2,3)]``
+
+    Parameters
+    ----------
+    obj : object or list/tuple of objects
+        Input data.
+
+    Returns
+    -------
+    list
+        A list containing ``obj`` if ``obj`` is not a list,
+        or ``obj`` itself it is already a list.
+    """
+    return obj if isinstance(obj, list) else [obj]
 
 
 # Science Operation Functions
