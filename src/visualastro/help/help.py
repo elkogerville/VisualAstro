@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np
 from visualastro.core.numerical_utils import to_list
-from visualastro.plotting.plot_utils import get_stylepath, set_plot_colors
+from visualastro.plotting.colors import get_colors
+from visualastro.plotting.plot_utils import get_stylepath
 
 
 class help:
@@ -65,7 +66,7 @@ class help:
                 print('Default VisualAstro color palettes:')
                 # loop through color schemes
                 for i, color in enumerate(color_map):
-                    plot_colors, _ = set_plot_colors(color)
+                    plot_colors, _ = get_colors(color)
                     # add color tile for each color in scheme
                     for j, c in enumerate(plot_colors):
                         ax.add_patch(
@@ -74,7 +75,7 @@ class help:
                     # add color scheme name
                     ax.text(-0.5, -i + 0.5, color, va="center", ha="right")
                 # formatting
-                ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+                ax.set_xlim(-1, max(len(get_colors(c)[0]) for c in color_map))
                 ax.set_ylim(-len(color_map), 1)
                 plt.tight_layout()
                 plt.show()
@@ -85,7 +86,7 @@ class help:
                 print('VisualAstro model color palettes:')
                 # loop through color schemes
                 for i, color in enumerate(color_map):
-                    _, model_colors = set_plot_colors(color)
+                    _, model_colors = get_colors(color)
                     # add color tile for each color in scheme
                     for j, c in enumerate(model_colors):
                         ax.add_patch(
@@ -94,7 +95,7 @@ class help:
                     # add color scheme name
                     ax.text(-0.5, -i + 0.5, color, va="center", ha="right")
                 # formatting
-                ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+                ax.set_xlim(-1, max(len(get_colors(c)[0]) for c in color_map))
                 ax.set_ylim(-len(color_map), 1)
                 plt.tight_layout()
                 plt.show()
@@ -103,7 +104,7 @@ class help:
                 'Visualastro will automatically generate a set of *model colors* from any\n'
                 'input color or list of colors. It will take the original color and lighten it.\n'
             )
-            color_palettes = set_plot_colors(user_color)
+            color_palettes = get_colors(user_color)
             label = ['plot colors', 'model colors']
             fig, ax = plt.subplots(figsize=(8, 2))
             ax.axis('off')
@@ -115,7 +116,7 @@ class help:
                 # add color scheme name
                 ax.text(-0.5, -i + 0.5, label[i], va="center", ha="right")
             # formatting
-            ax.set_xlim(-1, max(len(set_plot_colors(c)[0]) for c in color_map))
+            ax.set_xlim(-1, max(len(get_colors(c)[0]) for c in color_map))
             ax.set_ylim(-len(color_map), 1)
             plt.tight_layout()
             plt.show()
@@ -150,7 +151,7 @@ class help:
             style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
         else:
             style_names = to_list(style_name)
-        colors, _ = set_plot_colors('astro')
+        colors, _ = get_colors('astro')
         print(
             'Here are sample plot made with the available visualastro plot styles. '
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
