@@ -85,23 +85,25 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     """
     Extract the unit from an object, if it exists.
 
-    This function checks if the object has a `.unit` attribute,
-    or if 'BUNIT' exists in `obj`.
+    This function checks if the object has a ``.unit`` attribute,
+    or if ``'BUNIT'`` exists in ``obj``.
 
     Parameters
     ----------
     obj : Object
         The input object from which to extract a unit. This can be:
-        - an astropy UnitBase
-        - an astropy.units.Quantity
-        - a fits.Header with a 'BUNIT' key
-        - any object with a .data attribute
-        - any object with a .header attribute
+        - an astropy ``UnitBase``
+        - a ``u.Quantity``
+        - a list/tuple of ``u.Quantities`` (validates all have same unit)
+        - a ``fits.Header`` with a ``'BUNIT'`` key
+        - any object with a ``.data`` attribute
+        - any object with a ``.header`` attribute
+
     Returns
     -------
     astropy.units.Unit or None
         The unit associated with the input object, if it exists.
-        Returns None if the object has no unit or if the unit cannot be parsed.
+        Returns ``None`` if the object has no unit or if the unit cannot be parsed.
     """
     if obj is None:
         return None
@@ -112,6 +114,21 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, Quantity):
         return obj.unit
 
+    if isinstance(obj, (list, tuple)) and len(obj) > 0:
+        units = [get_unit(item) for item in obj]
+        non_none_units = [u for u in units if u is not None]
+
+        if len(non_none_units) == 0:
+            return None
+
+        first_unit = non_none_units[0]
+        if not all(u == first_unit for u in non_none_units):
+            raise ValueError(
+                f'Inconsistent units in list: {set(str(u) for u in non_none_units)}'
+            )
+
+        return first_unit
+
     if isinstance(obj, Header):
         bunit = obj.get('BUNIT', None)
         return to_unit(bunit)
@@ -121,14 +138,14 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         return to_unit(unit)
 
     if hasattr(obj, 'data'):
-        data = obj.data
+        data = getattr(obj, 'data')
         if data is not obj:
             unit = get_unit(data)
             if unit is not None:
                 return unit
 
     if hasattr(obj, 'header'):
-        header = obj.header
+        header = getattr(obj, 'header')
         if header is not obj:
             unit = get_unit(header)
             if unit is not None:
@@ -162,9 +179,11 @@ def get_units(
         The input object(s) from which to extract a unit. These can be:
         - an astropy UnitBase
         - an astropy.units.Quantity
+        - a list/tuple of ``u.Quantities`` (validates all have same unit)
         - a fits.Header with a 'BUNIT' key
         - any object with a .data attribute
         - any object with a .header attribute
+
     Returns
     -------
     list[UnitBase | StructuredUnit | None] | UnitBase | StructuredUnit | None
