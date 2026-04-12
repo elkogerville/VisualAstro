@@ -793,52 +793,60 @@ def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
 
     scatters = []
 
-    for i in range(len(Y)):
-        x = X[i%len(X)]
-        y = Y[i%len(Y)]
-        color = colors[i%len(colors)]
-        size = sizes[i%len(sizes)]
-        marker = markers[i%len(markers)]
-        alpha = alphas[i%len(alphas)]
-        edgecolor = edgecolors[i%len(edgecolors)]
-        facecolor = facecolors[i%len(facecolors)]
-        ecolor = ecolors[i%len(ecolors)]
-        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
+    for i in range(len(ylist)):
+        x = get_value(_cycle(xlist, i))
+        y = get_value(_cycle(ylist, i))
+        color = _cycle(colors, i)
+        size = _cycle(sizes, i)
+        marker = _cycle(markers, i)
+        alpha = _cycle(alphas, i)
+        edgecolor = _cycle(edgecolors, i)
+        facecolor = _cycle(facecolors, i)
+        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
         if facecolor == 'none' and edgecolor is None:
             edgecolor = color
 
         if normalize:
             y = y / np.nanmax(y)
+
         s = ax.scatter(x, y, color=color, s=size, marker=marker,
                        alpha=alpha, edgecolors=edgecolor,
                        facecolors=facecolor, label=label,
-                       rasterized=rasterized)
+                       rasterized=rasterized, **kwargs)
 
         scatters.append(s)
 
         if xerr is not None:
-            xerror = xerr[i%len(xerr)]
+            xerror = _cycle(xerr, i)
         if yerr is not None:
-            yerror = yerr[i%len(yerr)]
+            yerror = _cycle(yerr, i)
 
-        ax.errorbar(x, y, yerror, xerror, fmt=config.eb_fmt, ecolor=ecolor, elinewidth=elinewidth,
-                    capsize=capsize, capthick=capthick, barsabove=barsabove)
+        if xerr is not None or yerr is not None:
+            ax.errorbar(
+                x, y, yerror, xerror,
+                fmt=config.errorbar.fmt,
+                mfc=color,
+                ecolor=color,
+                elinewidth=elinewidth,
+                mec=markeredgecolor if markeredgecolor is not None else color,
+                capsize=capsize,
+                capthick=capthick,
+                barsabove=barsabove
+            )
 
-    # set axes labels
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    if labels[0] is not None:
+    set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
+    set_axis_labels(xlist, ylist, ax, xlabel, ylabel)
+
+    if labels[config.reference_idx] is not None:
         ax.legend(loc=loc)
 
-    scatters = scatters[0] if len(scatters) == 1 else scatters
-
-    return scatters
+    return _unwrap_if_single(scatters)
 
 
 def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
               scale=None, axes_off=False, grid_lines=False,
-              colors=None, size=None, marker=None, alpha=None,
+              colors=_UNSET, size=None, marker=None, alpha=None,
               edgecolors=_UNSET, plot_contours=None, **kwargs):
     '''
     Scatter plot in 3D with support for multiple datasets.
