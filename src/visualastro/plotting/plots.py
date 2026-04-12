@@ -135,22 +135,22 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     '''
     # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', config.rasterized)
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
     # scatter params
-    sizes = get_kwargs(kwargs, 'size', 's', default=None)
-    markers = get_kwargs(kwargs, 'marker', 'm', default=None)
-    alphas = get_kwargs(kwargs, 'alpha', 'a', default=None)
-    edgecolors = get_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=None)
+    sizes = _pop_kwargs(kwargs, 'size', 's', default=None)
+    markers = _pop_kwargs(kwargs, 'marker', 'm', default=None)
+    alphas = _pop_kwargs(kwargs, 'alpha', 'a', default=None)
+    edgecolors = _pop_kwargs(kwargs, 'edgecolors', 'edgecolor', 'ec', default=None)
     # line params
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
-    linewidths = get_kwargs(kwargs, 'linewidth', 'lw', default=None)
-    zorders = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
+    linestyles = _pop_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
+    linewidths = _pop_kwargs(kwargs, 'linewidth', 'lw', default=None)
+    zorders = _pop_kwargs(kwargs, 'zorders', 'zorder', default=None)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
-    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
@@ -362,13 +362,13 @@ def plot_histogram(
     '''
     # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', config.rasterized)
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
-    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
@@ -523,16 +523,16 @@ def plot_lines(X, Y, ax, normalize=None,
     '''
     # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', config.rasterized)
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'lw', default=linewidth)
-    alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
+    linestyles = _pop_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
+    linewidths = _pop_kwargs(kwargs, 'linewidths', 'lw', default=linewidth)
+    alphas = _pop_kwargs(kwargs, 'alphas', 'a', default=alpha)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
-    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
@@ -952,11 +952,11 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', config.rasterized)
     # scatter params
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
-    sizes = get_kwargs(kwargs, 'sizes', 's', default=size)
-    markers = get_kwargs(kwargs, 'markers', 'm', default=marker)
-    alphas = get_kwargs(kwargs, 'alphas', 'a', default=alpha)
-    edgecolors = get_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
+    sizes = _pop_kwargs(kwargs, 'sizes', 's', default=size)
+    markers = _pop_kwargs(kwargs, 'markers', 'm', default=marker)
+    alphas = _pop_kwargs(kwargs, 'alphas', 'a', default=alpha)
+    edgecolors = _pop_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)

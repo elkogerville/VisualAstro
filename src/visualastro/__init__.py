@@ -34,7 +34,6 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import config
 from visualastro.core.io import (
     get_errors,
-    get_kwargs,
     load_quantity,
     save_array,
     savefig,

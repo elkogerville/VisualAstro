@@ -233,7 +233,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
 
 # Figure I/O Operations
 # ---------------------
-def get_kwargs(kwargs, *names, default=None):
+def _pop_kwargs(kwargs, *names, default=None):
     '''
     Return the first matching kwarg value from a list of possible names.
 
@@ -256,7 +256,7 @@ def get_kwargs(kwargs, *names, default=None):
     '''
     for name in names:
         if name in kwargs and kwargs[name] is not None:
-            return kwargs[name]
+            return kwargs.pop(name)
 
     return default
 
@@ -397,8 +397,8 @@ def savefig(
             use the current figure edgecolor.
     '''
     # ---- KWARGS ----
-    facecolor = get_kwargs(kwargs, 'facecolor', 'fc', default='auto')
-    edgecolor = get_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
+    facecolor = _pop_kwargs(kwargs, 'facecolor', 'fc', default='auto')
+    edgecolor = _pop_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
 
     # get default config values
     dpi = get_config_value(dpi, 'dpi')
