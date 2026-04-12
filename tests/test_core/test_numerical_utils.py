@@ -26,7 +26,7 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.validation import allclose
 from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.fitsfile import FitsFile
-from visualastro.plotting.plot_utils import _normalize_plotting_input,
+from visualastro.plotting.plot_utils import _normalize_plotting_input
 
 
 class TestInterpolate:
