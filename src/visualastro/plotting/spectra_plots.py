@@ -50,9 +50,10 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     get_config_value,
     config,
-    _UNSET
+    _UNSET,
+    resolve_default
 )
-from visualastro.core.io import get_kwargs, savefig
+from visualastro.core.io import pop_kwargs, savefig
 from visualastro.core.numerical_utils import (
     get_value,
     interpolate as _interpolate,
@@ -214,7 +215,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     '''
     # ---- KWARGS ----
     # spectra extraction memory mode
-    extract_mode = get_kwargs(kwargs, 'how', default=extract_mode)
+    extract_mode = _pop_kwargs(kwargs, 'how', default=extract_mode)
     # doppler convention
     convention = kwargs.get('convention', None)
     # dereddening parameters
@@ -911,17 +912,17 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     # fig params
     rasterized = kwargs.get('rasterized', config.rasterized)
     # line params
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
-    zorder = get_kwargs(kwargs, 'zorders', 'zorder', default=None)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
+    linestyles = _pop_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
+    linewidths = _pop_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
+    alphas = _pop_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
+    zorder = _pop_kwargs(kwargs, 'zorders', 'zorder', default=None)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
     xlim = kwargs.get('xlim', None)
     ylim = kwargs.get('ylim', None)
     # labels
-    labels = get_kwargs(kwargs, 'labels', 'label', 'l', default=None)
+    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
@@ -1156,10 +1157,10 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     rasterized = kwargs.get('rasterized', config.rasterized)
     ylim = kwargs.get('ylim', None)
     # line params
-    colors = get_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = get_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
-    linewidths = get_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
-    alphas = get_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
+    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
+    linestyles = _pop_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
+    linewidths = _pop_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
+    alphas = _pop_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
     cmap = kwargs.get('cmap', config.cmap)
     # labels
     label = kwargs.get('label', None)
@@ -1385,7 +1386,7 @@ def fit_gaussian_2_spec(
     label = kwargs.get('label', None)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    colors = get_kwargs(kwargs, 'colors', 'color', 'c', default=None)
+    colors = _pop_kwargs(kwargs, 'colors', 'color', 'c', default=None)
     use_brackets = kwargs.get('use_brackets', config.use_brackets)
     # savefig
     savefig = kwargs.get('savefig', config.savefig)

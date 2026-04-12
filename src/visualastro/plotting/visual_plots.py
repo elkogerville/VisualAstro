@@ -242,11 +242,11 @@ class ax:
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         cubes = to_list(cubes)
 
@@ -371,11 +371,11 @@ class ax:
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         # set plot style
         style = get_stylepath(style)
@@ -492,11 +492,11 @@ class ax:
         wavelength interval before plotting.
         '''
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         # set plot style
         style = get_stylepath(style)
@@ -615,11 +615,11 @@ class ax:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         style = get_stylepath(style)
         with plt.style.context(style):
@@ -723,11 +723,11 @@ class ax:
         '''
         # ---- KWARGS ----
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         style = get_stylepath(style)
         with plt.style.context(style):
@@ -845,11 +845,11 @@ class ax:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         style = get_stylepath(style)
         with plt.style.context(style):
@@ -982,11 +982,11 @@ class ax:
                 Resolution (dots per inch) for saved figure.
         '''
         # figure params
-        figsize = kwargs.get('figsize', config.figsize)
-        style = kwargs.get('style', config.style)
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         style = get_stylepath(style)
         with plt.style.context(style):
@@ -1140,12 +1140,12 @@ class ax:
           and finally `scale` if provided.
         '''
         # figure params
-        figsize = kwargs.get('figsize', config.figsize3d)
-        style = kwargs.get('style', config.style)
-        tight_layout = kwargs.get('tight_layout', True)
+        figsize = kwargs.pop('figsize', config.figsize3d)
+        style = kwargs.pop('style', config.style)
+        tight_layout = kwargs.pop('tight_layout', True)
         # savefig
-        savefig = kwargs.get('savefig', config.savefig)
-        dpi = kwargs.get('dpi', config.dpi)
+        savefig = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
 
         style = get_stylepath(style)
         with plt.style.context(style):
