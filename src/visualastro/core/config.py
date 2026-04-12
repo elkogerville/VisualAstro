@@ -13,6 +13,7 @@ Module Structure:
     - _Unset value and related functions
 """
 
+from collections.abc import Sequence
 from dataclasses import field
 from enum import Enum
 from typing import Literal, TypeVar
@@ -83,7 +84,7 @@ class VisualAstroConfig:
         # if _UNSET, defaults to ``self.default_colorset``.
         # To define a custom default colorset,
         # define it in `get_colors` and change the `default_colorset`.
-        self.colors: str | _Unset = _UNSET
+        self.colors: str | ColorType | int | Sequence[ColorType] | _Unset = _UNSET
         self.default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
         self.alpha: int = 1
         self.nrows: int = 1 # make_grid_plot() nrows
@@ -120,12 +121,9 @@ class VisualAstroConfig:
         self.facecolor = None
 
         # errorbar params
+        self.errorbar = ErrorBarConfig()
         self.eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
         self.ecolors = None
-        self.elinewidth = 1
-        self.capsize = 1
-        self.capthick = 1
-        self.barsabove = False
 
         # imshow params
         self.cmap = 'turbo'
@@ -139,8 +137,8 @@ class VisualAstroConfig:
         self.aspect = None
 
         # axes params
-        self.xpad = 0.0  # set_axis_limits() xpad
-        self.ypad = 0.05 # set_axis_limits() ypad
+        self.xpad: float = 0.05  # set_axis_limits() xpad
+        self.ypad: float = 0.05 # set_axis_limits() ypad
         self.xlog = False
         self.ylog = False
         self.xlog_hist = True
@@ -276,6 +274,31 @@ class VisualAstroConfig:
 
 
 @dataclass
+class AxesConfig:
+    """matplotlib.axes config"""
+    xpad: float = 0.05  # set_axis_limits() xpad
+    ypad: float = 0.05 # set_axis_limits() ypad
+    xlog: bool = False
+    ylog: bool = False
+    xlog_hist: bool = True
+    ylog_hist: bool = True
+    sharex: bool = False
+    sharey: bool = False
+    hspace = None
+    wspace = None
+    Nticks = None
+    aspect = None
+
+@dataclass
+class AXLineConfig:
+    """ax.vline / ax.hline config"""
+    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
+    linewidth: float = 1.0
+    color: ColorType = 'k'
+    alpha: float | None = 0.7
+    zorder: float = 0
+
+@dataclass
 class CurveFitConfig:
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
@@ -286,13 +309,15 @@ class CurveFitConfig:
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
 
 @dataclass
-class AXLineConfig:
-    """ax.vline / ax.hline config"""
-    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
-    linewidth: float = 1.0
-    color: ColorType = 'k'
-    alpha: float | None = 0.7
-    zorder: float = 0
+class ErrorBarConfig:
+    """ax.errorbar config"""
+    fmt: str = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
+    colors: ColorType | None = None
+    linewidth: float | None = 1
+    capsize: float = 3 # cap length in points
+    capthick: float | None = 1 # cap thickness in points
+    barsabove: bool = False
+    markeredgecolor: ColorType | None = None
 
 @dataclass
 class SpectralLineConfig:
