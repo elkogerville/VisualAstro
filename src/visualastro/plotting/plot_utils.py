@@ -57,7 +57,9 @@ from visualastro.core.numerical_utils import (
     get_data,
     get_value,
     to_array,
-    to_list
+    to_list,
+    _is_array_like,
+    _is_scalar_quantity,
 )
 from visualastro.core.units import (
     get_physical_type,
@@ -1197,6 +1199,55 @@ def _figure_utils(ax, **kwargs):
     plot_vlines(vlines, ax)
     plot_hlines(hlines, ax)
 
+
+def _normalize_plotting_input(
+    data: (
+        float
+        | u.Quantity
+        | NDArray
+        | list[float | u.Quantity | NDArray]
+        | tuple[float | u.Quantity | NDArray, ...]
+    )
+) -> list[
+    float
+    | u.Quantity
+    | NDArray
+    | list[float | u.Quantity | NDArray]
+    | tuple[float | u.Quantity | NDArray, ...]
+]:
+    """
+    Normalize data input to list of arrays.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        Can handle:
+        - Single array: [1,2,3] → [[1,2,3]]
+        - Single Quantity array: [1,2,3]*u.um → [[1,2,3]*u.um]
+        - List of scalars: [1*u.um, 2*u.um] → [1*u.um, 2*u.um]
+        - tuples of scalars: (1*u.um, 2*u.um) → [1*u.um, 2*u.um]
+        - List of arrays: [[1,2], [3,4]] → [[1,2], [3,4]]
+
+    Returns
+    -------
+    list :
+        List of inputs to plot.
+    """
+    if _is_array_like(data) and not isinstance(data, (list, tuple)):
+        return [data]
+
+    if not isinstance(data, (list, tuple)):
+        return [data]
+
+    first = data[0]
+    if (
+        _is_scalar_quantity(first)
+        or np.isscalar(first)
+        or _is_array_like(first)
+    ):
+        return list(data)
+
+    return [data]
 
 
 # Plot Matplotlib Patches and Shapes
