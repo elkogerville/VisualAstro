@@ -71,11 +71,10 @@ def allclose(
     - This function does **not** attempt unit conversion.
       Quantities must already share identical units.
     - ``allclose(a, b) != allclose(b, a)`` in some rare cases.
-
-    - The default value of atol is not appropriate when
-      the reference value b has magnitude smaller than one.
-      i.e. it is unlikely that a = 1e-9 and b = 2e-9 should
-      be considered 'close', yet allclose(1e-9, 2e-9) is True
+    - The default value of ``atol`` is not appropriate when
+      the reference value ``b`` has magnitude smaller than one.
+      i.e. it is unlikely that ``a=1e-9`` and ``b=2e-9`` should
+      be considered 'close', yet ``allclose(1e-9, 2e-9)`` is True
       with default settings. Be sure to select atol for the
       use case at hand, especially for defining the threshold
       below which a non-zero value in a will be considered 'close'
