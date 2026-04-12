@@ -867,7 +867,7 @@ class ax:
 
     @staticmethod
     def scatter(X, Y, xerr=None, yerr=None, normalize=False,
-                xlog=None, ylog=None, colors=None, size=None,
+                xlog=None, ylog=None, colors=_UNSET, size=None,
                 marker=None, alpha=None, edgecolors=_UNSET,
                 facecolors=_UNSET, **kwargs):
         '''

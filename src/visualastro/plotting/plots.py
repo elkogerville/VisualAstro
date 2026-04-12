@@ -13,13 +13,19 @@ Module Structure:
 """
 
 from collections import namedtuple
+import astropy.units as u
+import matplotlib.axes as maxes
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 import numpy as np
-from visualastro.core.config import get_config_value, config, _UNSET
-from visualastro.core.io import get_kwargs
+from numpy.typing import ArrayLike, NDArray
+
+from visualastro.core.config import get_config_value, config, _UNSET, resolve_default
+from visualastro.core.io import _pop_kwargs
 from visualastro.core.numerical_utils import (
+    get_value,
     to_array,
     to_list,
+    _cycle,
     _unwrap_if_single
 )
 from visualastro.core.units import ensure_common_unit
@@ -27,14 +33,16 @@ from visualastro.plotting.colors import get_colors
 from visualastro.plotting.plot_utils import (
     add_contours,
     plot_vlines,
+    set_axis_labels,
     set_axis_limits,
+    _normalize_plotting_input,
 )
 
 
 def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
                            xlog=None, ylog=None, xlog_hist=None,
                            ylog_hist=None, histtype=None,
-                           normalize=None, colors=None, **kwargs):
+                           normalize=None, colors=_UNSET, **kwargs):
     '''
     Plot a 2D scatter distribution with normalized density histograms.
     This function creates a scatter plot of `X` vs. `Y` along
@@ -163,7 +171,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ylog_hist = get_config_value(ylog_hist, 'ylog_hist')
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
@@ -281,7 +289,7 @@ def plot_histogram(
     ylog=None,
     histtype=None,
     normalize=None,
-    colors=None,
+    colors=_UNSET,
     vlines=None,
     **kwargs
 ):
@@ -379,7 +387,7 @@ def plot_histogram(
     ylog = get_config_value(ylog, 'ylog')
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
 
     # ensure inputs are iterable or conform to standard
     datas = to_list(datas)
@@ -433,7 +441,7 @@ def plot_histogram(
 
 def plot_lines(X, Y, ax, normalize=None,
                xlog=None, ylog=None,
-               colors=None, linestyle=None,
+               colors=_UNSET, linestyle=None,
                linewidth=None, alpha=None,
                zorder=None, **kwargs):
     '''
@@ -544,7 +552,7 @@ def plot_lines(X, Y, ax, normalize=None,
     normalize = get_config_value(normalize, 'normalize_data')
     xlog = get_config_value(xlog, 'xlog')
     ylog = get_config_value(ylog, 'ylog')
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -971,7 +979,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     minor_ticks = kwargs.get('minor_ticks', False)
 
     # get default config values
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')

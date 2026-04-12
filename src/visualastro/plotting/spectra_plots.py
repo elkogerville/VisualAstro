@@ -53,7 +53,7 @@ from visualastro.core.config import (
     _UNSET,
     resolve_default
 )
-from visualastro.core.io import pop_kwargs, savefig
+from visualastro.core.io import _pop_kwargs, savefig
 from visualastro.core.numerical_utils import (
     get_value,
     interpolate as _interpolate,
@@ -820,7 +820,7 @@ def plot_extracted_pixel_map(
 # --------------------------
 def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
                   plot_continuum=None, emission_line=None, wavelength=None,
-                  flux=None, continuum=None, colors=None, vline=None, **kwargs):
+                  flux=None, continuum=None, colors=_UNSET, vline=None, **kwargs):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
 
@@ -932,7 +932,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
     plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -1069,7 +1069,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                           concatenate=False, return_spectra=False,
                           plot_normalize=False, use_samecolor=True,
-                          colors=None, **kwargs):
+                          colors=_UNSET, **kwargs):
     '''
     Allows for easily plotting multiple spectra and stiching them together into
     one `SpectrumPlus` object.
@@ -1170,7 +1170,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     use_brackets = kwargs.get('use_brackets', config.use_brackets)
 
     # get default config values
-    colors = get_config_value(colors, 'colors')
+    colors = resolve_default(colors, config.colors)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
