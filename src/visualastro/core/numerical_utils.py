@@ -563,6 +563,68 @@ def mask_within_range(
     return mask
 
 
+def _is_scalar_quantity(obj):
+    """Check if object is a scalar Quantity (0-dimensional)."""
+    return hasattr(obj, 'unit') and (not hasattr(obj, '__len__') or np.ndim(obj) == 0)
+
+
+def _is_array_like(obj):
+    """Check if object is array-like (list, ndarray, or array Quantity)."""
+    if _is_scalar_quantity(obj):
+        return False
+    return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
+
+
+def _normalize_plotting_input(
+    data: (
+        float
+        | u.Quantity
+        | NDArray
+        | list[float | u.Quantity | NDArray]
+        | tuple[float | u.Quantity | NDArray, ...]
+    )
+) -> list[
+    float
+    | u.Quantity
+    | NDArray
+    | list[float | u.Quantity | NDArray]
+    | tuple[float | u.Quantity | NDArray, ...]
+]:
+    """
+    Normalize data input to list of arrays.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        Can handle:
+        - Single array: [1,2,3] → [[1,2,3]]
+        - Single Quantity array: [1,2,3]*u.um → [[1,2,3]*u.um]
+        - List of scalars: [1*u.um, 2*u.um] → [1*u.um, 2*u.um]
+        - tuples of scalars: (1*u.um, 2*u.um) → [1*u.um, 2*u.um]
+        - List of arrays: [[1,2], [3,4]] → [[1,2], [3,4]]
+
+    Returns
+    -------
+    list :
+        List of inputs to plot.
+    """
+    if _is_array_like(data) and not isinstance(data, (list, tuple)):
+        return [data]
+
+    if not isinstance(data, (list, tuple)):
+        return [data]
+
+    first = data[0]
+    if (
+        _is_scalar_quantity(first)
+        or np.isscalar(first)
+        or _is_array_like(first)
+    ):
+        return list(data)
+
+    return [data]
+
+
 def _cycle(data, i):
     """
     Cycle through a list cotinously. When
@@ -585,9 +647,10 @@ def _cycle(data, i):
     T :
         ``data`` element.
     """
-    if not isinstance(data, list):
+    if not isinstance(data, (Sequence, np.ndarray)):
         raise ValueError(
-            'data must be a list!'
+            'data must be a Sequence or NDArray! '
+            f'got {_type_name(data)}'
         )
     return data[i % len(data)]
 
