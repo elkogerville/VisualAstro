@@ -24,6 +24,8 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
+from scipy.spatial import cKDTree
+from scipy.special import gamma
 from spectral_cube import SpectralCube
 
 from visualastro.core.validation import _type_name
@@ -414,6 +416,74 @@ def interpolate(
         y_interp *= y_unit
 
     return x_interp, y_interp
+
+
+def number_density(
+    points: NDArray,
+    k: int,
+    log: bool = False
+) -> NDArray:
+    """
+    Estimate local number density using a k-nearest neighbors (kNN) adaptive
+    volume estimator.
+
+    For each point, the distance to its k-th nearest neighbor defines a
+    hypersphere of radius r_k. The density is estimated as:
+
+        rho = k / V_D(r_k)
+
+    where V_D is the volume of a D-dimensional ball:
+
+        V_D(r) = (pi^(D/2) / Gamma(D/2 + 1)) * r^D
+
+    Parameters
+    ----------
+    points : np.ndarray of shape (N, D)
+        Input point coordinates. N is the number of points, D is the
+        spatial dimension (typically 2 or 3).
+    k : int
+        Number of nearest neighbors used to define the local volume scale.
+        Controls the bias–variance trade-off of the estimator:
+        - small `k` → high spatial resolution, noisy estimate
+        - large `k` → smoother estimate, reduced variance
+
+    log : bool, default=False
+        If `True`, returns `np.log10` of the density. Recommended when
+        densities span multiple orders of magnitude.
+
+    Returns
+    -------
+    rho : np.ndarray of shape (N,)
+        Estimated number density at each point. If `log=True`, returns
+        `np.log10(rho)`.
+
+    Notes
+    -----
+    - The method generalizes to arbitrary dimensions via the volume formula
+      of the N-dimensional ball.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import visualastro as va
+    >>> import matplotlib.pyplot as plt
+    >>> pos = np.random.rand(20000, 3)
+    >>> rho = va.number_density(pos, k=10)
+    >>> plt.scatter(pos[:,0], pos[:,1], c=rho, s=0.5)
+    """
+    tree = cKDTree(points)
+    distances, _ = tree.query(points, k=k+1)
+
+    rk = distances[:, -1]
+
+    n = points.shape[1]
+    volume = ((np.pi**(n/2) / gamma(n/2 + 1)) * rk**n)
+    rho = k / volume
+
+    if log:
+        rho = np.log10(rho)
+
+    return rho
 
 
 def percent_difference(a: NDArray, b: NDArray) -> NDArray:
