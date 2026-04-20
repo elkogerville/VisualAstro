@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-03-11
+Date Modified: 2026-04-13
 Description:
     Spectra science functions.
 Dependencies:
@@ -35,6 +35,7 @@ from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
+
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
@@ -53,7 +54,7 @@ from visualastro.core.config import (
     _UNSET,
     resolve_default
 )
-from visualastro.core.io import _pop_kwargs, savefig
+from visualastro.core.io import _pop_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
     interpolate as _interpolate,
@@ -70,7 +71,11 @@ from visualastro.core.units import (
 from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.spectrumplus import SpectrumPlus
 from visualastro.plotting.image_plots import imshow
-from visualastro.plotting.colors import get_colors, sample_cmap
+from visualastro.plotting.colors import (
+    get_colors,
+    sample_cmap,
+    _lighten_color
+)
 from visualastro.plotting.plot_utils import (
     plot_vlines,
     get_stylepath,
@@ -992,8 +997,9 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     zorders = zorder if isinstance(zorder, (list, tuple)) else [zorder]
     labels = labels if isinstance(labels, (list, tuple)) else [labels]
 
-    # set plot style and colors
-    colors, fit_colors = get_colors(colors, cmap=cmap)
+    colors = get_colors(colors, cmap=cmap)
+    fit_colors = [_lighten_color(c) for c in colors]
+
     # add emission line text
     if emission_line is not None:
         ax.text(text_loc[0], text_loc[1], f'{emission_line}', transform=ax.transAxes)
