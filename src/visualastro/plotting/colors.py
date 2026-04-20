@@ -76,7 +76,7 @@ def create_colormap(
                        for i in range(len(positions))]
              for idx, channel in enumerate(['red', 'green', 'blue'])}
 
-    return LinearSegmentedColormap(name, segmentdata=cdict, N=256) # type: ignore
+    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256) # type: ignore
 
 
 def sample_cmap(
