@@ -1212,6 +1212,65 @@ def _figure_utils(ax, **kwargs):
     plot_hlines(hlines, ax)
 
 
+def _extract_xy(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+) -> tuple[
+    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+]:
+    """
+    Extract X and Y coordinates from flexible input formats.
+
+    Accepts either a single 2D array with shape (N, 2) or two separate
+    arrays/values. If only one array is passed in, x values are automatically
+    generated with np.arange(len(array))
+
+    Parameters
+    ----------
+    *data : float | Quantity | NDArray | list[float | u.Quantity | NDArray]
+        Either a single 2D ndarray with shape (2, N) where first row is X and
+        second row is Y, or two separate arrays/scalars representing X and Y.
+
+    Returns
+    -------
+    X : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+        X coordinate to plot.
+    Y : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+        Y coordinate to plot.
+
+    Raises
+    ------
+    ValueError
+        If input is not a 2D ndarray with shape (2, N) when single argument,
+        or if number of arguments is not 1 or 2.
+    """
+    if len(data) == 1:
+        if not isinstance(data[0], np.ndarray):
+            raise ValueError(
+                f'Expected 2D ndarray, got {_type_name(data[0])}'
+            )
+        arr = data[0]
+        if arr.ndim == 1:
+            X = np.arange(len(arr))
+            Y = data[0]
+        elif arr.ndim == 2:
+            X, Y = arr[0, :], arr[1, :]
+        else:
+            raise ValueError(
+                f'Expected shape (N, 2), got {arr.shape}'
+            )
+
+    elif len(data) == 2:
+        X, Y = data[0], data[1]
+
+    else:
+        raise ValueError(
+            f'Expected 1 or 2 arguments, got {len(data)}'
+        )
+
+    return X, Y
+
+
 def _normalize_plotting_input(
     data: (
         float
