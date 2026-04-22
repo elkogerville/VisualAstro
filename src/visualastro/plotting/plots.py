@@ -617,11 +617,30 @@ def plot_lines(X, Y, ax, normalize=None,
     return lines
 
 
-def plot_scatter(X, Y, ax, xerr=None, yerr=None, normalize=None,
-                 xlog=None, ylog=None, colors=None, size=None,
-                 marker=None, alpha=None, edgecolors=_UNSET,
-                 facecolors=_UNSET, **kwargs):
-    '''
+def test(
+    *data: u.Quantity | NDArray | list[u.Quantity | NDArray],
+    ax: maxes.Axes,
+    xerr=None
+):
+    pass
+
+def plot_scatter(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    ax: maxes.Axes,
+    xerr=None,
+    yerr=None,
+    normalize=None,
+    xlog=None,
+    ylog=None,
+    colors=_UNSET,
+    size=None,
+    marker=None,
+    alpha=None,
+    edgecolors=_UNSET,
+    facecolors=_UNSET,
+    **kwargs
+):
+    """
     Plot a scatter plot (optionally with error bars) on a given Axes object.
 
     Parameters
