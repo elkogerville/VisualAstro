@@ -998,12 +998,24 @@ def set_axis_limits(
 
     if xlim is None and xvals is not None and len(xvals) > 0:
         xmin, xmax = np.nanmin(xvals), np.nanmax(xvals)
-        xpad = xpad_frac * (xmax - xmin)
+        if xmin == xmax:
+            xpad = (
+                abs(xmin) * xpad_frac if xmin != 0 else
+                (xpad_frac if xpad_frac > 0 else 0.1)
+            )
+        else:
+            xpad = xpad_frac * (xmax - xmin)
         xlim = (xmin - xpad, xmax + xpad)
 
     if ylim is None and yvals is not None and len(yvals) > 0:
         ymin, ymax = np.nanmin(yvals), np.nanmax(yvals)
-        ypad = ypad_frac * (ymax - ymin)
+        if ymin == ymax:
+            ypad = (
+                abs(ymin) * ypad_frac if ymin != 0 else
+                (ypad_frac if ypad_frac > 0 else 0.1)
+            )
+        else:
+            ypad = ypad_frac * (ymax - ymin)
         ylim = (ymin - ypad, ymax + ypad)
 
     if xlim is not None:
