@@ -645,6 +645,15 @@ def _is_array_like(obj):
     return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
 
 
+@overload
+def _cycle(data: list[T], i: int) -> T: ...
+
+@overload
+def _cycle(data: tuple[T, ...], i: int) -> T: ...
+
+@overload
+def _cycle(data: NDArray, i: int) -> Any: ...
+
 def _cycle(data, i):
     """
     Cycle through a list cotinously. When
