@@ -866,7 +866,7 @@ class ax:
 
 
     @staticmethod
-    def scatter(X, Y, xerr=None, yerr=None, normalize=False,
+    def scatter(*data, xerr=None, yerr=None, normalize=False,
                 xlog=None, ylog=None, colors=_UNSET, size=None,
                 marker=None, alpha=None, edgecolors=_UNSET,
                 facecolors=_UNSET, **kwargs):
@@ -992,7 +992,7 @@ class ax:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_scatter(X, Y, ax, xerr=xerr, yerr=yerr, normalize=normalize,
+            _ = plot_scatter(*data, ax=ax, xerr=xerr, yerr=yerr, normalize=normalize,
                              xlog=xlog, ylog=ylog, colors=colors, size=size,
                              marker=marker, alpha=alpha, edgecolors=edgecolors,
                              facecolors=facecolors, **kwargs)
