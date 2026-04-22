@@ -14,15 +14,15 @@
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro)](https://pypi.org/project/visualastro)
 [![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml)
 
-**visualastro** is an astrophysical visualization system with convenient functions for easy visualization of common astronomical data. The package is developed with ease of use in mind, and making publication ready plots.
+**visualastro** is an astrophysical visualization system with functions for easy visualization and manipulation of common astronomical data. The package is developed with ease of use in mind, modularity, and making publication-ready plots with minimal commands.
 
 ## Installation
 
 Currently, the most stable version of python for visualastro is version >=3.10.
 To install visualastro, it is advised to create a new conda environment if possible:
 ```
-$ conda create envname -c conda-forge python=3.14
-$ conda activate envname
+$ conda create visualastro -c conda-forge python=3.14
+$ conda activate visualastro
 ```
 Then install the dependencies with:
 ```
@@ -42,20 +42,19 @@ And finally run:
 $ pip install visualastro
 ```
 
-NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then activate jupyter notebook!
+NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then run jupyter notebook!
 
-## Compatible Data
-- 2D images
-- 3D spectral cubes
-- 1D spectra with gaussian fitting tools
 
 ## Features
 
-- Simple, high-level wrapper functions for common astrophysical plots
+- Unified interface for matplotlib, astropy, numpy, spectral-cube, specutils, and other astronomy packages
+- High-level wrappers of common functions and algorithms used in astrophysical research
 - Custom matplotlib style sheets optimized for publication-quality figures
-- Full compatibility with WCS, FITS
+- Full compatibility with WCS, FITS, and astropy units
 
 ## Documentation
+Visualastro is still under development! A full documentation of the package's features is coming soon.
+
 The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
 
 ## Dependencies
