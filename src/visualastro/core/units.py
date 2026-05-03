@@ -56,12 +56,12 @@ def convert_quantity(
     -------
     astropy.units.Quantity
         Converted quantity, or the original quantity if conversion
-        fails and ``on_failure`` is not ``'raise'``.
+        fails and `on_failure` is not `'raise'`.
 
     Raises
     ------
     UnitConversionError
-        If conversion fails and ``on_failure='raise'``.
+        If conversion fails and `on_failure='raise'`.
     """
     if unit is None:
         return quantity
@@ -85,25 +85,25 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     """
     Extract the unit from an object, if it exists.
 
-    This function checks if the object has a ``.unit`` attribute,
-    or if ``'BUNIT'`` exists in ``obj``.
+    This function checks if the object has a `.unit` attribute,
+    or if `'BUNIT'` exists in `obj`.
 
     Parameters
     ----------
     obj : Object
         The input object from which to extract a unit. This can be:
-        - an astropy ``UnitBase``
-        - a ``u.Quantity``
-        - a list/tuple of ``u.Quantities`` (validates all have same unit)
-        - a ``fits.Header`` with a ``'BUNIT'`` key
-        - any object with a ``.data`` attribute
-        - any object with a ``.header`` attribute
+        - an astropy `UnitBase`
+        - a `u.Quantity`
+        - a list/tuple of `u.Quantities` (validates all have same unit)
+        - a `fits.Header` with a `'BUNIT'` key
+        - any object with a `.data` attribute
+        - any object with a `.header` attribute
 
     Returns
     -------
     astropy.units.Unit or None
         The unit associated with the input object, if it exists.
-        Returns ``None`` if the object has no unit or if the unit cannot be parsed.
+        Returns `None` if the object has no unit or if the unit cannot be parsed.
     """
     if obj is None:
         return None
@@ -179,7 +179,7 @@ def get_units(
         The input object(s) from which to extract a unit. These can be:
         - an astropy UnitBase
         - an astropy.units.Quantity
-        - a list/tuple of ``u.Quantities`` (validates all have same unit)
+        - a list/tuple of `u.Quantities` (validates all have same unit)
         - a fits.Header with a 'BUNIT' key
         - any object with a .data attribute
         - any object with a .header attribute
@@ -203,16 +203,16 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
 
     The function follows a recursive search strategy:
 
-    1. If ``obj`` is a ``SpectralAxis``, its ``.unit`` attribute is returned.
-    2. If ``obj`` is an ``astropy.units.Quantity``, its unit is
+    1. If `obj` is a `SpectralAxis`, its `.unit` attribute is returned.
+    2. If `obj` is an `astropy.units.Quantity`, its unit is
        returned if it is convertible to a spectral unit using
-       ``u.spectral()`` or ``u.doppler_radio`` equivalencies.
-    3. If ``obj`` has a ``.spectral_unit`` attribute, the function
-       is applied recursively to ``obj.spectral_unit``.
-    4. If ``obj`` has a ``.data`` attribute, the function is applied
-       recursively to ``obj.data``.
-    5. If ``obj`` has a ``.spectral_axis`` attribute, the function is applied
-       recursively to ``obj.spectral_axis``.
+       `u.spectral()` or `u.doppler_radio` equivalencies.
+    3. If `obj` has a `.spectral_unit` attribute, the function
+    is applied recursively to `obj.spectral_unit`.
+    4. If `obj` has a `.data` attribute, the function is applied
+    recursively to `obj.data`.
+    5. If `obj` has a `.spectral_axis` attribute, the function is applied
+    recursively to `obj.spectral_axis`.
 
     If no spectral unit can be identified, the function returns None.
 
@@ -340,11 +340,11 @@ def unit_2_string(
     Parameters
     ----------
     unit : Quantity, Unit, str, or None
-        Astropy unit. If ``Quantity``, uses
-        the unit of the ``Quantity``.
+        Astropy unit. If `Quantity`, uses
+        the unit of the `Quantity`.
     fmt : {'latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'} or None, optional, default=None
-        String format for returned unit. ``'inline'`` works as an alias for
-        ``'latex_inline'``. If ``None``, does not use a format.
+        String format for returned unit. `'inline'` works as an alias for
+        `'latex_inline'`. If `None`, does not use a format.
 
     Returns
     -------
@@ -390,10 +390,10 @@ def to_latex_unit(
     unit : str or astropy.Unit
         The astropy.Unit or unit string to convert.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional, default=None
-        The format of the unit label. ``'latex_inline'`` and ``'inline'``
-        (alias for ``'latex_inline'``) uses negative exponents while
-        ``'latex'`` uses fractions. If ``None``, uses
-        the default value set by ``config.unit_label_format``.
+        The format of the unit label. `'latex_inline'` and `'inline'`
+        (alias for `'latex_inline'`) uses negative exponents while
+        `'latex'` uses fractions. If `None`, uses
+        the default value set by `config.unit_label_format`.
 
     Returns
     -------
@@ -440,7 +440,7 @@ def to_fits_unit(
     Returns
     -------
     str or None :
-        Unit converted as a fits formatted string or ``None``
+        Unit converted as a fits formatted string or `None`
         if no unit is found.
     """
     return unit_2_string(unit, fmt='fits')
@@ -478,12 +478,12 @@ def to_spectral_region(
     obj : SpectralRegion, Quantity, tuple, list, or None
         Region specification. Accepted forms:
 
-        - ``SpectralRegion``: returned as-is
-        - ``(low, high) * unit``: single region with shared unit
-        - ``[(low, high), ...] * unit``: multiple regions with shared unit
-        - ``(Quantity, Quantity)``: single region with explicit units
-        - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
-        - ``None``: returned as-is
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+        - `None`: returned as-is
 
     Returns
     -------
@@ -495,7 +495,7 @@ def to_spectral_region(
     ValueError :
         If a Quantity has incorrect shape (must be (2,) or (N, 2)).
     ValueError :
-        If the input ``obj`` cannot be coerced into a ``SpectralRegion``.
+        If the input `obj` cannot be coerced into a `SpectralRegion`.
 
     Examples
     --------
@@ -564,9 +564,9 @@ def _require_spectral_region(
     )
 ) -> SpectralRegion:
     """
-    Enforce that the input ``obj`` is a ``SpectralRegion``.
+    Enforce that the input `obj` is a `SpectralRegion`.
 
-    This is a wrapper of ``to_spectral_region``, which unlike
+    This is a wrapper of `to_spectral_region`, which unlike
     this function allows for None inputs.
 
     Parameters
@@ -574,11 +574,11 @@ def _require_spectral_region(
     obj : SpectralRegion, Quantity, tuple, or list
         Region specification. Accepted forms:
 
-        - ``SpectralRegion``: returned as-is
-        - ``(low, high) * unit``: single region with shared unit
-        - ``[(low, high), ...] * unit``: multiple regions with shared unit
-        - ``(Quantity, Quantity)``: single region with explicit units
-        - ``[(Quantity, Quantity), ...]``: multiple regions with explicit units
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
 
     Returns
     -------
@@ -588,7 +588,7 @@ def _require_spectral_region(
     Raises
     ------
     ValueError :
-        If input ``obj`` results in ``None`` when converted to
+        If input `obj` results in `None` when converted to
         a SpectralRegion.
     """
     region = to_spectral_region(obj)
@@ -622,7 +622,7 @@ def ensure_common_unit(
         encountered among the inputs is used.
     on_mismatch : {'warn', 'ignore', 'raise'}, optional, default=None
         Action to take when a unit mismatch is detected. If None, uses
-        the default value from ``config.unit_mismatch``.
+        the default value from `config.unit_mismatch`.
     label : str or None, optional, default=None
         Optional context label prepended to warnings or errors.
         Is ignored if None.
@@ -630,7 +630,7 @@ def ensure_common_unit(
     Returns
     -------
     ref_unit : UnitBase
-        Common unit between ``objs``.
+        Common unit between `objs`.
 
     Raises
     ------
@@ -677,17 +677,17 @@ def _is_spectral_axis(obj: Any) -> bool:
     Determine whether an object represents a spectral axis or a spectral quantity.
 
     An object is considered spectral if any of the following is true:
-    1. It is a ``SpectralAxis`` instance.
-    2. It exposes a ``.spectral_axis`` or ``.spectral_unit`` attribute that itself
+    1. It is a `SpectralAxis` instance.
+    2. It exposes a `.spectral_axis` or `.spectral_unit` attribute that itself
         represents a spectral axis.
     3. Its unit corresponds to a spectral quantity such as wavelength, frequency,
-        energy, or Doppler velocity, as determined via Astropy's ``u.spectral()``
-        or ``u.doppler_radio()`` equivalencies.
+        energy, or Doppler velocity, as determined via Astropy's `u.spectral()`
+        or `u.doppler_radio()` equivalencies.
 
     Parameters
     ----------
     obj : Any
-        The object to evaluate. This may be a ``SpectralAxis``, ``Quantity``,
+        The object to evaluate. This may be a `SpectralAxis`, `Quantity`,
         unit, or any object exposing spectral metadata.
 
     Returns
@@ -698,11 +698,11 @@ def _is_spectral_axis(obj: Any) -> bool:
     Notes
     -----
     - Length units (e.g., meters, microns) are only treated as spectral when
-        they can be converted to frequency using ``u.spectral()`` equivalencies.
+        they can be converted to frequency using `u.spectral()` equivalencies.
     - Plain length quantities without spectral context are not automatically
         considered spectral axes.
     - Doppler velocity units are recognized only if they can be converted
-        to a spectral representation using ``u.doppler_radio()`` equivalencies.
+        to a spectral representation using `u.doppler_radio()` equivalencies.
     """
     if isinstance(obj, SpectralAxis):
         return True
