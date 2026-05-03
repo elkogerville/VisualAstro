@@ -844,9 +844,13 @@ def plot_scatter(
             )
 
     set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
-    set_axis_labels(xlist, ylist, ax, xlabel, ylabel)
+    set_axis_labels(
+        _cycle(xlist, config.reference_idx),
+        _cycle(ylist, config.reference_idx),
+        ax, xlabel, ylabel
+    )
 
-    if labels[config.reference_idx] is not None:
+    if _cycle(labels, config.reference_idx) is not None:
         ax.legend(loc=loc)
 
     return _unwrap_if_single(scatters)
