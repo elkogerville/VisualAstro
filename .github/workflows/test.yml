@@ -33,7 +33,7 @@ jobs:
         run: |
           conda install -c conda-forge \
             astropy dust_extinction matplotlib numpy regions reproject \
-            spectral-cube specutils scipy tqdm pytest pytest-cov
+            spectral-cube specutils scipy tqdm pytest pytest-cov pip
 
       - name: Install visualastro + test
         shell: bash -l {0}
