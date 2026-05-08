@@ -137,7 +137,7 @@ class help:
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
-            style = get_stylepath(style_name)
+            style = _get_stylepath(style_name)
             with plt.style.context(style):
                 print(fr"Style : '{style_name}'")
                 if style_name == 'cm10':
