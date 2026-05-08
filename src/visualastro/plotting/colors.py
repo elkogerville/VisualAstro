@@ -48,7 +48,7 @@ COLORSETS: dict[str, list[str]] = {
 COLORNAMES = [key for key in COLORSETS.keys()]
 
 
-def create_colormap(
+def create_cmap(
     colors: list[ColorType],
     positions: list[float] | None = None,
     name: str = 'continous_cmap'

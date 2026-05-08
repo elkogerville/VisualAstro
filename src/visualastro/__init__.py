@@ -75,7 +75,7 @@ from visualastro.plotting.image_plots import (
 )
 from visualastro.plotting.colors import (
     as_color,
-    create_colormap,
+    create_cmap,
     get_colors,
     sample_cmap,
 )
@@ -86,7 +86,6 @@ from visualastro.plotting.plot_utils import (
     close,
     ellipse_patch,
     get_imshow_norm,
-    get_stylepath,
     get_vmin_vmax,
     inline,
     interactive,
