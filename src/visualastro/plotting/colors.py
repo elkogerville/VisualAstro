@@ -32,11 +32,24 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 COLORSETS: dict[str, list[ColorType]] = {
     'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-    'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
-    'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
+    'ibm_contrast': [
+        '#648FFF', '#DC267F', '#785EF0',
+        '#26DCBA', '#FFB000', '#FE6100'
+    ],
+    'astro_seq': [
+        '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
+        '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
+    ],
+    'astro': [
+        '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
+        '#FFB000', '#9FB7FF', '#CFE23C', '#FE6100'
+    ],
     'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
     'default': list(TABLEAU_COLORS.values()),
-    'smplot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00'],
+    'smplot': [
+        'k', '#FF0000', '#0000FF', '#00FF00',
+        '#00FFFF', '#FF00FF', '#FFFF00'
+    ],
     'bright': [mcolors.to_hex(c) for c in tc.bright],
     'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
     'muted': [mcolors.to_hex(c) for c in tc.muted],
@@ -45,7 +58,10 @@ COLORSETS: dict[str, list[ColorType]] = {
     'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast[1:]],
     'high_contrast': [mcolors.to_hex(c) for c in tc.high_contrast],
     'land_cover': [mcolors.to_hex(c) for c in tc.land_cover],
-    'okabe_ito': ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000']
+    'okabe_ito': [
+        '#E69F00', '#56B4E9', '#009E73', '#F0E442',
+        '#0072B2', '#D55E00', '#CC79A7', '#000000'
+    ],
 }
 COLORNAMES = [key for key in COLORSETS.keys()]
 
@@ -117,7 +133,7 @@ def sample_cmap(
 
 
 def get_colors(
-    colors: str | ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
+    colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
@@ -149,7 +165,6 @@ def get_colors(
     list[tuple[float, float, float, float]] :
         If ``fmt='rgba'``.
     """
-
     cmap = resolve_default(cmap, config.cmap)
 
     if colors is _UNSET:
@@ -185,11 +200,11 @@ def get_colors(
 
 
 def simulate_colorblindness(
-    colors: str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple],
+    colors: ColorType | list[ColorType],
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] = 'deuteranomaly',
     severity: int = 100,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
-) -> list[str | tuple[float, float, float] | tuple[float, float, float, float]]:
+) -> list[ColorType]:
     """
     Simulate colorblindness perception of a color palette.
 
@@ -197,10 +212,12 @@ def simulate_colorblindness(
     ----------
     hex_colors : ColorType | list of ColorType
         Color or list of colors recognized by matplotlib.
-    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}, optional, default='deuteranomaly'
         Type of colorblindness to simulate.
-    severity : int
+    severity : int, optional, default=100
         Severity level (0-100). 100 = complete colorblindness.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
 
     Returns
     -------
