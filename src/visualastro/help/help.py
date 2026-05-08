@@ -21,6 +21,7 @@ from glob import glob
 import os
 from typing import Literal
 import warnings
+from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.typing import ColorType
@@ -59,10 +60,10 @@ class help:
         >>> va.help.colors()
 
         Display the 'astro' colorset as perceived by protanomaly:
-        >>> va.help.colors_cb('astro', cvd_type='protanomaly')
+        >>> va.help.colors('astro', cvd_type='protanomaly')
 
         Display the 'astro' colorset with all colorblindness simulations:
-        >>> va.help.colors_cb('astro', cvd_type='all')
+        >>> va.help.colors('astro', cvd_type='all')
         """
         cvd_types = (
             ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
@@ -125,6 +126,50 @@ class help:
             ax.set_ylim(-n_rows, 1)
             plt.tight_layout()
             plt.show()
+
+
+    @staticmethod
+    def cmap(
+        cmap: str | mcolors.Colormap | list[str | mcolors.Colormap] | None = None
+    ) -> None:
+        """
+        Display a series of colormap(s), or all available colormaps if `cmap=None`.
+
+        Parameters
+        ----------
+        cmap : str | mcolors.Colormap | list[str | mcolors.Colormap] | None, optional, default=None
+            Colormap or list of colormaps to plot. If `None`, plots all colormaps.
+
+        Examples
+        --------
+        Display all colormaps:
+        >>> va.help.cmap()
+
+        Display the 'turbo' and 'PuRd' colormaps:
+        >>> va.help.cmap(['turbo', 'PuRd'])
+        """
+        gradient = np.linspace(0, 1, 256).reshape(1, -1)
+        if cmap is None:
+            cmaps = colormaps()
+        else:
+            cmaps = to_list(cmap)
+        n = len(cmaps)
+        ncols = 4
+        nrows = (n + ncols - 1) // ncols
+        fig, axes = plt.subplots(nrows, ncols, figsize=(16, nrows*1.5))
+        axes = axes.flatten()
+
+        for ax, cmap_name in zip(axes, cmaps):
+            ax.imshow(gradient, aspect='auto', cmap=cmap_name)
+            ax.set_title(cmap_name, fontsize=8)
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+        for ax in axes[n:]:
+            ax.axis('off')
+
+        plt.tight_layout()
+        plt.show()
 
 
     @staticmethod
