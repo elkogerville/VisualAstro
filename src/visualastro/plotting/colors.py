@@ -14,6 +14,7 @@ from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
+from matplotlib.colors import TABLEAU_COLORS
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
@@ -28,19 +29,20 @@ RGBTuple: TypeAlias = tuple[float, float, float]
 RGBATuple: TypeAlias = tuple[float, float, float, float]
 
 
-COLORSETS: dict[str, list[str]] = {
+COLORSETS: dict[str, list[ColorType]] = {
     'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
     'ibm_contrast': ['#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'],
     'astro': ['#9FB7FF', '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'],
     'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+    'default': list(TABLEAU_COLORS.values()),
     'smplot': ['k', '#FF0000', '#0000FF', '#00FF00', '#00FFFF', '#FF00FF', '#FFFF00'],
     'bright': [mcolors.to_hex(c) for c in tc.bright],
     'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
     'muted': [mcolors.to_hex(c) for c in tc.muted],
     'light': [mcolors.to_hex(c) for c in tc.light],
     'dark': [mcolors.to_hex(c) for c in tc.dark],
-    'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast][1:],
+    'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast[1:]],
     'high_contrast': [mcolors.to_hex(c) for c in tc.high_contrast],
     'land_cover': [mcolors.to_hex(c) for c in tc.land_cover],
     'okabe_ito': ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#000000']

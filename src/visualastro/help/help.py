@@ -156,7 +156,7 @@ class help:
             style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
         else:
             style_names = to_list(style_name)
-        colors = get_colors(config.default_colorset)
+        colors = get_colors(len(style_names))
         print(
             'Here are sample plot made with the available visualastro plot styles. '
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
