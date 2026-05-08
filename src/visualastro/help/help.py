@@ -36,7 +36,8 @@ class help:
     @staticmethod
     def colors(
         color: str | ColorType | int | Sequence[ColorType] | None = None,
-        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
+        severity: int = 100
     ) -> None:
         """
         Display VisualAstro color colorsets with optional colorblindness simulation.
@@ -49,6 +50,8 @@ class help:
         cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
             Simulate colorblindness. If `'all'`, displays all three types.
             If `None`, no simulation is applied.
+        severity : int
+            Severity level (0-100). 100 = complete colorblindness.
 
         Examples
         --------
@@ -85,7 +88,7 @@ class help:
 
                     # CVD simulations
                     for cvd in cvd_types:
-                        cvd_colors = simulate_colorblindness(plot_colors, cvd) # type: ignore
+                        cvd_colors = simulate_colorblindness(plot_colors, cvd, severity) # type: ignore
                         for j, c in enumerate(cvd_colors):
                             ax.add_patch(Rectangle((j, -row), 1, 1, color=c, ec='black'))
                         ax.text(-0.5, -row + 0.5, f'{color_name} ({cvd})',
@@ -111,7 +114,7 @@ class help:
 
             # CVD simulations
             for cvd in cvd_types:
-                cvd_colors = simulate_colorblindness(colorset, cvd) # type: ignore
+                cvd_colors = simulate_colorblindness(colorset, cvd, severity) # type: ignore
                 for i, c in enumerate(cvd_colors):
                     ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
                 ax.text(-0.5, -row + 0.5, f'{color} ({cvd})',
