@@ -10,6 +10,7 @@ Dependencies:
 """
 
 from collections.abc import Sequence
+from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
@@ -19,7 +20,7 @@ import numpy as np
 import tol_colors as tc
 
 from visualastro.core.config import config, resolve_default, _Unset, _UNSET
-from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
+from visualastro.core.numerical_utils import as_list, _unwrap_if_single
 from visualastro.core.validation import _type_name
 
 
@@ -179,6 +180,44 @@ def get_colors(
         'colors must be None, a str colorset name, a str color, '
         f'a list of colors, or an integer! got {_type_name(colors)}'
     )
+
+
+def simulate_colorblindness(
+    colors: str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple],
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] = 'deuteranomaly',
+    severity: int = 100,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | tuple[float, float, float] | tuple[float, float, float, float]]:
+    """
+    Simulate colorblindness perception of a color palette.
+
+    Parameters
+    ----------
+    hex_colors : ColorType | list of ColorType
+        Color or list of colors recognized by matplotlib.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}
+        Type of colorblindness to simulate.
+    severity : int
+        Severity level (0-100). 100 = complete colorblindness.
+
+    Returns
+    -------
+    list of ColorType
+        List of ColorType as perceived by colorblind vision.
+    """
+    cvd_space = {
+        'name': 'sRGB1+CVD',
+        'cvd_type': cvd_type,
+        'severity': severity
+    }
+
+    # convert hex to RGB [0, 1]
+    rgb = np.array(as_color(colors, fmt='rgb'))
+
+    cvd_rgb = cspace_convert(rgb, cvd_space, 'sRGB1')
+    cvd_rgb = np.clip(cvd_rgb, 0, 1)
+
+    return [_convert_color(tuple(row), fmt=fmt) for row in cvd_rgb]
 
 
 def as_color(
