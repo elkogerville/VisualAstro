@@ -205,6 +205,10 @@ def simulate_colorblindness(
     list of ColorType
         List of ColorType as perceived by colorblind vision.
     """
+    if not 0 <= severity <= 100:
+        raise ValueError(
+            'severity must be >= 0 and <= 100!'
+        )
     cvd_space = {
         'name': 'sRGB1+CVD',
         'cvd_type': cvd_type,
