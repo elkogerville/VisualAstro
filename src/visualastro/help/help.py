@@ -19,6 +19,7 @@ Module Structure:
 from collections.abc import Sequence
 from glob import glob
 import os
+from typing import Literal
 import warnings
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -27,83 +28,104 @@ import numpy as np
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
-from visualastro.plotting.colors import COLORNAMES, get_colors
-from visualastro.plotting.plot_utils import get_stylepath
+from visualastro.plotting.colors import COLORNAMES, get_colors, simulate_colorblindness
+from visualastro.plotting.plot_utils import _get_stylepath
 
 
 class help:
     @staticmethod
     def colors(
         color: str | ColorType | int | Sequence[ColorType] | None = None,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None
     ) -> None:
         """
-        Display VisualAstro color colorsets.
-
-        Displays predefined visualastro colorsets or, a input colorset
-        recognized by matplotlib.
+        Display VisualAstro color colorsets with optional colorblindness simulation.
 
         Parameters
         ----------
         color : str | ColorType | int | Sequence[ColorType] | None, optional, default=None
-            Name of a specific color scheme to display. If ``None``,
+            Name of a specific color scheme to display. If `None`,
             all visualastro colorsets are shown.
+        cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
+            Simulate colorblindness. If `'all'`, displays all three types.
+            If `None`, no simulation is applied.
 
         Examples
         --------
         Display all default VisualAstro color colorsets:
         >>> va.help.colors()
-        Display only the 'astro' colorset, including plot and model colors:
-        >>> va.help.colors('astro')
+
+        Display the 'astro' colorset as perceived by protanomaly:
+        >>> va.help.colors_cb('astro', cvd_type='protanomaly')
+
+        Display the 'astro' colorset with all colorblindness simulations:
+        >>> va.help.colors_cb('astro', cvd_type='all')
         """
-        style = get_stylepath(config.style)
+        cvd_types = (
+            ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
+            else ([cvd_type] if cvd_type else [])
+        )
+        style = _get_stylepath(config.style)
 
         if color is None:
-            print(
-                'visualastro includes many built-in color colorsets.\n'
-                'Many visualastro colorsets are designed to be colorblind friendly. '
-                "These include: \n 'ibm' from the ibm colorblind palette, the tol colorsets "
-                "'bright', 'vibrant', 'muted', 'light', 'dark', 'medium_contrast', 'high_contrast', "
-                "and 'land_cover', the okabe-ito palette 'okabe-ito'"
-
-            )
             with plt.style.context(style):
-                fig, ax = plt.subplots(figsize=(8, len(COLORNAMES)))
+                n_rows = len(COLORNAMES) * (1 + len(cvd_types))
+                fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
                 ax.axis('off')
-                for i, color in enumerate(COLORNAMES):
-                    plot_colors = get_colors(color)
-                    # plot each color as a tile
-                    for j, c in enumerate(plot_colors):
-                        ax.add_patch(
-                            Rectangle((j, -i), 1, 1, color=c, ec='black')
-                        )
-                    ax.text(-0.5, -i + 0.5, color, va='center', ha='right')
+                row = 0
 
-                ax.set_xlim(-1, max(len(get_colors(c)) for c in COLORNAMES))
-                ax.set_ylim(-len(COLORNAMES), 1)
+                for color_name in COLORNAMES:
+                    plot_colors = get_colors(color_name)
+
+                    # original
+                    for j, c in enumerate(plot_colors):
+                        ax.add_patch(Rectangle((j, -row), 1, 1, color=c, ec='black'))
+                    ax.text(-0.5, -row + 0.5, color_name, va='center', ha='right')
+                    row += 1
+
+                    # CVD simulations
+                    for cvd in cvd_types:
+                        cvd_colors = simulate_colorblindness(plot_colors, cvd) # type: ignore
+                        for j, c in enumerate(cvd_colors):
+                            ax.add_patch(Rectangle((j, -row), 1, 1, color=c, ec='black'))
+                        ax.text(-0.5, -row + 0.5, f'{color_name} ({cvd})',
+                                va='center', ha='right', fontsize=9)
+                        row += 1
+
+                ax.set_xlim(-2, max(len(get_colors(c)) for c in COLORNAMES))
+                ax.set_ylim(-n_rows, 1)
                 plt.tight_layout()
                 plt.show()
-
         else:
             colorset = get_colors(color)
-
-            fig, ax = plt.subplots(figsize=(8, 2))
+            n_rows = 1 + len(cvd_types)
+            fig, ax = plt.subplots(figsize=(8, n_rows + 0.5))
             ax.axis('off')
-            for i, color in enumerate(colorset):
+            row = 0
 
-                ax.add_patch(
-                    Rectangle((i, 0), 1, 1, color=color, ec='black')
-                )
+            # original
+            for i, c in enumerate(colorset):
+                ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
+            ax.text(-0.5, -row + 0.5, color, va='center', ha='right') # type: ignore
+            row += 1
 
-            ax.set_xlim(-1, max(len(get_colors(c)[0]) for c in colorset))
-            ax.set_ylim(-len(colorset), 1)
+            # CVD simulations
+            for cvd in cvd_types:
+                cvd_colors = simulate_colorblindness(colorset, cvd) # type: ignore
+                for i, c in enumerate(cvd_colors):
+                    ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
+                ax.text(-0.5, -row + 0.5, f'{color} ({cvd})',
+                        va='center', ha='right', fontsize=9)
+                row += 1
+
+            ax.set_xlim(-2, len(colorset))
+            ax.set_ylim(-n_rows, 1)
             plt.tight_layout()
             plt.show()
 
-        return None
-
 
     @staticmethod
-    def styles(style_name=None):
+    def styles(style_name: str | None = None) -> None:
         """
         Display example plots for one or more available matplotlib style sheets.
 
