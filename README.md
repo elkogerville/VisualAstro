@@ -1,12 +1,12 @@
 ```
-            /$$                            /$$                    /$$                        
-           |__/                           | $$                   | $$                        
- /$$    /$$ /$$  /$$$$$$ /$$  /$$  /$$$$$ | $$  /$$$$$   /$$$$$ /$$$$$$   /$$$$$   /$$$$$$ 
+            /$$                            /$$                    /$$
+           |__/                           | $$                   | $$
+ /$$    /$$ /$$  /$$$$$$ /$$  /$$  /$$$$$ | $$  /$$$$$   /$$$$$ /$$$$$$   /$$$$$   /$$$$$$
 |  $$  /$$/| $$ /$$____/| $$ | $$ |____ $$| $$ |____ $$ /$$___/|_  $$_/  /$$__ $$ /$$__  $$
  \  $$/$$/ | $$|  $$$$$ | $$ | $$  /$$$$$$| $$  /$$$$$$|  $$$$$  | $$   | $$ \__/| $$  \ $$
   \  $$$/  | $$ \___  $$| $$ | $$ /$$__ $$| $$ /$$__ $$ \___  $$ | $$ /$| $$     | $$  | $$
    \  $/   | $$ /$$$$$$/|  $$$$$/|  $$$$$$| $$|  $$$$$$ /$$$$$$/ |  $$$$| $$     |  $$$$$$/
-    \_/    |__/|______/  \_____/  \______/|__/ \______/|______/   \___/ |__/      \______/ 
+    \_/    |__/|______/  \_____/  \______/|__/ \______/|______/   \___/ |__/      \______/
 ```
 
 
@@ -27,7 +27,7 @@ $ conda activate visualastro
 Then install the dependencies with:
 ```
 $ conda install -c conda-forge \
-    astropy dust_extinction matplotlib numpy regions reproject spectral-cube specutils scipy tqdm
+    astropy colorspacious dust_extinction matplotlib numpy regions reproject spectral-cube specutils scipy tqdm
 ```
 For additional interactive functionality inside of jupyter lab:
 ```
