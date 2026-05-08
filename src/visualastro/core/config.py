@@ -44,9 +44,9 @@ class VisualAstroConfig:
     Global configuration object for controlling default behavior
     across the visualastro package.
 
-    visualastro function parameters are often set to ``_UNSET``,
+    visualastro function parameters are often set to `_UNSET`,
     which at runtime gets resolved to the default hardcoded value
-    set in ``VisualAstroConfig``. Modifying this file will update
+    set in `VisualAstroConfig`. Modifying this file will update
     the default values.
 
     Users can also modify attributes at runtime by modifying the config
@@ -56,8 +56,6 @@ class VisualAstroConfig:
         >>> va.config.style = 'latex'
         >>> va.config.figsize = (6, 6)
     """
-
-
     def __init__(self):
         # Plotting Params
         # ---------------
@@ -81,10 +79,10 @@ class VisualAstroConfig:
         self.reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
         self.grid_figsize: tuple = (12, 6)
         self.figsize3d: tuple = (10, 10)
-        # if _UNSET, defaults to ``self.default_colorset``.
+        # if _UNSET, defaults to `self.default_colorset`.
         # To define a custom default colorset,
         # define it in `get_colors` and change the `default_colorset`.
-        self.colors: str | ColorType | int | Sequence[ColorType] | _Unset = _UNSET
+        self.colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET
         self.default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
         self.alpha: int = 1
         self.nrows: int = 1 # make_grid_plot() nrows
@@ -93,15 +91,15 @@ class VisualAstroConfig:
 
         # figure grid params
         self.grid_alpha: float = 1
-        self.grid_color: 'str' = 'k'
+        self.grid_color: ColorType = 'k'
         self.grid_linestyle: 'str' = 'solid'
 
         self.wcs_grid: bool = False
-        self.wcs_grid_color: 'str' = 'w'
+        self.wcs_grid_color: ColorType = 'w'
         self.wcs_grid_linestyle: 'str' = 'dotted'
 
         # data params
-        self.normalize_data = False
+        self.normalize_data: bool = False
 
         # histogram params
         self.histtype = 'step'
@@ -349,7 +347,7 @@ config = VisualAstroConfig()
 def resolve_default(value: T | _Unset, fallback: T) -> T:
     """
     Fallback to a default configuration value if
-    value is ``_UNSET``.
+    value is `_UNSET`.
 
     Parameters
     ----------
@@ -357,15 +355,15 @@ def resolve_default(value: T | _Unset, fallback: T) -> T:
         Variable to be resolved.
 
     fallback : T
-        Default value if ``value`` is ``_UNSET``.
-        Should be a ``config`` attribute.
-        ie. ``config.figsize``.
+        Default value if `value` is `_UNSET`.
+        Should be a `config` attribute.
+        ie. `config.figsize`.
 
     Returns
     -------
     resolved_value : T
-        Either ``value`` if value is not ``_UNSET``
-        or ``fallback`` if ``value`` is ``_UNSET``.
+        Either `value` if value is not `_UNSET`
+        or `fallback` if `value` is `_UNSET`.
     """
     if value is _UNSET:
         return fallback
