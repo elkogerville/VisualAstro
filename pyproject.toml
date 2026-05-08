@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "astropy",
+    "colorspacious",
     "dust_extinction",
     "matplotlib",
     "numpy",
