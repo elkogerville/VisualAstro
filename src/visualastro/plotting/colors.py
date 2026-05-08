@@ -211,7 +211,7 @@ def as_color(
         If ``fmt='rgba'``.
     """
     color_list = as_list(c)
-    color_list = [_convert_color(c) for c in color_list] # type: ignore
+    color_list = [_convert_color(c, fmt=fmt) for c in color_list] # type: ignore
 
     return _unwrap_if_single(color_list)
 
