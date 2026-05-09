@@ -77,6 +77,7 @@ from visualastro.plotting.colors import (
     as_color,
     create_cmap,
     get_colors,
+    get_cmap,
     sample_cmap,
     simulate_colorblindness
 )

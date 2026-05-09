@@ -29,7 +29,13 @@ import numpy as np
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
-from visualastro.plotting.colors import COLORNAMES, get_colors, simulate_colorblindness
+from visualastro.plotting.colors import (
+    CMAPNAMES,
+    COLORNAMES,
+    get_cmap,
+    get_colors,
+    simulate_colorblindness
+)
 from visualastro.plotting.plot_utils import _get_stylepath
 
 
@@ -151,6 +157,7 @@ class help:
         gradient = np.linspace(0, 1, 256).reshape(1, -1)
         if cmap is None:
             cmaps = [c for c in colormaps() if not c.endswith('_r')]
+            cmaps += CMAPNAMES
         else:
             cmaps = to_list(cmap)
         n = len(cmaps)
@@ -160,7 +167,7 @@ class help:
         axes = axes.flatten()
 
         for ax, cmap_name in zip(axes, cmaps):
-            ax.imshow(gradient, aspect='auto', cmap=cmap_name)
+            ax.imshow(gradient, aspect='auto', cmap=get_cmap(cmap_name))
             ax.set_title(cmap_name, fontsize=8)
             ax.set_xticks([])
             ax.set_yticks([])
@@ -178,13 +185,13 @@ class help:
         Display example plots for one or more available matplotlib style sheets.
 
         This method is primarily intended for previewing and comparing the
-        visual appearance of built-in style sheets such as ``'astro'``,
-        ``'latex'``, and ``'cmu'``.
+        visual appearance of built-in style sheets such as `'astro'`,
+        `'latex'`, and `'cmu'`.
 
         Parameters
         ----------
         style_name : str or None, optional
-            Name of a specific style to preview. If ``None`` (default),
+            Name of a specific style to preview. If `None` (default),
             all predefined styles visualastro style are shown sequentially.
 
         Examples
