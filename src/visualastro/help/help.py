@@ -150,7 +150,7 @@ class help:
         """
         gradient = np.linspace(0, 1, 256).reshape(1, -1)
         if cmap is None:
-            cmaps = colormaps()
+            cmaps = [c for c in colormaps() if not c.endswith('_r')]
         else:
             cmaps = to_list(cmap)
         n = len(cmaps)
