@@ -21,7 +21,7 @@ import numpy as np
 import tol_colors as tc
 
 from visualastro.core.config import config, resolve_default, _Unset, _UNSET
-from visualastro.core.numerical_utils import as_list, _unwrap_if_single
+from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
 from visualastro.core.validation import _type_name
 
 
@@ -32,7 +32,7 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 # VISUALASTRO COLOR PALETTES
 # --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
-    'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+    'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
     'ibm_contrast': [
         '#648FFF', '#DC267F', '#785EF0',
@@ -65,6 +65,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
     ],
 }
+COLORSETS['va'] = COLORSETS['visualastro']
 COLORNAMES = [key for key in COLORSETS.keys()]
 
 
@@ -79,32 +80,32 @@ def get_colors(
     Parameters
     ----------
     colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
-        - ``UNSET``: Use default colorset
-        - ``str``:  visualastro colorset name (with optional '_r' suffix) or single color
-        - ``ColorType``: Explicit color
-        - ``int``: Number of colors to sample from cmap
-        - ``Sequence[ColorType]``: Explicit list of colors
+        - `UNSET`: Use default colorset
+        - `str`:  visualastro colorset name (with optional '_r' suffix) or single color
+        - `ColorType`: Explicit color
+        - `int`: Number of colors to sample from cmap
+        - `Sequence[ColorType]`: Explicit list of colors
 
-        If ``_UNSET``, uses the default value from ``config.default_colorset``.
+        If `_UNSET`, uses the default value from `config.default_colorset`.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
-        Colormap for sampling when colors is int. If ``_UNSET``,
-        uses the default value from ``config.cmap``.
+        Colormap for sampling when colors is int. If `_UNSET`,
+        uses the default value from `config.cmap`.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
 
     Returns
     -------
     list[str] :
-        If ``fmt='hex'``.
+        If `fmt='hex'`.
     list[tuple[float, float, float]] :
-        If ``fmt='rgb'``.
+        If `fmt='rgb'`.
     list[tuple[float, float, float, float]] :
-        If ``fmt='rgba'``.
+        If `fmt='rgba'`.
     """
     cmap = resolve_default(cmap, config.cmap)
 
     if colors is _UNSET:
-        colorset = COLORSETS.get(config.default_colorset, COLORSETS['va'])
+        colorset = COLORSETS.get(config.default_colorset, COLORSETS['visualastro'])
         return as_list(as_color(colorset, fmt=fmt))
 
     if isinstance(colors, str):
@@ -172,7 +173,7 @@ def get_cmap(
 
     if isinstance(cmap, str):
         cmap_name = cmap.removesuffix('_r')
-        cm = CMAPS.get(cmap_name)
+        cm = CMAPS.get(cmap_name, None)
         if cm is not None:
             cm = cm.reversed() if cmap.endswith('_r') else cm
             return set_bad_color(cm, bad_color)
@@ -255,18 +256,18 @@ def sample_cmap(
         Number of colors to sample.
     cmap : str | Colormap | _Unset, optional, default=_UNSET
         Name of the matplotlib colormap or Colormap object. If
-        ``_UNSET`` uses the default value in ``config.cmap``.
+        `_UNSET` uses the default value in `config.cmap`.
     fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
     Returns
     -------
     list[str] :
-        If ``fmt='hex'``.
+        If `fmt='hex'`.
     list[tuple[float, float, float]] :
-        If ``fmt='rgb'``.
+        If `fmt='rgb'`.
     list[tuple[float, float, float, float]] :
-        If ``fmt='rgba'``.
+        If `fmt='rgba'`.
     """
     cmap = resolve_default(cmap, config.cmap)
     colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
@@ -328,8 +329,8 @@ def as_color(
     | list[str | RGBTuple | RGBATuple]
 ):
     """
-    Convert a matplotlib ``ColorType`` or a ``list[ColorType]`` into
-    one of the following formats: ``'hex`'', ``'rgb'``, or ``'rgba'``.
+    Convert a matplotlib `ColorType` or a `list[ColorType]` into
+    one of the following formats: `'hex'`, `'rgb'`, or `'rgba'`.
 
     Parameters
     ----------
@@ -341,14 +342,14 @@ def as_color(
     Returns
     -------
     str | list[str] :
-        If ``fmt='hex'``.
+        If `fmt='hex'`.
     tuple[float, float, float] | list[tuple[float, float, float]] :
-        If ``fmt='rgb'``.
+        If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
-        If ``fmt='rgba'``.
+        If `fmt='rgba'`.
     """
     color_list = as_list(c)
-    color_list = [_convert_color(c, fmt=fmt) for c in color_list] # type: ignore
+    color_list = [_convert_color(c, fmt=fmt) for c in color_list]
 
     return _unwrap_if_single(color_list)
 
@@ -400,8 +401,8 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
 
     Returns
     -------
-    str
-        Hex color string.
+    str :
+        Desaturated color in hex format.
     """
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
