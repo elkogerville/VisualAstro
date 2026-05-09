@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-04-11
+Date Modified: 2026-05-09
 Description:
     Functions related to colors and colormaps in plotting.
 Dependencies:
@@ -67,7 +67,7 @@ COLORNAMES = [key for key in COLORSETS.keys()]
 
 
 def create_cmap(
-    colors: list[ColorType],
+    colors: list[ColorType] | int,
     positions: list[float] | None = None,
     name: str = 'continous_cmap'
 ) -> mcolors.LinearSegmentedColormap:
@@ -76,8 +76,10 @@ def create_cmap(
 
     Parameters
     ----------
-    colors : list[ColorType]
+    colors : list[ColorType] | int
         Color specifications (hex, named colors, RGB tuples, etc.).
+        The cmap will be created from these colors. If `colors` is
+        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
     positions : list[float] | None, optional
         Positions in [0, 1] for each color. Must start with 0 and end with 1.
         If None, colors are evenly spaced.
@@ -86,6 +88,9 @@ def create_cmap(
     -------
     LinearSegmentedColormap
     """
+    if isinstance(colors, int):
+        return tc.rainbow_discrete(colors)
+
     rgb_list = [mcolors.to_rgb(color) for color in colors]
 
     if positions is None:
@@ -95,7 +100,49 @@ def create_cmap(
                        for i in range(len(positions))]
              for idx, channel in enumerate(['red', 'green', 'blue'])}
 
-    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256) # type: ignore
+    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
+
+
+iridescent = plt.get_cmap('tol.iridescent').copy()
+iridescent.set_bad(color='white')
+BuWhRd = create_cmap(
+    ['#191970','#0000FF', '#FFFFFF', '#FF0000','#8b0000'],
+    [0, 0.25, 0.5, 0.75, 1],
+    'BuWhRd'
+)
+
+CMAPS: dict[str, mcolors.Colormap] = {
+    'iridescent': iridescent,
+    'BuWhRd': BuWhRd
+}
+CMAPNAMES = [key for key in CMAPS.keys()]
+
+
+def get_cmap(cmap: mcolors.Colormap | str | int) -> mcolors.LinearSegmentedColormap:
+    """
+    Retrieve a colormap by name or return the input colormap.
+
+    Parameters
+    ----------
+    cmap : mcolors.Colormap | str | int
+        Colormap object or string name. If a string, attempts lookup in CMAPS
+        registry before falling back to matplotlib's colormap registry.
+        If an int, returns `tol_colors.rainbow_discrete(colors)`.
+
+    Returns
+    -------
+    mcolors.LinearSegmentedColormap
+        The requested colormap.
+    """
+    if isinstance(cmap, str):
+        cm = CMAPS.get(cmap, None)
+        if cm is not None:
+            return cm
+
+    if isinstance(cmap, int):
+        return tc.rainbow_discrete(cmap)
+
+    return plt.get_cmap(cmap)
 
 
 def sample_cmap(
