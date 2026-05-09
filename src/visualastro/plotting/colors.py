@@ -29,6 +29,8 @@ RGBTuple: TypeAlias = tuple[float, float, float]
 RGBATuple: TypeAlias = tuple[float, float, float, float]
 
 
+# VISUALASTRO COLOR PALETTES
+# --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
     'va': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
@@ -64,119 +66,6 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
 }
 COLORNAMES = [key for key in COLORSETS.keys()]
-
-
-def create_cmap(
-    colors: list[ColorType] | int,
-    positions: list[float] | None = None,
-    name: str = 'continous_cmap'
-) -> mcolors.LinearSegmentedColormap:
-    """
-    Creates a colormap from colors with optional position control.
-
-    Parameters
-    ----------
-    colors : list[ColorType] | int
-        Color specifications (hex, named colors, RGB tuples, etc.).
-        The cmap will be created from these colors. If `colors` is
-        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
-    positions : list[float] | None, optional
-        Positions in [0, 1] for each color. Must start with 0 and end with 1.
-        If None, colors are evenly spaced.
-
-    Returns
-    -------
-    LinearSegmentedColormap
-    """
-    if isinstance(colors, int):
-        return tc.rainbow_discrete(colors)
-
-    rgb_list = [mcolors.to_rgb(color) for color in colors]
-
-    if positions is None:
-        positions = list(np.linspace(0, 1, len(rgb_list)))
-
-    cdict = {channel: [[positions[i], rgb_list[i][idx], rgb_list[i][idx]]
-                       for i in range(len(positions))]
-             for idx, channel in enumerate(['red', 'green', 'blue'])}
-
-    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
-
-
-iridescent = plt.get_cmap('tol.iridescent').copy()
-iridescent.set_bad(color='white')
-BuWhRd = create_cmap(
-    ['#191970','#0000FF', '#FFFFFF', '#FF0000','#8b0000'],
-    [0, 0.25, 0.5, 0.75, 1],
-    'BuWhRd'
-)
-
-CMAPS: dict[str, mcolors.Colormap] = {
-    'iridescent': iridescent,
-    'BuWhRd': BuWhRd
-}
-CMAPNAMES = [key for key in CMAPS.keys()]
-
-
-def get_cmap(cmap: mcolors.Colormap | str | int) -> mcolors.LinearSegmentedColormap:
-    """
-    Retrieve a colormap by name or return the input colormap.
-
-    Parameters
-    ----------
-    cmap : mcolors.Colormap | str | int
-        Colormap object or string name. If a string, attempts lookup in CMAPS
-        registry before falling back to matplotlib's colormap registry.
-        If an int, returns `tol_colors.rainbow_discrete(colors)`.
-
-    Returns
-    -------
-    mcolors.LinearSegmentedColormap
-        The requested colormap.
-    """
-    if isinstance(cmap, str):
-        cm = CMAPS.get(cmap, None)
-        if cm is not None:
-            return cm
-
-    if isinstance(cmap, int):
-        return tc.rainbow_discrete(cmap)
-
-    return plt.get_cmap(cmap)
-
-
-def sample_cmap(
-    N: int,
-    cmap: str | mcolors.Colormap | _Unset = _UNSET,
-    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
-) -> list[str | RGBTuple | RGBATuple]:
-    """
-    Sample N distinct colors from a given matplotlib colormap
-    returned as a list of colors in a specified format.
-
-    Parameters
-    ----------
-    N : int
-        Number of colors to sample.
-    cmap : str | Colormap | _Unset, optional, default=_UNSET
-        Name of the matplotlib colormap or Colormap object. If
-        ``_UNSET`` uses the default value in ``config.cmap``.
-    fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
-        Output color format.
-
-    Returns
-    -------
-    list[str] :
-        If ``fmt='hex'``.
-    list[tuple[float, float, float]] :
-        If ``fmt='rgb'``.
-    list[tuple[float, float, float, float]] :
-        If ``fmt='rgba'``.
-    """
-    cmap = resolve_default(cmap, config.cmap)
-    colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
-
-    return [_convert_color(c, fmt) for c in colors]
 
 
 def get_colors(
@@ -244,6 +133,145 @@ def get_colors(
         'colors must be None, a str colorset name, a str color, '
         f'a list of colors, or an integer! got {_type_name(colors)}'
     )
+
+
+def get_cmap(
+    cmap: mcolors.Colormap | str | int,
+    bad_color: ColorType | None = None
+) -> mcolors.LinearSegmentedColormap:
+    """
+    Retrieve a colormap by name or return the input colormap.
+
+    Parameters
+    ----------
+    cmap : mcolors.Colormap | str | int
+        Colormap object or string name. If a string, attempts lookup in CMAPS
+        registry before falling back to matplotlib's colormap registry.
+        If an int, returns `tol_colors.rainbow_discrete(colors)`.
+    bad_color : ColorType | None, optional, default=None
+        Bad data color (`bad_color`). If None, leaves the colormap unchanged.
+
+    Returns
+    -------
+    mcolors.LinearSegmentedColormap
+        The requested colormap.
+    """
+    def set_bad_color(
+        cmap: mcolors.Colormap,
+        color: ColorType | None
+    ) -> mcolors.Colormap:
+        """
+        Return a copy of the cmap with a new `bad_color`, or unchanged if
+        `color` is None.
+        """
+        if color is None:
+            return cmap
+        new_cmap = cmap.copy()
+        new_cmap.set_bad(color=color)
+        return new_cmap
+
+    if isinstance(cmap, str):
+        cmap_name = cmap.removesuffix('_r')
+        cm = CMAPS.get(cmap_name)
+        if cm is not None:
+            cm = cm.reversed() if cmap.endswith('_r') else cm
+            return set_bad_color(cm, bad_color)
+
+    if isinstance(cmap, int):
+        return set_bad_color(tc.rainbow_discrete(cmap), bad_color)
+
+    return set_bad_color(plt.get_cmap(cmap), bad_color)
+
+
+def create_cmap(
+    colors: list[ColorType] | int,
+    positions: list[float] | None = None,
+    name: str = 'continous_cmap'
+) -> mcolors.LinearSegmentedColormap:
+    """
+    Creates a colormap from colors with optional position control.
+
+    Parameters
+    ----------
+    colors : list[ColorType] | int
+        Color specifications (hex, named colors, RGB tuples, etc.).
+        The cmap will be created from these colors. If `colors` is
+        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
+    positions : list[float] | None, optional
+        Positions in [0, 1] for each color. Must start with 0 and end with 1.
+        If None, colors are evenly spaced.
+
+    Returns
+    -------
+    LinearSegmentedColormap
+    """
+    if isinstance(colors, int):
+        return tc.rainbow_discrete(colors)
+
+    rgb_list = [mcolors.to_rgb(color) for color in colors]
+
+    if positions is None:
+        positions = list(np.linspace(0, 1, len(rgb_list)))
+
+    cdict = {channel: [[positions[i], rgb_list[i][idx], rgb_list[i][idx]]
+                       for i in range(len(positions))]
+             for idx, channel in enumerate(['red', 'green', 'blue'])}
+
+    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
+
+
+# VISUALASTRO COLOR MAPS
+# ----------------------
+iridescent = plt.get_cmap('tol.iridescent').copy()
+iridescent.set_bad(color='white')
+BuWhRd = create_cmap(
+    ['#191970','#0000FF', '#FFFFFF', '#FF0000','#8b0000'],
+    [0, 0.25, 0.5, 0.75, 1],
+    'BuWhRd'
+)
+tol_rainbow = plt.get_cmap('tol.rainbow').copy()
+tol_rainbow.set_bad(color='white')
+
+CMAPS: dict[str, mcolors.Colormap] = {
+    'iridescent': iridescent,
+    'BuWhRd': BuWhRd,
+    'tol_rainbow': tol_rainbow,
+}
+CMAPNAMES = [key for key in CMAPS.keys()]
+
+
+def sample_cmap(
+    N: int,
+    cmap: str | mcolors.Colormap | _Unset = _UNSET,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | RGBTuple | RGBATuple]:
+    """
+    Sample N distinct colors from a given matplotlib colormap
+    returned as a list of colors in a specified format.
+
+    Parameters
+    ----------
+    N : int
+        Number of colors to sample.
+    cmap : str | Colormap | _Unset, optional, default=_UNSET
+        Name of the matplotlib colormap or Colormap object. If
+        ``_UNSET`` uses the default value in ``config.cmap``.
+    fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    list[str] :
+        If ``fmt='hex'``.
+    list[tuple[float, float, float]] :
+        If ``fmt='rgb'``.
+    list[tuple[float, float, float, float]] :
+        If ``fmt='rgba'``.
+    """
+    cmap = resolve_default(cmap, config.cmap)
+    colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
+
+    return [_convert_color(c, fmt) for c in colors]
 
 
 def simulate_colorblindness(
