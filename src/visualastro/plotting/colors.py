@@ -359,30 +359,76 @@ def _convert_color(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 )-> str | tuple[float, float, float] | tuple[float, float, float, float]:
     """
-    Convert a matplotlib ``ColorType`` into one of the following
-    formats: ``'hex`'', ``'rgb'``, or ``'rgba'``.
+    Convert a matplotlib `ColorType` into one of the following
+    formats: `'hex`'', `'rgb'`, or `'rgba'`.
     """
     return getattr(mcolors, f'to_{fmt}')(c)
+
+
+def get_complimentary_colors(
+    color: ColorType | list[ColorType],
+    mode: Literal['lighten', 'desaturate'] = 'lighten',
+    factor: float = 0.5,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> (
+    str
+    | RGBTuple
+    | RGBATuple
+    | list[str | RGBTuple | RGBATuple]
+):
+    """
+    Lightens or desaturates a color or list of colors.
+    Mixes colors with white to lighten, and moves colors
+    towards grey to desaturate.
+
+    Parameters
+    ----------
+    color : ColorType
+        Matplotlib named color, hex color, HTML color, or RGB tuple.
+    mode : {'lighten', 'desaturate'}, optional, default='lighten'
+        Method to modify the color.
+    factor : float or int
+        Modification strength.
+
+        - If `mode='lighten'`: Blending ratio with white.
+
+            - `factor=0`: Original color
+            - `factor=1`: Pure white
+
+        - If `mode='desaturate'`: Desaturation amount.
+
+            - `factor=0`: Original color
+            - `factor=1`: Full gray
+
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If `fmt='hex'`.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If `fmt='rgb'`.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If `fmt='rgba'`.
+    """
+    method = {
+        'lighten': _lighten_color,
+        'desaturate': _desaturate_color
+    }.get(mode, _lighten_color)
+
+    colors = to_list(color)
+    colors = [method(c, factor) for c in colors]
+
+    return as_color(colors, fmt=fmt)
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
     """
     Lightens the given matplotlib color by mixing it with white.
-
-    Parameters
-    ----------
-    color : ColorType
-        Matplotlib named color, hex color, html color or rgb tuple.
-    mix : float or int
-        Ratio of color to white in mix.
-        ``mix=0`` returns the original color,
-        ``mix=1`` returns pure white.
     """
-
-    # convert to rgb
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
-    # mix color with white
     mixed = (1 - mix) * rgb + mix * white
 
     return mcolors.to_hex(tuple(mixed))
