@@ -34,6 +34,7 @@ from visualastro.core.numerical_utils import (
     get_value,
     to_array,
     to_list,
+    _cycle,
     _unwrap_if_single
 )
 from visualastro.core.units import (
@@ -41,6 +42,7 @@ from visualastro.core.units import (
     get_unit,
     to_latex_unit
 )
+from visualastro.plotting.colors import get_cmap
 from visualastro.plotting.plot_utils import (
     add_colorbar,
     compute_imshow_scale,
@@ -507,13 +509,13 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
     mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
     wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
 
-    if not isinstance(ax, WCSAxes):
+    if not isinstance(ax, WCSAxes) or ax is None:
         raise ValueError(
             'ax must be a WCSAxes instance!'
         )
 
     images = []
-    cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
+    cmap = to_list(cmap)
 
     for i, cube in enumerate(cubes):
         cube = get_data(cube)
@@ -535,13 +537,14 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
         cube_norm, vmin, vmax = compute_imshow_scale(
             data, norm, vmin, vmax, percentile, **kwargs
         )
+        cm = get_cmap(_cycle(cmap, i))
 
         # imshow data
         if norm is None:
             im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax,
-                           cmap=cmap[i%len(cmap)], rasterized=rasterized)
+                           cmap=cm, rasterized=rasterized)
         else:
-            im = ax.imshow(data, origin='lower', cmap=cmap[i%len(cmap)],
+            im = ax.imshow(data, origin='lower', cmap=cm,
                            norm=cube_norm, rasterized=rasterized)
 
         images.append(im)
