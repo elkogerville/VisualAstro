@@ -233,7 +233,7 @@ def imshow(
 
     # ensure inputs are iterable or conform to standard
     ensure_common_unit(datas)
-    cmap = cmap if isinstance(cmap, (list, np.ndarray, tuple)) else [cmap]
+    cmap = to_list(cmap)
     if idx is not None:
         idx = idx if isinstance(idx, (list, np.ndarray, tuple)) else [idx]
 
@@ -261,11 +261,11 @@ def imshow(
             data, norm, vmin, vmax, percentile, **kwargs
         )
 
-        # imshow image
+        cm = get_cmap(_cycle(cmap, i))
         if img_norm is None:
             im = ax.imshow(
                 data, origin=origin, vmin=vmin,
-                vmax=vmax, cmap=cmap[i%len(cmap)],
+                vmax=vmax, cmap=cm,
                 aspect=aspect, rasterized=rasterized
             )
         else:
@@ -273,7 +273,7 @@ def imshow(
                 data,
                 origin=origin,
                 norm=img_norm,
-                cmap=cmap[i%len(cmap)],
+                cmap=cm,
                 aspect=aspect,
                 rasterized=rasterized
             )
@@ -334,12 +334,11 @@ def imshow(
         if wcs_grid:
             ax.coords.grid(True, color='white', ls='dotted')
 
-    # set axes labels
     if isinstance(xlabel, str):
         ax.set_xlabel(xlabel)
     if isinstance(ylabel, str):
         ax.set_ylabel(ylabel)
-    # add colorbar
+
     cbar_unit = to_latex_unit(get_unit(datas[0]))
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
@@ -537,9 +536,8 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
         cube_norm, vmin, vmax = compute_imshow_scale(
             data, norm, vmin, vmax, percentile, **kwargs
         )
-        cm = get_cmap(_cycle(cmap, i))
 
-        # imshow data
+        cm = get_cmap(_cycle(cmap, i))
         if norm is None:
             im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax,
                            cmap=cm, rasterized=rasterized)
@@ -549,12 +547,9 @@ def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
 
         images.append(im)
 
-    # determine unit of colorbar
     cbar_unit = to_latex_unit(ref_unit)
-    # set colorbar label
     if clabel is True:
         clabel = cbar_unit if cbar_unit is not None else None
-    # set colorbar
     if colorbar:
         add_colorbar(
             images[0], ax, cbar_width, cbar_pad, clabel, rasterized=rasterized
