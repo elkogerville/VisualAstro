@@ -52,7 +52,7 @@ from visualastro.core.config import (
     get_config_value,
     config,
     _UNSET,
-    resolve_default
+    _resolve_default
 )
 from visualastro.core.io import _pop_kwargs
 from visualastro.core.numerical_utils import (
@@ -937,7 +937,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
     plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
-    colors = resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.colors)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -1176,7 +1176,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     use_brackets = kwargs.get('use_brackets', config.use_brackets)
 
     # get default config values
-    colors = resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.colors)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
