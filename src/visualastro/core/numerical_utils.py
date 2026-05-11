@@ -24,7 +24,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import interp1d, CubicSpline
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 from scipy.special import gamma
 from spectral_cube import SpectralCube
 
@@ -471,7 +471,7 @@ def number_density(
     >>> rho = va.number_density(pos, k=10)
     >>> plt.scatter(pos[:,0], pos[:,1], c=rho, s=0.5)
     """
-    tree = cKDTree(points)
+    tree = KDTree(points)
     distances, _ = tree.query(points, k=k+1)
 
     rk = distances[:, -1]
