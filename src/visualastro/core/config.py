@@ -264,7 +264,7 @@ class VisualAstroConfig:
         self.spectral_line_marker = SpectralLineConfig()
 
 
-    def reset_defaults(self):
+    def reset(self):
         """
         Reset all configuration values to default.
         """
@@ -344,7 +344,7 @@ class HDUConfig:
 config = VisualAstroConfig()
 
 
-def resolve_default(value: T | _Unset, fallback: T) -> T:
+def _resolve_default(value: T | _Unset, fallback: T) -> T:
     """
     Fallback to a default configuration value if
     value is `_UNSET`.
