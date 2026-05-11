@@ -28,7 +28,7 @@ from numpy.typing import DTypeLike
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from visualastro.core.config import config, get_config_value, resolve_default, _Unset, _UNSET
+from visualastro.core.config import config, get_config_value, _resolve_default, _Unset, _UNSET
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data
 from visualastro.core.units import get_unit
@@ -99,11 +99,11 @@ def load_data_cube(
     Search for all fits files starting with 'HARPS' with .fits extention and load them:
         >>> filepath = 'Spectro-Module/raw/HARPS.*.fits'
     """
-    hdu = resolve_default(hdu, config.hdu_idx)
-    dtype = resolve_default(dtype, config.default_dtype)
-    print_info = resolve_default(print_info, config.print_info)
-    transpose = resolve_default(transpose, config.transpose)
-    invert_wcs = resolve_default(invert_wcs, config.invert_wcs_if_transpose)
+    hdu = _resolve_default(hdu, config.hdu_idx)
+    dtype = _resolve_default(dtype, config.default_dtype)
+    print_info = _resolve_default(print_info, config.print_info)
+    transpose = _resolve_default(transpose, config.transpose)
+    invert_wcs = _resolve_default(invert_wcs, config.invert_wcs_if_transpose)
 
     # searches for all files within a directory
     fits_files = sorted(glob.glob(filepath))
