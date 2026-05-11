@@ -13,14 +13,25 @@ Module Structure:
 """
 
 from collections import namedtuple
+from typing import Literal
 import astropy.units as u
 import matplotlib.axes as maxes
+from matplotlib.collections import PatchCollection
+from matplotlib.lines import Line2D
+from matplotlib.markers import MarkerStyle
 from matplotlib.ticker import AutoMinorLocator, NullLocator
+from matplotlib.typing import ColorType
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
-from visualastro.core.config import get_config_value, config, _UNSET, resolve_default
-from visualastro.core.io import _pop_kwargs
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _resolve_default,
+    _Unset,
+    _UNSET
+)
+from visualastro.core.io import _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
     to_array,
@@ -29,8 +40,7 @@ from visualastro.core.numerical_utils import (
     _unwrap_if_single
 )
 from visualastro.core.units import ensure_common_unit
-from visualastro.core.validation import _type_name
-from visualastro.plotting.colors import get_colors
+from visualastro.plotting.colors import get_cmap, get_colors
 from visualastro.plotting.plot_utils import (
     add_contours,
     plot_vlines,
@@ -173,7 +183,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ylog_hist = get_config_value(ylog_hist, 'ylog_hist')
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
-    colors = resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.colors)
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
@@ -389,7 +399,7 @@ def plot_histogram(
     ylog = get_config_value(ylog, 'ylog')
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
-    colors = resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.colors)
 
     # ensure inputs are iterable or conform to standard
     datas = to_list(datas)
