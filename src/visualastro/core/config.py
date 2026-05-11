@@ -71,6 +71,7 @@ class VisualAstroConfig:
         self.invert_wcs_if_transpose: bool = True
         self.target_wcs: Header | WCS | None = None
         self.hdu = HDUConfig()
+        self.array_order: Literal['c', 'fortran'] = 'c'
 
         # figure params
         self.style: str = 'astro' # default style

@@ -59,7 +59,7 @@ from visualastro.core.numerical_utils import (
     to_array,
     to_list,
     _is_array_like,
-    _is_scalar_quantity,
+    _is_scalar,
 )
 from visualastro.core.units import (
     get_physical_type,
@@ -1253,7 +1253,8 @@ def _figure_utils(ax, **kwargs):
 
 
 def _extract_xy(
-    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    order: Literal['c', 'fortran'] | _Unset = _UNSET
 ) -> tuple[
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
@@ -1281,34 +1282,43 @@ def _extract_xy(
     Raises
     ------
     ValueError
-        If input is not a 2D ndarray with shape (2, N) when single argument,
-        or if number of arguments is not 1 or 2.
+        If input is not a 2D ndarray with shape (N, 2) or a 1D array with
+        shape (N,) when single argument, or if number of arguments is not 1 or 2.
     """
+    order = _resolve_default(order, config.array_order)
+
     if len(data) == 1:
-        if not isinstance(data[0], np.ndarray):
+        obj = data[0]
+        if isinstance(obj, (np.ndarray, u.Quantity)):
+            if obj.ndim == 1:
+                return np.arange(len(obj)), obj
+
+            if obj.ndim == 2:
+                if order.lower() == 'c':
+                    return obj[:, 0], obj[:, 1]
+                else:
+                    return obj[0, :], obj[1, :]
+
+            if _is_scalar(obj):
+                return 0, obj
+
             raise ValueError(
-                f'Expected 2D ndarray, got {_type_name(data[0])}'
-            )
-        arr = data[0]
-        if arr.ndim == 1:
-            X = np.arange(len(arr))
-            Y = data[0]
-        elif arr.ndim == 2:
-            X, Y = arr[0, :], arr[1, :]
-        else:
-            raise ValueError(
-                f'Expected shape (N, 2) or (N,), got {arr.shape}'
+                f'Unsupported ndarray/Quantity shape {obj.shape}'
             )
 
-    elif len(data) == 2:
-        X, Y = data[0], data[1]
+        if _is_scalar(obj):
+            return 0, obj
 
-    else:
-        raise ValueError(
-            f'Expected 1 or 2 arguments, got {len(data)}'
-        )
+        if isinstance(obj, (list, tuple)):
+            if all(_is_scalar(x) for x in obj):
+                return np.arange(len(obj)), obj
 
-    return X, Y
+        raise ValueError(f'Unsupported input type {_type_name(obj)}')
+
+    if len(data) == 2:
+        return data[0], data[1]
+
+    raise ValueError(f'Expected 1 or 2 arguments, got {len(data)}')
 
 
 def _normalize_plotting_input(
@@ -1354,8 +1364,7 @@ def _normalize_plotting_input(
     # lists / tuples
     first = data[0]
     if (
-        _is_scalar_quantity(first)
-        or np.isscalar(first)
+        _is_scalar(first)
         or _is_array_like(first)
     ):
         return list(data)
