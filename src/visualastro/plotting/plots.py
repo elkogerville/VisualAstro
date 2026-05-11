@@ -451,12 +451,20 @@ def plot_histogram(
     return hists
 
 
-def plot_lines(X, Y, ax, normalize=None,
-               xlog=None, ylog=None,
-               colors=_UNSET, linestyle=None,
-               linewidth=None, alpha=None,
-               zorder=None, **kwargs):
-    '''
+def plot(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    ax: maxes.Axes,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
+    color: ColorType | list[ColorType] | _Unset =_UNSET,
+    linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
+    linewidth: float | list[float] | _Unset = _UNSET,
+    alpha: float | list[float] | _Unset = _UNSET,
+    zorder: float | list[float] | None = None,
+    **kwargs
+) -> list[Line2D]:
+    """
     Plot one or more lines on a given Axes object with flexible styling.
 
     Parameters
@@ -540,116 +548,214 @@ def plot_lines(X, Y, ax, normalize=None,
         `matplotlib.lines.Line2D` instance representing one plotted line.
         If only one line is created, `lines` is a single `Line2D` object;
         otherwise, it is a list of `Line2D` objects.
-    '''
-    # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = _pop_kwargs(kwargs, 'linestyles', 'ls', default=linestyle)
-    linewidths = _pop_kwargs(kwargs, 'linewidths', 'lw', default=linewidth)
-    alphas = _pop_kwargs(kwargs, 'alphas', 'a', default=alpha)
-    cmap = kwargs.get('cmap', config.cmap)
-    # figure params
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
-    # labels
-    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', config.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    # axes
-    xpad = kwargs.get('xpad', 0.0)
-    ypad = kwargs.get('ypad', 0.0)
+    """
+    params = _resolve_kwargs([
+        _param('alpha', alpha, config.alpha),
+        _param('color', color, config.colors),
+        _param('linestyle', linestyle, config.linestyle),
+        _param('linewidth', linewidth, config.linewidth),
+        _param('normalize', normalize, config.normalize_data)
+        ], kwargs
+    )
+    alphas = to_list(params.alpha)
+    linestyles = to_list(params.linestyle)
+    linewidths = to_list(params.linewidth)
+    zorders = to_list(zorder)
+    cmap = get_cmap(
+        kwargs.pop('cmap', config.cmap),
+        kwargs.pop('bad_color', None)
+    )
+    colors = get_colors(params.color, cmap=cmap)
 
-    # get default config values
-    normalize = get_config_value(normalize, 'normalize_data')
-    xlog = get_config_value(xlog, 'xlog')
-    ylog = get_config_value(ylog, 'ylog')
-    colors = resolve_default(colors, config.colors)
-    linestyles = get_config_value(linestyles, 'linestyle')
-    linewidths = get_config_value(linewidths, 'linewidth')
-    alphas = get_config_value(alphas, 'alpha')
+    labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
+    loc = kwargs.pop('loc', config.loc)
+    rasterized = kwargs.pop('rasterized', config.rasterized)
+    xlabel = kwargs.pop('xlabel', None)
+    ylabel = kwargs.pop('ylabel', None)
+    xlim = kwargs.pop('xlim', None)
+    ylim = kwargs.pop('ylim', None)
+    xlog = kwargs.pop('xlog', config.xlog)
+    ylog = kwargs.pop('ylog', config.ylog)
+    xpad = kwargs.pop('xpad', 0.0)
+    ypad = kwargs.pop('ypad', 0.0)
 
-    X = to_list(X)
-    Y = to_list(Y)
-    ensure_common_unit(X)
-    ensure_common_unit(Y)
-    if np.ndim(X[0]) == 0:
-        X = [X]
-    if np.ndim(Y[0]) == 0:
-        Y = [Y]
+    X, Y = _extract_xy(*data)
+    xlist = _normalize_plotting_input(X)
+    ylist = _normalize_plotting_input(Y)
 
-    colors = get_colors(colors, cmap=cmap)
-    linestyles = linestyles if isinstance(linestyles, (list, np.ndarray, tuple)) else [linestyles]
-    linewidths = linewidths if isinstance(linewidths, (list, np.ndarray, tuple)) else [linewidths]
-    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
-    zorders = zorder if isinstance(zorder, (list, np.ndarray, tuple)) else [zorder]
-    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
+    ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
+    ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
 
     lines = []
-    y_list = []
 
-    for i in range(len(Y)):
-        x = X[i%len(X)]
-        y = Y[i%len(Y)]
-        color = colors[i%len(colors)]
-        linestyle = linestyles[i%len(linestyles)]
-        linewidth = linewidths[i%len(linewidths)]
-        alpha = alphas[i%len(alphas)]
-        zorder = zorders[i%len(zorders)] if zorders[i%len(zorders)] is not None else i
-        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
+    for i in range(len(ylist)):
+        x = get_value(_cycle(xlist, i))
+        y = get_value(_cycle(ylist, i))
+        color = _cycle(colors, i)
+        ls = _cycle(linestyles, i)
+        lw = _cycle(linewidths, i)
+        a = _cycle(alphas, i)
+        zorder = _cycle(zorders, i) if _cycle(zorders, i) is not None else i
+        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
-        if normalize:
-            y = y / np.nanmax(y)
-        y_list.append(y)
+        if params.normalize:
+            if isinstance(y, list):
+                y = [a / np.nanmax(y) for a in y]
+            else:
+                y = y / np.nanmax(y)
+            ylist[i] = y
 
-        l = ax.plot(x, y, c=color, ls=linestyle,
-                    lw=linewidth, alpha=alpha,
-                    zorder=zorder, label=label,
-                    rasterized=rasterized)
+        line = ax.plot(
+            x, y,
+            color=color,
+            ls=ls,
+            lw=lw,
+            alpha=a,
+            zorder=zorder,
+            label=label,
+            rasterized=rasterized,
+            **kwargs
+        )
 
-        lines.append(l)
+        lines.append(line)
 
-    # set axes parameters
-    set_axis_limits(
-        X, y_list, ax=ax, xlim=xlim,
-        ylim=ylim, xpad=xpad, ypad=ypad
+    set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
+    set_axis_labels(
+        _cycle(xlist, config.reference_idx),
+        _cycle(ylist, config.reference_idx),
+        ax, xlabel, ylabel
     )
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    if labels[0] is not None:
-        ax.legend(loc=loc)
 
-    lines = lines[0] if len(lines) == 1 else lines
+    if _cycle(labels, config.reference_idx) is not None:
+        ax.legend(loc=loc)
 
     return lines
 
 
-def test(
-    *data: u.Quantity | NDArray | list[u.Quantity | NDArray],
-    ax: maxes.Axes,
-    xerr=None
-):
-    pass
-
-def plot_scatter(
+def scatter(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     ax: maxes.Axes,
-    xerr=None,
-    yerr=None,
-    normalize=None,
-    xlog=None,
-    ylog=None,
-    colors=_UNSET,
-    size=None,
-    marker=None,
-    alpha=None,
-    edgecolors=_UNSET,
-    facecolors=_UNSET,
+    xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+    yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
+    color: ColorType | list[ColorType] | _Unset =_UNSET,
+    size: float | list[float] | _Unset = _UNSET,
+    marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+    alpha: float | list[float] | _Unset = _UNSET,
+    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
     **kwargs
-):
+) ->  list[PatchCollection]:
+    """
+    Plot scatter data with optional error bars on a matplotlib Axes.
+
+    Parameters
+    ----------
+    *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+        Positional arguments specifying x and y data.
+        Accepts either a single 2D array with shape (N, 2) or two separate
+        arrays/values. If only one array is passed in, x values are automatically
+        generated with np.arange(len(array))
+
+    ax : matplotlib.axes.Axes
+        Target Axes object for plotting.
+    xerr : array-like | list[array-like], optional, default=None
+        Errors on x-axis data. Must match shape of x data.
+    yerr : array-like | list[array-like], optional, default=None
+        Errors on y-axis data. Must match shape of y data.
+    normalize : bool, optional, default=_UNSET
+        If `True`, normalize each dataset by its maximum value.
+        If `_UNSET`, uses `config.normalize_data`.
+    xlog : bool, optional
+        If `True`, uses logarithmic scale on x-axis.
+        If `None`, uses `config.xlog`.
+    ylog : bool, optional
+        If True, use logarithmic scale on y-axis.
+        If None, uses config.ylog.
+    color : ColorType | list[ColorType] | int, optional
+        Color(s) for scatter markers. If None, uses config.colors.
+    size : float, list of float, optional
+        Marker size(s). If None, uses config.scatter_size.
+    marker : str, list of str, optional
+        Marker style(s). If None, uses config.marker.
+    alpha : float, list of float, optional
+        Transparency value(s) in [0, 1]. If None, uses config.alpha.
+    edgecolor : {'face', 'none'}, ColorType, list[ColorType], optional
+        Edge color of markers.
+        - 'face': Match face color
+        - 'none': No edge
+        - color or sequence: Explicit color(s)
+        If not set, uses config.edgecolor.
+    facecolor : {'none'}, color, list of color, optional
+        Face color of markers.
+        - 'none': Transparent
+        - color or sequence: Explicit color(s)
+        If not set, uses config.facecolor.
+    cmap : str, optional, default=config.cmap
+        Colormap name if `color` not explicitly provided.
+    xlabel : str, optional
+        Label for x-axis.
+    ylabel : str, optional
+        Label for y-axis.
+    xlim : tuple of (float, float), optional
+        Limits for x-axis as (xmin, xmax).
+    ylim : tuple of (float, float), optional
+        Limits for y-axis as (ymin, ymax).
+    label : str or list of str, optional
+        Legend labels for scatter datasets.
+    loc : str, optional, default=config.loc
+        Legend location.
+    ecolor : color or list of color, optional, default=config.errorbar.colors
+        Error bar color(s).
+    elinewidth : float, optional, default=config.errorbar.linewidth
+        Error bar line width in points.
+    capsize : float, optional, default=config.errorbar.capsize
+        Length of error bar caps in points.
+    capthick : float, optional, default=config.errorbar.capthick
+        Thickness of error bar caps in points.
+    barsabove : bool, optional, default=config.errorbar.barsabove
+        If True, draw error bars above plot symbols.
+    rasterized : bool, optional, default=config.rasterized
+        If True, rasterize artists when saving to vector formats.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
+
+    Returns
+    -------
+    list[matplotlib.collections.PathCollection]
+        Scatter plot collection(s). Each element represents one scatter plot.
+        Length matches the number of datasets plotted.
+
+    See Also
+    --------
+    matplotlib.axes.Axes.scatter : Underlying scatter implementation.
+    matplotlib.axes.Axes.errorbar : Underlying error bar implementation.
+
+    Examples
+    --------
+    Plot single dataset with error bars:
+
+    >>> fig, ax = plt.subplots()
+    >>> x = np.array([1, 2, 3])
+    >>> y = np.array([2, 4, 6])
+    >>> xerr = np.array([0.1, 0.1, 0.1])
+    >>> scatter(x, y, ax=ax, xerr=xerr)
+
+    Plot multiple datasets with custom styling:
+
+    >>> scatter(x1, y1, x2, y2, ax=ax, color=['red', 'blue'],
+    ...         size=[50, 100], alpha=0.7)
+
+    Plot with logarithmic axes and normalization:
+
+    >>> scatter(x, y, ax=ax, xlog=True, ylog=True, normalize=True)
+    """
+
     """
     Plot a scatter plot (optionally with error bars) on a given Axes object.
 
