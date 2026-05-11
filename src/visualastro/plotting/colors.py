@@ -473,18 +473,6 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
 def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
     """
     Desaturate a color by moving it toward gray.
-
-    Parameters
-    ----------
-    color : ColorType
-        Matplotlib named color, hex color, html color or rgb tuple.
-    factor : float
-        Desaturation amount. 0=original, 1=full gray.
-
-    Returns
-    -------
-    str :
-        Desaturated color in hex format.
     """
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)

@@ -20,7 +20,6 @@ import warnings
 from astropy.utils.exceptions import AstropyWarning
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
-import matplotlib.pyplot as plt
 import numpy as np
 from spectral_cube import SpectralCube
 from visualastro.analysis.image_utils import stack_cube
