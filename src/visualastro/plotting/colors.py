@@ -301,7 +301,7 @@ def sample_cmap(
     list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
-    cmap = resolve_default(cmap, config.cmap)
+    cmap = _resolve_default(cmap, config.cmap)
     colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
 
     return [_convert_color(c, fmt) for c in colors]
@@ -399,7 +399,7 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | list[ColorType],
-    mode: Literal['lighten', 'desaturate'] = 'lighten',
+    mode: Literal['lighten', 'desaturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
@@ -413,12 +413,14 @@ def get_complimentary_colors(
     Mixes colors with white to lighten, and moves colors
     towards grey to desaturate.
 
+    `mode=None` returns color unchanged.
+
     Parameters
     ----------
     color : ColorType
         Matplotlib named color, hex color, HTML color, or RGB tuple.
-    mode : {'lighten', 'desaturate'}, optional, default='lighten'
-        Method to modify the color.
+    mode : {'lighten', 'desaturate'} | None, optional, default='lighten'
+        Method to modify the color. If `None`, returns `color` unchanged.
     factor : float or int
         Modification strength.
 
@@ -444,6 +446,8 @@ def get_complimentary_colors(
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
+    if mode is None:
+        return as_color(color, fmt=fmt)
     method = {
         'lighten': _lighten_color,
         'desaturate': _desaturate_color
