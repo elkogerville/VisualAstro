@@ -31,6 +31,109 @@ from visualastro.core.numerical_utils import to_array, to_list, _type_name
 from visualastro.core.units import get_units
 
 
+# KWARGS
+# ------
+KWARG_ALIASES: dict['str', tuple[str, ...]] = {
+    'alpha': ('alphas', 'a'),
+    'color': ('colors',),
+    'edgecolor': ('edgecolors', 'ec'),
+    'facecolor': ('facecolors', 'fc'),
+    'marker': ('markers', 'm'),
+    'markeredgecolor': ('markeredgecolors', 'mec'),
+    'label': ('labels', 'l'),
+    'linestyle': ('linestyles', 'ls'),
+    'linewidth': ('linewidths', 'lw'),
+    'size': ('sizes', 's'),
+}
+
+
+def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
+    """
+    Helper function for defining a parameter in `_resolve_kwargs`.
+
+    Parameters
+    ----------
+    name : str
+        Name of the parameter.
+    value : Any
+        Value of the parameter.
+    default : Any
+        Fallback value if `value` is `_UNSET`.
+
+    Returns
+    -------
+    tuple :
+        Returns a tuple of name, value, and default, unchanged.
+    """
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {_type_name(name)}'
+        )
+    return (name, value, default)
+
+
+def _resolve_kwargs(params: list[tuple[str, Any, Any]], kwargs: dict) -> SimpleNamespace:
+    out = {}
+
+    for name, value, default in params:
+        value = _pop_kwargs(kwargs, name, value)
+        out[name] = _resolve_default(value, default)
+
+    return SimpleNamespace(**out)
+
+
+def _pop_kwargs(
+    kwargs: dict[str, Any],
+    name: str,
+    default: Any = None
+) -> Any:
+    """
+    Pop a keyword argument by canonical name or registered alias.
+
+    Searches `kwargs` for the canonical `name` or any of its registered
+    aliases (from `KWARG_ALIASES` in `visualastro.core.io`), removes the
+    first match found, and returns its value.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments to mutate.
+    name : str
+        Canonical name corresponding to a key in `KWARG_ALIASES`.
+    default : Any, optional
+        Value returned if `name` and all aliases absent from `kwargs`.
+        Default is None.
+
+    Returns
+    -------
+    Any
+        Value associated with `name` or its first matched alias.
+        If no match found, returns `default`.
+
+    Notes
+    -----
+    Mutates `kwargs` by removing the matched key. Search order is:
+    canonical name first, then aliases in order defined in `KWARG_ALIASES`.
+
+    Examples
+    --------
+    >>> from visualastro.core.io import KWARG_ALIASES
+    >>> KWARG_ALIASES['edgecolor'] = ('edgecolors', 'ec')
+    >>> kwargs = {'ec': 'red', 'lw': 2}
+    >>> value = _pop_kwargs(kwargs, 'edgecolor', default='black')
+    >>> value
+    'red'
+    >>> kwargs
+    {'lw': 2}
+    """
+    for key in (name, *KWARG_ALIASES.get(name, ())):
+        if (value := kwargs.get(key, _UNSET)) is not _UNSET:
+            kwargs.pop(key)
+            return value
+
+    return default
+
+
 def get_sci_from_hdul(
     hdul: fits.HDUList,
 ) -> tuple[NDArray, list[fits.Header]]:
@@ -231,137 +334,6 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
-
-
-# Figure I/O Operations
-# ---------------------
-KWARG_ALIASES: dict['str', tuple[str, ...]] = {
-    'alpha': ('alphas', 'a'),
-    'color': ('colors',),
-    'edgecolor': ('edgecolors', 'ec'),
-    'facecolor': ('facecolors', 'fc'),
-    'marker': ('markers', 'm'),
-    'markeredgecolor': ('markeredgecolors', 'mec'),
-    'label': ('labels', 'l'),
-    'linestyle': ('linestyles', 'ls'),
-    'linewidth': ('linewidths', 'lw'),
-    'size': ('sizes', 's'),
-}
-
-
-def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
-    """
-    Helper function for defining a parameter in `_resolve_kwargs`.
-
-    Parameters
-    ----------
-    name : str
-        Name of the parameter.
-    value : Any
-        Value of the parameter.
-    default : Any
-        Fallback value if `value` is `_UNSET`.
-
-    Returns
-    -------
-    tuple :
-        Returns a tuple of name, value, and default, unchanged.
-    """
-    if not isinstance(name, str):
-        raise ValueError(
-            f'name must be a str! got: {_type_name(name)}'
-        )
-    return (name, value, default)
-
-
-def _resolve_kwargs(params: list[tuple[str, Any, Any]], kwargs: dict) -> SimpleNamespace:
-    out = {}
-
-    for name, value, default in params:
-        value = _pop_kwargs(kwargs, name, value)
-        out[name] = _resolve_default(value, default)
-
-    return SimpleNamespace(**out)
-
-
-def _pop_kwargs(
-    kwargs: dict[str, Any],
-    name: str,
-    default: Any = None
-) -> Any:
-    """
-    Pop a keyword argument by canonical name or registered alias.
-
-    Searches `kwargs` for the canonical `name` or any of its registered
-    aliases (from `KWARG_ALIASES` in `visualastro.core.io`), removes the
-    first match found, and returns its value.
-
-    Parameters
-    ----------
-    kwargs : dict[str, Any]
-        Dictionary of keyword arguments to mutate.
-    name : str
-        Canonical name corresponding to a key in `KWARG_ALIASES`.
-    default : Any, optional
-        Value returned if `name` and all aliases absent from `kwargs`.
-        Default is None.
-
-    Returns
-    -------
-    Any
-        Value associated with `name` or its first matched alias.
-        If no match found, returns `default`.
-
-    Notes
-    -----
-    Mutates `kwargs` by removing the matched key. Search order is:
-    canonical name first, then aliases in order defined in `KWARG_ALIASES`.
-
-    Examples
-    --------
-    >>> from visualastro.core.io import KWARG_ALIASES
-    >>> KWARG_ALIASES['edgecolor'] = ('edgecolors', 'ec')
-    >>> kwargs = {'ec': 'red', 'lw': 2}
-    >>> value = _pop_kwargs(kwargs, 'edgecolor', default='black')
-    >>> value
-    'red'
-    >>> kwargs
-    {'lw': 2}
-    """
-    for key in (name, *KWARG_ALIASES.get(name, ())):
-        if (value := kwargs.get(key, _UNSET)) is not _UNSET:
-            kwargs.pop(key)
-            return value
-
-    return default
-
-
-def _pop_kwargs1(kwargs, *names, default=None):
-    '''
-    Return the first matching kwarg value from a list of possible names.
-
-    Parameters
-    ----------
-    kwargs : dict
-            Dictionary of keyword arguments, typically taken from ``**kwargs``.
-    *names : str
-        One or more possible keyword names to search for. The first name found
-        in ``kwargs`` with a non-None value is returned.
-    default : any, optional, default=None
-        Value to return if none of the provided names are found in ``kwargs``.
-        Default is None.
-
-    Returns
-    -------
-    value : any
-        The value of the first matching keyword argument, or `default` if
-        none are found.
-    '''
-    for name in names:
-        if name in kwargs and kwargs[name] is not None:
-            return kwargs.pop(name)
-
-    return default
 
 
 def save_array(arr, filename, fmt=None):
