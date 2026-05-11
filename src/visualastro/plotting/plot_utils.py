@@ -49,7 +49,7 @@ from visualastro.core.config import (
     config,
     _Unset,
     _UNSET,
-    resolve_default
+    _resolve_default
 )
 from visualastro.core.numerical_utils import (
     kde2d,
@@ -634,9 +634,9 @@ def make_plot_grid(nrows=None, ncols=None, figsize=None,
     figsize = get_config_value(figsize, 'grid_figsize')
     sharex = get_config_value(sharex, 'sharex')
     sharey = get_config_value(sharey, 'sharey')
-    hspace = resolve_default(hspace, config.hspace)
-    wspace = resolve_default(wspace, config.wspace)
-    Nticks = resolve_default(Nticks, config.Nticks)
+    hspace = _resolve_default(hspace, config.hspace)
+    wspace = _resolve_default(wspace, config.wspace)
+    Nticks = _resolve_default(Nticks, config.Nticks)
 
     Nx = nrows
     Ny = ncols
@@ -1257,7 +1257,7 @@ def _extract_xy(
             X, Y = arr[0, :], arr[1, :]
         else:
             raise ValueError(
-                f'Expected shape (N, 2), got {arr.shape}'
+                f'Expected shape (N, 2) or (N,), got {arr.shape}'
             )
 
     elif len(data) == 2:
