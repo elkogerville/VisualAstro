@@ -20,7 +20,8 @@ from astropy.visualization import ImageNormalize
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import numpy as np
 import pytest
-from spectral_cube.stokes_spectral_cube import SpectralCube
+from spectral_cube import SpectralCube
+
 from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
 from visualastro.dataclasses.datacube import DataCube

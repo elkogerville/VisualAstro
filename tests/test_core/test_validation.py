@@ -8,9 +8,6 @@ Dependencies:
     - astropy
     - numpy
     - spectral_cube
-Module Structure:
-    - DataCube
-        Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
 import astropy.units as u
