@@ -788,7 +788,7 @@ def add_colorbar(im, ax, cbar_width=None,
         cbar.solids.set_rasterized(True)
 
 
-def add_contours(x, y, ax, levels=20, contour_method='contour',
+def contour(x, y, ax, levels=20, contour_method='contour',
                  bw_method='scott', gridsize=200, padding=0.2,
                  cslabel=False, zdir=None, offset=None, cmap=None,
                  **kwargs):
@@ -885,6 +885,46 @@ def add_contours(x, y, ax, levels=20, contour_method='contour',
         ax.clabel(cs, fontsize=fontsize)
 
     return cs
+
+
+def contourf(
+    x,
+    y,
+    ax,
+    levels=20,
+    bw_method='scott',
+    gridsize=200,
+    padding=0.2,
+    cslabel=False,
+    zdir=None,
+    offset=None,
+    cmap=None,
+    **kwargs,
+):
+    """
+    Filled contour wrapper around `contour`.
+
+    Equivalent to calling `contour(..., contour_method='contourf')`.
+
+    See Also
+    --------
+    contour : Full parameter documentation.
+    """
+    return contour(
+        x,
+        y,
+        ax,
+        levels=levels,
+        contour_method='contourf',
+        bw_method=bw_method,
+        gridsize=gridsize,
+        padding=padding,
+        cslabel=cslabel,
+        zdir=zdir,
+        offset=offset,
+        cmap=cmap,
+        **kwargs,
+    )
 
 
 def set_axis_limits(
