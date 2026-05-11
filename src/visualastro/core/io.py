@@ -470,7 +470,7 @@ def _get_dtype(
         User dtype if given, otherwise the array's float dtype
         or ``default_dtype`` if array is integer/unsigned.
     """
-    default_dtype = resolve_default(default_dtype, config.default_dtype)
+    default_dtype = _resolve_default(default_dtype, config.default_dtype)
 
     # return user dtype if passed in
     if dtype is not None:
