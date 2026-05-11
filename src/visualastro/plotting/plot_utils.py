@@ -1260,30 +1260,58 @@ def _extract_xy(
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
 ]:
     """
-    Extract X and Y coordinates from flexible input formats.
+    Extract X and Y coordinates from flexible numeric inputs.
 
-    Accepts either a single 2D array with shape (N, 2) or two separate
-    arrays/values. If only one array is passed in, x values are automatically
-    generated with np.arange(len(array))
+    Supports single or dual argument forms with automatic interpretation
+    based on dimensionality and type.
 
     Parameters
     ----------
-    *data : float | Quantity | NDArray | list[float | u.Quantity | NDArray]
-        Either a single 2D ndarray with shape (2, N) where first row is X and
-        second row is Y, or two separate arrays/scalars representing X and Y.
+    *data : tuple
+        Input data providing coordinates. Supported forms:
+
+        - Single argument:
+
+            - 1D array-like or Quantity: interpreted as Y, X = arange(N)
+            - 2D array or Quantity: shape (N, 2) or (2, N) depending on `order`
+            - list or tuple of scalars/Quantities: interpreted as Y, X = arange(N)
+            - scalar or scalar Quantity: single point (0, y)
+
+        - Two arguments: (X, Y) pairs of scalars, arrays, or Quantity objects
+            (mixed array/Quantity combinations preserve type semantics)
+
+    order : {'c', 'fortran'}, optional
+        Memory layout interpretation for 2D inputs.
+
+        - 'c': row-major, shape (N, 2)
+        - 'fortran': column-major, shape (2, N)
+        - If unset, uses `config.array_order`
+
+        Ignored for 1D and scalar inputs.
 
     Returns
     -------
-    X : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
-        X coordinate to plot.
-    Y : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
-        Y coordinate to plot.
+    X : ndarray, Quantity, scalar, or list
+        Extracted or generated X coordinates. Type matches input semantics.
+
+    Y : ndarray, Quantity, scalar, or list
+        Extracted Y coordinates. Preserves input type where applicable.
 
     Raises
     ------
     ValueError
-        If input is not a 2D ndarray with shape (N, 2) or a 1D array with
-        shape (N,) when single argument, or if number of arguments is not 1 or 2.
+        If any of the following conditions occur:
+
+        - More than two positional arguments provided
+        - Unsupported dimensionality (ndim > 2)
+        - Invalid or jagged nested structures
+        - Inputs cannot be unambiguously interpreted as numeric data
+
+    Examples
+    --------
+    >>> X, Y = extract_coordinates([1, 2, 3])
+    >>> X, Y = extract_coordinates([0, 1, 2], [10, 20, 30])
+    >>> X, Y = extract_coordinates([[0, 10], [1, 20], [2, 30]])
     """
     order = _resolve_default(order, config.array_order)
 
