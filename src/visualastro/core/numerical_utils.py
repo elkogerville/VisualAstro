@@ -634,8 +634,19 @@ def mask_within_range(
 
 
 def _is_scalar_quantity(obj):
-    """Check if object is a scalar Quantity (0-dimensional)."""
-    return hasattr(obj, 'unit') and (not hasattr(obj, '__len__') or np.ndim(obj) == 0)
+    """Check if `obj` is a scalar Quantity (0-dimensional)."""
+    return hasattr(obj, 'unit') and getattr(obj, 'ndim', None) == 0
+
+
+def _is_scalar(obj):
+    """Check if `obj` is a scalar or scalar Quantity."""
+    if np.isscalar(obj):
+        return True
+
+    if isinstance(obj, np.ndarray) and obj.shape == ():
+        return True
+
+    return _is_scalar_quantity(obj)
 
 
 def _is_array_like(obj):
