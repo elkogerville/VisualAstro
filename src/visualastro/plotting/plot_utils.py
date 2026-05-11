@@ -1284,7 +1284,6 @@ def _normalize_plotting_input(
     | u.Quantity
     | NDArray
     | list[float | u.Quantity | NDArray]
-    | tuple[float | u.Quantity | NDArray, ...]
 ]:
     """
     Normalize data input to list of arrays.
@@ -1304,12 +1303,15 @@ def _normalize_plotting_input(
     list :
         List of inputs to plot.
     """
+    # quantities and ndarrays
     if _is_array_like(data) and not isinstance(data, (list, tuple)):
         return [data]
 
+    # scalars
     if not isinstance(data, (list, tuple)):
         return [data]
 
+    # lists / tuples
     first = data[0]
     if (
         _is_scalar_quantity(first)
