@@ -37,11 +37,11 @@ T = TypeVar('T')
 # --------------------------------
 def get_data(obj):
     """
-    Return the ``data`` attribute of an object if present;
+    Return the `data` attribute of an object if present;
     otherwise return the object unchanged. In visualastro,
     the data extension represents the high level datastructure
-    used to hold data. This is usually a ``np.ndarray``,
-    ``u.Quantity``, or ``SpectralCube``.
+    used to hold data. This is usually a `np.ndarray`,
+    `u.Quantity`, or `SpectralCube`.
 
     Parameters
     ----------
@@ -70,15 +70,15 @@ def get_value(obj: Any):
     Return the numeric value of an object,
     stripping units if present.
 
-    If the object exposes a ``value`` attribute
-    (e.g., an Astropy ``u.Quantity``), that attribute
+    If the object exposes a `value` attribute
+    (e.g., an Astropy `u.Quantity`), that attribute
     is returned. Otherwise, the object itself is
     returned unchanged.
 
     Parameters
     ----------
     obj : any
-        Object that may expose a ``value`` attribute.
+        Object that may expose a `value` attribute.
 
     Returns
     -------
@@ -106,7 +106,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
     ----------
     obj : array-like, np.ndarray, u.Quantity or SpectralCube
         Any array-like object, or an object that exposes
-        a ``data`` or ``value`` attribute.
+        a `data` or `value` attribute.
     keep_unit : bool, optional, default=False
         If True, keep astropy units attached if present.
 
@@ -162,11 +162,11 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
 def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
     """
     Normalize input to a list. If input is a tuple,
-    convert it to a list via ``tuple(obj)``. To simply
-    wrap in a list an object that isnt a list, use ``as_list``.
+    convert it to a list via `tuple(obj)`. To simply
+    wrap in a list an object that isnt a list, use `as_list`.
 
-    Thus ``to_list((1,2,3))`` returns ``[1,2,3]``
-    while ``as_list((1,2,3))`` returns ``[(1,2,3)]``
+    Thus `to_list((1,2,3))` returns `[1,2,3]`
+    while `as_list((1,2,3))` returns `[(1,2,3)]`
 
     Parameters
     ----------
@@ -176,8 +176,8 @@ def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
     Returns
     -------
     list
-        A list containing ``obj`` if a single object was provided,
-        or ``obj`` converted to a list if it was already a list or tuple.
+        A list containing `obj` if a single object was provided,
+        or `obj` converted to a list if it was already a list or tuple.
     """
     if isinstance(obj, list):
         return obj
@@ -189,12 +189,12 @@ def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
 def as_list(obj: T | list[T]) -> list[T]:
     """
     Ensure return value is always a list.
-    If ``obj`` is not a list, wrap it in a list.
-    Otherwise, return ``obj``. To simply
-    convert a tuple into a list use ``to_list``.
+    If `obj` is not a list, wrap it in a list.
+    Otherwise, return `obj`. To simply
+    convert a tuple into a list use `to_list`.
 
-    Thus ``to_list((1,2,3))`` returns ``[1,2,3]``
-    while ``as_list((1,2,3))`` returns ``[(1,2,3)]``
+    Thus `to_list((1,2,3))` returns `[1,2,3]`
+    while `as_list((1,2,3))` returns `[(1,2,3)]`
 
     Parameters
     ----------
@@ -204,8 +204,8 @@ def as_list(obj: T | list[T]) -> list[T]:
     Returns
     -------
     list
-        A list containing ``obj`` if ``obj`` is not a list,
-        or ``obj`` itself it is already a list.
+        A list containing `obj` if `obj` is not a list,
+        or `obj` itself it is already a list.
     """
     return obj if isinstance(obj, list) else [obj]
 
@@ -231,9 +231,9 @@ def kde2d(
     bw_method : {'scott', 'silverman'} | scalar | callable, optional, default='scott'
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
-        - ``'scott'`` or ``'silverman'``: use standard rules of thumb.
+        - `'scott'` or `'silverman'`: use standard rules of thumb.
         - a scalar constant: directly used as the bandwidth factor.
-        - a callable: should take a ``scipy.stats.gaussian_kde`` instance as its
+        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
             sole argument and return a scalar bandwidth factor.
 
     gridsize : int, optional, default=200
@@ -243,7 +243,7 @@ def kde2d(
         the evaluation grid, expressed as a fraction of the total span
         along each axis. For example, a value of 0.2 expands the grid
         limits by 20% beyond the minimum and maximum of the data in both
-        ``x`` and ``y`` directions. This helps capture the tails of the
+        `x` and `y` directions. This helps capture the tails of the
         Gaussian kernel near the plot boundaries.
 
     Returns
@@ -343,26 +343,26 @@ def interpolate(
     ----------
     xp : ArrayLike
         The x-coordinates of the data points. Must be 1D.
-        Must be convertable to an array with ``np.asarray``.
+        Must be convertable to an array with `np.asarray`.
     yp : ArrayLike
         The y-coordinates of the data points. Must be 1D.
-        Must be convertable to an array with ``np.asarray``.
+        Must be convertable to an array with `np.asarray`.
     x_range : tuple of float
         The (min, max) range over which to interpolate.
     N_samples : int
         Number of points in the interpolated output.
     method : {'linear', 'cubic', 'cubic_spline'}, default='linear'
         Interpolation method. Options:
-        - ``'linear'`` : linear interpolation
-        - ``'cubic'`` : cubic interpolation using ``interp1d``
-        - ``'cubic_spline'`` : cubic spline interpolation using ``CubicSpline``
+        - `'linear'` : linear interpolation
+        - `'cubic'` : cubic interpolation using `interp1d`
+        - `'cubic_spline'` : cubic spline interpolation using `CubicSpline`
 
     Returns
     -------
     x_interp : np.ndarray
         The evenly spaced x-coordinates over the specified range.
     y_interp : np.ndarray
-        The interpolated y-values corresponding to ``x_interp``.
+        The interpolated y-values corresponding to `x_interp`.
     """
     x_unit = xp.unit if isinstance(xp, u.Quantity) else None
     y_unit = yp.unit if isinstance(yp, u.Quantity) else None
@@ -491,7 +491,7 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     Compute the percent difference between two arrays.
 
     The percent difference is defined as the absolute difference between
-    ``a`` and ``b`` divided by their mean, expressed as a percentage:
+    `a` and `b` divided by their mean, expressed as a percentage:
 
         percent_difference = |a - b| / ((a + b) / 2) * 100
 
@@ -499,22 +499,22 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     ----------
     a : np.ndarray
         First input array. Must be convertable to an array
-        with ``np.asarray``.
+        with `np.asarray`.
     b : np.ndarray
-        Second input array. Must be broadcastable with ``a``.
-        Must be convertable to an array with ``np.asarray``.
+        Second input array. Must be broadcastable with `a`.
+        Must be convertable to an array with `np.asarray`.
 
     Returns
     -------
     numpy.ndarray
-        Percent difference between ``a`` and ``b``, element-wise.
-        Returns ``nan`` where both ``a`` and ``b`` are zero.
+        Percent difference between `a` and `b`, element-wise.
+        Returns `nan` where both `a` and `b` are zero.
 
     Notes
     -----
-    Uses ``numpy.errstate`` to suppress division by zero and invalid
-    value warnings. Elements where the mean of ``a`` and ``b`` is zero
-    will produce ``nan`` in the output.
+    Uses `numpy.errstate` to suppress division by zero and invalid
+    value warnings. Elements where the mean of `a` and `b` is zero
+    will produce `nan` in the output.
 
     Examples
     --------
@@ -547,13 +547,13 @@ def finite(
     Parameters
     ----------
     obj : ArrayLike
-        Input data. May be a ``np.ndarray``, ``list``, ``DataCube``,
-        ``FitsFile``, ``u.Quantity``, or any object compatible with ``to_array``.
+        Input data. May be a `np.ndarray`, `list`, `DataCube`,
+        `FitsFile`, `u.Quantity`, or any object compatible with `to_array`.
     keep_unit : bool, optional, default=True
-        If ``True``, preserve astropy units if present on the input.
+        If `True`, preserve astropy units if present on the input.
     keep_inf : bool, optional, default=False
-        If ``True``, keep ±inf values and remove only NaNs.
-        If ``False``, remove NaN and ±inf values.
+        If `True`, keep ±inf values and remove only NaNs.
+        If `False`, remove NaN and ±inf values.
 
     Returns
     -------
@@ -563,8 +563,8 @@ def finite(
 
     Notes
     -----
-    - Filtering is performed using ``np.isfinite`` when ``keep_inf=False``,
-        and ``~np.isnan`` when ``keep_inf=True``.
+    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
+        and `~np.isnan` when `keep_inf=True`.
     """
     data = to_array(obj, keep_unit)
     mask = mask_finite(data, keep_inf=keep_inf)
@@ -583,22 +583,22 @@ def mask_finite(
     Parameters
     ----------
     obj : ArrayLike
-        Input data. May be a ``np.ndarray``, ``list``, ``DataCube``,
-        ``FitsFile``, ``u.Quantity``, or any object compatible with ``to_array``.
+        Input data. May be a `np.ndarray`, `list`, `DataCube`,
+        `FitsFile`, `u.Quantity`, or any object compatible with `to_array`.
     keep_inf : bool, default=False
-        If ``False``, mask excludes NaN and ±inf values.
-        If ``True``, mask excludes only NaNs and retains ±inf values.
+        If `False`, mask excludes NaN and ±inf values.
+        If `True`, mask excludes only NaNs and retains ±inf values.
 
     Returns
     -------
     np.ndarray[bool]
         Boolean mask with the same shape as the input data.
-        ``True`` indicates values that are kept.
+        `True` indicates values that are kept.
 
     Notes
     -----
-    - Uses ``np.isfinite`` when ``keep_inf=False``.
-    - Uses ``~np.isnan`` when ``keep_inf=True``.
+    - Uses `np.isfinite` when `keep_inf=False`.
+    - Uses `~np.isnan` when `keep_inf=True`.
     """
     data = to_array(obj)
     return ~np.isnan(data) if keep_inf else np.isfinite(data)
@@ -616,7 +616,7 @@ def mask_within_range(
     x : array-like
         Data array (e.g., wavelength or flux values).
     xlim : tuple[float, float] or None, optional, default=None
-        (xmin, xmax) range. If None, uses the min/max of ``x``.
+        (xmin, xmax) range. If None, uses the min/max of `x`.
 
     Returns
     -------
@@ -674,7 +674,7 @@ def _cycle(data, i):
     Returns
     -------
     T :
-        ``data`` element.
+        `data` element.
     """
     if not isinstance(data, (Sequence, np.ndarray)):
         raise ValueError(
