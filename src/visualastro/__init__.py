@@ -76,8 +76,9 @@ from visualastro.plotting.image_plots import (
 from visualastro.plotting.colors import (
     as_color,
     create_cmap,
-    get_colors,
     get_cmap,
+    get_colors,
+    get_complimentary_colors,
     sample_cmap,
     simulate_colorblindness
 )
@@ -106,8 +107,8 @@ from visualastro.plotting.plot_utils import (
 from visualastro.plotting.plots import (
     plot_density_histogram,
     plot_histogram,
-    plot_lines,
-    plot_scatter,
+    plot,
+    scatter,
     scatter3D
 )
 from visualastro.plotting.spectra_plots import (
