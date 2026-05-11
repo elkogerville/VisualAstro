@@ -15,13 +15,20 @@ Module Structure:
         VisualAstro user help.
 """
 
+from typing import Literal
 import warnings
 from astropy.io.fits import Header
+import astropy.units as u
 from astropy.wcs import WCS
+from matplotlib.markers import MarkerStyle
 import matplotlib.pyplot as plt
+from matplotlib.typing import ColorType
 import numpy as np
+from numpy.typing import NDArray
+
 from visualastro.core.config import (
     config,
+    _Unset,
     _UNSET
 )
 from visualastro.core.io import savefig
@@ -31,8 +38,8 @@ from visualastro.plotting.image_plots import imshow, plot_spectral_cube
 from visualastro.plotting.plots import (
     plot_density_histogram,
     plot_histogram,
-    plot_lines,
-    plot_scatter,
+    plot,
+    scatter,
     scatter3D
 )
 from visualastro.plotting.plot_utils import apply_style_modifiers, _get_stylepath
@@ -47,11 +54,11 @@ class ax:
                origin=None, wcs_input=None, invert_wcs=False, cmap=None,
                aspect=_UNSET, mask_non_pos=None, wcs_grid=None, **kwargs):
         """
-        Wrapper for ``imshow`` with automatic figure creation.
+        Wrapper for `imshow` with automatic figure creation.
 
-        See ``va.imshow`` for full documentation.
+        See `visualastro.plotting.image_plots.imshow` for full documentation.
 
-        Equivalent to::
+        Equivalent to:
 
             ax = va.add_subplot()
             va.imshow(data, ax=ax, **kwargs)
@@ -743,261 +750,109 @@ class ax:
 
 
     @staticmethod
-    def plot(X, Y,
-             normalize=False,
-             xlog=None,
-             ylog=None,
-             colors=None,
-             linestyle=None,
-             linewidth=None,
-             alpha=None,
-             zorder=None,
-             **kwargs):
-        '''
-        Convenience wrapper for `plot_lines`, to plot one or more lines.
+    def plot(
+        *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+        normalize: bool | _Unset = _UNSET,
+        xlog: bool | _Unset = _UNSET,
+        ylog: bool | _Unset = _UNSET,
+        color: ColorType | list[ColorType] | _Unset =_UNSET,
+        linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
+        linewidth: float | list[float] | _Unset = _UNSET,
+        alpha: float | list[float] | _Unset = _UNSET,
+        zorder: float | list[float] | None = None,
+        **kwargs
+    ) -> None:
+        """
+        Wrapper for `plot` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `plot_lines` routine with the provided
-        parameters. This method is intended for rapid visualization and consistent
-        figure formatting, while preserving full configurability through **kwargs.
+        See `visualastro.plotting.plots.plot` for full documentation.
 
-        Parameters
-        ----------
-        X : array-like or list of array-like
-            x-axis data for the lines. Can be a single array or a list of arrays.
-        Y : array-like or list of array-like
-            y-axis data for the lines. Must match the length of X if lists are provided.
-        ax : matplotlib.axes.Axes
-            The Axes object to plot on.
-        normalize : bool or None, optional, default=None
-            If True, normalize each line by its maximum value.
-            If None, uses the default value from `config.normalize_data`.
-        xlog : bool or None, optional, default=None
-            If True, set the x-axis to logarithmic scale.
-            If None, uses the default value from `config.xlog`.
-        ylog : bool or None, optional, default=None
-            If True, set the y-axis to logarithmic scale.
-            If None, uses the default value from `config.ylog`.
-        colors : list of colors, str, or None, optional, default=None
-            Colors to use for each line. If None, uses the
-            default color colorset from `config.default_colorset`.
-        linestyle : str, list of str, or None, optional, default=None
-            Line style(s) to use for plotting. Can be a single string or a list of
-            styles for multiple lines. Accepted values are:
-            {'-', '--', '-.', ':', ''}. If None, uses the default
-            value set in `config.linestyle`.
-        linewidth : float, list of float, or None, optional, default=None
-            Line width for the plotted lines. If None, uses the
-            default value set in `config.linewidth`.
-        alpha : float, list of float or None, optional, default=None
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value set in `config.alpha`.
-        zorder : float or list of float, optional, default=None
-            Order in which to plot lines in. Lines are drawn in order
-            of greatest to lowest zorder. If None, starts at 0 and increments
-            the zorder by 1 for each subsequent line drawn.
+        Equivalent to:
 
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
-                Aliases for `colors`.
-            - `linestyles`, `ls` : str or list of str, default=`config.linestyle`
-                Aliases for `linestyle`.
-            - `linewidths`, `lw` : float or list of float, optional, default=`config.linewidth`
-                Aliases for `linewidth`.
-            - `alphas`, `a` : float or list of float, default=`config.alpha`
-                Aliases for `alpha`.
-            - `cmap` : str, optional, default=`config.cmap`
-                Colormap to use if `colors` is not provided.
-            - `xlim` : tuple of two floats or None
-                Limits for the x-axis.
-            - `ylim` : tuple of two floats or None
-                Limits for the y-axis.
-            - `labels`, `label`, `l` : str or list of str, default=None
-                Legend labels.
-            - `loc` : str, default=`config.loc`
-                Location of legend.
-            - `xlabel` : str or None
-                Label for the x-axis.
-            - `ylabel` : str or None
-                Label for the y-axis.
-            - `xpad`/`ypad` : float
-                padding along x and y axis used when computing
-                axis limits. Defined as:
-                    xmax/min ±= xpad * (xmax - xmin)
-                    ymax/min ±= ypad * (ymax - ymin)
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.dpi`
-                Resolution (dots per inch) for saved figure.
-        '''
-        # figure params
+            fig, ax = plt.subplots()
+            va.plot(X, Y, ax=ax, **kwargs)
+        """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         style = _get_stylepath(style)
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_lines(X, Y, ax, normalize=normalize,
-                           xlog=xlog, ylog=ylog, colors=colors,
-                           linestyle=linestyle, linewidth=linewidth,
-                           alpha=alpha, zorder=zorder, **kwargs)
+            _ = plot(
+                *data,
+                ax=ax,
+                normalize=normalize,
+                xlog=xlog,
+                ylog=ylog,
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+                alpha=alpha,
+                zorder=zorder,
+                **kwargs
+            )
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
 
     @staticmethod
-    def scatter(*data, xerr=None, yerr=None, normalize=False,
-                xlog=None, ylog=None, colors=_UNSET, size=None,
-                marker=None, alpha=None, edgecolors=_UNSET,
-                facecolors=_UNSET, **kwargs):
-        '''
-        Convenience wrapper for `plot_scatter`, to scatter plot one or more distributions.
+    def scatter(
+        *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+        xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+        yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+        normalize: bool | _Unset = _UNSET,
+        xlog: bool | _Unset = _UNSET,
+        ylog: bool | _Unset = _UNSET,
+        color: ColorType | list[ColorType] | _Unset =_UNSET,
+        size: float | list[float] | _Unset = _UNSET,
+        marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+        alpha: float | list[float] | _Unset = _UNSET,
+        edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        **kwargs
+    ) ->  None:
+        """
+        Wrapper for `scatter` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `plot_scatter` routine with the provided
-        parameters. This method is intended for rapid visualization and consistent
-        figure formatting, while preserving full configurability through **kwargs.
+        See `visualastro.plotting.plots.scatter` for full documentation.
 
-        Parameters
-        ----------
-        X : array-like or list of array-like
-            x-axis data for the lines. Can be a single array or a list of arrays.
-        Y : array-like or list of array-like
-            y-axis data for the lines. Must match the length of X if lists are provided.
-        ax : matplotlib.axes.Axes
-            The Axes object to plot on.
-        xerr : array-like or list of array-like, optional, default=None
-            x-axis errors on `X`. Should be same shape as `X`.
-        yerr : array-like or list of array-like, optional, default=None
-            x-axis errors on `Y`. Should be same shape as `Y`.
-        normalize : bool or None, optional, default=None
-            If True, normalize each line by its maximum value.
-            If None, uses the default value from `config.normalize_data`.
-        xlog : bool or None, optional, default=None
-            If True, set the x-axis to logarithmic scale. If
-            None, uses the default value in `config.xlog`.
-        ylog : bool or None, optional, default=None
-            If True, set the y-axis to logarithmic scale. If
-            None, uses the default value in `config.ylog`.
-        colors : list of colors, str, or None, optional, default=None
-            Colors to use for each scatter group or dataset.
-            If None, uses the default color colorset from
-            `config.default_colorset`.
-        size : float, list of float, or None, optional, default=None
-            Size of scatter dots. If None, uses the default
-            value in `config.scatter_size`.
-        marker : str, list of str, or None, optional, default=None
-            Marker style for scatter dots. If None, uses the
-            default value in `config.marker`.
-        alpha : float, list of float, or None, default=None
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value from `config.alpha`.
-        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
-            The edge color of the marker. Possible values:
-            - 'face': The edge color will always be the same as the face color.
-            - 'none': No patch boundary will be drawn.
-            - A color or sequence of colors.
-            If `_UNSET`, uses the default value in `config.edgecolor`.
-        facecolors : {'none'}, color, list of colors, or None, default=`_UNSET`
-            The face color of the marker. Possible values:
-            - 'none': Sets the face color to transparent
-            - A color or sequence of colors
-            - None: No face color is set (facecolor is set to marker color).
-            If `_UNSET`, uses the default value in `config.facecolor`.
+        Equivalent to:
 
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
-                Aliases for `colors`.
-            - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
-                Aliases for `size`.
-            - `markers`, `m` : str or list of str, optional, default=`config.marker`
-                Aliases for `marker`.
-            - `alphas`, `a` : float or list of float default=`config.alpha`
-                Aliases for `alpha`.
-            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
-                Aliases for `edgecolors`.
-            - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_UNSET`
-                Aliases for `facecolors`.
-            - `cmap` : str, optional, default=`config.cmap`
-                Colormap to use if `colors` is not provided.
-            - `xlim` : tuple of two floats or None
-                Limits for the x-axis.
-            - `ylim` : tuple of two floats or None
-                Limits for the y-axis.
-            - `labels`, `label`, `l` : str or list of str, default=None
-                Legend labels.
-            - `loc` : str, default=`config.loc`
-                Location of legend.
-            - `xlabel` : str or None
-                Label for the x-axis.
-            - `ylabel` : str or None
-                Label for the y-axis.
-            - `ecolors`, `ecolor` : color or list of color, optional, default=`config.ecolors`
-                Color(s) of the error bars.
-            - `elinewidth` : float, default=`config.elinewidth`
-                Line width of the error bars.
-            - `capsize` : float, default=`config.capsize`
-                Length of the error bar caps in points.
-            - `capthick` : float, default=`config.capthick`
-                Thickness of the error bar caps in points.
-            - `barsabove` : bool, default=`config.barsabove`
-                If True, draw error bars above the plot symbols; otherwise, below.
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.dpi`
-                Resolution (dots per inch) for saved figure.
-        '''
-        # figure params
+            fig, ax = plt.subplots()
+            va.scatter(X, Y, ax=ax, **kwargs)
+        """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         style = _get_stylepath(style)
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_scatter(*data, ax=ax, xerr=xerr, yerr=yerr, normalize=normalize,
-                             xlog=xlog, ylog=ylog, colors=colors, size=size,
-                             marker=marker, alpha=alpha, edgecolors=edgecolors,
-                             facecolors=facecolors, **kwargs)
+            _ = scatter(
+                *data,
+                ax=ax,
+                xerr=xerr,
+                yerr=yerr,
+                normalize=normalize,
+                xlog=xlog,
+                ylog=ylog,
+                color=color,
+                size=size,
+                marker=marker,
+                alpha=alpha,
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                **kwargs
+            )
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
@@ -1012,7 +867,7 @@ class ax:
         distributions in 3-Dimensional space.
 
         Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `plot_scatter` routine with the provided
+        style, then calls the core `scatter` routine with the provided
         parameters. This method is intended for rapid visualization and consistent
         figure formatting, while preserving full configurability through **kwargs.
 
