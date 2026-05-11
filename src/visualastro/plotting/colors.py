@@ -20,7 +20,7 @@ from matplotlib.typing import ColorType
 import numpy as np
 import tol_colors as tc
 
-from visualastro.core.config import config, resolve_default, _Unset, _UNSET
+from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
 from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
 from visualastro.core.validation import _type_name
 
@@ -72,6 +72,8 @@ COLORNAMES = [key for key in COLORSETS.keys()]
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
+    mode: Literal['lighten', 'desaturate'] | None = None,
+    factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """
@@ -102,11 +104,17 @@ def get_colors(
     list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
-    cmap = resolve_default(cmap, config.cmap)
+    cmap = _resolve_default(cmap, config.cmap)
 
     if colors is _UNSET:
         colorset = COLORSETS.get(config.default_colorset, COLORSETS['visualastro'])
-        return as_list(as_color(colorset, fmt=fmt))
+        return as_list(
+            get_complimentary_colors(
+                as_color(colorset, fmt=fmt),
+                mode=mode,
+                factor=factor
+            )
+        )
 
     if isinstance(colors, str):
         # if colorset in visualastro colorsets
@@ -118,17 +126,41 @@ def get_colors(
             # if '_r', reverse colorset
             if colors.endswith('_r'):
                 colorset = colorset[::-1]
-            return as_list(as_color(colorset, fmt))
+            return as_list(
+                get_complimentary_colors(
+                    as_color(colorset, fmt),
+                    mode=mode,
+                    factor=factor
+                )
+            )
 
         else:
-            return as_list(as_color(colors, fmt))
+            return as_list(
+                get_complimentary_colors(
+                    as_color(colors, fmt),
+                    mode=mode,
+                    factor=factor
+                )
+            )
 
     if isinstance(colors, (np.ndarray, Sequence)):
-        return as_list(as_color(colors, fmt))
+        return as_list(
+            get_complimentary_colors(
+                as_color(colors, fmt),
+                mode=mode,
+                factor=factor
+            )
+        )
 
     # if user passes an integer N, sample a cmap for N colors
     if isinstance(colors, int):
-        return as_list(sample_cmap(colors, cmap=cmap, fmt=fmt))
+        return as_list(
+            get_complimentary_colors(
+                sample_cmap(colors, cmap=cmap, fmt=fmt),
+                mode=mode,
+                factor=factor
+            )
+        )
 
     raise TypeError(
         'colors must be None, a str colorset name, a str color, '
