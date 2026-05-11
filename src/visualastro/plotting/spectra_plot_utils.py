@@ -27,7 +27,7 @@ from visualastro.core.config import (
     config,
     _Unset,
     _UNSET,
-    resolve_default
+    _resolve_default
 )
 from visualastro.core.numerical_utils import get_value, _cycle
 from visualastro.core.units import (
@@ -115,22 +115,22 @@ def spectral_line_marker(
     -------
     None : Modifies ``ax`` in place.
     """
-    marker_direction = resolve_default(
+    marker_direction = _resolve_default(
         direction, config.spectral_line_marker.marker_direction
     )
-    label_offset_points = resolve_default(
+    label_offset_points = _resolve_default(
         label_offset_points, config.spectral_line_marker.label_offset_points
     )
-    label_position = resolve_default(
+    label_position = _resolve_default(
         label_position, config.spectral_line_marker.label_position
     )
-    label_anchor = resolve_default(
+    label_anchor = _resolve_default(
         label_anchor, config.spectral_line_marker.label_anchor
     )
-    label_reference = resolve_default(
+    label_reference = _resolve_default(
         label_reference, config.spectral_line_marker.label_reference
     )
-    rotation = resolve_default(
+    rotation = _resolve_default(
         rotation, config.spectral_line_marker.label_rotation
     )
 
