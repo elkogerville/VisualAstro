@@ -84,9 +84,10 @@ from visualastro.plotting.colors import (
 )
 from visualastro.plotting.plot_utils import (
     add_colorbar,
-    add_contours,
     add_subplot,
     close,
+    contour,
+    contourf,
     ellipse_patch,
     get_imshow_norm,
     get_vmin_vmax,
