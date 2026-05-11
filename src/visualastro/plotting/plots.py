@@ -34,6 +34,7 @@ from visualastro.core.config import (
 from visualastro.core.io import _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
+    normalize as _normalize,
     to_array,
     to_list,
     _cycle,
@@ -602,10 +603,7 @@ def plot(
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
         if params.normalize:
-            if isinstance(y, list):
-                y = [a / np.nanmax(y) for a in y]
-            else:
-                y = y / np.nanmax(y)
+            y = _normalize(y)
             ylist[i] = y
 
         line = ax.plot(
@@ -856,55 +854,59 @@ def scatter(
 
     Returns
     -------
-    lines : PathCollection or list of PathCollection
+    lines : list[PathCollection]
         The scatter plot object(s) created by `Axes.scatter`. Each element
         is a `matplotlib.collections.PathCollection` instance representing
         one scatter plot. If only one scatter is created, `lines` is a single
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     """
-    rasterized = kwargs.pop('rasterized', config.rasterized)
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    sizes = to_list(_pop_kwargs(kwargs, 'sizes', 's', default=size))
-    markers = to_list(_pop_kwargs(kwargs, 'markers', 'm', default=marker))
-    alphas = to_list(_pop_kwargs(kwargs, 'alphas', 'a', default=alpha))
-    edgecolors = _pop_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
-    facecolors = _pop_kwargs(kwargs, 'facecolor', 'fc', default=facecolors)
-    cmap = kwargs.pop('cmap', config.cmap)
-    xlim = kwargs.pop('xlim', None)
-    ylim = kwargs.pop('ylim', None)
-    labels = to_list(_pop_kwargs(kwargs, 'labels', 'label', 'l', default=None))
-    loc = kwargs.pop('loc', config.loc)
-    xlabel = kwargs.pop('xlabel', None)
-    ylabel = kwargs.pop('ylabel', None)
-    elinewidth = kwargs.pop('elinewidth', config.errorbar.linewidth)
+    params = _resolve_kwargs([
+        _param('alpha', alpha, config.alpha),
+        _param('color', color, config.colors),
+        _param('edgecolor', edgecolor, config.edgecolor),
+        _param('facecolor', facecolor, config.facecolor),
+        _param('size', size, config.scatter_size),
+        _param('marker', marker, config.marker),
+        _param('normalize', normalize, config.normalize_data)
+        ], kwargs
+    )
+    alphas = to_list(params.alpha)
+    edgecolors = to_list(params.edgecolor)
+    facecolors = to_list(params.facecolor)
+    sizes = to_list(params.size)
+    markers = to_list(params.marker)
+    cmap = get_cmap(
+        kwargs.pop('cmap', config.cmap),
+        kwargs.pop('bad_color', None)
+    )
+    colors = get_colors(params.color, cmap=cmap)
+    array_order = _pop_kwargs(kwargs, 'array_order', config.array_order)
+    barsabove = kwargs.pop('barsabove', config.errorbar.barsabove)
     capsize = kwargs.pop('capsize', config.errorbar.capsize)
     capthick = kwargs.pop('capthick', config.errorbar.capthick)
-    barsabove = kwargs.pop('barsabove', config.errorbar.barsabove)
-    markeredgecolor = kwargs.pop('mec', config.errorbar.markeredgecolor)
+    elinewidth = kwargs.pop('elinewidth', config.errorbar.linewidth)
+    labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
+    loc = kwargs.pop('loc', config.loc)
+    markeredgecolor = _pop_kwargs(
+        kwargs, 'markeredgecolor', config.errorbar.markeredgecolor
+    )
+    rasterized = kwargs.pop('rasterized', config.rasterized)
+    xlabel = kwargs.pop('xlabel', None)
+    ylabel = kwargs.pop('ylabel', None)
+    xlim = kwargs.pop('xlim', None)
+    ylim = kwargs.pop('ylim', None)
+    xlog = kwargs.pop('xlog', config.xlog)
+    ylog = kwargs.pop('ylog', config.ylog)
 
-    xlog = get_config_value(xlog, 'xlog')
-    ylog = get_config_value(ylog, 'ylog')
-    colors = resolve_default(colors, config.colors)
-    sizes = get_config_value(sizes, 'scatter_size')
-    markers = get_config_value(markers, 'marker')
-    alphas = get_config_value(alphas, 'alpha')
-    edgecolors = to_list(resolve_default(edgecolors, config.edgecolor))
-    facecolors = to_list(resolve_default(facecolors, config.facecolor))
-
-    X, Y = _extract_xy(*data)
+    X, Y = _extract_xy(*data, order=array_order)
     xlist = _normalize_plotting_input(X)
     ylist = _normalize_plotting_input(Y)
 
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
-    if xerr is not None:
-        xerr = _normalize_plotting_input(xerr)
-    if yerr is not None:
-        yerr = _normalize_plotting_input(yerr)
-
-    xerror, yerror = None, None
-    colors = get_colors(colors, cmap=cmap)
+    xerrs = _normalize_plotting_input(xerr) if xerr is not None else xerr
+    yerrs = _normalize_plotting_input(yerr) if yerr is not None else yerr
 
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
@@ -915,38 +917,39 @@ def scatter(
         x = get_value(_cycle(xlist, i))
         y = get_value(_cycle(ylist, i))
         color = _cycle(colors, i)
-        size = _cycle(sizes, i)
-        marker = _cycle(markers, i)
-        alpha = _cycle(alphas, i)
-        edgecolor = _cycle(edgecolors, i)
-        facecolor = _cycle(facecolors, i)
+        s = _cycle(sizes, i)
+        m = _cycle(markers, i)
+        a = _cycle(alphas, i)
+        ec = _cycle(edgecolors, i)
+        fc = _cycle(facecolors, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
-        if facecolor == 'none' and edgecolor is None:
-            edgecolor = color
+        if fc == 'none' and ec is None:
+            ec = color
 
-        if normalize:
-            y = y / np.nanmax(y)
+        if params.normalize:
+            y = _normalize(y)
+            ylist[i] = y
 
-        s = ax.scatter(
+        scatter = ax.scatter(
             x, y,
             color=color,
-            s=size,
-            marker=marker,
-            alpha=alpha,
-            edgecolors=edgecolor,
-            facecolors=facecolor,
+            s=s,
+            marker=m,
+            alpha=a,
+            edgecolors=ec,
+            facecolors=fc,
             label=label,
             rasterized=rasterized,
             **kwargs
         )
 
-        scatters.append(s)
+        scatters.append(scatter)
 
-        xerror = _cycle(xerr, i) if xerr is not None else None
-        yerror = _cycle(yerr, i) if yerr is not None else None
+        xerror = _cycle(xerrs, i) if xerrs is not None else None
+        yerror = _cycle(yerrs, i) if yerrs is not None else None
 
-        if xerr is not None or yerr is not None:
+        if xerror is not None or yerror is not None:
             ax.errorbar(
                 x, y, yerror, xerror,
                 fmt=config.errorbar.fmt,
@@ -956,7 +959,8 @@ def scatter(
                 mec=markeredgecolor if markeredgecolor is not None else color,
                 capsize=capsize,
                 capthick=capthick,
-                barsabove=barsabove
+                barsabove=barsabove,
+                rasterized=rasterized
             )
 
     set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
@@ -969,7 +973,7 @@ def scatter(
     if _cycle(labels, config.reference_idx) is not None:
         ax.legend(loc=loc)
 
-    return _unwrap_if_single(scatters)
+    return scatters
 
 
 def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
