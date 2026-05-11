@@ -17,6 +17,8 @@ Module Structure:
 """
 
 import os
+from types import SimpleNamespace
+from typing import Any
 import warnings
 from astropy.io import fits
 import astropy.units as u
@@ -24,8 +26,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 from tqdm import tqdm
-from visualastro.core.config import get_config_value, config, _UNSET, resolve_default
-from visualastro.core.numerical_utils import to_array, to_list
+from visualastro.core.config import get_config_value, config, _UNSET, _resolve_default
+from visualastro.core.numerical_utils import to_array, to_list, _type_name
 from visualastro.core.units import get_units
 
 
