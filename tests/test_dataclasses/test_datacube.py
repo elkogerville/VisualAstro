@@ -8,9 +8,6 @@ Dependencies:
     - astropy
     - numpy
     - spectral_cube
-Module Structure:
-    - DataCube
-        Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 
 from astropy.io.fits import Header
@@ -19,6 +16,7 @@ from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
 from spectral_cube import SpectralCube
+
 from tests.conftest import generate_test_cube
 from visualastro.dataclasses.datacube import DataCube
 
