@@ -42,7 +42,7 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.colors import get_cmap, get_colors
 from visualastro.plotting.plot_utils import (
-    add_contours,
+    contour,
     plot_vlines,
     set_axis_labels,
     set_axis_limits,
@@ -1009,7 +1009,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     minor_ticks = kwargs.get('minor_ticks', False)
 
     # get default config values
-    colors = resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.colors)
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
@@ -1094,7 +1094,7 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
                     )
 
                 offset = offset_fn(ax) if plot_contour_offset is None else plot_contour_offset[i]
-                add_contours(data1, data2, ax, zdir=axis_name, offset=offset)
+                contour(data1, data2, ax, zdir=axis_name, offset=offset)
 
     # set labels
     ax.set_xlabel(xlabel)
