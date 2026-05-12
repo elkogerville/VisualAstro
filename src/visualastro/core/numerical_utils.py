@@ -418,6 +418,33 @@ def interpolate(
     return x_interp, y_interp
 
 
+def normalize(
+    data: NDArray | u.Quantity | list | tuple | float
+) -> NDArray | u.Quantity | list:
+    """
+    Normalize input data with the formula: norm = data / np.nanmax(data).
+
+    Parameters
+    ----------
+    data : NDArray | u.Quantity | list | tuple
+        Input data to normalize.
+
+    Returns
+    -------
+    NDArray | u.Quantity | list :
+        Normalized data. Tuples are converted to lists.
+    """
+    if isinstance(data, (np.ndarray, u.Quantity)):
+        return data / np.nanmax(data)
+
+    if isinstance(data, (list, tuple)):
+        return [d/np.nanmax(data) for d in data]
+
+    raise ValueError(
+        f'Unsupported input type! got{_type_name(data)}.'
+    )
+
+
 def number_density(
     points: NDArray,
     k: int,
