@@ -89,14 +89,103 @@ def _kwarg(name: str, default: Any) -> tuple[str, Any]:
 
 def _resolve_kwargs(
     kwargs: dict,
-    params: list[tuple[str, Any, Any]],
+    params: list[tuple[str, Any, Any]] | None = None,
     additional_kwargs: list[tuple[str, Any]] | None = None
 ) -> SimpleNamespace:
+    """
+    Resolve keyword arguments into a namespace of normalized parameters.
+
+    `params` follow the form: [_param('name', var, default), ...].
+    `additional_kwargs` follow the form: [_kwarg('name', default), ...].
+
+    Parameters defined in `params` are intended for arguments that also
+    exist in the parent function signature. Their values are first processed
+    through `_pop_kwargs` to handle aliases, then passed through
+    `_resolve_default` so that `_UNSET` values are replaced with their
+    configured defaults.
+
+    Parameters defined in `additional_kwargs` are intended for optional
+    keyword-only passthrough arguments that are not part of the parent
+    function signature. These are resolved using `_pop_kwargs`.
+
+    Both `params` and `additional_kwargs` are aware to aliases defined
+    in `visualastro.core.io.KWARG_ALIASES`.
+
+    The resolved values are returned as attributes on a
+    :class:`types.SimpleNamespace`.
+
+    Parameters
+    ----------
+    kwargs : dict
+        Dictionary of keyword arguments to resolve. Resolved parameters
+        are popped in place.
+    params : list of tuple[str, Any, Any]
+        Sequence of `(name, value, default)` tuples describing parameters
+        defined in the parent function signature.
+
+        Each parameter is resolved as:
+
+            1. Retrieve the value from `kwargs` using `_pop_kwargs`
+            2. Replace unset sentinel values using `_resolve_default`
+
+    additional_kwargs : list of tuple[str, Any], optional
+        Sequence of `(name, default)` tuples describing optional keyword
+        arguments that should be retrieved directly from `kwargs` using
+        fallback defaults.
+
+    Returns
+    -------
+    types.SimpleNamespace
+        Namespace containing all resolved parameters as attributes.
+
+    Raises
+    ------
+    ValueError :
+        If both `params` and `additional_kwargs` are None.
+
+    Examples
+    --------
+    >>> params = _resolve_kwargs(
+    ...     kwargs,
+    ...     [
+    ...         _param('alpha', alpha, config.alpha),
+    ...         _param('color', color, config.colors),
+    ...     ],
+    ...     [
+    ...         _kwarg('label', None),
+    ...         _kwarg('cmap', config.cmap),
+    ...     ]
+    ... )
+    >>>
+    >>> params.alpha
+    0.8
+    >>> params.cmap
+    'viridis'
+
+    Notes
+    -----
+    `params` should be used for arguments originating from the function
+    signature, especially when `_UNSET` or aliases must be handled.
+
+    `params` and `additional_kwargs` do not need aliases defined.
+
+    `additional_kwargs` should be used for optional passthrough keyword
+    arguments that behave like standard `kwargs.pop` retrievals.
+
+    see `visualastro.core.io._pop_kwargs`, `visualastro.core.config._resolve_default`,
+    `visualastro.core.io._param`, and `visualastro.core.io._kwarg`.
+    """
+    if params is None and additional_kwargs is None:
+        raise ValueError(
+            'Both params and additional_kwargs cannot be None!'
+        )
+
     out = {}
 
-    for name, value, default in params:
-        value = _pop_kwargs(kwargs, name, value)
-        out[name] = _resolve_default(value, default)
+    if params is not None:
+        for name, value, default in params:
+            value = _pop_kwargs(kwargs, name, value)
+            out[name] = _resolve_default(value, default)
 
     if additional_kwargs is not None:
         for name, default in additional_kwargs:
