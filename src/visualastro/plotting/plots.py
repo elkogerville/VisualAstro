@@ -469,87 +469,81 @@ def plot(
     """
     Plot one or more lines on a given Axes object with flexible styling.
 
+    Plot multiple datasets by passing in lists of data!
+
+    Examples:
+
+        – plot(x, y)
+        – plot([1,2,3], [[4,5,6], [7,8,9]])
+        – plot(radius, [vel1, vel2])
+        – plot(flux)
+        – plot(pos[:,0:2])
+
     Parameters
     ----------
-    X : array-like or list of array-like
-        x-axis data for the lines. Can be a single array or a list of arrays.
-    Y : array-like or list of array-like
-        y-axis data for the lines. Must match the length of X if lists are provided.
+    *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
+        Positional arguments specifying x and y data. Accepts either a single
+        2D array or two separate arrays/list of arrays/values. 2D arrays can
+        either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
+        one array is passed in, x values are automatically generated with
+        np.arange(len(array)).
     ax : matplotlib.axes.Axes
         The Axes object to plot on.
-    normalize : bool or None, optional, default=None
-        If True, normalize each line by its maximum value.
-        If None, uses the default value from `config.normalize_data`.
-    xlog : bool or None, optional, default=None
-        If True, set the x-axis to logarithmic scale.
-        If None, uses the default value from `config.xlog`.
-    ylog : bool or None, optional, default=None
-        If True, set the y-axis to logarithmic scale.
-        If None, uses the default value from `config.ylog`.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each line. If None, uses the
-        default color colorset from `config.default_colorset`.
-    linestyle : str, list of str, or None, optional, default=None
+    normalize : bool | _Unset, optional, default=_UNSET
+        If `True`, normalize each dataset by its maximum value.
+        If `_UNSET`, uses `config.normalize_data`.
+    xlog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on x-axis.
+        If `_UNSET`, uses `config.xlog`.
+    ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, use logarithmic scale on y-axis.
+        If `_UNSET`, uses `config.ylog`.
+    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
+        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
+    linestyle : str | list[str] | _Unset, optional, default=_UNSET
         Line style(s) to use for plotting. Can be a single string or a list of
         styles for multiple lines. Accepted values are:
-        {'-', '--', '-.', ':', ''}. If None, uses the default
-        value set in `config.linestyle`.
-    linewidth : float, list of float, or None, optional, default=None
-        Line width for the plotted lines. If None, uses the
-        default value set in `config.linewidth`.
-    alpha : float, list of float or None, optional, default=None
-        The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses the default value set in `config.alpha`.
-    zorder : float or list of float, optional, default=None
+        {'-', '--', '-.', ':', ''}. If `_UNSET`, uses `config.linestyle`.
+    linewidth : float | list[float] | _Unset, optional, default=_UNSET
+        Line width for the plotted lines. If `_UNSET`, uses the
+        `config.linewidth`.
+    alpha : float | list[float] | _Unset, optional, default=_UNSET
+        Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
+    zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
         of greatest to lowest zorder. If None, starts at 0 and increments
         the zorder by 1 for each subsequent line drawn.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
-            Aliases for `colors`.
-        - `linestyles`, `ls` : str or list of str, default=`config.linestyle`
-            Aliases for `linestyle`.
-        - `linewidths`, `lw` : float or list of float, optional, default=`config.linewidth`
-            Aliases for `linewidth`.
-        - `alphas`, `a` : float or list of float, default=`config.alpha`
-            Aliases for `alpha`.
-        - `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        - `xlim` : tuple of two floats or None
-            Limits for the x-axis.
-        - `ylim` : tuple of two floats or None
-            Limits for the y-axis.
-        - `labels`, `label`, `l` : str or list of str, default=None
-            Legend labels.
-        - `loc` : str, default=`config.loc`
-            Location of legend.
-        - `xlabel` : str or None
-            Label for the x-axis.
-        - `ylabel` : str or None
-            Label for the y-axis.
-        - `xpad`/`ypad` : float
-            padding along x and y axis used when computing
-            axis limits. Defined as:
-                xmax/min ±= xpad * (xmax - xmin)
-                ymax/min ±= ypad * (ymax - ymin)
+    array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
+        Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
+        while `'F'` and `'fortran'` are for (2,N) shaped arrays.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
+    xlabel : str, optional, default=None
+        Label for x-axis.
+    ylabel : str, optional, default=None
+        Label for y-axis.
+    label : str | list[str], optional, default=None
+        Legend labels for scatter datasets.
+    loc : str, optional, default=config.loc
+        Legend location.
+    xlim : tuple[float, float], optional, default=None
+        Limits for x-axis as (xmin, xmax).
+    ylim : tuple[float, float], optional, default=None
+        Limits for y-axis as (ymin, ymax).
+    xpad : float, optional, default=config.ypad
+        Fractional padding added to the x-axis data range when computing axis limits.
+    ypad : float, optional, default=config.xpad
+        Fractional padding added to the y-axis data range when computing axis limits.
+    rasterized : bool, optional, default=config.rasterized
+        If `True`, rasterize artists when saving to vector formats.
 
     Returns
     -------
-    lines : Line2D or list of Line2D
+    lines : list[matplotlib.lines.Line2D]
         The line object(s) created by `Axes.plot`. Each element is a
         `matplotlib.lines.Line2D` instance representing one plotted line.
-        If only one line is created, `lines` is a single `Line2D` object;
-        otherwise, it is a list of `Line2D` objects.
     """
     params = _resolve_kwargs(
         kwargs,
@@ -679,11 +673,12 @@ def scatter(
     ----------
     *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
         Positional arguments specifying x and y data. Accepts either a single
-        2D array or two separate arrays/values. 2D arrays can either be (N,2)
-        (`order='c'`) or (2,N) (`order='fortran')`. If only one array is passed
-        in, x values are automatically generated with np.arange(len(array)).
+        2D array or two separate arrays/list of arrays/values. 2D arrays can
+        either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
+        one array is passed in, x values are automatically generated with
+        np.arange(len(array)).
     ax : matplotlib.axes.Axes
-        Target Axes object for plotting.
+        Axes to plot on.
     xerr : array-like | list[array-like] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
     yerr : array-like | list[array-like] | None, optional, default=None
@@ -701,10 +696,10 @@ def scatter(
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
     size : float | list[float] | _Unset, optional, default=_UNSET
         Marker size(s). If `_UNSET`, uses `config.scatter_size`.
-    marker : str, list of str | _Unset, optional, default=_UNSET
+    marker : str | list[str] | _Unset, optional, default=_UNSET
         Marker style(s). If `_UNSET`, uses config.marker.
-    alpha : float, list of float | _Unset, optional, default=_UNSET
-        Transparency value(s) in [0, 1]. If `_UNSET`, uses config.alpha.
+    alpha : float | list[float] | _Unset, optional, default=_UNSET
+        Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 

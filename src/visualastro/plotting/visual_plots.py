@@ -769,8 +769,8 @@ class ax:
 
         Equivalent to:
 
-            fig, ax = plt.subplots()
-            va.plot(X, Y, ax=ax, **kwargs)
+            >>> fig, ax = plt.subplots()
+            >>> va.plot(X, Y, ax=ax, **kwargs)
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
@@ -823,8 +823,8 @@ class ax:
 
         Equivalent to:
 
-            fig, ax = plt.subplots()
-            va.scatter(X, Y, ax=ax, **kwargs)
+            >>> fig, ax = plt.subplots()
+            >>> va.scatter(X, Y, ax=ax, **kwargs)
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
