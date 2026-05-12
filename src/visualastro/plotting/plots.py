@@ -658,6 +658,7 @@ def scatter(
     alpha: float | list[float] | _Unset = _UNSET,
     edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
     facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) ->  list[PatchCollection]:
     """
@@ -871,15 +872,34 @@ def scatter(
         one scatter plot. If only one scatter is created, `lines` is a single
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     """
-    params = _resolve_kwargs([
-        _param('alpha', alpha, config.alpha),
-        _param('color', color, config.colors),
-        _param('edgecolor', edgecolor, config.edgecolor),
-        _param('facecolor', facecolor, config.facecolor),
-        _param('size', size, config.scatter_size),
-        _param('marker', marker, config.marker),
-        _param('normalize', normalize, config.normalize_data)
-        ], kwargs
+    params = _resolve_kwargs(
+        [
+            _param('alpha', alpha, config.alpha),
+            _param('array_order', array_order, config.array_order),
+            _param('color', color, config.colors),
+            _param('edgecolor', edgecolor, config.edgecolor),
+            _param('facecolor', facecolor, config.facecolor),
+            _param('size', size, config.scatter_size),
+            _param('marker', marker, config.marker),
+            _param('normalize', normalize, config.normalize_data),
+            _param('xlog', xlog, config.xlog),
+            _param('ylog', ylog, config.ylog),
+        ],
+        kwargs,
+        [
+            _kwarg('barsabove', config.errorbar.barsabove),
+            _kwarg('capsize', config.errorbar.capsize),
+            _kwarg('capthick', config.errorbar.capthick),
+            _kwarg('elinewidth', config.errorbar.linewidth),
+            _kwarg('loc', config.loc),
+            _kwarg('rasterized', config.rasterized),
+            _kwarg('xlabel', None),
+            _kwarg('ylabel', None),
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('xpad', config.xpad),
+            _kwarg('ypad', config.ypad),
+        ]
     )
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
@@ -891,25 +911,12 @@ def scatter(
         kwargs.pop('bad_color', None)
     )
     colors = get_colors(params.color, cmap=cmap)
-    array_order = _pop_kwargs(kwargs, 'array_order', config.array_order)
-    barsabove = kwargs.pop('barsabove', config.errorbar.barsabove)
-    capsize = kwargs.pop('capsize', config.errorbar.capsize)
-    capthick = kwargs.pop('capthick', config.errorbar.capthick)
-    elinewidth = kwargs.pop('elinewidth', config.errorbar.linewidth)
     labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
-    loc = kwargs.pop('loc', config.loc)
     markeredgecolor = _pop_kwargs(
         kwargs, 'markeredgecolor', config.errorbar.markeredgecolor
     )
-    rasterized = kwargs.pop('rasterized', config.rasterized)
-    xlabel = kwargs.pop('xlabel', None)
-    ylabel = kwargs.pop('ylabel', None)
-    xlim = kwargs.pop('xlim', None)
-    ylim = kwargs.pop('ylim', None)
-    xlog = kwargs.pop('xlog', config.xlog)
-    ylog = kwargs.pop('ylog', config.ylog)
 
-    X, Y = _extract_xy(*data, order=array_order)
+    X, Y = _extract_xy(*data, order=params.array_order)
     xlist = _normalize_plotting_input(X)
     ylist = _normalize_plotting_input(Y)
 
@@ -919,8 +926,8 @@ def scatter(
     xerrs = _normalize_plotting_input(xerr) if xerr is not None else xerr
     yerrs = _normalize_plotting_input(yerr) if yerr is not None else yerr
 
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
     scatters = []
 
@@ -951,7 +958,7 @@ def scatter(
             edgecolors=ec,
             facecolors=fc,
             label=label,
-            rasterized=rasterized,
+            rasterized=params.rasterized,
             **kwargs
         )
 
@@ -966,23 +973,30 @@ def scatter(
                 fmt=config.errorbar.fmt,
                 mfc=color,
                 ecolor=color,
-                elinewidth=elinewidth,
+                elinewidth=params.elinewidth,
                 mec=markeredgecolor if markeredgecolor is not None else color,
-                capsize=capsize,
-                capthick=capthick,
-                barsabove=barsabove,
-                rasterized=rasterized
+                capsize=params.capsize,
+                capthick=params.capthick,
+                barsabove=params.barsabove,
+                rasterized=params.rasterized
             )
 
-    set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
+    set_axis_limits(
+        xlist, ylist,
+        ax=ax,
+        xlim=params.xlim,
+        ylim=params.ylim,
+        xpad=params.xpad,
+        ypad=params.ypad
+    )
     set_axis_labels(
         _cycle(xlist, config.reference_idx),
         _cycle(ylist, config.reference_idx),
-        ax, xlabel, ylabel
+        ax, params.xlabel, params.ylabel
     )
 
     if _cycle(labels, config.reference_idx) is not None:
-        ax.legend(loc=loc)
+        ax.legend(loc=params.loc)
 
     return scatters
 
