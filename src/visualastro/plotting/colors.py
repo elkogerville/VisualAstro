@@ -65,9 +65,19 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
     ],
 }
+# COLORSETS ALIASES
+# -----------------
 COLORSETS['va'] = COLORSETS['visualastro']
+
 COLORNAMES = [key for key in COLORSETS.keys()]
 
+# VISUALASTRO COLOR ALIASES
+# -------------------------
+NAMED_COLORS: dict[str, ColorType] = {
+    'dsb': 'darkslateblue',
+    'mvr': 'mediumvioletred',
+    'ibmpnk': '#DC267F',
+}
 
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
@@ -129,6 +139,15 @@ def get_colors(
             return as_list(
                 get_complimentary_colors(
                     as_color(colorset, fmt),
+                    mode=mode,
+                    factor=factor
+                )
+            )
+
+        if colors in NAMED_COLORS:
+            return as_list(
+                get_complimentary_colors(
+                    as_color(NAMED_COLORS[colors], fmt),
                     mode=mode,
                     factor=factor
                 )
