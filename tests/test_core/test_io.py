@@ -25,6 +25,7 @@ class TestKwargs:
             _param(1, 2, 3)
 
     def test_pop_kwargs(self):
+        """Test _pop_kwargs utility function"""
         kwargs = {
             'color': 'r',
             'lw': 2,
@@ -38,3 +39,8 @@ class TestKwargs:
         value = _pop_kwargs(kwargs, 'nonsense', config.style)
         assert kwargs == {'color': 'r', 'ls': '--'}
         assert value == config.style
+
+        kwargs = {'test': 1}
+        value = _pop_kwargs(kwargs, 'test', None)
+        assert value == 1
+        assert kwargs == {}
