@@ -752,14 +752,15 @@ class ax:
     @staticmethod
     def plot(
         *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-        normalize: bool | _Unset = _UNSET,
-        xlog: bool | _Unset = _UNSET,
-        ylog: bool | _Unset = _UNSET,
-        color: ColorType | list[ColorType] | _Unset =_UNSET,
+        color: ColorType | list[ColorType] | _Unset = _UNSET,
         linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
         linewidth: float | list[float] | _Unset = _UNSET,
         alpha: float | list[float] | _Unset = _UNSET,
+        normalize: bool | _Unset = _UNSET,
+        xlog: bool | _Unset = _UNSET,
+        ylog: bool | _Unset = _UNSET,
         zorder: float | list[float] | None = None,
+        array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
         **kwargs
     ) -> None:
         """
@@ -784,14 +785,15 @@ class ax:
             _ = plot(
                 *data,
                 ax=ax,
-                normalize=normalize,
-                xlog=xlog,
-                ylog=ylog,
                 color=color,
                 linestyle=linestyle,
                 linewidth=linewidth,
                 alpha=alpha,
+                normalize=normalize,
+                xlog=xlog,
+                ylog=ylog,
                 zorder=zorder,
+                array_order=array_order,
                 **kwargs
             )
 
