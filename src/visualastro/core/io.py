@@ -88,8 +88,8 @@ def _kwarg(name: str, default: Any) -> tuple[str, Any]:
 
 
 def _resolve_kwargs(
-    params: list[tuple[str, Any, Any]],
     kwargs: dict,
+    params: list[tuple[str, Any, Any]],
     additional_kwargs: list[tuple[str, Any]] | None = None
 ) -> SimpleNamespace:
     out = {}
