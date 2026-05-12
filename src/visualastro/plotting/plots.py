@@ -887,11 +887,15 @@ def scatter(
         ],
         kwargs,
         [
+            _kwarg('bad_color', None),
             _kwarg('barsabove', config.errorbar.barsabove),
             _kwarg('capsize', config.errorbar.capsize),
             _kwarg('capthick', config.errorbar.capthick),
+            _kwarg('cmap', config.cmap),
             _kwarg('elinewidth', config.errorbar.linewidth),
+            _kwarg('label', None),
             _kwarg('loc', config.loc),
+            _kwarg('markeredgecolor', config.errorbar.markeredgecolor),
             _kwarg('rasterized', config.rasterized),
             _kwarg('xlabel', None),
             _kwarg('ylabel', None),
@@ -904,17 +908,9 @@ def scatter(
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
+    labels = to_list(params.label)
     sizes = to_list(params.size)
     markers = to_list(params.marker)
-    cmap = get_cmap(
-        kwargs.pop('cmap', config.cmap),
-        kwargs.pop('bad_color', None)
-    )
-    colors = get_colors(params.color, cmap=cmap)
-    labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
-    markeredgecolor = _pop_kwargs(
-        kwargs, 'markeredgecolor', config.errorbar.markeredgecolor
-    )
 
     X, Y = _extract_xy(*data, order=params.array_order)
     xlist = _normalize_plotting_input(X)
@@ -929,6 +925,8 @@ def scatter(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
     scatters = []
 
     for i in range(len(ylist)):
@@ -974,7 +972,7 @@ def scatter(
                 mfc=color,
                 ecolor=color,
                 elinewidth=params.elinewidth,
-                mec=markeredgecolor if markeredgecolor is not None else color,
+                mec=params.markeredgecolor if params.markeredgecolor is not None else color,
                 capsize=params.capsize,
                 capthick=params.capthick,
                 barsabove=params.barsabove,
