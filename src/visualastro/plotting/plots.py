@@ -659,28 +659,29 @@ def scatter(
     alpha: float | list[float] | _Unset = _UNSET,
     edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
     facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
-    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) ->  list[PatchCollection]:
     """
-    Plot scatter data with optional error bars on a matplotlib Axes.
+    Scatter plot data with optional error bars on a matplotlib Axes.
+
+    Plot multiple datasets by passing in lists of data!
+
+    Examples:
+
+        – scatter(x, y)
+        – scatter([1,2,3], [[4,5,6], [7,8,9]])
+        – scatter(radius, [vel1, vel2])
+        – scatter(flux)
+        – scatter(pos[:,0:2])
 
     Parameters
     ----------
     *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
         Positional arguments specifying x and y data. Accepts either a single
         2D array or two separate arrays/values. 2D arrays can either be (N,2)
-        (`order='C'`) or (2,N) (`order='Fortran')`. If only one array is passed
+        (`order='c'`) or (2,N) (`order='fortran')`. If only one array is passed
         in, x values are automatically generated with np.arange(len(array)).
-
-        Examples:
-
-            – 2D array: scatter(np.random.rand(10,2), ax)
-            – (1) 1D array: scatter(np.array([1,2,3]))
-            – (2) 1D arrays: scatter(np.array([1,2,3]), np.array(4,5,6))
-            – lists: scatter([1,2,3], [4,5,6])
-            – lists of lists: scatter([1,2,3], [[4,5,6], [7,8,9]])
-
     ax : matplotlib.axes.Axes
         Target Axes object for plotting.
     xerr : array-like | list[array-like] | None, optional, default=None
@@ -690,47 +691,64 @@ def scatter(
     normalize : bool | _Unset, optional, default=_UNSET
         If `True`, normalize each dataset by its maximum value.
         If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool, optional
+    xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
         If `_UNSET`, uses `config.xlog`.
-    ylog : bool, optional
+    ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
         If `_UNSET`, uses `config.ylog`.
-    color : ColorType | list[ColorType] | int, optional
+    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
-    size : float, list of float, optional
-        Marker size(s). If None, uses config.scatter_size.
-    marker : str, list of str, optional
-        Marker style(s). If None, uses config.marker.
-    alpha : float, list of float, optional
-        Transparency value(s) in [0, 1]. If None, uses config.alpha.
-    edgecolor : {'face', 'none'}, ColorType, list[ColorType], optional
+    size : float | list[float] | _Unset, optional, default=_UNSET
+        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
+    marker : str, list of str | _Unset, optional, default=_UNSET
+        Marker style(s). If `_UNSET`, uses config.marker.
+    alpha : float, list of float | _Unset, optional, default=_UNSET
+        Transparency value(s) in [0, 1]. If `_UNSET`, uses config.alpha.
+    edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
-        - 'face': Match face color
-        - 'none': No edge
-        - color or sequence: Explicit color(s)
-        If not set, uses config.edgecolor.
-    facecolor : {'none'}, color, list of color, optional
+
+            – 'face': Match face color
+            – 'none': No edge
+            – color or sequence: Explicit color(s)
+
+        If not set, uses `config.edgecolor`.
+
+    facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
-        - 'none': Transparent
-        - color or sequence: Explicit color(s)
-        If not set, uses config.facecolor.
-    cmap : str, optional, default=config.cmap
-        Colormap name if `color` not explicitly provided.
-    xlabel : str, optional
+
+            – 'none': Transparent
+            – color or sequence: Explicit color(s)
+
+        If not set, uses `config.facecolor`.
+
+    array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
+        Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
+        while `'F'` and `'fortran'` are for (2,N) shaped arrays.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
+    xlabel : str, optional, default=None
         Label for x-axis.
-    ylabel : str, optional
+    ylabel : str, optional, default=None
         Label for y-axis.
-    xlim : tuple of (float, float), optional
-        Limits for x-axis as (xmin, xmax).
-    ylim : tuple of (float, float), optional
-        Limits for y-axis as (ymin, ymax).
-    label : str or list of str, optional
+    label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
     loc : str, optional, default=config.loc
         Legend location.
-    ecolor : color or list of color, optional, default=config.errorbar.colors
-        Error bar color(s).
+    xlim : tuple[float, float], optional, default=None
+        Limits for x-axis as (xmin, xmax).
+    ylim : tuple[float, float], optional, default=None
+        Limits for y-axis as (ymin, ymax).
+    xpad : float, optional, default=config.ypad
+        Fractional padding added to the x-axis data range when computing axis limits.
+    ypad : float, optional, default=config.xpad
+        Fractional padding added to the y-axis data range when computing axis limits.
+    ecolor : ColorType, optional, default=config.errorbar.colors
+        Error bar color.
+    markeredgecolor : ColorTpe, optional, default=config.errorbar.markeredgecolor
+        Plot marker edge color.
     elinewidth : float, optional, default=config.errorbar.linewidth
         Error bar line width in points.
     capsize : float, optional, default=config.errorbar.capsize
@@ -738,11 +756,9 @@ def scatter(
     capthick : float, optional, default=config.errorbar.capthick
         Thickness of error bar caps in points.
     barsabove : bool, optional, default=config.errorbar.barsabove
-        If True, draw error bars above plot symbols.
+        If `True`, draw error bars above plot symbols.
     rasterized : bool, optional, default=config.rasterized
-        If True, rasterize artists when saving to vector formats.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
+        If `True`, rasterize artists when saving to vector formats.
 
     Returns
     -------
@@ -752,134 +768,8 @@ def scatter(
 
     See Also
     --------
-    matplotlib.axes.Axes.scatter : Underlying scatter implementation.
-    matplotlib.axes.Axes.errorbar : Underlying error bar implementation.
-
-    Examples
-    --------
-    Plot single dataset with error bars:
-
-    >>> fig, ax = plt.subplots()
-    >>> x = np.array([1, 2, 3])
-    >>> y = np.array([2, 4, 6])
-    >>> xerr = np.array([0.1, 0.1, 0.1])
-    >>> scatter(x, y, ax=ax, xerr=xerr)
-
-    Plot multiple datasets with custom styling:
-
-    >>> scatter(x1, y1, x2, y2, ax=ax, color=['red', 'blue'],
-    ...         size=[50, 100], alpha=0.7)
-
-    Plot with logarithmic axes and normalization:
-
-    >>> scatter(x, y, ax=ax, xlog=True, ylog=True, normalize=True)
-    """
-
-    """
-    Plot a scatter plot (optionally with error bars) on a given Axes object.
-
-    Parameters
-    ----------
-    X : array-like or list of array-like
-        x-axis data for the lines. Can be a single array or a list of arrays.
-    Y : array-like or list of array-like
-        y-axis data for the lines. Must match the length of X if lists are provided.
-    ax : matplotlib.axes.Axes
-        The Axes object to plot on.
-    xerr : array-like or list of array-like, optional, default=None
-        x-axis errors on `X`. Should be same shape as `X`.
-    yerr : array-like or list of array-like, optional, default=None
-        x-axis errors on `Y`. Should be same shape as `Y`.
-    normalize : bool or None, optional, default=None
-        If True, normalize each line by its maximum value.
-        If None, uses the default value from `config.normalize_data`.
-    xlog : bool or None, optional, default=None
-        If True, set the x-axis to logarithmic scale. If
-        None, uses the default value in `config.xlog`.
-    ylog : bool or None, optional, default=None
-        If True, set the y-axis to logarithmic scale. If
-        None, uses the default value in `config.ylog`.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses the default color colorset from
-        `config.default_colorset`.
-    size : float, list of float, or None, optional, default=None
-        Size of scatter dots. If None, uses the default
-        value in `config.scatter_size`.
-    marker : str, list of str, or None, optional, default=None
-        Marker style for scatter dots. If None, uses the
-        default value in `config.marker`.
-    alpha : float, list of float, or None, default=None
-        The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses the default value from `config.alpha`.
-    edgecolors : {'face', 'none'}, color, list of color, or None, default=`_UNSET`
-        The edge color of the marker. Possible values:
-        - 'face': The edge color will always be the same as the face color.
-        - 'none': No patch boundary will be drawn.
-        - A color or sequence of colors.
-        - None: no edgecolor is set (edgecolor is set to marker color).
-        If `_UNSET`, uses the default value in `config.edgecolor`.
-    facecolors : {'none'}, color, list of colors, or None, default=`_UNSET`
-        The face color of the marker. Possible values:
-        - 'none': Sets the face color to transparent
-        - A color or sequence of colors
-        - None: No facecolor is set (facecolor is set to marker color).
-        If `_UNSET`, uses the default value in `config.facecolor`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
-            Aliases for `colors`.
-        - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
-            Aliases for `size`.
-        - `markers`, `m` : str or list of str, optional, default=`config.marker`
-            Aliases for `marker`.
-        - `alphas`, `a` : float or list of float default=`config.alpha`
-            Aliases for `alpha`.
-        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
-            Aliases for `edgecolors`.
-        - `facecolor`, `fc` : {'none'}, color, list of colors, or None, default=`_UNSET`
-            Aliases for `facecolors`.
-        - `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        - `xlim` : tuple of two floats or None
-            Limits for the x-axis.
-        - `ylim` : tuple of two floats or None
-            Limits for the y-axis.
-        - `labels`, `label`, `l` : str or list of str, default=None
-            Legend labels.
-        - `loc` : str, default=`config.loc`
-            Location of legend.
-        - `xlabel` : str or None
-            Label for the x-axis.
-        - `ylabel` : str or None
-            Label for the y-axis.
-        - `ecolors`, `ecolor` : color or list of color, optional, default=`config.errorbar.colors`
-            Color(s) of the error bars.
-        - `elinewidth` : float, default=`config.errorbar.linewidth`
-            Line width of the error bars.
-        - `capsize` : float, default=`config.errorbar.capsize`
-            Length of the error bar caps in points.
-        - `capthick` : float, default=`config.errorbar.capthick`
-            Thickness of the error bar caps in points.
-        - `barsabove` : bool, default=`config.errorbar.barsabove`
-            If True, draw error bars above the plot symbols; otherwise, below.
-
-    Returns
-    -------
-    lines : list[PathCollection]
-        The scatter plot object(s) created by `Axes.scatter`. Each element
-        is a `matplotlib.collections.PathCollection` instance representing
-        one scatter plot. If only one scatter is created, `lines` is a single
-        `PathCollection`; otherwise, it is a list of `PathCollection` objects.
+    matplotlib.axes.Axes.scatter
+    matplotlib.axes.Axes.errorbar
     """
     params = _resolve_kwargs(
         kwargs,
@@ -901,6 +791,7 @@ def scatter(
             _kwarg('capsize', config.errorbar.capsize),
             _kwarg('capthick', config.errorbar.capthick),
             _kwarg('cmap', config.cmap),
+            _kwarg('ecolor', config.errorbar.colors),
             _kwarg('elinewidth', config.errorbar.linewidth),
             _kwarg('label', None),
             _kwarg('loc', config.loc),
@@ -948,6 +839,10 @@ def scatter(
         ec = _cycle(edgecolors, i)
         fc = _cycle(facecolors, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
+        params.ecolor = color if params.ecolor is None else params.ecolor
+        params.markeredgecolor = (
+            color if params.markeredgecolor is None else params.markeredgecolor
+        )
 
         if fc == 'none' and ec is None:
             ec = color
@@ -978,10 +873,10 @@ def scatter(
             ax.errorbar(
                 x, y, yerror, xerror,
                 fmt=config.errorbar.fmt,
-                mfc=color,
-                ecolor=color,
+                mfc=params.ecolor,
+                ecolor=params.ecolor,
                 elinewidth=params.elinewidth,
-                mec=params.markeredgecolor if params.markeredgecolor is not None else color,
+                mec=params.markeredgecolor,
                 capsize=params.capsize,
                 capthick=params.capthick,
                 barsabove=params.barsabove,
