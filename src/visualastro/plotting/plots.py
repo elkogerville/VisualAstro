@@ -563,6 +563,9 @@ def plot(
             _param('ylog', ylog, config.ylog),
         ],
         kwargs, [
+            _kwarg('bad_color', None),
+            _kwarg('cmap', config.cmap),
+            _kwarg('label', None),
             _kwarg('loc', config.loc),
             _kwarg('rasterized', config.rasterized),
             _kwarg('xlabel', None),
@@ -574,15 +577,10 @@ def plot(
         ]
     )
     alphas = to_list(params.alpha)
+    labels = to_list(params.label)
     linestyles = to_list(params.linestyle)
     linewidths = to_list(params.linewidth)
     zorders = to_list(zorder)
-    cmap = get_cmap(
-        kwargs.pop('cmap', config.cmap),
-        kwargs.pop('bad_color', None)
-    )
-    colors = get_colors(params.color, cmap=cmap)
-    labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
 
     X, Y = _extract_xy(*data, order=params.array_order)
     xlist = _normalize_plotting_input(X)
@@ -594,6 +592,8 @@ def plot(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
     lines = []
 
     for i in range(len(ylist)):
