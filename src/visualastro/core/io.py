@@ -172,8 +172,12 @@ def _resolve_kwargs(
     `additional_kwargs` should be used for optional passthrough keyword
     arguments that behave like standard `kwargs.pop` retrievals.
 
-    see `visualastro.core.io._pop_kwargs`, `visualastro.core.config._resolve_default`,
-    `visualastro.core.io._param`, and `visualastro.core.io._kwarg`.
+    See Also
+    --------
+    visualastro.core.io._pop_kwargs
+    visualastro.core.config._resolve_default
+    visualastro.core.io._param
+    visualastro.core.io._kwarg
     """
     if params is None and additional_kwargs is None:
         raise ValueError(
