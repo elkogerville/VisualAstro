@@ -14,7 +14,7 @@ from visualastro.core.config import config
 from visualastro.core.io import _param, _pop_kwargs
 
 
-class TestIo:
+class TestKwargs:
 
     def test_params(self):
         """Test _params utility function"""
