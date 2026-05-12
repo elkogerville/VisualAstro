@@ -139,6 +139,15 @@ class TestResolveKwargs:
 
         assert 'ls' not in kwargs
 
+        kwargs = {'ls': '--'}
+
+        _resolve_kwargs(
+            kwargs,
+            additional_kwargs=[_kwarg('linestyle', 'solid')]
+        )
+
+        assert 'ls' not in kwargs
+
     def test_returns_namespace(self):
         out = _resolve_kwargs(
             {},
