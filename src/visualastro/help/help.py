@@ -239,9 +239,13 @@ class help:
                 plt.show()
 
 
-def inspect_source(function) -> None:
+def getsource(function) -> None:
     """
     Print the source code of a function.
+
+    Equivalent to:
+        >>> import inspect
+        >>> print(inspect.getsource(function))
 
     Parameters
     ----------

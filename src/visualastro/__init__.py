@@ -69,7 +69,7 @@ from visualastro.core.units import (
     unit_2_string
 )
 from visualastro.core.validation import allclose
-from visualastro.help.help import help, inspect_source
+from visualastro.help.help import help, getsource
 from visualastro.plotting.image_plots import (
     imshow,
     plot_spectral_cube
