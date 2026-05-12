@@ -552,6 +552,7 @@ def plot(
         otherwise, it is a list of `Line2D` objects.
     """
     params = _resolve_kwargs(
+        kwargs,
         [
             _param('alpha', alpha, config.alpha),
             _param('array_order', array_order, config.array_order),
@@ -562,7 +563,7 @@ def plot(
             _param('xlog', xlog, config.xlog),
             _param('ylog', ylog, config.ylog),
         ],
-        kwargs, [
+        [
             _kwarg('bad_color', None),
             _kwarg('cmap', config.cmap),
             _kwarg('label', None),
@@ -652,7 +653,7 @@ def scatter(
     normalize: bool | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
-    color: ColorType | list[ColorType] | _Unset =_UNSET,
+    color: ColorType | list[ColorType] | int | _Unset =_UNSET,
     size: float | list[float] | _Unset = _UNSET,
     marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
@@ -667,28 +668,36 @@ def scatter(
     Parameters
     ----------
     *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
-        Positional arguments specifying x and y data.
-        Accepts either a single 2D array with shape (N, 2) or two separate
-        arrays/values. If only one array is passed in, x values are automatically
-        generated with np.arange(len(array))
+        Positional arguments specifying x and y data. Accepts either a single
+        2D array or two separate arrays/values. 2D arrays can either be (N,2)
+        (`order='C'`) or (2,N) (`order='Fortran')`. If only one array is passed
+        in, x values are automatically generated with np.arange(len(array)).
+
+        Examples:
+
+            – 2D array: scatter(np.random.rand(10,2), ax)
+            – (1) 1D array: scatter(np.array([1,2,3]))
+            – (2) 1D arrays: scatter(np.array([1,2,3]), np.array(4,5,6))
+            – lists: scatter([1,2,3], [4,5,6])
+            – lists of lists: scatter([1,2,3], [[4,5,6], [7,8,9]])
 
     ax : matplotlib.axes.Axes
         Target Axes object for plotting.
-    xerr : array-like | list[array-like], optional, default=None
+    xerr : array-like | list[array-like] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
-    yerr : array-like | list[array-like], optional, default=None
+    yerr : array-like | list[array-like] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
-    normalize : bool, optional, default=_UNSET
+    normalize : bool | _Unset, optional, default=_UNSET
         If `True`, normalize each dataset by its maximum value.
         If `_UNSET`, uses `config.normalize_data`.
     xlog : bool, optional
         If `True`, uses logarithmic scale on x-axis.
-        If `None`, uses `config.xlog`.
+        If `_UNSET`, uses `config.xlog`.
     ylog : bool, optional
-        If True, use logarithmic scale on y-axis.
-        If None, uses config.ylog.
+        If `True`, use logarithmic scale on y-axis.
+        If `_UNSET`, uses `config.ylog`.
     color : ColorType | list[ColorType] | int, optional
-        Color(s) for scatter markers. If None, uses config.colors.
+        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
     size : float, list of float, optional
         Marker size(s). If None, uses config.scatter_size.
     marker : str, list of str, optional
@@ -873,6 +882,7 @@ def scatter(
         `PathCollection`; otherwise, it is a list of `PathCollection` objects.
     """
     params = _resolve_kwargs(
+        kwargs,
         [
             _param('alpha', alpha, config.alpha),
             _param('array_order', array_order, config.array_order),
@@ -885,7 +895,6 @@ def scatter(
             _param('xlog', xlog, config.xlog),
             _param('ylog', ylog, config.ylog),
         ],
-        kwargs,
         [
             _kwarg('bad_color', None),
             _kwarg('barsabove', config.errorbar.barsabove),
