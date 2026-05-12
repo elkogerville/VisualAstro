@@ -50,6 +50,7 @@ from visualastro.core.numerical_utils import (
     kde2d,
     mask_finite,
     mask_within_range,
+    normalize,
     percent_difference,
     to_array,
     to_list
