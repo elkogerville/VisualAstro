@@ -71,7 +71,7 @@ class VisualAstroConfig:
         self.invert_wcs_if_transpose: bool = True
         self.target_wcs: Header | WCS | None = None
         self.hdu = HDUConfig()
-        self.array_order: Literal['c', 'fortran'] = 'c'
+        self.array_order: Literal['C', 'c', 'F', 'fortran'] = 'c'
 
         # figure params
         self.style: str = 'astro' # default style
@@ -108,7 +108,7 @@ class VisualAstroConfig:
         self.normalize_hist = True
 
         # line2D params
-        self.linestyle = '-'
+        self.linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
         self.linewidth = 0.8
 
         self.axline = AXLineConfig()
@@ -311,7 +311,7 @@ class CurveFitConfig:
 @dataclass
 class ErrorBarConfig:
     """ax.errorbar config"""
-    fmt: str = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
+    fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
     colors: ColorType | None = None
     linewidth: float | None = 1
     capsize: float = 3 # cap length in points
