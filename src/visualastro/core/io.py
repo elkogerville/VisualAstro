@@ -100,7 +100,7 @@ def _resolve_kwargs(
 
     if additional_kwargs is not None:
         for name, default in additional_kwargs:
-            out[name] = kwargs.pop(name, default)
+            out[name] = _pop_kwargs(kwargs, name, default)
 
     return SimpleNamespace(**out)
 
