@@ -26,7 +26,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 from tqdm import tqdm
-from visualastro.core.config import get_config_value, config, _UNSET, _resolve_default
+
+from visualastro.core.config import (
+    get_config_value,
+    config,
+    _UNSET,
+    _resolve_default
+)
 from visualastro.core.numerical_utils import to_array, to_list, _type_name
 from visualastro.core.units import get_units
 
@@ -35,6 +41,7 @@ from visualastro.core.units import get_units
 # ------
 KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'alpha': ('alphas', 'a'),
+    'array_order': ('order',),
     'color': ('colors',),
     'edgecolor': ('edgecolors', 'ec'),
     'facecolor': ('facecolors', 'fc'),
@@ -72,12 +79,28 @@ def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
     return (name, value, default)
 
 
-def _resolve_kwargs(params: list[tuple[str, Any, Any]], kwargs: dict) -> SimpleNamespace:
+def _kwarg(name: str, default: Any) -> tuple[str, Any]:
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {_type_name(name)}'
+        )
+    return (name, default)
+
+
+def _resolve_kwargs(
+    params: list[tuple[str, Any, Any]],
+    kwargs: dict,
+    additional_kwargs: list[tuple[str, Any]] | None = None
+) -> SimpleNamespace:
     out = {}
 
     for name, value, default in params:
         value = _pop_kwargs(kwargs, name, value)
         out[name] = _resolve_default(value, default)
+
+    if additional_kwargs is not None:
+        for name, default in additional_kwargs:
+            out[name] = kwargs.pop(name, default)
 
     return SimpleNamespace(**out)
 
