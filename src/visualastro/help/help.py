@@ -18,6 +18,7 @@ Module Structure:
 
 from collections.abc import Sequence
 from glob import glob
+import inspect
 import os
 from typing import Literal
 import warnings
@@ -236,3 +237,15 @@ class help:
                 ax.legend(loc='upper left')
 
                 plt.show()
+
+
+def inspect_source(function) -> None:
+    """
+    Print the source code of a function.
+
+    Parameters
+    ----------
+    function :
+        function to inspect.
+    """
+    print(inspect.getsource(function))
