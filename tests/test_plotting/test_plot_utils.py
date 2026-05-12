@@ -54,7 +54,8 @@ class TestExtractXY:
         - Python scalars (int, float)
         - NumPy scalar types (np.float64, np.int64, etc.)
         - astropy Quantity scalars and arrays
-        - Python lists and tuples of scalar or Quantity elements
+        - lists and tuples of scalar or Quantity elements
+        - lists of lists of scalar or Quantity elements
 
     - Edge cases:
         - Empty 1D arrays (len 0)
@@ -160,6 +161,25 @@ class TestExtractXY:
 
         assert X == x and Y == y
 
+    def test_list_of_lists(self):
+        x = [1,2,3]
+        y = [[4,5,6], [7,8,9]]
+        X, Y = _extract_xy(x, y)
+
+        assert X == x and Y == y
+
+        x = [1,2,3]
+        y = [[4*u.um,5*u.um,6*u.um], [7*u.um,8*u.um,9*u.um]]
+        X, Y = _extract_xy(x, y)
+
+        assert X == x and Y == y
+
+        x = [1,2,3]
+        y = [[4,5,6]*u.um, [7,8,9]*u.um]
+        X, Y = _extract_xy(x, y)
+
+        assert X == x and Y == y
+
     def test_list_of_quantities(self):
         y = [1*u.um, 2*u.um, 3*u.um]
         X, Y = _extract_xy(y)
@@ -249,7 +269,6 @@ class TestExtractXY:
         with pytest.raises(ValueError):
             y = [[1,2,3],[4,5,6]]
             _extract_xy(y)
-
 
 class TestGetImshowNorm:
 
