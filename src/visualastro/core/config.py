@@ -121,6 +121,7 @@ class VisualAstroConfig:
 
         # errorbar params
         self.errorbar = ErrorBarConfig()
+        self.elinewidth = self.errorbar.linewidth
         self.eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
         self.ecolors = None
 
