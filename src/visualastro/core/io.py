@@ -278,7 +278,7 @@ def get_errors(
         The HDUList object containing FITS extensions to search for errors or variance.
     dtype : np.dtype | str | None, optional, default=None
         The desired NumPy dtype of the returned error array.
-        If None, uses the default unit set in ``config.default_dtype``.
+        If None, uses the default unit set in `config.default_dtype`.
 
     Returns
     -------
@@ -431,7 +431,7 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         Data cube containing N_frames images of shape (N, M).
     filename : str
         Base filename (without extension). Each
-        output file will be saved as ``'{filename}_i.fits'``.
+        output file will be saved as `'{filename}_i.fits'`.
     overwrite : bool, optional, default=False
         If True, existing files with the same name
         will be overwritten.
@@ -640,20 +640,20 @@ def _get_dtype(
     data : ArrayLike | u.Quantity
         Input array whose dtype will be checked.
         Can be anything convertible to an NDArray
-        by ``to_array``.
+        by `to_array`.
     dtype : data-type, optional, default=None
         If provided, this dtype is returned directly.
-        If None, returns ``data.dtype`` if floating or
-        ``default_dtype`` if integer or unsigned.
+        If None, returns `data.dtype` if floating or
+        `default_dtype` if integer or unsigned.
     default_dtype : data-type, optional, default=None
-        Float type to use if ``data`` is integer or unsigned.
-        If None, uses the default unit set in ``config.default_dtype``.
+        Float type to use if `data` is integer or unsigned.
+        If None, uses the default unit set in `config.default_dtype`.
 
     Returns
     -------
     dtype : np.dtype
         User dtype if given, otherwise the array's float dtype
-        or ``default_dtype`` if array is integer/unsigned.
+        or `default_dtype` if array is integer/unsigned.
     """
     default_dtype = _resolve_default(default_dtype, config.default_dtype)
 
