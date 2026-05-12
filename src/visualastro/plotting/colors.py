@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-05-09
+Date Modified: 2026-05-11
 Description:
     Functions related to colors and colormaps in plotting.
 Dependencies:
@@ -14,7 +14,7 @@ from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
-from matplotlib.colors import TABLEAU_COLORS
+from matplotlib.colors import TABLEAU_COLORS, ListedColormap
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
@@ -171,7 +171,7 @@ def get_colors(
 def get_cmap(
     cmap: mcolors.Colormap | str | int,
     bad_color: ColorType | None = None
-) -> mcolors.LinearSegmentedColormap:
+) -> mcolors.Colormap:
     """
     Retrieve a colormap by name or return the input colormap.
 
@@ -220,7 +220,7 @@ def create_cmap(
     colors: list[ColorType] | int,
     positions: list[float] | None = None,
     name: str = 'continous_cmap'
-) -> mcolors.LinearSegmentedColormap:
+) -> mcolors.LinearSegmentedColormap | ListedColormap:
     """
     Creates a colormap from colors with optional position control.
 
@@ -398,7 +398,7 @@ def _convert_color(
 
 
 def get_complimentary_colors(
-    color: ColorType | list[ColorType],
+    color: ColorType | Sequence[ColorType],
     mode: Literal['lighten', 'desaturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
