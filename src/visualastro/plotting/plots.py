@@ -31,7 +31,7 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.io import _param, _pop_kwargs, _resolve_kwargs
+from visualastro.core.io import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
     normalize as _normalize,
@@ -463,6 +463,7 @@ def plot(
     linewidth: float | list[float] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
     zorder: float | list[float] | None = None,
+    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) -> list[Line2D]:
     """
@@ -550,13 +551,27 @@ def plot(
         If only one line is created, `lines` is a single `Line2D` object;
         otherwise, it is a list of `Line2D` objects.
     """
-    params = _resolve_kwargs([
-        _param('alpha', alpha, config.alpha),
-        _param('color', color, config.colors),
-        _param('linestyle', linestyle, config.linestyle),
-        _param('linewidth', linewidth, config.linewidth),
-        _param('normalize', normalize, config.normalize_data)
-        ], kwargs
+    params = _resolve_kwargs(
+        [
+            _param('alpha', alpha, config.alpha),
+            _param('array_order', array_order, config.array_order),
+            _param('color', color, config.colors),
+            _param('linestyle', linestyle, config.linestyle),
+            _param('linewidth', linewidth, config.linewidth),
+            _param('normalize', normalize, config.normalize_data),
+            _param('xlog', xlog, config.xlog),
+            _param('ylog', ylog, config.ylog),
+        ],
+        kwargs, [
+            _kwarg('loc', config.loc),
+            _kwarg('rasterized', config.rasterized),
+            _kwarg('xlabel', None),
+            _kwarg('ylabel', None),
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('xpad', config.xpad),
+            _kwarg('ypad', config.ypad),
+        ]
     )
     alphas = to_list(params.alpha)
     linestyles = to_list(params.linestyle)
@@ -567,28 +582,17 @@ def plot(
         kwargs.pop('bad_color', None)
     )
     colors = get_colors(params.color, cmap=cmap)
-
     labels = to_list(_pop_kwargs(kwargs, 'label', default=None))
-    loc = kwargs.pop('loc', config.loc)
-    rasterized = kwargs.pop('rasterized', config.rasterized)
-    xlabel = kwargs.pop('xlabel', None)
-    ylabel = kwargs.pop('ylabel', None)
-    xlim = kwargs.pop('xlim', None)
-    ylim = kwargs.pop('ylim', None)
-    xlog = kwargs.pop('xlog', config.xlog)
-    ylog = kwargs.pop('ylog', config.ylog)
-    xpad = kwargs.pop('xpad', 0.0)
-    ypad = kwargs.pop('ypad', 0.0)
 
-    X, Y = _extract_xy(*data)
+    X, Y = _extract_xy(*data, order=params.array_order)
     xlist = _normalize_plotting_input(X)
     ylist = _normalize_plotting_input(Y)
 
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
     lines = []
 
@@ -614,21 +618,28 @@ def plot(
             alpha=a,
             zorder=zorder,
             label=label,
-            rasterized=rasterized,
+            rasterized=params.rasterized,
             **kwargs
         )
 
         lines.append(line)
 
-    set_axis_limits(xlist, ylist, ax=ax, xlim=xlim, ylim=ylim)
+    set_axis_limits(
+        xlist, ylist,
+        ax=ax,
+        xlim=params.xlim,
+        ylim=params.ylim,
+        xpad=params.xpad,
+        ypad=params.ypad
+    )
     set_axis_labels(
         _cycle(xlist, config.reference_idx),
         _cycle(ylist, config.reference_idx),
-        ax, xlabel, ylabel
+        ax, params.xlabel, params.ylabel
     )
 
     if _cycle(labels, config.reference_idx) is not None:
-        ax.legend(loc=loc)
+        ax.legend(loc=params.loc)
 
     return lines
 
