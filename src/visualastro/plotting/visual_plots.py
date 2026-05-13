@@ -15,6 +15,7 @@ Module Structure:
         VisualAstro user help.
 """
 
+from collections.abc import Sequence
 from typing import Literal
 import warnings
 from astropy.io.fits import Header
@@ -36,8 +37,8 @@ from visualastro.core.numerical_utils import to_list
 from visualastro.core.validation import _type_name
 from visualastro.plotting.image_plots import imshow, plot_spectral_cube
 from visualastro.plotting.plots import (
+    hist,
     plot_density_histogram,
-    plot_histogram,
     plot,
     scatter,
     scatter3D
@@ -60,8 +61,9 @@ class ax:
 
         Equivalent to:
 
-            ax = va.add_subplot()
-            va.imshow(data, ax=ax, **kwargs)
+            >>> ax = va.add_subplot()
+            >>> va.imshow(data, ax=ax, **kwargs)
+            >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
@@ -132,121 +134,18 @@ class ax:
                            percentile=_UNSET, stack_method=None,
                            radial_vel=None, spectral_unit=None, cmap=None,
                            mask_non_pos=None, **kwargs):
-        '''
-        Convenience wrapper for `plot_spectral_cube`, which plots a `SpectralCube`
-        along a given slice.
+        """
+        Wrapper for `plot_spectral_cube` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting style,
-        then calls the core `plot_spectral_cube` routine with the provided parameters.
-        This method is intended for rapid visualization and consistent figure formatting,
-        while preserving full configurability through **kwargs.
+        See `visualastro.plotting.image_plots.plot_spectral_cube` for full
+        documentation.
 
-        Parameters
-        ----------
-        cubes : DataCube, SpectralCube, or list of such
-            One or more spectral cubes to plot. All cubes should have consistent units.
-        idx : int
-            Index along the spectral axis corresponding to the slice to plot.
-            If None, collapses the entire cube into a 2D map according
-            to ``stack_method``.
-        vmin : float or None, optional, default=`_UNSET`
-            Lower limit for colormap scaling; overides `percentile[0]`.
-            If None, values are determined from `percentile[0]`.
-            If `_UNSET`, uses the default value in `config.vmin`.
-        vmax : float or None, optional, default=`_UNSET`
-            Upper limit for colormap scaling; overides `percentile[1]`.
-            If None, values are determined from `percentile[1]`.
-            If `_UNSET`, uses the default value in `config.vmax`.
-        norm : str or None, optional, default=`_UNSET`
-            Normalization algorithm for colormap scaling.
-            - 'asinh' -> asinh stretch using 'ImageNormalize'
-            - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
-            - 'log' -> logarithmic scaling using 'LogNorm'
-            - 'powernorm' -> power-law normalization using 'PowerNorm'
-            - 'linear', 'none', or None -> no normalization applied
-            If `_UNSET`, uses the default value in `config.norm`.
-        percentile : list or tuple of two floats, or None, default=`_UNSET`
-            Default percentile range used to determine `vmin` and `vmax`.
-            If None, use no percentile stretch (as long as vmin/vmax are None).
-            If `_UNSET`, uses default value from `config.percentile`.
-        stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
-            Stacking method. If None, uses the default value set
-            by ``config.stack_cube_method``.
-        radial_vel : float or None, optional, default=None
-            Radial velocity in km/s to shift the spectral axis.
-            Astropy units are optional. If None, uses the default
-            value set by `config.radial_velocity`.
-        spectral_unit : astropy.units.Unit or str, optional, default=None
-            Desired spectral axis unit for labeling.
-        cmap : str, list or tuple of str, or None, default=None
-            Colormap(s) to use for plotting. If None,
-            uses the default value set by `config.cmap`.
-        mask_non_pos : bool or None, optional, default=None
-            If True, mask out non-positive data values. Useful for displaying
-            log scaling of images with non-positive values. If None, uses the
-            default value set by `config.mask_non_positive`.
-        wcs_grid : bool or None, optional, default=None
-            If True, display WCS grid ontop of plot. If None,
-            uses the default value set by `config.wcs_grid`.
+        Equivalent to:
 
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `title` : bool, default=False
-                If True, display spectral slice label as plot title.
-            - `emission_line` : str or None, default=None
-                Optional emission line label to display instead of slice value.
-            - `text_loc` : list of float, default=`config.text_loc`
-                Relative axes coordinates for overlay text placement.
-            - `text_color` : str, default=`config.text_color`
-                Color of overlay text.
-            - `colorbar` : bool, default=`config.cbar`
-                Whether to add a colorbar.
-            - `cbar_width` : float, default=`config.cbar_width`
-                Width of the colorbar.
-            - `cbar_pad` : float, default=`config.cbar_pad`
-                Padding between axes and colorbar.
-            - `clabel` : str, bool, or None, default=`config.clabel`
-                Label for colorbar. If True, automatically generate from cube unit.
-            - `xlabel` : str, default=`config.right_ascension`
-                X axis label.
-            - `ylabel` : str, default=`config.declination`
-                Y axis label.
-            - `spectral_label` : bool, optional, default=True
-                Whether to draw spectral slice value as a label.
-            - `highlight` : bool, optional, default=`config.highlight`
-                Whether to highlight interactive ellipse if plotted.
-            - `ellipses` : list or None, default=None
-                Ellipse objects to overlay on the image.
-            - `plot_ellipse` : bool, default=False
-                If True, plot a default or interactive ellipse.
-            - `center` : list of two ints, default=[Nx//2, Ny//2]
-                Center of default ellipse.
-            - `w`, `h` : float, default=X//5, Y//5
-                Width and height of default ellipse.
-            - `angle` : float or None, default=None
-                Angle of ellipse in degrees.
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.dpi`
-                Resolution (dots per inch) for saved figure.
-
-        Notes
-        -----
-        - If multiple cubes are provided, they are overplotted in sequence.
-        '''
+            >>> fig, ax = plt.subplots(projection=data.wcs)
+            >>> va.plot_spectral_cube(data, idx, ax=ax, **kwargs)
+            >>> plt.show()
+        """
         # ---- KWARGS ----
         # figure params
         figsize = kwargs.pop('figsize', config.figsize)
@@ -651,88 +550,30 @@ class ax:
 
 
     @staticmethod
-    def plot_histogram(datas, bins=None, xlog=None,
-                       ylog=None, histtype=None,
-                       normalize=None, colors=None,
-                       **kwargs):
-        '''
-        Convenience wrapper for `plot_histogram`, to plot one or
-        more histograms.
+    def hist(
+        datas: u.Quantity | NDArray | list[u.Quantity | NDArray],
+        bins: int | Sequence[float] | str | _Unset = _UNSET,
+        histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
+        color: ColorType | list[ColorType] | _Unset = _UNSET,
+        normalize: bool | _Unset = _UNSET,
+        xlog: bool | _Unset = _UNSET,
+        ylog: bool | _Unset = _UNSET,
+        vlines: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
+        **kwargs
+    ):
+        """
+        Wrapper for `hist` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `plot_histogram` routine with the provided
-        parameters. This method is intended for rapid visualization and consistent
-        figure formatting, while preserving full configurability through **kwargs.
+        See `visualastro.plotting.plots.hist` for full documentation.
 
-        Parameters
-        ----------
-        datas : array-like or list of array-like
-            Input data to histogram. Can be a single 1D array or a
-            list of 1D/2D arrays. 2D arrays are automatically flattened.
-        ax : matplotlib.axes.Axes
-            The Axes object on which to plot the histogram.
-        bins : int, sequence, str, or None, optional, default=None
-            Histogram bin specification. Passed directly to
-            `matplotlib.pyplot.hist`. If None, uses the default
-            value from `config.bins`. If `bins` is a str, use
-            one of the supported binning strategies 'auto', 'fd',
-            'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
-        xlog : bool or None, optional, default=None
-            If True, set x-axis to logarithmic scale.
-            If None, uses the default value from `config.xlog`.
-        ylog : bool or None, optional, default=None
-            If True, set y-axis to logarithmic scale.
-            If None, uses the default value from `config.ylog`.
-        histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-            Matplotlib histogram type. If None, uses the default value from `config.histtype`.
-        normalize : bool or None, optional, default=None
-            If True, normalize histograms to a probability density.
-            If None, uses the default value from `config.normalize_hist`.
-        colors : list of colors, str, or None, optional, default=None
-            Colors to use for each dataset. If None,
-            uses the default color colorset from `config.default_colorset`.
+        Equivalent to:
 
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `color`, `c` : list of colors, str, or None, optional, default=None
-                aliases for `colors`.
-            - `cmap` : str, optional, default=`config.cmap`
-                Colormap to use if `colors` is not provided.
-            - `xlim` : tuple, optional
-                X data range to display.
-            - `ylim` : tuple, optional
-                Y data range to display.
-            - `labels`, `label`, `l` : str or list of str, default=None
-                Legend labels.
-            - `loc` : str, default=`config.loc`
-                Location of legend.
-            - `xlabel` : str or None, optional
-                Label for the x-axis.
-            - `ylabel` : str or None, optional
-                Label for the y-axis.
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.dpi`
-                Resolution (dots per inch) for saved figure.
-        '''
-        # ---- KWARGS ----
-        # figure params
+            >>> fig, ax = plt.subplots()
+            >>> va.hist(X, ax=ax, **kwargs)
+            >>> plt.show()
+        """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        # savefig
         savefig = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
@@ -740,9 +581,17 @@ class ax:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_histogram(datas, ax, bins, xlog,
-                               ylog, histtype, normalize,
-                               colors, **kwargs)
+            _ = hist(
+                datas, ax,
+                bins=bins,
+                histtype=histtype,
+                color=color,
+                normalize=normalize,
+                xlog=xlog,
+                ylog=ylog,
+                vlines=vlines,
+                **kwargs
+            )
 
             if savefig:
                 savefig(dpi)
@@ -772,6 +621,7 @@ class ax:
 
             >>> fig, ax = plt.subplots()
             >>> va.plot(X, Y, ax=ax, **kwargs)
+            >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
@@ -827,6 +677,7 @@ class ax:
 
             >>> fig, ax = plt.subplots()
             >>> va.scatter(X, Y, ax=ax, **kwargs)
+            >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)

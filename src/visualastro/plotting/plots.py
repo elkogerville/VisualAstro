@@ -440,6 +440,8 @@ def hist(
             label=label,
             rasterized=params.rasterized
         )
+        if ref_unit is not None:
+            data = data * ref_unit
 
         data_list.append(data)
         hists.append(
@@ -457,8 +459,11 @@ def hist(
         ypad=params.ypad
     )
     set_axis_labels(
-        None, _cycle(data_list, config.reference_idx),
-        ax, params.xlabel, params.ylabel
+        _cycle(data_list, config.reference_idx),
+        None,
+        ax,
+        params.xlabel,
+        params.ylabel
     )
 
     if _cycle(labels, config.reference_idx) is not None:
@@ -507,15 +512,6 @@ def plot(
         np.arange(len(array)).
     ax : matplotlib.axes.Axes
         The Axes object to plot on.
-    normalize : bool | _Unset, optional, default=_UNSET
-        If `True`, normalize each dataset by its maximum value.
-        If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
     linestyle : str | list[str] | _Unset, optional, default=_UNSET
@@ -527,6 +523,15 @@ def plot(
         `config.linewidth`.
     alpha : float | list[float] | _Unset, optional, default=_UNSET
         Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
+    normalize : bool | _Unset, optional, default=_UNSET
+        If `True`, normalize each dataset by its maximum value.
+        If `_UNSET`, uses `config.normalize_data`.
+    xlog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on x-axis.
+        If `_UNSET`, uses `config.xlog`.
+    ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, use logarithmic scale on y-axis.
+        If `_UNSET`, uses `config.ylog`.
     zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
         of greatest to lowest zorder. If None, starts at 0 and increments
@@ -534,18 +539,14 @@ def plot(
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
-    cmap : Colormap | str, optional, default=config.cmap
-        Colormap used to generate colors if `color` is an int.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
-    xlabel : str, optional, default=None
-        Label for x-axis.
-    ylabel : str, optional, default=None
-        Label for y-axis.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
     loc : str, optional, default=config.loc
         Legend location.
+    xlabel : str, optional, default=None
+        Label for x-axis.
+    ylabel : str, optional, default=None
+        Label for y-axis.
     xlim : tuple[float, float], optional, default=None
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
@@ -554,6 +555,10 @@ def plot(
         Fractional padding added to the x-axis data range when computing axis limits.
     ypad : float, optional, default=config.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
     rasterized : bool, optional, default=config.rasterized
         If `True`, rasterize artists when saving to vector formats.
 
@@ -566,27 +571,27 @@ def plot(
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('alpha', alpha, config.alpha),
-            _param('array_order', array_order, config.array_order),
             _param('color', color, config.colors),
             _param('linestyle', linestyle, config.linestyle),
             _param('linewidth', linewidth, config.linewidth),
+            _param('alpha', alpha, config.alpha),
             _param('normalize', normalize, config.normalize_data),
             _param('xlog', xlog, config.xlog),
             _param('ylog', ylog, config.ylog),
+            _param('array_order', array_order, config.array_order),
         ],
         [
-            _kwarg('bad_color', None),
-            _kwarg('cmap', config.cmap),
             _kwarg('label', None),
             _kwarg('loc', config.loc),
-            _kwarg('rasterized', config.rasterized),
             _kwarg('xlabel', None),
             _kwarg('ylabel', None),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
             _kwarg('xpad', config.xpad),
             _kwarg('ypad', config.ypad),
+            _kwarg('cmap', config.cmap),
+            _kwarg('bad_color', None),
+            _kwarg('rasterized', config.rasterized),
         ]
     )
     alphas = to_list(params.alpha)
@@ -662,15 +667,15 @@ def scatter(
     ax: maxes.Axes,
     xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
     yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    normalize: bool | _Unset = _UNSET,
-    xlog: bool | _Unset = _UNSET,
-    ylog: bool | _Unset = _UNSET,
     color: ColorType | list[ColorType] | int | _Unset =_UNSET,
-    size: float | list[float] | _Unset = _UNSET,
     marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+    size: float | list[float] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
     edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
     facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
     array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) ->  list[PatchCollection]:
@@ -701,21 +706,12 @@ def scatter(
         Errors on x-axis data. Must match shape of x data.
     yerr : array-like | list[array-like] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
-    normalize : bool | _Unset, optional, default=_UNSET
-        If `True`, normalize each dataset by its maximum value.
-        If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
-    size : float | list[float] | _Unset, optional, default=_UNSET
-        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
     marker : str | list[str] | _Unset, optional, default=_UNSET
         Marker style(s). If `_UNSET`, uses config.marker.
+    size : float | list[float] | _Unset, optional, default=_UNSET
+        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
     alpha : float | list[float] | _Unset, optional, default=_UNSET
         Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
@@ -735,21 +731,26 @@ def scatter(
 
         If not set, uses `config.facecolor`.
 
+    normalize : bool | _Unset, optional, default=_UNSET
+        If `True`, normalize each dataset by its maximum value.
+        If `_UNSET`, uses `config.normalize_data`.
+    xlog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on x-axis.
+        If `_UNSET`, uses `config.xlog`.
+    ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, use logarithmic scale on y-axis.
+        If `_UNSET`, uses `config.ylog`.
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
-    cmap : Colormap | str, optional, default=config.cmap
-        Colormap used to generate colors if `color` is an int.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
-    xlabel : str, optional, default=None
-        Label for x-axis.
-    ylabel : str, optional, default=None
-        Label for y-axis.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
     loc : str, optional, default=config.loc
         Legend location.
+    xlabel : str, optional, default=None
+        Label for x-axis.
+    ylabel : str, optional, default=None
+        Label for y-axis.
     xlim : tuple[float, float], optional, default=None
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
@@ -758,6 +759,10 @@ def scatter(
         Fractional padding added to the x-axis data range when computing axis limits.
     ypad : float, optional, default=config.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
     ecolor : ColorType, optional, default=config.errorbar.colors
         Error bar color.
     markeredgecolor : ColorTpe, optional, default=config.errorbar.markeredgecolor
@@ -787,35 +792,35 @@ def scatter(
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('alpha', alpha, config.alpha),
-            _param('array_order', array_order, config.array_order),
             _param('color', color, config.colors),
+            _param('marker', marker, config.marker),
+            _param('size', size, config.scatter_size),
+            _param('alpha', alpha, config.alpha),
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
-            _param('size', size, config.scatter_size),
-            _param('marker', marker, config.marker),
             _param('normalize', normalize, config.normalize_data),
             _param('xlog', xlog, config.xlog),
             _param('ylog', ylog, config.ylog),
+            _param('array_order', array_order, config.array_order),
         ],
         [
-            _kwarg('bad_color', None),
-            _kwarg('barsabove', config.errorbar.barsabove),
-            _kwarg('capsize', config.errorbar.capsize),
-            _kwarg('capthick', config.errorbar.capthick),
-            _kwarg('cmap', config.cmap),
-            _kwarg('ecolor', config.errorbar.colors),
-            _kwarg('elinewidth', config.errorbar.linewidth),
             _kwarg('label', None),
             _kwarg('loc', config.loc),
-            _kwarg('markeredgecolor', config.errorbar.markeredgecolor),
-            _kwarg('rasterized', config.rasterized),
             _kwarg('xlabel', None),
             _kwarg('ylabel', None),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
             _kwarg('xpad', config.xpad),
             _kwarg('ypad', config.ypad),
+            _kwarg('cmap', config.cmap),
+            _kwarg('bad_color', None),
+            _kwarg('ecolor', config.errorbar.colors),
+            _kwarg('markeredgecolor', config.errorbar.markeredgecolor),
+            _kwarg('elinewidth', config.errorbar.linewidth),
+            _kwarg('capsize', config.errorbar.capsize),
+            _kwarg('capthick', config.errorbar.capthick),
+            _kwarg('barsabove', config.errorbar.barsabove),
+            _kwarg('rasterized', config.rasterized),
         ]
     )
     alphas = to_list(params.alpha)
