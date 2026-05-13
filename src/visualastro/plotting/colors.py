@@ -10,6 +10,7 @@ Dependencies:
 """
 
 from collections.abc import Sequence
+from dataclasses import dataclass, fields
 from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
@@ -73,16 +74,38 @@ COLORNAMES = [key for key in COLORSETS.keys()]
 
 # VISUALASTRO COLOR ALIASES
 # -------------------------
-NAMED_COLORS: dict[str, ColorType] = {
-    'dsb': 'darkslateblue',
-    'mvr': 'mediumvioletred',
-    'ibmpnk': '#DC267F',
-}
+@dataclass(frozen=True)
+class Color:
+    dsb: ColorType = 'darkslateblue'
+    msb: ColorType = 'mediumslateblue'
+    sb: ColorType = 'slateblue'
+    mvr: ColorType = 'mediumvioletred'
+    mam: ColorType = 'mediumaquamarine'
+    msg: ColorType = 'mediumseagreen'
+    jade: ColorType = '#26DCBA'
+    nebula: ColorType = '#9FB7FF'
+    bbypnk: ColorType = '#DBB0FF'
+    pondwater: ColorType = '#CFE23C'
+    ibmpur: ColorType = '#648FFF'
+    ibmpnk: ColorType = '#DC267F'
+    ibmblu: ColorType = '#648FFF'
+    ibmylw: ColorType = '#FFB000'
+    ibmorg: ColorType = '#FE6100'
+
+    def __repr__(self) -> str:
+        lines = [self.__class__.__name__ + ':']
+        for field in fields(self):
+            value = getattr(self, field.name)
+            lines.append(f'  {field.name}: {value!r}')
+        return '\n'.join(lines)
+
+_NAMED_COLORS = vars(Color())
+
 
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
-    mode: Literal['lighten', 'desaturate'] | None = None,
+    transform: Literal['lighten', 'desaturate'] | None = None,
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:

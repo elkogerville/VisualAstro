@@ -75,6 +75,7 @@ from visualastro.plotting.image_plots import (
     plot_spectral_cube
 )
 from visualastro.plotting.colors import (
+    Color,
     as_color,
     create_cmap,
     get_cmap,
@@ -138,6 +139,8 @@ from visualastro.utils.wcs_utils import (
     get_wcs_celestial,
     reproject_wcs
 )
+
+color = Color()
 
 def _register_fonts():
     """
