@@ -13,6 +13,7 @@ Module Structure:
 """
 
 from collections import namedtuple
+from types import SimpleNamespace
 from typing import Literal, Sequence
 import astropy.units as u
 import matplotlib.axes as maxes
@@ -34,12 +35,11 @@ from visualastro.core.config import (
 from visualastro.core.io import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
-    normalize as _normalize,
     to_array,
     to_list,
     _cycle,
-    _unwrap_if_single
 )
+from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.colors import get_cmap, get_colors
 from visualastro.plotting.plot_utils import (
@@ -294,75 +294,77 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     return PlotHandles(scatters, histx, histy)
 
 
-def plot_histogram(
-    datas,
-    ax,
-    bins=None,
-    xlog=None,
-    ylog=None,
-    histtype=None,
-    normalize=None,
-    colors=_UNSET,
-    vlines=None,
+def hist(
+    datas: u.Quantity | NDArray | list[u.Quantity | NDArray],
+    ax: maxes.Axes,
+    bins: int | Sequence[float] | str | _Unset = _UNSET,
+    histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
+    color: ColorType | list[ColorType] | _Unset = _UNSET,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
+    vlines: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
     **kwargs
 ):
-    '''
+    """
     Plot one or more histograms on a given Axes object.
 
     Parameters
     ----------
-    datas : array-like or list of array-like
+    datas : u.Quantity | NDArray | list[u.Quantity | NDArray]
         Input data to histogram. Can be a single 1D array or a
         list of 1D/2D arrays. 2D arrays are automatically flattened.
     ax : matplotlib.axes.Axes
         The Axes object on which to plot the histogram.
-    bins : int, sequence, str, or None, optional, default=None
+    bins : int | Sequence[float] | str | _Unset, optional, default=_UNSET
         Histogram bin specification. Passed directly to
-        `matplotlib.pyplot.hist`. If None, uses the default
-        value from `config.bins`. If `bins` is a str, use
-        one of the supported binning strategies 'auto', 'fd',
-        'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
-    xlog : bool or None, optional, default=None
-        If True, set x-axis to logarithmic scale.
-        If None, uses the default value from `config.xlog`.
-    ylog : bool or None, optional, default=None
-        If True, set y-axis to logarithmic scale.
-        If None, uses the default value from `config.ylog`.
-    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-        Matplotlib histogram type. If None, uses the default value from `config.histtype`.
+        `matplotlib.pyplot.hist`. If `_UNSET`, uses `config.bins`.
+
+        If `bins` is a `str`, use one of the supported binning strategies:
+            `'auto'`, `'fd'`, `'doane'`, `'scott'`, `'stone'`, `'rice'`,
+            `'sturges'`, or `'sqrt'`.
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
+        Matplotlib histogram type. If `_UNSET`, uses `config.histtype`.
+    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
+        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
     normalize : bool or None, optional, default=None
-        If True, normalize histograms to a probability density.
-        If None, uses the default value from `config.normalize_hist`.
+        If `True`, normalize histograms to a probability density.
+        If `_UNSET`, uses `config.normalize_hist`.
+    xlog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on x-axis.
+        If `_UNSET`, uses `config.xlog`.
+    ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, use logarithmic scale on y-axis.
+        If `_UNSET`, uses `config.ylog`.
+    vlines : float | u.Quantity | Sequence[float | u.Quantity] | None, optional, default=None
+        X-axis coordinate(s) at which to draw vertical line(s). If Quantities,
+        should have the same unit as `data`. If an iterable is provided, a vertical
+        line is drawn for each element. If None, no lines are drawn.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each dataset. If None,
         uses the default color colorset from `config.default_colorset`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`config.colors`.
-            Aliases for `colors`.
-        - `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional
-            X data range to display.
-        - `ylim` : tuple, optional
-            Y data range to display.
-        - `labels`, `label`, `l` : str or list of str, default=None
-            Legend labels.
-        - `loc` : str, default=`config.loc`
-            Location of legend.
-        - `xlabel` : str or None, optional
-            Label for the x-axis.
-        - `ylabel` : str or None, optional
-            Label for the y-axis.
+    label : str | list[str], optional, default=None
+        Legend labels for scatter datasets.
+    loc : str, optional, default=config.loc
+        Legend location.
+    xlabel : str, optional, default=None
+        Label for x-axis.
+    ylabel : str, optional, default=None
+        Label for y-axis.
+    xlim : tuple[float, float], optional, default=None
+        Limits for x-axis as (xmin, xmax).
+    ylim : tuple[float, float], optional, default=None
+        Limits for y-axis as (ymin, ymax).
+    xpad : float, optional, default=config.ypad
+        Fractional padding added to the x-axis data range when computing axis limits.
+    ypad : float, optional, default=config.xpad
+        Fractional padding added to the y-axis data range when computing axis limits.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    bad_color : str, optional
+        Fallback color for invalid values in colormap.
+    rasterized : bool, optional, default=config.rasterized
+        If `True`, rasterize artists when saving to vector formats.
 
     Returns
     -------
@@ -380,74 +382,90 @@ def plot_histogram(
 
         If only one histogram is created, `hists` is a single tuple; otherwise,
         it is a list of tuples.
-    '''
-    # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    cmap = kwargs.get('cmap', config.cmap)
-    # figure params
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
-    # labels
-    labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', config.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-
-    # get default config values
-    bins = get_config_value(bins, 'bins')
-    xlog = get_config_value(xlog, 'xlog')
-    ylog = get_config_value(ylog, 'ylog')
-    histtype = get_config_value(histtype, 'histtype')
-    normalize = get_config_value(normalize, 'normalize_hist')
-    colors = _resolve_default(colors, config.colors)
-
-    # ensure inputs are iterable or conform to standard
+    """
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('bins', bins, config.bins),
+            _param('histtype', histtype, config.histtype),
+            _param('color', color, config.colors),
+            _param('normalize', normalize, config.normalize_hist),
+            _param('xlog', xlog, config.xlog_hist),
+            _param('ylog', ylog, config.ylog_hist),
+        ],
+        [
+            _kwarg('label', None),
+            _kwarg('loc', config.loc),
+            _kwarg('xlabel', None),
+            _kwarg('ylabel', None),
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('xpad', config.xpad),
+            _kwarg('ypad', config.ypad),
+            _kwarg('cmap', config.cmap),
+            _kwarg('bad_color', None),
+            _kwarg('rasterized', config.rasterized),
+        ]
+    )
+    bins_list = to_list(params.bins)
+    labels = to_list(params.label)
     datas = to_list(datas)
+
     ref_unit = ensure_common_unit(datas)
-    labels = labels if isinstance(labels, (list, np.ndarray, tuple)) else [labels]
 
-    colors = get_colors(colors, cmap=cmap)
-    data_list = []
-
-    # set axes
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
 
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
+    data_list = []
+
     hists = []
 
-    # loop over data list
     for i, data in enumerate(datas):
-        color = colors[i%len(colors)]
-        label = labels[i] if (labels[i%len(labels)] is not None and i < len(labels)) else None
-        # ensure data is an array and is 1D
+        bin = _cycle(bins_list, i)
+        color = _cycle(colors, i)
+        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         data = to_array(data)
+
         if data.ndim == 2:
             data = data.flatten()
+
         h = ax.hist(
             data,
-            bins=bins,
+            bins=bin,
             color=color,
-            histtype=histtype,
-            density=normalize,
+            histtype=params.histtype,
+            density=params.normalize,
             label=label,
-            rasterized=rasterized
+            rasterized=params.rasterized
         )
-        data_list.append(data)
-        hists.append(h)
 
-    # set axes labels
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    if labels[0] is not None:
-        ax.legend(loc=loc)
+        data_list.append(data)
+        hists.append(
+            SimpleNamespace(
+            **{'values': h[0], 'bins': h[1], 'patches': h[2]}
+            )
+        )
+
+    set_axis_limits(
+        data_list,
+        ax=ax,
+        xlim=params.xlim,
+        ylim=params.ylim,
+        xpad=params.xpad,
+        ypad=params.ypad
+    )
+    set_axis_labels(
+        None, _cycle(data_list, config.reference_idx),
+        ax, params.xlabel, params.ylabel
+    )
+
+    if _cycle(labels, config.reference_idx) is not None:
+        ax.legend(loc=params.loc)
 
     if vlines is not None:
         plot_vlines(vlines, ax=ax, unit=ref_unit)
-
-    set_axis_limits(data_list, ax=ax, xlim=xlim, ylim=ylim)
-
-    hists = _unwrap_if_single(hists)
 
     return hists
 
@@ -455,13 +473,13 @@ def plot_histogram(
 def plot(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     ax: maxes.Axes,
-    normalize: bool | _Unset = _UNSET,
-    xlog: bool | _Unset = _UNSET,
-    ylog: bool | _Unset = _UNSET,
-    color: ColorType | list[ColorType] | _Unset =_UNSET,
+    color: ColorType | list[ColorType] | _Unset = _UNSET,
     linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
     linewidth: float | list[float] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
     zorder: float | list[float] | None = None,
     array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
     **kwargs
