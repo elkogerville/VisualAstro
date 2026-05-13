@@ -14,7 +14,7 @@ Module Structure:
 """
 
 from collections.abc import Sequence
-from dataclasses import field
+from dataclasses import dataclass, field, fields
 from enum import Enum
 from typing import Literal, TypeVar
 from astropy.wcs import WCS
@@ -24,7 +24,6 @@ from astropy.units import physical
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
-from regions.io.fits.write import dataclass
 
 
 T = TypeVar('T')
@@ -39,6 +38,77 @@ class _Unset(Enum):
 _UNSET = _Unset.UNSET
 
 
+@dataclass(slots=True)
+class AxesConfig:
+    """matplotlib.axes config"""
+    xpad: float = 0.05  # set_axis_limits() xpad
+    ypad: float = 0.05 # set_axis_limits() ypad
+    xlog: bool = False
+    ylog: bool = False
+    xlog_hist: bool = True
+    ylog_hist: bool = True
+    sharex: bool = False
+    sharey: bool = False
+    hspace = None
+    wspace = None
+    Nticks = None
+    aspect = None
+
+@dataclass(slots=True)
+class AXLineConfig:
+    """ax.vline / ax.hline config"""
+    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
+    linewidth: float = 1.0
+    color: ColorType = 'k'
+    alpha: float | None = 0.7
+    zorder: float = 0
+
+@dataclass(slots=True)
+class CurveFitConfig:
+    """scipy.curve_fit config"""
+    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
+    absolute_sigma: bool = False
+    sample: int = 10000
+    interpolate: bool = False
+    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+
+@dataclass(slots=True)
+class ErrorBarConfig:
+    """ax.errorbar config"""
+    fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
+    colors: ColorType | None = None
+    linewidth: float | None = 1
+    capsize: float = 3 # cap length in points
+    capthick: float | None = 1 # cap thickness in points
+    barsabove: bool = False
+    markeredgecolor: ColorType | None = None
+
+@dataclass(slots=True)
+class SpectralLineConfig:
+    """spectral_line_marker config"""
+    marker_direction: Literal['up', 'down'] = 'down'
+    label_offset_points: tuple[float, float] = (0.0, 4.0)
+    label_position: Literal['center', 'left', 'right'] = 'center'
+    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
+    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
+    label_rotation: float = 0
+
+@dataclass(slots=True)
+class HDUConfig:
+    """HDU config"""
+    index: int = 0
+    error_extensions: list[str] = field(
+        default_factory=lambda: [
+        'ERR', 'ERROR', 'UNCERT'
+    ])
+    variance_extensions: list[str] = field(
+        default_factory=lambda: [
+        'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE', 'STAT'
+    ])
+
+
+@dataclass(slots=True)
 class VisualAstroConfig:
     """
     Global configuration object for controlling default behavior
@@ -56,291 +126,226 @@ class VisualAstroConfig:
         >>> va.config.style = 'latex'
         >>> va.config.figsize = (6, 6)
     """
-    def __init__(self):
-        # Plotting Params
-        # ---------------
+    # I/O params
+    unit_mismatch: Literal['warn', 'ignore', 'raise'] | None = 'warn'
+    default_dtype: DTypeLike = np.float64
+    hdu_idx: int = 0
+    print_info: bool = False
+    transpose: bool = False
+    mask_non_positive: bool = False
+    mask_out_value: float = np.nan
+    invert_wcs_if_transpose: bool = True
+    target_wcs: Header | WCS | None = None
+    hdu: HDUConfig = field(default_factory=HDUConfig)
+    array_order: Literal['C', 'c', 'F', 'fortran'] = 'c'
 
-        # I/O params
-        self.unit_mismatch: Literal['warn', 'ignore', 'raise'] | None = 'warn'
-        self.default_dtype: DTypeLike = np.float64
-        self.hdu_idx: int = 0
-        self.print_info: bool = False
-        self.transpose: bool = False
-        self.mask_non_positive: bool = False
-        self.mask_out_value: float = np.nan
-        self.invert_wcs_if_transpose: bool = True
-        self.target_wcs: Header | WCS | None = None
-        self.hdu = HDUConfig()
-        self.array_order: Literal['C', 'c', 'F', 'fortran'] = 'c'
+    # figure params
+    style: str = 'astro' # default style
+    style_fallback: str = 'default.mplstyle' # style if default style fails
+    figsize: tuple = (6, 6)
+    reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
+    grid_figsize: tuple = (12, 6)
+    figsize3d: tuple = (10, 10)
+    # if _UNSET, defaults to `self.default_colorset`.
+    # To define a custom default colorset,
+    # define it in `get_colors` and change the `default_colorset`.
+    colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET
+    default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
+    alpha: int = 1
+    nrows: int = 1 # make_grid_plot() nrows
+    ncols: int = 2 # make_grid_plot() ncols
+    rasterized: bool = False # rasterize plot artists wherever possible
 
-        # figure params
-        self.style: str = 'astro' # default style
-        self.style_fallback: str = 'default.mplstyle' # style if default style fails
-        self.figsize: tuple = (6, 6)
-        self.reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
-        self.grid_figsize: tuple = (12, 6)
-        self.figsize3d: tuple = (10, 10)
-        # if _UNSET, defaults to `self.default_colorset`.
-        # To define a custom default colorset,
-        # define it in `get_colors` and change the `default_colorset`.
-        self.colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET
-        self.default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
-        self.alpha: int = 1
-        self.nrows: int = 1 # make_grid_plot() nrows
-        self.ncols: int = 2 # make_grid_plot() ncols
-        self.rasterized: bool = False # rasterize plot artists wherever possible
+    # figure grid params
+    grid_alpha: float = 1
+    grid_color: ColorType = 'k'
+    grid_linestyle: 'str' = 'solid'
 
-        # figure grid params
-        self.grid_alpha: float = 1
-        self.grid_color: ColorType = 'k'
-        self.grid_linestyle: 'str' = 'solid'
+    wcs_grid: bool = False
+    wcs_grid_color: ColorType = 'w'
+    wcs_grid_linestyle: 'str' = 'dotted'
 
-        self.wcs_grid: bool = False
-        self.wcs_grid_color: ColorType = 'w'
-        self.wcs_grid_linestyle: 'str' = 'dotted'
+    # data params
+    normalize_data: bool = False
 
-        # data params
-        self.normalize_data: bool = False
+    # histogram params
+    histtype = 'step'
+    bins = 'auto'
+    normalize_hist = True
 
-        # histogram params
-        self.histtype = 'step'
-        self.bins = 'auto'
-        self.normalize_hist = True
+    # line2D params
+    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
+    linewidth = 0.8
 
-        # line2D params
-        self.linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
-        self.linewidth = 0.8
+    axline: AXLineConfig = field(default_factory=AXLineConfig)
 
-        self.axline = AXLineConfig()
+    # scatter params
+    scatter_size = 10
+    marker = 'o'
+    edgecolor = None
+    facecolor = None
 
-        # scatter params
-        self.scatter_size = 10
-        self.marker = 'o'
-        self.edgecolor = None
-        self.facecolor = None
+    # errorbar params
+    errorbar: ErrorBarConfig = field(default_factory=ErrorBarConfig)
+    eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
+    ecolors = None
 
-        # errorbar params
-        self.errorbar = ErrorBarConfig()
-        self.elinewidth = self.errorbar.linewidth
-        self.eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
-        self.ecolors = None
+    # imshow params
+    cmap = 'turbo'
+    origin = 'lower'
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None = 'asinh'
+    linear_width: float = 1 # AsinhNorm linear width
+    gamma: float = 0.5 # PowerNorm exponent
+    vmin = None
+    vmax = None
+    percentile: tuple[float, float] | None = (3.0, 99.5)
+    aspect = None
 
-        # imshow params
-        self.cmap = 'turbo'
-        self.origin = 'lower'
-        self.norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None = 'asinh'
-        self.linear_width: float = 1 # AsinhNorm linear width
-        self.gamma: float = 0.5 # PowerNorm exponent
-        self.vmin = None
-        self.vmax = None
-        self.percentile: tuple[float, float] | None = (3.0, 99.5)
-        self.aspect = None
-
-        # axes params
-        self.xpad: float = 0.05  # set_axis_limits() xpad
-        self.ypad: float = 0.05 # set_axis_limits() ypad
-        self.xlog = False
-        self.ylog = False
-        self.xlog_hist = True
-        self.ylog_hist = True
-        self.sharex = False
-        self.sharey = False
-        self.hspace = None
-        self.wspace = None
-        self.Nticks = None
-        self.aspect = None
-
-        # cbar params
-        self.cbar = True
-        self.cbar_width = 0.03
-        self.cbar_pad = 0.015
-        self.cbar_tick_which = 'both'
-        self.cbar_tick_dir = 'out'
-        self.clabel = True
-
-        # text params
-        self.fontsize: float = 10
-        self.text_color: str = 'k'
-        self.text_loc: tuple[float, float] = (0.03, 0.03)
-
-        # label params
-        self.use_brackets = True # display units as [unit] instead of (unit)
-        self.right_ascension = 'Right Ascension'
-        self.declination = 'Declination'
-        self.highlight: bool = True
-        self.loc = 'best'
-        self.use_type_label = True
-        self.use_unit_label = True
-        self.unit_label_format = 'latex_inline'
-        self._PHYSICAL_TYPE_LABELS = {
-            u.adu.physical_type: 'ADU',          # type: ignore
-            u.count.physical_type: 'Counts',     # type: ignore
-            u.electron.physical_type: 'Counts',  # type: ignore
-            u.mag.physical_type: 'Magnitude',    # type: ignore
-            physical.length: 'Distance',
-            physical.power_density: 'Flux',
-            physical.spectral_flux_density: 'Flux Density',
-            physical.surface_brightness: 'Surface Brightness',
-        }
-
-        self._SPECTRAL_TYPE_LABELS = {
-            physical.length: 'Wavelength',
-            physical.frequency: 'Frequency',
-            physical.energy: 'Energy',
-            physical.speed: 'Velocity',
-        }
-
-        # savefig params
-        self.savefig = False
-        self.dpi = 600
-        self.pdf_compression = 6
-        self.bbox_inches = 'tight'
-        self.allowed_formats = {'eps', 'pdf', 'png', 'svg'}
-
-        # circles params
-        self.circle_linewidth = 2
-        self.circle_fill = False
-        self.ellipse_label_loc = [0.03, 0.03]
-
-        # Science Params
-        # --------------
-        # data params
-        self.wavelength_unit = None
-        self.radial_velocity = None
-
-        # data cube params
-        self.stack_cube_method = 'sum'
-
-        # extract_cube_spectrum params
-        self.spectra_rest_frequency = None
-        self.flux_extract_method = 'mean'
-        self.spectral_cube_extraction_mode = 'cube'
-        self.spectrum_continuum_fit_method: str = 'fit_continuum'
-        self.deredden_spectrum = False
-        self.plot_normalized_continuum = False
-        self.plot_continuum_fit = False
-
-        # plot_spectrum params
-        self.plot_spectrum_text_loc = [0.025, 0.95]
-
-        # deredden spectra params
-        self.Rv = 3.1 # Milky Way average
-        self.Ebv = 0.19
-        self.deredden_method = None
-        self.deredden_region = None
-
-        # curve_fit params
-        self.curve_fit = CurveFitConfig()
-        self.curve_fit_interpolate = False
-        self.curve_fit_method = 'trf'
-        self.curve_fit_absolute_sigma = False
-        self.interpolation_samples = 10000
-        self.interpolation_method = 'cubic_spline'
-        self.error_interpolation_method = 'cubic_spline'
-
-        # gaussian fitting params
-        self.gaussian_model = 'gaussian'
-        self.return_gaussian_fit_parameters = True
-        self.print_gaussian_values = True
-
-        # reprojection parameters
-        self.reproject_method = 'interp'
-        self.return_footprint: bool = False
-        self.reproject_block_size = None
-        self.reproject_parallel = False
-
-        # error propagation
-        self.propagate_flux_error_method = None
-
-        # Utils Params
-        # ------------
-
-        # pretty table params
-        self.table_precision = 7
-        self.table_sci_notation = True
-        self.table_column_pad = 3
-
-        # numpy save
-        self.save_format = '.npy'
-
-        self.spectral_line_marker = SpectralLineConfig()
-
-
-    def reset(self):
-        """
-        Reset all configuration values to default.
-        """
-        self.__init__()
-
-
-@dataclass
-class AxesConfig:
-    """matplotlib.axes config"""
+    # axes params
     xpad: float = 0.05  # set_axis_limits() xpad
     ypad: float = 0.05 # set_axis_limits() ypad
-    xlog: bool = False
-    ylog: bool = False
-    xlog_hist: bool = True
-    ylog_hist: bool = True
-    sharex: bool = False
-    sharey: bool = False
+    xlog = False
+    ylog = False
+    xlog_hist = True
+    ylog_hist = True
+    sharex = False
+    sharey = False
     hspace = None
     wspace = None
     Nticks = None
     aspect = None
 
-@dataclass
-class AXLineConfig:
-    """ax.vline / ax.hline config"""
-    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
-    linewidth: float = 1.0
-    color: ColorType = 'k'
-    alpha: float | None = 0.7
-    zorder: float = 0
+    # cbar params
+    cbar = True
+    cbar_width = 0.03
+    cbar_pad = 0.015
+    cbar_tick_which = 'both'
+    cbar_tick_dir = 'out'
+    clabel = True
 
-@dataclass
-class CurveFitConfig:
-    """scipy.curve_fit config"""
-    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
-    absolute_sigma: bool = False
-    sample: int = 10000
-    interpolate: bool = False
-    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
-    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+    # text params
+    fontsize: float = 10
+    text_color: str = 'k'
+    text_loc: tuple[float, float] = (0.03, 0.03)
 
-@dataclass
-class ErrorBarConfig:
-    """ax.errorbar config"""
-    fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
-    colors: ColorType | None = None
-    linewidth: float | None = 1
-    capsize: float = 3 # cap length in points
-    capthick: float | None = 1 # cap thickness in points
-    barsabove: bool = False
-    markeredgecolor: ColorType | None = None
+    # label params
+    use_brackets = True # display units as [unit] instead of (unit)
+    right_ascension = 'Right Ascension'
+    declination = 'Declination'
+    highlight: bool = True
+    loc = 'best'
+    show_type_label = True
+    show_unit_label = True
+    unit_label_format = 'latex_inline'
+    _PHYSICAL_TYPE_LABELS = {
+        u.adu.physical_type: 'ADU',          # type: ignore
+        u.count.physical_type: 'Counts',     # type: ignore
+        u.electron.physical_type: 'Counts',  # type: ignore
+        u.mag.physical_type: 'Magnitude',    # type: ignore
+        physical.length: 'Distance',
+        physical.power_density: 'Flux',
+        physical.spectral_flux_density: 'Flux Density',
+        physical.surface_brightness: 'Surface Brightness',
+    }
 
-@dataclass
-class SpectralLineConfig:
-    """spectral_line_marker config"""
-    marker_direction: Literal['up', 'down'] = 'down'
-    label_offset_points: tuple[float, float] = (0.0, 4.0)
-    label_position: Literal['center', 'left', 'right'] = 'center'
-    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
-    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
-    label_rotation: float = 0
+    _SPECTRAL_TYPE_LABELS = {
+        physical.length: 'Wavelength',
+        physical.frequency: 'Frequency',
+        physical.energy: 'Energy',
+        physical.speed: 'Velocity',
+    }
 
-@dataclass
-class HDUConfig:
-    """HDU config"""
-    index: int = 0
-    error_extensions: list[str] = field(
-        default_factory=lambda: [
-        'ERR', 'ERROR', 'UNCERT'
-    ])
-    variance_extensions: list[str] = field(
-        default_factory=lambda: [
-        'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE', 'STAT'
-    ])
+    # savefig params
+    savefig = False
+    dpi = 600
+    pdf_compression = 6
+    bbox_inches = 'tight'
+    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
+
+    # circles params
+    circle_linewidth = 2
+    circle_fill = False
+    ellipse_label_loc = [0.03, 0.03]
+
+    # Science Params
+    # --------------
+    # data params
+    wavelength_unit = None
+    radial_velocity = None
+
+    # data cube params
+    stack_cube_method = 'sum'
+
+    # extract_cube_spectrum params
+    spectra_rest_frequency = None
+    flux_extract_method = 'mean'
+    spectral_cube_extraction_mode = 'cube'
+    spectrum_continuum_fit_method: str = 'fit_continuum'
+    deredden_spectrum = False
+    plot_normalized_continuum = False
+    plot_continuum_fit = False
+
+    # plot_spectrum params
+    plot_spectrum_text_loc = [0.025, 0.95]
+
+    # deredden spectra params
+    Rv = 3.1 # Milky Way average
+    Ebv = 0.19
+    deredden_method = None
+    deredden_region = None
+
+    # curve_fit params
+    curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
+    curve_fit_interpolate = False
+    curve_fit_method = 'trf'
+    curve_fit_absolute_sigma = False
+    interpolation_samples = 10000
+    interpolation_method = 'cubic_spline'
+    error_interpolation_method = 'cubic_spline'
+
+    # gaussian fitting params
+    gaussian_model = 'gaussian'
+    return_gaussian_fit_parameters = True
+    print_gaussian_values = True
+
+    # reprojection parameters
+    reproject_method = 'interp'
+    return_footprint: bool = False
+    reproject_block_size = None
+    reproject_parallel = False
+
+    # error propagation
+    propagate_flux_error_method = None
+
+    # Utils Params
+    # ------------
+
+    # pretty table params
+    table_precision = 7
+    table_sci_notation = True
+    table_column_pad = 3
+
+    # numpy save
+    save_format = '.npy'
+
+    spectral_line_marker: SpectralLineConfig = field(default_factory=SpectralLineConfig)
+
+    @property
+    def elinewidth(self) -> float | None:
+        return self.errorbar.linewidth
+
+    @elinewidth.setter
+    def elinewidth(self, value: float | None) -> None:
+        self.errorbar.linewidth = value
+
+    def reset(self):
+        """
+        Reset all configuration values to defaults.
+        """
+        default = type(self)()
+
+        for f in fields(self):
+            setattr(self, f.name, getattr(default, f.name))
 
 
 config = VisualAstroConfig()
