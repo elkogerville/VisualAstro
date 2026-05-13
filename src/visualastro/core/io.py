@@ -18,11 +18,12 @@ Module Structure:
 
 import os
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Literal
 import warnings
 from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 from tqdm import tqdm
@@ -30,6 +31,7 @@ from tqdm import tqdm
 from visualastro.core.config import (
     get_config_value,
     config,
+    _Unset,
     _UNSET,
     _resolve_default
 )
@@ -544,87 +546,83 @@ def load_quantity(filename):
 
 
 def savefig(
-    dpi=None,
-    pdf_compression=None,
-    transparent=False,
-    bbox_inches=_UNSET,
+    dpi: float | Literal['figure'] | _Unset = _UNSET,
+    pdf_compression: int | _Unset = _UNSET,
+    transparent: bool = False,
+    bbox_inches: Bbox | _Unset = _UNSET,
     **kwargs
 ):
-    '''
+    """
     Saves current figure to disk as a
     eps, pdf, png, or svg, and prompts
     user for a filename and format.
 
     Parameters
     ----------
-    dpi : float, int, or None, optional, default=None
-        Resolution in dots per inch. If None, uses
-        the default value set by `config.dpi`.
-    pdf_compression : int or None, optional, default=None
-        'Pdf.compression' value for matplotlib.rcParams.
+    dpi : float | {'figure'} | _Unset, optional, default=_UNSET
+        Resolution in dots per inch. If `'figure'`, uses the
+        figure dpi. If `_UNSET`, uses `config.dpi`.
+    pdf_compression : int | _Unset, optional, default=_UNSET
+        Pdf compression value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
-        compression. If None, uses the default value
-        set by `config.pdf_compression`.
+        compression. If `_UNSET`, uses `config.pdf_compression`.
     transparent : bool, optional, default=False
-        If True, the Axes patches will all be transparent;
+        If `True`, the Axes patches will all be transparent;
         the Figure patch will also be transparent unless
-        facecolor and/or edgecolor are specified via kwargs.
-    bbox_inches : str, Bbox, or None, default=`_UNSET`
+        `facecolor` and/or `edgecolor` are specified via kwargs.
+    bbox_inches : str | Bbox | None | _Unset, default=`_UNSET`
         Bounding box in inches: only the given portion of the
-        figure is saved. If 'tight', try to figure out the
+        figure is saved. If `'tight'`, try to figure out the
         tight bbox of the figure. If `_UNSET`, uses
-        the default value set by `config.bbox_inches`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keyword arguments include:
-
-        - `facecolorcolor` : str, default='auto'
-            The facecolor of the figure. If 'auto',
-            use the current figure facecolor.
-        - `edgecolorcolor` : str, default='auto'
-            The edgecolor of the figure. If 'auto',
-            use the current figure edgecolor.
-    '''
-    # ---- KWARGS ----
-    facecolor = _pop_kwargs(kwargs, 'facecolor', 'fc', default='auto')
-    edgecolor = _pop_kwargs(kwargs, 'edgecolor', 'ec', default='auto')
-
-    # get default config values
-    dpi = get_config_value(dpi, 'dpi')
-    pdf_compression = get_config_value(pdf_compression, 'pdf_compression')
-    bbox_inches = config.bbox_inches if bbox_inches is _UNSET else bbox_inches
+        `config.bbox_inches`.
+    facecolorcolor : {'auto'} | str, optional, default='auto'
+        The facecolor of the figure. If `'auto'`,
+        use the current figure facecolor.
+    edgecolorcolor : {'auto'} | str, default='auto'
+        The edgecolor of the figure. If 'auto',
+        use the current figure edgecolor.
+    """
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('dpi', dpi, config.dpi),
+            _param('pdf_compression', pdf_compression, config.pdf_compression),
+            _param('bbox_inches', bbox_inches, config.bbox_inches),
+        ],
+        [
+            _kwarg('facecolor', 'auto'),
+            _kwarg('edgecolor', 'auto'),
+        ]
+    )
 
     allowed_formats = config.allowed_formats
     # prompt user for filename, and extract extension
-    filename = input("Input filename for image (ex: myimage.pdf): ").strip()
-    basename, *extension = filename.rsplit(".", 1)
+    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
+    basename, *extension = filename.rsplit('.', 1)
     # if extension exists, and is allowed, extract extension from list
     if extension and extension[0].lower() in allowed_formats:
         extension = extension[0]
     # else prompt user to input a valid extension
     else:
-        extension = ""
+        extension = ''
         while extension not in allowed_formats:
             extension = (
                 input(f"Please choose a format from ({', '.join(allowed_formats)}): ")
                 .strip()
                 .lower()
             )
-    # construct complete filename
-    filename = f"{basename}.{extension}"
+    filename = f'{basename}.{extension}'
+    print(params.dpi)
 
-    with plt.rc_context(rc={'pdf.compression': int(pdf_compression)} if extension == 'pdf' else {}):
-        # save figure
+    with plt.rc_context(rc={'pdf.compression': int(params.pdf_compression)} if extension == 'pdf' else {}):
         plt.savefig(
             fname=filename,
             format=extension,
             transparent=transparent,
-            bbox_inches=bbox_inches,
-            facecolor=facecolor,
-            edgecolor=edgecolor,
-            dpi=dpi
+            bbox_inches=params.bbox_inches,
+            facecolor=params.facecolor,
+            edgecolor=params.edgecolor,
+            dpi=params.dpi
         )
 
 
