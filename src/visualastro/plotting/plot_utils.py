@@ -286,11 +286,11 @@ def get_imshow_norm(
     ----------
     norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | None
         Normalization algorithm for colormap scaling.
-        - ``'asinh'`` -> asinh stretch using ``ImageNormalize``
-        - ``'asinhnorm'`` -> asinh stretch using ``AsinhNorm``
-        - ``'log'`` -> logarithmic scaling using ``LogNorm``
-        - ``'power'`` -> power-law normalization using ``PowerNorm``
-        - ``'twoslope'`` -> normalize centered around ``vcenter`` using ``TwoSlopeNorm``
+        - `'asinh'` -> asinh stretch using `ImageNormalize`
+        - `'asinhnorm'` -> asinh stretch using `AsinhNorm`
+        - `'log'` -> logarithmic scaling using `LogNorm`
+        - `'power'` -> power-law normalization using `PowerNorm`
+        - `'twoslope'` -> normalize centered around `vcenter` using `TwoSlopeNorm`
 
     vmin : float | None
         Minimum value for normalization.
@@ -310,7 +310,7 @@ def get_imshow_norm(
     Returns
     -------
     norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
-        Normalization object to pass to ``imshow``. ``None`` if ``norm=None``.
+        Normalization object to pass to `imshow`. `None` if `norm=None`.
     """
     linear_width: float = kwargs.pop('linear_width', config.linear_width)
     gamma: float = kwargs.pop('gamma', config.gamma)
@@ -428,9 +428,9 @@ def compute_imshow_scale(
 
     Modes
     -----
-    1. Normalized scaling (``norm`` is not None):
-    - ``vmin``/``vmax`` from ``percentile`` or explicit values (required)
-    - Returns ``(norm_obj, vmin, vmax)``
+    1. Normalized scaling (`norm` is not None):
+    - `vmin`/`vmax` from `percentile` or explicit values (required)
+    - Returns `(norm_obj, vmin, vmax)`
 
     2. Linear with percentile (``norm`` is None, ``percentile`` provided):
     - ``vmin``/``vmax`` from ``percentile`` (unless explicit)
@@ -474,7 +474,7 @@ def compute_imshow_scale(
     Returns
     -------
     norm_obj : ImageNormalize, AsinhNorm, LogNorm, PowerNorm, or None
-        Normalization object for ``imshow``. None indicates linear scaling.
+        Normalization object for `imshow`. None indicates linear scaling.
     vmin : float or None
         Lower intensity bound for ``imshow``.
     vmax : float or None
