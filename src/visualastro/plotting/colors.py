@@ -125,6 +125,21 @@ def get_colors(
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap for sampling when colors is int. If `_UNSET`,
         uses the default value from `config.cmap`.
+    transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
+        Method to modify the color. If `None`, returns `color` unchanged.
+    factor : float or int
+        Modification strength.
+
+        - If `transform='lighten'`: Blending ratio with white.
+
+            – `factor=0`: Original color
+            – `factor=1`: Pure white
+
+        - If `transform='desaturate'`: Desaturation amount.
+
+            – `factor=0`: Original color
+            – `factor=1`: Full gray
+
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
 
@@ -144,7 +159,7 @@ def get_colors(
         return as_list(
             get_complimentary_colors(
                 as_color(colorset, fmt=fmt),
-                mode=mode,
+                transform=transform,
                 factor=factor
             )
         )
@@ -162,16 +177,16 @@ def get_colors(
             return as_list(
                 get_complimentary_colors(
                     as_color(colorset, fmt),
-                    mode=mode,
+                    transform=transform,
                     factor=factor
                 )
             )
 
-        if colors in NAMED_COLORS:
+        if colors in _NAMED_COLORS:
             return as_list(
                 get_complimentary_colors(
-                    as_color(NAMED_COLORS[colors], fmt),
-                    mode=mode,
+                    as_color(_NAMED_COLORS[colors], fmt),
+                    transform=transform,
                     factor=factor
                 )
             )
@@ -180,7 +195,7 @@ def get_colors(
             return as_list(
                 get_complimentary_colors(
                     as_color(colors, fmt),
-                    mode=mode,
+                    transform=transform,
                     factor=factor
                 )
             )
@@ -189,7 +204,7 @@ def get_colors(
         return as_list(
             get_complimentary_colors(
                 as_color(colors, fmt),
-                mode=mode,
+                transform=transform,
                 factor=factor
             )
         )
@@ -199,7 +214,7 @@ def get_colors(
         return as_list(
             get_complimentary_colors(
                 sample_cmap(colors, cmap=cmap, fmt=fmt),
-                mode=mode,
+                transform=transform,
                 factor=factor
             )
         )
@@ -441,7 +456,7 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | Sequence[ColorType],
-    mode: Literal['lighten', 'desaturate'] | None = 'lighten',
+    transform: Literal['lighten', 'desaturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
@@ -455,26 +470,26 @@ def get_complimentary_colors(
     Mixes colors with white to lighten, and moves colors
     towards grey to desaturate.
 
-    `mode=None` returns color unchanged.
+    `transform=None` returns color unchanged.
 
     Parameters
     ----------
     color : ColorType
         Matplotlib named color, hex color, HTML color, or RGB tuple.
-    mode : {'lighten', 'desaturate'} | None, optional, default='lighten'
+    transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
     factor : float or int
         Modification strength.
 
-        - If `mode='lighten'`: Blending ratio with white.
+        - If `transform='lighten'`: Blending ratio with white.
 
-            - `factor=0`: Original color
-            - `factor=1`: Pure white
+            – `factor=0`: Original color
+            – `factor=1`: Pure white
 
-        - If `mode='desaturate'`: Desaturation amount.
+        - If `transform='desaturate'`: Desaturation amount.
 
-            - `factor=0`: Original color
-            - `factor=1`: Full gray
+            – `factor=0`: Original color
+            – `factor=1`: Full gray
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
@@ -488,12 +503,12 @@ def get_complimentary_colors(
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
-    if mode is None:
+    if transform is None:
         return as_color(color, fmt=fmt)
     method = {
         'lighten': _lighten_color,
         'desaturate': _desaturate_color
-    }.get(mode, _lighten_color)
+    }.get(transform, _lighten_color)
 
     colors = to_list(color)
     colors = [method(c, factor) for c in colors]
