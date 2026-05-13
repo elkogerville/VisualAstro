@@ -50,10 +50,13 @@ from visualastro.core.numerical_utils import (
     kde2d,
     mask_finite,
     mask_within_range,
-    normalize,
-    percent_difference,
     to_array,
     to_list
+)
+from visualastro.core.stats import (
+    normalize,
+    percent_difference,
+    relative_error
 )
 from visualastro.core.units import (
     convert_quantity,
