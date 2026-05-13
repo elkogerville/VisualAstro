@@ -71,6 +71,7 @@ from visualastro.core.units import (
 from visualastro.core.validation import _type_name
 from visualastro.dataclasses.datacube import DataCube
 from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.plotting.colors import sample_cmap
 
 
 @contextmanager
@@ -280,7 +281,7 @@ def get_imshow_norm(
     """
     Return a matplotlib or astropy normalization object for image display.
 
-    Returns ``None`` if ``norm=None``.
+    Returns `None` if `norm=None`.
 
     Parameters
     ----------
@@ -296,16 +297,16 @@ def get_imshow_norm(
         Minimum value for normalization.
     vmax : float | None
         Maximum value for normalization.
-    linear_width : float, optional, default=``config.linear_width``
+    linear_width : float, optional, default=`config.linear_width`
         The effective width of the linear region, beyond
         which the transformation becomes asymptotically logarithmic.
-        Used for ``norm='asinhnorm'``.
-    gamma : float, optional, default=``config.gamma``
-        Power law exponent. Used for ``norm='power'``.
+        Used for `norm='asinhnorm'`.
+    gamma : float, optional, default=`config.gamma`
+    Power law exponent. Used for `norm='power'`.
     vcenter : float, optional, default=None
         Center point of normalization. Must be in between
-        ``vmin`` and ``vmax``. If ``None``, is the midpoint between
-        ``vmin`` and ``vmax``.
+        `vmin` and `vmax`. If `None`, is the midpoint between
+        `vmin` and `vmax`.
 
     Returns
     -------
@@ -359,24 +360,24 @@ def get_vmin_vmax(
 ) -> tuple[float | np.floating | int, float | np.floating | int]:
     """
     Compute vmin and vmax for image display. By default uses the
-    data nanpercentile using ``percentile``, but optionally vmin and/or
+    data nanpercentile using `percentile`, but optionally vmin and/or
     vmax can be set by the user.
 
-    Passing in a boolean array returns ``vmin=0``, ``vmax=1``.
-    This function is used internally by  ``compute_imshow_scale``.
+    Passing in a boolean array returns `vmin=0`, `vmax=1`.
+    This function is used internally by  `compute_imshow_scale`.
 
     Parameters
     ----------
     data : ArrayLike
         Input data array (e.g., 2D image) for which to compute vmin and vmax.
-        Must be convertable to an array via ``to_array``.
+        Must be convertable to an array via `to_array`.
     percentile : tuple[float, float] |  _Unset, optional, default=_UNSET
-        Percentile range ``[pmin, pmax]`` to compute vmin and vmax.
-        If None, sets vmin and vmax to None. If ``_UNSET``, uses
-        default value from ``config.percentile``.
-    vmin : float | None, optional, default=``None``
+        Percentile range `[pmin, pmax]` to compute vmin and vmax.
+        If None, sets vmin and vmax to None. If `_UNSET`, uses
+        default value from `config.percentile`.
+        vmin : float | None, optional, default=`None`
         If provided, overrides the computed vmin.
-    vmax : float | None, optional, default=``None``
+    vmax : float | None, optional, default=`None`
         If provided, overrides the computed vmax.
 
     Returns
@@ -421,10 +422,10 @@ def compute_imshow_scale(
     float | np.floating | None
 ]:
     """
-    Compute normalization and intensity scaling parameters for ``plt.imshow``.
+    Compute normalization and intensity scaling parameters for `plt.imshow`.
 
-    Resolves interaction between ``norm``, ``vmin``, ``vmax``, and
-    ``percentile`` into consistent display parameters.
+    Resolves interaction between `norm`, `vmin`, `vmax`, and
+    `percentile` into consistent display parameters.
 
     Modes
     -----
@@ -432,53 +433,53 @@ def compute_imshow_scale(
     - `vmin`/`vmax` from `percentile` or explicit values (required)
     - Returns `(norm_obj, vmin, vmax)`
 
-    2. Linear with percentile (``norm`` is None, ``percentile`` provided):
-    - ``vmin``/``vmax`` from ``percentile`` (unless explicit)
-    - Returns ``(None, vmin, vmax)``
+    2. Linear with percentile (`norm` is None, `percentile` provided):
+    - `vmin`/`vmax` from `percentile` (unless explicit)
+    - Returns `(None, vmin, vmax)`
 
-    3. Linear with explicit limits (``norm`` is None, ``vmin`` or ``vmax`` set):
-    - Missing bounds from ``percentile`` if available, else None
-    - Returns ``(None, vmin, vmax)``
+    3. Linear with explicit limits (`norm` is None, `vmin` or `vmax` set):
+    - Missing bounds from `percentile` if available, else None
+    - Returns `(None, vmin, vmax)`
 
     4. Matplotlib autoscaling (all None), or norm='linear':
-    - Returns ``(None, None, None)``
+    - Returns `(None, None, None)`
 
     5. Boolean data (dtype is bool):
-    - Forces ``vmin=0``, ``vmax=1``
-    - Returns ``(None, 0, 1)``
+    - Forces `vmin=0`, `vmax=1`
+    - Returns `(None, 0, 1)`
 
     Parameters
     ----------
     data : ndarray, Quantity, DataCube, FitsFile, or SpectralCube
         Input image data. Must be convertible to a NumPy array via
-        ``to_array``.
+        `to_array`.
     norm : {'asinh', 'asinhnorm', 'log', 'power'} or None
         Normalization algorithm for colormap scaling.
         If None, linear scaling is used.
     vmin : float or None
         Lower bound for intensity scaling. If None, may be computed
-        from ``percentile`` or left unset depending on mode.
+        from `percentile` or left unset depending on mode.
     vmax : float or None
         Upper bound for intensity scaling. If None, may be computed
-        from ``percentile`` or left unset depending on mode.
+        from `percentile` or left unset depending on mode.
     percentile : tuple[float, float] or None
-        Percentile range ``(pmin, pmax)`` used to compute ``vmin`` and
-        ``vmax``. If None, no automatic clipping is applied.
-    linear_width : float, optional, default=``config.linear_width``
+        Percentile range `(pmin, pmax)` used to compute `vmin` and
+        `vmax`. If None, no automatic clipping is applied.
+        linear_width : float, optional, default=`config.linear_width`
         The effective width of the linear region, beyond
         which the transformation becomes asymptotically logarithmic.
-        Used for ``norm='asinhnorm'``.
-    gamma : float, optional, default=``config.gamma``
-        Power law exponent. Used for ``norm='power'``.
+        Used for `norm='asinhnorm'`.
+    gamma : float, optional, default=`config.gamma`
+    Power law exponent. Used for `norm='power'`.
 
     Returns
     -------
     norm_obj : ImageNormalize, AsinhNorm, LogNorm, PowerNorm, or None
         Normalization object for `imshow`. None indicates linear scaling.
     vmin : float or None
-        Lower intensity bound for ``imshow``.
+        Lower intensity bound for `imshow`.
     vmax : float or None
-        Upper intensity bound for ``imshow``.
+        Upper intensity bound for `imshow`.
     """
     data = to_array(data)
 
@@ -532,7 +533,7 @@ def nanpercentile_limits(
         is ignored.
     stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
         Reduction method if stacking is required. If None,
-        uses the default value set by ``config.stack_cube_method``.
+        uses the default value set by `config.stack_cube_method`.
     axis : int, default=0
         Axis to flatten if data.ndim > 2 and no slice_idx is given.
 
@@ -795,9 +796,9 @@ def contour(x, y, ax, levels=20, contour_method='contour',
     """
     Add 2D or 3D Gaussian KDE density contours to an axis.
     This function computes a 2D Gaussian kernel density estimate (KDE)
-    from input data (``x``, ``y``) using ``kde2d`` and plots
-    contour lines or filled contours using either ``ax.contour`` or
-    ``ax.contourf``. If ``zdir`` and ``offset`` are provided, the contours
+    from input data (`x`, `y`) using `kde2d` and plots
+    contour lines or filled contours using either `ax.contour` or
+    `ax.contourf`. If `zdir` and `offset` are provided, the contours
     are projected onto a plane in 3D space.
 
     Parameters
@@ -812,13 +813,13 @@ def contour(x, y, ax, levels=20, contour_method='contour',
         Number or list of contour levels to draw.
     contour_method : {'contour', 'contourf'}, default='contour'
         Method used to draw contours. 'contour' draws lines, while
-        ``'contourf'`` draws filled contours.
+        `'contourf'` draws filled contours.
     bw_method : str, scalar or callable, optional, default='scott'
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
-        - ``'scott'`` or ``'silverman'``: use standard rules of thumb.
+        - `'scott'` or `'silverman'`: use standard rules of thumb.
         - a scalar constant: directly used as the bandwidth factor.
-        - a callable: should take a ``scipy.stats.gaussian_kde`` instance as its
+        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
             sole argument and return a scalar bandwidth factor.
     gridsize : int, default=200
         Number of grid points used per axis for density estimation.
@@ -832,7 +833,7 @@ def contour(x, y, ax, levels=20, contour_method='contour',
         Direction normal to the plane where contours are drawn.
         If None, contours are plotted in 2D.
     offset : float or None, default=None
-        Offset along the ``zdir`` direction for projecting contours in 3D space.
+        Offset along the `zdir` direction for projecting contours in 3D space.
     cmap : str, optional, default=config.cmap
         Colormap used for plotting contours.
 
@@ -841,12 +842,12 @@ def contour(x, y, ax, levels=20, contour_method='contour',
 
         Supported keywords:
 
-        - ``fontsize`` : float, default=``config.fontsize``
+        - `fontsize` : float, default=`config.fontsize`
             Fontsize of contour labels.
 
     Returns
     -------
-    cs : ``matplotlib.contour.QuadContourSet`` or ``mpl_toolkits.mplot3d.art3d.QuadContourSet3D``
+    cs : `matplotlib.contour.QuadContourSet` or `mpl_toolkits.mplot3d.art3d.QuadContourSet3D`
         The contour set object created by Matplotlib.
     """
     # ---- KWARGS ----
@@ -944,10 +945,10 @@ def set_axis_limits(
     ----------
     xdata : array-like, list of array-like, or None, optional
         X-axis data. Can be a single array, a list of arrays, or None.
-        If None, the X-axis will be autoscaled unless ``xlim`` is provided.
+        If None, the X-axis will be autoscaled unless `xlim` is provided.
     ydata : array-like, list of array-like, or None, optional
         Y-axis data. Can be a single array, a list of arrays, or None.
-        If None, the Y-axis will be autoscaled unless ``ylim`` is provided.
+        If None, the Y-axis will be autoscaled unless `ylim` is provided.
     ax : matplotlib.axes.Axes
         The Axes object on which to set the limits. Required.
     xlim : tuple of float, optional
@@ -958,10 +959,10 @@ def set_axis_limits(
         is considered when computing X-axis limits automatically.
     xpad : float or None, optional, default=None
         Fractional padding to apply to X-axis limits. If None,
-        uses the default value from ``config.xpad``.
+        uses the default value from `config.xpad`.
     ypad : float or None, optional, default=None
         Fractional padding to apply to Y-axis limits. If None,
-        uses the default value from ``config.ypad``.
+        uses the default value from `config.ypad`.
 
     Returns
     -------
@@ -972,11 +973,11 @@ def set_axis_limits(
 
     Notes
     -----
-    - If both ``xdata`` and ``ydata`` are provided as lists, they must have the same length
+    - If both `xdata` and `ydata` are provided as lists, they must have the same length
         or be broadcastable (single array broadcast across multiple arrays of the other axis).
-    - Data outside user-provided ``xlim`` or ``ylim`` is ignored when computing automatic limits.
+    - Data outside user-provided `xlim` or `ylim` is ignored when computing automatic limits.
     - Both scalar and multi-dimensional arrays are flattened before processing.
-    - If all data is ``None`` or empty, the corresponding axis will not be modified.
+    - If all data is `None` or empty, the corresponding axis will not be modified.
     """
     xpad_frac = kwargs.get('xpad', config.xpad)
     ypad_frac = kwargs.get('ypad', config.ypad)
@@ -1099,10 +1100,10 @@ def set_axis_labels(
         `config.use_brackets`.
     show_physical_label : bool or None, optional
         If True, include the inferred physical type in the axis label.
-        If None, uses the default value from `config.use_type_label`.
+        If None, uses the default value from `config.show_type_label`.
     show_unit : bool or None, optional
         If True, include the unit in the axis label. If None, uses the
-        default value from `config.use_unit_label`.
+        default value from `config.show_unit_label`.
     fmt : {'latex', 'latex_inline', 'inline'} or None, optional
         Format for unit rendering. Passed to `to_latex_unit`. If None,
         uses the default value from `config.unit_label_format`.
@@ -1134,8 +1135,8 @@ def set_axis_labels(
     """
     # get default config values
     use_brackets = get_config_value(use_brackets, 'use_brackets')
-    show_physical_label = get_config_value(show_physical_label, 'use_type_label')
-    show_unit = get_config_value(show_unit, 'use_unit_label')
+    show_physical_label = get_config_value(show_physical_label, 'show_type_label')
+    show_unit = get_config_value(show_unit, 'show_unit_label')
     fmt = get_config_value(fmt, 'unit_label_format')
 
     # unit bracket type [] or ()
@@ -1313,7 +1314,7 @@ def _extract_xy(
     >>> X, Y = extract_coordinates([0, 1, 2], [10, 20, 30])
     >>> X, Y = extract_coordinates([[0, 10], [1, 20], [2, 30]])
     """
-    order = _resolve_default(order, config.array_order)
+    array_order = _resolve_default(order, config.array_order)
 
     if len(data) == 1:
         obj = data[0]
@@ -1322,7 +1323,7 @@ def _extract_xy(
                 return np.arange(len(obj)), obj
 
             if obj.ndim == 2:
-                if order.lower() == 'c':
+                if array_order.lower() == 'c':
                     return obj[:, 0], obj[:, 1]
                 else:
                     return obj[0, :], obj[1, :]
@@ -1680,8 +1681,8 @@ def ellipse_patch(
     edgecolor : str, optional, default='k'
         Color of patch edges.
     facecolor : str, optional, default=None
-        Color of patch face. If not ``None``,
-        sets ``fill=True``.
+        Color of patch face. If not `None`,
+        sets `fill=True`.
     linestyle or ls : {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}, optional
         Linestyle of ellipse patch.
     linewidth or lw : float or None, optional
@@ -1745,15 +1746,15 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
 
     Parameters
     ----------
-    vlines : float, astropy.units.Quantity, iterable of float or Quantity, or None
+    vlines : float | Quantity | Sequence[float | Quantity] | None
         X-axis coordinate(s) at which to draw vertical line(s). If a Quantity,
-        each value is converted to ``unit`` before plotting. If an iterable is
+        each value is converted to `unit` before plotting. If an iterable is
         provided, a vertical line is drawn for each element. If None, no lines
         are drawn.
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the vertical line(s).
     unit : astropy.units.UnitBase or str, optional, default=None
-        Unit to which Quantity values in ``vlines`` are converted before plotting.
+        Unit to which Quantity values in `vlines` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
     equivalencies : astropy.units.equivalencies or None, optional, default=None
@@ -1761,7 +1762,7 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
 
     Notes
     -----
-    Vertical lines are drawn using ``ax.axvline`` with a dotted linestyle,
+    Vertical lines are drawn using `ax.axvline` with a dotted linestyle,
     linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
     """
     if vlines is not None:
@@ -1791,13 +1792,13 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
     ----------
     vlines : float, astropy.units.Quantity, iterable of float or Quantity, or None
         Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,
-        each value is converted to ``unit`` before plotting. If an iterable is
+        each value is converted to `unit` before plotting. If an iterable is
         provided, a horizontal line is drawn for each element. If None, no lines
         are drawn.
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the horizontal line(s).
     unit : astropy.units.UnitBase or str, optional, default=None
-        Unit to which Quantity values in ``hlines`` are converted before plotting.
+        Unit to which Quantity values in `hlines` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
     equivalencies : astropy.units.equivalencies or None, optional, default=None
@@ -1805,7 +1806,7 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
 
     Notes
     -----
-    Horizontal lines are drawn using ``ax.axhline`` with a dotted linestyle,
+    Horizontal lines are drawn using `ax.axhline` with a dotted linestyle,
     linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
     """
     if hlines is not None:
