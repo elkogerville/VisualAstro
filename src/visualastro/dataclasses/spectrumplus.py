@@ -13,7 +13,7 @@ Dependencies:
 """
 
 import copy
-from typing import cast
+from typing import Literal, cast
 from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
@@ -194,7 +194,7 @@ class SpectrumPlus:
         self.spectrum: Spectrum = spectrum
         self.continuum: Quantity = continuum
         self.normalized: Quantity = normalized
-        self.fit_method: str = fit_method
+        self.fit_method: Literal['fit_continuum', 'generic'] = fit_method
         self.region: SpectralRegion = region
         self.log_file: Header = log_file
 
@@ -370,7 +370,11 @@ class SpectrumPlus:
 
         return spectrum_list
 
-    def recompute_continuum(self, region=None, fit_method=None):
+    def recompute_continuum(
+        self,
+        region: SpectralRegion | None = None,
+        fit_method: Literal['fit_continuum', 'generic'] | None = None
+    ):
         """
         Recompute the continuum fit and normalized spectrum.
 
@@ -380,25 +384,24 @@ class SpectrumPlus:
 
         Parameters
         ----------
-        region : SpectralRegion or array-like of tuple, optional
+        region : SpectralRegion | array-like of tuple | None, optional, default=None
             Spectral region(s) to include in the continuum fit. If None,
-            the currently stored ``self.region`` is used. Input is coerced
-            via ``to_spectral_region``.
-        fit_method : {'fit_continuum', 'generic'} or str, optional
+            the currently stored `self.region` is used. Input is coerced
+            via `to_spectral_region`.
+        fit_method : {'fit_continuum', 'generic'} | None, optional, default=None
             Continuum fitting method. If None, the currently stored
-            ``self.fit_method`` is used.
+            `self.fit_method` is used.
 
         Returns
         -------
         None
-            Updates ``self.continuum``, ``self.normalized``,
-            ``self.region``, and ``self.fit_method`` in-place.
+            Updates `self.continuum`, `self.normalized`,
+            `self.region`, and `self.fit_method` in-place.
         """
         region = self.region if region is None else region
         fit_method = self.fit_method if fit_method is None else fit_method
 
-        if region is not None:
-            region = to_spectral_region(region)
+        region = to_spectral_region(region)
 
         self.continuum = self._fit_continuum(self.spectrum, fit_method, region)
         region_log = _region_to_history(region)
@@ -542,7 +545,7 @@ class SpectrumPlus:
 
     def __getitem__(self, key):
         """
-        Slice the underlying ``Spectrum`` object, and return a new
+        Slice the underlying `Spectrum` object, and return a new
         SpectrumPlus. The continuum fit and normalized spectra
         are automatically recomputed for the spectra slice.
 
@@ -650,7 +653,7 @@ class SpectrumPlus:
             spectrum, region, return_single_spectrum=return_single_spectrum
         )
 
-    def _fit_continuum(self, spectrum, fit_method, region):
+    def _fit_continuum(self, spectrum, fit_method, region) -> Quantity:
         """
         Fit spectrum continuum.
 
