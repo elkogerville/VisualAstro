@@ -18,7 +18,8 @@ Module Structure:
         Utility functions related to numerical computations.
 """
 
-from typing import Any, Callable, Literal, Sequence, TypeVar, overload
+from collections.abc import Sequence
+from typing import Any, Callable, Literal, TypeVar, overload
 from astropy import units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
