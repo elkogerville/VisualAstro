@@ -13,7 +13,7 @@ Module Structure:
 """
 
 from collections import namedtuple
-from typing import Literal
+from typing import Literal, Sequence
 import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.collections import PatchCollection
