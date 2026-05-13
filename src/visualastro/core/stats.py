@@ -15,6 +15,8 @@ import astropy.units as u
 import numpy as np
 from numpy.typing import NDArray
 
+from visualastro.core.config import config
+from visualastro.core.units import ensure_common_unit
 from visualastro.core.validation import _type_name
 
 
@@ -84,10 +86,55 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     >>> percent_difference(0.0, 0.0)
     nan
     """
+    unit = ensure_common_unit([a, b], on_mismatch=config.unit_mismatch)
+
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
-    denominator = (a + b) / 2
+
     with np.errstate(invalid='ignore', divide='ignore'):
-        result = (np.abs(a - b) / denominator) * 100
+        result = (np.abs(a - b) / (a + b) / 2) * 100
+
+    if unit is not None:
+        result = result * unit
 
     return result
+
+
+def relative_error(a: NDArray | u.Quantity, b: NDArray | u.Quantity) -> NDArray | u.Quantity:
+    """
+    Compute element-wise relative error between two arrays.
+
+    Parameters
+    ----------
+    a : NDArray or Quantity
+        Approximation or predicted values.
+    b : NDArray or Quantity
+        Reference or ground truth values. Must be broadcastable with `a`.
+
+    Returns
+    -------
+    NDArray or Quantity
+        Relative error computed as (a - b) / b. Shape matches broadcasted
+        input. Preserves units if inputs are Quantities.
+
+    Raises
+    ------
+    UnitsError
+        If `a` and `b` have incompatible units and `config.unit_mismatch='raise'`.
+
+    Notes
+    -----
+    Division by zero produces nan without raising warnings.
+    """
+    unit = ensure_common_unit([a, b], on_mismatch=config.unit_mismatch)
+
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+
+    with np.errstate(invalid='ignore', divide='ignore'):
+        error = (a - b) / b
+
+    if unit is not None:
+        error = error * unit
+
+    return error
