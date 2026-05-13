@@ -111,8 +111,8 @@ from visualastro.plotting.plot_utils import (
     style
 )
 from visualastro.plotting.plots import (
+    hist,
     plot_density_histogram,
-    plot_histogram,
     plot,
     scatter,
     scatter3D
