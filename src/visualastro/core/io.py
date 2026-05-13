@@ -56,39 +56,6 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
 }
 
 
-def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
-    """
-    Helper function for defining a parameter in `_resolve_kwargs`.
-
-    Parameters
-    ----------
-    name : str
-        Name of the parameter.
-    value : Any
-        Value of the parameter.
-    default : Any
-        Fallback value if `value` is `_UNSET`.
-
-    Returns
-    -------
-    tuple :
-        Returns a tuple of name, value, and default, unchanged.
-    """
-    if not isinstance(name, str):
-        raise ValueError(
-            f'name must be a str! got: {_type_name(name)}'
-        )
-    return (name, value, default)
-
-
-def _kwarg(name: str, default: Any) -> tuple[str, Any]:
-    if not isinstance(name, str):
-        raise ValueError(
-            f'name must be a str! got: {_type_name(name)}'
-        )
-    return (name, default)
-
-
 def _resolve_kwargs(
     kwargs: dict,
     params: list[tuple[str, Any, Any]] | None = None,
@@ -252,6 +219,39 @@ def _pop_kwargs(
     return default
 
 
+def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
+    """
+    Helper function for defining a parameter in `_resolve_kwargs`.
+
+    Parameters
+    ----------
+    name : str
+        Name of the parameter.
+    value : Any
+        Value of the parameter.
+    default : Any
+        Fallback value if `value` is `_UNSET`.
+
+    Returns
+    -------
+    tuple :
+        Returns a tuple of name, value, and default, unchanged.
+    """
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {_type_name(name)}'
+        )
+    return (name, value, default)
+
+
+def _kwarg(name: str, default: Any) -> tuple[str, Any]:
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {_type_name(name)}'
+        )
+    return (name, default)
+
+
 def get_sci_from_hdul(
     hdul: fits.HDUList,
 ) -> tuple[NDArray, list[fits.Header]]:
@@ -386,9 +386,9 @@ def write_arrays_2_file(
     --------
     >>> import numpy as np
     >>> import astropy.units as u
-    >>> arr1 = np.array([1.23e-5, 4.56e-3, 7.89e2]) * u.m
-    >>> arr2 = np.array([9.87e6, 6.54e4, 3.21e-1]) * u.s
-    >>> save_arrays_to_file([arr1, arr2], 'data.txt', headers=['Distance', 'Time'])
+    >>> distance = np.array([1.23e-5, 4.56e-3, 7.89e2]) * u.m
+    >>> time = np.array([9.87e6, 6.54e4, 3.21e-1]) * u.s
+    >>> save_arrays_to_file([distance, time], 'data.txt', headers=['Distance', 'Time'])
     """
     arrays = to_list(arrays)
 
@@ -518,7 +518,7 @@ def save_quantity(quantity, filename):
         If `quantity` is not a astropy.units.Quantity.
     '''
     if not isinstance(quantity, u.Quantity):
-        raise TypeError("quantity must be an astropy.units.Quantity")
+        raise TypeError('quantity must be an astropy.units.Quantity')
 
     np.savez(
         filename,
