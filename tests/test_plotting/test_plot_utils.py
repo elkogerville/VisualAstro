@@ -23,7 +23,7 @@ from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.plotting.plot_utils import (
+from visualastro.plotting.core.plot_utils import (
     get_imshow_norm,
     get_vmin_vmax,
     _extract_xy

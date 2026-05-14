@@ -30,14 +30,14 @@ import numpy as np
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
-from visualastro.plotting.colors import (
+from visualastro.plotting.core.colors import (
     CMAPNAMES,
     COLORNAMES,
     get_cmap,
     get_colors,
     simulate_colorblindness
 )
-from visualastro.plotting.plot_utils import _get_stylepath
+from visualastro.plotting.core.plot_utils import _get_stylepath
 
 
 class help:

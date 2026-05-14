@@ -41,13 +41,14 @@ from visualastro.core.numerical_utils import (
 )
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
-from visualastro.plotting.colors import get_cmap, get_colors
-from visualastro.plotting.plot_utils import (
+from visualastro.plotting.core.colors import get_cmap, get_colors
+from visualastro.plotting.core.plot_utils import (
     contour,
-    plot_vlines,
     set_axis_labels,
     set_axis_limits,
+    _apply_plot_utils,
     _extract_xy,
+    _extract_plot_util_kwargs,
     _normalize_plotting_input,
 )
 

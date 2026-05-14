@@ -41,8 +41,8 @@ from visualastro.core.units import (
     get_unit,
     to_latex_unit
 )
-from visualastro.plotting.colors import get_cmap
-from visualastro.plotting.plot_utils import (
+from visualastro.plotting.core.colors import get_cmap
+from visualastro.plotting.core.plot_utils import (
     add_colorbar,
     compute_imshow_scale,
     plot_circles,

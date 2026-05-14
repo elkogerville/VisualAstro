@@ -77,7 +77,7 @@ from visualastro.plotting.image_plots import (
     imshow,
     plot_spectral_cube
 )
-from visualastro.plotting.colors import (
+from visualastro.plotting.core.colors import (
     Color,
     as_color,
     create_cmap,
@@ -87,7 +87,7 @@ from visualastro.plotting.colors import (
     sample_cmap,
     simulate_colorblindness
 )
-from visualastro.plotting.plot_utils import (
+from visualastro.plotting.core.plot_utils import (
     add_colorbar,
     add_subplot,
     close,

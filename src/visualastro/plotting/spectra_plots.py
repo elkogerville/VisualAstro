@@ -71,12 +71,12 @@ from visualastro.core.units import (
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.plotting.image_plots import imshow
-from visualastro.plotting.colors import (
+from visualastro.plotting.core.colors import (
     get_colors,
     sample_cmap,
     _lighten_color
 )
-from visualastro.plotting.plot_utils import (
+from visualastro.plotting.core.plot_utils import (
     plot_vlines,
     set_axis_labels,
     set_axis_limits,
