@@ -665,7 +665,7 @@ class DataCube:
         This method visualizes the mean and standard deviation of flux across
         each 2D slice of the cube as a function of slice index.
         """
-        from visualastro.plotting.plot_utils import _get_stylepath
+        from visualastro.plotting.core.plot_utils import _get_stylepath
 
         # get default config values
         style = get_config_value(style, 'style')

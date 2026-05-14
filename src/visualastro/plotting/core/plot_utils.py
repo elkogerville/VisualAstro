@@ -25,14 +25,18 @@ Module Structure:
 
 from collections.abc import Sequence
 from contextlib import contextmanager
+from dataclasses import dataclass
 import os
+from types import SimpleNamespace
 from typing import Any, Literal
 import warnings
 from functools import partial
+
 import astropy.units as u
 from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
+import matplotlib.axes as maxes
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
@@ -51,6 +55,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.io import _kwarg, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     kde2d,
     flatten,
@@ -71,7 +76,7 @@ from visualastro.core.units import (
 from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.plotting.colors import sample_cmap
+from visualastro.plotting.core.colors import sample_cmap
 
 
 @contextmanager
@@ -1069,9 +1074,9 @@ def set_axis_limits(
 
 
 def set_axis_labels(
-    X, Y, ax, xlabel=None, ylabel=None, use_brackets=None,
+    X, Y, ax, xlabel=None, ylabel=None, unit_bracket_style=None,
     show_physical_label=None, show_unit=None, fmt=None
-):
+) -> None:
     """
     Automatically generate and set axis labels from objects with physical
     units.
@@ -1094,10 +1099,10 @@ def set_axis_labels(
         Custom label for the x-axis. If None, the label is inferred from `X`.
     ylabel : str or None, optional
         Custom label for the y-axis. If None, the label is inferred from `Y`.
-    use_brackets : bool or None, optional
+    unit_bracket_style : bool or None, optional
         If True, wrap units in square brackets '[ ]'. If False, use
         parentheses '( )'. If None, uses the default value from
-        `config.use_brackets`.
+        `config.unit_bracket_style`.
     show_physical_label : bool or None, optional
         If True, include the inferred physical type in the axis label.
         If None, uses the default value from `config.show_type_label`.
@@ -1134,13 +1139,13 @@ def set_axis_labels(
       axis label is an empty string.
     """
     # get default config values
-    use_brackets = get_config_value(use_brackets, 'use_brackets')
+    unit_bracket_style = get_config_value(unit_bracket_style, 'unit_bracket_style')
     show_physical_label = get_config_value(show_physical_label, 'show_type_label')
     show_unit = get_config_value(show_unit, 'show_unit_label')
     fmt = get_config_value(fmt, 'unit_label_format')
 
     # unit bracket type [] or ()
-    brackets = [r'[', r']'] if use_brackets else [r'(', r')']
+    brackets = [r'[', r']'] if unit_bracket_style else [r'(', r')']
 
     xlabel = _format_axis_label(
         X, xlabel, brackets, show_physical_label, show_unit, fmt
@@ -1149,7 +1154,6 @@ def set_axis_labels(
         Y, ylabel, brackets, show_physical_label, show_unit, fmt
     )
 
-    # set plot labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
@@ -1241,16 +1245,42 @@ def _format_axis_label(
     return fr'{physical_label} {unit_label}'.strip()
 
 
-def _figure_utils(ax, **kwargs):
+@dataclass(slots=True)
+class PlotUtilParams:
+    ellipses: Any = None
+    vlines: Any = None
+    hlines: Any = None
 
-    ellipses = kwargs.get('ellipses', None)
-    vlines = kwargs.get('vlines', None)
-    hlines = kwargs.get('hlines', None)
 
-    plot_ellipses(ellipses, ax)
+def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
 
-    plot_vlines(vlines, ax)
-    plot_hlines(hlines, ax)
+    params = _resolve_kwargs(
+        kwargs,
+        additional_kwargs=[
+            _kwarg('ellipses', None),
+            _kwarg('vlines', None),
+            _kwarg('hlines', None),
+        ]
+    )
+
+    return PlotUtilParams(**vars(params))
+
+
+def _apply_plot_utils(
+    ax: maxes.Axes,
+    params: PlotUtilParams,
+    ref_unit: u.UnitBase | u.StructuredUnit | None = None
+) -> None:
+    """
+    vlines : float | u.Quantity | Sequence[float | u.Quantity] | None, optional, default=None
+        X-axis coordinate(s) at which to draw vertical line(s). If Quantities,
+        should have the same unit as `data`. If an iterable is provided, a vertical
+        line is drawn for each element. If None, no lines are drawn.
+    """
+
+    plot_ellipses(params.ellipses, ax)
+    plot_vlines(params.vlines, ax, ref_unit)
+    plot_hlines(params.hlines, ax, ref_unit)
 
 
 def _extract_xy(
