@@ -210,7 +210,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Label for the y-axis.
         - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=`config.use_brackets`
+        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
@@ -896,7 +896,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             Label for the y-axis.
         - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `use_brackets` : bool, optional, default=`config.use_brackets`
+        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
             If True, plot units in square brackets; otherwise, parentheses.
 
     Returns
@@ -932,7 +932,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     text_loc = kwargs.get('text_loc', config.plot_spectrum_text_loc)
-    use_brackets = kwargs.get('use_brackets', config.use_brackets)
+    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
 
     # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
@@ -1054,7 +1054,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         wavelength_list, None, ax=ax, xlim=xlim, ylim=ylim
     )
     set_axis_labels(
-        wavelength, flux, ax, xlabel, ylabel, use_brackets=use_brackets
+        wavelength, flux, ax, xlabel, ylabel, unit_bracket_style=unit_bracket_style
     )
 
     plot_vlines(vline, ax, extracted_spectrum.unit)
@@ -1143,7 +1143,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             Legend location (e.g., 'best', 'upper right').
         - xlabel, ylabel : str, optional, default=None
             Axis labels.
-        - use_brackets : bool, optional, default=`config.use_brackets`
+        - unit_bracket_style : bool, optional, default=`config.unit_bracket_style`
             If True, format axis labels with units in brackets instead of parentheses.
 
     Returns
@@ -1173,7 +1173,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     loc = kwargs.get('loc', config.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
-    use_brackets = kwargs.get('use_brackets', config.use_brackets)
+    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
 
     # get default config values
     colors = _resolve_default(colors, config.colors)
@@ -1238,7 +1238,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                 lw=linewidths, alpha=alphas,
                 rasterized=rasterized)
 
-    set_axis_labels(wavelength, flux, ax, xlabel, ylabel, use_brackets)
+    set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
 
     if ylim is not None:
         ax.set_ylim(ylim[0], ylim[1])
@@ -1357,7 +1357,7 @@ def fit_gaussian_2_spec(
             Plot y-axis label.
         - `colors` : str or list, optional, default=`config.colors`
             Plot colors. If None, will use default visualastro color colorset.
-        - `use_brackets` : bool, optional, default=`config.use_brackets`
+        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
             If True, use square brackets for plot units. If False, use parentheses.
         - `savefig` : bool, optional, default=`config.savefig`
             If True, save current figure to disk.
@@ -1393,7 +1393,7 @@ def fit_gaussian_2_spec(
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     colors = _pop_kwargs(kwargs, 'colors', 'color', 'c', default=None)
-    use_brackets = kwargs.get('use_brackets', config.use_brackets)
+    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
     # savefig
     savefig = kwargs.get('savefig', config.savefig)
     dpi = kwargs.get('dpi', config.dpi)
@@ -1610,7 +1610,7 @@ def fit_gaussian_2_spec(
         )
         # set axis labels and limits
         set_axis_labels(
-            spectral_axis, flux, ax, xlabel, ylabel, use_brackets
+            spectral_axis, flux, ax, xlabel, ylabel, unit_bracket_style
         )
         set_axis_limits(
             [x0[plot_mask], x[gauss_mask]],

@@ -70,50 +70,50 @@ def spectral_line_marker(
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the markers.
     style : {'marker', 'vline'}, optional, default='marker'
-        If ``'marker'``, plots a multi-prong marker delineating
-        each spectral peak location. If ``'vline'``, plots a
+        If `'marker'`, plots a multi-prong marker delineating
+        each spectral peak location. If `'vline'`, plots a
         ax.axvline at the location of the peak of each line.
     label : str, optional
         Label for the group of lines.
     direction : Literal['up', 'down'] | _Unset, optional, default=_UNSET
-        Direction of the prongs. If ``_UNSET``, uses the default value
-        from ``config.spectral_line_marker.marker_direction``.
+        Direction of the prongs. If `_UNSET`, uses the default value
+        from `config.spectral_line_marker.marker_direction`.
     label_offset_points : tuple[float, float], optional, default=_UNSET
         (dx, dy) offset of the label in points (display coordinates).
-        If ``_UNSET``, uses the default value from
-        ``config.spectral_line_marker.label_offset_points``.
+        If `_UNSET`, uses the default value from
+        `config.spectral_line_marker.label_offset_points`.
     label_position : {'center', 'left', 'right'}, optional, default=_UNSET
-        Position of label relative to markers. If ``_UNSET``, uses the
-        default value from ``config.spectral_line_marker.label_position``.
+        Position of label relative to markers. If `_UNSET`, uses the
+        default value from `config.spectral_line_marker.label_position`.
     label_anchor : {'center', 'left', 'right', 'auto'}, optional, default=_UNSET
         Text alignment (maps to matplotlib `ha`). Independent of position.
-        If ``'auto'``, is set to ``label_position``. If ``_UNSET``, uses
-        the default value from ``config.spectral_line_marker.label_anchor``.
+        If `'auto'`, is set to `label_position`. If `_UNSET`, uses
+        the default value from `config.spectral_line_marker.label_anchor`.
     label_reference : {'marker', 'hline', 'auto'}, optional, default=_UNSET
         Reference point for label x-position:
-        - ``'marker'``: Position relative to marker x-values (ignores hline extension)
-        - ``'hline'``: Position relative to hline endpoints (includes extension)
-        - ``'auto'``: Uses 'hline' if hline_extend is set, otherwise 'marker'
-        If ``_UNSET``, uses the default value from
-        ``config.spectral_line_marker.label_reference``.
+        - `'marker'`: Position relative to marker x-values (ignores hline extension)
+        - `'hline'`: Position relative to hline endpoints (includes extension)
+        - `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
+        If `_UNSET`, uses the default value from
+        `config.spectral_line_marker.label_reference`.
 
     rotation : float, optional, default=_UNSET
-        Rotation angle of the label in degrees. If ``_UNSET``, uses the
-        default value from ``config.spectral_line_marker.label_rotation``.
+        Rotation angle of the label in degrees. If `_UNSET`, uses the
+        default value from `config.spectral_line_marker.label_rotation`.
     hline_extend : float or astropy.units.Quantity or None, optional
         Horizontal line extension distance. If None (default), draws connector
         between all x values when len(x) > 1. If provided, draws horizontal
-        line extending in direction specified by ``label_position``:
-        - ``'left'``: extends leftward from leftmost x
-        - ``'right'``: extends rightward from rightmost x
-        - ``'center'``: extends symmetrically from center
+        line extending in direction specified by `label_position`:
+        - `'left'`: extends leftward from leftmost x
+        - `'right'`: extends rightward from rightmost x
+        - `'center'`: extends symmetrically from center
 
     **kwargs
         Additional keyword arguments passed to vlines and hlines.
 
     Returns
     -------
-    None : Modifies ``ax`` in place.
+    None : Modifies `ax` in place.
     """
     marker_direction = _resolve_default(
         direction, config.spectral_line_marker.marker_direction
@@ -248,9 +248,9 @@ def mark_spectral_lines(
     Mark spectral lines on a plot from Gaussian fit results.
 
     The function automatically labels each fitted spectral line
-    using the fit parameters ``peak_height`` and ``mu``.
+    using the fit parameters `peak_height` and `mu`.
 
-    Internally calls ``spectral_line_marker``.
+    Internally calls `spectral_line_marker`.
 
     Parameters
     ----------
@@ -261,19 +261,19 @@ def mark_spectral_lines(
     ax : matplotlib.axes.Axes
         Axes to draw on.
     style : {'marker', 'vline'}, optional, default='marker'
-        If ``'marker'``, plots a multi-prong marker delineating
-        each spectral peak location. If ``'vline'``, plots a
+        If `'marker'`, plots a multi-prong marker delineating
+        each spectral peak location. If `'vline'`, plots a
         ax.axvline at the location of the peak of each line.
     labels : list[str] | None, optional, default=None
-        Line labels. If ``None``, no labels shown. Can also be
-        ``'auto'`` to format from mu values.
+        Line labels. If `None`, no labels shown. Can also be
+        `'auto'` to format from mu values.
     y_offset : u.Quantity | float | None, optional, default=None
         Offset to add to y-position.
     y_reference : {'peak'} | float, optional, default='peak'
         Base y-position for markers:
-        - ``'peak'``: Use peak_height from fit
-        - ``u.Quantity`` | ``float``: Start from ``y=float``
-        - ``Sequence[u.Quantity | float]``: Cycle through y-positions for each line
+        - `'peak'`: Use peak_height from fit
+        - `u.Quantity` | `float`: Start from `y=float`
+        - `Sequence[u.Quantity | float]`: Cycle through y-positions for each line
     style_cycle : list of dict or None, optional
         List of style dicts to cycle through for different lines.
         Each dict can contain color, linestyle, linewidth, etc.
@@ -375,38 +375,38 @@ def spectral_axis_label(
     ----------
     spectral_axis : SpectralAxis or Quantity
         Spectral axis array representing wavelength, frequency, or velocity.
-        Must have valid physical units convertible via ``astropy.units.spectral()``
+        Must have valid physical units convertible via `astropy.units.spectral()`
         equivalencies.
     idx : int | tuple[int, int] | None
         Index or index range specifying the slice:
-        - ``i`` → label corresponding to spectral_axis[i]
-        - ``[i]`` → label corresponding to spectral_axis[i]
-        - ``[i, j]`` → label corresponding to midpoint of spectral_axis[i:j]
-        - ``None`` → label corresponding to midpoint of entire spectral axis
+        - `i` → label corresponding to spectral_axis[i]
+        - `[i]` → label corresponding to spectral_axis[i]
+        - `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
+        - `None` → label corresponding to midpoint of entire spectral axis
     ax : matplotlib.axes.Axes
         Target matplotlib Axes on which the label will be rendered.
     ref_unit : u.UnitBase | u.StructuredUnit | str | None, optional, default=None
         Reference unit to which the spectral axis will be converted prior to
-        computing the label (e.g., ``u.nm``, ``u.AA``, ``u.Hz``, ``u.km/u.s``).
-        If None, uses the unit from ``spectral_axis``.
+        computing the label (e.g., `u.nm`, `u.AA`, `u.Hz`, `u.km/u.s`).
+        If None, uses the unit from `spectral_axis`.
     radial_vel : Quantity | float | None, optional, default=None
         Radial velocity used to Doppler-shift the spectral axis before computing
         the representative value. Must be velocity-compatible if provided.
     emission_line : str | None, optional, default=None
         Optional emission line identifier to include in the label
-        (e.g., ``"H alpha"``, ``"[O III]"``). If provided, this replaces the
+        (e.g., `"H alpha"`, `"[O III]"`). If provided, this replaces the
         default spectral symbol prefix.
     as_title : bool, optional, default=False
         If True, render the label as the axes title. Otherwise, render as text
         inside the axes.
     text_loc : tuple[float, float], optional
         Axes-relative coordinates (x, y) for text placement. Default is
-        ``config.text_loc``.
+        `config.text_loc`.
     text_color : str, optional
-        Text color. Default is ``config.text_color``.
+        Text color. Default is `config.text_color`.
     highlight : bool, optional
         If True, draw a white background box behind the label text.
-        Default is ``config.highlight``.
+        Default is `config.highlight`.
 
     Raises
     ------
@@ -466,19 +466,19 @@ def _format_spectral_label(
     (e.g., wavelength, frequency, or velocity), optionally prefixed with an
     emission line identifier.
 
-    Used internally by ``spectral_axis_label``.
+    Used internally by `spectral_axis_label`.
 
     Parameters
     ----------
     spectral_value : float
-        Spectral axis value expressed in the specified ``spectral_unit``.
+        Spectral axis value expressed in the specified `spectral_unit`.
 
     spectral_unit : Unit
-        Unit associated with ``value``. Must have a valid physical type such
-        as ``length``, ``frequency``, or ``speed``.
+        Unit associated with `value`. Must have a valid physical type such
+        as `length`, `frequency`, or `speed`.
 
     emission_line : str or None, optional, default=None
-        Optional emission line identifier (e.g., ``"H alpha"``, ``"[O III]"``).
+        Optional emission line identifier (e.g., `'H alpha'`, `'[O III]'`).
         If provided, this replaces the default spectral symbol prefix.
 
     Returns
