@@ -73,7 +73,7 @@ from visualastro.core.units import (
 )
 from visualastro.core.validation import allclose
 from visualastro.help.help import help, getsource
-from visualastro.plotting.image_plots import (
+from visualastro.plotting.science.wcs_plots import (
     imshow,
     plot_spectral_cube
 )

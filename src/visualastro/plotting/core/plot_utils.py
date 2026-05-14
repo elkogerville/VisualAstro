@@ -191,7 +191,7 @@ def apply_style_modifiers(ax, style: str):
     Modifiers are appended to the base style name with underscores and can be
     chained together in any order (e.g., 'astro_minimal_grid' or 'latex_bare').
     This function is mostly for internal use by plotting functions in the
-    visualastro.visual_plots module.
+    visualastro.plotting.ax module.
 
     Parameters
     ----------
