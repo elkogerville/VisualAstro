@@ -22,8 +22,8 @@ from visualastro.core.numerical_utils import (
     _unwrap_if_single
 )
 from visualastro.core.validation import allclose
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.plot_utils import _normalize_plotting_input
 
 

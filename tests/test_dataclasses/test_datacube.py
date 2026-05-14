@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_cube
-from visualastro.dataclasses.datacube import DataCube
+from visualastro.datamodels.datacube import DataCube
 
 
 class TestDataCubeInit:

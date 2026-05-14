@@ -18,8 +18,8 @@ import numpy as np
 import pytest
 from spectral_cube import SpectralCube
 
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 
 
 @pytest.fixture

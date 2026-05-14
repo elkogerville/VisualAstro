@@ -33,8 +33,8 @@ from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data
 from visualastro.core.units import get_unit
 from visualastro.core.validation import _type_name
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.utils.wcs_utils import _reproject_wcs
 
 

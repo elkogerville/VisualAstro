@@ -68,8 +68,8 @@ from visualastro.core.units import (
     convert_quantity,
     get_unit
 )
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.spectrumplus import SpectrumPlus
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.plotting.image_plots import imshow
 from visualastro.plotting.colors import (
     get_colors,
