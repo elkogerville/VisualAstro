@@ -618,6 +618,9 @@ def _cycle(data: tuple[T, ...], i: int) -> T: ...
 @overload
 def _cycle(data: NDArray, i: int) -> Any: ...
 
+@overload
+def _cycle(data: Sequence[T], i: int) -> T: ...
+
 def _cycle(data, i):
     """
     Cycle through a list cotinously. When

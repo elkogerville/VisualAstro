@@ -50,7 +50,7 @@ from visualastro.plotting.core.plot_utils import (
     plot_interactive_ellipse,
     plot_points,
 )
-from visualastro.plotting.spectra_plot_utils import (
+from visualastro.plotting.science.spectra_plot_utils import (
     spectral_axis_label
 )
 
