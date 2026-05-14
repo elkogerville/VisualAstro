@@ -6,17 +6,15 @@ Description:
     Visualastro configuration interface to update function defaults.
 Dependencies:
     - astropy
+    - matplotlib
     - numpy
-Module Structure:
-    - visualastro config class
-    - function specific configuration dataclasses
-    - _Unset value and related functions
 """
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field, fields
 from enum import Enum
 from typing import Literal, TypeVar
+
 from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
@@ -229,7 +227,7 @@ class VisualAstroConfig:
     text_loc: tuple[float, float] = (0.03, 0.03)
 
     # label params
-    use_brackets = True # display units as [unit] instead of (unit)
+    unit_bracket_style = True # display units as [unit] instead of (unit) unit_bracket_style: Literal["square", "round"] | None
     right_ascension = 'Right Ascension'
     declination = 'Declination'
     highlight: bool = True
