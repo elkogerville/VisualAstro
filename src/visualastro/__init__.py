@@ -1,8 +1,8 @@
 # core classes
 # ------------
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.fitsfile import FitsFile
-from visualastro.dataclasses.spectrumplus import SpectrumPlus
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
+from visualastro.datamodels.spectrumplus import SpectrumPlus
 
 # submodules
 # ----------

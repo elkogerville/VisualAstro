@@ -49,7 +49,7 @@ from visualastro.core.units import (
     _require_spectral_region
 )
 from visualastro.core.validation import _type_name
-from visualastro.dataclasses.spectrumplus import SpectrumPlus
+from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.utils.text_utils import print_pretty_table
 
 

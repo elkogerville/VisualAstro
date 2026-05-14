@@ -69,8 +69,8 @@ from visualastro.core.units import (
     _infer_physical_type_label
 )
 from visualastro.core.validation import _type_name
-from visualastro.dataclasses.datacube import DataCube
-from visualastro.dataclasses.fitsfile import FitsFile
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.colors import sample_cmap
 
 

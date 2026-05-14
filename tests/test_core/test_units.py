@@ -16,7 +16,7 @@ from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_cube, generate_test_spectralcube
 from visualastro.core.units import get_unit, get_units, to_unit
-from visualastro.dataclasses.datacube import DataCube
+from visualastro.datamodels.datacube import DataCube
 
 
 class TestGetUnits:
