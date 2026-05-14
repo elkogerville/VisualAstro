@@ -56,10 +56,14 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
 }
 
 
+ParamSpec = tuple[str, Any, Any]
+KwargSpec = tuple[str, Any]
+
+
 def _resolve_kwargs(
     kwargs: dict,
-    params: list[tuple[str, Any, Any]] | None = None,
-    additional_kwargs: list[tuple[str, Any]] | None = None
+    params: list[ParamSpec] | None = None,
+    additional_kwargs: list[KwargSpec] | None = None
 ) -> SimpleNamespace:
     """
     Resolve keyword arguments into a namespace of normalized parameters.
@@ -88,7 +92,7 @@ def _resolve_kwargs(
     kwargs : dict
         Dictionary of keyword arguments to resolve. Resolved parameters
         are popped in place.
-    params : list of tuple[str, Any, Any]
+    params : list[ParamSpec] | None, optional, default=None
         Sequence of `(name, value, default)` tuples describing parameters
         defined in the parent function signature.
 
@@ -97,7 +101,7 @@ def _resolve_kwargs(
             1. Retrieve the value from `kwargs` using `_pop_kwargs`
             2. Replace unset sentinel values using `_resolve_default`
 
-    additional_kwargs : list of tuple[str, Any], optional
+    additional_kwargs : list[KwargSpec] | None, optional, default=None
         Sequence of `(name, default)` tuples describing optional keyword
         arguments that should be retrieved directly from `kwargs` using
         fallback defaults.
@@ -219,7 +223,7 @@ def _pop_kwargs(
     return default
 
 
-def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
+def _param(name: str, value: Any, default: Any) -> ParamSpec:
     """
     Helper function for defining a parameter in `_resolve_kwargs`.
 
@@ -244,7 +248,7 @@ def _param(name: str, value: Any, default: Any) -> tuple[str, Any, Any]:
     return (name, value, default)
 
 
-def _kwarg(name: str, default: Any) -> tuple[str, Any]:
+def _kwarg(name: str, default: Any) -> KwargSpec:
     if not isinstance(name, str):
         raise ValueError(
             f'name must be a str! got: {_type_name(name)}'
