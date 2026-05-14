@@ -117,7 +117,7 @@ from visualastro.plotting.plots import (
     scatter,
     scatter3D
 )
-from visualastro.plotting.spectra_plots import (
+from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
     extract_cube_spectra,
     fit_gaussian_2_spec,
@@ -125,12 +125,12 @@ from visualastro.plotting.spectra_plots import (
     plot_extracted_pixel_map,
     plot_spectrum
 )
-from visualastro.plotting.spectra_plot_utils import (
+from visualastro.plotting.science.spectra_plot_utils import (
     mark_spectral_lines,
     spectral_axis_label,
     spectral_line_marker
 )
-from visualastro.plotting.visual_plots import ax
+from visualastro.plotting.ax import ax
 from visualastro.utils.text_utils import (
     pretty_table,
     print_pretty_table
