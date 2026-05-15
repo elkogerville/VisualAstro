@@ -822,6 +822,7 @@ def scatter(
             _param('array_order', array_order, config.array_order),
         ],
         [
+            _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
             _kwarg('loc', config.loc),
             _kwarg('xlabel', None),
@@ -841,6 +842,7 @@ def scatter(
             _kwarg('rasterized', config.rasterized),
         ]
     )
+    plot_params = _extract_plot_util_kwargs(kwargs)
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
@@ -848,7 +850,7 @@ def scatter(
     sizes = to_list(params.size)
     markers = to_list(params.marker)
 
-    X, Y = _extract_xy(*data, order=params.array_order)
+    X, Y = _extract_xy(*data, order=params.array_order, index_spec=params.index_spec)
     xlist = _normalize_plotting_input(X)
     ylist = _normalize_plotting_input(Y)
 
@@ -936,7 +938,7 @@ def scatter(
     if _cycle(labels, config.reference_idx) is not None:
         ax.legend(loc=params.loc)
 
-    _apply_plot_utils(ax, figure_params)
+    _apply_plot_utils(plot_params, ax)
 
     return scatters
 

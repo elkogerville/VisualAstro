@@ -1317,7 +1317,8 @@ def _apply_plot_utils(
 
 def _extract_xy(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    order: Literal['c', 'fortran'] | _Unset = _UNSET
+    order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
 ) -> tuple[
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
@@ -1383,19 +1384,27 @@ def _extract_xy(
         if isinstance(obj, (np.ndarray, u.Quantity)):
             if obj.ndim == 1:
                 return np.arange(len(obj)), obj
-
             if obj.ndim == 2:
                 if array_order.lower() == 'c':
-                    return obj[:, 0], obj[:, 1]
+                    axis, n = 0, obj.shape[0]
+                    get_col = lambda i: obj[:, i]
                 else:
-                    return obj[0, :], obj[1, :]
+                    axis, n = 1, obj.shape[1]
+                    get_col = lambda i: obj[i, :]
 
-            if _is_scalar(obj):
-                return 0, obj
-
-            raise ValueError(
-                f'Unsupported ndarray/Quantity shape {obj.shape}'
-            )
+                if isinstance(index_spec, (list, tuple)):
+                    ix, iy = index_spec
+                    return get_col(ix), get_col(iy)
+                elif index_spec == 'explicit':
+                    return get_col(0), get_col(1)
+                elif index_spec == 'implicit':
+                    x = np.arange(n)
+                    y = [
+                        get_col(i) for i in range(
+                            obj.shape[1] if axis == 0 else obj.shape[0]
+                        )
+                    ]
+                    return x, y
 
         if _is_scalar(obj):
             return 0, obj
