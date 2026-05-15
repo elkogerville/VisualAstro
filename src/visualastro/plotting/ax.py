@@ -264,8 +264,8 @@ class ax:
                 Label for the y-axis.
             - `text_loc` : list of float, optional, default=`config.text_loc`
                 Location for emission line annotation text in axes coordinates.
-            - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
-                If True, plot units in square brackets; otherwise, parentheses.
+            - unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+                If `'round`' displays `extracted_spectrums` unit as (unit). If `'square`' as [unit].
             - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
             - `style` : str, default=`config.style`
@@ -374,8 +374,8 @@ class ax:
                 Legend location (e.g., 'best', 'upper right').
             - xlabel, ylabel : str, optional, default=None
                 Axis labels.
-            - unit_bracket_style : bool, optional, default=`config.unit_bracket_style`
-                If True, format axis labels with units in brackets instead of parentheses.
+            - unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+                If `'round`' displays `extracted_spectra` unit as (unit). If `'square`' as [unit].
             - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
             - `style` : str, default=`config.style`

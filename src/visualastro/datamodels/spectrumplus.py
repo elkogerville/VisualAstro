@@ -14,12 +14,14 @@ Dependencies:
 
 import copy
 from typing import Literal, cast
+
 from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
 from specutils import SpectralAxis, SpectralRegion
 from specutils.manipulation import extract_region as _extract_region
 from specutils.spectra import Spectrum
+
 from visualastro.core.config import get_config_value
 from visualastro.core.units import (
     ensure_common_unit,
@@ -128,8 +130,15 @@ class SpectrumPlus:
     """
 
     def __init__(
-        self, spectrum=None, *, spectral_axis=None, flux=None,
-        normalized=None, continuum=None, log_file=None, **kwargs
+        self,
+        spectrum=None,
+        *,
+        spectral_axis=None,
+        flux=None,
+        normalized=None,
+        continuum=None,
+        log_file=None,
+        **kwargs
     ):
 
         fit_method = kwargs.pop('fit_method', None)
