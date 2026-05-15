@@ -318,6 +318,7 @@ def to_unit(obj: Any) -> UnitBase | StructuredUnit | None:
 
     return None
 
+
 @overload
 def unit_2_string(
     unit: None,
