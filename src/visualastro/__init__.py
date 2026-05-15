@@ -110,11 +110,12 @@ from visualastro.plotting.core.plot_utils import (
     set_axis_limits,
     style
 )
-from visualastro.plotting.plots import (
+from visualastro.plotting.base.plots import (
     hist,
     plot_density_histogram,
     plot,
     scatter,
+    scatter_fit,
     scatter3D
 )
 from visualastro.plotting.science.spectra_plots import (
