@@ -36,12 +36,13 @@ from visualastro.core.io import savefig
 from visualastro.core.numerical_utils import to_list
 from visualastro.core.validation import _type_name
 from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
-from visualastro.plotting.plots import (
+from visualastro.plotting.base.plots import (
     hist,
     plot_density_histogram,
     plot,
     scatter,
-    scatter3D
+    scatter3D,
+    scatter_fit
 )
 from visualastro.plotting.core.plot_utils import apply_style_modifiers, _get_stylepath
 from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectrum
@@ -263,7 +264,7 @@ class ax:
                 Label for the y-axis.
             - `text_loc` : list of float, optional, default=`config.text_loc`
                 Location for emission line annotation text in axes coordinates.
-            - `use_brackets` : bool, optional, default=`config.use_brackets`
+            - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
                 If True, plot units in square brackets; otherwise, parentheses.
             - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
@@ -373,7 +374,7 @@ class ax:
                 Legend location (e.g., 'best', 'upper right').
             - xlabel, ylabel : str, optional, default=None
                 Axis labels.
-            - use_brackets : bool, optional, default=`config.use_brackets`
+            - unit_bracket_style : bool, optional, default=`config.unit_bracket_style`
                 If True, format axis labels with units in brackets instead of parentheses.
             - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
@@ -554,17 +555,18 @@ class ax:
         datas: u.Quantity | NDArray | list[u.Quantity | NDArray],
         bins: int | Sequence[float] | str | _Unset = _UNSET,
         histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
-        color: ColorType | list[ColorType] | _Unset = _UNSET,
         normalize: bool | _Unset = _UNSET,
+        align: Literal['left', 'mid', 'right'] = 'mid',
+        color: ColorType | list[ColorType] | _Unset = _UNSET,
         xlog: bool | _Unset = _UNSET,
         ylog: bool | _Unset = _UNSET,
         vlines: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
         **kwargs
-    ):
+    ) -> None:
         """
         Wrapper for `hist` with automatic figure creation.
 
-        See `visualastro.plotting.plots.hist` for full documentation.
+        See `visualastro.plotting.base.plots.hist` for full documentation.
 
         Equivalent to:
 
@@ -585,8 +587,9 @@ class ax:
                 datas, ax,
                 bins=bins,
                 histtype=histtype,
-                color=color,
                 normalize=normalize,
+                align=align,
+                color=color,
                 xlog=xlog,
                 ylog=ylog,
                 vlines=vlines,
@@ -615,7 +618,7 @@ class ax:
         """
         Wrapper for `plot` with automatic figure creation.
 
-        See `visualastro.plotting.plots.plot` for full documentation.
+        See `visualastro.plotting.base.plots.plot` for full documentation.
 
         Equivalent to:
 
@@ -666,12 +669,13 @@ class ax:
         alpha: float | list[float] | _Unset = _UNSET,
         edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
         facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
         **kwargs
     ) ->  None:
         """
         Wrapper for `scatter` with automatic figure creation.
 
-        See `visualastro.plotting.plots.scatter` for full documentation.
+        See `visualastro.plotting.base.plots.scatter` for full documentation.
 
         Equivalent to:
 
@@ -702,6 +706,66 @@ class ax:
                 alpha=alpha,
                 edgecolor=edgecolor,
                 facecolor=facecolor,
+                array_order=array_order,
+                **kwargs
+            )
+
+            if savefigure:
+                savefig(dpi)
+            plt.show()
+
+
+    @staticmethod
+    def scatter_fit(
+        *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+        xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+        yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
+        color: ColorType | list[ColorType] | int | _Unset =_UNSET,
+        marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+        size: float | list[float] | _Unset = _UNSET,
+        alpha: float | list[float] | _Unset = _UNSET,
+        edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        normalize: bool | _Unset = _UNSET,
+        xlog: bool | _Unset = _UNSET,
+        ylog: bool | _Unset = _UNSET,
+        array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+        **kwargs
+    ) -> None:
+        """
+        Wrapper for `scatter` with automatic figure creation.
+
+        See `visualastro.plotting.base.plots.scatter` for full documentation.
+
+        Equivalent to:
+
+            >>> fig, ax = plt.subplots()
+            >>> va.scatter_fit(X, Y, deg=3, ax=ax, **kwargs)
+            >>> plt.show()
+        """
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
+        savefigure = kwargs.pop('savefig', config.savefig)
+        dpi = kwargs.pop('dpi', config.dpi)
+
+        style = _get_stylepath(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+            _ = scatter_fit(
+                *data,
+                ax=ax,
+                xerr=xerr,
+                yerr=yerr,
+                normalize=normalize,
+                xlog=xlog,
+                ylog=ylog,
+                color=color,
+                size=size,
+                marker=marker,
+                alpha=alpha,
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                array_order=array_order,
                 **kwargs
             )
 
