@@ -90,7 +90,7 @@ class TestExtractXY:
             [4,5]
         ])
 
-        X, Y = _extract_xy(arr, order='c')
+        X, Y = _extract_xy(arr, order='c', index_spec=(0,1))
 
         assert np.array_equal(X, [1, 4])
         assert np.array_equal(Y, [2, 5])
@@ -100,7 +100,7 @@ class TestExtractXY:
             [6,7,8,9,10]
         ]) * u.um
 
-        X, Y = _extract_xy(arr, order='c')
+        X, Y = _extract_xy(arr, order='c', index_spec=(0,1))
 
         assert np.array_equal(X, [1, 6]*u.um)
         assert np.array_equal(Y, [2, 7]*u.um)
@@ -111,7 +111,7 @@ class TestExtractXY:
             [4,5]
         ])
 
-        X, Y = _extract_xy(arr, order='fortran')
+        X, Y = _extract_xy(arr, order='fortran', index_spec=(0,1))
 
         assert np.array_equal(X, [1, 2])
         assert np.array_equal(Y, [4, 5])
@@ -121,7 +121,7 @@ class TestExtractXY:
             [6,7,8,9,10]
         ])*u.Jy
 
-        X, Y = _extract_xy(arr, order='fortran')
+        X, Y = _extract_xy(arr, order='fortran', index_spec=(0,1))
 
         assert np.array_equal(X, arr[0])
         assert np.array_equal(Y, arr[1])

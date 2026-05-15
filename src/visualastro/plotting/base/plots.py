@@ -309,7 +309,7 @@ def hist(
     **kwargs
 ) -> list[SimpleNamespace]:
     """
-    Plot one or more histograms on a given Axes object.
+    Plot one or more histograms on a given Axes object. 2D arrays are flattened.
 
     Parameters
     ----------
@@ -685,7 +685,7 @@ def scatter(
     ax: maxes.Axes,
     xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
     yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    color: ColorType | list[ColorType] | int | _Unset =_UNSET,
+    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
     marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
     size: float | list[float] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
