@@ -226,14 +226,14 @@ class VisualAstroConfig:
     text_loc: tuple[float, float] = (0.03, 0.03)
 
     # label params
-    unit_bracket_style: bool = True # display units as [unit] instead of (unit) unit_bracket_style: Literal["square", "round"] | None
+    unit_bracket_style: Literal['round', 'square'] = 'square' # display units as [unit] instead of (unit)
     right_ascension: str = 'Right Ascension'
     declination: str = 'Declination'
     highlight: bool = True
     loc = 'best'
-    show_type_label: bool = True
+    show_type_label: bool = False
     show_unit_label: bool = True
-    unit_label_format: Literal['latex', 'latex_inline', 'inline'] = 'latex_inline'
+    unit_label_format: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] = 'latex_inline'
     _PHYSICAL_TYPE_LABELS = {
         u.adu.physical_type: 'ADU',          # type: ignore
         u.count.physical_type: 'Counts',     # type: ignore
