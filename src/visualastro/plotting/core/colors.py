@@ -16,6 +16,7 @@ import colorsys
 from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
 from matplotlib.colors import TABLEAU_COLORS, ListedColormap
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
@@ -53,6 +54,8 @@ COLORSETS: dict[str, list[ColorType]] = {
         'k', '#FF0000', '#0000FF', '#00FF00',
         '#00FFFF', '#FF00FF', '#FFFF00'
     ],
+    'high_vis': ['#0d49fb', '#e6091c', '#26eb47', '#8936df', '#fec32d', '#25d7fd'],
+    'retro': ['#4165c0', '#e770a2', '#5ac3be', '#696969', '#f79a1e', '#ba7dcd'],
     'bright': [mcolors.to_hex(c) for c in tc.bright],
     'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
     'muted': [mcolors.to_hex(c) for c in tc.muted],
@@ -86,11 +89,51 @@ class Color:
     nebula: ColorType = '#9FB7FF'
     bbypnk: ColorType = '#DBB0FF'
     pondwater: ColorType = '#CFE23C'
-    ibmpur: ColorType = '#648FFF'
+    ibmpur: ColorType = '#785EF0'
     ibmpnk: ColorType = '#DC267F'
     ibmblu: ColorType = '#648FFF'
     ibmylw: ColorType = '#FFB000'
     ibmorg: ColorType = '#FE6100'
+
+    def plot(self, cols: int = 4) -> None:
+        """
+        Display color swatches in a grid with labels.
+
+        Parameters
+        ----------
+        cols : int, default 4
+            Number of columns in grid
+        """
+        color_list = [(f.name, getattr(self, f.name)) for f in fields(self)]
+        rows = (len(color_list) + cols - 1) // cols
+        fig, ax = plt.subplots(figsize=(cols * 0.9, rows * 1.2), tight_layout=True)
+        ax.set_xlim(0, cols)
+        ax.set_ylim(0, rows)
+        ax.invert_yaxis()
+        ax.axis('off')
+
+        for idx, (name, color) in enumerate(color_list):
+            row, col = divmod(idx, cols)
+            x, y = col, row
+
+            rect = mpatches.FancyBboxPatch(
+                (x + 0.25, y + 0.1), 0.5, 0.4,
+                boxstyle='round,pad=0.02',
+                facecolor=color,
+                edgecolor='#333',
+                linewidth=0.5
+            )
+            ax.add_patch(rect)
+
+            ax.text(
+                x + 0.5, y + 0.52,
+                name,
+                ha='center', va='top',
+                fontsize=7,
+                fontweight='normal'
+            )
+
+        plt.show()
 
     def __repr__(self) -> str:
         lines = [self.__class__.__name__ + ':']
