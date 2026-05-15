@@ -301,13 +301,13 @@ def hist(
     ax: maxes.Axes,
     bins: int | Sequence[float] | str | _Unset = _UNSET,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
-    color: ColorType | list[ColorType] | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
+    align: Literal['left', 'mid', 'right'] = 'mid',
+    color: ColorType | list[ColorType] | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
-    vlines: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
     **kwargs
-):
+) -> list[SimpleNamespace]:
     """
     Plot one or more histograms on a given Axes object.
 
@@ -319,29 +319,45 @@ def hist(
     ax : matplotlib.axes.Axes
         The Axes object on which to plot the histogram.
     bins : int | Sequence[float] | str | _Unset, optional, default=_UNSET
-        Histogram bin specification. Passed directly to
-        `matplotlib.pyplot.hist`. If `_UNSET`, uses `config.bins`.
+        From ax.hist documentation:
 
-        If `bins` is a `str`, use one of the supported binning strategies:
-            `'auto'`, `'fd'`, `'doane'`, `'scott'`, `'stone'`, `'rice'`,
-            `'sturges'`, or `'sqrt'`.
+        If *bins* is an integer, it defines the number of equal-width bins in
+        the range.
+
+        If *bins* is a sequence, it defines the bin edges, including the left
+        edge of the first bin and the right edge of the last bin; in this case,
+        bins may be unequally spaced.  All but the last (righthand-most) bin is
+        half-open.  In other words, if *bins* is:
+
+        [1, 2, 3, 4]
+
+        then the first bin is [1, 2) (including 1, but excluding 2) and the second
+        [2, 3).  The last bin, however, is [3, 4], which *includes* 4.
+
+        If *bins* is a string, it is one of the binning strategies supported by
+        `numpy.histogram_bin_edges`: `'auto'`, `'fd'`, `'doane'`, `'scott'`,
+        `'stone'`, `'rice'`, `'sturges'`, or `'sqrt'`.
+
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Matplotlib histogram type. If `_UNSET`, uses `config.histtype`.
+    normalize : bool or None, optional, default=None
+        Alias for `density`. If `True`, normalize histograms to a probability density.
+        If `_UNSET`, uses `config.normalize_hist`.
+    align : {'left', 'mid', 'right'}, optional, default: 'mid'
+        The horizontal alignment of the histogram bars.
+
+            – 'left': bars are centered on the left bin edges.
+            – 'mid': bars are centered between the bin edges.
+            – 'right': bars are centered on the right bin edges.
+
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
-    normalize : bool or None, optional, default=None
-        If `True`, normalize histograms to a probability density.
-        If `_UNSET`, uses `config.normalize_hist`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
         If `_UNSET`, uses `config.xlog`.
     ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
         If `_UNSET`, uses `config.ylog`.
-    vlines : float | u.Quantity | Sequence[float | u.Quantity] | None, optional, default=None
-        X-axis coordinate(s) at which to draw vertical line(s). If Quantities,
-        should have the same unit as `data`. If an iterable is provided, a vertical
-        line is drawn for each element. If None, no lines are drawn.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each dataset. If None,
         uses the default color colorset from `config.default_colorset`.
@@ -370,15 +386,14 @@ def hist(
 
     Returns
     -------
-    hists : tuple or list of tuple
-        The result(s) returned by `Axes.hist`. Each tuple has the form
-        `(n, bins, patches)`, where:
+    hists : SimpleNamespace | list[SimpleNamespace]
+        The result(s) returned by `Axes.hist`. Each SimpleNamespace has the form:
 
-        - `n` : ndarray
+        - n : ndarray
           The values of the histogram (counts or densities).
-        - `bins` : ndarray
+        - bins : ndarray
           The edges of the bins (length = len(n) + 1).
-        - `patches` : list or list-like of Patch
+        - patches : list[Patch]
           The artists created by the histogram (e.g., `Rectangle` or `Polygon`
           objects depending on `histtype`).
 
@@ -409,7 +424,9 @@ def hist(
             _kwarg('rasterized', config.rasterized),
         ]
     )
+    fig_params = _extract_plot_util_kwargs(kwargs)
     bins_list = to_list(params.bins)
+    histtypes = to_list(params.histtype)
     labels = to_list(params.label)
     datas = to_list(datas)
 
@@ -426,6 +443,7 @@ def hist(
 
     for i, data in enumerate(datas):
         bin = _cycle(bins_list, i)
+        htype = _cycle(histtypes, i)
         color = _cycle(colors, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         data = to_array(data)
@@ -436,9 +454,10 @@ def hist(
         h = ax.hist(
             data,
             bins=bin,
-            color=color,
-            histtype=params.histtype,
+            histtype=htype,
             density=params.normalize,
+            align=align,
+            color=color,
             label=label,
             rasterized=params.rasterized
         )
@@ -447,9 +466,7 @@ def hist(
 
         data_list.append(data)
         hists.append(
-            SimpleNamespace(
-            **{'values': h[0], 'bins': h[1], 'patches': h[2]}
-            )
+            SimpleNamespace(**{'n': h[0], 'bins': h[1], 'patches': h[2]})
         )
 
     set_axis_limits(
@@ -471,8 +488,7 @@ def hist(
     if _cycle(labels, config.reference_idx) is not None:
         ax.legend(loc=params.loc)
 
-    if vlines is not None:
-        plot_vlines(vlines, ax=ax, unit=ref_unit)
+    _apply_plot_utils(fig_params, ax, ref_unit)
 
     return hists
 
