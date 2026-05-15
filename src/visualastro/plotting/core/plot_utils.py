@@ -1257,7 +1257,7 @@ class PlotUtilParams:
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
 
-    params = _resolve_kwargs(
+    params = _extract_kwargs(
         kwargs,
         additional_kwargs=[
             _kwarg('ellipses', None),
@@ -1266,19 +1266,48 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
         ]
     )
 
-    return PlotUtilParams(**vars(params))
+    return PlotUtilParams(**params)
 
 
 def _apply_plot_utils(
-    ax: maxes.Axes,
     params: PlotUtilParams,
+    ax: maxes.Axes,
+    X = None,
+    Y = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None
 ) -> None:
     """
-    vlines : float | u.Quantity | Sequence[float | u.Quantity] | None, optional, default=None
-        X-axis coordinate(s) at which to draw vertical line(s). If Quantities,
-        should have the same unit as `data`. If an iterable is provided, a vertical
-        line is drawn for each element. If None, no lines are drawn.
+    Plotting interface for adding figure annotations and artists to a figure.
+
+    To add the interface to a plotting function, first call the `_extract_plot_util_kwargs`
+    function, which will return a `PlotUtilParams` instance. Then call `_apply_plot_utils`
+    after the core plotting has been completed.
+
+    Parameters
+    ----------
+    params : PlotUtilParams
+        Dataclass containing all the values necessary for the plotting utlity functions.
+        The paramters are defined in `_extract_plot_util_kwargs` and `PlotUtilParams`.
+    ax : matplotlib.axes.Axes
+        Axes to plot on.
+    ref_unit : u.UnitBase | u.StructuredUnit | None, optional, default=None
+        Reference unit for any required unit related logic. Should probably be either `None`
+        or the unit of the data being plotted.
+
+    Attributes
+    ----------
+    ellipses : matplotlib.patches.Ellipse | list[matplotlib.patches.Ellipse]
+        The Ellipse or list of Ellipses to plot.
+    vlines : float | Quantity | Sequence[float | Quantity] | None, optional, default=None
+        X-axis coordinate(s) at which to draw vertical line(s). If a `Quantity`,
+        each value is converted to `ref_unit` before plotting. If an iterable is
+        provided, a horizontal line is drawn for each element. If `None`, no lines
+        are drawn.
+    hlines : float | Quantity | Sequence[float | Quantity] | None, optional, default=None
+        Y-axis coordinate(s) at which to draw horizontal line(s). If a `Quantity`,
+        each value is converted to `ref_unit` before plotting. If an iterable is
+        provided, a horizontal line is drawn for each element. If `None`, no lines
+        are drawn.
     """
 
     plot_ellipses(params.ellipses, ax)
@@ -1823,7 +1852,7 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
 
     Parameters
     ----------
-    vlines : float, astropy.units.Quantity, iterable of float or Quantity, or None
+    hlines : float | Quantity | Sequence[float | Quantity] | None
         Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,
         each value is converted to `unit` before plotting. If an iterable is
         provided, a horizontal line is drawn for each element. If None, no lines
