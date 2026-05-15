@@ -165,6 +165,47 @@ class TestResolveKwargs:
         )
         assert out.intruderalert == 'redspyisinthebase'
 
+    def test_copy_kwargs(self):
+
+        kwargs = {
+            'alpha': 0.5,
+            'color': 'red',
+            'label': 'test'
+        }
+
+        result = _resolve_kwargs(
+            kwargs,
+            params=[_param('alpha', _UNSET, 0.8)],
+            additional_kwargs=[_kwarg('color', 'blue')],
+            copy_kwargs=[_kwarg('label', None)]
+        )
+
+        assert result.alpha == 0.5, f"Expected alpha=0.5, got {result.alpha}"
+        assert result.color == 'red', f"Expected color='red', got {result.color}"
+        assert result.label == 'test', f"Expected label='test', got {result.label}"
+
+        assert 'alpha' not in kwargs, 'alpha should be popped from kwargs'
+        assert 'color' not in kwargs, 'color should be popped from kwargs'
+        assert kwargs['label'] == 'test', f"label should remain in kwargs, got {kwargs.get('label')}"
+
+        kwargs = {
+            'alpha': 0.5,
+            'color': 'red',
+            'label': 'test'
+        }
+        kwargs_orig = kwargs.copy()
+
+        result = _resolve_kwargs(
+            kwargs,
+            copy_kwargs=[
+                _kwarg('alpha', None),
+                _kwarg('color', None),
+                _kwarg('label', None),
+            ]
+        )
+
+        assert kwargs == kwargs_orig
+
     def test_empty_call_raises(self):
         with pytest.raises(ValueError):
             _resolve_kwargs({})
