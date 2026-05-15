@@ -55,6 +55,8 @@ def get_data(obj):
     array-like
         `obj.data` if the attribute exists; otherwise `obj` itself.
     """
+    if isinstance(obj, np.ma.MaskedArray):
+        return obj.data
     if isinstance(obj, (np.ndarray, u.Quantity)):
         return obj
     return obj.data if hasattr(obj, 'data') else obj
