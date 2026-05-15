@@ -26,6 +26,7 @@ Module Structure:
 from collections.abc import Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
+from importlib.resources import files
 import os
 from types import SimpleNamespace
 from typing import Any, Literal
@@ -55,7 +56,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.io import _kwarg, _resolve_kwargs
+from visualastro.core.io import _extract_kwargs, _kwarg, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     kde2d,
     flatten,
@@ -165,22 +166,24 @@ def _get_stylepath(style: str) -> str:
         return style
 
     # if style is a visualastro stylesheet
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    stylelib = files('visualastro').joinpath('stylelib')
     base_style = style.split('_')[0] if '_' in style else style
-    style_path = os.path.join(base_dir, 'stylelib', f'{base_style}.mplstyle')
+    style_path = stylelib.joinpath(f'{base_style}.mplstyle')
+
     # ensure that style works on computer, otherwise return default style
     try:
-        with plt.style.context(style_path):
+        with plt.style.context(str(style_path)):
             # pass if can load style successfully on computer
             pass
-        return style_path
+        return str(style_path)
     except Exception as e:
         warnings.warn(
             f"[visualastro] Could not apply style '{style}' ({e}). "
             f"Falling back to '{config.style_fallback}' style."
         )
-        fallback = os.path.join(base_dir, 'stylelib', config.style_fallback)
-        return fallback
+        style = config.style_fallback
+        base_style = style.split('_')[0] if '_' in style else style
+        return str(stylelib.joinpath(f'{base_style}.mplstyle'))
 
 
 def apply_style_modifiers(ax, style: str):
