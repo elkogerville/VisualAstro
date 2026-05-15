@@ -42,17 +42,19 @@ from visualastro.core.units import get_units
 # KWARGS
 # ------
 KWARG_ALIASES: dict['str', tuple[str, ...]] = {
-    'alpha': ('alphas', 'a'),
-    'array_order': ('order',),
     'color': ('colors',),
     'edgecolor': ('edgecolors', 'ec'),
     'facecolor': ('facecolors', 'fc'),
     'marker': ('markers', 'm'),
+    'size': ('sizes', 's'),
+    'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
     'label': ('labels', 'l'),
+    'linecolor': ('linecolors', 'le'),
     'linestyle': ('linestyles', 'ls'),
     'linewidth': ('linewidths', 'lw'),
-    'size': ('sizes', 's'),
+    'linealpha': ('linealphas', 'la'),
+    'array_order': ('order',),
 }
 
 
@@ -63,7 +65,8 @@ KwargSpec = tuple[str, Any]
 def _resolve_kwargs(
     kwargs: dict,
     params: list[ParamSpec] | None = None,
-    additional_kwargs: list[KwargSpec] | None = None
+    additional_kwargs: list[KwargSpec] | None = None,
+    copy_kwargs: list[KwargSpec] | None = None
 ) -> SimpleNamespace:
     """
     Resolve keyword arguments into a namespace of normalized parameters.
@@ -105,6 +108,16 @@ def _resolve_kwargs(
         Sequence of `(name, default)` tuples describing optional keyword
         arguments that should be retrieved directly from `kwargs` using
         fallback defaults.
+    copy_kwargs : list[KwargSpec] | None, optional, default=None
+        Sequence of `(name, default)` tuples describing keyword arguments
+        to preserve in `kwargs` without popping.
+
+        Values are retrieved from `kwargs` using `_get_kwargs` (non-mutating),
+        allowing the original key-value pairs to remain available after
+        resolution. Useful when downstream functions need access to
+        arguments that are also resolved into the returned namespace.
+
+        Aliases defined in `KWARG_ALIASES` are respected during lookup.
 
     Returns
     -------
@@ -114,7 +127,7 @@ def _resolve_kwargs(
     Raises
     ------
     ValueError :
-        If both `params` and `additional_kwargs` are None.
+        If `params`, `additional_kwargs`, and `copy_kwargs` are None.
 
     Examples
     --------
@@ -140,7 +153,7 @@ def _resolve_kwargs(
     `params` should be used for arguments originating from the function
     signature, especially when `_UNSET` or aliases must be handled.
 
-    `params` and `additional_kwargs` do not need aliases defined.
+    `params`, `additional_kwargs`, and `copy_kwargs` do not need aliases defined.
 
     `additional_kwargs` should be used for optional passthrough keyword
     arguments that behave like standard `kwargs.pop` retrievals.
@@ -152,12 +165,16 @@ def _resolve_kwargs(
     visualastro.core.io._param
     visualastro.core.io._kwarg
     """
-    if params is None and additional_kwargs is None:
+    if params is None and additional_kwargs is None and copy_kwargs is None:
         raise ValueError(
-            'Both params and additional_kwargs cannot be None!'
+            'params, additional_kwargs, and copy_kwargs cannot all be None!'
         )
 
     out = {}
+
+    if copy_kwargs is not None:
+        for name, default in copy_kwargs:
+            out[name] = _get_kwargs(kwargs, name, default)
 
     if params is not None:
         for name, value, default in params:
@@ -171,6 +188,38 @@ def _resolve_kwargs(
     return SimpleNamespace(**out)
 
 
+def _get_kwargs(
+    kwargs: dict[str, Any],
+    name: str,
+    default: Any = None
+) -> Any:
+    """
+    Retrieve a keyword argument by canonical name or registered alias.
+
+    Identical to `_pop_kwargs` but does not mutate `kwargs`.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments to query.
+    name : str
+        Canonical name corresponding to a key in `KWARG_ALIASES`.
+    default : Any, optional
+        Value returned if `name` and all aliases absent from `kwargs`.
+        Default is None.
+
+    Returns
+    -------
+    Any
+        Value associated with `name` or its first matched alias.
+        If no match found, returns `default`.
+    """
+    for key in (name, *KWARG_ALIASES.get(name, ())):
+        if (value := kwargs.get(key, _UNSET)) is not _UNSET:
+            return value
+    return default
+
+
 def _pop_kwargs(
     kwargs: dict[str, Any],
     name: str,
@@ -182,6 +231,8 @@ def _pop_kwargs(
     Searches `kwargs` for the canonical `name` or any of its registered
     aliases (from `KWARG_ALIASES` in `visualastro.core.io`), removes the
     first match found, and returns its value.
+
+    Identical to `_get_kwargs` but does mutate `kwargs`.
 
     Parameters
     ----------
@@ -221,6 +272,21 @@ def _pop_kwargs(
             return value
 
     return default
+
+
+def _extract_kwargs(
+    kwargs: dict,
+    params: list[ParamSpec] | None = None,
+    additional_kwargs: list[KwargSpec] | None = None,
+    copy_kwargs: list[KwargSpec] | None = None
+) -> dict:
+    """
+    Helper function for to return the output of _resolve_kwargs
+    as a `dict` instead of `SimpleNamespace`.
+
+    See `visualastro.core.io._resolve_kwargs` for documentation.
+    """
+    return vars(_resolve_kwargs(kwargs, params, additional_kwargs, copy_kwargs))
 
 
 def _param(name: str, value: Any, default: Any) -> ParamSpec:
