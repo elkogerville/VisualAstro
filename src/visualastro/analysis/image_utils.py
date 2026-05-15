@@ -439,7 +439,7 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
         - int: extract single slice
         - [start, end]: extract range (inclusive)
         - None: use entire cube
-    method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
+    method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | None, default=None
         Stacking method. If None, uses the default value set
         by ``config.stack_cube_method``.
     axis : int, optional, default=0

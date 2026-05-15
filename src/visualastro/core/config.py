@@ -19,6 +19,8 @@ from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+from matplotlib.colors import Colormap
+from matplotlib.transforms import Bbox
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
@@ -139,7 +141,7 @@ class VisualAstroConfig:
 
     # figure params
     style: str = 'astro' # default style
-    style_fallback: str = 'default.mplstyle' # style if default style fails
+    style_fallback: str = 'default' # style if default style fails
     figsize: tuple = (6, 6)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     grid_figsize: tuple = (12, 6)
@@ -167,56 +169,53 @@ class VisualAstroConfig:
     normalize_data: bool = False
 
     # histogram params
-    histtype = 'step'
-    bins = 'auto'
-    normalize_hist = True
+    histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] = 'step'
+    bins: int | Sequence[float] | str = 'auto'
+    normalize_hist: bool = True
 
     # line2D params
     linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
-    linewidth = 0.8
+    linewidth: float = 0.8
 
     axline: AXLineConfig = field(default_factory=AXLineConfig)
 
     # scatter params
-    scatter_size = 10
-    marker = 'o'
-    edgecolor = None
-    facecolor = None
+    scatter_size: float = 10
+    marker: str = 'o'
+    edgecolor: ColorType | None = None
+    facecolor: ColorType | None = None
 
     # errorbar params
     errorbar: ErrorBarConfig = field(default_factory=ErrorBarConfig)
-    eb_fmt = 'none' # use 'none' (case-insensitive) to plot errorbars without any data markers.
-    ecolors = None
 
     # imshow params
-    cmap = 'turbo'
-    origin = 'lower'
+    cmap: Colormap | str = 'turbo'
+    origin: Literal['lower', 'upper'] = 'lower'
     norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None = 'asinh'
     linear_width: float = 1 # AsinhNorm linear width
     gamma: float = 0.5 # PowerNorm exponent
-    vmin = None
-    vmax = None
+    vmin: float | None = None
+    vmax: float | None = None
     percentile: tuple[float, float] | None = (3.0, 99.5)
-    aspect = None
+    aspect: Literal['auto', 'equal'] | float | None = None
 
     # axes params
     xpad: float = 0.05  # set_axis_limits() xpad
     ypad: float = 0.05 # set_axis_limits() ypad
-    xlog = False
-    ylog = False
-    xlog_hist = True
-    ylog_hist = True
-    sharex = False
-    sharey = False
-    hspace = None
-    wspace = None
-    Nticks = None
-    aspect = None
+    xlog: bool = False
+    ylog: bool = False
+    xlog_hist: bool = True
+    ylog_hist: bool = True
+    sharex: bool = False
+    sharey: bool = False
+    hspace: float | None = None
+    wspace: float | None = None
+    Nticks: int | None = None
 
     # cbar params
-    cbar = True
-    cbar_width = 0.03
-    cbar_pad = 0.015
+    cbar: bool = True
+    cbar_width: float = 0.03
+    cbar_pad: float = 0.015
     cbar_tick_which = 'both'
     cbar_tick_dir = 'out'
     clabel = True
@@ -227,14 +226,14 @@ class VisualAstroConfig:
     text_loc: tuple[float, float] = (0.03, 0.03)
 
     # label params
-    unit_bracket_style = True # display units as [unit] instead of (unit) unit_bracket_style: Literal["square", "round"] | None
-    right_ascension = 'Right Ascension'
-    declination = 'Declination'
+    unit_bracket_style: bool = True # display units as [unit] instead of (unit) unit_bracket_style: Literal["square", "round"] | None
+    right_ascension: str = 'Right Ascension'
+    declination: str = 'Declination'
     highlight: bool = True
     loc = 'best'
-    show_type_label = True
-    show_unit_label = True
-    unit_label_format = 'latex_inline'
+    show_type_label: bool = True
+    show_unit_label: bool = True
+    unit_label_format: Literal['latex', 'latex_inline', 'inline'] = 'latex_inline'
     _PHYSICAL_TYPE_LABELS = {
         u.adu.physical_type: 'ADU',          # type: ignore
         u.count.physical_type: 'Counts',     # type: ignore
@@ -254,10 +253,10 @@ class VisualAstroConfig:
     }
 
     # savefig params
-    savefig = False
-    dpi = 600
-    pdf_compression = 6
-    bbox_inches = 'tight'
+    savefig: bool = False
+    dpi: float = 600
+    pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
+    bbox_inches: str | Bbox | None = 'tight'
     allowed_formats = {'eps', 'pdf', 'png', 'svg'}
 
     # circles params
@@ -269,59 +268,59 @@ class VisualAstroConfig:
     # --------------
     # data params
     wavelength_unit = None
-    radial_velocity = None
+    radial_velocity: float | None = None
 
     # data cube params
-    stack_cube_method = 'sum'
+    stack_cube_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] = 'sum'
 
     # extract_cube_spectrum params
-    spectra_rest_frequency = None
-    flux_extract_method = 'mean'
+    spectra_rest_frequency: float | None = None
+    flux_extract_method: Literal['mean', 'median', 'sum'] = 'mean'
     spectral_cube_extraction_mode = 'cube'
     spectrum_continuum_fit_method: str = 'fit_continuum'
-    deredden_spectrum = False
-    plot_normalized_continuum = False
-    plot_continuum_fit = False
+    deredden_spectrum: bool = False
+    plot_normalized_continuum: bool = False
+    plot_continuum_fit: bool = False
 
     # plot_spectrum params
-    plot_spectrum_text_loc = [0.025, 0.95]
+    plot_spectrum_text_loc: tuple[float, float] = (0.025, 0.95)
 
     # deredden spectra params
-    Rv = 3.1 # Milky Way average
-    Ebv = 0.19
-    deredden_method = None
-    deredden_region = None
+    Rv: float = 3.1 # Milky Way average
+    Ebv: float = 0.19
+    deredden_method: str | None = None
+    deredden_region: str | None = None
 
     # curve_fit params
     curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
-    curve_fit_interpolate = False
-    curve_fit_method = 'trf'
-    curve_fit_absolute_sigma = False
-    interpolation_samples = 10000
-    interpolation_method = 'cubic_spline'
-    error_interpolation_method = 'cubic_spline'
+    curve_fit_interpolate: bool = False
+    curve_fit_method: Literal['lm', 'trf', 'dogbox'] = 'trf'
+    curve_fit_absolute_sigma: bool = False
+    interpolation_samples: int = 10000
+    interpolation_method: str = 'cubic_spline'
+    error_interpolation_method: str = 'cubic_spline'
 
     # gaussian fitting params
-    gaussian_model = 'gaussian'
-    return_gaussian_fit_parameters = True
-    print_gaussian_values = True
+    gaussian_model: Literal['gaussian', 'gaussian_line', 'gaussian_continuum'] = 'gaussian'
+    return_gaussian_fit_parameters: bool = True
+    print_gaussian_values: bool = True
 
     # reprojection parameters
-    reproject_method = 'interp'
+    reproject_method: Literal['interp', 'exact'] = 'interp'
     return_footprint: bool = False
-    reproject_block_size = None
-    reproject_parallel = False
+    reproject_block_size: Literal['auto'] | tuple | None = None
+    reproject_parallel: bool = False
 
     # error propagation
-    propagate_flux_error_method = None
+    propagate_flux_error_method: Literal['mean', 'sum', 'median'] | None = None
 
     # Utils Params
     # ------------
 
     # pretty table params
-    table_precision = 7
-    table_sci_notation = True
-    table_column_pad = 3
+    table_precision: int = 7
+    table_sci_notation: bool = True
+    table_column_pad: int = 3
 
     # numpy save
     save_format = '.npy'
