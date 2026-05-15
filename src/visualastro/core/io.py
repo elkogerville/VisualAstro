@@ -619,7 +619,7 @@ def savefig(
     dpi: float | Literal['figure'] | _Unset = _UNSET,
     pdf_compression: int | _Unset = _UNSET,
     transparent: bool = False,
-    bbox_inches: Bbox | _Unset = _UNSET,
+    bbox_inches: str | Bbox | None | _Unset = _UNSET,
     **kwargs
 ):
     """
