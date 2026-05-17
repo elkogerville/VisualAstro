@@ -1292,10 +1292,9 @@ def get_unit_label(
     if data_unit is None:
         return ''
 
-    brackets = {
-        'round': ('(', ')'),
-        'square': ('[', ']'),
-    }.get(str(bstyle).lower(), config.unit_bracket_style)
+    brackets = config._unit_bracket_styles.get(
+        str(bstyle).lower(), config.unit_bracket_style
+    )
 
     unit_str = unit_2_string(data_unit, fmt=unit_fmt)
 

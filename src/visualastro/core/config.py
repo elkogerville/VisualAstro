@@ -227,6 +227,10 @@ class VisualAstroConfig:
 
     # label params
     unit_bracket_style: Literal['round', 'square'] = 'square' # display units as [unit] instead of (unit)
+    _unit_bracket_styles = {
+        'round': ('(', ')'),
+        'square': ('[', ']'),
+    }
     right_ascension: str = 'Right Ascension'
     declination: str = 'Declination'
     highlight: bool = True
