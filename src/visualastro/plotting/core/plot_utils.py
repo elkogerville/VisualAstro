@@ -23,12 +23,9 @@ Module Structure:
         Notebook utility functions.
 """
 
-from collections.abc import Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from importlib.resources import files
-import os
-from types import SimpleNamespace
 from typing import Any, Literal
 import warnings
 from functools import partial
@@ -44,7 +41,7 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from regions import PixCoord, EllipsePixelRegion
 from spectral_cube import SpectralCube
 
@@ -56,8 +53,9 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.io import _extract_kwargs, _kwarg, _resolve_kwargs
+from visualastro.core.io import _extract_kwargs, _kwarg
 from visualastro.core.numerical_utils import (
+    as_list,
     kde2d,
     flatten,
     get_data,
@@ -65,7 +63,9 @@ from visualastro.core.numerical_utils import (
     to_array,
     to_list,
     _is_array_like,
+    _is_iterable,
     _is_scalar,
+    _is_2d
 )
 from visualastro.core.units import (
     get_physical_type,
@@ -987,15 +987,17 @@ def set_axis_limits(
     - Both scalar and multi-dimensional arrays are flattened before processing.
     - If all data is `None` or empty, the corresponding axis will not be modified.
     """
-    xpad_frac = kwargs.get('xpad', config.xpad)
-    ypad_frac = kwargs.get('ypad', config.ypad)
+    xpad_frac = kwargs.get('xpad', config.axes.xpad)
+    ypad_frac = kwargs.get('ypad', config.axes.ypad)
 
     if ax is None:
         raise ValueError('ax must be an axes instance')
 
     if xdata is not None and ydata is not None:
-        xdata = to_list(xdata)
-        ydata = to_list(ydata)
+        if not _is_iterable(xdata):
+            xdata = as_list(xdata)
+        if not _is_iterable(ydata):
+            ydata = as_list(ydata)
 
         if len(xdata) == 1:
             xdata = xdata * len(ydata)
