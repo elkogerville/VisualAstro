@@ -456,16 +456,16 @@ class ax:
             'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
         xlog : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the scatter plot.
-            If None, uses the default value from `config.xlog`.
+            If None, uses the default value from `config.axes.xlog`.
         ylog : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the scatter plot.
-            If None, uses the default value from `config.ylog`.
+            If None, uses the default value from `config.axes.ylog`.
         xlog_hist : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the top histogram.
-            If None, uses the default value from `config.xlog_hist`.
+            If None, uses the default value from `config.axes.xlog_hist`.
         ylog_hist : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the right histogram.
-            If None, uses the default value from `config.ylog_hist`.
+            If None, uses the default value from `config.axes.ylog_hist`.
         histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
             Type of histogram to draw. If None, uses the default value from `config.histtype`.
         normalize : bool, optional, default=None

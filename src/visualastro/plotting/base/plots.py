@@ -83,16 +83,16 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
     xlog : bool or None, optional, default=None
         Whether to use a logarithmic x-axis scale for the scatter plot.
-        If None, uses the default value from `config.xlog`.
+        If None, uses the default value from `config.axes.xlog`.
     ylog : bool or None, optional, default=None
         Whether to use a logarithmic y-axis scale for the scatter plot.
-        If None, uses the default value from `config.ylog`.
+        If None, uses the default value from `config.axes.ylog`.
     xlog_hist : bool or None, optional, default=None
         Whether to use a logarithmic x-axis scale for the top histogram.
-        If None, uses the default value from `config.xlog_hist`.
+        If None, uses the default value from `config.axes.xlog_hist`.
     ylog_hist : bool or None, optional, default=None
         Whether to use a logarithmic y-axis scale for the right histogram.
-        If None, uses the default value from `config.ylog_hist`.
+        If None, uses the default value from `config.axes.ylog_hist`.
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
         Type of histogram to draw. If None, uses the default value from `config.histtype`.
     normalize : bool, optional, default=None
@@ -354,10 +354,10 @@ def hist(
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
+        If `_UNSET`, uses `config.axes.xlog`.
     ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
+        If `_UNSET`, uses `config.axes.ylog`.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each dataset. If None,
         uses the default color colorset from `config.default_colorset`.
@@ -373,9 +373,9 @@ def hist(
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
         Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.ypad
+    xpad : float, optional, default=config.axes.ypad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.xpad
+    ypad : float, optional, default=config.axes.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -407,8 +407,8 @@ def hist(
             _param('histtype', histtype, config.histtype),
             _param('color', color, config.colors),
             _param('normalize', normalize, config.normalize_hist),
-            _param('xlog', xlog, config.xlog_hist),
-            _param('ylog', ylog, config.ylog_hist),
+            _param('xlog', xlog, config.axes.xlog_hist),
+            _param('ylog', ylog, config.axes.ylog_hist),
         ],
         [
             _kwarg('label', None),
@@ -417,8 +417,8 @@ def hist(
             _kwarg('ylabel', None),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
-            _kwarg('xpad', config.xpad),
-            _kwarg('ypad', config.ypad),
+            _kwarg('xpad', config.axes.xpad),
+            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
@@ -546,10 +546,10 @@ def plot(
         If `_UNSET`, uses `config.normalize_data`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
+        If `_UNSET`, uses `config.axes.xlog`.
     ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
+        If `_UNSET`, uses `config.axes.ylog`.
     zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
         of greatest to lowest zorder. If None, starts at 0 and increments
@@ -569,9 +569,9 @@ def plot(
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
         Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.ypad
+    xpad : float, optional, default=config.axes.ypad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.xpad
+    ypad : float, optional, default=config.axes.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -594,19 +594,20 @@ def plot(
             _param('linewidth', linewidth, config.linewidth),
             _param('alpha', alpha, config.alpha),
             _param('normalize', normalize, config.normalize_data),
-            _param('xlog', xlog, config.xlog),
-            _param('ylog', ylog, config.ylog),
+            _param('xlog', xlog, config.axes.xlog),
+            _param('ylog', ylog, config.axes.ylog),
             _param('array_order', array_order, config.array_order),
         ],
         [
+            _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
             _kwarg('loc', config.loc),
             _kwarg('xlabel', None),
             _kwarg('ylabel', None),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
-            _kwarg('xpad', config.xpad),
-            _kwarg('ypad', config.ypad),
+            _kwarg('xpad', config.axes.xpad),
+            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
@@ -754,10 +755,10 @@ def scatter(
         If `_UNSET`, uses `config.normalize_data`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
+        If `_UNSET`, uses `config.axes.xlog`.
     ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
+        If `_UNSET`, uses `config.axes.ylog`.
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
@@ -773,9 +774,9 @@ def scatter(
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
         Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.ypad
+    xpad : float, optional, default=config.axes.ypad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.xpad
+    ypad : float, optional, default=config.axes.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -817,8 +818,8 @@ def scatter(
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
             _param('normalize', normalize, config.normalize_data),
-            _param('xlog', xlog, config.xlog),
-            _param('ylog', ylog, config.ylog),
+            _param('xlog', xlog, config.axes.xlog),
+            _param('ylog', ylog, config.axes.ylog),
             _param('array_order', array_order, config.array_order),
         ],
         [
@@ -829,8 +830,8 @@ def scatter(
             _kwarg('ylabel', None),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
-            _kwarg('xpad', config.xpad),
-            _kwarg('ypad', config.ypad),
+            _kwarg('xpad', config.axes.xpad),
+            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('ecolor', config.errorbar.colors),
@@ -920,7 +921,6 @@ def scatter(
                 barsabove=params.barsabove,
                 rasterized=params.rasterized
             )
-
     set_axis_limits(
         xlist, ylist,
         ax=ax,
@@ -1027,10 +1027,10 @@ def scatter_fit(
         If `_UNSET`, uses `config.normalize_data`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.xlog`.
+        If `_UNSET`, uses `config.axes.xlog`.
     ylog : bool | _Unset, optional, default=_UNSET
         If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.ylog`.
+        If `_UNSET`, uses `config.axes.ylog`.
     zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
         of greatest to lowest zorder. If None, starts at 0 and increments
@@ -1050,9 +1050,9 @@ def scatter_fit(
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
         Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.ypad
+    xpad : float, optional, default=config.axes.ypad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.xpad
+    ypad : float, optional, default=config.axes.xpad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
