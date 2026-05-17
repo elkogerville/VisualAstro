@@ -1473,53 +1473,125 @@ def _extract_xy(
     raise ValueError(f'Expected 1 or 2 arguments, got {len(data)}')
 
 
-def _normalize_plotting_input(
-    data: (
-        float
-        | u.Quantity
-        | NDArray
-        | list[float | u.Quantity | NDArray]
-        | tuple[float | u.Quantity | NDArray, ...]
-    )
-) -> list[
-    float
-    | u.Quantity
-    | NDArray
-    | list[float | u.Quantity | NDArray]
-]:
+def _normalize_plotting_inputs(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+):
     """
-    Normalize data input to list of arrays.
+    Extract and normalize X, Y inputs for plotting.
+
+    Handles variable input formats and ensures X and Y have compatible
+    dimensionality for broadcasting. Generates implicit X indices when not
+    provided. Wraps scalars and 1D data in lists to match 2D counterparts.
+
+    See `visualastro.plotting.core.plot_utils._extract_xy` for documentation
+    on how `*data` is interpreted.
 
     Parameters
     ----------
-    data : ArrayLike
-        Can handle:
-        - Single array: [1,2,3] → [[1,2,3]]
-        - Single Quantity array: [1,2,3]*u.um → [[1,2,3]*u.um]
-        - List of scalars: [1*u.um, 2*u.um] → [1*u.um, 2*u.um]
-        - tuples of scalars: (1*u.um, 2*u.um) → [1*u.um, 2*u.um]
-        - List of arrays: [[1,2], [3,4]] → [[1,2], [3,4]]
+    *data : float | Quantity | ndarray | list thereof
+        Plotting data. Accepts 1 or 2 arguments:
+
+        - Single argument: interpreted as Y (X set to None)
+        - Two arguments: interpreted as (X, Y)
+
+    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+        Memory layout for 2D input interpretation. Defines what a
+        column is for `index_spec`.
+
+        – 'c': row-major, shape (N, 2)
+        – 'fortran': column-major, shape (2, N)
+
+        If `_UNSET`, uses `config.array_order`.
+    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
+        Specifies which columns to extract from 2D input.
+        - `'implicit'`: extract all columns as separate Y arrays
+        - `'explicit'`: extract columns 0 and 1 as X, Y
+        - `tuple (i, j)`: extract columns i and j
 
     Returns
     -------
-    list :
-        List of inputs to plot.
+    X : ArrayLike | list[ArrayLike]
+        X coordinates. Generated as np.arange(n) if not provided.
+    Y : ArrayLike | list[ArrayLike]
+        Y coordinates.
+
+    Raises
+    ------
+    ValueError
+        If 2D input has inconsistent row lengths.
     """
-    # quantities and ndarrays
-    if _is_array_like(data) and not isinstance(data, (list, tuple)):
+    X, Y = _extract_xy(*data, order=order, index_spec=index_spec)
+
+    if X is None:
+        if _is_2d(Y):
+            lengths = [len(y) for y in Y]
+            if not all(length == lengths[0] for length in lengths):
+                raise ValueError(
+                    f'2D input has inconsistent row lengths: {lengths}. '
+                    f'All rows must have length {lengths[0]}.'
+                )
+            length = lengths[0]
+        else:
+            length = len(Y) if hasattr(Y, '__len__') else 1
+        X = np.arange(length)
+
+    if _is_2d(Y) and not _is_2d(X):
+        X = [X]
+    if _is_2d(X) and not _is_2d(Y):
+        Y = [Y]
+
+    if _is_scalar(X):
+        X = [X]
+    if _is_scalar(Y):
+        Y = [Y]
+
+    return X, Y
+
+
+def _normalize_plotting_input(data):
+    """
+    Normalize single input to consistent dimensionality structure.
+
+    Ensures error arrays and similar inputs match the dimensionality of
+    corresponding data arrays. Scalars are wrapped in lists, 2D structures
+    are validated for consistent row lengths.
+
+    Parameters
+    ----------
+    data : scalar | Sequence | None
+        Input data to normalize. Can be a scalar, 1D array-like, 2D array-like,
+        or `None`.
+
+    Returns
+    -------
+    normalized : scalar | list | np.ndarray
+        Normalized input. Scalars wrapped in lists, 2D data validated and
+        returned unchanged, 1D iterables returned as-is, None returned as-is.
+
+    Raises
+    ------
+    ValueError
+        If 2D input has inconsistent row lengths.
+    """
+    if data is None:
+        return None
+
+    if _is_2d(data):
+        lengths = [len(d) for d in data]
+        if not all(length == lengths[0] for length in lengths):
+            raise ValueError(
+                f'2D input has inconsistent row lengths: {lengths}. '
+                f'All rows must have length {lengths[0]}.'
+            )
+        return data
+
+    if _is_scalar(data):
         return [data]
 
-    # scalars
-    if not isinstance(data, (list, tuple)):
-        return [data]
-
-    # lists / tuples
-    first = data[0]
-    if (
-        _is_scalar(first)
-        or _is_array_like(first)
-    ):
-        return list(data)
+    if _is_iterable(data):
+        return data
 
     return [data]
 
