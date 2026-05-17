@@ -1113,7 +1113,7 @@ def set_axis_labels(
     ylabel : str | None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from `Y`.
     unit_bracket_style : Literal['round', 'square'] | _Unset, optional, default=_UNSET
-        If `'round`' displays `extracted_spectrums` unit as (unit). If `'square`' as [unit].
+        If `'round`' displays the unit of `X` and `Y` as (unit). If `'square`' as [unit].
     show_physical_label : bool | _Unset, optional, default=_UNSET
         If `True`, include the inferred physical type in the axis label.
         If `_UNSET`, uses `config.show_type_label`.
@@ -1153,20 +1153,16 @@ def set_axis_labels(
     - If both `show_physical_label` and `show_unit` are False, the resulting
       axis label is an empty string.
     """
-    # get default config values
-    unit_bracket_style = get_config_value(unit_bracket_style, 'unit_bracket_style')
-    show_physical_label = get_config_value(show_physical_label, 'show_type_label')
-    show_unit = get_config_value(show_unit, 'show_unit_label')
-    fmt = get_config_value(fmt, 'unit_label_format')
-
-    # unit bracket type [] or ()
-    brackets = [r'[', r']'] if unit_bracket_style else [r'(', r')']
+    unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
+    show_physical_label = _resolve_default(show_physical_label, config.show_type_label)
+    show_unit = _resolve_default(show_unit, config.show_unit_label)
+    fmt = _resolve_default(fmt, config.unit_label_format)
 
     xlabel = _format_axis_label(
-        X, xlabel, brackets, show_physical_label, show_unit, fmt
+        X, xlabel, unit_bracket_style, show_physical_label, show_unit, fmt
     )
     ylabel = _format_axis_label(
-        Y, ylabel, brackets, show_physical_label, show_unit, fmt
+        Y, ylabel, unit_bracket_style, show_physical_label, show_unit, fmt
     )
 
     ax.set_xlabel(xlabel)
@@ -1176,18 +1172,18 @@ def set_axis_labels(
 def _format_axis_label(
     obj: Any,
     label: str | None,
-    brackets: Sequence[str],
+    bracket_style: Literal['round', 'square'],
     show_physical_label: bool,
     show_unit: bool,
-    fmt: str
+    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip']
 ) -> str:
-    """
+    r"""
     Create a scientific axis label with physical type and unit information.
 
-    This function generates axis labels in the format `<physical label> [<unit>]`,
-    where the physical label describes what the axis represents (e.g., 'Wavelength',
-    'Flux') and the unit is formatted in LaTeX notation. Both components can be
-    customized or disabled independently.
+    This function generates axis labels in the format `<physical label> [<unit>]`
+    or `<physical label> (<unit>)`, where the physical label describes what the axis
+    represents (e.g., 'Wavelength', 'Flux') and the unit is formatted in LaTeX notation.
+    Both components can be customized or disabled independently.
 
     Parameters
     ----------
@@ -1195,24 +1191,25 @@ def _format_axis_label(
         An object from which physical type and unit information can be extracted.
         This may be an Astropy `Quantity`, a Spectrum-like object, or any object
         compatible with `get_unit` and `get_physical_type`.
-    label : str or None
+    label : str | None
         If a string is provided, use it as the physical label directly, overriding
         any auto-detected physical type. If None, the physical label is inferred
         from the object's physical type (when `show_physical_label=True`).
-    brackets : tuple of str
-        A 2-element tuple specifying the opening and closing characters to wrap
-        around the unit string. Common choices include `('[', ']')`, `('(', ')')`,
-        or `('', '')` for no brackets.
+    bracket_style : Literal['round', 'square']
+        If `'round`' displays the unit of `obj` as (unit). If `'square`' as [unit].
     show_physical_label : bool
-        If True, include the physical type label in the output. If False, omit
+        If `True`, include the physical type label in the output. If `False`, omit
         the physical label entirely (useful for creating unit-only labels).
     show_unit : bool
-        If True, include the unit in the output. If False, omit the unit
+        If `True`, include the unit in the output. If `False`, omit the unit
         (useful for creating label-only outputs).
-    fmt : str or None
-        Format string for unit rendering, passed to `to_latex_unit`. Common
-        values include 'latex', 'latex_inline', or 'inline'. See `to_latex_unit`
-        documentation for details.
+    fmt : str, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
 
     Returns
     -------
@@ -1247,17 +1244,62 @@ def _format_axis_label(
     else:
         physical_label = ''
 
-    # format unit label
-    unit = get_unit(obj)
-    unit_str = to_latex_unit(unit, fmt=fmt)
-
-    # create axis label
-    if show_unit and unit_str is not None:
-        unit_label = fr'{brackets[0]}{unit_str}{brackets[1]}'
+    if show_unit:
+        unit_label = get_unit_label(obj, bracket_style=bracket_style, fmt=fmt)
     else:
         unit_label = ''
 
     return fr'{physical_label} {unit_label}'.strip()
+
+
+def get_unit_label(
+    unit: u.UnitBase | u.StructuredUnit | u.Quantity,
+    bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
+    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+) -> str:
+    r"""
+    Return the unit of an object as a string for plotting.
+
+    Displays unit as either '[unit]' or '(unit)'.
+
+    Parameters
+    ----------
+    unit : u.UnitBase | u.StructuredUnit | u.Quantity
+        Unit to convert.
+    bracket_style : Literal['round', 'square'] | _Unset, default=_UNSET
+        Bracket style for unit label. `'round'` displays the unit as '(unit)',
+        while `'square'` as '[unit]'.
+    fmt : str | _Unset, optional, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
+
+    Examples
+    --------
+    >>> get_unit_label(u.um, fmt='latex_inline')
+    '[$\\mathrm{\\mu m}$]'
+
+    >>> va.get_unit_label(u.um, fmt='unicode')
+    '[µm]'
+    """
+    bstyle = _resolve_default(bracket_style, config.unit_bracket_style)
+    unit_fmt = _resolve_default(fmt, config.unit_label_format)
+
+    data_unit = get_unit(unit)
+    if data_unit is None:
+        return ''
+
+    brackets = {
+        'round': ('(', ')'),
+        'square': ('[', ']'),
+    }.get(str(bstyle).lower(), config.unit_bracket_style)
+
+    unit_str = unit_2_string(data_unit, fmt=unit_fmt)
+
+    return fr'{brackets[0]}{unit_str}{brackets[1]}'
 
 
 @dataclass(slots=True)
