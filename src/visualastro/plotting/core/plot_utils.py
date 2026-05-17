@@ -72,7 +72,8 @@ from visualastro.core.units import (
     get_unit,
     to_latex_unit,
     to_unit,
-    _infer_physical_type_label
+    _infer_physical_type_label,
+    unit_2_string
 )
 from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
@@ -81,20 +82,20 @@ from visualastro.plotting.core.colors import sample_cmap
 
 
 @contextmanager
-def style(name=None, rc=None, **rc_kwargs):
+def style(name: str | _Unset = _UNSET, rc: dict | None = None, **rc_kwargs):
     """
     Context manager to temporarily apply a Matplotlib or VisualAstro style,
     with optional rcParams overrides.
 
     Parameters
     ----------
-    name : str or None
-        Matplotlib or VisualAstro style name. If None, uses the default
-        value from `config.style`. Ex: 'astro' or 'latex'.
+    name : str | _Unset, optional, default=_UNSET
+        Matplotlib or VisualAstro style name. If `_UNSET`,
+        uses `config.style`. Ex: 'astro' or 'latex'.
     rc : dict, optional
         Dictionary of rcParams overrides.
         Ex: {'font.size': 14}
-    **rc_kwargs
+    **rc_kwargs :
         Additional rcParams overrides supplied as keyword arguments.
         Use underscores in place of dots: font_size → font.size
 
@@ -110,8 +111,7 @@ def style(name=None, rc=None, **rc_kwargs):
     ...     # rc dict and kwargs are merged (kwargs take precedence)
     ...     plt.plot(x, y)
     """
-   # get visualastro style
-    name = get_config_value(name, 'style')
+    name = _resolve_default(name, config.style)
     style_name = _get_stylepath(name)
 
     # update rcParams, with priority to kwargs
