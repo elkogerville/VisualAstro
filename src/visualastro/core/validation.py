@@ -37,11 +37,11 @@ def allclose(
     ----------
     a, b : ArrayLike | u.Quantity | scalar | Sequence | None
         The inputs to compare. Inputs may be numerical arrays, scalars, or
-        ``Quantity`` objects with units. If one argument is ``None``, the result is
-        ``False`` unless both are ``None``.
+        `Quantity` objects with units. If one argument is `None`, the result is
+        `False` unless both are `None`.
     rtol : array_like
         Relative tolerance. Sets how close two values must be as a fraction
-        of the reference value ``b``. This allows larger absolute differences
+        of the reference value `b`. This allows larger absolute differences
         when comparing larger numbers. Increase this when you expect small
         percentage-level differences due to numerical error or algorithmic
         approximations.
@@ -51,30 +51,30 @@ def allclose(
         is especially important when comparing values near zero. Increase
         this when small nonzero values should be treated as effectively zero.
     equal_nan : bool, optional, default=True
-        Whether to compare NaN’s as equal. If ``True``, NaN’s in ``a`` will be
-        considered equal to equivalent NaN’s in ``b``.
+        Whether to compare NaN’s as equal. If `True`, NaN’s in `a` will be
+        considered equal to equivalent NaN’s in `b`.
 
     Returns
     -------
     bool
-        ``True`` if the inputs are considered equal, ``False`` otherwise.
+        `True` if the inputs are considered equal, `False` otherwise.
         Equality rules:
-        - Both ``None`` → ``True``
-        - One ``None`` → ``False``
-        - ``Quantities`` with mismatched units → ``False``
-        - ``Quantities`` with identical units → value arrays compared via
-            ``np.allclose``
-        - Non-Quantity arrays/scalars → compared via ``np.allclose``
+        - Both `None` → `True`
+        - One `None` → `False`
+        - `Quantities` with mismatched units → `False`
+        - `Quantities` with identical units → value arrays compared via
+        `np.allclose`
+        - Non-Quantity arrays/scalars → compared via `np.allclose`
 
     Notes
     -----
     - This function does **not** attempt unit conversion.
       Quantities must already share identical units.
-    - ``allclose(a, b) != allclose(b, a)`` in some rare cases.
-    - The default value of ``atol`` is not appropriate when
-      the reference value ``b`` has magnitude smaller than one.
-      i.e. it is unlikely that ``a=1e-9`` and ``b=2e-9`` should
-      be considered 'close', yet ``allclose(1e-9, 2e-9)`` is True
+    - `allclose(a, b) != allclose(b, a)` in some rare cases.
+    - The default value of `atol` is not appropriate when
+    the reference value `b` has magnitude smaller than one.
+    i.e. it is unlikely that `a=1e-9` and `b=2e-9` should
+    be considered 'close', yet `allclose(1e-9, 2e-9)` is True
       with default settings. Be sure to select atol for the
       use case at hand, especially for defining the threshold
       below which a non-zero value in a will be considered 'close'
@@ -129,9 +129,9 @@ def _check_shapes_match(a, b, name_a='a', name_b='b'):
     a : array-like
     b : array-like
     name_a : str, optional, default='a'
-        Name to use for array ``a`` in error messages.
+        Name to use for array `a` in error messages.
     name_b : str, optional, default='b'
-        Name to use for array ``b`` in error messages.
+        Name to use for array `b` in error messages.
 
     Returns
     -------
@@ -309,7 +309,7 @@ def _type_name(obj: Any) -> str:
 
     This is used internally for error messages, and is an
     alias for:
-        ``type(obj).__name__``.
+        `type(obj).__name__`.
 
     Parameters
     ----------
