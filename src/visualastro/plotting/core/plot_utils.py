@@ -571,7 +571,7 @@ def nanpercentile_limits(
 
 # Axes Labels, Format, and Styling
 # --------------------------------
-def make_plot_grid(nrows=None, ncols=None, figsize=None,
+def gridspec(nrows=None, ncols=None, figsize=None,
                    sharex=None, sharey=None, hspace=_UNSET,
                    wspace=_UNSET, width_ratios=None, height_ratios=None,
                    fancy_axes=False, Nticks=_UNSET, aspect=None):
