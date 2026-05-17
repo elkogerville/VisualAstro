@@ -253,9 +253,9 @@ class VisualAstroConfig:
     allowed_formats = {'eps', 'pdf', 'png', 'svg'}
 
     # circles params
-    circle_linewidth = 2
-    circle_fill = False
-    ellipse_label_loc = [0.03, 0.03]
+    circle_linewidth: float = 2
+    circle_fill: bool = False
+    ellipse_label_loc: tuple[float, float] = (0.03, 0.03)
 
     # Science Params
     # --------------
@@ -284,14 +284,7 @@ class VisualAstroConfig:
     deredden_method: str | None = None
     deredden_region: str | None = None
 
-    # curve_fit params
     curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
-    curve_fit_interpolate: bool = False
-    curve_fit_method: Literal['lm', 'trf', 'dogbox'] = 'trf'
-    curve_fit_absolute_sigma: bool = False
-    interpolation_samples: int = 10000
-    interpolation_method: str = 'cubic_spline'
-    error_interpolation_method: str = 'cubic_spline'
 
     # gaussian fitting params
     gaussian_model: Literal['gaussian', 'gaussian_line', 'gaussian_continuum'] = 'gaussian'

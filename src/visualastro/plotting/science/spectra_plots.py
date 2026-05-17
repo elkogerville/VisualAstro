@@ -1292,7 +1292,7 @@ def fit_gaussian_2_spec(
         If None, computes the min and max from the wavelength.
     fit_method : {'lm', 'trf', 'dogbox'} or None, optional, default=None
         Curve fitting algorithm used by `scipy.optimize.curve_fit`.
-        If None, uses the default value set by `config.curve_fit_method`.
+        If None, uses the default value set by `config.curve_fit.method`.
     absolute_sigma : boolean, optional, default=None
         If True, the values provided in `yerror` are interpreted as absolute
         1σ uncertainties on the flux measurements. In this case, the returned
@@ -1305,7 +1305,7 @@ def fit_gaussian_2_spec(
         Set this to True when `yerror` represents well-calibrated observational
         uncertainties (e.g., photon-counting or pipeline-provided errors).
         Set this to False when `yerror` is used only for weighting the fit.
-        If None, uses the default value set by `config.curve_fit_absolute_sigma`.
+        If None, uses the default value set by `config.curve_fit.absolute_sigma`.
     yerror : array-like or None, optional, default=None
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
@@ -1316,13 +1316,12 @@ def fit_gaussian_2_spec(
         default value set by ``config.curve_fit.interpolate``.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
-        None, uses the default value set by `config.interpolation_samples`.
+        None, uses the default value set by `config.curve_fit.samples`.
     interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
-        Interpolation method used. If None, uses the default
-        value set by `config.interpolation_method`.
+        Interpolation method used. If None, uses `config.curve_fit.interpolation_method`.
     error_interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
         Method to interpolate yerror if provided. If None, uses
-        the default value set by `config.error_interpolation_method`.
+        the default value set by `config.curve_fit.error_interpolation_method`.
     return_fit_params : bool or None, default=None
         If True, return full computed best-fit parameters for all parameters,
         including popt, pcov, and perr. If False, return only Flux, FWHM, and mu.
@@ -1401,12 +1400,12 @@ def fit_gaussian_2_spec(
     # get default config values
     colors = get_config_value(colors, 'colors')
     model = get_config_value(model, 'gaussian_model')
-    fit_method = get_config_value(fit_method, 'curve_fit_method')
-    absolute_sigma = get_config_value(absolute_sigma, 'curve_fit_absolute_sigma')
-    interpolate = config.curve_fit.interpolate if interpolate is _UNSET else interpolate
-    interp_method = get_config_value(interp_method, 'interpolation_method')
-    error_interp_method = get_config_value(error_interp_method, 'error_interpolation_method')
-    samples = get_config_value(samples, 'interpolation_samples')
+    fit_method = _resolve_default(fit_method, config.curve_fit.interpolation_method)
+    absolute_sigma = _resolve_default(absolute_sigma, config.curve_fit.absolute_sigma)
+    interpolate = _resolve_default(interpolate, config.curve_fit.interpolate)
+    interp_method = _resolve_default(interp_method, config.curve_fit.interpolation_method)
+    error_interp_method = _resolve_default(error_interp_method, config.curve_fit.error_interpolation_method)
+    samples = _resolve_default(samples, config.curve_fit.samples)
     return_fit_params = get_config_value(return_fit_params, 'return_gaussian_fit_parameters')
     print_vals = get_config_value(print_vals, 'print_gaussian_values')
 
