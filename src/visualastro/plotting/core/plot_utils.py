@@ -592,20 +592,20 @@ def gridspec(nrows=None, ncols=None, figsize=None,
         uses the default value set in `config.grid_figsize`.
     sharex : bool or None, default=None
         If True, share the x-axis among all subplots. If None,
-        uses the default value set in `config.sharex`.
+        uses the default value set in `config.axes.sharex`.
     sharey : bool or None, default=None
         If True, share the y-axis among all subplots. If None,
-        uses the default value set in `config.sharey`.
+        uses the default value set in `config.axes.sharey`.
     hspace : float or None, default=`_UNSET`
         Height padding between subplots. If None,
         Matplotlib’s default spacing is used. If
         `_UNSET`, uses the default value set in
-        `config.hspace`.
+        `config.axes.hspace`.
     wspace : float or None, default=`_UNSET`
         Width padding between subplots. If None,
         Matplotlib’s default spacing is used. If
         `_UNSET`, uses the default value set in
-        `config.wspace`.
+        `config.axes.wspace`.
     width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
         Defines the relative widths of the columns. Each column gets a relative width
@@ -622,7 +622,7 @@ def gridspec(nrows=None, ncols=None, figsize=None,
     Nticks : int or None, default=`_UNSET`
         Maximum number of major ticks per axis. If None,
         uses the default matplotlib settings. If `_UNSET`,
-        uses the default value set in `config.Nticks`.
+        uses the default value set in `config.axes.Nticks`.
     aspect : float or None, default=None
         Changes the physical dimensions of the Axes,
         such that the ratio of the Axes height to the
@@ -643,9 +643,9 @@ def gridspec(nrows=None, ncols=None, figsize=None,
     figsize = get_config_value(figsize, 'grid_figsize')
     sharex = get_config_value(sharex, 'sharex')
     sharey = get_config_value(sharey, 'sharey')
-    hspace = _resolve_default(hspace, config.hspace)
-    wspace = _resolve_default(wspace, config.wspace)
-    Nticks = _resolve_default(Nticks, config.Nticks)
+    hspace = _resolve_default(hspace, config.axes.hspace)
+    wspace = _resolve_default(wspace, config.axes.wspace)
+    Nticks = _resolve_default(Nticks, config.axes.Nticks)
 
     Nx = nrows
     Ny = ncols
@@ -967,10 +967,10 @@ def set_axis_limits(
         is considered when computing X-axis limits automatically.
     xpad : float or None, optional, default=None
         Fractional padding to apply to X-axis limits. If None,
-        uses the default value from `config.xpad`.
+        uses the default value from `config.axes.xpad`.
     ypad : float or None, optional, default=None
         Fractional padding to apply to Y-axis limits. If None,
-        uses the default value from `config.ypad`.
+        uses the default value from `config.axes.ypad`.
 
     Returns
     -------
@@ -1813,14 +1813,14 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
             selector.set_active(not selector.active)
             return
 
-        # synchronize region ← artist
+        # synchronize region <- artist
         region.angle = -artist.angle * u.deg
 
         artist.figure.canvas.draw_idle()
 
         _update_ellipse_region(region, text=text)
 
-    ax.figure.canvas.mpl_connect("key_press_event", _rotate)
+    ax.figure.canvas.mpl_connect('key_press_event', _rotate)
 
     return selector
 
@@ -1935,7 +1935,7 @@ def plot_points(points, ax, color='r', size=20, marker='*'):
             ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
 
 
-def plot_vlines(vlines, ax, unit=None, equivalencies=None):
+def plot_vlines(vlines, ax, unit=None, equivalencies=None) -> None:
     """
     Plot one or more vertical reference lines on a Matplotlib axis.
 
@@ -1955,10 +1955,6 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None):
     equivalencies : astropy.units.equivalencies or None, optional, default=None
         Equivalencies for converting units. If None, is ignored.
 
-    Notes
-    -----
-    Vertical lines are drawn using `ax.axvline` with a dotted linestyle,
-    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
     """
     if vlines is not None:
         vlines = to_list(vlines)

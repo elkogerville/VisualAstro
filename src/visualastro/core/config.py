@@ -137,7 +137,7 @@ class VisualAstroConfig:
     invert_wcs_if_transpose: bool = True
     target_wcs: Header | WCS | None = None
     hdu: HDUConfig = field(default_factory=HDUConfig)
-    array_order: Literal['C', 'c', 'F', 'fortran'] = 'c'
+    array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
 
     # figure params
     style: str = 'astro' # default style
@@ -199,18 +199,7 @@ class VisualAstroConfig:
     percentile: tuple[float, float] | None = (3.0, 99.5)
     aspect: Literal['auto', 'equal'] | float | None = None
 
-    # axes params
-    xpad: float = 0.05  # set_axis_limits() xpad
-    ypad: float = 0.05 # set_axis_limits() ypad
-    xlog: bool = False
-    ylog: bool = False
-    xlog_hist: bool = True
-    ylog_hist: bool = True
-    sharex: bool = False
-    sharey: bool = False
-    hspace: float | None = None
-    wspace: float | None = None
-    Nticks: int | None = None
+    axes: AxesConfig = field(default_factory=AxesConfig)
 
     # cbar params
     cbar: bool = True
