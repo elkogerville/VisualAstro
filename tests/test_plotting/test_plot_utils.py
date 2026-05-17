@@ -21,13 +21,54 @@ from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
+from visualastro.core.validation import allclose
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.plot_utils import (
     get_imshow_norm,
     get_vmin_vmax,
-    _extract_xy
+    _extract_xy,
+    _normalize_plotting_input
 )
+
+
+class TestNormalizePlottingInputs:
+
+    def test_normalize_plotting_input(self):
+        # test 1: single arrays
+        X = np.array([1, 2, 3])
+        Y = np.array([4, 5, 6])
+        x = _normalize_plotting_input(X)
+        y = _normalize_plotting_input(Y)
+        assert allclose(x, X) and allclose(y, Y)
+
+        # test 2: Quantity arrays
+        X = np.array([1, 2, 3]) * u.um
+        Y = np.array([4, 5, 6]) * u.um
+        x = _normalize_plotting_input(X)
+        y = _normalize_plotting_input(Y)
+        assert allclose(x, X) and allclose(y, Y)
+
+        # test 3: List of scalar Quantities
+        X = [1*u.um, 2*u.um, 3*u.um]
+        Y = [4*u.um, 5*u.um, 6*u.um]
+        x = _normalize_plotting_input(X)
+        y = _normalize_plotting_input(Y)
+        assert allclose(x, list(X)) and allclose(y, list(Y))
+
+        # test 4: tuple of scalar Quantities
+        X = (1*u.um, 2*u.um, 3*u.um)
+        Y = (4*u.um, 5*u.um, 6*u.um)
+        x = _normalize_plotting_input(X)
+        y = _normalize_plotting_input(Y)
+        assert allclose(x, list(X)) and allclose(y, list(Y))
+
+        # Test 5: List of Quantity arrays (multiple datasets)
+        X = [np.array([1, 2])*u.um, np.array([3, 4])*u.um]
+        Y = [np.array([5, 6])*u.um, np.array([7, 8])*u.um]
+        x = _normalize_plotting_input(X)
+        y = _normalize_plotting_input(Y)
+        assert allclose(x, list(X)) and allclose(y, list(Y))
 
 
 class TestExtractXY:
@@ -81,7 +122,7 @@ class TestExtractXY:
 
         X, Y = _extract_xy(y)
 
-        assert np.array_equal(X, np.arange(3))
+        assert X is None
         assert np.array_equal(Y, y)
 
     def test_single_2d_array(self):
@@ -94,6 +135,13 @@ class TestExtractXY:
 
         assert np.array_equal(X, [1, 4])
         assert np.array_equal(Y, [2, 5])
+
+        y = np.array([[10, 20, 30]])
+
+        X, Y = _extract_xy(y, order='c', index_spec=(0,1))
+
+        assert np.array_equal(X, np.array([10]))
+        assert np.array_equal(Y, np.array([20]))
 
         arr = np.array([
             [1,2,3,4,5],
@@ -131,8 +179,7 @@ class TestExtractXY:
 
         X, Y = _extract_xy(y)
 
-        assert np.array_equal(X, np.arange(3))
-        assert np.all(Y == y)
+        assert X is None and np.all(Y == y)
 
     def test_two_quantity_arrays(self):
         x = [1,2,3] * u.um
@@ -151,8 +198,7 @@ class TestExtractXY:
         y = [1,2,3]
         X, Y = _extract_xy(y)
 
-        assert np.array_equal(X, np.arange(3))
-        assert np.array_equal(Y, [1,2,3])
+        assert X is None and np.array_equal(Y, [1,2,3])
 
     def test_two_lists(self):
         x = [1,2,3]
@@ -184,8 +230,7 @@ class TestExtractXY:
         y = [1*u.um, 2*u.um, 3*u.um]
         X, Y = _extract_xy(y)
 
-        assert np.array_equal(X, np.arange(3))
-        assert Y == y
+        assert X is None and Y == y
 
     def test_two_lists_of_quantities(self):
         x = [1*u.um, 2*u.um, 3*u.um]
@@ -215,8 +260,7 @@ class TestExtractXY:
     def test_scalars(self):
         X, Y = _extract_xy(1)
 
-        assert np.array_equal(X, 0)
-        assert np.array_equal(Y, 1)
+        assert X is None and np.array_equal(Y, 1)
 
         X, Y = _extract_xy(1, 2)
 
@@ -226,8 +270,7 @@ class TestExtractXY:
     def test_quantity_scalars(self):
         X, Y = _extract_xy(1*u.um)
 
-        assert np.array_equal(X, 0)
-        assert np.array_equal(Y, 1*u.um)
+        assert X is None and np.array_equal(Y, 1*u.um)
 
         X, Y = _extract_xy(1*u.um, 2*u.Jy)
 
@@ -254,8 +297,7 @@ class TestExtractXY:
 
         X, Y = _extract_xy(y)
 
-        assert np.array_equal(X, np.arange(3))
-        assert np.array_equal(Y, y)
+        assert X is None and np.array_equal(Y, y)
 
     def test_jagged_list_raises(self):
         y = [[1, 2], [3]]
