@@ -611,6 +611,29 @@ def _is_array_like(obj):
     return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
 
 
+def _is_2d(obj: Any) -> bool:
+    """Check that an object is a 2D Sequence."""
+    if isinstance(obj, (np.ndarray, u.Quantity)):
+        return obj.ndim == 2
+
+    if isinstance(obj, (list, tuple)):
+        for o in obj:
+            if not hasattr(o, '__len__') or getattr(o, 'isscalar', False):
+                return False
+        return True
+
+    return False
+
+
+def _is_iterable(obj) -> bool:
+    """Check that an object is an iterable container (array-like)."""
+    if isinstance(obj, (list, tuple)):
+        return True
+    if isinstance(obj, (np.ndarray, u.Quantity)):
+        return obj.ndim > 0
+    return False
+
+
 @overload
 def _cycle(data: list[T], i: int) -> T: ...
 
