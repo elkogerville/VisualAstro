@@ -68,7 +68,7 @@ class CurveFitConfig:
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
     absolute_sigma: bool = False
-    sample: int = 10000
+    samples: int = 10000
     interpolate: bool = False
     interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'

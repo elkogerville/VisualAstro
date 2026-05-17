@@ -95,6 +95,7 @@ from visualastro.plotting.core.plot_utils import (
     contourf,
     ellipse_patch,
     get_imshow_norm,
+    get_unit_label,
     get_vmin_vmax,
     inline,
     interactive,
