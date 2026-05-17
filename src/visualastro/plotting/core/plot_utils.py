@@ -1371,64 +1371,64 @@ def _apply_plot_utils(
 def _extract_xy(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
 ) -> tuple[
-    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None,
     float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
 ]:
     """
     Extract X and Y coordinates from flexible numeric inputs.
 
-    Supports single or dual argument forms with automatic interpretation
-    based on dimensionality and type.
+    Interprets input based on dimensionality and structure. For 2D arrays,
+    extracts columns according to `order` and `index_spec`. Returns X as None
+    if only Y values are detected.
+
+    This function is used by `_normalize_plotting_input(s)`.
 
     Parameters
     ----------
     *data : tuple
-        Input data providing coordinates. Supported forms:
+        Input data. Supported forms:
 
-        - Single argument:
+        – Single argument:
+            – 1D array-like or Quantity: Y values, X = None
+            – 2D array or Quantity: extract X, Y according to `order` and `index_spec`
+            – list/tuple of scalars: Y values, X = None
+            – scalar or scalar Quantity: single Y value, X = None
+        – Two arguments: (X, Y) pairs passed through unchanged
 
-            - 1D array-like or Quantity: interpreted as Y, X = arange(N)
-            - 2D array or Quantity: shape (N, 2) or (2, N) depending on `order`
-            - list or tuple of scalars/Quantities: interpreted as Y, X = arange(N)
-            - scalar or scalar Quantity: single point (0, y)
+    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+        Memory layout for 2D input interpretation. Defines what a
+        column is for `index_spec`.
 
-        - Two arguments: (X, Y) pairs of scalars, arrays, or Quantity objects
-            (mixed array/Quantity combinations preserve type semantics)
+        – 'c': row-major, shape (N, 2)
+        – 'fortran': column-major, shape (2, N)
 
-    order : {'c', 'fortran'}, optional
-        Memory layout interpretation for 2D inputs.
+        If `_UNSET`, uses `config.array_order`.
+    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
+        Column extraction mode for 2D inputs.
 
-        - 'c': row-major, shape (N, 2)
-        - 'fortran': column-major, shape (2, N)
-        - If unset, uses `config.array_order`
-
-        Ignored for 1D and scalar inputs.
+        – 'implicit': return (None, [col_0, col_1, ...])
+        – 'explicit': return (col_0, col_1)
+        – tuple (i, j): return (col_i, col_j)
 
     Returns
     -------
-    X : ndarray, Quantity, scalar, or list
-        Extracted or generated X coordinates. Type matches input semantics.
-
-    Y : ndarray, Quantity, scalar, or list
-        Extracted Y coordinates. Preserves input type where applicable.
+    X : ndarray | Quantity | scalar | list | None
+        X coordinates. None indicates implicit indexing (caller should generate).
+        Type preserves input semantics.
+    Y : ndarray | Quantity | scalar | list
+        Y coordinates. Preserves input type.
 
     Raises
     ------
     ValueError
-        If any of the following conditions occur:
+        If input has unsupported dimensionality, structure, or count.
 
-        - More than two positional arguments provided
-        - Unsupported dimensionality (ndim > 2)
-        - Invalid or jagged nested structures
-        - Inputs cannot be unambiguously interpreted as numeric data
-
-    Examples
-    --------
-    >>> X, Y = extract_coordinates([1, 2, 3])
-    >>> X, Y = extract_coordinates([0, 1, 2], [10, 20, 30])
-    >>> X, Y = extract_coordinates([[0, 10], [1, 20], [2, 30]])
+    Notes
+    -----
+    For 2D inputs with 'implicit' mode, X is returned as None and Y as a list
+    of column arrays, delegating index generation to the caller.
     """
     array_order = _resolve_default(order, config.array_order)
 
@@ -1436,13 +1436,13 @@ def _extract_xy(
         obj = data[0]
         if isinstance(obj, (np.ndarray, u.Quantity)):
             if obj.ndim == 1:
-                return np.arange(len(obj)), obj
+                return None, obj
             if obj.ndim == 2:
                 if array_order.lower() == 'c':
-                    axis, n = 0, obj.shape[0]
+                    axis = 0
                     get_col = lambda i: obj[:, i]
                 else:
-                    axis, n = 1, obj.shape[1]
+                    axis = 1
                     get_col = lambda i: obj[i, :]
 
                 if isinstance(index_spec, (list, tuple)):
@@ -1451,20 +1451,19 @@ def _extract_xy(
                 elif index_spec == 'explicit':
                     return get_col(0), get_col(1)
                 elif index_spec == 'implicit':
-                    x = np.arange(n)
                     y = [
                         get_col(i) for i in range(
                             obj.shape[1] if axis == 0 else obj.shape[0]
                         )
                     ]
-                    return x, y
+                    return None, y
 
         if _is_scalar(obj):
-            return 0, obj
+            return None, obj
 
         if isinstance(obj, (list, tuple)):
             if all(_is_scalar(x) for x in obj):
-                return np.arange(len(obj)), obj
+                return None, obj
 
         raise ValueError(f'Unsupported input type {_type_name(obj)}')
 
