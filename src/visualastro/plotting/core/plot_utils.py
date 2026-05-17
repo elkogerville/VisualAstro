@@ -1079,8 +1079,15 @@ def set_axis_limits(
 
 
 def set_axis_labels(
-    X, Y, ax, xlabel=None, ylabel=None, unit_bracket_style=None,
-    show_physical_label=None, show_unit=None, fmt=None
+    X: u.Quantity | ArrayLike | None,
+    Y: u.Quantity | ArrayLike | None,
+    ax: maxes.Axes,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
+    unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
+    show_physical_label: bool | _Unset = _UNSET,
+    show_unit: bool | _Unset = _UNSET,
+    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
 ) -> None:
     """
     Automatically generate and set axis labels from objects with physical
@@ -1093,30 +1100,33 @@ def set_axis_labels(
 
     Parameters
     ----------
-    X : '~astropy.units.Quantity' or object with a unit
-        Data for the x-axis, typically a spectral axis (frequency,
-        wavelength, or velocity).
+    X : u.Quantity | ArrayLike | None
+        Object with a unit exposable with `get_data`. If `None`,
+        does not set any labels unless `xlabel` is set.
     Y : '~astropy.units.Quantity' or object with a unit
-        Data for the y-axis, typically flux, intensity, or surface brightness.
-    ax : 'matplotlib.axes.Axes'
+        Object with a unit exposable with `get_data`. If `None`,
+        does not set any labels unless `ylabel` is set.
+    ax : matplotlib.axes.Axes
         Matplotlib axes object on which to set the labels.
-    xlabel : str or None, optional
+    xlabel : str | None, optional, default=None
         Custom label for the x-axis. If None, the label is inferred from `X`.
-    ylabel : str or None, optional
+    ylabel : str | None, optional, default=None
         Custom label for the y-axis. If None, the label is inferred from `Y`.
-    unit_bracket_style : bool or None, optional
-        If True, wrap units in square brackets '[ ]'. If False, use
-        parentheses '( )'. If None, uses the default value from
-        `config.unit_bracket_style`.
-    show_physical_label : bool or None, optional
-        If True, include the inferred physical type in the axis label.
-        If None, uses the default value from `config.show_type_label`.
-    show_unit : bool or None, optional
-        If True, include the unit in the axis label. If None, uses the
-        default value from `config.show_unit_label`.
-    fmt : {'latex', 'latex_inline', 'inline'} or None, optional
-        Format for unit rendering. Passed to `to_latex_unit`. If None,
-        uses the default value from `config.unit_label_format`.
+    unit_bracket_style : Literal['round', 'square'] | _Unset, optional, default=_UNSET
+        If `'round`' displays `extracted_spectrums` unit as (unit). If `'square`' as [unit].
+    show_physical_label : bool | _Unset, optional, default=_UNSET
+        If `True`, include the inferred physical type in the axis label.
+        If `_UNSET`, uses `config.show_type_label`.
+    show_unit : bool | _Unset, optional, default=_UNSET
+        If `True`, include the unit in the axis label. If `_UNSET`, uses
+        `config.show_unit_label`.
+    fmt : str | _Unset, optional, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
 
     Examples
     --------
