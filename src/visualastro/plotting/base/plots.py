@@ -134,7 +134,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
             Axis limits for the scatter plot.
         - `labels`, `label`, `l` : list or str, optional, default=None
             Labels for legend entries.
-        - `loc` : str, optional, default=`config.loc`
+        - `loc` : str, optional, default=`config.legend_loc`
             Legend location.
         - `xlabel`, `ylabel` : str, optional, default=None
             Axis labels for the scatter plot.
@@ -174,7 +174,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ylim = kwargs.get('ylim', None)
     # labels
     labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', config.loc)
+    loc = kwargs.get('loc', config.legend_loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
 
@@ -363,7 +363,7 @@ def hist(
         uses the default color colorset from `config.default_colorset`.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
-    loc : str, optional, default=config.loc
+    loc : str, optional, default=config.legend_loc
         Legend location.
     xlabel : str, optional, default=None
         Label for x-axis.
@@ -559,7 +559,7 @@ def plot(
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
-    loc : str, optional, default=config.loc
+    loc : str, optional, default=config.legend_loc
         Legend location.
     xlabel : str, optional, default=None
         Label for x-axis.
@@ -764,7 +764,7 @@ def scatter(
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
-    loc : str, optional, default=config.loc
+    loc : str, optional, default=config.legend_loc
         Legend location.
     xlabel : str, optional, default=None
         Label for x-axis.
@@ -1040,7 +1040,7 @@ def scatter_fit(
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
-    loc : str, optional, default=config.loc
+    loc : str, optional, default=config.legend_loc
         Legend location.
     xlabel : str, optional, default=None
         Label for x-axis.

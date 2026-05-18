@@ -223,7 +223,7 @@ class VisualAstroConfig:
     right_ascension: str = 'Right Ascension'
     declination: str = 'Declination'
     highlight: bool = True
-    loc = 'best'
+    legend_loc = 'best'
     show_type_label: bool = False
     show_unit_label: bool = True
     unit_label_format: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] = 'latex_inline'
