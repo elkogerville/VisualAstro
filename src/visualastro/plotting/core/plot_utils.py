@@ -65,6 +65,7 @@ from visualastro.core.numerical_utils import (
     _cycle,
     _is_iterable,
     _is_scalar,
+    _is_1d,
     _is_2d
 )
 from visualastro.core.units import (
@@ -1590,7 +1591,8 @@ def _extract_xy(
 def _normalize_plotting_inputs(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    mode: Literal['plot', 'scatter'] = 'scatter'
 ):
     """
     Extract and normalize X, Y inputs for plotting.
@@ -1656,10 +1658,16 @@ def _normalize_plotting_inputs(
     if _is_2d(X) and not _is_2d(Y):
         Y = [Y]
 
-    if _is_scalar(X):
+    if _is_scalar(X) or isinstance(X, np.ndarray):
         X = [X]
-    if _is_scalar(Y):
+    if _is_scalar(Y) or isinstance(Y, np.ndarray):
         Y = [Y]
+
+    if mode == 'plot':
+        if _is_1d(X):
+            X = [X]
+        if _is_1d(Y):
+            Y = [Y]
 
     return X, Y
 
