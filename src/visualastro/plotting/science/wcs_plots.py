@@ -351,11 +351,21 @@ def imshow(
     return images
 
 
-def plot_spectral_cube(cubes, idx=None, ax=None, vmin=_UNSET,
-                       vmax=_UNSET, norm=_UNSET,
-                       percentile=_UNSET, stack_method=None,
-                       radial_vel=None, spectral_unit=None, cmap=None,
-                       mask_non_pos=None, wcs_grid=None, **kwargs):
+def plot_spectral_cube(
+    cubes,
+    idx=None,
+    ax=None,
+    vmin=_UNSET,
+    vmax=_UNSET,
+    norm=_UNSET,
+    percentile=_UNSET,
+    stack_method=None,
+    radial_vel=None,
+    spectral_unit=None,
+    cmap=None,
+    mask_non_pos=None,
+    wcs_grid=None,
+    **kwargs):
     """
     Plot a single spectral slice from one or more spectral cubes.
 

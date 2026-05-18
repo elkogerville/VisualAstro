@@ -1709,7 +1709,7 @@ def _normalize_plotting_input(data):
             )
         return data
 
-    if _is_scalar(data):
+    if _is_scalar(data) or isinstance(data, np.ndarray):
         return [data]
 
     if _is_iterable(data):
