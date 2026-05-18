@@ -1302,9 +1302,22 @@ def get_unit_label(
 
 @dataclass(slots=True)
 class PlotUtilParams:
+    reference_idx: Any = None
     ellipses: Any = None
     vlines: Any = None
     hlines: Any = None
+    label: Any = None
+    legend_loc: Any = None
+    xlabel: Any = None
+    ylabel: Any = None
+    unit_bracket_style: Any = None
+    show_physical_type: Any = None
+    show_unit: Any = None
+    unit_fmt: Any = None
+    xlim: Any = None
+    ylim: Any = None
+    xpad: Any = None
+    ypad: Any = None
 
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
@@ -1312,9 +1325,26 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     params = _extract_kwargs(
         kwargs,
         additional_kwargs=[
+            _kwarg('reference_idx', config.reference_idx),
+
             _kwarg('ellipses', None),
+
             _kwarg('vlines', None),
             _kwarg('hlines', None),
+
+            _kwarg('legend_loc', config.legend_loc),
+
+            _kwarg('xlabel', None),
+            _kwarg('ylabel', None),
+            _kwarg('unit_bracket_style', config.unit_bracket_style),
+            _kwarg('show_physical_type', config.show_type_label),
+            _kwarg('show_unit', config.show_unit_label),
+            _kwarg('unit_fmt', config.unit_label_format),
+
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('xpad', config.axes.xpad),
+            _kwarg('ypad', config.axes.ypad),
         ]
     )
 
@@ -1324,9 +1354,10 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
 def _apply_plot_utils(
     params: PlotUtilParams,
     ax: maxes.Axes,
-    X = None,
-    Y = None,
-    ref_unit: u.UnitBase | u.StructuredUnit | None = None
+    xlist: list | None = None,
+    ylist: list | None = None,
+    ref_unit: u.UnitBase | u.StructuredUnit | None = None,
+    **kwargs
 ) -> None:
     """
     Plotting interface for adding figure annotations and artists to a figure.
@@ -1365,6 +1396,32 @@ def _apply_plot_utils(
     plot_ellipses(params.ellipses, ax)
     plot_vlines(params.vlines, ax, ref_unit)
     plot_hlines(params.hlines, ax, ref_unit)
+
+    if 'labels' in kwargs:
+        if _cycle(kwargs['labels'], params.reference_idx) is not None:
+            ax.legend(loc=params.legend_loc)
+
+    set_axis_limits(
+        xlist,
+        ylist,
+        ax=ax,
+        xlim=params.xlim,
+        ylim=params.ylim,
+        xpad=params.xpad,
+        ypad=params.ypad
+    )
+
+    set_axis_labels(
+        _cycle(xlist, params.reference_idx) if xlist is not None else None,
+        _cycle(ylist, params.reference_idx) if ylist is not None else None,
+        ax=ax,
+        xlabel=params.xlabel,
+        ylabel=params.ylabel,
+        unit_bracket_style=params.unit_bracket_style,
+        show_physical_type=params.show_physical_type,
+        show_unit=params.show_unit,
+        fmt=params.unit_fmt
+    )
 
 
 def _extract_xy(
