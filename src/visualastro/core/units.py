@@ -406,7 +406,7 @@ def to_latex_unit(
     fmt = str(fmt).lower()
     if fmt not in {'latex', 'latex_inline', 'inline'}:
         raise ValueError(
-            "format must be: {'latex', 'latex_inline', 'inline'}"
+            "format must be: {'latex', 'latex_inline', 'inline'} "
             f'got: {fmt}'
         )
 

@@ -1318,6 +1318,17 @@ class PlotUtilParams:
     ylim: Any = None
     xpad: Any = None
     ypad: Any = None
+    wcs_grid: Any = None
+    wcs_grid_color: Any = None
+    wcs_grid_linestyle: Any = None
+    wcs_grid_linewidth: Any = None
+    wcs_grid_alpha: Any = None
+    gridlines: Any = None
+    grid_which: Any = None
+    grid_color: Any = None
+    grid_linestyle: Any = None
+    grid_linewidth: Any = None
+    grid_alpha: Any = None
 
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
@@ -1345,6 +1356,19 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
             _kwarg('ylim', None),
             _kwarg('xpad', config.axes.xpad),
             _kwarg('ypad', config.axes.ypad),
+
+            _kwarg('wcs_grid', config.wcs_grid),
+            _kwarg('wcs_grid_color', config.wcs_grid_color),
+            _kwarg('wcs_grid_linestyle', config.wcs_grid_linestyle),
+            _kwarg('wcs_grid_linewidth', config.wcs_grid_linewidth),
+            _kwarg('wcs_grid_alpha', config.wcs_grid_alpha),
+
+            _kwarg('gridlines', config.gridlines),
+            _kwarg('grid_which', config.grid_which),
+            _kwarg('grid_color', config.grid_color),
+            _kwarg('grid_linestyle', config.grid_linestyle),
+            _kwarg('grid_linewidth', config.grid_linewidth),
+            _kwarg('grid_alpha', config.grid_alpha),
         ]
     )
 
@@ -1392,7 +1416,6 @@ def _apply_plot_utils(
         provided, a horizontal line is drawn for each element. If `None`, no lines
         are drawn.
     """
-
     plot_ellipses(params.ellipses, ax)
     plot_vlines(params.vlines, ax, ref_unit)
     plot_hlines(params.hlines, ax, ref_unit)
@@ -1422,6 +1445,25 @@ def _apply_plot_utils(
         show_unit=params.show_unit,
         fmt=params.unit_fmt
     )
+
+    if params.wcs_grid and isinstance(ax, WCSAxes):
+        ax.coords.grid(
+            True,
+            color=params.wcs_grid_color,
+            ls=params.wcs_grid_linestyle,
+            lw=params.wcs_grid_linewidth,
+            alpha=params.wcs_grid_alpha,
+        )
+
+    if params.gridlines:
+        ax.grid(
+            True,
+            which=params.grid_which,
+            color=params.grid_color,
+            ls=params.grid_linestyle,
+            lw=params.grid_linewidth,
+            alpha=params.grid_alpha,
+        )
 
 
 def _extract_xy(

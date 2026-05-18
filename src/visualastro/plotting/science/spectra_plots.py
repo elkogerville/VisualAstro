@@ -24,6 +24,7 @@ Module Structure:
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Literal
+
 import astropy.units as u
 from astropy.units import Quantity
 from matplotlib.colors import to_rgba

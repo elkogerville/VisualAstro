@@ -12,11 +12,13 @@ Dependencies:
 
 from collections.abc import Sequence
 from typing import Literal, cast
+
 import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 from specutils import SpectralAxis
+
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
     shift_by_radial_vel,
