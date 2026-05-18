@@ -799,7 +799,7 @@ def add_colorbar(im, ax, cbar_width=None,
 def contour(x, y, ax, levels=20, contour_method='contour',
                  bw_method='scott', gridsize=200, padding=0.2,
                  cslabel=False, zdir=None, offset=None, cmap=None,
-                 **kwargs):
+                 zorder=None, **kwargs):
     """
     Add 2D or 3D Gaussian KDE density contours to an axis.
     This function computes a 2D Gaussian kernel density estimate (KDE)
@@ -860,6 +860,15 @@ def contour(x, y, ax, levels=20, contour_method='contour',
     # ---- KWARGS ----
     fontsize = kwargs.get('fontsize', config.fontsize)
     cmap = get_config_value(cmap, 'cmap')
+
+    c_method = contour_method.lower()
+    contour_methods = {
+        'contour': ax.contour,
+        'contourf': ax.contourf
+    }
+    contour_func = contour_methods.get(c_method, ax.contour)
+    c_method_name = c_method if c_method in contour_methods else 'contour'
+
     contour_method = {
         'contour': ax.contour,
         'contourf': ax.contourf
@@ -870,24 +879,27 @@ def contour(x, y, ax, levels=20, contour_method='contour',
         x, y, bw_method=bw_method, gridsize=gridsize, padding=padding
     )
 
+    if zorder is None:
+        zorder = config.zorder.contour if c_method_name == 'contour' else config.zorder.contourf
+
     # plot contours as either 3D projections or a simple 2D plot
     valid_zdirs = {'x', 'y', 'z'}
     zdir = zdir.lower() if isinstance(zdir, str) else None
     if zdir in valid_zdirs and offset is not None:
         if zdir == 'z':
-            cs = contour_method(
-                X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            cs = contour_func(
+                X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
             )
         elif zdir == 'y':
-            cs = contour_method(
-                X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            cs = contour_func(
+                X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
             )
         else:
-            cs = contour_method(
-                Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset
+            cs = contour_func(
+                Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
             )
     else:
-        cs = contour_method(X, Y, Z, levels=levels, cmap=cmap)
+        cs = contour_func(X, Y, Z, levels=levels, cmap=cmap, zorder=zorder)
 
     if cslabel:
         ax.clabel(cs, fontsize=fontsize)
@@ -907,6 +919,7 @@ def contourf(
     zdir=None,
     offset=None,
     cmap=None,
+    zorder=None,
     **kwargs,
 ):
     """
@@ -931,6 +944,7 @@ def contourf(
         zdir=zdir,
         offset=offset,
         cmap=cmap,
+        zorder=zorder,
         **kwargs,
     )
 
@@ -1453,6 +1467,7 @@ def _apply_plot_utils(
             ls=params.wcs_grid_linestyle,
             lw=params.wcs_grid_linewidth,
             alpha=params.wcs_grid_alpha,
+            zorder=config.zorder.wcs_grid,
         )
 
     if params.gridlines:
@@ -1463,6 +1478,7 @@ def _apply_plot_utils(
             ls=params.grid_linestyle,
             lw=params.grid_linewidth,
             alpha=params.grid_alpha,
+            zorder=config.zorder.gridlines,
         )
 
 
@@ -2069,7 +2085,7 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None) -> None:
                 lw=config.axline.linewidth,
                 color=config.axline.color,
                 alpha=config.axline.alpha,
-                zorder=config.axline.zorder
+                zorder=config.zorder.vlines
             )
 
 
@@ -2113,7 +2129,7 @@ def plot_hlines(hlines, ax, unit=None, equivalencies=None):
                 lw=config.axline.linewidth,
                 color=config.axline.color,
                 alpha=config.axline.alpha,
-                zorder=config.axline.zorder
+                zorder=config.zorder.hlines
             )
 
 
