@@ -157,13 +157,18 @@ class VisualAstroConfig:
     rasterized: bool = False # rasterize plot artists wherever possible
 
     # figure grid params
-    grid_alpha: float = 1
+    gridlines: bool = False
+    grid_which: Literal['major', 'minor', 'both'] = 'major'
     grid_color: ColorType = 'k'
-    grid_linestyle: 'str' = 'solid'
+    grid_linestyle: 'str' = 'dotted'
+    grid_linewidth: float = 0.8
+    grid_alpha: float = 0.8
 
     wcs_grid: bool = False
     wcs_grid_color: ColorType = 'w'
     wcs_grid_linestyle: 'str' = 'dotted'
+    wcs_grid_linewidth: float = 0.8
+    wcs_grid_alpha: float = 0.8
 
     # data params
     normalize_data: bool = False
