@@ -62,7 +62,7 @@ from visualastro.core.numerical_utils import (
     get_value,
     to_array,
     to_list,
-    _is_array_like,
+    _cycle,
     _is_iterable,
     _is_scalar,
     _is_2d
@@ -70,7 +70,6 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.units import (
     get_physical_type,
     get_unit,
-    to_latex_unit,
     to_unit,
     _infer_physical_type_label,
     unit_2_string
