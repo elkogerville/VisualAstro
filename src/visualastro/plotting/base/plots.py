@@ -48,9 +48,9 @@ from visualastro.plotting.core.plot_utils import (
     set_axis_labels,
     set_axis_limits,
     _apply_plot_utils,
-    _extract_xy,
     _extract_plot_util_kwargs,
     _normalize_plotting_input,
+    _normalize_plotting_inputs,
 )
 
 
@@ -601,27 +601,20 @@ def plot(
         [
             _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
-            _kwarg('loc', config.loc),
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
         ]
     )
+    plot_params = _extract_plot_util_kwargs(kwargs)
+
     alphas = to_list(params.alpha)
     labels = to_list(params.label)
     linestyles = to_list(params.linestyle)
     linewidths = to_list(params.linewidth)
     zorders = to_list(zorder)
 
-    X, Y = _extract_xy(*data, order=params.array_order)
-    xlist = _normalize_plotting_input(X)
-    ylist = _normalize_plotting_input(Y)
+    xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
 
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
@@ -851,9 +844,7 @@ def scatter(
     sizes = to_list(params.size)
     markers = to_list(params.marker)
 
-    X, Y = _extract_xy(*data, order=params.array_order, index_spec=params.index_spec)
-    xlist = _normalize_plotting_input(X)
-    ylist = _normalize_plotting_input(Y)
+    xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
 
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
