@@ -1084,7 +1084,7 @@ def set_axis_labels(
     xlabel: str | None = None,
     ylabel: str | None = None,
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
-    show_physical_label: bool | _Unset = _UNSET,
+    show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
     fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
 ) -> None:
@@ -1113,7 +1113,7 @@ def set_axis_labels(
         Custom label for the y-axis. If None, the label is inferred from `Y`.
     unit_bracket_style : Literal['round', 'square'] | _Unset, optional, default=_UNSET
         If `'round`' displays the unit of `X` and `Y` as (unit). If `'square`' as [unit].
-    show_physical_label : bool | _Unset, optional, default=_UNSET
+    show_physical_type : bool | _Unset, optional, default=_UNSET
         If `True`, include the inferred physical type in the axis label.
         If `_UNSET`, uses `config.show_type_label`.
     show_unit : bool | _Unset, optional, default=_UNSET
@@ -1138,7 +1138,7 @@ def set_axis_labels(
     # xlabel: 'Wavelength [μm]'
     # ylabel: 'Surface Brightness [MJy/sr]'
 
-    >>> set_axis_labels(wavelength, flux, ax, show_physical_label=False)
+    >>> set_axis_labels(wavelength, flux, ax, show_physical_type=False)
     # xlabel: '[μm]'
     # ylabel: '[MJy/sr]'
 
@@ -1149,19 +1149,19 @@ def set_axis_labels(
     -----
     - Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
       representations.
-    - If both `show_physical_label` and `show_unit` are False, the resulting
+    - If both `show_physical_type` and `show_unit` are False, the resulting
       axis label is an empty string.
     """
     unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
-    show_physical_label = _resolve_default(show_physical_label, config.show_type_label)
+    show_physical_type = _resolve_default(show_physical_type, config.show_type_label)
     show_unit = _resolve_default(show_unit, config.show_unit_label)
     fmt = _resolve_default(fmt, config.unit_label_format)
 
     xlabel = _format_axis_label(
-        X, xlabel, unit_bracket_style, show_physical_label, show_unit, fmt
+        X, xlabel, unit_bracket_style, show_physical_type, show_unit, fmt
     )
     ylabel = _format_axis_label(
-        Y, ylabel, unit_bracket_style, show_physical_label, show_unit, fmt
+        Y, ylabel, unit_bracket_style, show_physical_type, show_unit, fmt
     )
 
     ax.set_xlabel(xlabel)
@@ -1172,7 +1172,7 @@ def _format_axis_label(
     obj: Any,
     label: str | None,
     bracket_style: Literal['round', 'square'],
-    show_physical_label: bool,
+    show_physical_type: bool,
     show_unit: bool,
     fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip']
 ) -> str:
@@ -1193,10 +1193,10 @@ def _format_axis_label(
     label : str | None
         If a string is provided, use it as the physical label directly, overriding
         any auto-detected physical type. If None, the physical label is inferred
-        from the object's physical type (when `show_physical_label=True`).
+        from the object's physical type (when `show_physical_type=True`).
     bracket_style : Literal['round', 'square']
         If `'round`' displays the unit of `obj` as (unit). If `'square`' as [unit].
-    show_physical_label : bool
+    show_physical_type : bool
         If `True`, include the physical type label in the output. If `False`, omit
         the physical label entirely (useful for creating unit-only labels).
     show_unit : bool
@@ -1231,7 +1231,7 @@ def _format_axis_label(
     if isinstance(label, str):
         physical_label = label
 
-    elif show_physical_label:
+    elif show_physical_type:
         inferred = _infer_physical_type_label(obj)
         if inferred is not None:
             physical_label = inferred
