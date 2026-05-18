@@ -40,14 +40,14 @@ class TestNormalizePlottingInputs:
         Y = np.array([4, 5, 6])
         x = _normalize_plotting_input(X)
         y = _normalize_plotting_input(Y)
-        assert allclose(x, X) and allclose(y, Y)
+        assert allclose(x[0], X) and allclose(y[0], Y)
 
         # test 2: Quantity arrays
         X = np.array([1, 2, 3]) * u.um
         Y = np.array([4, 5, 6]) * u.um
         x = _normalize_plotting_input(X)
         y = _normalize_plotting_input(Y)
-        assert allclose(x, X) and allclose(y, Y)
+        assert allclose(x[0], X) and allclose(y[0], Y)
 
         # test 3: List of scalar Quantities
         X = [1*u.um, 2*u.um, 3*u.um]
