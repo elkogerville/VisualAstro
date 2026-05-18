@@ -210,8 +210,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Label for the y-axis.
         - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
-            If True, plot units in square brackets; otherwise, parentheses.
+        - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
@@ -896,8 +896,8 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             Label for the y-axis.
         - `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
-            If True, plot units in square brackets; otherwise, parentheses.
+        - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
@@ -1139,12 +1139,12 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             Colormap name for generating colors.
         - label : str, optional, default=None.
             Label for the plotted spectrum.
-        - loc : str, optional, default=`config.loc`
+        - loc : str, optional, default=`config.legend_loc`
             Legend location (e.g., 'best', 'upper right').
         - xlabel, ylabel : str, optional, default=None
             Axis labels.
-        - unit_bracket_style : bool, optional, default=`config.unit_bracket_style`
-            If True, format axis labels with units in brackets instead of parentheses.
+        - unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
@@ -1356,8 +1356,8 @@ def fit_gaussian_2_spec(
             Plot y-axis label.
         - `colors` : str or list, optional, default=`config.colors`
             Plot colors. If None, will use default visualastro color colorset.
-        - `unit_bracket_style` : bool, optional, default=`config.unit_bracket_style`
-            If True, use square brackets for plot units. If False, use parentheses.
+        - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
         - `savefig` : bool, optional, default=`config.savefig`
             If True, save current figure to disk.
         - `dpi` : float or int, optional, default=`config.dpi`
