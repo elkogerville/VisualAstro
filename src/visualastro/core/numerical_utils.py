@@ -590,8 +590,7 @@ def mask_within_range(
 
 def _is_scalar_quantity(obj):
     """Check if `obj` is a scalar Quantity (0-dimensional)."""
-    return hasattr(obj, 'unit') and getattr(obj, 'ndim', None) == 0
-
+    return isinstance(obj, u.Quantity) and obj.ndim == 0
 
 def _is_scalar(obj):
     """Check if `obj` is a scalar or scalar Quantity."""
@@ -621,6 +620,17 @@ def _is_2d(obj: Any) -> bool:
             if not hasattr(o, '__len__') or getattr(o, 'isscalar', False):
                 return False
         return True
+
+    return False
+
+
+def _is_1d(obj: Any) -> bool:
+    """Check that an object is a 1D Sequence."""
+    if isinstance(obj, (np.ndarray, u.Quantity)):
+        return obj.ndim == 1
+
+    if isinstance(obj, (list, tuple)):
+        return len(obj) > 0 and all(_is_scalar(o) for o in obj)
 
     return False
 
