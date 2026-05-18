@@ -171,7 +171,7 @@ def spectral_line_marker(
                 lw=config.axline.linewidth,
                 color=config.axline.color,
                 alpha=config.axline.alpha,
-                zorder=config.axline.zorder
+                zorder=config.zorder.vlines
             )
     if str(style).lower() == 'marker':
         if extend_val is not None:

@@ -45,10 +45,9 @@ from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colors import get_cmap, get_colors
 from visualastro.plotting.core.plot_utils import (
     contour,
-    set_axis_labels,
-    set_axis_limits,
     _apply_plot_utils,
     _extract_plot_util_kwargs,
+    _get_zorder,
     _normalize_plotting_input,
     _normalize_plotting_inputs,
 )
@@ -306,6 +305,7 @@ def hist(
     color: ColorType | list[ColorType] | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
+    zorder: float | list[float] | None = None,
     **kwargs
 ) -> list[SimpleNamespace]:
     """
@@ -419,10 +419,11 @@ def hist(
     )
     fig_params = _extract_plot_util_kwargs(kwargs)
 
+    datas = to_list(datas)
     bins_list = to_list(params.bins)
     histtypes = to_list(params.histtype)
     labels = to_list(params.label)
-    datas = to_list(datas)
+    zorders = to_list(zorder)
 
     ref_unit = ensure_common_unit(datas)
 
@@ -439,6 +440,7 @@ def hist(
         bin = _cycle(bins_list, i)
         htype = _cycle(histtypes, i)
         color = _cycle(colors, i)
+        z = _get_zorder(zorders, i, config.zorder.plot_data)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         data = to_array(data)
 
@@ -453,7 +455,8 @@ def hist(
             align=align,
             color=color,
             label=label,
-            rasterized=params.rasterized
+            rasterized=params.rasterized,
+            zorder=z
         )
         if ref_unit is not None:
             data = data * ref_unit
@@ -608,7 +611,7 @@ def plot(
         ls = _cycle(linestyles, i)
         lw = _cycle(linewidths, i)
         a = _cycle(alphas, i)
-        zorder = _cycle(zorders, i) if _cycle(zorders, i) is not None else i
+        z = _get_zorder(zorders, i, config.zorder.plot_data)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
         if params.normalize:
@@ -621,7 +624,7 @@ def plot(
             ls=ls,
             lw=lw,
             alpha=a,
-            zorder=zorder,
+            zorder=z,
             label=label,
             rasterized=params.rasterized,
             **kwargs
@@ -648,6 +651,7 @@ def scatter(
     normalize: bool | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
+    zorder: float | list[float] | None = None,
     array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) ->  list[PatchCollection]:
@@ -797,6 +801,7 @@ def scatter(
     labels = to_list(params.label)
     sizes = to_list(params.size)
     markers = to_list(params.marker)
+    zorders = to_list(zorder)
 
     xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
 
@@ -822,6 +827,7 @@ def scatter(
         a = _cycle(alphas, i)
         ec = _cycle(edgecolors, i)
         fc = _cycle(facecolors, i)
+        z = _get_zorder(zorders, i, config.zorder.plot_data)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         params.ecolor = color if params.ecolor is None else params.ecolor
         params.markeredgecolor = (
@@ -845,6 +851,7 @@ def scatter(
             facecolors=fc,
             label=label,
             rasterized=params.rasterized,
+            zorder=z,
             **kwargs
         )
 
@@ -864,7 +871,8 @@ def scatter(
                 capsize=params.capsize,
                 capthick=params.capthick,
                 barsabove=params.barsabove,
-                rasterized=params.rasterized
+                rasterized=params.rasterized,
+                zorder=z,
             )
 
     _apply_plot_utils(plot_params, ax, xlist=xlist, ylist=ylist, labels=labels)
@@ -1059,14 +1067,14 @@ def scatter_fit(
         ls = _cycle(linestyles, i)
         lw = _cycle(linewidths, i)
         a = _cycle(linealphas, i)
-        zorder = _cycle(zorders, i) if _cycle(zorders, i) is not None else i
+        z = _get_zorder(zorders, i, config.zorder.plot_data)
 
         array = np.asarray(array)
         x = array[:,0]
         y = array[:,1]
         fn = np.polynomial.Polynomial.fit(x, y, deg=deg)
 
-        l = ax.plot(x, fn(x), color=color, ls=ls, lw=lw, zorder=zorder, alpha=a)
+        l = ax.plot(x, fn(x), color=color, ls=ls, lw=lw, zorder=z, alpha=a)
         lines.append(l)
 
     return SimpleNamespace(**{'scatter': paths, 'line': lines})

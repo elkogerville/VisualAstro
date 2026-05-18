@@ -55,6 +55,18 @@ class AxesConfig:
     aspect = None
 
 @dataclass(slots=True)
+class ZorderLayers:
+    gridlines: float = 0
+    wcs_grid: float = 1
+    contourf: float = 10
+    plot_data: float = 20
+    contour: float = 30
+    vlines: float = 40
+    hlines: float = 40
+    regions: float = 50
+    text: float = 60
+
+@dataclass(slots=True)
 class AXLineConfig:
     """ax.vline / ax.hline config"""
     linestyle: Literal['-', '--', '-.', ':', ''] = ':'
@@ -205,6 +217,7 @@ class VisualAstroConfig:
     aspect: Literal['auto', 'equal'] | float | None = None
 
     axes: AxesConfig = field(default_factory=AxesConfig)
+    zorder: ZorderLayers = field(default_factory=ZorderLayers)
 
     # cbar params
     cbar: bool = True
