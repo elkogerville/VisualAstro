@@ -412,19 +412,13 @@ def hist(
         ],
         [
             _kwarg('label', None),
-            _kwarg('loc', config.loc),
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
         ]
     )
     fig_params = _extract_plot_util_kwargs(kwargs)
+
     bins_list = to_list(params.bins)
     histtypes = to_list(params.histtype)
     labels = to_list(params.label)
@@ -469,26 +463,7 @@ def hist(
             SimpleNamespace(**{'n': h[0], 'bins': h[1], 'patches': h[2]})
         )
 
-    set_axis_limits(
-        data_list,
-        ax=ax,
-        xlim=params.xlim,
-        ylim=params.ylim,
-        xpad=params.xpad,
-        ypad=params.ypad
-    )
-    set_axis_labels(
-        _cycle(data_list, config.reference_idx),
-        None,
-        ax,
-        params.xlabel,
-        params.ylabel
-    )
-
-    if _cycle(labels, config.reference_idx) is not None:
-        ax.legend(loc=params.loc)
-
-    _apply_plot_utils(fig_params, ax, ref_unit)
+    _apply_plot_utils(fig_params, ax=ax, ref_unit=ref_unit, xlist=data_list, labels=labels)
 
     return hists
 
@@ -654,22 +629,7 @@ def plot(
 
         lines.append(line)
 
-    set_axis_limits(
-        xlist, ylist,
-        ax=ax,
-        xlim=params.xlim,
-        ylim=params.ylim,
-        xpad=params.xpad,
-        ypad=params.ypad
-    )
-    set_axis_labels(
-        _cycle(xlist, config.reference_idx),
-        _cycle(ylist, config.reference_idx),
-        ax, params.xlabel, params.ylabel
-    )
-
-    if _cycle(labels, config.reference_idx) is not None:
-        ax.legend(loc=params.loc)
+    _apply_plot_utils(plot_params, ax, xlist=xlist, ylist=ylist, labels=labels)
 
     return lines
 
@@ -818,13 +778,6 @@ def scatter(
         [
             _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
-            _kwarg('loc', config.loc),
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('ecolor', config.errorbar.colors),
@@ -837,6 +790,7 @@ def scatter(
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
+
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
@@ -912,24 +866,8 @@ def scatter(
                 barsabove=params.barsabove,
                 rasterized=params.rasterized
             )
-    set_axis_limits(
-        xlist, ylist,
-        ax=ax,
-        xlim=params.xlim,
-        ylim=params.ylim,
-        xpad=params.xpad,
-        ypad=params.ypad
-    )
-    set_axis_labels(
-        _cycle(xlist, config.reference_idx),
-        _cycle(ylist, config.reference_idx),
-        ax, params.xlabel, params.ylabel
-    )
 
-    if _cycle(labels, config.reference_idx) is not None:
-        ax.legend(loc=params.loc)
-
-    _apply_plot_utils(plot_params, ax)
+    _apply_plot_utils(plot_params, ax, xlist=xlist, ylist=ylist, labels=labels)
 
     return scatters
 
