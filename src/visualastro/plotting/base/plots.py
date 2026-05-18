@@ -592,7 +592,12 @@ def plot(
     linewidths = to_list(params.linewidth)
     zorders = to_list(zorder)
 
-    xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
+    xlist, ylist = _normalize_plotting_inputs(
+        *data,
+        order=params.array_order,
+        index_spec=params.index_spec,
+        mode='plot'
+    )
 
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
