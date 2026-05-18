@@ -256,7 +256,7 @@ class ax:
                 Flux range to display.
             - `labels`, `label`, `l` : str or list of str, default=None
                 Legend labels.
-            - `loc` : str, default=`config.loc`
+            - `loc` : str, default=`config.legend_loc`
                 Location of legend.
             - `xlabel` : str, optional
                 Label for the x-axis.
@@ -370,7 +370,7 @@ class ax:
                 Colormap name for generating colors.
             - label : str, optional, default=None.
                 Label for the plotted spectrum.
-            - loc : str, optional, default=`config.loc`
+            - loc : str, optional, default=`config.legend_loc`
                 Legend location (e.g., 'best', 'upper right').
             - xlabel, ylabel : str, optional, default=None
                 Axis labels.
@@ -507,7 +507,7 @@ class ax:
                 Axis limits for the scatter plot.
             - `labels`, `label`, `l` : list or str, optional, default=None
                 Labels for legend entries.
-            - `loc` : str, optional, default=`config.loc`
+            - `loc` : str, optional, default=`config.legend_loc`
                 Legend location.
             - `xlabel`, `ylabel` : str, optional, default=None
                 Axis labels for the scatter plot.
