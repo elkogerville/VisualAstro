@@ -336,10 +336,9 @@ def get_imshow_norm(
                 'vmin and vmax must not be None if norm is not None! '
                 f'got: vmin: {vmin}, vmax: {vmax}'
             )
-
     vmin = float(vmin)
     vmax = float(vmax)
-    vcenter = (vmax - vmin)/2 if vcenter is None else vcenter
+    vcenter = (vmax + vmin)/2 if vcenter is None else vcenter
 
     norm_str = norm.lower()
 
