@@ -203,7 +203,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`config.legend_loc`
+        - `loc` : str, default=`config.legend.loc`
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
@@ -889,7 +889,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
             Flux range to display.
         - `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`config.legend_loc`
+        - `loc` : str, default=`config.legend.loc`
             Location of legend.
         - `xlabel` : str, optional
             Label for the x-axis.
@@ -929,7 +929,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     ylim = kwargs.get('ylim', None)
     # labels
     labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
-    loc = kwargs.get('loc', config.legend_loc)
+    loc = kwargs.get('loc', config.legend.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     text_loc = kwargs.get('text_loc', config.plot_spectrum_text_loc)
@@ -1140,7 +1140,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
             Colormap name for generating colors.
         - label : str, optional, default=None.
             Label for the plotted spectrum.
-        - loc : str, optional, default=`config.legend_loc`
+        - loc : str, optional, default=`config.legend.loc`
             Legend location (e.g., 'best', 'upper right').
         - xlabel, ylabel : str, optional, default=None
             Axis labels.
@@ -1171,7 +1171,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     cmap = kwargs.get('cmap', config.cmap)
     # labels
     label = kwargs.get('label', None)
-    loc = kwargs.get('loc', config.legend_loc)
+    loc = kwargs.get('loc', config.legend.loc)
     xlabel = kwargs.get('xlabel', None)
     ylabel = kwargs.get('ylabel', None)
     unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)

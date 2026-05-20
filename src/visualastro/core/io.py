@@ -49,7 +49,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'size': ('sizes', 's'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
-    'label': ('labels', 'l'),
+    'label': ('labels', 'legend_label', 'legend_labels', 'l'),
     'linecolor': ('linecolors', 'le'),
     'linestyle': ('linestyles', 'ls'),
     'linewidth': ('linewidths', 'lw'),

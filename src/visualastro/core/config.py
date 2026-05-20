@@ -76,6 +76,23 @@ class AXLineConfig:
     zorder: float = 0
 
 @dataclass(slots=True)
+class LegendConfig:
+    """ax.legend config"""
+    handles: Sequence | None = None
+    labels: Sequence[str] | None = None
+    loc: str = 'best'
+    ncols: int = 1
+    fontsize: int | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] = 13
+    fancybox: bool = False
+    framealpha: float = 0.8
+    facecolor: Literal['inherit'] | ColorType = 'inherit'
+    edgecolor: Literal['inherit'] | ColorType = 'w'
+    title: str | None = None
+    alignment: Literal['center', 'left', 'right'] = 'center'
+    columnspacing: float = 2
+    draggable: bool = True
+
+@dataclass(slots=True)
 class CurveFitConfig:
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
@@ -218,6 +235,7 @@ class VisualAstroConfig:
 
     axes: AxesConfig = field(default_factory=AxesConfig)
     zorder: ZorderLayers = field(default_factory=ZorderLayers)
+    legend: LegendConfig = field(default_factory=LegendConfig)
 
     # cbar params
     cbar: bool = True
@@ -241,7 +259,6 @@ class VisualAstroConfig:
     right_ascension: str = 'Right Ascension'
     declination: str = 'Declination'
     highlight: bool = True
-    legend_loc = 'best'
     show_type_label: bool = False
     show_unit_label: bool = True
     unit_label_format: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] = 'latex_inline'
