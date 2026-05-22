@@ -1321,7 +1321,19 @@ class PlotUtilParams:
     vlines: Any = None
     hlines: Any = None
     label: Any = None
+    legend_handles: Any = None
+    legend_labels: Any = None
     legend_loc: Any = None
+    legend_ncols: Any = None
+    legend_fontsize: Any = None
+    legend_fancybox: Any = None
+    legend_framealpha: Any = None
+    legend_facecolor: Any = None
+    legend_edgecolor: Any = None
+    legend_title: Any = None
+    legend_alignment: Any = None
+    legend_columnspacing: Any = None
+    legend_draggable: Any = None
     xlabel: Any = None
     ylabel: Any = None
     unit_bracket_style: Any = None
@@ -1357,7 +1369,19 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
             _kwarg('vlines', None),
             _kwarg('hlines', None),
 
-            _kwarg('legend_loc', config.legend_loc),
+            _kwarg('legend_handles', config.legend.handles),
+            _kwarg('legend_labels', config.legend.labels),
+            _kwarg('legend_loc', config.legend.loc),
+            _kwarg('legend_ncols', config.legend.ncols),
+            _kwarg('legend_fontsize', config.legend.fontsize),
+            _kwarg('legend_fancybox', config.legend.fancybox),
+            _kwarg('legend_framealpha', config.legend.framealpha),
+            _kwarg('legend_facecolor', config.legend.facecolor),
+            _kwarg('legend_edgecolor', config.legend.edgecolor),
+            _kwarg('legend_title', config.legend.title),
+            _kwarg('legend_alignment', config.legend.alignment),
+            _kwarg('legend_columnspacing', config.legend.columnspacing),
+            _kwarg('legend_draggable', config.legend.draggable),
 
             _kwarg('xlabel', None),
             _kwarg('ylabel', None),
@@ -1436,7 +1460,26 @@ def _apply_plot_utils(
 
     if 'labels' in kwargs:
         if _cycle(kwargs['labels'], params.reference_idx) is not None:
-            ax.legend(loc=params.legend_loc)
+            legend_kwargs = {
+                'loc': params.legend_loc,
+                'ncols': params.legend_ncols,
+                'fontsize': params.legend_fontsize,
+                'fancybox': params.legend_fancybox,
+                'framealpha': params.legend_framealpha,
+                'facecolor': params.legend_facecolor,
+                'edgecolor': params.legend_edgecolor,
+                'title': params.legend_title,
+                'alignment': params.legend_alignment,
+                'columnspacing': params.legend_columnspacing,
+                'draggable': params.legend_draggable,
+            }
+
+            if params.legend_handles is not None:
+                legend_kwargs['handles'] = params.legend_handles
+            if params.legend_labels is not None:
+                legend_kwargs['labels'] = params.legend_labels
+
+            ax.legend(**legend_kwargs)
 
     set_axis_limits(
         xlist,
