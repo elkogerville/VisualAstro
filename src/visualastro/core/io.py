@@ -41,6 +41,10 @@ from visualastro.core.units import get_units
 
 # KWARGS
 # ------
+# define aliases here! each key represents a parameter used in visualastro functions,
+# and their values are aliases of that parameter. this way any each set can be used
+# in a function, provided that the function uses the `_resolve_kwargs` interface.
+# ensure that the values are tuples even for single items, meaning: 'key': (value,),
 KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'color': ('colors',),
     'edgecolor': ('edgecolors', 'ec'),
@@ -49,7 +53,9 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'size': ('sizes', 's'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
-    'label': ('labels', 'legend_label', 'legend_labels', 'l'),
+    'label': ('labels', 'l'),
+    'legend_handles': ('legend_handle',),
+    'legend_labels': ('legend_label',),
     'linecolor': ('linecolors', 'le'),
     'linestyle': ('linestyles', 'ls'),
     'linewidth': ('linewidths', 'lw'),
