@@ -11,6 +11,7 @@ Dependencies:
 
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
+
 from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
