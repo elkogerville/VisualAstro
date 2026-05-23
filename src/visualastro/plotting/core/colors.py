@@ -363,6 +363,10 @@ BuWhRd = create_cmap(
     [0, 0.25, 0.5, 0.75, 1],
     'BuWhRd'
 )
+pondwater = create_cmap(
+    ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
+    name='pondwater'
+)
 tol_rainbow = plt.get_cmap('tol.rainbow').copy()
 tol_rainbow.set_bad(color='white')
 
@@ -370,6 +374,7 @@ CMAPS: dict[str, mcolors.Colormap] = {
     'iridescent': iridescent,
     'BuWhRd': BuWhRd,
     'tol_rainbow': tol_rainbow,
+    'pondwater': pondwater,
 }
 CMAPNAMES = [key for key in CMAPS.keys()]
 
