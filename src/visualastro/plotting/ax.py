@@ -68,7 +68,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         # by default plot WCS if available
@@ -124,7 +124,7 @@ class ax:
                 origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs
             )
 
-            if savefig:
+            if savefigure:
                     savefig(dpi)
             plt.show()
 
@@ -152,7 +152,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         cubes = to_list(cubes)
@@ -184,7 +184,7 @@ class ax:
                 mask_non_pos=mask_non_pos,
                 **kwargs
             )
-            if savefig:
+            if savefigure:
                 savefig(dpi)
 
             plt.show()
@@ -281,7 +281,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         # set plot style
@@ -294,7 +294,7 @@ class ax:
                               plot_continuum, emission_line, wavelength,
                               flux, continuum, colors, **kwargs)
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
@@ -402,7 +402,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         # set plot style
@@ -416,12 +416,12 @@ class ax:
                                                          return_spectra, plot_normalize,
                                                          use_samecolor, colors, **kwargs)
             else:
-                plot_combine_spectrum(extracted_spectra, ax, idx,
+                combined_spectra = plot_combine_spectrum(extracted_spectra, ax, idx,
                                       wave_cuttofs, concatenate,
                                       return_spectra, plot_normalize,
                                       use_samecolor, colors, **kwargs)
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
@@ -525,7 +525,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         style = _get_stylepath(style)
@@ -545,7 +545,7 @@ class ax:
                                        xlog, ylog, xlog_hist, ylog_hist,
                                        histtype, normalize, colors, **kwargs)
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
@@ -576,7 +576,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         style = _get_stylepath(style)
@@ -596,7 +596,7 @@ class ax:
                 **kwargs
             )
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()
 
@@ -916,7 +916,7 @@ class ax:
         style = kwargs.pop('style', config.style)
         tight_layout = kwargs.pop('tight_layout', True)
         # savefig
-        savefig = kwargs.pop('savefig', config.savefig)
+        savefigure = kwargs.pop('savefig', config.savefig)
         dpi = kwargs.pop('dpi', config.dpi)
 
         style = _get_stylepath(style)
@@ -932,6 +932,6 @@ class ax:
             if tight_layout:
                 plt.tight_layout()
 
-            if savefig:
+            if savefigure:
                 savefig(dpi)
             plt.show()

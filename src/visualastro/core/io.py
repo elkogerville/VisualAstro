@@ -432,7 +432,7 @@ def write_arrays_2_file(
     arrays: NDArray | u.Quantity | list[NDArray | u.Quantity],
     filename: str,
     headers: list[str] | None = None,
-    delimiter: str = '\t',
+    delimiter: str = r'\t',
     precision: int = 16,
 ) -> None:
     """
@@ -688,7 +688,6 @@ def savefig(
                 .lower()
             )
     filename = f'{basename}.{extension}'
-    print(params.dpi)
 
     with plt.rc_context(rc={'pdf.compression': int(params.pdf_compression)} if extension == 'pdf' else {}):
         plt.savefig(
