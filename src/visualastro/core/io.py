@@ -637,11 +637,11 @@ def savefig(
     ----------
     dpi : float | {'figure'} | _Unset, optional, default=_UNSET
         Resolution in dots per inch. If `'figure'`, uses the
-        figure dpi. If `_UNSET`, uses `config.dpi`.
+        figure dpi. If `_UNSET`, uses `config.savefig.dpi`.
     pdf_compression : int | _Unset, optional, default=_UNSET
         Pdf compression value for matplotlib.rcParams.
         Accepts integers from 0-9, with 0 meaning no
-        compression. If `_UNSET`, uses `config.pdf_compression`.
+        compression. If `_UNSET`, uses `config.savefig.pdf_compression`.
     transparent : bool, optional, default=False
         If `True`, the Axes patches will all be transparent;
         the Figure patch will also be transparent unless
@@ -650,7 +650,7 @@ def savefig(
         Bounding box in inches: only the given portion of the
         figure is saved. If `'tight'`, try to figure out the
         tight bbox of the figure. If `_UNSET`, uses
-        `config.bbox_inches`.
+        `config.savefig.bbox_inches`.
     facecolorcolor : {'auto'} | str, optional, default='auto'
         The facecolor of the figure. If `'auto'`,
         use the current figure facecolor.
@@ -661,10 +661,10 @@ def savefig(
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('dpi', dpi, config.dpi),
-            _param('pdf_compression', pdf_compression, config.pdf_compression),
-            _param('transparent', transparent, config.transparent),
-            _param('bbox_inches', bbox_inches, config.bbox_inches),
+            _param('dpi', dpi, config.savefig.dpi),
+            _param('pdf_compression', pdf_compression, config.savefig.pdf_compression),
+            _param('transparent', transparent, config.savefig.transparent),
+            _param('bbox_inches', bbox_inches, config.savefig.bbox_inches),
         ],
         [
             _kwarg('facecolor', 'auto'),
