@@ -315,7 +315,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         _ = plot_spectrum(extracted_spectra, ax, plot_norm_continuum,
                           plot_continuum, emission_line, **kwargs)
         if savefig:
-            savefig(dpi)
+            savefig(dpi=dpi)
         plt.show()
 
     # ensure a list is only returned if returning more than 1 spectrum
