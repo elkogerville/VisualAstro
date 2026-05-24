@@ -622,19 +622,22 @@ def load_quantity(filename):
 
 
 def savefig(
+    filename: str | None = None,
     dpi: float | Literal['figure'] | _Unset = _UNSET,
     pdf_compression: int | _Unset = _UNSET,
     transparent: bool = False,
     bbox_inches: str | Bbox | None | _Unset = _UNSET,
     **kwargs
-):
+) -> None:
     """
-    Saves current figure to disk as a
-    eps, pdf, png, or svg, and prompts
-    user for a filename and format.
+    Saves current figure to disk as a `.eps`, `.pdf`, `.png`,
+    or `.svg`, and prompts user for a filename and format.
 
     Parameters
     ----------
+    filename : str | None, optional, default=None
+        If `None`, prompts user for a filename and format.
+        If `str`, uses `filename` as the filename directly.
     dpi : float | {'figure'} | _Unset, optional, default=_UNSET
         Resolution in dots per inch. If `'figure'`, uses the
         figure dpi. If `_UNSET`, uses `config.savefig.dpi`.
@@ -672,9 +675,16 @@ def savefig(
         ]
     )
 
-    allowed_formats = config.allowed_formats
+    allowed_formats = config.savefig.allowed_formats
     # prompt user for filename, and extract extension
-    filename = input('Input filename for image (ex: myimage.pdf): ').strip()
+    if filename is None:
+        filename = input('Input filename for image (ex: myimage.pdf): ').strip()
+    elif not isinstance(filename, str):
+        raise TypeError(f'filename must be str or None, got {_type_name(filename)}')
+
+    if not filename:
+        raise ValueError('filename cannot be empty')
+
     basename, *extension = filename.rsplit('.', 1)
     # if extension exists, and is allowed, extract extension from list
     if extension and extension[0].lower() in allowed_formats:
