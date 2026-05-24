@@ -663,6 +663,7 @@ def savefig(
         [
             _param('dpi', dpi, config.dpi),
             _param('pdf_compression', pdf_compression, config.pdf_compression),
+            _param('transparent', transparent, config.transparent),
             _param('bbox_inches', bbox_inches, config.bbox_inches),
         ],
         [
@@ -693,7 +694,7 @@ def savefig(
         plt.savefig(
             fname=filename,
             format=extension,
-            transparent=transparent,
+            transparent=params.transparent,
             bbox_inches=params.bbox_inches,
             facecolor=params.facecolor,
             edgecolor=params.edgecolor,
