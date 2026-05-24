@@ -184,6 +184,7 @@ class VisualAstroConfig:
     nrows: int = 1 # make_grid_plot() nrows
     ncols: int = 2 # make_grid_plot() ncols
     rasterized: bool = False # rasterize plot artists wherever possible
+    show_plot: bool = True
 
     # figure grid params
     gridlines: bool = False
@@ -284,6 +285,7 @@ class VisualAstroConfig:
     savefig: bool = False
     dpi: float = 600
     pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
+    transparent: bool = False
     bbox_inches: str | Bbox | None = 'tight'
     allowed_formats = {'eps', 'pdf', 'png', 'svg'}
 
