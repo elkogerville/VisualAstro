@@ -17,20 +17,27 @@ Module Structure:
 """
 
 import glob
+from typing import Literal
 import warnings
+
 from astropy.io import fits
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import Quantity
 from astropy.wcs import WCS
+import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import DTypeLike
+from numpy.typing import DTypeLike, NDArray
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
+from scipy.ndimage import convolve
 from spectral_cube import SpectralCube
 from tqdm import tqdm
-from visualastro.core.config import config, get_config_value, _resolve_default, _Unset, _UNSET
+
+from visualastro.core.config import (
+    config, get_config_value, _resolve_default, _Unset, _UNSET
+)
 from visualastro.core.io import get_errors, _get_dtype
-from visualastro.core.numerical_utils import get_data
+from visualastro.core.numerical_utils import get_data, get_value
 from visualastro.core.units import get_unit
 from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
@@ -715,3 +722,109 @@ def compute_line(points):
     b = points[0][1] - m*points[0][0]
 
     return m, b
+
+
+def detect_edges(
+    input_data: NDArray | str,
+    mode: Literal['rgb', 'sum'] = 'rgb',
+    show_plot: bool | _Unset = _UNSET,
+    origin: Literal['lower', 'upper'] = 'upper',
+    **kwargs
+) -> NDArray:
+    """
+    Detect edges on an image using a sobel filter.
+
+    Parameters
+    ----------
+    input_data : np.ndarray | str
+        Input data to run sobel filter on. Can either be
+        an array-like or a path to an image readable by
+        `plt.imread`.
+    mode : {'rgb', 'sum'}, optional, default='rgb'
+        Method to convert to grayscale if ndim > 2.
+
+            – `'rgb'` : Only take into account `image[:,:,0:3]`.
+            – `'sum'` : Sum the entire second axis.
+
+    show_plot : bool | _Unset, optional, default=_UNSET
+        If `True`, plot the output image. If `_UNSET`, uses
+        `config.show_plot`.
+    origin : {'lower', 'upper'}, optional, default= 'upper'
+        Pixel origin convention for `ax.imshow`.
+    kwargs :
+        Any keyword argument valid for `visualastro.plotting.ax.imshow`.
+
+    Returns
+    -------
+    sobel_img : np.ndarray
+        Output edge detected image.
+    """
+    show_plot = _resolve_default(show_plot, config.show_plot)
+
+    if isinstance(input_data, str):
+        image = np.asarray(plt.imread(input_data), dtype=np.float64)
+    else:
+        image = np.asarray(get_value(input_data))
+
+    grayscale = image_2_grayscale(image, mode=mode)
+    sobel_img = compute_sobel_filter(grayscale)
+
+    if show_plot:
+        from visualastro.plotting.ax import ax as _ax
+        _ax.imshow(sobel_img, origin=origin, **kwargs)
+
+    return sobel_img
+
+
+def compute_sobel_filter(image):
+    """
+
+    """
+    Kx = np.array([[1., 0., -1.], [2., 0., -2.], [1., 0., -1.]])
+    Ky = np.array([[1., 2., 1.], [0., 0., 0.], [-1., -2., -1.]])
+
+    Gx = convolve(image, Kx, mode='constant')
+    Gy = convolve(image, Ky, mode='constant')
+
+    return np.sqrt(Gx**2 + Gy**2)
+
+
+def image_2_grayscale(
+    image: NDArray,
+    mode: Literal['rgb', 'sum'] = 'rgb'
+) -> NDArray:
+    """
+    Convert an image to grayscale. RGBA and RGB images are
+    flattened into a NxM image.
+
+    2D images are left untouched.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Image to convert to grayscale.
+    mode : {'rgb', 'sum'}, optional, default='rgb'
+        Method to convert to grayscale if ndim > 2.
+
+            – `'rgb'` : Only take into account `image[:,:,0:3]`.
+            – `'sum'` : Sum the entire second axis.
+
+    Returns
+    -------
+    grayscale : np.ndarray
+        Grayscale version of the image, now with ndim=2.
+    """
+    image = np.asarray(get_value(image))
+    if image.ndim < 2:
+        raise ValueError(
+            f'Incorrect image shape! Should have ndim ∈ [2,3], got {image.ndim}.'
+        )
+    stack_mode = str(mode).lower()
+
+    if image.ndim == 2:
+        return image
+
+    if stack_mode == 'rgb':
+        return image[:,:,0:3] @ [0.299, 0.587, 0.114]
+    else:
+        return np.sum(image, axis=2)
