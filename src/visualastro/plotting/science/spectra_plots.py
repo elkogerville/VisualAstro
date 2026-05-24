@@ -174,9 +174,9 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Figure size for plotting.
         - `style` : str, optional, default=`config.style`
             Plotting style.
-        - `savefig` : bool, optional, default=`config.savefig`
+        - `savefig` : bool, optional, default=`config.savefig.enabled`
             Whether to save the figure to disk.
-        - `dpi` : int, optional, default=`config.dpi`
+        - `dpi` : int, optional, default=`config.savefig.dpi`
             Figure resolution for saving.
         - `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
@@ -233,8 +233,8 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     figsize = kwargs.get('figsize', config.figsize)
     style = kwargs.get('style', config.style)
     # savefig
-    savefig = kwargs.get('savefig', config.savefig)
-    dpi = kwargs.get('dpi', config.dpi)
+    savefig = kwargs.get('savefig', config.savefig.enabled)
+    dpi = kwargs.get('dpi', config.savefig.dpi)
 
     # get default config values
     extract_mode = get_config_value(extract_mode, 'spectral_cube_extraction_mode')
@@ -1359,9 +1359,9 @@ def fit_gaussian_2_spec(
             Plot colors. If None, will use default visualastro color colorset.
         - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
             If `'round`' displays spectra units as (unit). If `'square`' as [unit].
-        - `savefig` : bool, optional, default=`config.savefig`
+        - `savefig` : bool, optional, default=`config.savefig.enabled`
             If True, save current figure to disk.
-        - `dpi` : float or int, optional, default=`config.dpi`
+        - `dpi` : float or int, optional, default=`config.savefig.dpi`
             Resolution in dots per inch.
 
     Returns
@@ -1395,8 +1395,8 @@ def fit_gaussian_2_spec(
     colors = _pop_kwargs(kwargs, 'colors', 'color', 'c', default=None)
     unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
     # savefig
-    savefig = kwargs.get('savefig', config.savefig)
-    dpi = kwargs.get('dpi', config.dpi)
+    savefig = kwargs.get('savefig', config.savefig.enabled)
+    dpi = kwargs.get('dpi', config.savefig.dpi)
 
     # get default config values
     colors = get_config_value(colors, 'colors')

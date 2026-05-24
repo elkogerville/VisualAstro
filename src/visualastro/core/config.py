@@ -93,6 +93,16 @@ class LegendConfig:
     draggable: bool = True
 
 @dataclass(slots=True)
+class SavefigConfig:
+    """plt.savefig config"""
+    enabled: bool = False
+    dpi: float = 600
+    pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
+    transparent: bool = False
+    bbox_inches: str | Bbox | None = 'tight'
+    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
+
+@dataclass(slots=True)
 class CurveFitConfig:
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
@@ -237,6 +247,7 @@ class VisualAstroConfig:
     axes: AxesConfig = field(default_factory=AxesConfig)
     zorder: ZorderLayers = field(default_factory=ZorderLayers)
     legend: LegendConfig = field(default_factory=LegendConfig)
+    savefig: SavefigConfig = field(default_factory=SavefigConfig)
 
     # cbar params
     cbar: bool = True
@@ -280,14 +291,6 @@ class VisualAstroConfig:
         physical.energy: 'Energy',
         physical.speed: 'Velocity',
     }
-
-    # savefig params
-    savefig: bool = False
-    dpi: float = 600
-    pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
-    transparent: bool = False
-    bbox_inches: str | Bbox | None = 'tight'
-    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
 
     # circles params
     circle_linewidth: float = 2
