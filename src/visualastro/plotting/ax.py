@@ -125,7 +125,7 @@ class ax:
             )
 
             if savefigure:
-                    savefig(dpi)
+                    savefig(dpi=dpi)
             plt.show()
 
 
@@ -185,7 +185,7 @@ class ax:
                 **kwargs
             )
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
 
             plt.show()
 
@@ -295,7 +295,7 @@ class ax:
                               flux, continuum, colors, **kwargs)
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -422,7 +422,7 @@ class ax:
                                       use_samecolor, colors, **kwargs)
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
         if return_spectra:
@@ -546,7 +546,7 @@ class ax:
                                        histtype, normalize, colors, **kwargs)
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -597,7 +597,7 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -651,7 +651,7 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -711,7 +711,7 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -770,7 +770,7 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()
 
 
@@ -933,5 +933,5 @@ class ax:
                 plt.tight_layout()
 
             if savefigure:
-                savefig(dpi)
+                savefig(dpi=dpi)
             plt.show()

@@ -103,6 +103,7 @@ from visualastro.plotting.core.plot_utils import (
     gridspec,
     inline,
     interactive,
+    legend,
     nanpercentile_limits,
     plot_circles,
     plot_ellipses,

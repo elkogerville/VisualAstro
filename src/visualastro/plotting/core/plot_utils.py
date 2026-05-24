@@ -796,6 +796,96 @@ def add_colorbar(im, ax, cbar_width=None,
         cbar.solids.set_rasterized(True)
 
 
+def legend(*args, ax, **kwargs) -> None:
+    """
+    Create a legend on the specified axes with configuration defaults.
+
+    Parameters
+    ----------
+    *args : tuple
+        Positional arguments for legend specification:
+
+        – If 1 arg: labels only
+        – If 2 args: handles, labels
+
+        Maximum of 2 positional arguments allowed.
+    ax : matplotlib.axes.Axes
+        The axes object on which to place the legend.
+    handles : Sequence, optional
+        Artists (lines, patches) to display in legend.
+    labels : Sequence, optional
+        Text labels corresponding to artists.
+    loc : str, optional, default=config.legend.loc
+        Legend location.
+    ncols : int, optional, default=config.legend.ncols
+        Number of columns.
+    fontsize : int | str, optional, default=config.legend.fontsize
+        Font size for legend text.
+    fancybox : bool, optional, default=config.legend.fancybox
+        Enable rounded box frame.
+    framealpha : float, optional, default=config.legend.framealpha
+        Frame alpha transparency [0, 1].
+    facecolor : str, optional, default=config.legend.facecolor
+        Frame background color.
+    edgecolor : str, optional, default=config.legend.edgecolor
+        Frame edge color.
+    title : str, optional, default=config.legend.title
+        Legend title.
+    alignment : {'center', 'left', 'right'}, optional, default=config.legend.alignment
+        Legend alignment.
+    columnspacing : float, optional, default=config.legend.columnspacing
+        Spacing between columns in units of fontsize.
+    draggable : bool, optional, default=config.legend.draggable
+        Enable legend dragging.
+
+    Raises
+    ------
+    ValueError
+        If more than 2 positional arguments provided.
+
+    Returns
+    -------
+    None
+    """
+
+    legend_kwargs = _extract_kwargs(
+        kwargs,
+        additional_kwargs=[
+            _kwarg('loc', config.legend.loc),
+            _kwarg('ncols', config.legend.ncols),
+            _kwarg('fontsize', config.legend.fontsize),
+            _kwarg('fancybox', config.legend.fancybox),
+            _kwarg('framealpha', config.legend.framealpha),
+            _kwarg('facecolor', config.legend.facecolor),
+            _kwarg('edgecolor', config.legend.edgecolor),
+            _kwarg('title', config.legend.title),
+            _kwarg('alignment', config.legend.alignment),
+            _kwarg('columnspacing', config.legend.columnspacing),
+            _kwarg('draggable', config.legend.draggable),
+        ]
+    )
+
+    handles = None
+    labels = None
+
+    if len(args) == 1:
+        labels = args[0]
+    elif len(args) == 2:
+        handles, labels = args
+    elif len(args) > 2:
+        raise ValueError('legend() takes at most 2 positional arguments')
+
+    handles = kwargs.pop('handles', handles)
+    labels = kwargs.pop('labels', labels)
+
+    if handles is not None:
+        legend_kwargs['handles'] = handles
+    if labels is not None:
+        legend_kwargs['labels'] = labels
+
+    ax.legend(**legend_kwargs)
+
+
 def contour(x, y, ax, levels=20, contour_method='contour',
                  bw_method='scott', gridsize=200, padding=0.2,
                  cslabel=False, zdir=None, offset=None, cmap=None,
