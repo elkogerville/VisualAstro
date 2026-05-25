@@ -130,11 +130,20 @@ class ax:
 
 
     @staticmethod
-    def plot_spectral_cube(cubes, idx=None, vmin=_UNSET,
-                           vmax=_UNSET, norm=_UNSET,
-                           percentile=_UNSET, stack_method=None,
-                           radial_vel=None, spectral_unit=None, cmap=None,
-                           mask_non_pos=None, **kwargs):
+    def plot_spectral_cube(
+        cubes,
+        idx: int | tuple[int, int] | None = None,
+        vmin: float | _Unset = _UNSET,
+        vmax: float | _Unset = _UNSET,
+        norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
+        percentile: tuple[float, float] | _Unset = _UNSET,
+        stack_method=None,
+        radial_vel: float | None = None,
+        spectral_unit=None,
+        cmap: Colormap | str | _Unset = _UNSET,
+        mask_non_pos=None,
+        **kwargs
+    ):
         """
         Wrapper for `plot_spectral_cube` with automatic figure creation.
 
@@ -147,11 +156,8 @@ class ax:
             >>> va.plot_spectral_cube(data, idx, ax=ax, **kwargs)
             >>> plt.show()
         """
-        # ---- KWARGS ----
-        # figure params
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        # savefig
         savefigure = kwargs.pop('savefig', config.savefig.enabled)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 

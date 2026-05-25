@@ -245,7 +245,7 @@ class VisualAstroConfig:
     # imshow params
     cmap: Colormap | str = 'turbo'
     origin: Literal['lower', 'upper'] = 'lower'
-    norm: Literal['asinh', 'asinhnorm', 'log', 'power'] | None = 'asinh'
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None = 'asinh'
     linear_width: float = 1 # AsinhNorm linear width
     gamma: float = 0.5 # PowerNorm exponent
     vmin: float | None = None
