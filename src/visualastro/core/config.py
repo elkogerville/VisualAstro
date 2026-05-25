@@ -124,6 +124,15 @@ class ErrorBarConfig:
     markeredgecolor: ColorType | None = None
 
 @dataclass(slots=True)
+class ColorbarConfig:
+    enable: bool = True
+    width: float = 0.03
+    pad: float = 0.015
+    label: bool = True
+    tick_which = 'both'
+    tick_dir = 'out'
+
+@dataclass(slots=True)
 class SpectralLineConfig:
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
@@ -248,14 +257,7 @@ class VisualAstroConfig:
     zorder: ZorderLayers = field(default_factory=ZorderLayers)
     legend: LegendConfig = field(default_factory=LegendConfig)
     savefig: SavefigConfig = field(default_factory=SavefigConfig)
-
-    # cbar params
-    cbar: bool = True
-    cbar_width: float = 0.03
-    cbar_pad: float = 0.015
-    cbar_tick_which = 'both'
-    cbar_tick_dir = 'out'
-    clabel = True
+    colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
 
     # text params
     fontsize: float = 10

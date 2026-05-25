@@ -35,6 +35,7 @@ from astropy.units import Quantity
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from matplotlib.cm import ScalarMappable
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
@@ -746,10 +747,17 @@ def add_subplot(
     return (fig, ax) if return_fig else ax
 
 
-def add_colorbar(im, ax, cbar_width=None,
-                 cbar_pad=None, clabel=None,
-                 rasterized=None):
-    '''
+def add_colorbar(
+    im: ScalarMappable,
+    ax: maxes.Axes,
+    cbar_width: float | _Unset = _UNSET,
+    cbar_pad: float | _Unset = _UNSET,
+    label: str | None = None,
+    tick_which=_UNSET,
+    tick_dir=_UNSET,
+    rasterized=_UNSET
+) -> None:
+    """
     Add a colorbar next to an Axes.
 
     Parameters
@@ -759,38 +767,43 @@ def add_colorbar(im, ax, cbar_width=None,
         a plotting function (e.g., 'imshow', 'scatter', etc...).
     ax : matplotlib.axes.Axes
         The axes to which the colorbar will be attached.
-    cbar_width : float or None, optional, default=None
+    cbar_width : float | _Unset, optional, default=_UNSET
         Width of the colorbar in figure coordinates.
-        If None, uses the default value set in `config.cbar_width`.
-    cbar_pad : float or None, optional, default=None
+        If `_UNSET`, uses `config.colorbar.width`.
+    cbar_pad : float | _Unset, optional, default=_UNSET
         Padding between the main axes and the colorbar
-        in figure coordinates. If None, uses the default
-        value set in `config.cbar_pad`.
-    clabel : str, optional
-        Label for the colorbar. If None, no label is set.
-    rasterized : bool or None, default=None
+        in figure coordinates. If `_UNSET`, uses `config.colorbar.pad`.
+    label : str, optional, default=None
+        Label for the colorbar. If `None`, no label is set.
+    tick_which :  {'major', 'minor', 'both'} | _Unset, optional, default=_UNSET
+        The group of ticks to which the parameters are applied.
+    tick_dir : {'in', 'out', 'inout'} | _Unset, optional, default=_UNSET
+        Puts ticks inside the Axes, outside the Axes, or both.
+    rasterized : bool | _Unset, default=_UNSET
         Whether to rasterize colorbar. Rasterization
         converts the artist to a bitmap when saving to
         vector formats (e.g., PDF, SVG), which can
         significantly reduce file size for complex plots.
-        If None, uses default value set by `config.rasterized`
-    '''
-    # get default config values
-    cbar_width = get_config_value(cbar_width, 'cbar_width')
-    cbar_pad = get_config_value(cbar_pad, 'cbar_pad')
-    rasterized = get_config_value(rasterized, 'rasterized')
+        If `_UNSET`, uses `config.rasterized`
+    """
+    cbar_width = _resolve_default(cbar_width, config.colorbar.width)
+    cbar_pad = _resolve_default(cbar_pad, config.colorbar.pad)
+    tick_which = _resolve_default(tick_which, config.colorbar.tick_which)
+    tick_dir = _resolve_default(tick_dir, config.colorbar.tick_dir)
+    rasterized = _resolve_default(rasterized, config.rasterized)
 
-    # extract figure from axes
     fig = ax.figure
-    # add colorbar axes
-    cax = fig.add_axes([ax.get_position().x1+cbar_pad, ax.get_position().y0,
-                        cbar_width, ax.get_position().height])
-    # add colorbar
+    cax = fig.add_axes(
+        [
+            ax.get_position().x1+cbar_pad, ax.get_position().y0,
+            cbar_width, ax.get_position().height
+        ]
+    )
+
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
-    # formatting and label
-    cbar.ax.tick_params(which=config.cbar_tick_which, direction=config.cbar_tick_dir)
-    if clabel is not None:
-        cbar.set_label(fr'{clabel}')
+    cbar.ax.tick_params(which=tick_which, direction=tick_dir)
+    if label:
+        cbar.set_label(fr'{label}')
 
     if rasterized:
         cbar.solids.set_rasterized(True)
@@ -1445,6 +1458,12 @@ class PlotUtilParams:
     grid_linestyle: Any = None
     grid_linewidth: Any = None
     grid_alpha: Any = None
+    colorbar: Any = None
+    cbar_width: Any = None
+    cbar_pad: Any = None
+    cbar_label: Any = None
+    cbar_tick_which: Any = None
+    cbar_tick_dir: Any = None
 
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
@@ -1497,6 +1516,15 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
             _kwarg('grid_linestyle', config.grid_linestyle),
             _kwarg('grid_linewidth', config.grid_linewidth),
             _kwarg('grid_alpha', config.grid_alpha),
+
+            _kwarg('colorbar', config.colorbar.enable),
+            _kwarg('cbar_width', config.colorbar.width),
+            _kwarg('cbar_pad', config.colorbar.pad),
+            _kwarg('cbar_label', config.colorbar.label),
+            _kwarg('cbar_tick_which', config.colorbar.tick_which),
+            _kwarg('cbar_tick_dir', config.colorbar.tick_dir),
+        ],
+        copy_kwargs=[
         ]
     )
 
@@ -1508,6 +1536,7 @@ def _apply_plot_utils(
     ax: maxes.Axes,
     xlist: list | None = None,
     ylist: list | None = None,
+    im_list: list | None = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
 ) -> None:
@@ -1613,6 +1642,33 @@ def _apply_plot_utils(
             alpha=params.grid_alpha,
             zorder=config.zorder.gridlines,
         )
+
+    if params.colorbar:
+        if im_list is not None and _has_color_mapping(_cycle(im_list, params.reference_idx)):
+            cbar_unit = unit_2_string(ref_unit, fmt=config.unit_label_format)
+            clabel = (
+                params.cbar_label if isinstance(params.cbar_label, str) else
+                cbar_unit if params.cbar_label else None
+            )
+            add_colorbar(
+                _cycle(im_list, params.reference_idx),
+                ax=ax,
+                cbar_width=params.cbar_width,
+                cbar_pad=params.cbar_pad,
+                label=clabel,
+                tick_which=params.cbar_tick_which,
+                tick_dir=params.cbar_tick_dir,
+                rasterized=kwargs.get('rasterized', None)
+            )
+
+
+def _has_color_mapping(mappable: ScalarMappable) -> bool:
+    """Check that a ScalarMappable instance has valid data for a colormap"""
+    return (
+        mappable is not None
+        and isinstance(mappable, ScalarMappable)
+        and mappable.get_array() is not None
+    )
 
 
 def _extract_xy(
