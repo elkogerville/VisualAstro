@@ -658,7 +658,7 @@ class DataCube:
             Size of the output figure.
         style : str or None, optional, default=None
             Matplotlib style to use for plotting. If None,
-            uses the default value set by `config.style`.
+            uses `config.style`.
 
         Notes
         -----
@@ -718,14 +718,14 @@ class DataCube:
         return_footprint : bool or None, optional
             If True, return both reprojected data and reprojection
             footprints. If False, return only the reprojected data.
-            If None, uses the default value set by `config.return_footprint`.
+            If None, uses `config.return_footprint`.
         parallel : bool, int, or None, optional, default=None
             If True, the reprojection is carried out in parallel,
             and if a positive integer, this specifies the number
             of threads to use. The reprojection will be parallelized
             over output array blocks specified by `block_size` (if the
             block size is not set, it will be determined automatically).
-            If None, uses the default value set by `config.reproject_parallel`.
+            If None, uses `config.reproject_parallel`.
         block_size : tuple, 'auto', or None
             The size of blocks in terms of output array pixels that each block
             will handle reprojecting. Extending out from (0,0) coords positively,
@@ -733,7 +733,7 @@ class DataCube:
             past edge. Specifying 'auto' means that reprojection will be done in
             blocks with the block size automatically determined. If `block_size` is
             not specified or set to None, the reprojection will not be carried out in blocks.
-            If `_UNSET`, uses the default value set by `config.reproject_block_size`.
+            If `_UNSET`, uses `config.reproject_block_size`.
 
         Returns
         -------
@@ -1032,8 +1032,8 @@ class DataCube:
             is raised. This prevents continuum fitting attempts on pixels with
             insufficient spectral data.
         print_info : bool or None, optional, default=None
-            If True, will print the value of ``min_valid_pixels``.
-            If None, uses the default value set by ``config.print_info``.
+            If True, will print the value of `min_valid_pixels`.
+            If None, uses `config.print_info`.
 
         Returns
         -------

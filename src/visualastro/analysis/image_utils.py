@@ -81,16 +81,16 @@ def load_data_cube(
         unsigned to ``config.default_dtype``.
     print_info : bool | _Unset, optional, default=_UNSET
         If True, print summary information about the loaded cube.
-        If ``_UNSET``, uses the default value set by ``config.print_info``.
+        If `_UNSET`, uses `config.print_info`.
     transpose : bool | _Unset, optional, default=_UNSET
         If True, transpose each 2D image before stacking into the cube.
         This will also transpose each error array if available and
         swap the WCS axes for consistency. The swapping of the WCS
-        can be disabled by ``config.invert_wcs_if_transpose``.
-        If ``_UNSET``, uses the default value set by `config.transpose`.
+        can be disabled by `config.invert_wcs_if_transpose`.
+        If `_UNSET`, uses `config.transpose`.
     invert_wcs : bool | _Unset, optional, default=_UNSET
-        If True, will perform a swapaxes(0,1) on the wcs if ``transpose=True``.
-        If ``_UNSET``, uses the default value set by ``config.invert_wcs_if_transpose``.
+        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
+        If `_UNSET`, uses `config.invert_wcs_if_transpose`.
 
     Returns
     -------
@@ -209,13 +209,13 @@ def load_fits(filepath, header=True, error=True,
         If True, return the 'ERR' extention of the fits file.
     print_info : bool or None, default=None
         If True, print HDU information using 'hdul.info()'.
-        If None, uses the default value set by `config.print_info`.
+        If None, uses `config.print_info`.
     transpose : bool or None, default=None
         If True, transpose the data array before returning.
         This will also transpose the error array and swap
         the WCS axes for consistency. The swapping of the WCS
         can be disabled by `config.invert_wcs_if_transpose`.
-        If None, uses the default value set by `config.transpose`.
+        If None, uses `config.transpose`.
     dtype : np.dtype, default=None
         Data type to convert the FITS data to. If None,
         determines the dtype from the data. Will convert to
@@ -228,7 +228,7 @@ def load_fits(filepath, header=True, error=True,
         value set by `config.target_wcs`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
-        If None, uses the default value set by `config.invert_wcs_if_transpose`.
+        If None, uses `config.invert_wcs_if_transpose`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -382,7 +382,7 @@ def load_spectral_cube(
         from FITS data, promoting integer and unsigned to `np.float64`.
     print_info : bool or None, optional, default=None
         If True, print FITS file info to the console.
-        If None, uses default value set by `config.print_info`.
+        If None, uses `config.print_info`.
 
     Returns
     -------

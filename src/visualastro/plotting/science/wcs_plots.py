@@ -155,13 +155,13 @@ def imshow(
             X-axis label.
         - `ylabel` : str, optional, default=None
             Y-axis label.
-        - `colorbar` : bool, optional, default=`config.cbar`
+        - `colorbar` : bool, optional, default=`config.colorbar.enable`
             Add colorbar if True.
-        - `clabel` : str or bool, optional, default=`config.clabel`
+        - `clabel` : str or bool, optional, default=`config.colorbar.label`
             Colorbar label. If True, use default label; if None or False, no label.
-        - `cbar_width` : float, optional, default=`config.cbar_width`
+        - `cbar_width` : float, optional, default=`config.colorbar.width`
             Width of the colorbar.
-        - `cbar_pad` : float, optional, default=`config.cbar_pad`
+        - `cbar_pad` : float, optional, default=`config.colorbar.pad`
             Padding between plot and colorbar.
         - `mask_out_val` : float, optional, default=`config.mask_out_value`
             Value to use when masking out non-positive values.
@@ -410,7 +410,7 @@ def plot_spectral_cube(
         Desired spectral axis unit for labeling.
     cmap : str, list or tuple of str, or None, default=None
         Colormap(s) to use for plotting. If None,
-        uses the default value set by `config.cmap`.
+        uses `config.cmap`.
     mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
         log scaling of images with non-positive values. If None, uses the
@@ -438,13 +438,13 @@ def plot_spectral_cube(
             Relative axes coordinates for overlay text placement.
         - `text_color` : str, default=`config.text_color`
             Color of overlay text.
-        - `colorbar` : bool, default=`config.cbar`
+        - `colorbar` : bool, default=`config.colorbar.enable`
             Whether to add a colorbar.
-        - `cbar_width` : float, default=`config.cbar_width`
+        - `cbar_width` : float, default=`config.colorbar.width`
             Width of the colorbar.
-        - `cbar_pad` : float, default=`config.cbar_pad`
+        - `cbar_pad` : float, default=`config.colorbar.pad`
             Padding between axes and colorbar.
-        - `clabel` : str, bool, or None, default=`config.clabel`
+        - `clabel` : str, bool, or None, default=`config.colorbar.label`
             Label for colorbar. If True, automatically generate from cube unit.
         - `xlabel` : str, default=`config.right_ascension`
             X axis label.

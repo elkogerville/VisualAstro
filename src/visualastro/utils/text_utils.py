@@ -30,14 +30,14 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
         - None (renders as empty string)
     precision : int, optional, default=None
         Number of decimal places for numerical formatting.
-        If None, uses the default value set by `config.table_precision`.
+        If None, uses `config.table_precision`.
     sci_notation : bool, optional, default=None
         If True, formats numbers in scientific notation (e.g., 1.23e-04).
         If False, formats as fixed-point decimals (e.g., 0.000123).
-        If None, uses the default value set by `config.table_sci_notation`.
+        If None, uses `config.table_sci_notation`.
     pad : int, optional, default=3
         Number of spaces between columns for visual separation.
-        If None, uses the default value set by `config.table_column_pad`.
+        If None, uses `config.table_column_pad`.
 
     Returns
     -------
@@ -143,14 +143,14 @@ def print_pretty_table(headers, data, precision=None, sci_notation=None, pad=Non
         - None (renders as empty string)
     precision : int, optional, default=None
         Number of decimal places for numerical formatting.
-        If None, uses the default value set by `config.table_precision`.
+        If None, uses `config.table_precision`.
     sci_notation : bool, optional, default=None
         If True, formats numbers in scientific notation (e.g., 1.23e-04).
         If False, formats as fixed-point decimals (e.g., 0.000123).
-        If None, uses the default value set by `config.table_sci_notation`.
+        If None, uses `config.table_sci_notation`.
     pad : int, optional, default=None
         Number of spaces between columns for visual separation.
-        If None, uses the default value set by `config.table_column_pad`.
+        If None, uses `config.table_column_pad`.
     '''
 
     table = pretty_table(

@@ -118,7 +118,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
                 Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
                 load at the cost of speed. Recommended for extremely large cubes
                 or low-memory environments.
-        If None, uses the default value set by `config.spectral_cube_extraction_mode`.
+        If None, uses `config.spectral_cube_extraction_mode`.
     fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
         Method used to fit the continuum. If None, uses the default
         value set by `config.spectrum_continuum_fit_method`.
@@ -132,18 +132,18 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     radial_vel : float or None, optional, default=`_UNSET`
         Radial velocity in km/s to shift the spectral axis.
         Astropy units are optional. If None, ignores the radial velocity.
-        If `_UNSET`, uses the default value set by `config.radial_velocity`.
+        If `_UNSET`, uses `config.radial_velocity`.
     rest_freq : float or None, optional, default=`_UNSET`
         Rest-frame frequency or wavelength of the spectrum. If None,
         ignores the rest frequency for unit conversions. If `_UNSET`,
-        uses the default value set by `config.spectra_rest_frequency`.
+        uses `config.spectra_rest_frequency`.
     deredden : bool or None, optional, default=None
         Whether to apply dereddening to the flux using deredden_flux().
-        If None, uses the default value set by `config.deredden_spectrum`.
+        If None, uses `config.deredden_spectrum`.
     unit : str, astropy.units.Unit, or None, optional, default=`_UNSET`
         Desired units for the wavelength axis. Converts the default
         units if possible. If None, does not try and convert. If `_UNSET`,
-        uses the default value set by `config.wavelength_unit`.
+        uses `config.wavelength_unit`.
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
     plot_continuum : bool or None, optional, default=None
@@ -151,7 +151,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         default value set by `config.plot_continuum_fit`.
     plot_norm_continuum : bool or None, optional, default=None
         Whether to plot the normalized extracted spectra. If None,
-        uses the default value set by `config.plot_normalized_continuum`.
+        uses `config.plot_normalized_continuum`.
 
     **kwargs : dict, optional
         Additional parameters.
@@ -839,7 +839,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         Axis to plot on.
     plot_norm_continuum : bool, optional, default=None
         If True, plot normalized flux instead of raw flux.
-        If None, uses the default value set by `plot_normalized_continuum`.
+        If None, uses `plot_normalized_continuum`.
     plot_continuum : bool, optional, default=None
         If True, overplot continuum fit. If None, uses
         the default value set by `config.plot_continuum_fit`.
@@ -1287,13 +1287,13 @@ def fit_gaussian_2_spec(
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
         The continuum can be computed with fit_continuum().
-        If None, uses the default value set by `config.gaussian_model`.
+        If None, uses `config.gaussian_model`.
     spectral_range : array-like or None, optional, default=None
         (min, max) wavelength range to restrict the fit.
         If None, computes the min and max from the wavelength.
     fit_method : {'lm', 'trf', 'dogbox'} or None, optional, default=None
         Curve fitting algorithm used by `scipy.optimize.curve_fit`.
-        If None, uses the default value set by `config.curve_fit.method`.
+        If None, uses `config.curve_fit.method`.
     absolute_sigma : boolean, optional, default=None
         If True, the values provided in `yerror` are interpreted as absolute
         1σ uncertainties on the flux measurements. In this case, the returned
@@ -1306,7 +1306,7 @@ def fit_gaussian_2_spec(
         Set this to True when `yerror` represents well-calibrated observational
         uncertainties (e.g., photon-counting or pipeline-provided errors).
         Set this to False when `yerror` is used only for weighting the fit.
-        If None, uses the default value set by `config.curve_fit.absolute_sigma`.
+        If None, uses `config.curve_fit.absolute_sigma`.
     yerror : array-like or None, optional, default=None
         Flux uncertainties to be used in the fit. If None,
         uncertainties are ignored when computing the fit.
@@ -1317,7 +1317,7 @@ def fit_gaussian_2_spec(
         default value set by ``config.curve_fit.interpolate``.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
-        None, uses the default value set by `config.curve_fit.samples`.
+        None, uses `config.curve_fit.samples`.
     interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
         Interpolation method used. If None, uses `config.curve_fit.interpolation_method`.
     error_interp_method : {'cubic', 'cubic_spline', 'linear'} or None, default=None
@@ -1326,7 +1326,7 @@ def fit_gaussian_2_spec(
     return_fit_params : bool or None, default=None
         If True, return full computed best-fit parameters for all parameters,
         including popt, pcov, and perr. If False, return only Flux, FWHM, and mu.
-        If None, uses the default value set by `config.return_gaussian_fit_parameters`.
+        If None, uses `config.return_gaussian_fit_parameters`.
     plot_interp : bool, default=False
         If True, plot the interpolated spectrum. This is
         provided for debugging purposes.

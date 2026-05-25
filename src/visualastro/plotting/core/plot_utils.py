@@ -540,7 +540,7 @@ def nanpercentile_limits(
         is ignored.
     stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
         Reduction method if stacking is required. If None,
-        uses the default value set by `config.stack_cube_method`.
+        uses `config.stack_cube_method`.
     axis : int, default=0
         Axis to flatten if data.ndim > 2 and no slice_idx is given.
 
@@ -588,22 +588,22 @@ def gridspec(nrows=None, ncols=None, figsize=None,
         the default value set in `config.ncols`.
     figsize : tuple of float or None, default=None
         Figure size in inches as (width, height). If None,
-        uses the default value set in `config.grid_figsize`.
+        uses `config.grid_figsize`.
     sharex : bool or None, default=None
         If True, share the x-axis among all subplots. If None,
-        uses the default value set in `config.axes.sharex`.
+        uses `config.axes.sharex`.
     sharey : bool or None, default=None
         If True, share the y-axis among all subplots. If None,
-        uses the default value set in `config.axes.sharey`.
+        uses `config.axes.sharey`.
     hspace : float or None, default=`_UNSET`
         Height padding between subplots. If None,
         Matplotlib’s default spacing is used. If
-        `_UNSET`, uses the default value set in
+        `_UNSET`, uses
         `config.axes.hspace`.
     wspace : float or None, default=`_UNSET`
         Width padding between subplots. If None,
         Matplotlib’s default spacing is used. If
-        `_UNSET`, uses the default value set in
+        `_UNSET`, uses
         `config.axes.wspace`.
     width_ratios : array-like of length `ncols`, optional, default=None
         Width padding between subplots. If None, Matplotlib’s default spacing is used.
@@ -621,7 +621,7 @@ def gridspec(nrows=None, ncols=None, figsize=None,
     Nticks : int or None, default=`_UNSET`
         Maximum number of major ticks per axis. If None,
         uses the default matplotlib settings. If `_UNSET`,
-        uses the default value set in `config.axes.Nticks`.
+        uses `config.axes.Nticks`.
     aspect : float or None, default=None
         Changes the physical dimensions of the Axes,
         such that the ratio of the Axes height to the
@@ -1886,13 +1886,13 @@ def plot_circles(
         sampled from a colormap using sample_cmap(cmap=`cmap`).
     linewidth : float or None, optional, default=None
         Width of the circle edge lines. If None,
-        uses the default value set in `config.linewidth`.
+        uses `config.linewidth`.
     fill : bool or None, optional, default=None
         Whether the circles are filled. If None,
-        uses the default value set in `config.circle_fill`.
+        uses `config.circle_fill`.
     cmap : str or None, optional, default=None
         matplolib cmap used to sample default circle colors.
-        If None, uses the default value set in `config.cmap`.
+        If None, uses `config.cmap`.
     '''
     # get default config values
     linewidth = get_config_value(linewidth, 'linewidth')
@@ -1996,13 +1996,13 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
         The Axes on which to draw the ellipse selector.
     text_loc : list of float or None, optional, default=None
         Position of the text label in Axes coordinates, given as [x, y].
-        If None, uses the default value set in `config.text_loc`.
+        If None, uses `config.text_loc`.
     text_color : str or None, optional, default=None
         Color of the annotation text. If None, uses
         the default value set in `config.text_color`.
     highlight : bool or None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
-        uses the default value set in `config.highlight`.
+        uses `config.highlight`.
 
     Notes
     -----
