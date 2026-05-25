@@ -787,6 +787,7 @@ def scatter(
         [
             _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
+            _kwarg('c', None),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('ecolor', config.errorbar.colors),
@@ -815,6 +816,7 @@ def scatter(
 
     xerrs = _normalize_plotting_input(xerr) if xerr is not None else xerr
     yerrs = _normalize_plotting_input(yerr) if yerr is not None else yerr
+    c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
 
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
@@ -826,7 +828,10 @@ def scatter(
     for i in range(len(ylist)):
         x = get_value(_cycle(xlist, i))
         y = get_value(_cycle(ylist, i))
+
         color = _cycle(colors, i)
+        c = _cycle(c_arr, i) if c_arr is not None else None
+
         s = _cycle(sizes, i)
         m = _cycle(markers, i)
         a = _cycle(alphas, i)
@@ -846,9 +851,16 @@ def scatter(
             y = _normalize(y)
             ylist[i] = y
 
+        scatter_kwargs = dict(kwargs)
+        if c is not None:
+            scatter_kwargs.pop('color', None)
+            scatter_kwargs['c'] = c
+        else:
+            scatter_kwargs.pop('c', None)
+            scatter_kwargs['color'] = color
+
         scatter = ax.scatter(
             x, y,
-            color=color,
             s=s,
             marker=m,
             alpha=a,
@@ -857,7 +869,7 @@ def scatter(
             label=label,
             rasterized=params.rasterized,
             zorder=z,
-            **kwargs
+            **scatter_kwargs
         )
 
         scatters.append(scatter)
@@ -880,7 +892,7 @@ def scatter(
                 zorder=z,
             )
 
-    _apply_plot_utils(plot_params, ax, xlist=xlist, ylist=ylist, labels=labels)
+    _apply_plot_utils(plot_params, ax, im_list=scatters, xlist=xlist, ylist=ylist, labels=labels)
 
     return scatters
 
