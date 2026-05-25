@@ -390,14 +390,14 @@ def reproject_wcs(
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
-        If None, uses the default value set by `config.return_footprint`.
+        If None, uses `config.return_footprint`.
     parallel : bool, int, str, or None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
-        If None, uses the default value set by `config.reproject_parallel`.
+        If None, uses `config.reproject_parallel`.
     block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
@@ -405,7 +405,7 @@ def reproject_wcs(
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_UNSET`, uses the default value set by `config.reproject_block_size`.
+        If `_UNSET`, uses `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -499,14 +499,14 @@ def _reproject_wcs(
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
-        If None, uses the default value set by `config.return_footprint`.
+        If None, uses `config.return_footprint`.
     parallel : bool, int, str, or None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
-        If None, uses the default value set by `config.reproject_parallel`.
+        If None, uses `config.reproject_parallel`.
     block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
@@ -514,7 +514,7 @@ def _reproject_wcs(
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_UNSET`, uses the default value set by `config.reproject_block_size`.
+        If `_UNSET`, uses `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.

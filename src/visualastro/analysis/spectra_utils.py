@@ -134,20 +134,20 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
         linear units (e.g., erg/s/cm^2/Å, Jy).
     Rv : float or None, optional, default=None
         Ratio of total-to-selective extinction (A_V / E(B-V)).
-        If None, uses default value set by `config.Rv`.
+        If None, uses `config.Rv`.
     Ebv : float or None, optional, default=None
         Color excess E(B-V), representing the amount of reddening.
-        If None, uses default value set by `config.Ebv`.
+        If None, uses `config.Ebv`.
     deredden_method : {'G23', 'WD01', 'M14'} or None, optional, default=None
         Choice of extinction law:
         - 'G23' : Gordon et al. (2023)
         - 'WD01': Weingartner & Draine (2001)
         - 'M14' : Maíz Apellániz et al. (2014)
-        If None, uses default value set by `config.deredden_method`.
+        If None, uses `config.deredden_method`.
     region : str or None, optional, default=None
         For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
         'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
-        If None, uses default value set by `config.deredden_region`.
+        If None, uses `config.deredden_region`.
 
     Returns
     -------

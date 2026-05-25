@@ -543,7 +543,7 @@ def save_array(arr, filename, fmt=None):
         the array will be saved according to `fmt`.
     fmt : {'.dat', '.csv', '.npy', '.txt'} or None, optional, default=None
         Default output extension. Only used if filename has
-        no extension. If None, uses the default value set by
+        no extension. If None, uses
         `config.save_format`. The format is correctly recognized
         even if the '.' is omitted.
 
