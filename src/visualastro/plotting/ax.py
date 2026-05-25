@@ -210,7 +210,7 @@ class ax:
             and `flux` must be given.
         plot_norm_continuum : bool, optional, default=None
             If True, plot normalized flux instead of raw flux.
-            If None, uses the default value set by `plot_normalized_continuum`.
+            If None, uses `plot_normalized_continuum`.
         plot_continuum : bool, optional, default=None
             If True, overplot continuum fit. If None, uses
             the default value set by `config.plot_continuum_fit`.
