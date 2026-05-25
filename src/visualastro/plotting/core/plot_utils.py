@@ -478,7 +478,7 @@ def compute_imshow_scale(
         which the transformation becomes asymptotically logarithmic.
         Used for `norm='asinhnorm'`.
     gamma : float, optional, default=`config.gamma`
-    Power law exponent. Used for `norm='power'`.
+        Power law exponent. Used for `norm='power'`.
 
     Returns
     -------

@@ -346,26 +346,24 @@ def imshow(
     if colorbar:
         add_colorbar(images[0], ax, cbar_width, cbar_pad, clabel)
 
-    images = _unwrap_if_single(images)
-
     return images
 
 
 def plot_spectral_cube(
     cubes,
-    idx=None,
-    ax=None,
-    vmin=_UNSET,
-    vmax=_UNSET,
-    norm=_UNSET,
-    percentile=_UNSET,
+    idx: int | tuple[int, int] | None = None,
+    ax: WCSAxes | None = None,
+    vmin: float | _Unset = _UNSET,
+    vmax: float | _Unset = _UNSET,
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
+    percentile: tuple[float, float] | _Unset = _UNSET,
     stack_method=None,
-    radial_vel=None,
+    radial_vel: float | None = None,
     spectral_unit=None,
-    cmap=None,
+    cmap: Colormap | str | _Unset = _UNSET,
     mask_non_pos=None,
-    wcs_grid=None,
-    **kwargs):
+    **kwargs
+) -> list[AxesImage]:
     """
     Plot a single spectral slice from one or more spectral cubes.
 
@@ -478,46 +476,41 @@ def plot_spectral_cube(
     -----
     - If multiple cubes are provided, they are overplotted in sequence.
     """
-    # check cube units match and ensure cubes is iterable
-    cubes = to_list(cubes)
-    ref_unit = ensure_common_unit(cubes)
-    # ---- Kwargs ----
-    # fig params
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    as_title = kwargs.get('as_title', False)
-    # labels
-    emission_line = kwargs.pop('emission_line', None)
-    text_loc = kwargs.get('text_loc', config.text_loc)
-    text_color = kwargs.get('text_color', config.text_color)
-    colorbar = kwargs.get('colorbar', config.cbar)
-    cbar_width = kwargs.get('cbar_width', config.cbar_width)
-    cbar_pad = kwargs.get('cbar_pad', config.cbar_pad)
-    clabel = kwargs.get('clabel', config.clabel)
-    xlabel = kwargs.get('xlabel', config.right_ascension)
-    ylabel = kwargs.get('ylabel', config.declination)
-    draw_spectral_label = kwargs.get('spectral_label', True)
-    highlight = kwargs.get('highlight', config.highlight)
-    # mask out value
-    mask_out_val = kwargs.get('mask_out_val', config.mask_out_value)
-    # plot ellipse
-    ellipses = kwargs.get('ellipses', None)
-    plot_ellipse = kwargs.get('plot_ellipse', False)
-    _, X, Y = get_data(cubes[0]).shape
-    center = kwargs.get('center', [X//2, Y//2])
-    w = kwargs.get('w', X//5)
-    h = kwargs.get('h', Y//5)
-    angle = kwargs.get('angle', None)
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('vmin', vmin, config.vmin),
+            _param('vmax', vmax, config.vmax),
+            _param('norm', norm, config.norm),
+            _param('percentile', percentile, config.percentile),
+            _param('cmap', cmap, config.cmap),
+        ],
+        additional_kwargs=[
+            _kwarg('as_title', False),
+            _kwarg('unit_fmt', config.unit_label_format),
+            _kwarg('emission_line', None),
+            _kwarg('rasterized', config.rasterized),
+            _kwarg('spectral_label', True),
+            _kwarg('mask_out_val', config.mask_out_value),
+            _kwarg('stack_method', config.stack_cube_method),
+            _kwarg('radial_velocity', config.radial_velocity),
+            _kwarg('mask_non_pos', config.mask_non_positive),
+            _kwarg('linear_width', config.linear_width),
+            _kwarg('gamma', config.gamma),
+        ],
+        copy_kwargs=[
+            _kwarg('plot_ellipse', False),
+            _kwarg('highlight', config.highlight),
+            _kwarg('text_loc', config.text_loc),
+            _kwarg('text_color', config.text_color),
+        ]
+    )
+    plot_params = _extract_plot_util_kwargs(kwargs)
 
-    # get default config values
-    vmin = config.vmin if vmin is _UNSET else vmin
-    vmax = config.vmax if vmax is _UNSET else vmax
-    norm = config.norm if norm is _UNSET else norm
-    percentile = config.percentile if percentile is _UNSET else percentile
-    stack_method = get_config_value(stack_method, 'stack_cube_method')
-    radial_vel = get_config_value(radial_vel, 'radial_velocity')
-    cmap = get_config_value(cmap, 'cmap')
-    mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
-    wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
+    cubes = to_list(cubes)
+    cmaps = to_list(params.cmap)
+
+    ref_unit = ensure_common_unit(cubes, on_mismatch=config.unit_mismatch)
 
     if not isinstance(ax, WCSAxes) or ax is None:
         raise ValueError(
@@ -525,7 +518,6 @@ def plot_spectral_cube(
         )
 
     images = []
-    cmap = to_list(cmap)
 
     for i, cube in enumerate(cubes):
         cube = get_data(cube)
@@ -542,64 +534,61 @@ def plot_spectral_cube(
         data = get_value(cube_slice)
 
         if mask_non_pos:
-            data = np.where(data > 0.0, data, mask_out_val)
+            data = np.where(data > 0.0, data, params.mask_out_val)
 
-        cube_norm, vmin, vmax = compute_imshow_scale(
-            data, norm, vmin, vmax, percentile, **kwargs
+        cube_norm, cube_vmin, cube_vmax = compute_imshow_scale(
+            data=data,
+            norm=params.norm,
+            vmin=params.vmin,
+            vmax=params.vmax,
+            percentile=params.percentile,
+            linear_width=params.linear_width,
+            gamma=params.gamma,
         )
 
-        cm = get_cmap(_cycle(cmap, i))
+        cm = get_cmap(_cycle(cmaps, i))
+
+        imshow_kwargs = dict(kwargs)
         if norm is None:
-            im = ax.imshow(data, origin='lower', vmin=vmin, vmax=vmax,
-                           cmap=cm, rasterized=rasterized)
+            imshow_kwargs.pop('norm', None)
+            imshow_kwargs.update(vmin=cube_vmin, vmax=cube_vmax)
         else:
-            im = ax.imshow(data, origin='lower', cmap=cm,
-                           norm=cube_norm, rasterized=rasterized)
+            imshow_kwargs.pop('vmin', None)
+            imshow_kwargs.pop('vmax', None)
+            imshow_kwargs['norm'] = cube_norm
+
+        im = ax.imshow(
+            data,
+            origin='lower',
+            cmap=cm,
+            rasterized=params.rasterized,
+            **imshow_kwargs
+        )
 
         images.append(im)
 
-    cbar_unit = to_latex_unit(ref_unit)
-    if clabel is True:
-        clabel = cbar_unit if cbar_unit is not None else None
-    if colorbar:
-        add_colorbar(
-            images[0], ax, cbar_width, cbar_pad, clabel, rasterized=rasterized
-        )
 
-    if ellipses is not None:
-        plot_ellipses(ellipses, ax)
-
-    if plot_ellipse:
-        plot_interactive_ellipse(
-            center, w, h, ax, text_loc,
-            text_color, highlight,
-            rotation_step=kwargs.get('rotation_step', 5)
-        )
-        draw_spectral_label = False
+    if params.plot_ellipse:
+        params.spectral_label = False
 
     # plot wavelength/frequency of current spectral slice, and emission line
-    if draw_spectral_label:
+    if params.spectral_label:
         spectral_axis_label(
             cubes[0], idx, ax,
             ref_unit=spectral_unit,
             radial_vel=radial_vel,
-            emission_line=emission_line,
-            as_title=as_title,
-            **kwargs
+            emission_line=params.emission_line,
+            as_title=params.as_title,
+            highlight=params.highlight,
+            text_loc=params.text_loc,
+            text_color=params.text_color,
         )
 
-    # set axes labels
-    ax.coords['ra'].set_axislabel(xlabel)
-    ax.coords['dec'].set_axislabel(ylabel)
-    ax.coords['dec'].set_ticklabel(rotation=90)
-    if wcs_grid:
-        ax.coords.grid(
-            True,
-            color=config.wcs_grid_color,
-            alpha=config.grid_alpha,
-            ls=config.wcs_grid_linestyle
-        )
-
-    images = _unwrap_if_single(images)
+    _apply_plot_utils(
+        plot_params, ax,
+        im_list=images,
+        ref_unit=ref_unit,
+        colorbar=True
+    )
 
     return images

@@ -62,6 +62,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'linealpha': ('linealphas', 'la'),
     'array_order': ('order',),
     'colorbar': ('colorbars', 'cbar', 'cbars'),
+    'gridlines': ('gridline', 'grid_line', 'grid_lines'),
 }
 
 
