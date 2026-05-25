@@ -1421,6 +1421,10 @@ def get_unit_label(
 class PlotUtilParams:
     reference_idx: Any = None
     ellipses: Any = None
+    plot_ellipse: Any = None
+    highlight: Any = None
+    text_loc: Any = None
+    text_color: Any = None
     vlines: Any = None
     hlines: Any = None
     label: Any = None
@@ -1474,6 +1478,10 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
             _kwarg('reference_idx', config.reference_idx),
 
             _kwarg('ellipses', None),
+            _kwarg('plot_ellipse', False),
+            _kwarg('highlight', config.highlight),
+            _kwarg('text_loc', config.text_loc),
+            _kwarg('text_color', config.text_color),
 
             _kwarg('vlines', None),
             _kwarg('hlines', None),
@@ -1524,8 +1532,6 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
             _kwarg('cbar_tick_which', config.colorbar.tick_which),
             _kwarg('cbar_tick_dir', config.colorbar.tick_dir),
         ],
-        copy_kwargs=[
-        ]
     )
 
     return PlotUtilParams(**params)
@@ -1660,6 +1666,22 @@ def _apply_plot_utils(
                 tick_dir=params.cbar_tick_dir,
                 rasterized=kwargs.get('rasterized', None)
             )
+
+    if params.plot_ellipse and im_list is not None:
+        im = _cycle(im_list, params.reference_idx)
+        data = im.get_array()
+        if data.ndim == 2:
+            X, Y = data.shape
+        else:
+            X, Y = data.shape[-2:]
+        center = X//2, Y//2
+        w = X//5
+        h = Y//5
+        plot_interactive_ellipse(
+            center, w, h, ax, params.text_loc,
+            params.text_color, params.highlight,
+            rotation_step=kwargs.get('rotation_step', 5)
+        )
 
 
 def _has_color_mapping(mappable: ScalarMappable) -> bool:

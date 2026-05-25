@@ -360,6 +360,9 @@ def spectral_axis_label(
     radial_vel: u.Quantity | float | None = None,
     emission_line: str | None = None,
     as_title: bool = False,
+    text_loc: tuple[float, float] | _Unset = _UNSET,
+    text_color: ColorType | _Unset = _UNSET,
+    highlight: bool | _Unset = _UNSET,
     **kwargs
 ) -> None:
     """
@@ -417,9 +420,9 @@ def spectral_axis_label(
     ValueError
         If spectral_axis is None or does not have valid units.
     """
-    text_loc: tuple[float, float] = kwargs.get('text_loc', config.text_loc)
-    text_color: str = kwargs.get('text_color', config.text_color)
-    highlight: bool = kwargs.get('highlight', config.highlight)
+    text_loc = _resolve_default(text_loc, config.text_loc)
+    text_color = _resolve_default(text_color, config.text_color)
+    highlight = _resolve_default(highlight, config.highlight)
 
     spectral_axis = _get_spectral_axis(spectral_axis)
     if spectral_axis is None:
