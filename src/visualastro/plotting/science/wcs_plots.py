@@ -16,11 +16,14 @@ Module Structure:
         Functions for plotting datacubes
 """
 
+from typing import Literal
 import warnings
 
 from astropy.utils.exceptions import AstropyWarning
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
+from matplotlib.colors import Colormap
+from matplotlib.image import AxesImage
 import numpy as np
 from spectral_cube import SpectralCube
 
@@ -28,20 +31,21 @@ from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
     get_config_value,
     config,
+    _Unset,
     _UNSET
 )
+from visualastro.core.io import _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_data,
     get_value,
     to_array,
     to_list,
     _cycle,
-    _unwrap_if_single
 )
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
-    to_latex_unit
+    to_latex_unit,
 )
 from visualastro.plotting.core.colors import get_cmap
 from visualastro.plotting.core.plot_utils import (
@@ -51,6 +55,8 @@ from visualastro.plotting.core.plot_utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
 )
 from visualastro.plotting.science.spectra_plot_utils import (
     spectral_axis_label
