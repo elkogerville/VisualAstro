@@ -1616,17 +1616,25 @@ def _apply_plot_utils(
         ypad=params.ypad
     )
 
-    set_axis_labels(
-        _cycle(xlist, params.reference_idx) if xlist is not None else None,
-        _cycle(ylist, params.reference_idx) if ylist is not None else None,
-        ax=ax,
-        xlabel=params.xlabel,
-        ylabel=params.ylabel,
-        unit_bracket_style=params.unit_bracket_style,
-        show_physical_type=params.show_physical_type,
-        show_unit=params.show_unit,
-        fmt=params.unit_fmt
-    )
+    if isinstance(ax, WCSAxes):
+        xlabel = params.xlabel if params.xlabel is not None else config.right_ascension
+        ylabel = params.ylabel if params.ylabel is not None else config.declination
+        ax.coords['ra'].set_axislabel(xlabel)
+        ax.coords['dec'].set_axislabel(ylabel)
+        ax.coords['dec'].set_ticklabel(rotation=90)
+
+    else:
+        set_axis_labels(
+            _cycle(xlist, params.reference_idx) if xlist is not None else None,
+            _cycle(ylist, params.reference_idx) if ylist is not None else None,
+            ax=ax,
+            xlabel=params.xlabel,
+            ylabel=params.ylabel,
+            unit_bracket_style=params.unit_bracket_style,
+            show_physical_type=params.show_physical_type,
+            show_unit=params.show_unit,
+            fmt=params.unit_fmt
+        )
 
     if params.wcs_grid and isinstance(ax, WCSAxes):
         ax.coords.grid(
@@ -1670,18 +1678,19 @@ def _apply_plot_utils(
     if params.plot_ellipse and im_list is not None:
         im = _cycle(im_list, params.reference_idx)
         data = im.get_array()
-        if data.ndim == 2:
-            X, Y = data.shape
-        else:
-            X, Y = data.shape[-2:]
-        center = X//2, Y//2
-        w = X//5
-        h = Y//5
-        plot_interactive_ellipse(
-            center, w, h, ax, params.text_loc,
-            params.text_color, params.highlight,
-            rotation_step=kwargs.get('rotation_step', 5)
-        )
+        if data is not None:
+            if data.ndim == 2:
+                X, Y = data.shape
+            else:
+                X, Y = data.shape[-2:]
+            center = X//2, Y//2
+            w = X//5
+            h = Y//5
+            plot_interactive_ellipse(
+                center, w, h, ax, params.text_loc,
+                params.text_color, params.highlight,
+                rotation_step=kwargs.get('rotation_step', 5)
+            )
 
 
 def _has_color_mapping(mappable: ScalarMappable) -> bool:

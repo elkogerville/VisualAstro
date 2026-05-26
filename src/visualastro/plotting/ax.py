@@ -21,6 +21,7 @@ import warnings
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.wcs import WCS
+from matplotlib.colors import Colormap
 from matplotlib.markers import MarkerStyle
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
