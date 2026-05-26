@@ -17,6 +17,7 @@ import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
+from matplotlib.typing import ColorType
 from specutils import SpectralAxis
 
 from visualastro.analysis.spectra_utils import (
@@ -36,7 +37,7 @@ from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
     get_unit,
-    to_latex_unit,
+    unit_2_string,
 )
 from visualastro.core.validation import _type_name
 
@@ -494,7 +495,7 @@ def _format_spectral_label(
         LaTeX-formatted spectral label string enclosed in math mode delimiters.
     """
 
-    unit_label = to_latex_unit(spectral_unit)
+    unit_label = unit_2_string(spectral_unit, fmt=config.unit_label_format)
 
     spectral_type = {
         'length': r'\lambda = ',
