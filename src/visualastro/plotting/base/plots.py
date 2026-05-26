@@ -830,7 +830,7 @@ def scatter(
         y = get_value(_cycle(ylist, i))
 
         color = _cycle(colors, i)
-        c = _cycle(c_arr, i) if c_arr is not None else None
+        c = get_value(_cycle(c_arr, i)) if c_arr is not None else None
 
         s = _cycle(sizes, i)
         m = _cycle(markers, i)
