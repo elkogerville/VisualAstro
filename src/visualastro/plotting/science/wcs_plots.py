@@ -48,6 +48,9 @@ from visualastro.core.units import (
     to_latex_unit,
 )
 from visualastro.plotting.core.colors import get_cmap
+from visualastro.plotting.core.interface import (
+    _apply_plot_utils, _extract_plot_util_kwargs
+)
 from visualastro.plotting.core.plot_utils import (
     add_colorbar,
     compute_imshow_scale,
@@ -55,8 +58,6 @@ from visualastro.plotting.core.plot_utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    _apply_plot_utils,
-    _extract_plot_util_kwargs,
 )
 from visualastro.plotting.science.spectra_plot_utils import (
     spectral_axis_label
