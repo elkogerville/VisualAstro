@@ -4,17 +4,12 @@ Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
     General plotting functions.
-Dependencies:
-    - matplotlib
-    - numpy
-Module Structure:
-    - Plotting Functions
-        Functions for general plots.
 """
 
 from collections import namedtuple
 from types import SimpleNamespace
 from typing import Literal, Sequence
+
 import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.collections import PatchCollection
@@ -43,10 +38,11 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colors import get_cmap, get_colors
+from visualastro.plotting.core.interface import (
+    _apply_plot_utils, _extract_plot_util_kwargs
+)
 from visualastro.plotting.core.plot_utils import (
     contour,
-    _apply_plot_utils,
-    _extract_plot_util_kwargs,
     _get_zorder,
     _normalize_plotting_input,
     _normalize_plotting_inputs,
