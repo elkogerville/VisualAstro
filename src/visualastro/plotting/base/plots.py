@@ -342,9 +342,9 @@ def hist(
     align : {'left', 'mid', 'right'}, optional, default: 'mid'
         The horizontal alignment of the histogram bars.
 
-            – 'left': bars are centered on the left bin edges.
-            – 'mid': bars are centered between the bin edges.
-            – 'right': bars are centered on the right bin edges.
+            * 'left': bars are centered on the left bin edges.
+            * 'mid': bars are centered between the bin edges.
+            * 'right': bars are centered on the right bin edges.
 
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
@@ -488,11 +488,11 @@ def plot(
 
     Examples:
 
-        – plot(x, y)
-        – plot([1,2,3], [[4,5,6], [7,8,9]])
-        – plot(radius, [vel1, vel2])
-        – plot(flux)
-        – plot(pos[:,0:2])
+        * plot(x, y)
+        * plot([1,2,3], [[4,5,6], [7,8,9]])
+        * plot(radius, [vel1, vel2])
+        * plot(flux)
+        * plot(pos[:,0:2])
 
     Parameters
     ----------
@@ -663,11 +663,11 @@ def scatter(
 
     Examples:
 
-        – scatter(x, y)
-        – scatter([1,2,3], [[4,5,6], [7,8,9]])
-        – scatter(radius, [vel1, vel2])
-        – scatter(flux)
-        – scatter(pos[:,0:2])
+        * scatter(x, y)
+        * scatter([1,2,3], [[4,5,6], [7,8,9]])
+        * scatter(radius, [vel1, vel2])
+        * scatter(flux)
+        * scatter(pos[:,0:2])
 
     Parameters
     ----------
@@ -694,17 +694,17 @@ def scatter(
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 
-            – 'face': Match face color
-            – 'none': No edge
-            – color or sequence: Explicit color(s)
+            * 'face': Match face color
+            * 'none': No edge
+            * color or sequence: Explicit color(s)
 
         If not set, uses `config.edgecolor`.
 
     facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
 
-            – 'none': Transparent
-            – color or sequence: Explicit color(s)
+            * 'none': Transparent
+            * color or sequence: Explicit color(s)
 
         If not set, uses `config.facecolor`.
 
@@ -946,17 +946,17 @@ def scatter_fit(
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 
-            – 'face': Match face color
-            – 'none': No edge
-            – color or sequence: Explicit color(s)
+            * 'face': Match face color
+            * 'none': No edge
+            * color or sequence: Explicit color(s)
 
         If not set, uses `config.edgecolor`.
 
     facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
 
-            – 'none': Transparent
-            – color or sequence: Explicit color(s)
+            * 'none': Transparent
+            * color or sequence: Explicit color(s)
 
         If not set, uses `config.facecolor`.
 
@@ -1047,6 +1047,7 @@ def scatter_fit(
     linewidths = to_list(params.linewidth)
     linealphas = to_list(params.linealpha)
     zorders = to_list(zorder)
+
     paths = scatter(
         *data,
         ax=ax,

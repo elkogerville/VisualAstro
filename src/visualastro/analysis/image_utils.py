@@ -62,23 +62,23 @@ def load_data_cube(
     This function searches for all FITS files matching a
     given path pattern, loads them into a NumPy array of shape
     (T, M, N), and bundles the data, headers, errors, and WCS
-    into a ``DataCube`` object.
+    into a `DataCube` object.
 
     Parameters
     ----------
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
-        ie. ``'Spectro-Module/raw/HARPS*.fits'``
+        ie. `'Spectro-Module/raw/HARPS*.fits'`
     error : bool, optional, default=True
-        If ``True``, try to extract the error extension.
-        Converts variance to errors using ``get_errors``.
+        If `True`, try to extract the error extension.
+        Converts variance to errors using `get_errors`.
     hdu : int | _Unset, optional, default=_UNSET
-        Hdu extension to use. If ``_UNSET``, uses the
-        default value set by ``config.hdu_idx``.
+        Hdu extension to use. If `_UNSET`, uses the
+        default value set by `config.hdu_idx`.
     dtype : np.dtype | str | _Unset, optional, default=_UNSET
-        Data type for the loaded FITS data. If ``_UNSET``, will use
+        Data type for the loaded FITS data. If `_UNSET`, will use
         the dtype of the provided data, promoting integer or
-        unsigned to ``config.default_dtype``.
+        unsigned to `config.default_dtype`.
     print_info : bool | _Unset, optional, default=_UNSET
         If True, print summary information about the loaded cube.
         If `_UNSET`, uses `config.print_info`.
@@ -743,8 +743,8 @@ def detect_edges(
     mode : {'rgb', 'sum'}, optional, default='rgb'
         Method to convert to grayscale if ndim > 2.
 
-            – `'rgb'` : Only take into account `image[:,:,0:3]`.
-            – `'sum'` : Sum the entire second axis.
+            * `'rgb'` : Only take into account `image[:,:,0:3]`.
+            * `'sum'` : Sum the entire second axis.
 
     show_plot : bool | _Unset, optional, default=_UNSET
         If `True`, plot the output image. If `_UNSET`, uses
@@ -806,8 +806,8 @@ def image_2_grayscale(
     mode : {'rgb', 'sum'}, optional, default='rgb'
         Method to convert to grayscale if ndim > 2.
 
-            – `'rgb'` : Only take into account `image[:,:,0:3]`.
-            – `'sum'` : Sum the entire second axis.
+            * `'rgb'` : Only take into account `image[:,:,0:3]`.
+            * `'sum'` : Sum the entire second axis.
 
     Returns
     -------

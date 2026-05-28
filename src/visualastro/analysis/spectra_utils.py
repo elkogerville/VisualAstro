@@ -186,7 +186,7 @@ def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
 def shift_by_radial_vel(spectral_axis, radial_vel):
     '''
     Shift spectral axis to rest frame using a radial velocity.
-    If ``radial_vel`` is None, return ``spectral_axis`` unchanged.
+    If `radial_vel` is None, return `spectral_axis` unchanged.
 
     Parameters
     ----------
@@ -232,12 +232,12 @@ def estimate_spectrum_line_flux(spectra, spec_range):
     ----------
     spectrum : Any or iterable of Any
         Spectral object(s) from which a spectral axis, flux, and continuum
-        can be extracted. This includes ``ExtractedPixelSpectra`` or
-        lists of ``SpectrumPlus``.
+        can be extracted. This includes `ExtractedPixelSpectra` or
+        lists of `SpectrumPlus`.
     spec_range : Quantity or array-like of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Must be compatible with the spectral axis units.
-        If no units, the units of ``spectrum`` are assumed.
+        If no units, the units of `spectrum` are assumed.
 
     Returns
     -------
@@ -273,11 +273,11 @@ def _estimate_spectrum_line_flux(
     spectrum : Any
         Spectral object from which a spectral axis, flux, and continuum
         can be extracted. Typically a `Spectrum`, `SpectrumPlus`,
-        ``ExtractedPixelSpectra`` or compatible container.
+        `ExtractedPixelSpectra` or compatible container.
     spec_range : Quantity of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Values must be comparable to the spectral axis.
-        If no units, the units of ``spectrum`` are assumed.
+        If no units, the units of `spectrum` are assumed.
 
     Returns
     -------
@@ -357,8 +357,8 @@ def sort_spectra_by_line_strength(
     Parameters
     ----------
     spectra : list, array-like, or ExtractedPixelSpectra
-        Spectrum objects to sort. If ``ExtractedPixelSpectra``, returns
-        a new ``ExtractedPixelSpectra`` with all attributes reordered.
+        Spectrum objects to sort. If `ExtractedPixelSpectra`, returns
+        a new `ExtractedPixelSpectra` with all attributes reordered.
     spec_range : Quantity of length 2 or array-like
         Lower and upper bounds of the spectral interval for integration.
     descending : bool, default=True
@@ -427,16 +427,16 @@ def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=
     ----------
     spectral_axis : Quantity or SpectralAxis
         The spectral axis (e.g., wavelength, frequency, or
-        velocity) as an ``astropy.units.Quantity`` or a
-        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
+        velocity) as an `astropy.units.Quantity` or a
+        `specutils.spectra.spectral_axis.SpectralAxis` array.
     idx : int or list of int
         Index or indices specifying the slice along the first axis:
-        - i -> returns ``spectral_axis[i]``
-        - [i] -> returns ``spectral_axis[i]``
-        - [i, j] -> returns ``(spectral_axis[i] + spectral_axis[j+1])/2``
-        - None -> returns ``(spectral_axis[0] + spectral_axis[-1]) / 2``
+        - i -> returns `spectral_axis[i]`
+        - [i] -> returns `spectral_axis[i]`
+        - [i, j] -> returns `(spectral_axis[i] + spectral_axis[j+1])/2`
+        - None -> returns `(spectral_axis[0] + spectral_axis[-1]) / 2`
     keep_unit : bool, optional, default=True
-        If True, return the result as an ``astropy.units.Quantity``.
+        If True, return the result as an `astropy.units.Quantity`.
         If False, return the raw float value without units.
 
     Returns
@@ -473,14 +473,14 @@ def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=
 def spectral_world_2_idx(spectral_axis, value) -> int:
     """
     Return the index of the nearest spectral channel to a given value.
-    If ``value`` has no unit, the cube unit is assumed.
+    If `value` has no unit, the cube unit is assumed.
 
     Parameters
     ----------
     spectral_axis : Quantity or SpectralAxis
         The spectral axis (e.g., wavelength, frequency, or
-        velocity) as an ``astropy.units.Quantity`` or a
-        ``specutils.spectra.spectral_axis.SpectralAxis`` array.
+        velocity) as an `astropy.units.Quantity` or a
+        `specutils.spectra.spectral_axis.SpectralAxis` array.
     value : Quantity
         Spectral value in the same units as the cube's spectral axis.
 
@@ -492,7 +492,7 @@ def spectral_world_2_idx(spectral_axis, value) -> int:
     Raises
     ------
     ValueError :
-        If ``spectral_axis`` is not a ``SpectralAxis`` or ``Quantity``.
+        If `spectral_axis` is not a `SpectralAxis` or `Quantity`.
     UnitsError :
         If a unit mismatch is detected.
     """
@@ -515,7 +515,7 @@ def mask_spectral_region(x, spectral_region):
 
     This function constructs the union of all subregions in the input
     SpectralRegion and returns a boolean array that is True for elements
-    of ``x`` that fall within any subregion.
+    of `x` that fall within any subregion.
 
     Parameters
     ----------
@@ -531,20 +531,20 @@ def mask_spectral_region(x, spectral_region):
     Returns
     -------
     mask : ndarray of bool
-        Boolean mask with the same shape as ``x``. True where the spectral
+        Boolean mask with the same shape as `x`. True where the spectral
         coordinate lies within any subregion, False otherwise.
 
     Raises
     ------
     TypeError
-        If ``spectral_region.subregions`` is None.
+        If `spectral_region.subregions` is None.
 
     Notes
     -----
     - Subregions are combined using logical OR (union semantics).
-    - This function assumes that ``x`` and the subregion bounds are in
+    - This function assumes that `x` and the subregion bounds are in
         compatible units. No explicit unit conversion is performed.
-    - Boundary comparisons are inclusive (``>= xmin`` and ``<= xmax``).
+    - Boundary comparisons are inclusive (`>= xmin` and `<= xmax`).
 
     Examples
     --------
@@ -821,34 +821,34 @@ class GaussianFitResult:
     amplitude : Any
         Amplitude of gaussian.
     amplitude_error : Any
-        Error on ``amplitude``.
+        Error on `amplitude`.
     mu : Any
         Mu or center of gaussian.
     mu_error : Any
-        Error on ``mu``.
+        Error on `mu`.
     sigma : Any
         Sigma or standard deviation of gaussian.
     sigma_error : Any
-        Error on ``sigma``.
+        Error on `sigma`.
     flux : Any
         Integrated flux of gaussian.
     flux_error : Any
-        Error on ``flux``.
+        Error on `flux`.
     FWHM : Any
         Full width at half maxixum or the width of
         the gaussian at half of its maximum value.
     FWHM_error : Any
-        Error on ``FWHM``.
+        Error on `FWHM`.
     slope : Any
         Slope of continuum, if modelled as a linear line
-        using the ``gaussian_line`` model.
+        using the `gaussian_line` model.
     slope_error : Any
-        Error on ``slope``.
+        Error on `slope`.
     intercept : Any
         Y-intercept of continuum, if modelled as a linear
-        line using the ``gaussian_line`` model.
+        line using the `gaussian_line` model.
     intercept_error : Any
-        Error on ``intercept``.
+        Error on `intercept`.
     peak_height : Any
         Height (y value) of gaussian peak.
     popt : Any

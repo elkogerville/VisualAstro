@@ -817,8 +817,8 @@ def legend(*args, ax, **kwargs) -> None:
     *args : tuple
         Positional arguments for legend specification:
 
-        – If 1 arg: labels only
-        – If 2 args: handles, labels
+        * If 1 arg: labels only
+        * If 2 args: handles, labels
 
         Maximum of 2 positional arguments allowed.
     ax : matplotlib.axes.Axes
@@ -1438,27 +1438,27 @@ def _extract_xy(
     *data : tuple
         Input data. Supported forms:
 
-        – Single argument:
-            – 1D array-like or Quantity: Y values, X = None
-            – 2D array or Quantity: extract X, Y according to `order` and `index_spec`
-            – list/tuple of scalars: Y values, X = None
-            – scalar or scalar Quantity: single Y value, X = None
-        – Two arguments: (X, Y) pairs passed through unchanged
+        * Single argument:
+            * 1D array-like or Quantity: Y values, X = None
+            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
+            * list/tuple of scalars: Y values, X = None
+            * scalar or scalar Quantity: single Y value, X = None
+            * Two arguments: (X, Y) pairs passed through unchanged
 
     order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
         Memory layout for 2D input interpretation. Defines what a
         column is for `index_spec`.
 
-        – 'c': row-major, shape (N, 2)
-        – 'fortran': column-major, shape (2, N)
+        * 'c': row-major, shape (N, 2)
+        * 'fortran': column-major, shape (2, N)
 
         If `_UNSET`, uses `config.array_order`.
     index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
         Column extraction mode for 2D inputs.
 
-        – 'implicit': return (None, [col_0, col_1, ...])
-        – 'explicit': return (col_0, col_1)
-        – tuple (i, j): return (col_i, col_j)
+        * 'implicit': return (None, [col_0, col_1, ...])
+        * 'explicit': return (col_0, col_1)
+        * tuple (i, j): return (col_i, col_j)
 
     Returns
     -------
@@ -1549,8 +1549,8 @@ def _normalize_plotting_inputs(
         Memory layout for 2D input interpretation. Defines what a
         column is for `index_spec`.
 
-        – 'c': row-major, shape (N, 2)
-        – 'fortran': column-major, shape (2, N)
+        * 'c': row-major, shape (N, 2)
+        * 'fortran': column-major, shape (2, N)
 
         If `_UNSET`, uses `config.array_order`.
     index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
