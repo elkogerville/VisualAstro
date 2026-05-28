@@ -21,12 +21,6 @@ from spectral_cube import SpectralCube
 from specutils import SpectralRegion, Spectrum
 from tqdm import tqdm
 
-from visualastro.analysis.spectra_utils import (
-    fit_continuum,
-    mask_spectral_region,
-    spectral_idx_2_world as _spectral_idx_2_world,
-    spectral_world_2_idx as _spectral_world_2_idx
-)
 from visualastro.core.config import config, get_config_value, _resolve_default, _Unset, _UNSET
 from visualastro.core.io import _pop_kwargs
 from visualastro.core.units import (
@@ -987,6 +981,9 @@ class DataCube:
         --------
         spectral_world_2_idx : Inverse operation, maps spectral value to index.
         """
+        from visualastro.analysis.spectra_utils import (
+            spectral_idx_2_world as _spectral_idx_2_world
+        )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
                 'DataCube.data must be a SpectralCube!'
@@ -1015,6 +1012,9 @@ class DataCube:
         ValueError :
             If ``data`` attribute is not a ``SpectralCube``.
         """
+        from visualastro.analysis.spectra_utils import (
+            spectral_world_2_idx as _spectral_world_2_idx
+        )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
                 'DataCube.data must be a SpectralCube!'
@@ -1105,6 +1105,8 @@ class DataCube:
         >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
         >>> cube_sub = datacube.subtract_continuum(region)
         """
+        from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
+
         fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
         print_info = get_config_value(print_info, 'print_info')
 
