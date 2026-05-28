@@ -26,16 +26,19 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
+from scipy.signal import find_peaks
 from spectral_cube import SpectralCube
 from specutils import SpectralRegion, Spectrum
 from tqdm import tqdm
+
 from visualastro.analysis.spectra_utils import (
     fit_continuum,
     mask_spectral_region,
     spectral_idx_2_world as _spectral_idx_2_world,
     spectral_world_2_idx as _spectral_world_2_idx
 )
-from visualastro.core.config import get_config_value, _UNSET
+from visualastro.core.config import config, get_config_value, _resolve_default, _Unset, _UNSET
+from visualastro.core.io import _pop_kwargs
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
@@ -646,18 +649,42 @@ class DataCube:
         else:
             raise ValueError(f'Unsupported header type.')
 
-    def inspect(self, figsize=(10,6), style=None):
+    def inspect(
+        self,
+        figsize: tuple[float, float] = (10,6),
+        style: str | _Unset = _UNSET,
+        peaks: Literal['mean', 'std', 'none'] | None = 'mean',
+        annotate_peaks: bool = True,
+        **kwargs
+    ) -> None:
         """
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
 
         Parameters
         ----------
-        figsize : tuple, optional, default=(8,4)
+        figsize : tuple[float, float], optional, default=(10,6)
             Size of the output figure.
-        style : str or None, optional, default=None
-            Matplotlib style to use for plotting. If None,
+        style : str | _Unset, optional, default=_UNSET
+            Matplotlib style to use for plotting. If `_UNSET`,
             uses `config.style`.
+        peaks : {'mean', 'std', 'none'} | None, optional, default='mean'
+            Specifies which statistic is used for peak detection.
+
+            * `'mean'` : detect peaks in the mean flux across all spatial pixels
+              for each slice.
+            * `'std'` : detect peaks in the standard deviation of the flux across
+              all spatial pixels for each slice.
+            * `'none'` | None : disable peak detection.
+
+            Peak locations are identified using `scipy.signal.find_peaks`.
+            Additional keyword arguments are passed directly to this function.
+        annotate_peaks : bool, optional, default=True
+            If `True`, will annotate the index of the peaks.
+        text_color : ColorType, optional, default=config.text_color
+            Color of the annotations.
+        **kwargs :
+            Additional keyword arguments passed directly to `scipy.signal.find_peaks`.
 
         Notes
         -----
@@ -666,13 +693,26 @@ class DataCube:
         """
         from visualastro.plotting.core.plot_utils import _get_stylepath
 
-        # get default config values
-        style = get_config_value(style, 'style')
+        style = _resolve_default(style, config.style)
+        text_color = _pop_kwargs(kwargs, 'text_color', config.text_color)
 
         cube = self.value
-        # compute mean and std across wavelengths
+
         mean_flux = np.nanmean(cube, axis=(1, 2))
-        std_flux  = np.nanstd(cube, axis=(1, 2))
+        std_flux = np.nanstd(cube, axis=(1, 2))
+        peak_data = mean_flux if peaks == 'mean' else std_flux
+
+        if peaks is not None and peaks != 'none':
+            prominence = kwargs.pop('prominence', 0.5 * np.nanstd(peak_data))
+            distance = kwargs.pop('distance', max(1, len(peak_data) // 50))
+            peak_idx, _ = find_peaks(
+                peak_data,
+                prominence=prominence,
+                distance=distance,
+                **kwargs
+            )
+        else:
+            peak_idx = None
 
         T = np.arange(mean_flux.shape[0])
         style = _get_stylepath(style)
@@ -681,6 +721,24 @@ class DataCube:
 
             ax.plot(T, mean_flux, c='darkslateblue', label='Mean')
             ax.plot(T, std_flux, c='#D81B60', ls='--', label='Std Dev')
+            if peak_idx is not None:
+                ax.scatter(
+                    peak_idx, peak_data[peak_idx],
+                    marker='*',
+                    edgecolors='#26DCBA',
+                    label='Peaks'
+                )
+                if annotate_peaks:
+                    for idx in peak_idx:
+                        ax.annotate(
+                            str(idx),
+                            xy=(idx, peak_data[idx]),
+                            xytext=(0, 8),
+                            textcoords='offset points',
+                            ha='center',
+                            fontsize=8,
+                            color=text_color,
+                        )
 
             ax.set_xlabel('Cube Slice Index')
             ax.set_ylabel('Counts')
