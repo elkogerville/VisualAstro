@@ -18,6 +18,7 @@ import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 from matplotlib.typing import ColorType
+from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 
 from visualastro.analysis.spectra_utils import (
@@ -40,6 +41,7 @@ from visualastro.core.units import (
     unit_2_string,
 )
 from visualastro.core.validation import _type_name
+from visualastro.datamodels.datacube import DataCube
 
 
 def spectral_line_marker(
@@ -353,7 +355,7 @@ def mark_spectral_lines(
 
 
 def spectral_axis_label(
-    spectral_axis: SpectralAxis | u.Quantity,
+    spectral_axis: SpectralAxis | u.Quantity | SpectralCube | DataCube,
     idx: int | tuple[int, int] | None,
     ax: maxes.Axes,
     *,

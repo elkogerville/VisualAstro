@@ -24,15 +24,18 @@ from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import Any, overload
 import warnings
+
 import astropy.units as u
 from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from numpy.typing import NDArray
+from spectral_cube import SpectralCube
 from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
+
 from visualastro.core.config import get_config_value, config
 from visualastro.core.numerical_utils import (
     get_value,
@@ -49,6 +52,7 @@ from visualastro.core.units import (
     _require_spectral_region
 )
 from visualastro.core.validation import _type_name
+from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.utils.text_utils import print_pretty_table
 
@@ -1022,7 +1026,7 @@ class ExtractedPixelSpectra:
 # -------
 @overload
 def _get_spectral_axis(
-    obj: SpectralAxis | Quantity
+    obj: SpectralAxis | Quantity | SpectralCube | DataCube
 ) -> SpectralAxis | Quantity: ...
 
 @overload
