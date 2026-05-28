@@ -268,8 +268,8 @@ def _apply_plot_utils(
     )
 
     if isinstance(ax, WCSAxes):
-        xlabel = params.xlabel if params.xlabel is not None else config.right_ascension
-        ylabel = params.ylabel if params.ylabel is not None else config.declination
+        xlabel = params.xlabel if params.xlabel is not None else config.right_ascension_label
+        ylabel = params.ylabel if params.ylabel is not None else config.declination_label
         ax.coords['ra'].set_axislabel(xlabel)
         ax.coords['dec'].set_axislabel(ylabel)
         ax.coords['dec'].set_ticklabel(rotation=90)

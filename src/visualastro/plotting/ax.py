@@ -90,7 +90,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         # by default plot WCS if available
@@ -194,7 +194,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         cubes = to_list(cubes)
@@ -314,7 +314,7 @@ class ax:
             - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig.enabled`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
@@ -324,7 +324,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         # set plot style
@@ -424,7 +424,7 @@ class ax:
             - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig.enabled`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
@@ -445,7 +445,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         # set plot style
@@ -559,7 +559,7 @@ class ax:
             - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig.enabled`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
@@ -568,7 +568,7 @@ class ax:
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)
@@ -619,7 +619,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)
@@ -671,7 +671,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)
@@ -728,7 +728,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)
@@ -788,7 +788,7 @@ class ax:
         """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)
@@ -928,7 +928,7 @@ class ax:
                 Ex: 'astro', 'classic', etc...
             - `tight_layout` : bool, optional, default=True
                 If True, uses `plt.tight_layout()`.
-            - `savefig` : bool, default=`config.savefig.enabled`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
@@ -959,7 +959,7 @@ class ax:
         style = kwargs.pop('style', config.style)
         tight_layout = kwargs.pop('tight_layout', True)
         # savefig
-        savefigure = kwargs.pop('savefig', config.savefig.enabled)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
         style = _get_stylepath(style)

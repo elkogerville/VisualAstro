@@ -162,19 +162,19 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             Alias for `extract_mode`.
         - `convention` : str, optional
             Doppler convention.
-        - `Rv` : float, optional, default=`config.Rv`
+        - `Rv` : float, optional, default=`config.deredden.Rv`
             Dereddening parameter.
-        - `Ebv` : float, optional, default=`config.Ebv`
+        - `Ebv` : float, optional, default=`config.deredden.Ebv`
             Dereddening parameter.
-        - `deredden_method` : str, optional, default=`config.deredden_method`
+        - `deredden_method` : str, optional, default=`config.deredden.method`
             Extinction law to use.
-        - `deredden_region` : str, optional, default=`config.deredden_region`
+        - `deredden_region` : str, optional, default=`config.deredden.region`
             Region/environment for WD01 extinction law.
         - `figsize` : tuple, optional, default=`config.figsize`
             Figure size for plotting.
         - `style` : str, optional, default=`config.style`
             Plotting style.
-        - `savefig` : bool, optional, default=`config.savefig.enabled`
+        - `savefig` : bool, optional, default=`config.savefig.enable`
             Whether to save the figure to disk.
         - `dpi` : int, optional, default=`config.savefig.dpi`
             Figure resolution for saving.
@@ -225,15 +225,15 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     # doppler convention
     convention = kwargs.get('convention', None)
     # dereddening parameters
-    Rv = kwargs.get('Rv', config.Rv)
-    Ebv = kwargs.get('Ebv', config.Ebv)
-    deredden_method = kwargs.get('deredden_method', config.deredden_method)
-    deredden_region = kwargs.get('deredden_region', config.deredden_region)
+    Rv = kwargs.get('Rv', config.deredden.Rv)
+    Ebv = kwargs.get('Ebv', config.deredden.Ebv)
+    deredden_method = kwargs.get('deredden_method', config.deredden.method)
+    deredden_region = kwargs.get('deredden_region', config.deredden.region)
     # figure params
     figsize = kwargs.get('figsize', config.figsize)
     style = kwargs.get('style', config.style)
     # savefig
-    savefig = kwargs.get('savefig', config.savefig.enabled)
+    savefig = kwargs.get('savefig', config.savefig.enable)
     dpi = kwargs.get('dpi', config.savefig.dpi)
 
     # get default config values
@@ -1359,7 +1359,7 @@ def fit_gaussian_2_spec(
             Plot colors. If None, will use default visualastro color colorset.
         - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
             If `'round`' displays spectra units as (unit). If `'square`' as [unit].
-        - `savefig` : bool, optional, default=`config.savefig.enabled`
+        - `savefig` : bool, optional, default=`config.savefig.enable`
             If True, save current figure to disk.
         - `dpi` : float or int, optional, default=`config.savefig.dpi`
             Resolution in dots per inch.
@@ -1395,7 +1395,7 @@ def fit_gaussian_2_spec(
     colors = _pop_kwargs(kwargs, 'colors', 'color', 'c', default=None)
     unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
     # savefig
-    savefig = kwargs.get('savefig', config.savefig.enabled)
+    savefig = kwargs.get('savefig', config.savefig.enable)
     dpi = kwargs.get('dpi', config.savefig.dpi)
 
     # get default config values
