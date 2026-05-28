@@ -45,6 +45,7 @@ from visualastro.core.io import (
     write_cube_2_fits
 )
 from visualastro.core.numerical_utils import (
+    as_list,
     finite,
     flatten,
     get_data,
