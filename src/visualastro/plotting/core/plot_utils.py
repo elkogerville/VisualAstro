@@ -457,35 +457,38 @@ def compute_imshow_scale(
 
     Parameters
     ----------
-    data : ndarray, Quantity, DataCube, FitsFile, or SpectralCube
+    data : ndarray | Quantity | DataCube | FitsFile | SpectralCube
         Input image data. Must be convertible to a NumPy array via
         `to_array`.
-    norm : {'asinh', 'asinhnorm', 'log', 'power'} or None
+    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'} | None
         Normalization algorithm for colormap scaling.
-        If None, linear scaling is used.
-    vmin : float or None
-        Lower bound for intensity scaling. If None, may be computed
+        If `None`, linear scaling is used.
+    vmin : float | None
+        Lower bound for intensity scaling. If `None`, may be computed
         from `percentile` or left unset depending on mode.
-    vmax : float or None
-        Upper bound for intensity scaling. If None, may be computed
+    vmax : float | None
+        Upper bound for intensity scaling. If `None`, may be computed
         from `percentile` or left unset depending on mode.
-    percentile : tuple[float, float] or None
+    percentile : tuple[float, float] | None
         Percentile range `(pmin, pmax)` used to compute `vmin` and
-        `vmax`. If None, no automatic clipping is applied.
-        linear_width : float, optional, default=`config.linear_width`
-        The effective width of the linear region, beyond
-        which the transformation becomes asymptotically logarithmic.
+        `vmax`. If `None`, no automatic clipping is applied.
+    linear_width : float, optional, default=config.linear_width
+        The effective width of the linear region, beyond which the
+        transformation becomes asymptotically logarithmic.
         Used for `norm='asinhnorm'`.
-    gamma : float, optional, default=`config.gamma`
+    gamma : float, optional, default=config.gamma
         Power law exponent. Used for `norm='power'`.
+    vcenter : float, optional, default=None
+        Center point of normalization. Must be in between `vmin` and `vmax`.
+        If `None`, is the midpoint between `vmin` and `vmax`.
 
     Returns
     -------
-    norm_obj : ImageNormalize, AsinhNorm, LogNorm, PowerNorm, or None
+    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
         Normalization object for `imshow`. None indicates linear scaling.
-    vmin : float or None
+    vmin : float | None
         Lower intensity bound for `imshow`.
-    vmax : float or None
+    vmax : float | None
         Upper intensity bound for `imshow`.
     """
     data = to_array(data)
