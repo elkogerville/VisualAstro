@@ -50,6 +50,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#FFB000', '#9FB7FF', '#CFE23C', '#FE6100'
     ],
     'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+    'MSGII': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3'],
     'default': list(TABLEAU_COLORS.values()),
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
@@ -84,6 +85,7 @@ class Color:
     msb: ColorType = 'mediumslateblue'
     sb: ColorType = 'slateblue'
     mvr: ColorType = 'mediumvioletred'
+    violetred: ColorType = '#D81B60'
     mam: ColorType = 'mediumaquamarine'
     msg: ColorType = 'mediumseagreen'
     jade: ColorType = '#26DCBA'
