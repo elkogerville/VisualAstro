@@ -325,7 +325,7 @@ class DataCube:
                 header = [Header() for _ in wcs]
             elif isinstance(data, SpectralCube):
                 header = data.header
-            else:
+            if not isinstance(header, (Header, list)):
                 header = Header()
 
         if isinstance(header, list):
