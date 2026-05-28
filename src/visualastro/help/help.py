@@ -22,6 +22,7 @@ import inspect
 import os
 from typing import Literal
 import warnings
+
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
