@@ -575,6 +575,7 @@ def plot(
         [
             _kwarg('index_spec', 'implicit'),
             _kwarg('label', None),
+            _kwarg('c', None),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
@@ -595,6 +596,8 @@ def plot(
         mode='plot'
     )
 
+    c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
+
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
@@ -608,7 +611,10 @@ def plot(
     for i in range(len(ylist)):
         x = get_value(_cycle(xlist, i))
         y = get_value(_cycle(ylist, i))
+
         color = _cycle(colors, i)
+        c = get_value(_cycle(c_arr, i)) if c_arr is not None else None
+
         ls = _cycle(linestyles, i)
         lw = _cycle(linewidths, i)
         a = _cycle(alphas, i)
@@ -619,21 +625,30 @@ def plot(
             y = _normalize(y)
             ylist[i] = y
 
+        scatter_kwargs = dict(kwargs)
+        if c is not None:
+            scatter_kwargs.pop('color', None)
+            scatter_kwargs['c'] = c
+        else:
+            scatter_kwargs.pop('c', None)
+            scatter_kwargs['color'] = color
+
         line = ax.plot(
             x, y,
-            color=color,
             ls=ls,
             lw=lw,
             alpha=a,
             zorder=z,
             label=label,
             rasterized=params.rasterized,
-            **kwargs
+            **scatter_kwargs
         )
 
         lines.append(line)
 
-    _apply_plot_utils(plot_params, ax, xlist=xlist, ylist=ylist, labels=labels)
+    _apply_plot_utils(
+        plot_params, ax, im_list=lines, xlist=xlist, ylist=ylist, labels=labels
+    )
 
     return lines
 
@@ -888,7 +903,9 @@ def scatter(
                 zorder=z,
             )
 
-    _apply_plot_utils(plot_params, ax, im_list=scatters, xlist=xlist, ylist=ylist, labels=labels)
+    _apply_plot_utils(
+        plot_params, ax, im_list=scatters, xlist=xlist, ylist=ylist, labels=labels
+    )
 
     return scatters
 
