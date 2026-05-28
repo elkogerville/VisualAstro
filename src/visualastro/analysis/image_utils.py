@@ -423,32 +423,30 @@ def load_spectral_cube(
 
 # Cube Manipulation Functions
 # ---------------------------
-
-_STACK_METHODS = {
-    'mean': np.nanmean,
-    'median': np.nanmedian,
-    'sum': np.nansum,
-    'max': np.nanmax,
-    'min': np.nanmin,
-    'std': np.nanstd,
-}
-
-def stack_cube(cube, *, idx=None, method=None, axis=0):
+def stack_cube(
+    cube,
+    *,
+    idx: int | tuple[int, int] | None = None,
+    method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
+    axis: int = 0
+):
     """
-    Stack or extract slices from a data cube.
+    Stack or extract slices from a data cube. This operation
+    converts a 3D cube into a 2D cube. 2D data is left untouched.
 
     Parameters
     ----------
     cube : ndarray, Quantity, SpectralCube, or DataCube
         3D data cube to stack.
-    idx : int, list of int, or None, optional, default=None
+    idx : int | tuple[int, int] | None, optional, default=None
         Index specification:
-        - int: extract single slice
-        - [start, end]: extract range (inclusive)
-        - None: use entire cube
-    method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | None, default=None
-        Stacking method. If None, uses the default value set
-        by ``config.stack_cube_method``.
+
+        * int: extract single slice
+        * tuple[start, end]: extract range (inclusive)
+        * None: use entire cube
+
+    method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | _Unset, default=_UNSET
+        Stacking method. If `_UNSET`, uses `config.stack_cube_method`.
     axis : int, optional, default=0
         Axis along which to stack.
 
@@ -457,15 +455,18 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
     ndarray, Quantity, or SpectralCube
         Stacked result (2D if axis=0) or extracted slice.
     """
-    method = get_config_value(method, 'stack_cube_method')
+    stack_method = _resolve_default(method, config.stack_cube_method)
 
-    if method not in _STACK_METHODS:
+    if stack_method not in config._STACK_METHODS:
         raise ValueError(
-            f"Unknown method '{method}'. "
-            f"Options: {', '.join(_STACK_METHODS.keys())}"
+            f"Unknown method '{stack_method}'. "
+            f"Options: {', '.join(config._STACK_METHODS.keys())}"
         )
 
     cube = get_data(cube)
+
+    if cube.ndim < 3:
+        return cube
 
     if idx is not None:
         if isinstance(idx, int):
@@ -483,10 +484,10 @@ def stack_cube(cube, *, idx=None, method=None, axis=0):
             raise TypeError(f'idx must be int, list, or None; got {_type_name(idx)}')
 
     if isinstance(cube, SpectralCube):
-        stack_func = getattr(cube, method)
+        stack_func = getattr(cube, stack_method)
         return stack_func(axis=axis)
 
-    return _STACK_METHODS[method](cube, axis=axis)
+    return config._STACK_METHODS[stack_method](cube, axis=axis)
 
 
 # Cube/Image Masking Functions
