@@ -307,6 +307,14 @@ class VisualAstroConfig:
 
     # data cube params
     stack_cube_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] = 'sum'
+    _STACK_METHODS = {
+        'mean': np.nanmean,
+        'median': np.nanmedian,
+        'sum': np.nansum,
+        'max': np.nanmax,
+        'min': np.nanmin,
+        'std': np.nanstd,
+    }
 
     # extract_cube_spectrum params
     spectra_rest_frequency: float | None = None
