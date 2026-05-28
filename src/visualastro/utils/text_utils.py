@@ -1,16 +1,16 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-23
-Date Modified: 2026-03-11
+Date Modified: 2026-05-28
 Description:
     Text utility functions.
 """
 
-from visualastro.core.config import get_config_value
+from visualastro.core.config import config, _resolve_default
 
 
 def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
-    '''
+    """
     Format a pretty table given a 2D list of table cells. Each cell
     can be either a numerical value with or without units, a string, or None.
 
@@ -43,11 +43,11 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
     -------
     table : str
         Formatted table string with aligned columns, ready to print.
-    '''
+    """
 
-    precision = get_config_value(precision, 'table_precision')
-    sci_notation = get_config_value(sci_notation, 'table_sci_notation')
-    pad = get_config_value(pad, 'table_column_pad')
+    precision = _resolve_default(precision, config.table_precision)
+    sci_notation = _resolve_default(sci_notation, config.table_sci_notation)
+    pad = _resolve_default(pad, config.table_column_pad)
 
     if not isinstance(pad, int) or pad <= 0:
         raise ValueError(
@@ -55,19 +55,19 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
         )
     col_pad = ' ' * pad
 
-    def _format_table_cell(cell):
-        '''
+    def _format_table_cell(cell) -> str:
+        """
         Format each table cell for consistent styling.
 
         Parameters
         ----------
-        cell : float, int, Quantity, str, or None
+        cell : float | int | Quantity | str | None
             Table cell to format
 
         Returns
         -------
-        Formatted cell : float, int, Quantity, or str
-        '''
+        formatted_cell : str
+        """
         if cell is None or cell == '':
             return ''
         elif isinstance(cell, str):
@@ -125,7 +125,7 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
 
 
 def print_pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
-    '''
+    """
     Format a pretty table given a 2D list of table cells and print it. Each cell
     can be either a numerical value with or without units, a string, or None.
 
@@ -151,7 +151,7 @@ def print_pretty_table(headers, data, precision=None, sci_notation=None, pad=Non
     pad : int, optional, default=None
         Number of spaces between columns for visual separation.
         If None, uses `config.table_column_pad`.
-    '''
+    """
 
     table = pretty_table(
         headers, data, precision=precision, sci_notation=sci_notation, pad=pad
