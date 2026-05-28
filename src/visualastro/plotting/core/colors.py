@@ -49,8 +49,8 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
         '#FFB000', '#9FB7FF', '#CFE23C', '#FE6100'
     ],
-    'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3'],
-    'MSGII': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3'],
+    'MSG': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
+    'MSGII': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'default': list(TABLEAU_COLORS.values()),
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
@@ -97,6 +97,11 @@ class Color:
     ibmblu: ColorType = '#648FFF'
     ibmylw: ColorType = '#FFB000'
     ibmorg: ColorType = '#FE6100'
+
+    @classmethod
+    def all(cls) -> list[ColorType]:
+        """Return all defined colors as a list of colors"""
+        return [getattr(cls, f.name) for f in fields(cls)]
 
     def plot(self, cols: int = 4) -> None:
         """
