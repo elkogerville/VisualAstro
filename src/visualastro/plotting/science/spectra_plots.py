@@ -101,8 +101,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
         Input cube(s) from which to extract spectra. The data must either be
         a SpectralCube, or a DataCube containing a SpectralCube.
     flux_extract_method : {'mean', 'median', 'sum'} or None, default=None
-        Method for extracting the flux. If None, uses the default
-        value set by `config.flux_extract_method`.
+        Method for extracting the flux. If None, uses `config.flux_extract_method`.
     extract_mode : {'cube', 'slice', 'ray'} or None, default=None
         Specifies how the spectral cube should be traversed during flux
         extraction. This controls memory usage and performance for large cubes.
@@ -120,8 +119,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
                 or low-memory environments.
         If None, uses `config.spectral_cube_extraction_mode`.
     fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
-        Method used to fit the continuum. If None, uses the default
-        value set by `config.spectrum_continuum_fit_method`.
+        Method used to fit the continuum. If None, uses `config.spectrum_continuum_fit_method`.
     region : array-like or None, optional, default=None
         Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
         Ignored for other methods. This allows the user to specify which
@@ -147,8 +145,7 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     emission_line : str, optional, default=None
         Name of an emission line to annotate on the plot.
     plot_continuum : bool or None, optional, default=None
-        Whether to overplot the continuum fit. If None, uses the
-        default value set by `config.plot_continuum_fit`.
+        Whether to overplot the continuum fit. If None, uses `config.plot_continuum_fit`.
     plot_norm_continuum : bool or None, optional, default=None
         Whether to plot the normalized extracted spectra. If None,
         uses `config.plot_normalized_continuum`.
@@ -1313,8 +1310,7 @@ def fit_gaussian_2_spec(
         This is passed to `curve_fit` as the `sigma` parameter.
     interpolate : bool | _Unset, default=_UNSET
         Whether to interpolate the spectrum over a regular wavelength grid.
-        The number of samples is controlled by `samples`. If ``_UNSET``, uses the
-        default value set by ``config.curve_fit.interpolate``.
+        The number of samples is controlled by `samples`. If ``_UNSET``, uses ``config.curve_fit.interpolate``.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
         None, uses `config.curve_fit.samples`.
@@ -1332,8 +1328,7 @@ def fit_gaussian_2_spec(
         provided for debugging purposes.
     print_vals : bool or None, default=None
         If True, print a table of best-fit parameters,
-        errors, and computed quantities. If None, uses the
-        default value set by `config.print_gaussian_values`.
+        errors, and computed quantities. If None, uses `config.print_gaussian_values`.
 
     **kwargs : dict, optional
         Additional parameters.

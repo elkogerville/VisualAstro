@@ -5,16 +5,6 @@ Date Modified: 2026-03-29
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-    - spectral_cube
-    - specutils
-    - tqdm
-Module Structure:
-    - DataCube
-        Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
 from typing import Literal, cast
 

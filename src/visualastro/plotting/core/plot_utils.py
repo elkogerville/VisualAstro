@@ -703,8 +703,7 @@ def add_subplot(
         Existing figure to add the subplot to. If None,
         a new figure is created.
     figsize : tuple of float, optional, default=None
-        Figure size in inches. If None, uses the
-        default value set by `config.figsize`.
+        Figure size in inches. If None, uses `config.figsize`.
     projection : str or None, optional, default=None
         Projection type for the subplot. Examples include WCSAxes or
         {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',

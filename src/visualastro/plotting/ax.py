@@ -867,7 +867,7 @@ class ax:
             - 'face': The edge color will always be the same as the face color.
             - 'none': No patch boundary will be drawn.
             - A color or sequence of colors.
-            If `_UNSET`, uses the default value in `config.edgecolor`.
+            If `_UNSET`, uses `config.edgecolor`.
         plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
             Specifies which contour projections to draw onto the side planes of the 3D axes.
             Each entry indicates the axis *normal* to the projection plane:

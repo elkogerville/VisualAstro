@@ -579,8 +579,7 @@ def propagate_flux_errors(errors, method=None):
         - 2D array with shape (N_spectra, N_pixels), or
         - 1D array with shape (N_pixels,) for a single spectrum.
     method : {'mean', 'sum', 'median'} or None, optional
-        Flux extraction method. If None, uses the default
-        value set by `config.propagate_flux_error_method`.
+        Flux extraction method. If None, uses `config.propagate_flux_error_method`.
 
     Returns
     -------

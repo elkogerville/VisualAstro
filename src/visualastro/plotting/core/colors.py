@@ -401,7 +401,7 @@ def sample_cmap(
         Number of colors to sample.
     cmap : str | Colormap | _Unset, optional, default=_UNSET
         Name of the matplotlib colormap or Colormap object. If
-        `_UNSET` uses the default value in `config.cmap`.
+        `_UNSET` uses `config.cmap`.
     fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
