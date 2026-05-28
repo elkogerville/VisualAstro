@@ -73,8 +73,7 @@ def load_data_cube(
         If `True`, try to extract the error extension.
         Converts variance to errors using `get_errors`.
     hdu : int | _Unset, optional, default=_UNSET
-        Hdu extension to use. If `_UNSET`, uses the
-        default value set by `config.hdu_idx`.
+        Hdu extension to use. If `_UNSET`, uses `config.hdu_idx`.
     dtype : np.dtype | str | _Unset, optional, default=_UNSET
         Data type for the loaded FITS data. If `_UNSET`, will use
         the dtype of the provided data, promoting integer or
@@ -224,8 +223,7 @@ def load_fits(filepath, header=True, error=True,
         Reproject the input data onto the WCS of another
         data set. Input data must have a valid header
         to extract WCS from. If None, will not reproject
-        the input data. If `_UNSET`, uses the default
-        value set by `config.target_wcs`.
+        the input data. If `_UNSET`, uses `config.target_wcs`.
     invert_wcs : bool or None, optional, default=None
         If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.
         If None, uses `config.invert_wcs_if_transpose`.

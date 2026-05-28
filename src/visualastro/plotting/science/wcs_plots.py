@@ -83,11 +83,11 @@ def imshow(
     vmin : float or None, optional, default=`_UNSET`
         Lower limit for colormap scaling; overides `percentile[0]`.
         If None, values are determined from `percentile[0]`.
-        If `_UNSET`, uses the default value in `config.vmin`.
+        If `_UNSET`, uses `config.vmin`.
     vmax : float or None, optional, default=`_UNSET`
         Upper limit for colormap scaling; overides `percentile[1]`.
         If None, values are determined from `percentile[1]`.
-        If `_UNSET`, uses the default value in `config.vmax`.
+        If `_UNSET`, uses `config.vmax`.
     norm : str or None, optional, default=`_UNSET`
         Normalization algorithm for colormap scaling.
         - 'asinh' -> asinh stretch using 'ImageNormalize'
@@ -95,14 +95,13 @@ def imshow(
         - 'log' -> logarithmic scaling using 'LogNorm'
         - 'powernorm' -> power-law normalization using 'PowerNorm'
         - 'linear', 'none', or None -> no normalization applied
-        If `_UNSET`, uses the default value in `config.norm`.
+        If `_UNSET`, uses `config.norm`.
     percentile : list or tuple of two floats, or None, default=`_UNSET`
         Default percentile range used to determine 'vmin' and 'vmax'.
-        If `_UNSET`, uses default value from `config.percentile`.
+        If `_UNSET`, uses `config.percentile`.
         If None, use no percentile stretch.
     stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
-        Stacking method. If None, uses the default value set
-        by ``config.stack_cube_method``.
+        Stacking method. If None, uses `config.stack_cube_method`.
     origin : {'upper', 'lower'} or None, default=None
         Pixel origin convention for imshow. If None,
         uses the default value from `config.origin`.
@@ -119,12 +118,10 @@ def imshow(
         uses the default value from `config.aspect`.
     mask_non_pos : bool or None, optional, default=None
         If True, mask out non-positive data values. Useful for displaying
-        log scaling of images with non-positive values. If None, uses the
-        default value set by `config.mask_non_positive`.
+        log scaling of images with non-positive values. If None, uses `config.mask_non_positive`.
     wcs_grid : bool or None, optional, default=None
         If True, display WCS grid ontop of plot. Requires
-        using WCSAxes for `ax`. If None, uses the default
-        value set by `config.wcs_grid`.
+        using WCSAxes for `ax`. If None, uses `config.wcs_grid`.
 
     **kwargs : dict, optional
         Additional parameters.
