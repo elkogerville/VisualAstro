@@ -330,11 +330,12 @@ def plot_spectral_cube(
     vmax: float | _Unset = _UNSET,
     norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
     percentile: tuple[float, float] | _Unset = _UNSET,
-    stack_method=None,
+    stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
     radial_vel: float | None = None,
-    spectral_unit=None,
+    spectral_unit: u.UnitBase | None = None,
     cmap: Colormap | str | _Unset = _UNSET,
-    mask_non_pos=None,
+    mask_non_pos: bool | _Unset = _UNSET,
+    axis: int = 0,
     **kwargs
 ) -> list[AxesImage]:
     """
@@ -443,7 +444,7 @@ def plot_spectral_cube(
 
     Returns
     -------
-    images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
+    images : list[matplotlib.image.AxesImage]
             Image object if a single array is provided, otherwise a list of image
             objects created by `ax.imshow`.
 
@@ -458,7 +459,9 @@ def plot_spectral_cube(
             _param('vmax', vmax, config.vmax),
             _param('norm', norm, config.norm),
             _param('percentile', percentile, config.percentile),
+            _param('stack_method', stack_method, config.stack_cube_method),
             _param('cmap', cmap, config.cmap),
+            _param('mask_non_pos', mask_non_pos, config.mask_non_positive),
         ],
         additional_kwargs=[
             _kwarg('as_title', False),
@@ -469,9 +472,9 @@ def plot_spectral_cube(
             _kwarg('mask_out_val', config.mask_out_value),
             _kwarg('stack_method', config.stack_cube_method),
             _kwarg('radial_velocity', config.radial_velocity),
-            _kwarg('mask_non_pos', config.mask_non_positive),
             _kwarg('linear_width', config.linear_width),
             _kwarg('gamma', config.gamma),
+            _kwarg('vcenter', None),
         ],
         copy_kwargs=[
             _kwarg('plot_ellipse', False),
@@ -483,6 +486,7 @@ def plot_spectral_cube(
     plot_params = _extract_plot_util_kwargs(kwargs)
 
     cubes = to_list(cubes)
+    idxs = as_list(idx)
     cmaps = to_list(params.cmap)
 
     ref_unit = ensure_common_unit(cubes, on_mismatch=config.unit_mismatch)
@@ -504,7 +508,7 @@ def plot_spectral_cube(
 
         # return data cube slices
         cube_slice = stack_cube(
-            cube, idx=idx, method=stack_method, axis=0
+            cube, idx=_cycle(idxs, i), method=stack_method, axis=axis
         )
         data = get_value(cube_slice)
 
@@ -519,6 +523,7 @@ def plot_spectral_cube(
             percentile=params.percentile,
             linear_width=params.linear_width,
             gamma=params.gamma,
+            vcenter=params.vcenter,
         )
 
         cm = get_cmap(_cycle(cmaps, i))
@@ -530,7 +535,7 @@ def plot_spectral_cube(
         else:
             imshow_kwargs.pop('vmin', None)
             imshow_kwargs.pop('vmax', None)
-            imshow_kwargs['norm'] = cube_norm
+            imshow_kwargs.update(norm=cube_norm)
 
         im = ax.imshow(
             data,
@@ -562,7 +567,6 @@ def plot_spectral_cube(
         plot_params, ax,
         im_list=images,
         ref_unit=ref_unit,
-        colorbar=True
     )
 
     return images
