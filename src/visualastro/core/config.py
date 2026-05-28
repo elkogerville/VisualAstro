@@ -95,7 +95,7 @@ class LegendConfig:
 @dataclass(slots=True)
 class SavefigConfig:
     """plt.savefig config"""
-    enabled: bool = False
+    enable: bool = False
     dpi: float = 600
     pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
     transparent: bool = False
@@ -141,6 +141,13 @@ class SpectralLineConfig:
     label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
     label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
     label_rotation: float = 0
+
+@dataclass(slots=True)
+class DereddenConfig:
+    method: str | None = None
+    region: str | None = None
+    Rv: float | None = None
+    Ebv: float | None = None
 
 @dataclass(slots=True)
 class HDUConfig:
@@ -261,7 +268,7 @@ class VisualAstroConfig:
 
     # text params
     fontsize: float = 10
-    text_color: str = 'k'
+    text_color: ColorType = 'k'
     text_loc: tuple[float, float] = (0.03, 0.03)
 
     # label params
@@ -270,8 +277,8 @@ class VisualAstroConfig:
         'round': ('(', ')'),
         'square': ('[', ']'),
     }
-    right_ascension: str = 'Right Ascension'
-    declination: str = 'Declination'
+    right_ascension_label: str = 'Right Ascension'
+    declination_label: str = 'Declination'
     highlight: bool = True
     show_type_label: bool = False
     show_unit_label: bool = True
@@ -328,12 +335,7 @@ class VisualAstroConfig:
     # plot_spectrum params
     plot_spectrum_text_loc: tuple[float, float] = (0.025, 0.95)
 
-    # deredden spectra params
-    Rv: float = 3.1 # Milky Way average
-    Ebv: float = 0.19
-    deredden_method: str | None = None
-    deredden_region: str | None = None
-
+    deredden: DereddenConfig = field(default_factory=DereddenConfig)
     curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
 
     # gaussian fitting params

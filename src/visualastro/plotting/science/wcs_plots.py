@@ -283,9 +283,9 @@ def imshow(
 
                 # set label based on coordinate type
                 if coord_type == 'longitude':
-                    coord.set_axislabel(config.right_ascension)
+                    coord.set_axislabel(config.right_ascension_label)
                 elif coord_type == 'latitude':
-                    coord.set_axislabel(config.declination)
+                    coord.set_axislabel(config.declination_label)
 
                 # determine which pixel axis this world coordinate
                 # primarily affects by checking the PC/CD matrix
@@ -420,9 +420,9 @@ def plot_spectral_cube(
             Padding between axes and colorbar.
         - `clabel` : str, bool, or None, default=`config.colorbar.label`
             Label for colorbar. If True, automatically generate from cube unit.
-        - `xlabel` : str, default=`config.right_ascension`
+        - `xlabel` : str, default=`config.right_ascension_label`
             X axis label.
-        - `ylabel` : str, default=`config.declination`
+        - `ylabel` : str, default=`config.declination_label`
             Y axis label.
         - `spectral_label` : bool, default=True
             Whether to draw spectral slice value as a label.
