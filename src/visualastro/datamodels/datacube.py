@@ -16,8 +16,8 @@ Module Structure:
     - DataCube
         Data class for 3D datacubes, spectral_cubes, or timeseries data.
 """
-
 from typing import Literal, cast
+
 from astropy.io.fits import Header
 from astropy.units import (
     Quantity, StructuredUnit, Unit, UnitBase, UnitsError
@@ -348,11 +348,10 @@ class DataCube:
         primary_hdr: Header
     ) -> tuple[NDArray | Quantity | SpectralCube,  UnitBase | StructuredUnit | None]:
         """
-        Ensure data unit and header BUNIT are equivalent.
+        Ensure data unit and header(s) BUNIT are equivalent.
 
         If data unit is None use BUNIT if available.
         """
-        # ensure that units are consistent across all headers
         hdr_unit = ensure_common_unit(
             header, on_mismatch='raise', label='header'
         )

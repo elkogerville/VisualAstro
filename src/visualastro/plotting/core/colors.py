@@ -176,13 +176,13 @@ def get_colors(
 
         - If `transform='lighten'`: Blending ratio with white.
 
-            – `factor=0`: Original color
-            – `factor=1`: Pure white
+            * `factor=0`: Original color
+            * `factor=1`: Pure white
 
         - If `transform='desaturate'`: Desaturation amount.
 
-            – `factor=0`: Original color
-            – `factor=1`: Full gray
+            * `factor=0`: Original color
+            * `factor=1`: Full gray
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
@@ -532,13 +532,13 @@ def get_complimentary_colors(
 
         - If `transform='lighten'`: Blending ratio with white.
 
-            – `factor=0`: Original color
-            – `factor=1`: Pure white
+            * `factor=0`: Original color
+            * `factor=1`: Pure white
 
         - If `transform='desaturate'`: Desaturation amount.
 
-            – `factor=0`: Original color
-            – `factor=1`: Full gray
+            * `factor=0`: Original color
+            * `factor=1`: Full gray
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.

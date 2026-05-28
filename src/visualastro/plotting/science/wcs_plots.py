@@ -394,11 +394,13 @@ def plot_spectral_cube(
         If `_UNSET`, uses the default value in `config.vmax`.
     norm : str or None, optional, default=`_UNSET`
         Normalization algorithm for colormap scaling.
-        - 'asinh' -> asinh stretch using 'ImageNormalize'
-        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
-        - 'log' -> logarithmic scaling using 'LogNorm'
-        - 'powernorm' -> power-law normalization using 'PowerNorm'
-        - 'linear', 'none', or None -> no normalization applied
+
+        * `'asinh'` -> asinh stretch using `ImageNormalize`
+        * `'asinhnorm'` -> asinh stretch using `AsinhNorm`
+        * `'log'` -> logarithmic scaling using `LogNorm`
+        * `'powernorm'` -> power-law normalization using `PowerNorm`
+        * `'linear'`, `'none'`, or `None` -> no normalization applied
+
         If `_UNSET`, uses the default value in `config.norm`.
     percentile : list or tuple of two floats, or None, default=`_UNSET`
         Default percentile range used to determine `vmin` and `vmax`.
@@ -573,7 +575,6 @@ def plot_spectral_cube(
         )
 
         images.append(im)
-
 
     if params.plot_ellipse:
         params.spectral_label = False
