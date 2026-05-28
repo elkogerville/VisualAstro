@@ -1,10 +1,29 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-05-26
+Date Modified: 2026-05-28
 Description:
     Interface for plotting functions. Handles kwargs and
-    automatically adds functionality.
+    automatically adds functionality such as colorbar creation,
+    plotting patches, etc...
+
+    Any utility defined in `_apply_plot_utils` does not need to be
+    manually added to a plotting function once the plotting interface
+    is added to a visualastro plotting function.
+
+Examples
+--------
+To add the plotting interface to a visualastro plotting function:
+
+    def plotting_function(X, Y, ax, **kwargs) -> None:
+        plot_params = _extract_plot_util_kwargs(kwargs) -> removes any kwarg defined here from kwargs
+
+        ** plotting logic **
+        ie : ax.plot(X, Y, **kwargs)
+
+        _apply_plot_utils(plot_params, ax=ax) -> applies the plotting utils to the plot
+
+The interface is designed to be flexible and can be applied to any generic plotting function.
 """
 
 from dataclasses import dataclass
@@ -32,6 +51,10 @@ from visualastro.core.numerical_utils import _cycle
 
 @dataclass(slots=True)
 class PlotUtilParams:
+    """
+    Each parameter defined here should also be defined in
+    `visualastro.plotting.core.interface._extract_plot_util_kwargs`.
+    """
     reference_idx: Any = None
     ellipses: Any = None
     plot_ellipse: Any = None
@@ -84,7 +107,24 @@ class PlotUtilParams:
 
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
+    """
+    Extracts any keyword argument from a function related to
+    visualastro plotting utilities. This way, kwargs can then
+    be passed into a matplotlib function without any contamination
+    from visualastro specific keyword arguments.
 
+    Any kwarg defined here should also be defined in
+    `visualastro.plotting.core.interface.PlotUtilParams`.
+
+    Notes
+    -----
+    Only `additional_kwargs` and potentially (but probably not) `copy_kwargs`
+    should be defined in `_extract_kwargs`. `copy_kwargs` should only be
+    defined if a parameter is required both by `_apply_plot_utils` and by the
+    matplotlib function the kwargs are forwarded to. In practice this should
+    almost never happen because this would require being True for all plotting
+    function that use the plotting interface.
+    """
     params = _extract_kwargs(
         kwargs,
         additional_kwargs=[
@@ -152,7 +192,7 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
 
 def _apply_plot_utils(
     params: PlotUtilParams,
-    ax: maxes.Axes,
+    ax: maxes.Axes | WCSAxes,
     xlist: list | None = None,
     ylist: list | None = None,
     im_list: list | None = None,
@@ -162,8 +202,10 @@ def _apply_plot_utils(
     """
     Plotting interface for adding figure annotations and artists to a figure.
 
-    To add the interface to a plotting function, first call the `_extract_plot_util_kwargs`
-    function, which will return a `PlotUtilParams` instance. Then call `_apply_plot_utils`
+    To add the interface to a plotting function, first call
+    `visualastro.plotting.core.interface_extract_plot_util_kwargs`,
+    which will return a `PlotUtilParams` instance. Then call
+    `visualastro.plotting.core.interface_apply_plot_utils`
     after the core plotting has been completed.
 
     Parameters
@@ -192,10 +234,6 @@ def _apply_plot_utils(
         provided, a horizontal line is drawn for each element. If `None`, no lines
         are drawn.
     """
-    plot_ellipses(params.ellipses, ax)
-    plot_vlines(params.vlines, ax, ref_unit)
-    plot_hlines(params.hlines, ax, ref_unit)
-
     if 'labels' in kwargs:
         if _cycle(kwargs['labels'], params.reference_idx) is not None:
             legend_kwargs = {
@@ -287,6 +325,10 @@ def _apply_plot_utils(
                 tick_dir=params.cbar_tick_dir,
                 rasterized=kwargs.get('rasterized', None)
             )
+
+    plot_ellipses(params.ellipses, ax)
+    plot_vlines(params.vlines, ax, ref_unit)
+    plot_hlines(params.hlines, ax, ref_unit)
 
     if params.plot_ellipse and im_list is not None:
         im = _cycle(im_list, params.reference_idx)
