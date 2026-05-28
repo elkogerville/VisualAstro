@@ -172,11 +172,12 @@ class ax:
         vmax: float | _Unset = _UNSET,
         norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
         percentile: tuple[float, float] | _Unset = _UNSET,
-        stack_method=None,
+        stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
         radial_vel: float | None = None,
         spectral_unit=None,
         cmap: Colormap | str | _Unset = _UNSET,
-        mask_non_pos=None,
+        mask_non_pos: bool | _Unset = _UNSET,
+        axis: int = 0,
         **kwargs
     ):
         """
@@ -223,6 +224,7 @@ class ax:
                 spectral_unit=spectral_unit,
                 cmap=cmap,
                 mask_non_pos=mask_non_pos,
+                axis=axis,
                 **kwargs
             )
             if savefigure:
