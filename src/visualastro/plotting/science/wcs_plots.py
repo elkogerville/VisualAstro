@@ -3,25 +3,17 @@ Author: Elko Gerville-Reache
 Date Created: 2025-05-23
 Date Modified: 2026-03-11
 Description:
-    Plotting functions for 2D and 3D images.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-    - spectral-cube
-Module Structure:
-    - Datacube I/O Functions
-        Functions for loading datacubes into visualastro.
-    - Cube Plotting Functions
-        Functions for plotting datacubes
+    Plotting functions for 2D and 3D astronomical images.
 """
 
 from typing import Literal
 import warnings
 
+import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
+import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
 from matplotlib.image import AxesImage
 import numpy as np
@@ -29,50 +21,45 @@ from spectral_cube import SpectralCube
 
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
-    get_config_value,
     config,
     _Unset,
     _UNSET
 )
 from visualastro.core.io import _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical_utils import (
+    as_list,
     get_data,
     get_value,
-    to_array,
     to_list,
     _cycle,
 )
-from visualastro.core.units import (
-    ensure_common_unit,
-    get_unit,
-    to_latex_unit,
-)
+from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colors import get_cmap
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
-from visualastro.plotting.core.plot_utils import (
-    add_colorbar,
-    compute_imshow_scale,
-    plot_circles,
-    plot_ellipses,
-    plot_interactive_ellipse,
-    plot_points,
-)
-from visualastro.plotting.science.spectra_plot_utils import (
-    spectral_axis_label
-)
+from visualastro.plotting.core.plot_utils import compute_imshow_scale
+from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label
 
 
 warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
 def imshow(
-    datas, ax, idx=None, vmin=_UNSET,
-    vmax=_UNSET, norm=_UNSET,
-    percentile=_UNSET, stack_method=None,
-    origin=None, cmap=None, aspect=_UNSET,
-    mask_non_pos=None, wcs_grid=None, **kwargs
+    images,
+    ax: maxes.Axes | WCSAxes,
+    idx: int | tuple[int, int] | list[int | tuple[int, int] | None] | None = None,
+    vmin: float | _Unset = _UNSET,
+    vmax: float | _Unset = _UNSET,
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
+    percentile: tuple[float, float] | _Unset = _UNSET,
+    stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
+    origin: Literal['lower', 'upper'] | _Unset = _UNSET,
+    cmap: Colormap | str | _Unset = _UNSET,
+    aspect: Literal['auto', 'equal'] | float | None | _Unset = _UNSET,
+    mask_non_pos: bool | _Unset = _UNSET,
+    axis: int = 0,
+    **kwargs
 ):
     """
     Display 2D image data with optional overlays and customization.
@@ -197,163 +184,142 @@ def imshow(
             Image object if a single array is provided, otherwise a list of image
             objects created by `imshow`.
     """
-    # ---- KWARGS ----
-    # figure params
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    invert_xaxis = kwargs.get('invert_xaxis', False)
-    invert_yaxis = kwargs.get('invert_yaxis', False)
-    # labels
-    text_loc = kwargs.get('text_loc', config.text_loc)
-    text_color = kwargs.get('text_color', config.text_color)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    colorbar = kwargs.get('colorbar', config.cbar)
-    clabel = kwargs.get('clabel', config.clabel)
-    cbar_width = kwargs.get('cbar_width', config.cbar_width)
-    cbar_pad = kwargs.get('cbar_pad', config.cbar_pad)
-    # mask out value
-    mask_out_val = kwargs.get('mask_out_val', config.mask_out_value)
-    # plot objects
-    circles = kwargs.get('circles', None)
-    points = kwargs.get('points', None)
-    # plot ellipse
-    ellipses = kwargs.get('ellipses', None)
-    plot_ellipse = kwargs.get('plot_ellipse', False)
-    # default ellipse parameters
-    datas = to_list(datas)
-    data = to_array(datas[0])
-    X, Y = data.shape[-2:]
-    center = kwargs.get('center', [X//2, Y//2])
-    w = kwargs.get('w', X//5)
-    h = kwargs.get('h', Y//5)
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('vmin', vmin, config.vmin),
+            _param('vmax', vmax, config.vmax),
+            _param('norm', norm, config.norm),
+            _param('percentile', percentile, config.percentile),
+            _param('stack_method', stack_method, config.stack_cube_method),
+            _param('origin', origin, config.origin),
+            _param('cmap', cmap, config.cmap),
+            _param('aspect', aspect, config.aspect),
+            _param('mask_non_pos', mask_non_pos, config.mask_non_positive),
+        ],
+        additional_kwargs=[
+            _kwarg('unit_fmt', config.unit_label_format),
+            _kwarg('rasterized', config.rasterized),
+            _kwarg('mask_out_val', config.mask_out_value),
+            _kwarg('stack_method', config.stack_cube_method),
+            _kwarg('linear_width', config.linear_width),
+            _kwarg('gamma', config.gamma),
+            _kwarg('vcenter', None),
+            _kwarg('invert_xaxis', False),
+            _kwarg('invert_yaxis', False),
+            _kwarg('rotate_wcs_labels', False),
+        ],
+    )
+    plot_params = _extract_plot_util_kwargs(kwargs)
 
-    # get default config values
-    vmin = config.vmin if vmin is _UNSET else vmin
-    vmax = config.vmax if vmax is _UNSET else vmax
-    norm = config.norm if norm is _UNSET else norm
-    stack_method = get_config_value(stack_method, 'stack_cube_method')
-    percentile = config.percentile if percentile is _UNSET else percentile
-    origin = get_config_value(origin, 'origin')
-    cmap = get_config_value(cmap, 'cmap')
-    aspect = config.aspect if aspect is _UNSET else aspect
-    mask_non_pos = get_config_value(mask_non_pos, 'mask_non_positive')
-    wcs_grid = get_config_value(wcs_grid, 'wcs_grid')
+    images = to_list(images)
+    idxs = as_list(idx)
+    cmaps = to_list(params.cmap)
 
-    # ensure inputs are iterable or conform to standard
-    ensure_common_unit(datas)
-    cmap = to_list(cmap)
-    if idx is not None:
-        idx = idx if isinstance(idx, (list, np.ndarray, tuple)) else [idx]
+    ref_unit = ensure_common_unit(images)
 
-    # if wcsaxes are used, origin can only be 'lower'
     if isinstance(ax, WCSAxes) and origin == 'upper':
+        warnings.warn(
+            "origin cannot be 'upper' if ax is a WCSAxes! "
+            "setting invert_yaxis=True and origin='lower'!"
+        )
         origin = 'lower'
-        invert_yaxis = True
+        params.invert_yaxis = True
 
-    images = []
+    image_list = []
 
-    # loop over data list
-    for i, data in enumerate(datas):
-        # ensure data is an array
-        data = to_array(data)
-        # slice data with index if provided
-        if idx is not None:
-            data = stack_cube(
-                data, idx=idx[i%len(idx)], method=stack_method, axis=0
-            )
+    for i, image in enumerate(images):
+        image = get_data(image)
+
+        data_slice = stack_cube(
+            image, idx=_cycle(idxs, i), method=stack_method, axis=axis
+        )
+        data = get_value(data_slice)
 
         if mask_non_pos:
-            data = np.where(data > 0.0, data, mask_out_val)
+            data = np.where(data > 0.0, data, params.mask_out_val)
 
-        img_norm, vmin, vmax = compute_imshow_scale(
-            data, norm, vmin, vmax, percentile, **kwargs
+        img_norm, cube_vmin, cube_vmax = compute_imshow_scale(
+            data=data,
+            norm=params.norm,
+            vmin=params.vmin,
+            vmax=params.vmax,
+            percentile=params.percentile,
+            linear_width=params.linear_width,
+            gamma=params.gamma,
+            vcenter=params.vcenter,
         )
 
-        cm = get_cmap(_cycle(cmap, i))
-        if img_norm is None:
-            im = ax.imshow(
-                data, origin=origin, vmin=vmin,
-                vmax=vmax, cmap=cm,
-                aspect=aspect, rasterized=rasterized
-            )
+        cm = get_cmap(_cycle(cmaps, i))
+
+        imshow_kwargs = dict(kwargs)
+        if norm is None:
+            imshow_kwargs.pop('norm', None)
+            imshow_kwargs.update(vmin=cube_vmin, vmax=cube_vmax)
         else:
-            im = ax.imshow(
-                data,
-                origin=origin,
-                norm=img_norm,
-                cmap=cm,
-                aspect=aspect,
-                rasterized=rasterized
-            )
+            imshow_kwargs.pop('vmin', None)
+            imshow_kwargs.pop('vmax', None)
+            imshow_kwargs.update(norm=img_norm)
 
-        images.append(im)
+        im = ax.imshow(
+            data,
+            cmap=cm,
+            origin=params.origin,
+            aspect=params.aspect,
+            rasterized=params.rasterized,
+            **imshow_kwargs
+        )
 
-    # overplot
-    plot_circles(circles, ax)
-    plot_points(points, ax)
-    plot_ellipses(ellipses, ax)
-    if plot_ellipse:
-        plot_interactive_ellipse(center, w, h, ax, text_loc, text_color)
+        image_list.append(im)
 
-    # invert axes
-    if invert_xaxis:
-        ax.invert_xaxis()
-    if invert_yaxis:
-        ax.invert_yaxis()
+    if params.invert_xaxis: ax.invert_xaxis()
+    if params.invert_yaxis: ax.invert_yaxis()
 
-    # rotate tick labels and set optional grid
-    if isinstance(ax, WCSAxes):
-        for coord in ax.coords:
-            coord_type = coord.coord_type
-            coord_index = coord.coord_index
+    if params.rotate_wcs_labels:
+        if isinstance(ax, WCSAxes):
+            for coord in ax.coords:
+                coord_type = coord.coord_type
+                coord_index = coord.coord_index
 
-            # set label based on coordinate type
-            if coord_type == 'longitude':
-                coord.set_axislabel(config.right_ascension)
-            elif coord_type == 'latitude':
-                coord.set_axislabel(config.declination)
+                # set label based on coordinate type
+                if coord_type == 'longitude':
+                    coord.set_axislabel(config.right_ascension)
+                elif coord_type == 'latitude':
+                    coord.set_axislabel(config.declination)
 
-            # determine which pixel axis this world coordinate
-            # primarily affects by checking the PC/CD matrix
-            wcs: WCS = ax.wcs
-            if hasattr(wcs, 'pixel_to_world_values'):
-                # check which pixel axis (0=x, 1=y) this world axis varies most with
-                # look at the absolute values in the transformation matrix
-                if hasattr(wcs.wcs, 'pc'):
-                    pc_matrix = wcs.wcs.pc
-                elif hasattr(wcs.wcs, 'cd'):
-                    pc_matrix = wcs.wcs.cd
-                else:
-                    pc_matrix = None
+                # determine which pixel axis this world coordinate
+                # primarily affects by checking the PC/CD matrix
+                wcs = ax.wcs
+                if isinstance(wcs, WCS) and hasattr(wcs, 'pixel_to_world_values'):
+                    # check which pixel axis (0=x, 1=y) this world axis varies most with
+                    # look at the absolute values in the transformation matrix
+                    if hasattr(wcs.wcs, 'pc'):
+                        pc_matrix = wcs.wcs.pc
+                    elif hasattr(wcs.wcs, 'cd'):
+                        pc_matrix = wcs.wcs.cd
+                    else:
+                        pc_matrix = None
 
-                if pc_matrix is not None:
-                    # for this world axis, see which pixel axis it affects most
-                    world_axis_row = pc_matrix[coord_index, :]
-                    dominant_pixel_axis = abs(world_axis_row).argmax()
+                    if pc_matrix is not None:
+                        # for this world axis, see which pixel axis it affects most
+                        world_axis_row = pc_matrix[coord_index, :]
+                        dominant_pixel_axis = abs(world_axis_row).argmax()
 
-                    # dominant_pixel_axis: 0 = x-axis (horizontal), 1 = y-axis (vertical)
-                    if dominant_pixel_axis == 0:
-                        coord.set_axislabel_position('b')
-                        coord.set_ticklabel(rotation=0)
-                    elif dominant_pixel_axis == 1:
-                        coord.set_axislabel_position('l')
-                        coord.set_ticklabel(rotation=90)
+                        # dominant_pixel_axis: 0 = x-axis (horizontal), 1 = y-axis (vertical)
+                        if dominant_pixel_axis == 0:
+                            coord.set_axislabel_position('b')
+                            coord.set_ticklabel(rotation=0)
+                        elif dominant_pixel_axis == 1:
+                            coord.set_axislabel_position('l')
+                            coord.set_ticklabel(rotation=90)
 
-        if wcs_grid:
-            ax.coords.grid(True, color='white', ls='dotted')
+    _apply_plot_utils(
+        plot_params, ax,
+        im_list=image_list,
+        ref_unit=ref_unit,
+    )
 
-    if isinstance(xlabel, str):
-        ax.set_xlabel(xlabel)
-    if isinstance(ylabel, str):
-        ax.set_ylabel(ylabel)
-
-    cbar_unit = to_latex_unit(get_unit(datas[0]))
-    if clabel is True:
-        clabel = cbar_unit if cbar_unit is not None else None
-    if colorbar:
-        add_colorbar(images[0], ax, cbar_width, cbar_pad, clabel)
-
-    return images
+    return image_list
 
 
 def plot_spectral_cube(
