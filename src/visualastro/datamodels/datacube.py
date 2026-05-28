@@ -1441,9 +1441,12 @@ class DataCube:
         """
         Return a slice of the data.
 
-        The method attempts to slice the WCS. The Header
-        keywords affected by the slicing is then updated
-        using the new WCS.
+        Slicing operations that preserve 3D structure return a DataCube.
+        The method attempts to slice the WCS, and Header keywords affected
+        by the slicing are then updated using the new WCS.
+
+        Operations that reduce dimensionality return the underlying data type
+        (ndarray, SpectralCube, Quantity, etc.).
 
         Parameters
         ----------
@@ -1456,6 +1459,9 @@ class DataCube:
             The corresponding subset of the data.
         """
         new_data = self.data[key]
+        if new_data.ndim != 3:
+            return new_data
+
         new_error = self.error[key] if self.error is not None else None
 
         new_hdr = _copy_headers(self.header)
@@ -1501,13 +1507,15 @@ class DataCube:
         """
         return len(self.value)
 
-    def reshape(self, *shape):
+    def reshape(self, *shape) -> NDArray:
         """
-        Return a reshaped view of the cube data.
+        Return a reshaped view of the cube values.
+
         Parameters
         ----------
         *shape : int
             New shape for the data array.
+
         Returns
         -------
         np.ndarray
