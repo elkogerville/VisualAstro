@@ -52,14 +52,35 @@ from visualastro.utils.wcs_utils import get_wcs_celestial
 
 class ax:
     @staticmethod
-    def imshow(datas, idx=None, vmin=_UNSET, vmax=_UNSET,
-               norm=_UNSET, percentile=_UNSET, stack_method=None,
-               origin=None, wcs_input=None, invert_wcs=False, cmap=None,
-               aspect=_UNSET, mask_non_pos=None, wcs_grid=None, **kwargs):
+    def imshow(
+        datas,
+        idx: int | tuple[int, int] | list[int | tuple[int, int] | None] | None = None,
+        *,
+        vmin: float | _Unset = _UNSET,
+        vmax: float | _Unset = _UNSET,
+        norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
+        percentile: tuple[float, float] | _Unset = _UNSET,
+        stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
+        origin: Literal['lower', 'upper'] | _Unset = _UNSET,
+        wcs_input: WCS | Header | None = None,
+        invert_wcs: bool = False,
+        cmap: Colormap | str | _Unset = _UNSET,
+        aspect: Literal['auto', 'equal'] | float | None | _Unset = _UNSET,
+        mask_non_pos: bool | _Unset = _UNSET,
+        axis: int = 0,
+        **kwargs
+    ) -> None:
         """
         Wrapper for `imshow` with automatic figure creation.
 
         See `visualastro.plotting.science.wcs_plots.imshow` for full documentation.
+
+        Additional Parameters
+        ---------------------
+        wcs_input : WCS | Header | None, optional, default=None
+            If provided, will be used to create a `WCSAxes` plot.
+        invert_wcs : bool, optional, default=False
+            If `True`, will swap WCS axes using `wcs.swapaxes(0, 1)`.
 
         Equivalent to:
 
@@ -121,12 +142,25 @@ class ax:
             apply_style_modifiers(ax, style)
 
             imshow(
-                datas, ax, idx, vmin, vmax, norm, percentile, stack_method,
-                origin, cmap, aspect, mask_non_pos, wcs_grid, **kwargs
+                datas,
+                ax=ax,
+                idx=idx,
+                vmin=vmin,
+                vmax=vmax,
+                norm=norm,
+                percentile=percentile,
+                stack_method=stack_method,
+                origin=origin,
+                cmap=cmap,
+                aspect=aspect,
+                mask_non_pos=mask_non_pos,
+                axis=axis,
+                **kwargs
             )
 
             if savefigure:
-                    savefig(dpi=dpi)
+                savefig(dpi=dpi)
+
             plt.show()
 
 
