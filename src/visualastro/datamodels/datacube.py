@@ -369,9 +369,9 @@ class DataCube:
         primary_hdr: Header
     ) -> WCS | list[WCS] | None:
         """
-        Overwrite Header WCS if ``wcs`` is provided.
+        Overwrite Header WCS if `wcs` is provided.
 
-        If ``wcs`` is None, try using Header WCS.
+        If `wcs` is None, try using Header WCS.
         """
         if wcs is None:
             wcs = get_header_wcs(header)
@@ -435,7 +435,7 @@ class DataCube:
         -------
         Quantity or None:
             Spectral axis of the data or None if data
-            is not a ``spectral_cube``.
+            is not a `spectral_cube`.
         """
         if isinstance(self.data, SpectralCube):
             return self.data.spectral_axis
@@ -959,10 +959,10 @@ class DataCube:
         ----------
         idx : int, list of int, or None
             Index or indices specifying the position along the spectral axis:
-            - ``i``      -> returns ``spectral_axis[i]``
-            - ``[i]``    -> returns ``spectral_axis[i]``
-            - ``[i, j]`` -> returns ``(spectral_axis[i] + spectral_axis[j]) / 2``
-            - ``None``   -> returns ``(spectral_axis[0] + spectral_axis[-1]) / 2``
+            - `i`      -> returns `spectral_axis[i]`
+            - `[i]`    -> returns `spectral_axis[i]`
+            - `[i, j]` -> returns `(spectral_axis[i] + spectral_axis[j]) / 2`
+            - `None`   -> returns `(spectral_axis[0] + spectral_axis[-1]) / 2`
 
         Returns
         -------
@@ -973,9 +973,9 @@ class DataCube:
         Raises
         ------
         ValueError
-            If ``self.data`` is not a ``SpectralCube``.
+            If `self.data` is not a `SpectralCube`.
         ValueError
-            If ``idx`` is not an int, a list of one or two ints, or None.
+            If `idx` is not an int, a list of one or two ints, or None.
 
         See Also
         --------
@@ -995,7 +995,7 @@ class DataCube:
     def spectral_world_2_idx(self, value):
         """
         Return the index of the nearest spectral channel to a given value.
-        If ``value`` has no unit, the cube unit is assumed.
+        If `value` has no unit, the cube unit is assumed.
 
         Parameters
         ----------
@@ -1010,7 +1010,7 @@ class DataCube:
         Raises
         ------
         ValueError :
-            If ``data`` attribute is not a ``SpectralCube``.
+            If `data` attribute is not a `SpectralCube`.
         """
         from visualastro.analysis.spectra_utils import (
             spectral_world_2_idx as _spectral_world_2_idx
@@ -1064,18 +1064,18 @@ class DataCube:
             Method used for fitting the continuum.
             - 'fit_continuum': uses `fit_continuum` with a specified window
             - 'generic' : uses `fit_generic_continuum`
-            If None, uses the default value from ``config.spectrum_continuum_fit_method``.
+            If None, uses `config.spectrum_continuum_fit_method`.
         min_valid_pixels : int or 'auto', optional, default='auto'
             Minimum valid flux data points needed in order to attempt a continuum fit.
-            If ``'auto'``, will compute a percentile-based threshold for valid pixels
+            If `'auto'`, will compute a percentile-based threshold for valid pixels
             along the spectral axis to use as the threshold.
         auto_percentile : float, optional, default=10
             Percentile of the nonzero valid-spectral-point counts used to automatically
-            set ``min_valid_pixels`` when ``min_valid_pixels='auto'``. Lower values are
+            set `min_valid_pixels` when `min_valid_pixels='auto'`. Lower values are
             more permissive; higher values are more restrictive. Must be between 0 and 100.
         minimum_floor : int, optional, default=3
             Lower limit for the minimum number of valid pixels. If the computed
-            or user-provided ``min_valid_pixels`` falls below this value, a ``ValueError``
+            or user-provided `min_valid_pixels` falls below this value, a `ValueError`
             is raised. This prevents continuum fitting attempts on pixels with
             insufficient spectral data.
         print_info : bool or None, optional, default=None
@@ -1091,7 +1091,7 @@ class DataCube:
         Raises
         ------
         ValueError :
-            If ``self.data`` is not a SpectralCube.
+            If `self.data` is not a SpectralCube.
         UnitsError :
             If the cube's spectral axis and region units are incompatible.
         ValueError :
@@ -1517,7 +1517,7 @@ class DataCube:
 
     def add_history(self, history: str) -> None:
         """
-        Add to the ``HISTORY`` cards of the cube
+        Add to the `HISTORY` cards of the cube
         for logging purposes. This returns nothing.
 
         Parameters
