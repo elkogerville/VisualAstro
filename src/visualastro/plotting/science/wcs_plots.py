@@ -18,6 +18,7 @@ from matplotlib.colors import Colormap
 from matplotlib.image import AxesImage
 import numpy as np
 from spectral_cube import SpectralCube
+from spectral_cube.lower_dimensional_structures import Slice
 
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
@@ -34,6 +35,7 @@ from visualastro.core.numerical_utils import (
     _cycle,
 )
 from visualastro.core.units import ensure_common_unit
+from visualastro.datamodels.datacube import DataCube
 from visualastro.plotting.core.colors import get_cmap
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
@@ -320,124 +322,122 @@ def imshow(
 
 
 def plot_spectral_cube(
-    cubes,
-    idx: int | tuple[int, int] | None = None,
-    ax: WCSAxes | None = None,
+    cubes: DataCube | SpectralCube | list[DataCube | SpectralCube],
+    idx: int | tuple[int, int] | None | list[int | tuple[int, int] | None],
+    ax: WCSAxes | maxes.Axes,
     vmin: float | _Unset = _UNSET,
     vmax: float | _Unset = _UNSET,
     norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
-    percentile: tuple[float, float] | _Unset = _UNSET,
+    percentile: tuple[float, float] | None | _Unset = _UNSET,
     stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
-    radial_vel: float | None = None,
+    radial_vel: float | _Unset = _UNSET,
     spectral_unit: u.UnitBase | None = None,
-    cmap: Colormap | str | _Unset = _UNSET,
+    cmap: Colormap | str | list[Colormap | str] | _Unset = _UNSET,
     mask_non_pos: bool | _Unset = _UNSET,
     axis: int = 0,
     **kwargs
 ) -> list[AxesImage]:
     """
-    Plot a single spectral slice from one or more spectral cubes.
+    Plot a spectral slice from one or more spectral cubes on a WCSAxes.
 
     Parameters
     ----------
-    cubes : DataCube, SpectralCube, or list of such
+    cubes : DataCube | SpectralCube | list of such
         One or more spectral cubes to plot. All cubes should have consistent units.
-    idx : int or None, optional, default=None
-        Index along the spectral axis corresponding to the slice to plot.
-        If None, collapses the entire cube into a 2D map according
-        to ``stack_method``.
-    ax : matplotlib.axes.Axes or WCSAxes
+    idx : int | tuple[int, int] | None | list[int | tuple[int, int] | None]
+        Spectral axis indices to slice. Tuples denote [start, end] (inclusive)
+        and are collapsed via `stack_method`. If int, applies to all cubes; if list,
+        each entry specifies indices for the corresponding cube. `None` collapses
+        the entire spectral axis via `stack_method`.
+    ax : WCSAxes | maxes.Axes
         The axes on which to draw the slice.
-    vmin : float or None, optional, default=`_UNSET`
-        Lower limit for colormap scaling; overides `percentile[0]`.
-        If None, values are determined from `percentile[0]`.
-        If `_UNSET`, uses the default value in `config.vmin`.
-    vmax : float or None, optional, default=`_UNSET`
-        Upper limit for colormap scaling; overides `percentile[1]`.
-        If None, values are determined from `percentile[1]`.
-        If `_UNSET`, uses the default value in `config.vmax`.
-    norm : str or None, optional, default=`_UNSET`
+    vmin, vmax: float | None | _Unset, optional, default=`_UNSET`
+        Lower / upper limits for colormap scaling; overides `percentile`.
+        If `None`, values are determined from `percentile[0]` for `vmin`
+        and `percentile[1]` for `vmax`. If `_UNSET`, uses `config.vmin`
+        and `config.vmax`.
+    norm : str | None | _Unset, optional, default=_UNSET
         Normalization algorithm for colormap scaling.
 
         * `'asinh'` -> asinh stretch using `ImageNormalize`
         * `'asinhnorm'` -> asinh stretch using `AsinhNorm`
         * `'log'` -> logarithmic scaling using `LogNorm`
-        * `'powernorm'` -> power-law normalization using `PowerNorm`
+        * `'power'` -> power-law normalization using `PowerNorm`
+        * `'twoslope'` -> twoslope normalization use `TwoSlopeNorm`
         * `'linear'`, `'none'`, or `None` -> no normalization applied
 
-        If `_UNSET`, uses the default value in `config.norm`.
-    percentile : list or tuple of two floats, or None, default=`_UNSET`
+        If `_UNSET`, uses `config.norm`.
+    percentile : tuple[float, float] | _Unset, default=_UNSET
         Default percentile range used to determine `vmin` and `vmax`.
-        If None, use no percentile stretch (as long as vmin/vmax are None).
-        If `_UNSET`, uses default value from `config.percentile`.
-    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
-        Stacking method. If None, uses the default value set
-        by ``config.stack_cube_method``.
-    radial_vel : float or None, optional, default=None
+        If `None`, use no percentile stretch (as long as `vmin` and
+        `vmax`, are None). If `_UNSET`, uses `config.percentile`.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | _Unset, default=_UNSET
+        Stacking method. This controls how the cube is collapsed into a 2D
+        image for plotting. The axis along to flatten is controlled by `axis`.
+        If `_UNSET`, uses `config.stack_cube_method`.
+    radial_vel : float | _Unset, optional, default=_UNSET
         Radial velocity in km/s to shift the spectral axis.
-        Astropy units are optional. If None, uses the default
-        value set by `config.radial_velocity`.
-    spectral_unit : astropy.units.Unit or str, optional, default=None
-        Desired spectral axis unit for labeling.
-    cmap : str, list or tuple of str, or None, default=None
-        Colormap(s) to use for plotting. If None,
-        uses `config.cmap`.
-    mask_non_pos : bool or None, optional, default=None
-        If True, mask out non-positive data values. Useful for displaying
-        log scaling of images with non-positive values. If None, uses the
-        default value set by `config.mask_non_positive`.
-    wcs_grid : bool or None, optional, default=None
-        If True, display WCS grid ontop of plot. Requires
-        using WCSAxes for `ax`. If None, uses the default
-        value set by `config.wcs_grid`.
+        Astropy units are optional. If `_UNSET`, uses `config.radial_velocity`.
+    spectral_unit : u.UnitBase | str, optional, default=None
+        Desired spectral axis unit for labeling. If `None`, detects unit automatically.
+    cmap : Colormap | str | list[Colormap | str] | _Unset, default=_UNSET
+        Colormap(s) to use for plotting. If `_UNSET`, uses `config.cmap`.
+    mask_non_pos : bool | _Unset, optional, default=_UNSET
+        If `True`, mask out non-positive data values. Useful for displaying
+        log scaling of images with non-positive values. If `_UNSET`, uses
+        `config.mask_non_positive`. The mask value is set by `mask_out_val`.
+    axis : int, optional, default=0
+        Axis used for collapsing 3D cubes into a 2D image.
+    spectral_label : bool, optional, default=True
+        If `True`, annotate the figure with the slice's spectral axis value,
+        ie. the wavelength of the cube's spectral_axis.
+    as_title : bool, optional, default=False
+         If `True`, display spectral slice label as plot title.
+    unit_fmt : str | optional, default=config.unit_label_format
+        Format for the colorbar and spectral unit label. Accepted formats are
+        `'latex'`, `'latex_inline'`, `'fits'`, `'unicode'`, `'console'`, `'vounit'`,
+        `'cds'`, or `'ogip'`.
+    emission_line : str | None, optional, default=None
+        Optional emission line label prepended to the spectral axis label.
+    rasterized : bool, optional, default=config.rasterized
+        Whether to rasterize plot artists. Rasterization
+        converts the artist to a bitmap when saving to
+        vector formats (e.g., PDF, SVG), which can
+        significantly reduce file size for complex plots.
+    mask_out_val : float, optional, default=config.mask_out_value
+        Value to use when masking out non-positive values.
+        ie: np.nan, 1e-6, np.inf
+    linear_width : float, optional, default=config.linear_width
+        The effective width of the linear region, beyond which the
+        transformation becomes asymptotically logarithmic.
+        Used for `norm='asinhnorm'`.
+    gamma : float, optional, default=config.gamma
+        Power law exponent. Used for `norm='power'`.
+    vcenter : float, optional, default=None
+        Center point of normalization. Must be in between `vmin` and `vmax`.
+        If `None`, is the midpoint between `vmin` and `vmax`.
+    highlight : bool, optional, default=config.highlight
+        Whether to highlight interactive ellipse or wavelength label if plotted.
+    text_loc : list[float], optional, default=config.text_loc
+        Axes coordinates for overlay text placement in figure coordinates.
+    text_color : ColorType, default=config.text_color
+        Color of overlay text.
 
-    **kwargs : dict, optional
-        Additional parameters.
+    - `colorbar` : bool, default=`config.colorbar.enable`
+        Whether to add a colorbar.
+    - `cbar_width` : float, default=`config.colorbar.width`
+        Width of the colorbar.
+    - `cbar_pad` : float, default=`config.colorbar.pad`
+        Padding between axes and colorbar.
+    - `clabel` : str, bool, or None, default=`config.colorbar.label`
+        Label for colorbar. If True, automatically generate from cube unit.
+    - `xlabel` : str, default=`config.right_ascension_label`
+        X axis label.
+    - `ylabel` : str, default=`config.declination_label`
+        Y axis label.
+    - `ellipses` : list or None, default=None
+        Ellipse objects to overlay on the image.
 
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `title` : bool, default=False
-            If True, display spectral slice label as plot title.
-        - `emission_line` : str or None, default=None
-            Optional emission line label to display instead of slice value.
-        - `text_loc` : list of float, default=`config.text_loc`
-            Relative axes coordinates for overlay text placement.
-        - `text_color` : str, default=`config.text_color`
-            Color of overlay text.
-        - `colorbar` : bool, default=`config.colorbar.enable`
-            Whether to add a colorbar.
-        - `cbar_width` : float, default=`config.colorbar.width`
-            Width of the colorbar.
-        - `cbar_pad` : float, default=`config.colorbar.pad`
-            Padding between axes and colorbar.
-        - `clabel` : str, bool, or None, default=`config.colorbar.label`
-            Label for colorbar. If True, automatically generate from cube unit.
-        - `xlabel` : str, default=`config.right_ascension_label`
-            X axis label.
-        - `ylabel` : str, default=`config.declination_label`
-            Y axis label.
-        - `spectral_label` : bool, default=True
-            Whether to draw spectral slice value as a label.
-        - `highlight` : bool, optional, default=`config.highlight`
-            Whether to highlight interactive ellipse or wavelength label if plotted.
-        - `mask_out_val` : float, optional, default=`config.mask_out_value`
-            Value to use when masking out non-positive values.
-            Ex: np.nan, 1e-6, np.inf
-        - `ellipses` : list or None, default=None
-            Ellipse objects to overlay on the image.
-        - `plot_ellipse` : bool, default=False
-            If True, plot a default or interactive ellipse.
-        - `center` : list of two ints, default=[Nx//2, Ny//2]
-            Center of default ellipse.
-        - `w`, `h` : float, default=X//5, Y//5
-            Width and height of default ellipse.
-        - `angle` : float or None, default=None
-            Angle of ellipse in degrees.
 
     Returns
     -------
@@ -457,18 +457,17 @@ def plot_spectral_cube(
             _param('norm', norm, config.norm),
             _param('percentile', percentile, config.percentile),
             _param('stack_method', stack_method, config.stack_cube_method),
+            _param('radial_velocity', radial_vel, config.radial_velocity),
             _param('cmap', cmap, config.cmap),
             _param('mask_non_pos', mask_non_pos, config.mask_non_positive),
         ],
         additional_kwargs=[
+            _kwarg('spectral_label', True),
             _kwarg('as_title', False),
             _kwarg('unit_fmt', config.unit_label_format),
             _kwarg('emission_line', None),
             _kwarg('rasterized', config.rasterized),
-            _kwarg('spectral_label', True),
             _kwarg('mask_out_val', config.mask_out_value),
-            _kwarg('stack_method', config.stack_cube_method),
-            _kwarg('radial_velocity', config.radial_velocity),
             _kwarg('linear_width', config.linear_width),
             _kwarg('gamma', config.gamma),
             _kwarg('vcenter', None),
@@ -488,16 +487,11 @@ def plot_spectral_cube(
 
     ref_unit = ensure_common_unit(cubes, on_mismatch=config.unit_mismatch)
 
-    if not isinstance(ax, WCSAxes) or ax is None:
-        raise ValueError(
-            'ax must be a WCSAxes instance!'
-        )
-
     images = []
 
     for i, cube in enumerate(cubes):
         cube = get_data(cube)
-        if not isinstance(cube, SpectralCube):
+        if not isinstance(cube, (SpectralCube, Slice)):
             raise ValueError(
                 'Input cubes must contain a SpectralCube! '
                 'For non SpectralCube data, use imshow.'
@@ -550,14 +544,17 @@ def plot_spectral_cube(
     # plot wavelength/frequency of current spectral slice, and emission line
     if params.spectral_label:
         spectral_axis_label(
-            cubes[0], idx, ax,
+            _cycle(cubes, config.reference_idx),
+            idx=_cycle(idxs, config.reference_idx),
+            ax=ax,
             ref_unit=spectral_unit,
-            radial_vel=radial_vel,
+            radial_vel=params.radial_velocity,
             emission_line=params.emission_line,
             as_title=params.as_title,
             highlight=params.highlight,
             text_loc=params.text_loc,
             text_color=params.text_color,
+            unit_fmt=params.unit_fmt
         )
 
     _apply_plot_utils(
