@@ -17,6 +17,7 @@ import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
 from matplotlib.image import AxesImage
 import numpy as np
+from numpy.typing import NDArray
 from spectral_cube import SpectralCube
 from spectral_cube.lower_dimensional_structures import Slice
 
@@ -48,7 +49,7 @@ warnings.filterwarnings('ignore', category=AstropyWarning)
 
 
 def imshow(
-    images,
+    images: DataCube | SpectralCube | NDArray | u.Quantity | list[DataCube | SpectralCube | NDArray | u.Quantity],
     ax: maxes.Axes | WCSAxes,
     idx: int | tuple[int, int] | list[int | tuple[int, int] | None] | None = None,
     vmin: float | _Unset = _UNSET,
@@ -62,126 +63,123 @@ def imshow(
     mask_non_pos: bool | _Unset = _UNSET,
     axis: int = 0,
     **kwargs
-):
+) -> list[AxesImage]:
     """
     Display 2D image data with optional overlays and customization.
 
     Parameters
     ----------
-    datas : np.ndarray or list of np.ndarray
-        Image array or list of image arrays to plot. Each array should
-        be 2D (Ny, Nx) or 3D (Nz, Nx, Ny) if using 'idx' to slice a cube.
-    ax : matplotlib.axes.Axes or WCSAxes
-        Matplotlib axis on which to plot the image(s).
-    idx : int or list of int, optional, default=None
-        Index for slicing along the first axis if 'datas'
-        contains a cube.
-        - i -> returns cube[i]
-        - [i] -> returns cube[i]
-        - [i, j] -> returns the sum of cube[i:j+1] along axis 0
-        If 'datas' is a list of cubes, you may also pass a list of
-        indeces.
-        ex: passing indeces for 2 cubes-> [[i,j], k].
-    vmin : float or None, optional, default=`_UNSET`
-        Lower limit for colormap scaling; overides `percentile[0]`.
-        If None, values are determined from `percentile[0]`.
-        If `_UNSET`, uses `config.vmin`.
-    vmax : float or None, optional, default=`_UNSET`
-        Upper limit for colormap scaling; overides `percentile[1]`.
-        If None, values are determined from `percentile[1]`.
-        If `_UNSET`, uses `config.vmax`.
-    norm : str or None, optional, default=`_UNSET`
+    datas : DataCube | SpectralCube | NDArray | u.Quantity | list of such
+        Image or list of images to plot. Each image should be 2D (Ny, Nx),
+        or 3D (Nz, Nx, Ny) if using `idx` to slice the cube.
+    ax : WCSAxes | matplotlib.axes.Axes
+        The axes on which to draw the slice.
+    idx : int | tuple[int, int] | None | list[int | tuple[int, int] | None]
+        Spectral axis indices to slice. Tuples denote [start, end] (inclusive)
+        and are collapsed via `stack_method`. If int, applies to all cubes; if list,
+        each entry specifies indices for the corresponding cube. `None` collapses
+        the entire spectral axis via `stack_method`.
+    vmin, vmax: float | None | _Unset, optional, default=`_UNSET`
+        Lower / upper limits for colormap scaling; overides `percentile`.
+        If `None`, values are determined from `percentile[0]` for `vmin`
+        and `percentile[1]` for `vmax`. If `_UNSET`, uses `config.vmin`
+        and `config.vmax`.
+    norm : str | None | _Unset, optional, default=_UNSET
         Normalization algorithm for colormap scaling.
-        - 'asinh' -> asinh stretch using 'ImageNormalize'
-        - 'asinhnorm' -> asinh stretch using 'AsinhNorm'
-        - 'log' -> logarithmic scaling using 'LogNorm'
-        - 'powernorm' -> power-law normalization using 'PowerNorm'
-        - 'linear', 'none', or None -> no normalization applied
+
+        * `'asinh'` -> asinh stretch using `ImageNormalize`
+        * `'asinhnorm'` -> asinh stretch using `AsinhNorm`
+        * `'log'` -> logarithmic scaling using `LogNorm`
+        * `'power'` -> power-law normalization using `PowerNorm`
+        * `'twoslope'` -> twoslope normalization use `TwoSlopeNorm`
+        * `'linear'`, `'none'`, or `None` -> no normalization applied
+
         If `_UNSET`, uses `config.norm`.
-    percentile : list or tuple of two floats, or None, default=`_UNSET`
-        Default percentile range used to determine 'vmin' and 'vmax'.
-        If `_UNSET`, uses `config.percentile`.
-        If None, use no percentile stretch.
-    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'}, default=None
-        Stacking method. If None, uses `config.stack_cube_method`.
-    origin : {'upper', 'lower'} or None, default=None
-        Pixel origin convention for imshow. If None,
-        uses the default value from `config.origin`.
-    cmap : str, list of str or None, default=None
-        Matplotlib colormap name or list of colormaps, cycled across images.
-        If None, uses the default value from `config.cmap`.
-        ex: ['turbo', 'RdPu_r']
-    aspect : {'auto', 'equal'}, float, or None, optional, default=`_UNSET`
-        Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. 'auto'
-        results in fixed axes with the aspect adjusted to fit the axes. 'equal`
-        sets an aspect ratio of 1. None defaults to 'equal', however, if the
+    percentile : tuple[float, float] | _Unset, default=_UNSET
+        Default percentile range used to determine `vmin` and `vmax`.
+        If `None`, use no percentile stretch (as long as `vmin` and
+        `vmax`, are None). If `_UNSET`, uses `config.percentile`.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | _Unset, default=_UNSET
+        Stacking method. This controls how the cube is collapsed into a 2D
+        image for plotting. The axis along to flatten is controlled by `axis`.
+        If `_UNSET`, uses `config.stack_cube_method`.
+    origin : {'upper', 'lower'} | _Unset, default=_UNSET
+        Pixel origin convention for imshow. If `_UNSET`, uses `config.origin`.
+    cmap : Colormap | str | list[Colormap | str] | _Unset, default=_UNSET
+        Colormap(s) to use for plotting. If `_UNSET`, uses `config.cmap`.
+    aspect : {'auto', 'equal'} | float | None | _Unset, optional, default=_UNSET
+        Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. `'auto'`
+        results in fixed axes with the aspect adjusted to fit the axes. `'equal``
+        sets an aspect ratio of 1. `None` defaults to `'equal'`, however, if the
         image uses a transform that does not contain the axes data transform,
-        then None means to not modify the axes aspect at all. If `_UNSET`,
-        uses the default value from `config.aspect`.
-    mask_non_pos : bool or None, optional, default=None
-        If True, mask out non-positive data values. Useful for displaying
-        log scaling of images with non-positive values. If None, uses `config.mask_non_positive`.
-    wcs_grid : bool or None, optional, default=None
-        If True, display WCS grid ontop of plot. Requires
-        using WCSAxes for `ax`. If None, uses `config.wcs_grid`.
+        then `None` means to not modify the axes aspect at all. If `_UNSET`,
+        uses `config.aspect`.
+    mask_non_pos : bool | _Unset, optional, default=_UNSET
+        If `True`, mask out non-positive data values. Useful for displaying
+        log scaling of images with non-positive values. If `_UNSET`, uses
+        `config.mask_non_positive`. The mask value is set by `mask_out_val`.
+        axis : int, optional, default=0
+    axis : int, optional, default=0
+        Axis used for collapsing 3D cubes into a 2D image.
+    rasterized : bool, optional, default=config.rasterized
+        Whether to rasterize plot artists. Rasterization
+        converts the artist to a bitmap when saving to
+        vector formats (e.g., PDF, SVG), which can
+        significantly reduce file size for complex plots.
+    mask_out_val : float, optional, default=config.mask_out_value
+        Value to use when masking out non-positive values.
+        ie: np.nan, 1e-6, np.inf
+    linear_width : float, optional, default=config.linear_width
+        The effective width of the linear region, beyond which the
+        transformation becomes asymptotically logarithmic.
+        Used for `norm='asinhnorm'`.
+    gamma : float, optional, default=config.gamma
+        Power law exponent. Used for `norm='power'`.
+    vcenter : float, optional, default=None
+        Center point of normalization. Must be in between `vmin` and `vmax`.
+        If `None`, is the midpoint between `vmin` and `vmax`.
 
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `invert_xaxis` : bool, optional, default=False
-            Invert the x-axis if True.
-        - `invert_yaxis` : bool, optional, default=False
-            Invert the y-axis if True.
-        - `text_loc` : list of float, optional, default=`config.text_loc`
-            Relative axes coordinates for text placement when
-            plotting interactive ellipses.
-        - `text_color` : str, optional, default=`config.text_color`
-            Color of the ellipse annotation text.
-        - `xlabel` : str, optional, default=None
-            X-axis label.
-        - `ylabel` : str, optional, default=None
-            Y-axis label.
-        - `colorbar` : bool, optional, default=`config.colorbar.enable`
-            Add colorbar if True.
-        - `clabel` : str or bool, optional, default=`config.colorbar.label`
-            Colorbar label. If True, use default label; if None or False, no label.
-        - `cbar_width` : float, optional, default=`config.colorbar.width`
-            Width of the colorbar.
-        - `cbar_pad` : float, optional, default=`config.colorbar.pad`
-            Padding between plot and colorbar.
-        - `mask_out_val` : float, optional, default=`config.mask_out_value`
-            Value to use when masking out non-positive values.
-            Ex: np.nan, 1e-6, np.inf
-        - `circles` : list, optional, default=None
-            List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
-        - `ellipses` : list, optional, default=None
-            List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.
-            Single Ellipse objects can also be passed directly.
-        - `points` : array-like, shape (2,) or (N, 2), optional, default=None
-            Coordinates of points to overplot. Can be a single point `[x, y]`
-            or a list/array of points `[[x1, y1], [x2, y2], ...]`.
-            Points are plotted as red stars by default.
-        - `plot_ellipse` : bool, optional, default=False
-            If True, plot an interactive ellipse overlay. Requires an interactive backend.
-        - `center` : list of float, optional, default=[Nx//2, Ny//2]
-            Center of the default interactive ellipse (x, y).
-        - `w` : float, optional, default=X//5
-            Width of the default interactive ellipse.
-        - `h` : float, optional, default=Y//5
-            Height of the default interactive ellipse.
+    - `invert_xaxis` : bool, optional, default=False
+        Invert the x-axis if True.
+    - `invert_yaxis` : bool, optional, default=False
+        Invert the y-axis if True.
+    - `text_loc` : list of float, optional, default=`config.text_loc`
+        Relative axes coordinates for text placement when
+        plotting interactive ellipses.
+    - `text_color` : str, optional, default=`config.text_color`
+        Color of the ellipse annotation text.
+    - `xlabel` : str, optional, default=None
+        X-axis label.
+    - `ylabel` : str, optional, default=None
+        Y-axis label.
+    - `colorbar` : bool, optional, default=`config.colorbar.enable`
+        Add colorbar if True.
+    - `clabel` : str or bool, optional, default=`config.colorbar.label`
+        Colorbar label. If True, use default label; if None or False, no label.
+    - `cbar_width` : float, optional, default=`config.colorbar.width`
+        Width of the colorbar.
+    - `cbar_pad` : float, optional, default=`config.colorbar.pad`
+        Padding between plot and colorbar.
+    - `mask_out_val` : float, optional, default=`config.mask_out_value`
+        Value to use when masking out non-positive values.
+        Ex: np.nan, 1e-6, np.inf
+    - `circles` : list, optional, default=None
+        List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
+    - `ellipses` : list, optional, default=None
+        List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.
+        Single Ellipse objects can also be passed directly.
+    - `points` : array-like, shape (2,) or (N, 2), optional, default=None
+        Coordinates of points to overplot. Can be a single point `[x, y]`
+        or a list/array of points `[[x1, y1], [x2, y2], ...]`.
+        Points are plotted as red stars by default.
+    - `plot_ellipse` : bool, optional, default=False
+        If True, plot an interactive ellipse overlay. Requires an interactive backend.
 
     Returns
     -------
-    images : matplotlib.image.AxesImage or list of matplotlib.image.AxesImage
-            Image object if a single array is provided, otherwise a list of image
-            objects created by `imshow`.
+    images : list[matplotlib.image.AxesImage]
+        list of `AxesImage` objects returned by the `ax.imshow`
+        call for each image in `images`.
     """
     params = _resolve_kwargs(
         kwargs,
@@ -349,7 +347,7 @@ def plot_spectral_cube(
         and are collapsed via `stack_method`. If int, applies to all cubes; if list,
         each entry specifies indices for the corresponding cube. `None` collapses
         the entire spectral axis via `stack_method`.
-    ax : WCSAxes | maxes.Axes
+    ax : WCSAxes | matplotlib.axes.Axes
         The axes on which to draw the slice.
     vmin, vmax: float | None | _Unset, optional, default=`_UNSET`
         Lower / upper limits for colormap scaling; overides `percentile`.
@@ -442,12 +440,13 @@ def plot_spectral_cube(
     Returns
     -------
     images : list[matplotlib.image.AxesImage]
-            Image object if a single array is provided, otherwise a list of image
-            objects created by `ax.imshow`.
+        list of `AxesImage` objects returned by the `ax.imshow`
+        call for each cube in `cubes`.
 
     Notes
     -----
-    - If multiple cubes are provided, they are overplotted in sequence.
+    - If multiple cubes are provided, they are overplotted in sequence
+    on the wcs of `cubes[config.reference_idx]`.
     """
     params = _resolve_kwargs(
         kwargs,
