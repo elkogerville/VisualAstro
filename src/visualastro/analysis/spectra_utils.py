@@ -422,26 +422,32 @@ def sort_spectra_by_line_strength(
         return sorted_indices, sorted_strengths
 
 
-def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=True):
+def spectral_idx_2_world(
+    spectral_axis: SpectralAxis | Quantity,
+    idx: int | tuple[int, int] | list[int | tuple[int, int]] | None,
+    keep_unit: bool = True
+):
     """
     Return a representative value from a spectral axis
     given an index or index range.
 
     Parameters
     ----------
-    spectral_axis : Quantity or SpectralAxis
+    spectral_axis : SpectralAxis | Quantity
         The spectral axis (e.g., wavelength, frequency, or
         velocity) as an `astropy.units.Quantity` or a
         `specutils.spectra.spectral_axis.SpectralAxis` array.
-    idx : int or list of int
-        Index or indices specifying the slice along the first axis:
-        - i -> returns `spectral_axis[i]`
-        - [i] -> returns `spectral_axis[i]`
-        - [i, j] -> returns `(spectral_axis[i] + spectral_axis[j+1])/2`
-        - None -> returns `(spectral_axis[0] + spectral_axis[-1]) / 2`
+    idx : int | tuple[int, int] | list[int | tuple[int, int]] | None
+        Indices specifying the slice along the first axis:
+
+        * `i` -> returns `spectral_axis[i]`
+        * `[i]` -> returns `spectral_axis[i]`
+        * `[i, j]` -> returns `(spectral_axis[i] + spectral_axis[j+1])/2`
+        * `None` -> returns `(spectral_axis[0] + spectral_axis[-1]) / 2`
+
     keep_unit : bool, optional, default=True
-        If True, return the result as an `astropy.units.Quantity`.
-        If False, return the raw float value without units.
+        If `True`, return the result as an `astropy.units.Quantity`.
+        If `False`, return the raw float value without units.
 
     Returns
     -------
@@ -474,7 +480,10 @@ def spectral_idx_2_world(spectral_axis: SpectralAxis | Quantity, idx, keep_unit=
     return result if keep_unit else get_value(result)
 
 
-def spectral_world_2_idx(spectral_axis, value) -> int:
+def spectral_world_2_idx(
+    spectral_axis: SpectralAxis | Quantity,
+    value: u.Quantity | float
+) -> int:
     """
     Return the index of the nearest spectral channel to a given value.
     If `value` has no unit, the cube unit is assumed.
@@ -485,7 +494,7 @@ def spectral_world_2_idx(spectral_axis, value) -> int:
         The spectral axis (e.g., wavelength, frequency, or
         velocity) as an `astropy.units.Quantity` or a
         `specutils.spectra.spectral_axis.SpectralAxis` array.
-    value : Quantity
+    value : Quantity | float
         Spectral value in the same units as the cube's spectral axis.
 
     Returns
@@ -505,10 +514,10 @@ def spectral_world_2_idx(spectral_axis, value) -> int:
         raise ValueError(
             'spectral_axis must be a Quantity or SpectralAxis!'
         )
-    if not isinstance(value, Quantity):
+    if not isinstance(value, Quantity) and spectral_axis.unit is not None:
         value = value * spectral_axis.unit
-    else:
-        ensure_common_unit([spectral_axis, value], on_mismatch='raise')
+
+    ensure_common_unit([spectral_axis, value], on_mismatch='raise')
 
     return int(np.argmin(np.abs(spectral_axis - value)))
 
