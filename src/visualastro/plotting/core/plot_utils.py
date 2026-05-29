@@ -1084,10 +1084,10 @@ def set_axis_limits(
         is considered when computing X-axis limits automatically.
     xpad : float or None, optional, default=None
         Fractional padding to apply to X-axis limits. If None,
-        uses the default value from `config.axes.xpad`.
+        uses `config.axes.xpad`.
     ypad : float or None, optional, default=None
         Fractional padding to apply to Y-axis limits. If None,
-        uses the default value from `config.axes.ypad`.
+        uses `config.axes.ypad`.
 
     Returns
     -------

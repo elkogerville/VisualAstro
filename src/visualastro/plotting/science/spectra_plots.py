@@ -4,21 +4,6 @@ Date Created: 2025-05-23
 Date Modified: 2026-04-13
 Description:
     Spectra science functions.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-    - scipy
-    - spectral-cube
-    - specutils
-    - tqdm
-Module Structure:
-    - Spectra Extraction Functions
-        Functions for extracting spectra from data.
-    - Spectra Plotting Functions
-        Functions for plotting extracted spectra.
-    - Spectra Fitting Functions
-        Fitting routines for spectra.
 """
 
 from collections import namedtuple
@@ -342,14 +327,14 @@ def extract_cube_pixel_spectra(
     extracted pixel spectra.
 
     NOTE : To ensure that the mapping between pixels and indices is correct,
-    set the ``map_idx`` to the correct cube slice!
+    set the `map_idx` to the correct cube slice!
 
     Parameters
     ----------
     cube : DataCube, SpectralCube, Quantity or array-like
         Spectral cube with shape (T, N, M), where T is the spectral axis
-        and (N,M) the spatial dimensions. If ``cube`` has no units, it is
-        assined ``u.dimensionless_unscaled``.
+        and (N,M) the spatial dimensions. If `cube` has no units, it is
+        assined `u.dimensionless_unscaled`.
     idx : int, sequence of int, or None, optional, default=None
         Index or indices of the extracted per-pixel spectra to *select*.
         This controls which spatial pixels are extracted, combined,
@@ -364,17 +349,17 @@ def extract_cube_pixel_spectra(
         This controls which spatial pixels are extracted, combined, and plotted.
         Equivalent to:
             idx = np.arange(start, stop + 1)
-        Overrides ``idx`` if provided.
+        Overrides `idx` if provided.
     idx_drop : int, sequence of int, or None, optional, default=None
         Index or indices of extracted per-pixel spectra to remove *after*
-        applying ``idx`` or ``idx_range``. This allows excluding specific spectra
+        applying `idx` or `idx_range`. This allows excluding specific spectra
         (e.g., bad pixels) without redefining the full selection.
     combine_spectra : bool, optional, default=False
         If True, compute and plot a combined spectrum from all extracted
         pixel spectra using `combine_method`.
     combine_method : {'sum', 'mean', 'median'} or None, optional, default=None
-        Method used to combine per-pixel spectra when ``plot_combined=True``.
-        If None, uses the default value from ``config.flux_extract_method``.
+        Method used to combine per-pixel spectra when `plot_combined=True`.
+        If None, uses `config.flux_extract_method`.
     plot_spatial_map : bool, optional, default=True
         If True, plot a 2D spatial map showing the locations of the
         extracted pixels, color-coded to match the spectral plot.
@@ -384,21 +369,21 @@ def extract_cube_pixel_spectra(
         spectral axis.
     cmap : str or None, optional, default=None
         Colormap used to sample per-spectrum colors.
-        If None, uses the default value from ``config.cmap``.
+        If None, uses `config.cmap`.
     style : str or None, optional, default=None
         Matplotlib style to use for plotting.
-        If None, uses the default value from ``config.style``.
+        If None, uses `config.style`.
     background_cube : DataCube, SpectralCube, Quantity, array-like, or None, default=None
         Background cube to be plotted for the spatial map. Overrides
-        ``cube``, and should have the same shape as ``cube``. This is
+        `cube`, and should have the same shape as `cube`. This is
         an experimental feature, and does not guarantee perfect alignment.
     map_idx : int, list of int, or None, optional, default=None
         Index or indices specifying which cube slice to plot
         for the spatial map plot:
-            - i -> returns ``cube[i]``
-            - [i] -> returns ``cube[i]``
-            - [i, j] -> returns ``cube[i:j+1].sum(axis=0)``
-        If None, uses ``map_idx=0``.
+            - i -> returns `cube[i]`
+            - [i] -> returns `cube[i]`
+            - [i, j] -> returns `cube[i:j+1].sum(axis=0)`
+        If None, uses `map_idx=0`.
     legend : bool, optional, default=True
         If True, displays the legend below the plot.
     figsize : tuple, optional, default=(12,6)
@@ -416,25 +401,25 @@ def extract_cube_pixel_spectra(
     result : ExtractedPixelSpectra
         Container object holding the results of the extraction. It exposes
         the following attributes:
-        - ``spectra`` : SpectrumPlus or list of SpectrumPlus
+        - `spectra` : SpectrumPlus or list of SpectrumPlus
             Extracted per-pixel spectra. If a single index is selected,
             this is returned as a single `SpectrumPlus` instance;
             otherwise, a list is returned.
-        - ``cube_array`` : NDArray
+        - `cube_array` : NDArray
             Copy of the original cube, with all pixels set to NaN
-            other than the pixels corresponding to ``extract_idx``.
-        - ``extract_idx`` : ndarray of int, shape (N,)
+            other than the pixels corresponding to `extract_idx`.
+        - `extract_idx` : ndarray of int, shape (N,)
             Indices of the extracted spectra corresponding to the ordering
             of valid spatial pixels.
-        - ``coords`` : ndarray of int, shape (N, 2)
-            Spatial coordinates of extracted pixels in ``(y, x)`` order.
-        - ``colors`` : list
+        - `coords` : ndarray of int, shape (N, 2)
+        Spatial coordinates of extracted pixels in `(y, x)` order.
+        - `colors` : list
             Colors assigned to each extracted pixel/spectrum.
-        - ``labels`` : list of str
-            Human-readable labels of the form ``<idx>: (x=<x>, y=<y>)``.
-        - ``combined_spectrum`` : SpectrumPlus or None
+        - `labels` : list of str
+        Human-readable labels of the form `<idx>: (x=<x>, y=<y>)`.
+        - `combined_spectrum` : SpectrumPlus or None
             Combined spectrum computed using `combine_method` if
-            ``combine_spectra=True``; otherwise None.
+            `combine_spectra=True`; otherwise None.
     """
     style = kwargs.pop('style', None)
     background_cube = kwargs.pop('background_cube', None)
@@ -669,29 +654,29 @@ def plot_extracted_pixel_map(
     on a 2D slice of the cube and color-coded to match the corresponding
     spectra in the spectral plot.
 
-    NOTE : The spatial map may not be accurate unless ``idx`` is set properly!
-    By default ``idx=0``. Please set ``idx`` for optimal results.
+    NOTE : The spatial map may not be accurate unless `idx` is set properly!
+    By default `idx=0`. Please set `idx` for optimal results.
 
     Parameters
     ----------
     extracted_pixel_spectra : ExtractedPixelSpectra
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
-        - ``cube_array`` : 3D NDArray
+        - `cube_array` : 3D NDArray
           Numpy 3D array to plot spatial map onto.
-        - ``extract_idx`` : array-like of int
+        - `extract_idx` : array-like of int
           Indices of the extracted pixel spectra.
-        - ``coords`` : array-like, shape ``(N, 2)``
-          Spatial pixel coordinates in ``(y, x)`` order.
-        - ``colors`` : sequence
+        - `coords` : array-like, shape `(N, 2)`
+        Spatial pixel coordinates in `(y, x)` order.
+        - `colors` : sequence
           Colors assigned to each extracted pixel, matching the spectral plot.
     cube : DataCube, SpectralCube, Quantity, or array-like, optional, default=None
-        Spectral cube with shape ``(T, N, M)`` or a 2D spatial slice
-        with shape ``(N, M)``. If 3D, either the first spectral slice
-        is shown or a slice specified by ``idx``. Overrides ``cube_array``
-        in ``extracted_pixel_spectra``. This is not entirely supported and
+        Spectral cube with shape `(T, N, M)` or a 2D spatial slice
+        with shape `(N, M)`. If 3D, either the first spectral slice
+        is shown or a slice specified by `idx`. Overrides `cube_array`
+        in `extracted_pixel_spectra`. This is not entirely supported and
         may cause misalignments since the spatial mapping was computed on
-        ``extracted_pixel_spectra.cube_array``.
+        `extracted_pixel_spectra.cube_array`.
     figsize : tuple, optional, default=(12, 6)
         Size of the figure in inches.
     style : str, optional
@@ -701,20 +686,20 @@ def plot_extracted_pixel_map(
     idx : int, list of int, or None, optional, default=None
         Index or indices specifying the slice along the first axis
         for the spatial map plot:
-            - i -> returns ``cube[i]``
-            - [i] -> returns ``cube[i]``
-            - [i, j] -> returns ``cube[i:j+1].sum(axis=0)``
-        If None, uses ``idx=0``.
+            - i -> returns `cube[i]`
+            - [i] -> returns `cube[i]`
+            - [i, j] -> returns `cube[i:j+1].sum(axis=0)`
+        If None, uses `idx=0`.
     savefig : bool, optional, default=False
-        If True, save the figure to disk using ``savefig``.
+        If True, save the figure to disk using `savefig`.
     alpha : float, optional, default=0.8
         Alpha value for individual pixel colors.
-    Any additional keyword arguments are forwarded to ``imshow``.
+    Any additional keyword arguments are forwarded to `imshow`.
 
     Raises
     ------
     ValueError
-        If ``coords`` does not have shape ``(N, 2)``, if the number of
+        If `coords` does not have shape `(N, 2)`, if the number of
         coordinates and colors differ, or if `cube` has an invalid shape.
     IndexError
         If any extracted pixel coordinates fall outside the spatial
@@ -722,12 +707,12 @@ def plot_extracted_pixel_map(
 
     Notes
     -----
-    - Spatial coordinates are interpreted in ``(y, x)`` order.
+    - Spatial coordinates are interpreted in `(y, x)` order.
     - Extracted pixels are rendered as an RGBA overlay for efficient,
       vectorized plotting.
     - This function is intended to be used in conjunction with
-      ``extract_cube_pixel_spectra`` and its returned extraction object.
-    - For best results, set ``idx`` to the correct cube slice to preserve
+      `extract_cube_pixel_spectra` and its returned extraction object.
+      - For best results, set `idx` to the correct cube slice to preserve
       the correct mapping between pixels and indices.
     """
 
@@ -1310,7 +1295,7 @@ def fit_gaussian_2_spec(
         This is passed to `curve_fit` as the `sigma` parameter.
     interpolate : bool | _Unset, default=_UNSET
         Whether to interpolate the spectrum over a regular wavelength grid.
-        The number of samples is controlled by `samples`. If ``_UNSET``, uses ``config.curve_fit.interpolate``.
+        The number of samples is controlled by `samples`. If `_UNSET`, uses `config.curve_fit.interpolate`.
     samples : int or None, default=None
         Number of points in interpolated wavelength grid. If
         None, uses `config.curve_fit.samples`.

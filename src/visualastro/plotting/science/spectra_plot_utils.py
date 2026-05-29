@@ -85,7 +85,7 @@ def spectral_line_marker(
         from `config.spectral_line_marker.marker_direction`.
     label_offset_points : tuple[float, float], optional, default=_UNSET
         (dx, dy) offset of the label in points (display coordinates).
-        If `_UNSET`, uses the default value from
+        If `_UNSET`, uses
         `config.spectral_line_marker.label_offset_points`.
     label_position : {'center', 'left', 'right'}, optional, default=_UNSET
         Position of label relative to markers. If `_UNSET`, uses the
@@ -99,7 +99,7 @@ def spectral_line_marker(
         - `'marker'`: Position relative to marker x-values (ignores hline extension)
         - `'hline'`: Position relative to hline endpoints (includes extension)
         - `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
-        If `_UNSET`, uses the default value from
+        If `_UNSET`, uses
         `config.spectral_line_marker.label_reference`.
 
     rotation : float, optional, default=_UNSET

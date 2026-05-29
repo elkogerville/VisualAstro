@@ -172,10 +172,10 @@ def get_colors(
         - `int`: Number of colors to sample from cmap
         - `Sequence[ColorType]`: Explicit list of colors
 
-        If `_UNSET`, uses the default value from `config.default_colorset`.
+        If `_UNSET`, uses `config.default_colorset`.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap for sampling when colors is int. If `_UNSET`,
-        uses the default value from `config.cmap`.
+        uses `config.cmap`.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
     factor : float or int

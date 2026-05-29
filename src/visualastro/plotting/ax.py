@@ -497,21 +497,21 @@ class ax:
             'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
         xlog : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the scatter plot.
-            If None, uses the default value from `config.axes.xlog`.
+            If None, uses `config.axes.xlog`.
         ylog : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the scatter plot.
-            If None, uses the default value from `config.axes.ylog`.
+            If None, uses `config.axes.ylog`.
         xlog_hist : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the top histogram.
-            If None, uses the default value from `config.axes.xlog_hist`.
+            If None, uses `config.axes.xlog_hist`.
         ylog_hist : bool or None, optional, default=None
             Whether to use a logarithmic y-axis scale for the right histogram.
-            If None, uses the default value from `config.axes.ylog_hist`.
+            If None, uses `config.axes.ylog_hist`.
         histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
-            Type of histogram to draw. If None, uses the default value from `config.histtype`.
+            Type of histogram to draw. If None, uses `config.histtype`.
         normalize : bool, optional, default=None
             If True, normalize histograms to a probability density.
-            If None, uses the default value from `config.normalize_hist`.
+            If None, uses `config.normalize_hist`.
         colors : list of colors, str, or None, optional, default=None
             Colors for each dataset. If None, uses the
             default color colorset from `config.default_colorset`.
@@ -859,7 +859,7 @@ class ax:
             default value in `config.marker`.
         alpha : float, list of float, or None, default=None
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses the default value from `config.alpha`.
+            If None, uses `config.alpha`.
         edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
             The edge color of the marker. Possible values:
             - 'face': The edge color will always be the same as the face color.
