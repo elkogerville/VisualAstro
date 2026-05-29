@@ -51,7 +51,6 @@ from visualastro.core.units import (
     _is_spectral_axis,
     _require_spectral_region
 )
-from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.utils.text_utils import print_pretty_table
@@ -102,7 +101,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
             raise ValueError (
                 'Input object is not a Spectrum '
                 "or has no `spectrum` attribute. "
-                f'type: {_type_name(spectrum)}'
+                f'type: {type(spectrum).__name__}'
             )
     # extract spectral axis
     spectral_axis = spectrum.spectral_axis
@@ -303,8 +302,8 @@ def _estimate_spectrum_line_flux(
     if spectral_axis is None or flux is None or continuum is None:
         raise ValueError(
             'Could not determine spectral_axis, flux, and continuum '
-            f'from the provided spectrum! Got: {_type_name(spectral_axis)}, '
-            f'{_type_name(flux)} and {_type_name(continuum)}.'
+            f'from the provided spectrum! Got: {type(spectral_axis).__name__}, '
+            f'{type(flux).__name__} and {type(continuum).__name__}.'
         )
 
     if (not isinstance(spec_range, (list, tuple, np.ndarray, Quantity))
@@ -412,6 +411,7 @@ def sort_spectra_by_line_strength(
         return ExtractedPixelSpectra(
             spectra=[spec_list[i] for i in sorted_indices],
             cube_array=spectra.cube_array,
+            error_array=None,
             extract_idx=spectra.extract_idx[sorted_indices],
             coords=spectra.coords[sorted_indices],
             colors=[spectra.colors[i] for i in sorted_indices],
@@ -676,7 +676,7 @@ def _convert_region_units(region, spectral_axis):
         return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
 
     else:
-        raise TypeError(f'region must be SpectralRegion or list of tuples, got {_type_name(region)}')
+        raise TypeError(f'region must be SpectralRegion or list of tuples, got {type(region).__name__}')
 
 
 # Model Fitting Functions

@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-04-13
+Date Modified: 2026-05-29
 Description:
     Spectra science functions.
 """

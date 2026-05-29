@@ -33,7 +33,6 @@ from visualastro.core.units import (
 )
 from visualastro.core.validation import (
     _check_shapes_match,
-    _type_name,
     _validate_iterable_type,
     _validate_type
 )
@@ -804,7 +803,7 @@ class DataCube:
         elif not isinstance(reference_wcs, WCS):
             raise TypeError(
                 'reference_wcs must be a WCS or fits.Header! '
-                f'got {_type_name(reference_wcs)}'
+                f'got {type(reference_wcs).__name__}'
             )
 
         wcs_info = self.wcs if self.wcs is not None else self.header
@@ -1114,7 +1113,7 @@ class DataCube:
         if not isinstance(cube, SpectralCube):
             raise ValueError(
                 'cube must be or contain a SpectralCube, '
-                f'got {_type_name(cube)} instead!'
+                f'got {type(cube).__name__} instead!'
             )
 
         if region is None:
@@ -1345,7 +1344,7 @@ class DataCube:
             new_data[~mask] = np.nan
         else:
             raise TypeError(
-                f'Cannot apply mask to data of type {_type_name(self.data)}'
+                f'Cannot apply mask to data of type {type(self.data).__name__}'
             )
 
         # mask errors
@@ -1480,7 +1479,7 @@ class DataCube:
             except (AttributeError, TypeError, ValueError) as e:
                 new_wcs = None
                 new_hdr = _transfer_history(new_hdr, Header())
-                _log_history(new_hdr, f'Header and WCS dropped due to {_type_name(e)}')
+                _log_history(new_hdr, f'Header and WCS dropped due to {type(e).__name__}')
 
         return DataCube(
             data=new_data,

@@ -29,7 +29,6 @@ from visualastro.core.units import (
     _check_unit_equality,
     _require_spectral_region
 )
-from visualastro.core.validation import _type_name
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
@@ -153,7 +152,7 @@ class SpectrumPlus:
         if not isinstance(log_file, Header):
             raise ValueError(
                 'log_file should be a astropy.fits.Header! '
-                f'Got type: {_type_name(log_file)}'
+                f'Got type: {type(log_file).__name__}'
             )
 
         # validate that spectral axis and flux units are consistent

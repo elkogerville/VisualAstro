@@ -17,7 +17,6 @@ from numpy.typing import NDArray
 
 from visualastro.core.config import config
 from visualastro.core.units import ensure_common_unit
-from visualastro.core.validation import _type_name
 
 
 def normalize(
@@ -43,7 +42,7 @@ def normalize(
         return [d/np.nanmax(data) for d in data]
 
     raise ValueError(
-        f'Unsupported input type! got{_type_name(data)}.'
+        f'Unsupported input type! got {type(data).__name__}.'
     )
 
 

@@ -75,7 +75,6 @@ from visualastro.core.units import (
     _infer_physical_type_label,
     unit_2_string
 )
-from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.colors import sample_cmap
@@ -1515,7 +1514,7 @@ def _extract_xy(
             if all(_is_scalar(x) for x in obj):
                 return None, obj
 
-        raise ValueError(f'Unsupported input type {_type_name(obj)}')
+        raise ValueError(f'Unsupported input type {type(obj).__name__}')
 
     if len(data) == 2:
         return data[0], data[1]
@@ -1743,7 +1742,7 @@ def plot_ellipses(ellipses, ax):
             if not isinstance(ellipse, Ellipse):
                 raise ValueError(
                     'ellipses must contain matplotlib.patches.Ellipse instances! '
-                    f'got: {_type_name(ellipse)}'
+                    f'got: {type(ellipse).__name__}'
                 )
             ax.add_patch(_copy_ellipse(ellipse))
 

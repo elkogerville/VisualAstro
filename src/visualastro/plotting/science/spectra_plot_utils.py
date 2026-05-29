@@ -40,7 +40,6 @@ from visualastro.core.units import (
     get_unit,
     unit_2_string,
 )
-from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
 
 
