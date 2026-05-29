@@ -69,6 +69,7 @@ from visualastro.core.units import (
     get_spectral_unit,
     get_unit,
     get_units,
+    stack_quantities,
     to_unit,
     to_fits_unit,
     to_latex_unit,

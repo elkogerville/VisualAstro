@@ -672,6 +672,36 @@ def ensure_common_unit(
     return ref_unit
 
 
+def stack_quantities(quantities: list[u.Quantity]) -> u.Quantity:
+    """
+    Stack multiple quantities into a single quantity array.
+
+    Parameters
+    ----------
+    quantities : list[u.Quantity]
+        List of Quantity objects to stack. All must have compatible units.
+
+    Returns
+    -------
+    u.Quantity
+        Stacked quantity with combined values and common unit.
+
+    Raises
+    ------
+    ValueError
+        If any element is not a Quantity or units are incompatible.
+    """
+    for i, q in enumerate(quantities):
+        if not isinstance(q, u.Quantity):
+            raise ValueError(
+                f'Non-Quantity at index {i}: got {type(q).__name__}'
+            )
+    ref_unit = ensure_common_unit(quantities, on_mismatch='raise')
+    values = [q.value for q in quantities]
+
+    return u.Quantity(values, unit=ref_unit)
+
+
 def _is_spectral_axis(obj: Any) -> bool:
     """
     Determine whether an object represents a spectral axis or a spectral quantity.
