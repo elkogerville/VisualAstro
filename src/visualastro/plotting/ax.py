@@ -34,7 +34,7 @@ from visualastro.core.config import (
     _UNSET
 )
 from visualastro.core.io import savefig
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.core.validation import _type_name
 from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.plotting.base.plots import (
@@ -167,15 +167,15 @@ class ax:
     @staticmethod
     def plot_spectral_cube(
         cubes,
-        idx: int | tuple[int, int] | None = None,
+        idx: int | tuple[int, int] | None | list[int | tuple[int, int] | None] = None,
         vmin: float | _Unset = _UNSET,
         vmax: float | _Unset = _UNSET,
         norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None | _Unset = _UNSET,
-        percentile: tuple[float, float] | _Unset = _UNSET,
+        percentile: tuple[float, float] | None | _Unset = _UNSET,
         stack_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] | _Unset = _UNSET,
-        radial_vel: float | None = None,
-        spectral_unit=None,
-        cmap: Colormap | str | _Unset = _UNSET,
+        radial_vel: float | _Unset = _UNSET,
+        spectral_unit: u.UnitBase | None = None,
+        cmap: Colormap | str | list[Colormap | str] | _Unset = _UNSET,
         mask_non_pos: bool | _Unset = _UNSET,
         axis: int = 0,
         **kwargs
@@ -203,13 +203,11 @@ class ax:
         stylepath = _get_stylepath(style)
         with plt.style.context(stylepath):
             fig = plt.figure(figsize=figsize)
-            wcs2d = get_wcs_celestial(cubes[0])
-            if not isinstance(wcs2d, WCS):
-                raise ValueError(
-                    'input data must have a valid WCS! '
-                    f'got: {_type_name(wcs2d)}'
-                )
-            ax = fig.add_subplot(111, projection=wcs2d)
+            wcs2d = get_wcs_celestial(_cycle(cubes, config.reference_idx))
+            if isinstance(wcs2d, WCS):
+                ax = fig.add_subplot(111, projection=wcs2d)
+            else:
+                ax = fig.add_subplot(111)
             apply_style_modifiers(ax, style)
 
             _ = plot_spectral_cube(
