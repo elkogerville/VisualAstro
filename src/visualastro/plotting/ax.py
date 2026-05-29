@@ -35,7 +35,6 @@ from visualastro.core.config import (
 )
 from visualastro.core.io import savefig
 from visualastro.core.numerical_utils import to_list, _cycle
-from visualastro.core.validation import _type_name
 from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.plotting.base.plots import (
     hist,
@@ -128,7 +127,7 @@ class ax:
                 wcs = wcs_input
 
             elif wcs_input is not None:
-                raise TypeError(f'Unsupported wcs_input type: {_type_name(wcs_input)}')
+                raise TypeError(f'Unsupported wcs_input type: {type(wcs_input).__name__}')
 
             if isinstance(wcs, WCS):
                 wcs = wcs.celestial

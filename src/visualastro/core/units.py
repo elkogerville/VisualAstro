@@ -27,7 +27,6 @@ import numpy as np
 from specutils import SpectralAxis, SpectralRegion
 from visualastro.core.config import get_config_value, config
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
-from visualastro.core.validation import _type_name
 
 
 def convert_quantity(
@@ -545,14 +544,14 @@ def to_spectral_region(
 
     elif not isinstance(obj, (list, tuple)):
         raise TypeError(
-            f'Expected SpectralRegion, Quantity, tuple, or list, got {_type_name(region)}'
+            f'Expected SpectralRegion, Quantity, tuple, or list, got {type(region).__name__}'
         )
 
     try:
         return SpectralRegion(region)
     except Exception as e:
         raise ValueError(
-            f'Could not construct SpectralRegion from {_type_name(region)}: {e}'
+            f'Could not construct SpectralRegion from {type(region).__name__}: {e}'
         ) from e
 
 
@@ -595,7 +594,7 @@ def _require_spectral_region(
     region = to_spectral_region(obj)
 
     if region is None or not isinstance(region, SpectralRegion):
-        raise ValueError(f'A SpectralRegion is required; got {_type_name(region)}')
+        raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
     return region
 
 

@@ -25,7 +25,6 @@ from visualastro.core.units import (
 )
 from visualastro.core.validation import (
     _check_shapes_match,
-    _type_name,
     _validate_type
 )
 from visualastro.utils.fits_utils import (
@@ -216,7 +215,7 @@ class FitsFile:
             if not isinstance(wcs, WCS):
                 raise ValueError(
                     'wcs must be a WCS instance! '
-                    f'got: {_type_name(wcs)}'
+                    f'got: {type(wcs).__name__}'
                 )
             _update_header_from_wcs(header, wcs)
 

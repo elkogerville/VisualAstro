@@ -219,14 +219,14 @@ def _validate_type(
         if not isinstance(default, types):
             allowed = ', '.join(t.__name__ for t in types)
             raise TypeError(
-                f"'default' must be one of: {allowed}; got {_type_name(default)}."
+                f"'default' must be one of: {allowed}; got {type(default).__name__}."
             )
         return default
 
     if not isinstance(data, types):
         allowed = ', '.join(t.__name__ for t in types)
         raise TypeError(
-            f"'{name}' must be one of: {allowed}; got {_type_name(data)}."
+            f"'{name}' must be one of: {allowed}; got {type(data).__name__}."
         )
 
     return cast(T, data)
@@ -289,7 +289,7 @@ def _validate_iterable_type(
     ):
         raise TypeError(
             f'{name} must be a non-iterator iterable (e.g. list or tuple), '
-            f'got {_type_name(obj)}.'
+            f'got {type(obj).__name__}.'
         )
 
     allowed = ', '.join(t.__name__ for t in types)
@@ -297,28 +297,7 @@ def _validate_iterable_type(
         if not isinstance(item, types):
             raise TypeError(
                 f'Element {i} of {name} must be instance of {allowed}, '
-                f'got {_type_name(item)}.'
+                f'got {type(item).__name__}.'
             )
 
     return obj
-
-
-def _type_name(obj: Any) -> str:
-    """
-    Get a readable, string representation of an object's type.
-
-    This is used internally for error messages, and is an
-    alias for:
-        `type(obj).__name__`.
-
-    Parameters
-    ----------
-    obj : Any
-        Object to return type from.
-
-    Returns
-    -------
-    str :
-        String of the object type.
-    """
-    return type(obj).__name__

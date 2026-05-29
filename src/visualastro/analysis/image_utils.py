@@ -39,7 +39,6 @@ from visualastro.core.config import (
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data, get_value
 from visualastro.core.units import get_unit
-from visualastro.core.validation import _type_name
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.utils.wcs_utils import _reproject_wcs
@@ -322,7 +321,7 @@ def load_fits(filepath, header=True, error=True,
                 wcs = target_wcs
             else:
                 raise ValueError(
-                    f'target_wcs must be Header or WCS, got {_type_name(target_wcs)}'
+                    f'target_wcs must be Header or WCS, got {type(target_wcs).__name__}'
                 )
             input_wcs = WCS(fits_header).celestial
             data, footprint = _reproject_wcs((data, input_wcs), wcs,
@@ -479,7 +478,7 @@ def stack_cube(
             start, end = idx
             cube = cube[start:end+1]
         else:
-            raise TypeError(f'idx must be int, list, or None; got {_type_name(idx)}')
+            raise TypeError(f'idx must be int, list, or None; got {type(idx).__name__}')
 
     if isinstance(cube, SpectralCube):
         stack_func = getattr(cube, stack_method)

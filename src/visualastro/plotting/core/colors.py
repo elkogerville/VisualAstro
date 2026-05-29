@@ -25,7 +25,6 @@ import tol_colors as tc
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
 from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
-from visualastro.core.validation import _type_name
 
 
 RGBTuple: TypeAlias = tuple[float, float, float]
@@ -272,7 +271,7 @@ def get_colors(
 
     raise TypeError(
         'colors must be None, a str colorset name, a str color, '
-        f'a list of colors, or an integer! got {_type_name(colors)}'
+        f'a list of colors, or an integer! got {type(colors).__name__}'
     )
 
 

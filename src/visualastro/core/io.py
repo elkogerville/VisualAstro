@@ -35,7 +35,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.numerical_utils import to_array, to_list, _type_name
+from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 
 
@@ -325,7 +325,7 @@ def _param(name: str, value: Any, default: Any) -> ParamSpec:
     """
     if not isinstance(name, str):
         raise ValueError(
-            f'name must be a str! got: {_type_name(name)}'
+            f'name must be a str! got: {type(name).__name__}'
         )
     return (name, value, default)
 
@@ -333,7 +333,7 @@ def _param(name: str, value: Any, default: Any) -> ParamSpec:
 def _kwarg(name: str, default: Any) -> KwargSpec:
     if not isinstance(name, str):
         raise ValueError(
-            f'name must be a str! got: {_type_name(name)}'
+            f'name must be a str! got: {type(name).__name__}'
         )
     return (name, default)
 
@@ -690,7 +690,7 @@ def savefig(
     if filename is None:
         filename = input('Input filename for image (ex: myimage.pdf): ').strip()
     elif not isinstance(filename, str):
-        raise TypeError(f'filename must be str or None, got {_type_name(filename)}')
+        raise TypeError(f'filename must be str or None, got {type(filename).__name__}')
 
     if not filename:
         raise ValueError('filename cannot be empty')

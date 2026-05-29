@@ -40,7 +40,6 @@ from visualastro.core.config import (
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
 from visualastro.core.units import get_unit
-from visualastro.core.validation import _type_name
 from visualastro.utils.fits_utils import _log_history
 
 
@@ -695,7 +694,7 @@ def _normalize_reproject_input(
         wcs = wcs_or_header
     else:
         raise TypeError(
-            f'WCS must be a Header or WCS object, got {_type_name(wcs_or_header)}'
+            f'WCS must be a Header or WCS object, got {type(wcs_or_header).__name__}'
         )
 
     if isinstance(data, SpectralCube):

@@ -20,6 +20,7 @@ Module Structure:
 
 from collections.abc import Sequence
 from typing import Any, Callable, Literal, TypeVar, overload
+
 from astropy import units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -28,8 +29,6 @@ from scipy.interpolate import interp1d, CubicSpline
 from scipy.spatial import KDTree
 from scipy.special import gamma
 from spectral_cube import SpectralCube
-
-from visualastro.core.validation import _type_name
 
 
 T = TypeVar('T')
@@ -158,7 +157,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
         return np.asarray(obj)
     except Exception:
         raise TypeError(
-            f'Object of type {_type_name(obj)} cannot be converted to an array'
+            f'Object of type {type(obj).__name__} cannot be converted to an array'
         )
 
 
@@ -681,7 +680,7 @@ def _cycle(data, i):
     if not isinstance(data, (Sequence, np.ndarray)):
         raise ValueError(
             'data must be a Sequence or NDArray! '
-            f'got {_type_name(data)}'
+            f'got {type(data).__name__}'
         )
     return data[i % len(data)]
 
