@@ -366,7 +366,7 @@ def spectral_axis_label(
     text_loc: tuple[float, float] | _Unset = _UNSET,
     text_color: ColorType | _Unset = _UNSET,
     highlight: bool | _Unset = _UNSET,
-    **kwargs
+    unit_fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
 ) -> None:
     """
     Add a label indicating the spectral coordinate of a slice.
@@ -378,6 +378,8 @@ def spectral_axis_label(
 
     The label can be displayed either as an axes title or as text positioned
     within the axes.
+
+    If no spectral axis is found, the function does not add a label.
 
     Parameters
     ----------
@@ -429,10 +431,7 @@ def spectral_axis_label(
 
     spectral_axis = _get_spectral_axis(spectral_axis)
     if spectral_axis is None:
-        raise ValueError(
-            'spectral_axis cannot be None! '
-            f'got: {_type_name(spectral_axis)}'
-        )
+        return
 
     # compute spectral axis value of slice for label
     ref_unit = spectral_axis.unit if ref_unit is None else ref_unit
@@ -447,7 +446,7 @@ def spectral_axis_label(
     spectral_value = spectral_idx_2_world(spectral_axis, idx, keep_unit=False)
 
     slice_label = _format_spectral_label(
-        spectral_value, spectral_unit, emission_line=emission_line
+        spectral_value, spectral_unit, emission_line=emission_line, fmt=unit_fmt
     )
 
     if as_title:
@@ -459,14 +458,13 @@ def spectral_axis_label(
             transform=ax.transAxes, color=text_color, bbox=bbox
         )
 
-    return None
-
 
 def _format_spectral_label(
     spectral_value: float,
     spectral_unit: u.UnitBase | u.StructuredUnit,
     *,
-    emission_line: str | None = None
+    emission_line: str | None = None,
+    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
 ) -> str:
     """
     Format a LaTeX label representing a spectral coordinate value.
@@ -496,8 +494,9 @@ def _format_spectral_label(
     label : str
         LaTeX-formatted spectral label string enclosed in math mode delimiters.
     """
+    fmt = _resolve_default(fmt, config.unit_label_format)
 
-    unit_label = unit_2_string(spectral_unit, fmt=config.unit_label_format)
+    unit_label = unit_2_string(spectral_unit, fmt=fmt)
 
     spectral_type = {
         'length': r'\lambda = ',
