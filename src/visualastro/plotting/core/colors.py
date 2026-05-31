@@ -21,6 +21,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
+from numpy.typing import NDArray
 import tol_colors as tc
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
@@ -582,12 +583,23 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
 
 
 def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
-    """
-    Desaturate a color by moving it toward gray.
-    """
+    """Desaturate a color by moving it toward gray"""
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     s_new = s * (1 - factor)
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
 
     return mcolors.to_hex(rgb_new)
+
+
+def _resolve_color_kwargs(color: ColorType, c: NDArray | float | int | None, kwargs: dict) -> dict:
+    """Resolve `color` and `c` kwargs, giving priority to `c`"""
+    scatter_kwargs = dict(kwargs)
+    if c is not None:
+        scatter_kwargs.pop('color', None)
+        scatter_kwargs['c'] = c
+    else:
+        scatter_kwargs.pop('c', None)
+        scatter_kwargs['color'] = color
+
+    return scatter_kwargs

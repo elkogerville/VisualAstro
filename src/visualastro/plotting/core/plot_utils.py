@@ -1652,11 +1652,13 @@ def _normalize_plotting_input(data):
     return [data]
 
 
-def _get_zorder(zorders: list[float], i: int, fallback: float):
+def _get_zorder(zorders: list[float] | None, i: int, fallback: float):
     """
     Get zorder value from a list of zorders with a fallback zorder.
     Increments the fallback value by i.
     """
+    if zorders is None:
+        return fallback + 1
     return _cycle(zorders, i) if _cycle(zorders, i) is not None else fallback+i
 
 
