@@ -138,11 +138,9 @@ def imshow(
     vcenter : float, optional, default=None
         Center point of normalization. Must be in between `vmin` and `vmax`.
         If `None`, is the midpoint between `vmin` and `vmax`.
+    invert_xaxis, invert_yaxis : bool, optional, default=False
+        Invert the x or y axis if True.
 
-    - `invert_xaxis` : bool, optional, default=False
-        Invert the x-axis if True.
-    - `invert_yaxis` : bool, optional, default=False
-        Invert the y-axis if True.
     - `text_loc` : list of float, optional, default=`config.text_loc`
         Relative axes coordinates for text placement when
         plotting interactive ellipses.

@@ -84,6 +84,7 @@ class Color:
     msb: ColorType = 'mediumslateblue'
     sb: ColorType = 'slateblue'
     mvr: ColorType = 'mediumvioletred'
+    pvr: ColorType = 'palevioletred'
     violetred: ColorType = '#D81B60'
     mam: ColorType = 'mediumaquamarine'
     msg: ColorType = 'mediumseagreen'
@@ -165,11 +166,12 @@ def get_colors(
     Parameters
     ----------
     colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
-        - `UNSET`: Use default colorset
-        - `str`:  visualastro colorset name (with optional '_r' suffix) or single color
-        - `ColorType`: Explicit color
-        - `int`: Number of colors to sample from cmap
-        - `Sequence[ColorType]`: Explicit list of colors
+
+        * `UNSET`: Use default colorset
+        * `str`:  visualastro colorset name (with optional '_r' suffix) or single color
+        * `ColorType`: Explicit color
+        * `int`: Number of colors to sample from cmap
+        * `Sequence[ColorType]`: Explicit list of colors
 
         If `_UNSET`, uses `config.default_colorset`.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
@@ -214,6 +216,9 @@ def get_colors(
             )
         )
 
+    if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
+        return [colors] # type: ignore
+
     if isinstance(colors, str):
         # if colorset in visualastro colorsets
         # return a reversed colorset if colorset
@@ -231,7 +236,6 @@ def get_colors(
                     factor=factor
                 )
             )
-
         if colors in _NAMED_COLORS:
             return as_list(
                 get_complimentary_colors(
@@ -251,13 +255,10 @@ def get_colors(
             )
 
     if isinstance(colors, (np.ndarray, Sequence)):
-        return as_list(
-            get_complimentary_colors(
-                as_color(colors, fmt),
-                transform=transform,
-                factor=factor
-            )
-        )
+        return [
+            get_colors(c, fmt=fmt, transform=transform, factor=factor)[0]
+            for c in colors
+        ]
 
     # if user passes an integer N, sample a cmap for N colors
     if isinstance(colors, int):
@@ -430,7 +431,7 @@ def simulate_colorblindness(
 
     Parameters
     ----------
-    hex_colors : ColorType | list of ColorType
+    colors : ColorType | list[ColorType]
         Color or list of colors recognized by matplotlib.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}, optional, default='deuteranomaly'
         Type of colorblindness to simulate.
@@ -454,7 +455,7 @@ def simulate_colorblindness(
         'severity': severity
     }
 
-    # convert hex to RGB [0, 1]
+    # convert to RGB [0, 1]
     rgb = np.array(as_color(colors, fmt='rgb'))
 
     cvd_rgb = cspace_convert(rgb, cvd_space, 'sRGB1')
@@ -572,9 +573,7 @@ def get_complimentary_colors(
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
-    """
-    Lightens the given matplotlib color by mixing it with white.
-    """
+    """Lightens the given matplotlib color by mixing it with white"""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
     mixed = (1 - mix) * rgb + mix * white
