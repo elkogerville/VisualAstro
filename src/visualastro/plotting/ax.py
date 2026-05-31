@@ -773,9 +773,9 @@ class ax:
         **kwargs
     ) -> None:
         """
-        Wrapper for `scatter` with automatic figure creation.
+        Wrapper for `scatter_fit` with automatic figure creation.
 
-        See `visualastro.plotting.base.plots.scatter` for full documentation.
+        See `visualastro.plotting.base.plots.scatter_fit` for full documentation.
 
         Equivalent to:
 
@@ -815,147 +815,41 @@ class ax:
 
 
     @staticmethod
-    def scatter3D(X, Y, Z, elev=90, azim=-90, roll=0,
-                  scale=None, axes_off=False, grid_lines=False,
-                  colors=None, size=None, marker=None, alpha=None,
-                  edgecolors=_UNSET, plot_contours=None, **kwargs):
-        '''
-        Convenience wrapper for `scatter3D`, to scatter plot one or more
-        distributions in 3-Dimensional space.
+    def scatter3D(
+        X,
+        Y,
+        Z,
+        elev: float | _Unset = 30,
+        azim: float | _Unset = 45,
+        roll: float | _Unset = 0,
+        scale: float | None = None,
+        axes_off: bool = False,
+        grid_lines: bool = False,
+        color: ColorType | list[ColorType] | int | _Unset = _UNSET,
+        marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+        size: float | list[float] | _Unset = _UNSET,
+        alpha: float | list[float] | _Unset = _UNSET,
+        edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        plot_contours: Literal['x', 'y', 'z', 'all'] | list[Literal['x', 'y', 'z']] | None = None,
+        array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+        **kwargs
+    ):
+        """
+        Wrapper for `scatter3D` with automatic figure creation.
 
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `scatter` routine with the provided
-        parameters. This method is intended for rapid visualization and consistent
-        figure formatting, while preserving full configurability through **kwargs.
+        See `visualastro.plotting.base.plots.scatter3D` for full documentation.
 
-        Parameters
-        ----------
-        X, Y, Z : array-like or list of array-like
-            Coordinates of the data points. Each of `X`, `Y`, and `Z`
-            may be a single array or a list of arrays for plotting
-            multiple groups. All three must have the same number of arrays.
-        elev : float, default=30
-            Elevation angle in degrees (rotation around camera x-axis).
-        azim : float, default=45
-            Azimuth angle in degrees (rotation around the z-axis).
-        roll : float, default=0
-            Roll angle in degrees (rotation around the view direction).
-        scale : float or None, default=None
-            If given, sets symmetric limits for all axes as `[-scale, scale]`.
-        axes_off : bool, default=False
-            If True, hides all axes spines, ticks, and labels.
-        grid_lines : bool, default=False
-            If False, disables gridlines on the 3D plot.
-        colors : list of colors, str, or None, optional, default=None
-            Colors to use for each scatter group or dataset.
-            If None, uses the default color colorset from
-            `config.default_colorset`.
-        size : float, list of float, or None, optional, default=None
-            Size of scatter dots. If None, uses the default
-            value in `config.scatter_size`.
-        marker : str, list of str, or None, optional, default=None
-            Marker style for scatter dots. If None, uses the
-            default value in `config.marker`.
-        alpha : float, list of float, or None, default=None
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-            If None, uses `config.alpha`.
-        edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
-            The edge color of the marker. Possible values:
-            - 'face': The edge color will always be the same as the face color.
-            - 'none': No patch boundary will be drawn.
-            - A color or sequence of colors.
-            If `_UNSET`, uses `config.edgecolor`.
-        plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
-            Specifies which contour projections to draw onto the side planes of the 3D axes.
-            Each entry indicates the axis *normal* to the projection plane:
-            - 'x' : Project onto the **YZ** plane at a fixed X offset.
-            - 'y' : Project onto the **XZ** plane at a fixed Y offset.
-            - 'z' : Project onto the **XY** plane at a fixed Z offset.
-            - 'all' : Equivalent to `['x', 'y', 'z']`.
-            If None, no contour projections are drawn.
+        Equivalent to:
 
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `color`, `c` : str, list of str or None, optional, default=`config.colors`
-                Aliases for `colors`.
-            - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
-                Aliases for `size`.
-            - `markers`, `m` : str or list of str, optional, default=`config.marker`
-                Aliases for `marker`.
-            - `alphas`, `a` : float or list of float default=`config.alpha`
-                Aliases for `alpha`.
-            - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
-                Aliases for `edgecolors`.
-            - `cmap` : str, optional, default=`config.cmap`
-                Colormap to use if `colors` is not provided.
-            - `xlim` : tuple of two floats or None
-                Limits for the x-axis.
-            - `ylim` : tuple of two floats or None
-                Limits for the y-axis.
-            - `zlim` : tuple of two floats or None
-                Limits for the z-axis.
-            - `plot_contour_offset` : float or sequence of float, optional, default=None
-                Manual positional offsets for the contour projection planes.
-                If a single float is given, the same offset is used for all projections.
-                If a sequence is given (e.g., array-like), its length must match
-                the number of entries in `plot_contours`, providing one offset per projection
-                in the same order. If None, offsets are automatically chosen based
-                on current axis limits (i.e., `ax.get_xlim()[0]`, `ax.get_ylim()[0]`,
-                `ax.get_zlim()[0]`).
-            - `xlabel` : str or None
-                Label for the x-axis.
-            - `ylabel` : str or None
-                Label for the y-axis.
-            - `zlabel` : str or None
-                Label for the z-axis.
-            - `minor_ticks` : bool, default=False
-                If True, sets minor ticks for all axes.
-            - `figsize` : tuple of float, default=`config.figsize3d`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `tight_layout` : bool, optional, default=True
-                If True, uses `plt.tight_layout()`.
-            - `savefig` : bool, default=`config.savefig.enable`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.savefig.dpi`
-                Resolution (dots per inch) for saved figure.
-
-        Returns
-        -------
-        scatter : `matplotlib.collections.Path3DCollection` or list of them
-            The created scatter artist(s). Returns a single object
-            if only one dataset is plotted.
-
-        Raises
-        ------
-        ValueError
-            If `X`, `Y`, and `Z` do not have the same number of arrays
-            after unit consistency checks.
-
-        Notes
-        -----
-        - The function cycles through `colors`, `sizes`, `markers`,
-          `alphas`, and `edgecolors` if fewer values are given than
-          datasets.
-        - Pane backgrounds are set to white (`(1, 1, 1, 1)`).
-        - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
-          and finally `scale` if provided.
-        '''
-        # figure params
+            >>> fig = plt.figure(figsize=figsize)
+            >>> ax = fig.add_subplot(111, projection='3d')
+            >>> va.scatter3D(X, Y, Z, ax=ax, **kwargs)
+            >>> plt.show()
+        """
         figsize = kwargs.pop('figsize', config.figsize3d)
         style = kwargs.pop('style', config.style)
         tight_layout = kwargs.pop('tight_layout', True)
-        # savefig
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
@@ -964,14 +858,32 @@ class ax:
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot(111, projection='3d')
 
-            _ = scatter3D(X, Y, Z, ax, elev, azim, roll,
-                          scale, axes_off, grid_lines,
-                          colors, size, marker, alpha,
-                          edgecolors, plot_contours, **kwargs)
+            _ = scatter3D(
+                X,
+                Y,
+                Z,
+                ax=ax,
+                elev=elev,
+                azim=azim,
+                roll=roll,
+                scale=scale,
+                axes_off=axes_off,
+                grid_lines=grid_lines,
+                color=color,
+                marker=marker,
+                size=size,
+                alpha=alpha,
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                plot_contours=plot_contours,
+                array_order=array_order,
+                **kwargs
+            )
 
             if tight_layout:
                 plt.tight_layout()
 
             if savefigure:
                 savefig(dpi=dpi)
+
             plt.show()
