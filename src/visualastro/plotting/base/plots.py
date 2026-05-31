@@ -1394,7 +1394,7 @@ def scatter3D(
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
 
-    border_color = as_color(params.pane_color, fmt='rgba')
+    border_color = as_color(get_colors(params.pane_color), fmt='rgba')
     ax.xaxis.set_pane_color(border_color)
     ax.yaxis.set_pane_color(border_color)
     ax.zaxis.set_pane_color(border_color)
