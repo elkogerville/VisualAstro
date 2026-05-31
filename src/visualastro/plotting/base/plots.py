@@ -1104,10 +1104,27 @@ def scatter_fit(
     return SimpleNamespace(**{'scatter': paths, 'line': lines})
 
 
-def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
-              scale=None, axes_off=False, grid_lines=False,
-              colors=_UNSET, size=None, marker=None, alpha=None,
-              edgecolors=_UNSET, plot_contours=None, **kwargs):
+def scatter3D(
+    X,
+    Y,
+    Z,
+    ax: Axes3D,
+    elev: float | _Unset = 30,
+    azim: float | _Unset = 45,
+    roll: float | _Unset = 0,
+    scale: float | None = None,
+    axes_off: bool = False,
+    grid_lines: bool = False,
+    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
+    marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
+    size: float | list[float] | _Unset = _UNSET,
+    alpha: float | list[float] | _Unset = _UNSET,
+    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    plot_contours: Literal['x', 'y', 'z', 'all'] | list[Literal['x', 'y', 'z']] | None = None,
+    array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+    **kwargs
+) -> list:
     '''
     Scatter plot in 3D with support for multiple datasets.
 
@@ -1225,104 +1242,135 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
     - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
       and finally `scale` if provided.
     '''
-    # ---- KWARGS ----
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    # scatter params
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    sizes = _pop_kwargs(kwargs, 'sizes', 's', default=size)
-    markers = _pop_kwargs(kwargs, 'markers', 'm', default=marker)
-    alphas = _pop_kwargs(kwargs, 'alphas', 'a', default=alpha)
-    edgecolors = _pop_kwargs(kwargs, 'edgecolor', 'ec', default=edgecolors)
-    cmap = kwargs.get('cmap', config.cmap)
-    # figure params
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
-    zlim = kwargs.get('zlim', None)
-    plot_contour_offset = kwargs.get('contour_offset', None)
-    # labels
-    xlabel = kwargs.get('xlabel', 'X')
-    ylabel = kwargs.get('ylabel', 'Y')
-    zlabel = kwargs.get('zlabel', 'Z')
-    # ticks
-    minor_ticks = kwargs.get('minor_ticks', False)
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('elev', elev, config.elev),
+            _param('azim', azim, config.azim),
+            _param('roll', roll, config.roll),
+            _param('color', color, config.colors),
+            _param('marker', marker, config.marker),
+            _param('size', size, config.scatter_size),
+            _param('alpha', alpha, config.alpha),
+            _param('edgecolor', edgecolor, config.edgecolor),
+            _param('facecolor', facecolor, config.facecolor),
+            _param('array_order', array_order, config.array_order),
+        ],
+        [
+            _kwarg('label', None),
+            _kwarg('c', None),
+            _kwarg('cmap', config.cmap),
+            _kwarg('contour_cmap', None),
+            _kwarg('bad_color', None),
+            _kwarg('pane_color', config.pane_color),
+            _kwarg('rasterized', config.rasterized),
+        ]
+    )
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
 
-    # get default config values
-    colors = _resolve_default(colors, config.colors)
-    sizes = get_config_value(sizes, 'scatter_size')
-    markers = get_config_value(markers, 'marker')
-    alphas = get_config_value(alphas, 'alpha')
-    edgecolors = config.edgecolor if edgecolors is _UNSET else edgecolors
+    markers = to_list(params.marker)
+    sizes = to_list(params.size)
+    alphas = to_list(params.alpha)
+    edgecolors = to_list(params.edgecolor)
+    facecolors = to_list(params.facecolor)
+    labels = to_list(params.label)
+    contour_cmaps = to_list(params.contour_cmap)
+
+    xlim = kwargs.pop('xlim', None)
+    ylim = kwargs.pop('ylim', None)
+    zlim = kwargs.pop('zlim', None)
+    plot_contour_offset = kwargs.get('contour_offset', None)
+    xlabel = kwargs.pop('xlabel', 'X')
+    ylabel = kwargs.pop('ylabel', 'Y')
+    zlabel = kwargs.pop('zlabel', 'Z')
+    minor_ticks = kwargs.pop('minor_ticks', False)
 
     X = to_list(X)
     Y = to_list(Y)
     Z = to_list(Z)
-    ensure_common_unit(X)
-    ensure_common_unit(Y)
-    ensure_common_unit(Z)
+    c_list = to_list(params.c) if params.c is not None else None
 
     if not (len(X) == len(Y) == len(Z)):
         raise ValueError(
             f'`x`, `y`, and `z` must have the same number of arrays '
             f'\n(got {len(X)}, {len(Y)}, and {len(Z)}).'
         )
+    if c_list is not None and len(c_list) != len(X):
+        raise ValueError(
+            'c must have same length as number of inputs to plot! '
+            f'got c: {len(c_list)}, X: {len(X)}'
+        )
 
-    colors = get_colors(colors, cmap=cmap)
-    sizes = sizes if isinstance(sizes, (list, np.ndarray, tuple)) else [sizes]
-    markers = markers if isinstance(markers, (list, np.ndarray, tuple)) else [markers]
-    alphas = alphas if isinstance(alphas, (list, np.ndarray, tuple)) else [alphas]
-    edgecolors = edgecolors if isinstance(edgecolors, (list, np.ndarray, tuple)) else [edgecolors]
+    ensure_common_unit(X)
+    ensure_common_unit(Y)
+    ensure_common_unit(Z)
 
-    ax.view_init(elev=elev, azim=azim, roll=roll)
+    ax.view_init(elev=params.elev, azim=params.azim, roll=params.roll)
 
-    # set axes
-    if xlim: ax.set_xlim(xlim)
-    if ylim: ax.set_ylim(ylim)
-    if zlim: ax.set_zlim(zlim)
     if scale is not None:
         ax.set_xlim(-scale, scale)
         ax.set_ylim(-scale, scale)
         ax.set_zlim(-scale, scale)
+    else:
+        if xlim: ax.set_xlim(xlim)
+        if ylim: ax.set_ylim(ylim)
+        if zlim: ax.set_zlim(zlim)
 
     scatters = []
 
     for i in range(len(X)):
-        x = X[i%len(X)]
-        y = Y[i%len(Y)]
-        z = Z[i%len(Z)]
+        x = get_value(_cycle(X, i))
+        y = get_value(_cycle(Y, i))
+        z = get_value(_cycle(Z, i))
 
-        color = colors[i%len(colors)]
-        size = sizes[i%len(sizes)]
-        marker = markers[i%len(markers)]
-        alpha = alphas[i%len(alphas)]
-        edgecolor = edgecolors[i%len(edgecolors)]
+        color = _cycle(colors, i)
+        c = get_value(_cycle(c_list, i)) if c_list is not None else None
 
-        sc = ax.scatter3D(x, y, z, c=color, s=size,
-                          marker=marker, alpha=alpha,
-                          edgecolors=edgecolor,
-                          rasterized=rasterized)
+        s = _cycle(sizes, i)
+        m = _cycle(markers, i)
+        a = _cycle(alphas, i)
+        ec = _cycle(edgecolors, i)
+        fc = _cycle(facecolors, i)
+        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
+
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
+
+        sc = ax.scatter3D(
+            x,
+            y,
+            z,
+            s=s,
+            marker=m,
+            alpha=a,
+            edgecolor=ec,
+            facecolor=fc,
+            label=label,
+            rasterized=params.rasterized,
+            **scatter_kwargs
+        )
         scatters.append(sc)
 
-        # plot contours
-        pairs = {
-            'x': (Y, Z, 'x', lambda ax: ax.get_xlim()[0]),
-            'y': (X, Z, 'y', lambda ax: ax.get_ylim()[0]),
-            'z': (X, Y, 'z', lambda ax: ax.get_zlim()[0]),
-        }
         if plot_contours is not None:
+            pairs = {
+                'x': (y, z, 'x', lambda ax: ax.get_xlim()[0]),
+                'y': (x, z, 'y', lambda ax: ax.get_ylim()[0]),
+                'z': (x, y, 'z', lambda ax: ax.get_zlim()[0]),
+            }
             if plot_contours.lower() == 'all': # type: ignore
-                plot_contours = ['x', 'y', 'z']
+                plotting_contours = ['x', 'y', 'z']
             else:
-                plot_contours = [c.lower() for c in plot_contours]
+                plotting_contours = [c.lower() for c in plot_contours]
 
             if isinstance(plot_contour_offset, (list, tuple, np.ndarray)):
-                if len(plot_contours) != len(plot_contour_offset):
+                if len(plotting_contours) != len(plot_contour_offset):
                     raise ValueError(
                         'If `plot_contour_offset` is provided, it must have exactly '
                         'one offset per contour direction.'
                     )
             elif isinstance(plot_contour_offset, (float, int)):
-                plot_contour_offset = [plot_contour_offset]*len(plot_contours)
-            for i, zdir in enumerate(plot_contours):
+                plot_contour_offset = [plot_contour_offset]*len(plotting_contours)
+            for j, zdir in enumerate(plotting_contours):
                 try:
                     data1, data2, axis_name, offset_fn = pairs[zdir.lower()]
                 except KeyError:
@@ -1331,21 +1379,26 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
                         "Use 'x', 'y', 'z', or 'all'."
                     )
 
-                offset = offset_fn(ax) if plot_contour_offset is None else plot_contour_offset[i]
-                contour(data1, data2, ax, zdir=axis_name, offset=offset)
+                offset = offset_fn(ax) if plot_contour_offset is None else plot_contour_offset[j]
+                contour(
+                    data1,
+                    data2,
+                    ax,
+                    zdir=axis_name,
+                    offset=offset,
+                    cmap=_cycle(contour_cmaps, i) if _cycle(contour_cmaps, i) is not None else cmap,
+                    zorder=_get_zorder(None, i, config.zorder.contour)
+                )
 
-    # set labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
 
-    # set border color
-    border_color = (1.0, 1.0, 1.0, 1.0)
+    border_color = as_color(params.pane_color, fmt='rgba')
     ax.xaxis.set_pane_color(border_color)
     ax.yaxis.set_pane_color(border_color)
     ax.zaxis.set_pane_color(border_color)
 
-    # hide gridlines
     if not grid_lines: ax.grid(False)
     if minor_ticks:
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
@@ -1355,7 +1408,5 @@ def scatter3D(X, Y, Z, ax, elev=30, azim=45, roll=0,
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_minor_locator(NullLocator())
     if axes_off: ax.set_axis_off()
-
-    scatters = scatters[0] if len(scatters) == 1 else scatters
 
     return scatters
