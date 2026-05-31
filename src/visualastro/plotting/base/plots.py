@@ -17,6 +17,7 @@ from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 from matplotlib.typing import ColorType
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import NDArray
 
@@ -37,7 +38,9 @@ from visualastro.core.numerical_utils import (
 )
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
-from visualastro.plotting.core.colors import get_cmap, get_colors
+from visualastro.plotting.core.colors import (
+    as_color, get_cmap, get_colors, _resolve_color_kwargs
+)
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
@@ -583,6 +586,9 @@ def plot(
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
+
     alphas = to_list(params.alpha)
     labels = to_list(params.label)
     linestyles = to_list(params.linestyle)
@@ -604,8 +610,6 @@ def plot(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
-    cmap = get_cmap(params.cmap, params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
     lines = []
 
     for i in range(len(ylist)):
@@ -625,13 +629,7 @@ def plot(
             y = _normalize(y)
             ylist[i] = y
 
-        scatter_kwargs = dict(kwargs)
-        if c is not None:
-            scatter_kwargs.pop('color', None)
-            scatter_kwargs['c'] = c
-        else:
-            scatter_kwargs.pop('c', None)
-            scatter_kwargs['color'] = color
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
 
         line = ax.plot(
             x, y,
@@ -812,13 +810,16 @@ def scatter(
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
-    alphas = to_list(params.alpha)
-    edgecolors = to_list(params.edgecolor)
-    facecolors = to_list(params.facecolor)
-    labels = to_list(params.label)
-    sizes = to_list(params.size)
+    cmap = get_cmap(params.cmap, params.bad_color)
+    colors = get_colors(params.color, cmap=cmap)
+    edgecolors = get_colors(params.edgecolor, cmap=cmap)
+    facecolors = get_colors(params.facecolor, cmap=cmap)
+
     markers = to_list(params.marker)
+    sizes = to_list(params.size)
+    alphas = to_list(params.alpha)
     zorders = to_list(zorder)
+    labels = to_list(params.label)
 
     xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
 
@@ -832,8 +833,6 @@ def scatter(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
-    cmap = get_cmap(params.cmap, params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
     scatters = []
 
     for i in range(len(ylist)):
@@ -862,21 +861,15 @@ def scatter(
             y = _normalize(y)
             ylist[i] = y
 
-        scatter_kwargs = dict(kwargs)
-        if c is not None:
-            scatter_kwargs.pop('color', None)
-            scatter_kwargs['c'] = c
-        else:
-            scatter_kwargs.pop('c', None)
-            scatter_kwargs['color'] = color
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
 
         scatter = ax.scatter(
             x, y,
             s=s,
             marker=m,
             alpha=a,
-            edgecolors=ec,
-            facecolors=fc,
+            edgecolor=ec,
+            facecolor=fc,
             label=label,
             rasterized=params.rasterized,
             zorder=z,
