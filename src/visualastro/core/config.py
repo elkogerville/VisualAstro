@@ -211,6 +211,10 @@ class VisualAstroConfig:
     ncols: int = 2 # make_grid_plot() ncols
     rasterized: bool = False # rasterize plot artists wherever possible
     show_plot: bool = True
+    elev: float = 30
+    azim: float = 45
+    roll: float = 0
+    pane_color: ColorType = 'white'
 
     # figure grid params
     gridlines: bool = False

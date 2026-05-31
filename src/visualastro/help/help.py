@@ -4,16 +4,6 @@ Date Created: 2025-05-23
 Date Modified: 2026-03-14
 Description:
     VisualAstro help documentation class.
-Dependencies:
-    - matplotlib
-    - numpy
-Module Structure:
-    - Spectra Extraction Functions
-        Functions for extracting spectra from data.
-    - Spectra Plotting Functions
-        Functions for plotting extracted spectra.
-    - Spectra Fitting Functions
-        Fitting routines for spectra.
 """
 
 from collections.abc import Sequence

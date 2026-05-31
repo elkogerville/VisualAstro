@@ -385,13 +385,13 @@ def hist(
     hists : SimpleNamespace | list[SimpleNamespace]
         The result(s) returned by `Axes.hist`. Each SimpleNamespace has the form:
 
-        - n : ndarray
-          The values of the histogram (counts or densities).
-        - bins : ndarray
-          The edges of the bins (length = len(n) + 1).
-        - patches : list[Patch]
-          The artists created by the histogram (e.g., `Rectangle` or `Polygon`
-          objects depending on `histtype`).
+        * n : ndarray
+            The values of the histogram (counts or densities).
+        * bins : ndarray
+            The edges of the bins (length = len(n) + 1).
+        * patches : list[Patch]
+            The artists created by the histogram (e.g., `Rectangle` or `Polygon`
+            objects depending on `histtype`).
 
         If only one histogram is created, `hists` is a single tuple; otherwise,
         it is a list of tuples.
