@@ -1048,6 +1048,8 @@ def scatter_fit(
     params = _resolve_kwargs(
         kwargs,
         [
+
+            _param('linecolor', linecolor, _UNSET),
             _param('linestyle', linestyle, config.linestyle),
             _param('linewidth', linewidth, config.linewidth),
             _param('linealpha', linealpha, 1),
@@ -1077,13 +1079,13 @@ def scatter_fit(
     )
 
     datas = [get_data(path.get_offsets()) for path in paths]
-    if linecolor is _UNSET:
+    if params.linecolor is _UNSET:
         colors = [
             path.get_facecolors() if path.get_facecolors().size > 0 else
             path.get_edgecolors() for path in paths
         ]
     else:
-        colors = get_colors(linecolor)
+        colors = get_colors(params.linecolor)
     lines = []
 
     for i, array in enumerate(datas):
