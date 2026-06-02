@@ -6,10 +6,6 @@ Description:
     SpectrumPlus data structure for 1D spectrum objects.
     This is an extension of the specutils.Spectrum class
     that offers convenience methods to work with spectra.
-Dependencies:
-    - astropy
-    - numpy
-    - specutils
 """
 
 import copy

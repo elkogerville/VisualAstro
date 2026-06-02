@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-06-01
 Description:
     Functions for I/O operations within visualastro.
 Dependencies:
@@ -20,6 +20,7 @@ import os
 from types import SimpleNamespace
 from typing import Any, Literal
 import warnings
+
 from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
