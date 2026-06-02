@@ -196,7 +196,7 @@ class VisualAstroConfig:
     array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
 
     # figure params
-    style: str = 'astro' # default style
+    style: str = 'smplot' # default style
     style_fallback: str = 'default' # style if default style fails
     figsize: tuple = (6, 6)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
