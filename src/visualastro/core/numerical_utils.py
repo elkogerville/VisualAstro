@@ -219,7 +219,9 @@ def kde2d(
     y: NDArray,
     bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott',
     gridsize: int = 200,
-    padding: float = 0.2
+    padding: float = 0.2,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None
 ) -> tuple[NDArray, NDArray, NDArray]:
     """
     Estimate the 2D density of a set of particles using a Gaussian KDE.
@@ -262,17 +264,27 @@ def kde2d(
     gridsize = int(gridsize)
 
     # compute bounds with % padding
-    xmin, xmax = np.nanmin(x), np.nanmax(x)
-    ymin, ymax = np.nanmin(y), np.nanmax(y)
-    padding_x = (xmax - xmin) * padding
-    padding_y = (ymax - ymin) * padding
+    if xlim is None:
+        xmin, xmax = np.nanmin(x), np.nanmax(x)
+        padding_x = (xmax - xmin) * padding
+        xmin -= padding_x
+        xmax += padding_x
+    else:
+        xmin, xmax = xlim
 
-    # generate grid
+    if ylim is None:
+        ymin, ymax = np.nanmin(y), np.nanmax(y)
+        padding_y = (ymax - ymin) * padding
+        ymin -= padding_y
+        ymax += padding_y
+    else:
+        ymin, ymax = ylim
+
     xgrid, ygrid = np.mgrid[
-        (xmin - padding_x):(xmax + padding_x):complex(gridsize),
-        (ymin - padding_y):(ymax + padding_y):complex(gridsize)
+        xmin:xmax:complex(gridsize),
+        ymin:ymax:complex(gridsize)
     ]
-    # KDE evaluation
+
     values = np.vstack([x, y])
     grid = np.vstack([xgrid.ravel(), ygrid.ravel()])
     kernel = stats.gaussian_kde(values, bw_method=bw_method)
