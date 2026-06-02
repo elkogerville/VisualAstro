@@ -62,10 +62,11 @@ from visualastro.plotting.core.colors import (
     sample_cmap,
     _lighten_color
 )
+from visualastro.plotting.core.axes import (
+    set_axis_labels, set_axis_limits
+)
 from visualastro.plotting.core.plot_utils import (
     plot_vlines,
-    set_axis_labels,
-    set_axis_limits,
     _get_stylepath
 )
 

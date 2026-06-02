@@ -92,6 +92,10 @@ from visualastro.plotting.core.colors import (
     sample_cmap,
     simulate_colorblindness
 )
+from visualastro.plotting.core.axes import (
+    set_axis_labels,
+    set_axis_limits,
+)
 from visualastro.plotting.core.plot_utils import (
     add_colorbar,
     add_subplot,
@@ -113,8 +117,6 @@ from visualastro.plotting.core.plot_utils import (
     plot_interactive_ellipse,
     plot_points,
     plot_vlines,
-    set_axis_labels,
-    set_axis_limits,
     style
 )
 from visualastro.plotting.base.plots import (
