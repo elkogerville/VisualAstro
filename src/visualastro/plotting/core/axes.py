@@ -10,11 +10,11 @@ from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import ArrayLike
 
 from visualastro.core.config import (
-    get_config_value,
     config,
     _Unset,
     _UNSET,
@@ -347,3 +347,70 @@ def _format_axis_label(
         unit_label = ''
 
     return fr'{physical_label} {unit_label}'.strip()
+
+
+
+def ax3d_box_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -> None:
+    """
+    Configure the bounding box style of a 3D matplotlib axes.
+
+    Parameters
+    ----------
+    ax : Axes3D
+        Target 3D axes object.
+    mode : str, optional, default='triad'
+        Box style to apply:
+        - 'triad'   : 3 edges from origin corner only (default matplotlib-like)
+        - 'cube'    : all 12 edges of the bounding box
+        - 'pillar'  : triad + 3 opposing vertical/depth edges (semi-open box)
+    """
+
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    zmin, zmax = ax.get_zlim()
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_zlim(zmin, zmax)
+
+    color = ax.spines['left'].get_edgecolor()
+    lw = ax.spines['left'].get_linewidth()
+
+    ax.xaxis.line.set_linewidth(0)
+    ax.yaxis.line.set_linewidth(0)
+    ax.zaxis.line.set_linewidth(0)
+
+    # original
+    triad = [
+        ([xmin, xmax], [ymin, ymin], [zmin, zmin]),  # x-axis
+        ([xmax, xmax], [ymin, ymax], [zmin, zmin]),  # y-axis
+        ([xmax, xmax], [ymax, ymax], [zmin, zmax]),  # z-axis
+    ]
+    semi = [
+        # x-axis
+        ([xmin, xmax], [ymax, ymax], [zmin, zmin]),
+        ([xmin, xmax], [ymax, ymax], [zmax, zmax]),
+        # y-axis
+        ([xmin, xmin], [ymin, ymax], [zmin, zmin]),
+        ([xmin, xmin], [ymin, ymax], [zmax, zmax]),
+        # z-axis
+        ([xmin, xmin], [ymax, ymax], [zmin, zmax]),
+        ([xmin, xmin], [ymin, ymin], [zmin, zmax]),
+    ]
+    cube = [
+        ([xmin, xmax], [ymin, ymin], [zmax, zmax]), # x-axis
+        ([xmax, xmax], [ymin, ymax], [zmax, zmax]), # y-axis
+        ([xmax, xmax], [ymin, ymin], [zmin, zmax]), # z-axis
+    ]
+
+    if mode == 'triad':
+        edges = triad
+    elif mode == 'semi':
+        edges = triad + semi
+    elif mode == 'cube':
+        edges = triad + semi + cube
+    else:
+        raise ValueError(f"Invalid mode '{mode}'. Choose from: 'triad', 'cube', 'pillar'.")
+
+    for xs, ys, zs in edges:
+        ax.plot(xs, ys, zs, lw=lw, color=color, zorder=config.zorder.axes)
