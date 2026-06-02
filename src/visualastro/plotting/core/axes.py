@@ -22,24 +22,14 @@ from visualastro.core.config import (
 )
 from visualastro.core.numerical_utils import (
     as_list,
-    kde2d,
     flatten,
-    get_data,
     get_value,
-    to_array,
-    to_list,
-    _cycle,
     _is_iterable,
-    _is_scalar,
-    _is_1d,
-    _is_2d
 )
 from visualastro.core.units import (
     get_physical_type,
-    get_unit,
-    to_unit,
+    get_unit_label,
     _infer_physical_type_label,
-    unit_2_string
 )
 
 

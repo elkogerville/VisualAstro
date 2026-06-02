@@ -12,6 +12,7 @@ Dependencies:
 
 import warnings
 from typing import Any, Literal, overload
+
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import (
@@ -444,6 +445,55 @@ def to_fits_unit(
         if no unit is found.
     """
     return unit_2_string(unit, fmt='fits')
+
+
+def get_unit_label(
+    unit: u.UnitBase | u.StructuredUnit | u.Quantity,
+    bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
+    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+) -> str:
+    r"""
+    Return the unit of an object as a string for plotting.
+
+    Displays unit as either '[unit]' or '(unit)'.
+
+    Parameters
+    ----------
+    unit : u.UnitBase | u.StructuredUnit | u.Quantity
+        Unit to convert.
+    bracket_style : Literal['round', 'square'] | _Unset, default=_UNSET
+        Bracket style for unit label. `'round'` displays the unit as '(unit)',
+        while `'square'` as '[unit]'.
+    fmt : str | _Unset, optional, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
+
+    Examples
+    --------
+    >>> get_unit_label(u.um, fmt='latex_inline')
+    '[$\\mathrm{\\mu m}$]'
+
+    >>> va.get_unit_label(u.um, fmt='unicode')
+    '[µm]'
+    """
+    bstyle = _resolve_default(bracket_style, config.unit_bracket_style)
+    unit_fmt = _resolve_default(fmt, config.unit_label_format)
+
+    data_unit = get_unit(unit)
+    if data_unit is None:
+        return ''
+
+    brackets = config._unit_bracket_styles.get(
+        str(bstyle).lower(), config.unit_bracket_style
+    )
+
+    unit_str = unit_2_string(data_unit, fmt=unit_fmt)
+
+    return fr'{brackets[0]}{unit_str}{brackets[1]}'
 
 
 @overload
