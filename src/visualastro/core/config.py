@@ -56,15 +56,16 @@ class AxesConfig:
 
 @dataclass(slots=True)
 class ZorderLayers:
-    gridlines: float = 0
-    wcs_grid: float = 1
-    contourf: float = 10
-    plot_data: float = 20
-    contour: float = 30
-    vlines: float = 40
-    hlines: float = 40
-    regions: float = 50
-    text: float = 60
+    axes: float = 0
+    gridlines: float = 10
+    wcs_grid: float = 11
+    contourf: float = 20
+    plot_data: float = 30
+    contour: float = 50
+    vlines: float = 60
+    hlines: float = 60
+    regions: float = 70
+    text: float = 90
 
 @dataclass(slots=True)
 class AXLineConfig:
