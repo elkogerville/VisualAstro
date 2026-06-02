@@ -45,6 +45,7 @@ from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
 from visualastro.plotting.core.plot_utils import (
+    ax3d_box_style,
     contour,
     _get_zorder,
     _normalize_plotting_input,
@@ -1262,8 +1263,10 @@ def scatter3D(
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
+            _kwarg('autoscale', config.autoscale),
             _kwarg('contour_cmap', None),
             _kwarg('bad_color', None),
+            _kwarg('box_style', config.ax3d_box_style),
             _kwarg('pane_color', config.pane_color),
             _kwarg('rasterized', config.rasterized),
         ]
@@ -1319,6 +1322,8 @@ def scatter3D(
         if ylim: ax.set_ylim(ylim)
         if zlim: ax.set_zlim(zlim)
 
+    ax.set_autoscale_on(params.autoscale)
+
     scatters = []
 
     for i in range(len(X)):
@@ -1354,10 +1359,15 @@ def scatter3D(
         scatters.append(sc)
 
         if plot_contours is not None:
+            ax.set_autoscale_on(False)
+
+            xlims = ax.get_xlim()
+            ylims = ax.get_ylim()
+            zlims = ax.get_zlim()
             pairs = {
-                'x': (y, z, 'x', lambda ax: ax.get_xlim()[0]),
-                'y': (x, z, 'y', lambda ax: ax.get_ylim()[0]),
-                'z': (x, y, 'z', lambda ax: ax.get_zlim()[0]),
+                'x': (y, z, 'x', xlims[0], (ylims, zlims)),
+                'y': (x, z, 'y', ylims[0], (xlims, zlims)),
+                'z': (x, y, 'z', zlims[0], (xlims, ylims)),
             }
             if plot_contours.lower() == 'all': # type: ignore
                 plotting_contours = ['x', 'y', 'z']
@@ -1372,16 +1382,17 @@ def scatter3D(
                     )
             elif isinstance(plot_contour_offset, (float, int)):
                 plot_contour_offset = [plot_contour_offset]*len(plotting_contours)
+
             for j, zdir in enumerate(plotting_contours):
                 try:
-                    data1, data2, axis_name, offset_fn = pairs[zdir.lower()]
+                    data1, data2, axis_name, offset_val, (lim1, lim2) = pairs[zdir.lower()]
+                    offset = offset_val if plot_contour_offset is None else plot_contour_offset[j]
                 except KeyError:
                     raise ValueError(
                         f"Invalid contour projection '{zdir}'. "
                         "Use 'x', 'y', 'z', or 'all'."
                     )
 
-                offset = offset_fn(ax) if plot_contour_offset is None else plot_contour_offset[j]
                 contour(
                     data1,
                     data2,
@@ -1389,8 +1400,13 @@ def scatter3D(
                     zdir=axis_name,
                     offset=offset,
                     cmap=_cycle(contour_cmaps, i) if _cycle(contour_cmaps, i) is not None else cmap,
-                    zorder=_get_zorder(None, i, config.zorder.contour)
+                    zorder=_get_zorder(None, i, config.zorder.contour),
+                    xlim=lim1,
+                    ylim=lim2,
                 )
+
+    if params.box_style is not None:
+        ax3d_box_style(ax, mode=params.box_style)
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
