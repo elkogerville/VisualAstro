@@ -44,8 +44,8 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
+from visualastro.plotting.core.axes import ax3d_box_style
 from visualastro.plotting.core.plot_utils import (
-    ax3d_box_style,
     contour,
     _get_zorder,
     _normalize_plotting_input,

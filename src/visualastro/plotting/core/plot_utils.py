@@ -4,28 +4,11 @@ Date Created: 2025-05-24
 Date Modified: 2026-03-14
 Description:
     Plotting utility functions.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-    - regions
-    - specutils
-Module Structure:
-    - Plot Style and Color Functions
-        Utility functions to set plotting style.
-    - Imshow Stretch Functions
-        Utility functions related to plot stretches.
-    - Axes Labels, Format, and Styling
-        Axes related utility functions.
-    - Plot Matplotlib Patches and Shapes
-        Plotting matplotlib shapes utility functions.
-    - Notebook Utils
-        Notebook utility functions.
 """
 
 from contextlib import contextmanager
 from importlib.resources import files
-from typing import Any, Literal
+from typing import Literal
 import warnings
 from functools import partial
 
@@ -40,7 +23,6 @@ from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
@@ -67,11 +49,7 @@ from visualastro.core.numerical_utils import (
     _is_1d,
     _is_2d
 )
-from visualastro.core.units import (
-    get_unit,
-    to_unit,
-    unit_2_string
-)
+from visualastro.core.units import to_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.colors import sample_cmap
