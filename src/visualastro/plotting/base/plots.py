@@ -439,7 +439,7 @@ def hist(
     for i, data in enumerate(datas):
         bin = _cycle(bins_list, i)
         htype = _cycle(histtypes, i)
-        color = _cycle(colors, i)
+        color = _cycle(colors, i, j=config.color_cycle_idx)
         z = _get_zorder(zorders, i, config.zorder.plot_data)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         data = to_array(data)
@@ -617,7 +617,7 @@ def plot(
         x = get_value(_cycle(xlist, i))
         y = get_value(_cycle(ylist, i))
 
-        color = _cycle(colors, i)
+        color = _cycle(colors, i, j=config.color_cycle_idx)
         c = get_value(_cycle(c_arr, i)) if c_arr is not None else None
 
         ls = _cycle(linestyles, i)
@@ -840,7 +840,7 @@ def scatter(
         x = get_value(_cycle(xlist, i))
         y = get_value(_cycle(ylist, i))
 
-        color = _cycle(colors, i)
+        color = _cycle(colors, i, j=config.color_cycle_idx)
         c = get_value(_cycle(c_arr, i)) if c_arr is not None else None
 
         s = _cycle(sizes, i)
@@ -1090,7 +1090,7 @@ def scatter_fit(
     lines = []
 
     for i, array in enumerate(datas):
-        color = _cycle(colors, i)
+        color = _cycle(colors, i, j=config.color_cycle_idx)
         ls = _cycle(linestyles, i)
         lw = _cycle(linewidths, i)
         a = _cycle(linealphas, i)
@@ -1331,7 +1331,7 @@ def scatter3D(
         y = get_value(_cycle(Y, i))
         z = get_value(_cycle(Z, i))
 
-        color = _cycle(colors, i)
+        color = _cycle(colors, i, j=config.color_cycle_idx)
         c = get_value(_cycle(c_list, i)) if c_list is not None else None
 
         s = _cycle(sizes, i)

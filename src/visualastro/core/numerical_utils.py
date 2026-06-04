@@ -644,20 +644,20 @@ def _is_iterable(obj) -> bool:
 
 
 @overload
-def _cycle(data: list[T], i: int) -> T: ...
+def _cycle(data: list[T], i: int, j: int = 0) -> T: ...
 
 @overload
-def _cycle(data: tuple[T, ...], i: int) -> T: ...
+def _cycle(data: tuple[T, ...], i: int, j: int = 0) -> T: ...
 
 @overload
-def _cycle(data: NDArray, i: int) -> Any: ...
+def _cycle(data: NDArray, i: int, j: int = 0) -> Any: ...
 
 @overload
-def _cycle(data: Sequence[T], i: int) -> T: ...
+def _cycle(data: Sequence[T], i: int, j: int = 0) -> T: ...
 
-def _cycle(data, i):
+def _cycle(data, i, j: int = 0):
     """
-    Cycle through a list cotinously. When
+    Cycle through a list continuously. When
     the bounds are reached, the index is reset
     to zero.
 
@@ -682,7 +682,7 @@ def _cycle(data, i):
             'data must be a Sequence or NDArray! '
             f'got {type(data).__name__}'
         )
-    return data[i % len(data)]
+    return data[int(i + j) % len(data)]
 
 
 @overload
