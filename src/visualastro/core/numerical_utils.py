@@ -4,18 +4,6 @@ Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
     Numerical utility functions.
-Dependencies:
-    - astropy
-    - numpy
-    - scipy
-    - spectral-cube
-Module Structure:
-    - Type Checking Arrays and Objects
-        Utility functions for type checking.
-    - Science Operation Functions
-        Utility functions related to scientific operations.
-    - Numerical Operation Functions
-        Utility functions related to numerical computations.
 """
 
 from collections.abc import Sequence

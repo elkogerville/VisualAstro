@@ -4,20 +4,6 @@ Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
     Spectra utility functions.
-Dependencies:
-    - astropy
-    - dust_extinction
-    - numpy
-    - specutils
-Module Structure:
-    - Science Spectrum Functions
-        Utility functions for scientific spectra work.
-    - Science Helper Functions
-        Utility functions for Science Spectrum Functions.
-    - Axes Labels, Format, and Styling
-        Axes related utility functions.
-    - Model Fitting Functions
-        Model fitting utility functions.
 """
 
 from collections.abc import Sequence

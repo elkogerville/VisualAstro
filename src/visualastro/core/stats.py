@@ -4,11 +4,6 @@ Date Created: 2026-05-13
 Date Modified: 2026-05-13
 Description:
     Functions related to statistical analysis.
-Dependencies:
-    - astropy
-    - numpy
-    - scipy
-    - spectral-cube
 """
 
 import astropy.units as u

@@ -6,6 +6,9 @@ from visualastro.datamodels.spectrumplus import SpectrumPlus
 
 # submodules
 # ----------
+from visualastro.analysis.ic import (
+    blob,
+)
 from visualastro.analysis.image_utils import (
     compute_sobel_filter,
     detect_edges,
@@ -54,6 +57,7 @@ from visualastro.core.numerical_utils import (
     kde2d,
     mask_finite,
     mask_within_range,
+    number_density,
     to_array,
     to_list
 )

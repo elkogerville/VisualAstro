@@ -4,16 +4,6 @@ Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
     Utility functions for image manipulations.
-Dependencies:
-    - astropy
-    - numpy
-    - regions
-    - spectral-cube
-Module Structure:
-    - Cube Manipulation Functions
-        Utility functions used when manipulating datacubes numerically.
-    - Cube/Image Masking Functions
-        Utility functions used when masking datacubes.
 """
 
 import glob
