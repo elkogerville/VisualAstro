@@ -630,7 +630,7 @@ def plot(
             y = _normalize(y)
             ylist[i] = y
 
-        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
 
         line = ax.plot(
             x, y,
@@ -862,7 +862,7 @@ def scatter(
             y = _normalize(y)
             ylist[i] = y
 
-        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
 
         scatter = ax.scatter(
             x, y,
@@ -1341,7 +1341,7 @@ def scatter3D(
         fc = _cycle(facecolors, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
-        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs)
+        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
 
         sc = ax.scatter3D(
             x,
