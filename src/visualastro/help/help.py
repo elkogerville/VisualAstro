@@ -13,6 +13,7 @@ import os
 from typing import Literal
 import warnings
 
+import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -20,7 +21,8 @@ from matplotlib.typing import ColorType
 import numpy as np
 
 from visualastro.core.config import config
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.numerical_utils import blob, to_list
+from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
     COLORNAMES,
