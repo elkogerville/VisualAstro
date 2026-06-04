@@ -397,13 +397,13 @@ def create_cmap(
 iridescent = plt.get_cmap('tol.iridescent').copy()
 iridescent.set_bad(color='white')
 BuWhRd = create_cmap(
-    ['#191970','#0000FF', '#FFFFFF', '#FF0000','#8b0000'],
+    ['#191970', '#0000FF', '#FFFFFF', '#FF0000', '#8b0000'],
     [0, 0.25, 0.5, 0.75, 1],
     'BuWhRd'
 )
-pondwater = create_cmap(
+nuclear_waste = create_cmap(
     ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
-    name='pondwater'
+    name='nuclear_waste'
 )
 tol_rainbow = plt.get_cmap('tol.rainbow').copy()
 tol_rainbow.set_bad(color='white')
@@ -412,7 +412,7 @@ CMAPS: dict[str, mcolors.Colormap] = {
     'iridescent': iridescent,
     'BuWhRd': BuWhRd,
     'tol_rainbow': tol_rainbow,
-    'pondwater': pondwater,
+    'nuclear_waste': nuclear_waste,
 }
 CMAPNAMES = [key for key in CMAPS.keys()]
 
@@ -452,11 +452,11 @@ def sample_cmap(
 
 
 def simulate_colorblindness(
-    colors: ColorType | list[ColorType],
+    colors: ColorType | list[ColorType] | list[str | RGBTuple | RGBATuple],
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] = 'deuteranomaly',
     severity: int = 100,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
-) -> list[ColorType]:
+) -> list[str | RGBTuple | RGBATuple]:
     """
     Simulate colorblindness perception of a color palette.
 
