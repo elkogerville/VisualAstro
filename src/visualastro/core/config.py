@@ -205,8 +205,9 @@ class VisualAstroConfig:
     # if _UNSET, defaults to `self.default_colorset`.
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.
-    colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET
+    color: ColorType | int | Sequence[ColorType] | None | _Unset = _UNSET
     default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
+    color_cycle_idx: int = 0
     alpha: int = 1
     nrows: int = 1 # make_grid_plot() nrows
     ncols: int = 2 # make_grid_plot() ncols

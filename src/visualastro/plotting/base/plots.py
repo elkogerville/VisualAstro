@@ -185,7 +185,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     ylog_hist = get_config_value(ylog_hist, 'ylog_hist')
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
-    colors = _resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.color)
     sizes = get_config_value(sizes, 'scatter_size')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
@@ -351,7 +351,7 @@ def hist(
             * 'right': bars are centered on the right bin edges.
 
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
+        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
     xlog : bool | _Unset, optional, default=_UNSET
         If `True`, uses logarithmic scale on x-axis.
         If `_UNSET`, uses `config.axes.xlog`.
@@ -405,7 +405,7 @@ def hist(
         [
             _param('bins', bins, config.bins),
             _param('histtype', histtype, config.histtype),
-            _param('color', color, config.colors),
+            _param('color', color, config.color),
             _param('normalize', normalize, config.normalize_hist),
             _param('xlog', xlog, config.axes.xlog_hist),
             _param('ylog', ylog, config.axes.ylog_hist),
@@ -509,7 +509,7 @@ def plot(
     ax : matplotlib.axes.Axes
         The Axes object to plot on.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
+        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
     linestyle : str | list[str] | _Unset, optional, default=_UNSET
         Line style(s) to use for plotting. Can be a single string or a list of
         styles for multiple lines. Accepted values are:
@@ -567,7 +567,7 @@ def plot(
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('color', color, config.colors),
+            _param('color', color, config.color),
             _param('linestyle', linestyle, config.linestyle),
             _param('linewidth', linewidth, config.linewidth),
             _param('alpha', alpha, config.alpha),
@@ -698,7 +698,7 @@ def scatter(
     yerr : array-like | list[array-like] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
+        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
     marker : str | list[str] | _Unset, optional, default=_UNSET
         Marker style(s). If `_UNSET`, uses config.marker.
     size : float | list[float] | _Unset, optional, default=_UNSET
@@ -783,7 +783,7 @@ def scatter(
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('color', color, config.colors),
+            _param('color', color, config.color),
             _param('marker', marker, config.marker),
             _param('size', size, config.scatter_size),
             _param('alpha', alpha, config.alpha),
@@ -947,7 +947,7 @@ def scatter_fit(
     yerr : array-like | list[array-like] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.colors`.
+        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
     marker : str | list[str] | _Unset, optional, default=_UNSET
         Marker style(s). If `_UNSET`, uses config.marker.
     size : float | list[float] | _Unset, optional, default=_UNSET
@@ -1189,7 +1189,7 @@ def scatter3D(
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`config.colors`
+        - `color`, `c` : str, list of str or None, optional, default=`config.color`
             Aliases for `colors`.
         - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
             Aliases for `size`.
@@ -1251,7 +1251,7 @@ def scatter3D(
             _param('elev', elev, config.elev),
             _param('azim', azim, config.azim),
             _param('roll', roll, config.roll),
-            _param('color', color, config.colors),
+            _param('color', color, config.color),
             _param('marker', marker, config.marker),
             _param('size', size, config.scatter_size),
             _param('alpha', alpha, config.alpha),
