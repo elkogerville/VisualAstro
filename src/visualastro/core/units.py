@@ -17,7 +17,8 @@ from astropy.units import (
     Unit,
     UnitBase,
     UnitConversionError,
-    UnitsError
+    UnitsError,
+    dimensionless_unscaled
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
@@ -487,7 +488,7 @@ def get_unit_label(
     unit_fmt = _resolve_default(fmt, config.unit_label_format)
 
     data_unit = get_unit(unit)
-    if data_unit is None:
+    if data_unit is None or data_unit == u.dimensionless_unscaled:
         return ''
 
     brackets = config._unit_bracket_styles.get(
