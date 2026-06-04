@@ -638,7 +638,7 @@ hist.bins: 15  # The default number of histogram bins or 'auto'.
 ## * SCATTER PLOTS                                                           *
 ## ***************************************************************************
 #scatter.marker: o         # The default marker type for scatter plots.
-scatter.edgecolors: face  # The default edge colors for scatter plots.
+scatter.edgecolors: black  # The default edge colors for scatter plots.
 
 
 ## ***************************************************************************
