@@ -4,13 +4,11 @@ Date Created: 2025-12-10
 Date Modified: 2026-03-11
 Description:
     Utility functions for validating inputs and type checks.
-Dependencies:
-    - astropy
-    - numpy
 """
 
 from collections.abc import Sequence
 from typing import Any, Literal, Tuple, Type, TypeVar, cast, overload
+
 from astropy.units import Quantity
 import numpy as np
 from numpy.typing import ArrayLike

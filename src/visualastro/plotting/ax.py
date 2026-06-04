@@ -4,15 +4,6 @@ Date Created: 2025-07-13
 Date Modified: 2026-03-14
 Description:
     Visualastro user interface for publication ready plots.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-Module Structure:
-    - Plotting Functions
-        Publication ready plots.
-    - VisualAstro Help
-        VisualAstro user help.
 """
 
 from collections.abc import Sequence
@@ -727,8 +718,8 @@ class ax:
         style = kwargs.pop('style', config.style)
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
-
         style = _get_stylepath(style)
+
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 

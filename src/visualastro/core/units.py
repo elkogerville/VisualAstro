@@ -4,10 +4,6 @@ Date Created: 2025-12-10
 Date Modified: 2026-03-11
 Description:
     Utility functions for astropy units.
-Dependencies:
-    - astropy
-    - numpy
-    - specutils
 """
 
 import warnings
