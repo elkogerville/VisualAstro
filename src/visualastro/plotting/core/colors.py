@@ -622,14 +622,24 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
     return mcolors.to_hex(rgb_new)
 
 
-def _resolve_color_kwargs(color: ColorType, c: NDArray | float | int | None, kwargs: dict) -> dict:
+def _resolve_color_kwargs(
+    color: ColorType,
+    c: NDArray | float | int | None,
+    kwargs: dict,
+    cmap: Colormap | str | None = None
+) -> dict:
     """Resolve `color` and `c` kwargs, giving priority to `c`"""
     scatter_kwargs = dict(kwargs)
     if c is not None:
         scatter_kwargs.pop('color', None)
         scatter_kwargs['c'] = c
-    else:
+        if cmap is not None:
+            scatter_kwargs['cmap'] = cmap
+    elif color is not None:
         scatter_kwargs.pop('c', None)
         scatter_kwargs['color'] = color
+    else:
+        scatter_kwargs.pop('c', None)
+        scatter_kwargs.pop('color', None)
 
     return scatter_kwargs
