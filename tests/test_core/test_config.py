@@ -25,12 +25,12 @@ class TestConfig:
         config.style = 'nan'
         assert config.style == 'nan'
 
-        default_color = config.colors
-        config.colors = 'b'
-        assert config.colors == 'b'
+        default_color = config.color
+        config.color = 'b'
+        assert config.color == 'b'
 
         config.reset()
-        assert config.style == default_style and config.colors == default_color
+        assert config.style == default_style and config.color == default_color
 
     def test_resolve_default(self):
         param = _UNSET
