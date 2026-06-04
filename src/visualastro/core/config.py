@@ -217,8 +217,8 @@ class VisualAstroConfig:
     azim: float = 45
     roll: float = 0
     pane_color: ColorType = 'white'
-    autoscale: bool = False
-    ax3d_box_style: Literal['triad', 'semi', 'cube'] = None
+    autoscale: bool = True
+    ax3d_axis_style: Literal['triad', 'semi', 'cube'] | None = None
 
     # figure grid params
     gridlines: bool = False

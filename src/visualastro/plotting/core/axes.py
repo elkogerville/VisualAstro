@@ -350,7 +350,7 @@ def _format_axis_label(
 
 
 
-def ax3d_box_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -> None:
+def ax3d_axis_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -> None:
     """
     Configure the bounding box style of a 3D matplotlib axes.
 
