@@ -921,7 +921,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
     # get default config values
     plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
     plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
-    colors = _resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.color)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -1160,7 +1160,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
 
     # get default config values
-    colors = _resolve_default(colors, config.colors)
+    colors = _resolve_default(colors, config.color)
     linestyles = get_config_value(linestyles, 'linestyle')
     linewidths = get_config_value(linewidths, 'linewidth')
     alphas = get_config_value(alphas, 'alpha')
@@ -1336,7 +1336,7 @@ def fit_gaussian_2_spec(
             Plot x-axis label.
         - `ylabel` : str, optional, default=None
             Plot y-axis label.
-        - `colors` : str or list, optional, default=`config.colors`
+        - `colors` : str or list, optional, default=`config.color`
             Plot colors. If None, will use default visualastro color colorset.
         - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
             If `'round`' displays spectra units as (unit). If `'square`' as [unit].

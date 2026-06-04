@@ -152,7 +152,7 @@ def _resolve_kwargs(
     ...     kwargs,
     ...     [
     ...         _param('alpha', alpha, config.alpha),
-    ...         _param('color', color, config.colors),
+    ...         _param('color', color, config.color),
     ...     ],
     ...     [
     ...         _kwarg('label', None),
