@@ -16,7 +16,7 @@ from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
 from matplotlib import colors as mcolors
-from matplotlib.colors import TABLEAU_COLORS, ListedColormap
+from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
@@ -168,7 +168,9 @@ def get_colors(
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     transform: Literal['lighten', 'desaturate'] | None = None,
     factor: float = 0.5,
-    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100
 ) -> list[str | RGBTuple | RGBATuple]:
     """
     Get colors from colorset name, colormap sampling, or explicit colors.
@@ -204,6 +206,11 @@ def get_colors(
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        If not None, return the list of colors with a colorblind simulation applied.
+    severity : int, optional, default=100
+        Severity level (0-100). 100 = complete colorblindness.
+        Only used if `cvd_type` is not None.
 
     Returns
     -------
@@ -214,6 +221,20 @@ def get_colors(
     list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
+    colors = _get_colors(colors, cmap, transform=transform, factor=factor, fmt=fmt)
+    if cvd_type is not None:
+        colors = simulate_colorblindness(colors, cvd_type=cvd_type, severity=severity)
+    return colors
+
+
+def _get_colors(
+    colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
+    cmap: mcolors.Colormap | str | _Unset = _UNSET,
+    transform: Literal['lighten', 'desaturate'] | None = None,
+    factor: float = 0.5,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | RGBTuple | RGBATuple]:
+    """Helper function for `get_colors`"""
     cmap = _resolve_default(cmap, config.cmap)
 
     if colors is _UNSET:
