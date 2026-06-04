@@ -671,6 +671,9 @@ def _cycle(data, i, j: int = 0):
         Input data list.
     i : int
         Loop index.
+    j : int
+        Offset to add onto `i`. For internal
+        cycling uses.
 
     Returns
     -------

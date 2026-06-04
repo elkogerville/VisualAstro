@@ -44,7 +44,7 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
-from visualastro.plotting.core.axes import ax3d_box_style
+from visualastro.plotting.core.axes import ax3d_axis_style
 from visualastro.plotting.core.plot_utils import (
     contour,
     _get_zorder,
@@ -1266,7 +1266,7 @@ def scatter3D(
             _kwarg('autoscale', config.autoscale),
             _kwarg('contour_cmap', None),
             _kwarg('bad_color', None),
-            _kwarg('box_style', config.ax3d_box_style),
+            _kwarg('axis_style', config.ax3d_axis_style),
             _kwarg('pane_color', config.pane_color),
             _kwarg('rasterized', config.rasterized),
         ]
@@ -1399,14 +1399,17 @@ def scatter3D(
                     ax,
                     zdir=axis_name,
                     offset=offset,
-                    cmap=_cycle(contour_cmaps, i) if _cycle(contour_cmaps, i) is not None else cmap,
+                    cmap=(
+                        get_cmap(_cycle(contour_cmaps, i)) if
+                        _cycle(contour_cmaps, i) is not None else cmap
+                    ),
                     zorder=_get_zorder(None, i, config.zorder.contour),
                     xlim=lim1,
                     ylim=lim2,
                 )
 
-    if params.box_style is not None:
-        ax3d_box_style(ax, mode=params.box_style)
+    if params.axis_style is not None:
+        ax3d_axis_style(ax, mode=params.axis_style)
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)

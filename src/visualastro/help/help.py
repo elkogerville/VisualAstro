@@ -208,7 +208,6 @@ class help:
         for i, style_name in enumerate(style_names):
             style = _get_stylepath(style_name)
             with plt.style.context(style):
-                print(fr"Style : '{style_name}'")
                 if style_name == 'cm10':
                     warnings.warn(
                         "\nWARNING: cm10 style sheet cannont properly render 'º'! "
@@ -224,10 +223,43 @@ class help:
 
                 ax.set_xlabel(r'Wavelength [$\mu m$]')
                 ax.set_ylabel('Counts')
+                ax.set_title(fr'Style : {style_name}', fontdict={'fontsize': 15})
 
                 ax.legend(loc='upper left')
 
                 plt.show()
+
+    @staticmethod
+    def scatter(**kwargs) -> None:
+        i = np.random.randint(0, 2, 1)
+        if i == 0:
+            x, y, _ = blob(10000)
+            _ax.scatter(x, y, **kwargs)
+        if i == 1:
+            x=np.linspace(1,300,200) * u.deg
+            y=np.sin(x) * u.M_sun
+            y2=np.sin(2*x) * u.M_sun
+            y3=np.sin(3*x) * u.M_sun
+            _ax.scatter(
+                x, [y,y2,y3],
+                s=100,
+                l=['a','b','c'],
+                color=get_colors('MSGII', cvd_type='deuteranomaly'),
+                style='smplot-og',
+                ec='ibm'
+            )
+
+    @staticmethod
+    def scatter_fit(**kwargs) -> None:
+        x=np.linspace(1,300,50) * u.radian
+        y=np.sin(x) * u.Lsun
+        y2=np.sin(-2*x) * u.Lsun
+        _ax.scatter_fit(x, [y, y2], deg=10, **kwargs)
+
+    @staticmethod
+    def scatter3D(**kwargs) -> None:
+        x, y, z = blob(10000)
+        _ax.scatter3D(x, y, z, **kwargs)
 
 
 def getsource(function) -> None:
