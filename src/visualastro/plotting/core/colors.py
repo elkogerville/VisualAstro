@@ -15,6 +15,7 @@ from dataclasses import dataclass, fields
 from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
+import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap
 import matplotlib.patches as mpatches
@@ -57,13 +58,14 @@ COLORSETS: dict[str, list[ColorType]] = {
         'k', '#FF0000', '#0000FF', '#00FF00',
         '#00FFFF', '#FF00FF', '#FFFF00'
     ],
+    'set2': mpl.color_sequences['Set2'],
+    'dark2': mpl.color_sequences['Dark2'],
     'ocean_seq': ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
     'forest_seq': ['#006837', '#31a354', '#78c679', '#c2e699', '#ffffcc'],
     'jade_seq': ['#006d2c', '#2ca25f', '#66c2a4', '#b2e2e2', '#edf8fb'],
     'violetred_seq': ['#980043', '#dd1c77', '#df65b0', '#d7b5d8', '#f1eef6'],
     'PiGn_div': ['#d01c8b', '#f1b6da', '#f7f7f7', '#b8e186', '#4dac26'],
     'BrBG_div': ['#a6611a', '#dfc27d', '#f5f5f5', '#80cdc1', '#018571'],
-    'dark5': ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e'],
     'pastel5': ['#7fc97f', '#beaed4', '#fdc086', '#ffff99', '#386cb0'],
     'high_vis': ['#0d49fb', '#e6091c', '#26eb47', '#8936df', '#fec32d', '#25d7fd'],
     'retro': ['#4165c0', '#e770a2', '#5ac3be', '#696969', '#f79a1e', '#ba7dcd'],
@@ -79,6 +81,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#E69F00', '#56B4E9', '#009E73', '#F0E442',
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
     ],
+    'tab20b': mpl.color_sequences['tab20b'],
 }
 # COLORSETS ALIASES
 # -----------------
@@ -285,11 +288,20 @@ def _get_colors(
                 )
             )
 
-    if isinstance(colors, (np.ndarray, Sequence)):
+    if isinstance(colors, (np.ndarray, list)):
         return [
             get_colors(c, fmt=fmt, transform=transform, factor=factor)[0]
             for c in colors
         ]
+
+    if isinstance(colors, tuple):
+        return as_list(
+            get_complimentary_colors(
+                as_color(colors, fmt),
+                transform=transform,
+                factor=factor
+            )
+        )
 
     # if user passes an integer N, sample a cmap for N colors
     if isinstance(colors, int):
