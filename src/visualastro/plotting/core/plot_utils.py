@@ -37,8 +37,8 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.io import _extract_kwargs, _kwarg
+from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
-    kde2d,
     get_data,
     get_value,
     to_array,

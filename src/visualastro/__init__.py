@@ -47,17 +47,19 @@ from visualastro.core.io import (
     write_arrays_2_file,
     write_cube_2_fits
 )
+from visualastro.core.numerical import (
+    interpolate,
+    kde2d,
+    number_density,
+)
 from visualastro.core.numerical_utils import (
     as_list,
     finite,
     flatten,
     get_data,
     get_value,
-    interpolate,
-    kde2d,
     mask_finite,
     mask_within_range,
-    number_density,
     to_array,
     to_list
 )

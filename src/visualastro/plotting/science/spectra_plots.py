@@ -41,9 +41,9 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.io import _pop_kwargs
+from visualastro.core.numerical import interpolate as _interpolate
 from visualastro.core.numerical_utils import (
     get_value,
-    interpolate as _interpolate,
     mask_within_range,
     to_array,
     to_list,
