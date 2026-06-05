@@ -21,8 +21,8 @@ from matplotlib.typing import ColorType
 import numpy as np
 
 from visualastro.analysis.ic import blob
-from visualastro.core.config import config
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.config import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.numerical_utils import number_density, to_list
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
@@ -233,11 +233,12 @@ class help:
                 plt.show()
 
     @staticmethod
-    def scatter(**kwargs) -> None:
+    def scatter(cmap: mcolors.Colormap | str | _Unset = _UNSET) -> None:
+        cmap = get_cmap(_resolve_default(cmap, config.cmap))
         i = np.random.randint(0, 2, 1)
         if i == 0:
-            x, y, _ = blob(10000)
-            _ax.scatter(x, y, **kwargs)
+            data = blob(10000, as_array=True)
+            _ax.scatter(data, c=number_density(data[:,0:2], 100), index_spec=[0,1], cmap=cmap)
         if i == 1:
             x=np.linspace(1,300,200) * u.deg
             y=np.sin(x) * u.M_sun
@@ -260,9 +261,19 @@ class help:
         _ax.scatter_fit(x, [y, y2], deg=10, **kwargs)
 
     @staticmethod
-    def scatter3D(**kwargs) -> None:
-        x, y, z = blob(10000)
-        _ax.scatter3D(x, y, z, **kwargs)
+    def scatter3D(
+        figsize: tuple[float, float] = (6,6),
+        plot_contours: Literal['x', 'y', 'z', 'all'] = 'all',
+        **kwargs
+    ) -> None:
+        data = blob(7000, as_array=True)
+        _ax.scatter3D(
+            data[:,0], data[:,1], data[:,2],
+            c=number_density(data, 100), figsize=figsize,
+            plot_contours=plot_contours,
+            axis_style='cube',
+            **kwargs
+        )
 
 
 def getsource(function) -> None:
