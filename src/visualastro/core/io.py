@@ -4,16 +4,6 @@ Date Created: 2025-09-22
 Date Modified: 2026-06-01
 Description:
     Functions for I/O operations within visualastro.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
-    - tqdm
-Module Structure:
-    - Fits File I/O Operations
-        Functions to handle Fits files I/O operations.
-    - Figure I/O Operations
-        Functions to handle matplotlib figure I/O operations.
 """
 
 import os
