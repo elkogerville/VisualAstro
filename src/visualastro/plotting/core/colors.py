@@ -237,7 +237,7 @@ def _get_colors(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """Helper function for `get_colors`"""
-    cmap = _resolve_default(cmap, config.cmap)
+    cmap = get_cmap(_resolve_default(cmap, config.cmap))
 
     if colors is _UNSET:
         colorset = COLORSETS.get(config.default_colorset, COLORSETS['visualastro'])
