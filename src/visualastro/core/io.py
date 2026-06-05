@@ -72,6 +72,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'ellipses': ('ellipse',),
     'text_color': ('textcolor',),
     'unit_fmt': ('unit_format', 'unit_label_fmt', 'unit_label_format'),
+    'axis_style': ('axes_style',),
 }
 
 
