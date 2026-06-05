@@ -50,7 +50,6 @@ class AxesConfig:
 
 @dataclass(slots=True)
 class ZorderLayers:
-    axes: float = 0
     gridlines: float = 10
     wcs_grid: float = 11
     contourf: float = 20
@@ -60,6 +59,8 @@ class ZorderLayers:
     hlines: float = 60
     regions: float = 70
     text: float = 90
+    axes: float = 100
+
 
 @dataclass(slots=True)
 class AXLineConfig:

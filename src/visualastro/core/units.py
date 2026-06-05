@@ -18,7 +18,6 @@ from astropy.units import (
     UnitBase,
     UnitConversionError,
     UnitsError,
-    dimensionless_unscaled
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
