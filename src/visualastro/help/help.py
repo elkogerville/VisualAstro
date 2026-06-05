@@ -40,7 +40,8 @@ class help:
     def colors(
         color: str | ColorType | int | Sequence[ColorType] | None = None,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
-        severity: int = 100
+        severity: int = 100,
+        show_color_name: bool = False
     ) -> None:
         """
         Display VisualAstro color colorsets with optional colorblindness simulation.
@@ -112,7 +113,8 @@ class help:
             # original
             for i, c in enumerate(colorset):
                 ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
-            ax.text(-0.5, -row + 0.5, color, va='center', ha='right') # type: ignore
+            if show_color_name:
+                ax.text(-0.5, -row + 0.5, color, va='center', ha='right') # type: ignore
             row += 1
 
             # CVD simulations
@@ -120,8 +122,9 @@ class help:
                 cvd_colors = simulate_colorblindness(colorset, cvd, severity) # type: ignore
                 for i, c in enumerate(cvd_colors):
                     ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
-                ax.text(-0.5, -row + 0.5, f'{color} ({cvd})',
-                        va='center', ha='right', fontsize=9)
+                if show_color_name:
+                    ax.text(-0.5, -row + 0.5, f'{color} ({cvd})',
+                            va='center', ha='right', fontsize=9)
                 row += 1
 
             ax.set_xlim(-2, len(colorset))
