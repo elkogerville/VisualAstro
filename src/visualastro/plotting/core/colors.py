@@ -87,7 +87,6 @@ COLORSETS: dict[str, list[ColorType]] = {
 # -----------------
 COLORSETS['va'] = COLORSETS['visualastro']
 
-COLORNAMES = [key for key in COLORSETS.keys()]
 
 # VISUALASTRO COLOR ALIASES
 # -------------------------
@@ -634,6 +633,29 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
     return mcolors.to_hex(rgb_new)
 
 
+def random_colors(N: int, fmt: Literal['hex', 'rgb', 'rgba'] = 'hex') -> list[ColorType]:
+    """
+    Generate N random colors
+
+    Parameters
+    ----------
+    N : int
+        Number of colors to generate
+
+    Returns
+    -------
+    colors : list[tuple[float, float, float]]
+    """
+    random_colors = np.random.rand(N, 3)
+    return as_color(
+        [tuple([float(c[0]), float(c[1]), float(c[2])]) for c in random_colors],  # type: ignore
+        fmt=fmt
+    )
+
+
+COLORSETS['random'] = random_colors(int(np.random.randint(0, 20, 1)))
+
+
 def _resolve_color_kwargs(
     color: ColorType,
     c: NDArray | float | int | None,
@@ -655,3 +677,5 @@ def _resolve_color_kwargs(
         scatter_kwargs.pop('color', None)
 
     return scatter_kwargs
+
+COLORNAMES = [key for key in COLORSETS.keys()]

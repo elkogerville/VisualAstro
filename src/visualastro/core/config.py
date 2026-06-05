@@ -2,12 +2,6 @@
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
 Date Modified: 2026-04-08
-Description:
-    Visualastro configuration interface to update function defaults.
-Dependencies:
-    - astropy
-    - matplotlib
-    - numpy
 """
 
 from collections.abc import Sequence

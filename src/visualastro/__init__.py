@@ -94,6 +94,7 @@ from visualastro.plotting.core.colors import (
     get_cmap,
     get_colors,
     get_complimentary_colors,
+    random_colors,
     sample_cmap,
     simulate_colorblindness
 )

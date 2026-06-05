@@ -591,6 +591,7 @@ def _is_scalar_quantity(obj):
     """Check if `obj` is a scalar Quantity (0-dimensional)."""
     return isinstance(obj, u.Quantity) and obj.ndim == 0
 
+
 def _is_scalar(obj):
     """Check if `obj` is a scalar or scalar Quantity."""
     if np.isscalar(obj):
