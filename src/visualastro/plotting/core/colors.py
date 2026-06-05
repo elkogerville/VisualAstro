@@ -653,7 +653,7 @@ def random_colors(N: int, fmt: Literal['hex', 'rgb', 'rgba'] = 'hex') -> list[Co
     )
 
 
-COLORSETS['random'] = random_colors(int(np.random.randint(0, 20, 1)))
+COLORSETS['random'] = random_colors(int(np.random.randint(0, 20, 1)[0]))
 
 
 def _resolve_color_kwargs(
