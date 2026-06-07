@@ -8,9 +8,12 @@ Description:
 
 from typing import Literal
 
+import astropy.units as u
 from astropy.visualization import AsinhStretch, ImageNormalize
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
 import numpy as np
+from numpy.typing import NDArray
+from spectral_cube import SpectralCube
 
 from visualastro.core.config import (
     get_config_value,
@@ -19,6 +22,9 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.numerical_utils import to_array
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 
 
 def get_imshow_norm(
@@ -99,3 +105,60 @@ def get_imshow_norm(
         )
 
     return norm_map[norm_str]
+
+
+def get_vmin_vmax(
+    data: NDArray | u.Quantity | DataCube | FitsFile | SpectralCube,
+    percentile: tuple[float, float] | _Unset = _UNSET,
+    vmin: float | np.floating | None = None,
+    vmax: float | np.floating | None = None
+) -> tuple[float | np.floating | int, float | np.floating | int]:
+    """
+    Compute vmin and vmax for image display. By default uses the
+    data nanpercentile using `percentile`, but optionally vmin and/or
+    vmax can be set by the user.
+
+    Passing in a boolean array returns `vmin=0`, `vmax=1`.
+    This function is used internally by  `compute_imshow_scale`.
+
+    Parameters
+    ----------
+    data : NDArray | u.Quantity | DataCube | FitsFile | SpectralCube
+        Input data array (e.g., 2D image) for which to compute vmin and vmax.
+        Must be convertable to an array via `to_array`.
+    percentile : tuple[float, float] |  _Unset, optional, default=_UNSET
+        Percentile range `[pmin, pmax]` to compute vmin and vmax.
+        If None, sets vmin and vmax to None. If `_UNSET`, uses
+        default value from `config.percentile`.
+        vmin : float | None, optional, default=`None`
+        If provided, overrides the computed vmin.
+    vmax : float | None, optional, default=`None`
+        If provided, overrides the computed vmax.
+
+    Returns
+    -------
+    vmin : float | int | None
+        Minimum value for image scaling.
+    vmax : float | int | None
+        Maximum value for image scaling.
+    """
+    percentile_range = config.percentile if percentile is _UNSET else percentile
+    if percentile_range is None:
+        raise ValueError(
+            'get_vmin_vmax requires a valid percentile range. '
+            'Received None. This function should only be called '
+            'when percentile-based scaling is enabled.'
+        )
+
+    # check if data is an array
+    data = to_array(data, keep_unit=False)
+    # check if data is boolean
+    if data.dtype == bool:
+        return 0, 1
+
+    if vmin is None:
+        vmin = np.nanpercentile(data, percentile_range[0])
+    if vmax is None:
+        vmax = np.nanpercentile(data, percentile_range[1])
+
+    return vmin, vmax

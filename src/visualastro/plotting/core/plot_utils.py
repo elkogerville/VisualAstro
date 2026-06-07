@@ -252,63 +252,6 @@ def apply_style_modifiers(ax, style: str):
                 )
 
 
-def get_vmin_vmax(
-    data: NDArray | Quantity | DataCube | FitsFile | SpectralCube,
-    percentile: tuple[float, float] | _Unset = _UNSET,
-    vmin: float | np.floating | None = None,
-    vmax: float | np.floating | None = None
-) -> tuple[float | np.floating | int, float | np.floating | int]:
-    """
-    Compute vmin and vmax for image display. By default uses the
-    data nanpercentile using `percentile`, but optionally vmin and/or
-    vmax can be set by the user.
-
-    Passing in a boolean array returns `vmin=0`, `vmax=1`.
-    This function is used internally by  `compute_imshow_scale`.
-
-    Parameters
-    ----------
-    data : ArrayLike
-        Input data array (e.g., 2D image) for which to compute vmin and vmax.
-        Must be convertable to an array via `to_array`.
-    percentile : tuple[float, float] |  _Unset, optional, default=_UNSET
-        Percentile range `[pmin, pmax]` to compute vmin and vmax.
-        If None, sets vmin and vmax to None. If `_UNSET`, uses
-        default value from `config.percentile`.
-        vmin : float | None, optional, default=`None`
-        If provided, overrides the computed vmin.
-    vmax : float | None, optional, default=`None`
-        If provided, overrides the computed vmax.
-
-    Returns
-    -------
-    vmin : float | int | None
-        Minimum value for image scaling.
-    vmax : float | int | None
-        Maximum value for image scaling.
-    """
-    percentile_range = config.percentile if percentile is _UNSET else percentile
-    if percentile_range is None:
-        raise ValueError(
-            'get_vmin_vmax requires a valid percentile range. '
-            'Received None. This function should only be called '
-            'when percentile-based scaling is enabled.'
-        )
-
-    # check if data is an array
-    data = to_array(data, keep_unit=False)
-    # check if data is boolean
-    if data.dtype == bool:
-        return 0, 1
-
-    if vmin is None:
-        vmin = np.nanpercentile(data, percentile_range[0])
-    if vmax is None:
-        vmax = np.nanpercentile(data, percentile_range[1])
-
-    return vmin, vmax
-
-
 def compute_imshow_scale(
     data: NDArray | Quantity | DataCube | FitsFile | SpectralCube,
     norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None,

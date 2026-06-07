@@ -106,6 +106,7 @@ from visualastro.plotting.core.axes import (
 )
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
+    get_vmin_vmax,
 )
 from visualastro.plotting.core.plot_utils import (
     add_colorbar,
@@ -114,7 +115,6 @@ from visualastro.plotting.core.plot_utils import (
     contour,
     contourf,
     ellipse_patch,
-    get_vmin_vmax,
     gridspec,
     inline,
     interactive,
