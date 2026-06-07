@@ -15,14 +15,14 @@ import numpy as np
 from numpy.typing import NDArray
 from spectral_cube import SpectralCube
 
+from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
     get_config_value,
     config,
     _Unset,
     _UNSET,
-    _resolve_default
 )
-from visualastro.core.numerical_utils import to_array
+from visualastro.core.numerical_utils import get_data, get_value, to_array
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 
@@ -49,10 +49,8 @@ def get_imshow_norm(
         * `'power'` -> power-law normalization using `PowerNorm`
         * `'twoslope'` -> normalize centered around `vcenter` using `TwoSlopeNorm`
 
-    vmin : float | None
-        Minimum value for normalization.
-    vmax : float | None
-        Maximum value for normalization.
+    vmin, vmax : float | None
+        Minimum and maximum value for normalization.
     linear_width : float, optional, default=`config.linear_width`
         The effective width of the linear region, beyond
         which the transformation becomes asymptotically logarithmic.
@@ -115,8 +113,8 @@ def get_vmin_vmax(
 ) -> tuple[float | np.floating | int, float | np.floating | int]:
     """
     Compute vmin and vmax for image display. By default uses the
-    data nanpercentile using `percentile`, but optionally vmin and/or
-    vmax can be set by the user.
+    data nanpercentile set by `percentile`, but optionally `vmin`
+    and/or `vmax` can be set by the user.
 
     Passing in a boolean array returns `vmin=0`, `vmax=1`.
     This function is used internally by  `compute_imshow_scale`.
@@ -130,17 +128,13 @@ def get_vmin_vmax(
         Percentile range `[pmin, pmax]` to compute vmin and vmax.
         If None, sets vmin and vmax to None. If `_UNSET`, uses
         default value from `config.percentile`.
-        vmin : float | None, optional, default=`None`
-        If provided, overrides the computed vmin.
-    vmax : float | None, optional, default=`None`
-        If provided, overrides the computed vmax.
+    vmin, vmax : float | None, optional, default=None
+        If provided, overrides the computed vmin and vmax.
 
     Returns
     -------
-    vmin : float | int | None
-        Minimum value for image scaling.
-    vmax : float | int | None
-        Maximum value for image scaling.
+    vmin, vmax : float | int | None
+        Minimum and maximum values for image scaling.
     """
     percentile_range = config.percentile if percentile is _UNSET else percentile
     if percentile_range is None:
@@ -206,16 +200,12 @@ def compute_imshow_scale(
     Parameters
     ----------
     data : ndarray | Quantity | DataCube | FitsFile | SpectralCube
-        Input image data. Must be convertible to a NumPy array via
-        `to_array`.
+        Input image data. Must be convertible to a NumPy array via `to_array`.
     norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'} | None
         Normalization algorithm for colormap scaling.
         If `None`, linear scaling is used.
-    vmin : float | None
-        Lower bound for intensity scaling. If `None`, may be computed
-        from `percentile` or left unset depending on mode.
-    vmax : float | None
-        Upper bound for intensity scaling. If `None`, may be computed
+    vmin, vmax : float | None
+        Lower and upper bounds for intensity scaling. If `None`, may be computed
         from `percentile` or left unset depending on mode.
     percentile : tuple[float, float] | None
         Percentile range `(pmin, pmax)` used to compute `vmin` and
@@ -234,10 +224,8 @@ def compute_imshow_scale(
     -------
     norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
         Normalization object for `imshow`. None indicates linear scaling.
-    vmin : float | None
-        Lower intensity bound for `imshow`.
-    vmax : float | None
-        Upper intensity bound for `imshow`.
+    vmin, vmax : float | None
+        Lower and upper intensity bounds for `imshow`.
     """
     data = to_array(data)
 
@@ -264,3 +252,57 @@ def compute_imshow_scale(
     img_norm = get_imshow_norm(norm, vmin, vmax, **kwargs)
 
     return img_norm, vmin, vmax
+
+
+def nanpercentile_limits(
+    data,
+    vmin,
+    vmax,
+    *,
+    slice_idx=None,
+    stack_method=None,
+    axis=0,
+):
+    """
+    Compute NaN-safe percentile-based color limits.
+
+    If input is 3D, it is reduced to 2D before computing limits.
+
+    Parameters
+    ----------
+    data : array-like, SpectralCube, or DataCube
+        Input image or cube.
+    vmin, vmax : float
+        Lower and upper percentiles (0–100).
+    slice_idx : int, list of int, or None, optional, default=None
+        Optional slicing for cube-like inputs. If None,
+        is ignored.
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
+        Reduction method if stacking is required. If None,
+        uses `config.stack_cube_method`.
+    axis : int, default=0
+        Axis to flatten if data.ndim > 2 and no slice_idx is given.
+
+    Returns
+    -------
+    vmin_val, vmax_val : float
+        Lower and upper intensity bounds.
+    """
+    stack_method = get_config_value(stack_method, 'stack_cube_method')
+
+    data = get_data(data)
+
+    if slice_idx is not None:
+        data = stack_cube(
+            data, idx=slice_idx, method=stack_method, axis=axis
+        )
+
+    arr = to_array(get_value(data))
+
+    if arr.ndim > 2:
+        arr = getattr(np, f'nan{stack_method}')(arr, axis=axis)
+
+    return (
+        np.nanpercentile(arr, vmin),
+        np.nanpercentile(arr, vmax),
+    )

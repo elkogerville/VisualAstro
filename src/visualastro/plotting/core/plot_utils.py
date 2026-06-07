@@ -252,59 +252,6 @@ def apply_style_modifiers(ax, style: str):
                 )
 
 
-def nanpercentile_limits(
-    data,
-    vmin,
-    vmax,
-    *,
-    slice_idx=None,
-    stack_method=None,
-    axis=0,
-):
-    """
-    Compute NaN-safe percentile-based color limits.
-
-    If input is 3D, it is reduced to 2D before computing limits.
-
-    Parameters
-    ----------
-    data : array-like, SpectralCube, or DataCube
-        Input image or cube.
-    vmin, vmax : float
-        Lower and upper percentiles (0–100).
-    slice_idx : int, list of int, or None, optional, default=None
-        Optional slicing for cube-like inputs. If None,
-        is ignored.
-    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
-        Reduction method if stacking is required. If None,
-        uses `config.stack_cube_method`.
-    axis : int, default=0
-        Axis to flatten if data.ndim > 2 and no slice_idx is given.
-
-    Returns
-    -------
-    vmin_val, vmax_val : float
-    """
-    stack_method = get_config_value(stack_method, 'stack_cube_method')
-
-    data = get_data(data)
-
-    if slice_idx is not None:
-        data = stack_cube(
-            data, idx=slice_idx, method=stack_method, axis=axis
-        )
-
-    arr = to_array(get_value(data))
-
-    if arr.ndim > 2:
-        arr = getattr(np, f'nan{stack_method}')(arr, axis=axis)
-
-    return (
-        np.nanpercentile(arr, vmin),
-        np.nanpercentile(arr, vmax),
-    )
-
-
 # Axes Labels, Format, and Styling
 # --------------------------------
 def gridspec(

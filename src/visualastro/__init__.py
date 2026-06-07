@@ -107,6 +107,7 @@ from visualastro.plotting.core.axes import (
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
     get_vmin_vmax,
+    nanpercentile_limits,
 )
 from visualastro.plotting.core.plot_utils import (
     add_colorbar,
@@ -119,7 +120,6 @@ from visualastro.plotting.core.plot_utils import (
     inline,
     interactive,
     legend,
-    nanpercentile_limits,
     plot_circles,
     plot_ellipses,
     plot_hlines,
