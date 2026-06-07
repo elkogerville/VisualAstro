@@ -925,6 +925,25 @@ def _normalize_plotting_inputs(
     X, Y = _extract_xy(*data, order=order, index_spec=index_spec)
 
     if X is None:
+        Y = to_list(Y)
+        xlist, ylist = [], []
+        for y in Y:
+            xi, yi = _normalize_xy_plotting_inputs(None, y, mode=mode)
+            xlist.append(xi)
+            ylist.append(yi)
+
+        if all(isinstance(y, (list, tuple)) for y in ylist):
+            if all(_is_ndarray(item) for y in ylist for item in y):
+                ylist = [item for sublist in ylist for item in sublist]
+
+        return xlist, ylist
+
+    return _normalize_xy_plotting_inputs(X, Y, mode=mode)
+
+
+def _normalize_xy_plotting_inputs(X, Y, mode):
+    """Helper method for _normalize_plotting_inputs."""
+    if X is None:
         if _is_2d(Y):
             lengths = [len(y) for y in Y]
             if not all(length == lengths[0] for length in lengths):
