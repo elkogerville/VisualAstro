@@ -53,6 +53,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
+    'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
@@ -86,6 +87,8 @@ COLORSETS: dict[str, list[ColorType]] = {
 # COLORSETS ALIASES
 # -----------------
 COLORSETS['va'] = COLORSETS['visualastro']
+
+COLORNAMES = [key for key in COLORSETS.keys()]
 
 
 # VISUALASTRO COLOR ALIASES
@@ -186,6 +189,7 @@ def get_colors(
         * `ColorType`: Explicit color
         * `int`: Number of colors to sample from cmap
         * `Sequence[ColorType]`: Explicit list of colors
+        * `random`: Random sequence of colors
 
         If `_UNSET`, uses `config.default_colorset`.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
@@ -251,6 +255,11 @@ def _get_colors(
 
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
         return [colors] # type: ignore
+
+    if colors == 'random':
+        return random_colors(
+            int(np.random.randint(0, config.random_colors_max_N, 1)[0])
+        )
 
     if isinstance(colors, str):
         # if colorset in visualastro colorsets
@@ -633,7 +642,10 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
     return mcolors.to_hex(rgb_new)
 
 
-def random_colors(N: int, fmt: Literal['hex', 'rgb', 'rgba'] = 'hex') -> list[ColorType]:
+def random_colors(
+    N: int,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> list[str | RGBTuple | RGBATuple]:
     """
     Generate N random colors
 
@@ -651,9 +663,6 @@ def random_colors(N: int, fmt: Literal['hex', 'rgb', 'rgba'] = 'hex') -> list[Co
         [tuple([float(c[0]), float(c[1]), float(c[2])]) for c in random_colors],  # type: ignore
         fmt=fmt
     )
-
-
-COLORSETS['random'] = random_colors(int(np.random.randint(0, 20, 1)[0]))
 
 
 def _resolve_color_kwargs(
@@ -677,5 +686,3 @@ def _resolve_color_kwargs(
         scatter_kwargs.pop('color', None)
 
     return scatter_kwargs
-
-COLORNAMES = [key for key in COLORSETS.keys()]

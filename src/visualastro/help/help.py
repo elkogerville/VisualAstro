@@ -76,12 +76,13 @@ class help:
 
         if color is None:
             with plt.style.context(style):
-                n_rows = len(COLORNAMES) * (1 + len(cvd_types))
+                named_colors = COLORNAMES + ['random']
+                n_rows = len(named_colors) * (1 + len(cvd_types))
                 fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
                 ax.axis('off')
                 row = 0
 
-                for color_name in COLORNAMES:
+                for color_name in named_colors:
                     plot_colors = get_colors(color_name)
 
                     # original
@@ -99,7 +100,7 @@ class help:
                                 va='center', ha='right', fontsize=9)
                         row += 1
 
-                ax.set_xlim(-2, max(len(get_colors(c)) for c in COLORNAMES))
+                ax.set_xlim(-2, max(len(get_colors(c)) for c in named_colors))
                 ax.set_ylim(-n_rows, 1)
                 plt.tight_layout()
                 plt.show()
