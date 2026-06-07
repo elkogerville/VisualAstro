@@ -41,7 +41,7 @@ from visualastro.plotting.core.colors import get_cmap
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
-from visualastro.plotting.core.plot_utils import compute_imshow_scale
+from visualastro.plotting.core.image_utils import compute_imshow_scale
 from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label
 
 
