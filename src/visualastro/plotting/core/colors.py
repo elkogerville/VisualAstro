@@ -4,9 +4,6 @@ Date Created: 2026-04-10
 Date Modified: 2026-05-11
 Description:
     Functions related to colors and colormaps in plotting.
-Dependencies:
-    - matplotlib
-    - numpy
 """
 
 from collections.abc import Sequence
