@@ -14,7 +14,7 @@ from functools import partial
 
 import astropy.units as u
 from astropy.units import Quantity
-from astropy.visualization import AsinhStretch, ImageNormalize
+from astropy.visualization import ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
