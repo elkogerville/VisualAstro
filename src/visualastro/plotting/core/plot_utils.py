@@ -6,6 +6,7 @@ Description:
     Plotting utility functions.
 """
 
+from collections.abc import Sequence
 from contextlib import contextmanager
 from importlib.resources import files
 from typing import Literal
@@ -19,10 +20,12 @@ from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
+from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
+from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from regions import PixCoord, EllipsePixelRegion
@@ -39,20 +42,19 @@ from visualastro.core.config import (
 from visualastro.core.io import _extract_kwargs, _kwarg
 from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
-    get_data,
     get_value,
-    to_array,
     to_list,
     _cycle,
-    _is_iterable,
-    _is_scalar,
     _is_1d,
-    _is_2d
+    _is_2d,
+    _is_iterable,
+    _is_ndarray,
+    _is_scalar,
 )
 from visualastro.core.units import to_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.plotting.core.colors import sample_cmap
+from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
 @contextmanager
@@ -754,8 +756,8 @@ def _extract_xy(
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
     index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
 ) -> tuple[
-    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None,
-    float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray] | None,
+    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
 ]:
     """
     Extract X and Y coordinates from flexible numeric inputs.
@@ -845,6 +847,22 @@ def _extract_xy(
         if isinstance(obj, (list, tuple)):
             if all(_is_scalar(x) for x in obj):
                 return None, obj
+
+            if all(isinstance(x, (np.ndarray, u.Quantity)) for x in obj):
+                xlist, ylist = [], []
+                for o in obj:
+                    x, y = _extract_xy(o, order=array_order, index_spec=index_spec)
+                    xlist.append(x)
+                    ylist.append(y)
+
+                if all(x is None for x in xlist):
+                    xlist = None
+                # flatten the ylist if list[list[NDArray]]
+                if all(isinstance(y, (list, tuple)) for y in ylist):
+                    if all(_is_ndarray(item) for y in ylist for item in y):
+                        ylist = [item for sublist in ylist for item in sublist]
+
+                return xlist, ylist
 
         raise ValueError(f'Unsupported input type {type(obj).__name__}')
 
