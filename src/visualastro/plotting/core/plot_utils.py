@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import matplotlib.ticker as ticker
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from regions import PixCoord, EllipsePixelRegion
 from spectral_cube import SpectralCube
 
@@ -269,11 +269,12 @@ def get_imshow_norm(
     ----------
     norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | None
         Normalization algorithm for colormap scaling.
-        - `'asinh'` -> asinh stretch using `ImageNormalize`
-        - `'asinhnorm'` -> asinh stretch using `AsinhNorm`
-        - `'log'` -> logarithmic scaling using `LogNorm`
-        - `'power'` -> power-law normalization using `PowerNorm`
-        - `'twoslope'` -> normalize centered around `vcenter` using `TwoSlopeNorm`
+
+        * `'asinh'` -> asinh stretch using `ImageNormalize`
+        * `'asinhnorm'` -> asinh stretch using `AsinhNorm`
+        * `'log'` -> logarithmic scaling using `LogNorm`
+        * `'power'` -> power-law normalization using `PowerNorm`
+        * `'twoslope'` -> normalize centered around `vcenter` using `TwoSlopeNorm`
 
     vmin : float | None
         Minimum value for normalization.
@@ -547,59 +548,70 @@ def nanpercentile_limits(
 
 # Axes Labels, Format, and Styling
 # --------------------------------
-def gridspec(nrows=None, ncols=None, figsize=None,
-                   sharex=None, sharey=None, hspace=_UNSET,
-                   wspace=_UNSET, width_ratios=None, height_ratios=None,
-                   fancy_axes=False, Nticks=_UNSET, aspect=None):
-    '''
+def gridspec(
+    nrows: int | _Unset = _UNSET,
+    ncols: int | _Unset = _UNSET,
+    figsize: tuple[float, float] | _Unset = _UNSET,
+    sharex: bool | _Unset = _UNSET,
+    sharey: bool | _Unset = _UNSET,
+    hspace: float | None | _Unset = _UNSET,
+    wspace: float | None | _Unset = _UNSET,
+    width_ratios: ArrayLike | None = None,
+    height_ratios: ArrayLike | None = None,
+    fancy_axes: bool = False,
+    Nticks: int | None | _Unset = _UNSET,
+    aspect: float | None = None
+):
+    """
     Create a grid of Matplotlib axes panels with consistent sizing
     and optional fancy tick styling.
 
     Parameters
     ----------
-    nrows : int or None, default=None
-        Number of subplot rows. If None, uses
-        the default value set in `config.nrows`.
-    ncols : int or None, default=None
-        Number of subplot columns. If None, uses
-        the default value set in `config.ncols`.
-    figsize : tuple of float or None, default=None
-        Figure size in inches as (width, height). If None,
+    nrows : int | _Unset, optional, default=_UNSET
+        Number of subplot rows. If `_UNSET`, uses `config.nrows`.
+    ncols : int | _Unset, optional, default=_UNSET
+        Number of subplot columns. If `_UNSET`, uses `config.ncols`.
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
+        Figure size in inches as (width, height). If `_UNSET`,
         uses `config.grid_figsize`.
-    sharex : bool or None, default=None
-        If True, share the x-axis among all subplots. If None,
+    sharex : bool | _Unset, optional, default=_UNSET
+        If `True`, share the x-axis among all subplots. If `_UNSET`,
         uses `config.axes.sharex`.
-    sharey : bool or None, default=None
-        If True, share the y-axis among all subplots. If None,
+    sharey : bool | _Unset, optional, default=_UNSET
+        If `True`, share the y-axis among all subplots. If `_UNSET`,
         uses `config.axes.sharey`.
-    hspace : float or None, default=`_UNSET`
-        Height padding between subplots. If None,
-        Matplotlib’s default spacing is used. If
-        `_UNSET`, uses
-        `config.axes.hspace`.
-    wspace : float or None, default=`_UNSET`
-        Width padding between subplots. If None,
-        Matplotlib’s default spacing is used. If
-        `_UNSET`, uses
-        `config.axes.wspace`.
-    width_ratios : array-like of length `ncols`, optional, default=None
-        Width padding between subplots. If None, Matplotlib’s default spacing is used.
-        Defines the relative widths of the columns. Each column gets a relative width
-        of width_ratios[i] / sum(width_ratios). If not given, all columns will have the same width.
-    height_ratios : array-like of length `nrows`, optional
-        Defines the relative heights of the rows. Each row gets a relative height of
-        height_ratios[i] / sum(height_ratios). If not given, all rows will have the same height.
-    fancy_axes : bool, default=False
-        If True, enables "fancy" axes styling:
-        - minor ticks on
-        - inward ticks on all sides
-        - axes labels on outer grid axes
-        - h/wspace = 0.0
-    Nticks : int or None, default=`_UNSET`
-        Maximum number of major ticks per axis. If None,
+    hspace : float | None | _Unset, optional, default=`_UNSET`
+        Height padding between subplots. If `None`,
+        Matplotlib’s default spacing is used. If `_UNSET`,
+        uses `config.axes.hspace`.
+    wspace : float | None | _Unset, optional, default=`_UNSET`
+        Width padding between subplots. If `None`,
+        Matplotlib’s default spacing is used. If `_UNSET`,
+        uses `config.axes.wspace`.
+    width_ratios : ArrayLike | None, optional, default=None
+        ArrayLike of length `ncols` defining the width padding between
+        subplots. If `None`, Matplotlib’s default spacing is used.
+        Defines the relative widths of the columns. Each column gets a
+        relative width of `width_ratios[i] / sum(width_ratios)`. If not
+        given, all columns will have the same width.
+    height_ratios : ArrayLike | None, optional, default=None
+        ArrayLike of length `nrows` defining the relative heights of the rows.
+        Each row gets a relative height of `height_ratios[i] / sum(height_ratios)`.
+        If not given, all rows will have the same height.
+    fancy_axes : bool, optional, default=False
+        If True, enables 'fancy' axes styling:
+
+        * minor ticks on
+        * inward ticks on all sides
+        * axes labels on outer grid axes
+        * h/wspace = 0.0
+
+    Nticks : int | None | _Unset, optional, default=`_UNSET`
+        Maximum number of major ticks per axis. If `None`,
         uses the default matplotlib settings. If `_UNSET`,
         uses `config.axes.Nticks`.
-    aspect : float or None, default=None
+    aspect : float | None, optional, default=None
         Changes the physical dimensions of the Axes,
         such that the ratio of the Axes height to the
         Axes width in physical units is equal to aspect.
@@ -608,17 +620,16 @@ def gridspec(nrows=None, ncols=None, figsize=None,
 
     Returns
     -------
-    fig : `~matplotlib.figure.Figure`
+    fig : ~matplotlib.figure.Figure
         The created Matplotlib Figure instance.
-    axs : ndarray of `~matplotlib.axes.Axes`
+    axs : ndarray[~matplotlib.axes.Axes]
         Flattened array of Axes objects, ordered row-wise.
-    '''
-    # get default config values
-    nrows = get_config_value(nrows, 'nrows')
-    ncols = get_config_value(ncols, 'ncols')
-    figsize = get_config_value(figsize, 'grid_figsize')
-    sharex = get_config_value(sharex, 'sharex')
-    sharey = get_config_value(sharey, 'sharey')
+    """
+    nrows = _resolve_default(nrows, config.nrows)
+    ncols = _resolve_default(ncols, config.ncols)
+    figsize = _resolve_default(figsize, config.grid_figsize)
+    sharex = _resolve_default(sharex, config.axes.sharex)
+    sharey = _resolve_default(sharey, config.axes.sharey)
     hspace = _resolve_default(hspace, config.axes.hspace)
     wspace = _resolve_default(wspace, config.axes.wspace)
     Nticks = _resolve_default(Nticks, config.axes.Nticks)
@@ -1417,8 +1428,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
         Position of the text label in Axes coordinates, given as [x, y].
         If None, uses `config.text_loc`.
     text_color : str or None, optional, default=None
-        Color of the annotation text. If None, uses
-        the default value set in `config.text_color`.
+        Color of the annotation text. If None, uses `config.text_color`.
     highlight : bool or None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses `config.highlight`.
