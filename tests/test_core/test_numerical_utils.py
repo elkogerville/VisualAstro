@@ -15,8 +15,8 @@ import numpy as np
 from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_cube
+from visualastro.core.numerical import interpolate
 from visualastro.core.numerical_utils import (
-    interpolate,
     to_array,
     to_list,
     _unwrap_if_single
