@@ -352,11 +352,21 @@ def _is_iterable(obj) -> bool:
     return False
 
 
-def _is_array_like(obj):
+def _is_array_like(obj) -> bool:
     """Check if object is array-like (list, ndarray, or array Quantity)."""
     if _is_scalar_quantity(obj):
         return False
     return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
+
+
+def _is_ndarray(obj) -> bool:
+    """
+    Check if an object is either a `NDArray` or a `u.Quantity` array.
+    `u.Quantity` scalars return `False`.
+    """
+    if isinstance(obj, (list, tuple)):
+        return False
+    return _is_array_like(obj)
 
 
 def _is_1d(obj: Any) -> bool:
