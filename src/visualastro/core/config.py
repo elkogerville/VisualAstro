@@ -203,6 +203,7 @@ class VisualAstroConfig:
     color: ColorType | int | Sequence[ColorType] | None | _Unset = _UNSET
     default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
     color_cycle_idx: int = 0
+    random_colors_max_N: int = 20
     alpha: int = 1
     nrows: int = 1 # make_grid_plot() nrows
     ncols: int = 2 # make_grid_plot() ncols
