@@ -1307,9 +1307,7 @@ def scatter3D(
             f'got c: {len(c_list)}, X: {len(X)}'
         )
 
-    ensure_common_unit(X)
-    ensure_common_unit(Y)
-    ensure_common_unit(Z)
+    ensure_common_unit(X + Y + Z)
 
     ax.view_init(elev=params.elev, azim=params.azim, roll=params.roll)
 
