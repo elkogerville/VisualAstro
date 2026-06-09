@@ -61,7 +61,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'cornfield': ['#FFF662', '#CDE47D', '#F1BE95', '#70813F', '#DD716B', '#E4AC2C'],
     'tmrw_night': ['#719C95', '#9CD6CF', '#FFDA81', '#F3A169', '#8FB3D3', '#6B859C', '#435561'],
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
-    '2mrw_nite_seq': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
+    '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'ocean_seq': ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
     'forest_seq': ['#006837', '#31a354', '#78c679', '#c2e699', '#ffffcc'],
@@ -423,10 +423,6 @@ BuWhRd = create_cmap(
     [0, 0.25, 0.5, 0.75, 1],
     'BuWhRd'
 )
-nuclear_waste = create_cmap(
-    ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
-    name='nuclear_waste'
-)
 tol_rainbow = plt.get_cmap('tol.rainbow').copy()
 tol_rainbow.set_bad(color='white')
 
@@ -434,7 +430,14 @@ CMAPS: dict[str, mcolors.Colormap] = {
     'iridescent': iridescent,
     'BuWhRd': BuWhRd,
     'tol_rainbow': tol_rainbow,
-    'nuclear_waste': nuclear_waste,
+    'nuclear_waste': create_cmap(
+        ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
+        name='nuclear_waste'
+    ),
+    'shrek': create_cmap(
+        ['#6CA838', '#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#7E8140', '#575931'],
+        name='shrek'
+    ),
 }
 CMAPNAMES = [key for key in CMAPS.keys()]
 
