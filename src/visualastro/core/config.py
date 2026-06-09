@@ -61,7 +61,6 @@ class ZorderLayers:
     text: float = 90
     axes: float = 100
 
-
 @dataclass(slots=True)
 class AXLineConfig:
     """ax.vline / ax.hline config"""

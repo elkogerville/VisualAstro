@@ -30,6 +30,7 @@ from visualastro.plotting.core.colors import (
     COLORNAMES,
     get_cmap,
     get_colors,
+    plot_colortable,
     simulate_colorblindness
 )
 from visualastro.plotting.core.plot_utils import _get_stylepath
@@ -133,6 +134,9 @@ class help:
             plt.tight_layout()
             plt.show()
 
+    @staticmethod
+    def named_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(ncols=ncols, sort_colors=sort_colors)
 
     @staticmethod
     def cmap(
