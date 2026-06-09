@@ -231,7 +231,13 @@ class help:
 
                 x = np.logspace(1, 9, 100)
                 y = (0.8 + 0.4 * np.random.uniform(size=100)) * np.log10(x)**2
-                ax.scatter(x, y, color=colors[i%len(colors)], s=8, label=r'${\lambda}$')
+                ax.scatter(
+                    x, y,
+                    color=colors[i%len(colors)],
+                    s=8,
+                    label=r'${\lambda}$',
+                    zorder=config.zorder.plot_data
+                )
 
                 ax.set_xlabel(r'Wavelength [$\mu m$]')
                 ax.set_ylabel('Counts')
