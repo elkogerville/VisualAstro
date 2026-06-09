@@ -110,7 +110,7 @@ from visualastro.plotting.core.image_utils import (
     get_vmin_vmax,
     nanpercentile_limits,
 )
-from visualastro.plotting.core.plot_utils import (
+from visualastro.plotting.core.utils import (
     add_colorbar,
     add_subplot,
     close,

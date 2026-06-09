@@ -65,7 +65,7 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
-from visualastro.plotting.core.plot_utils import (
+from visualastro.plotting.core.utils import (
     plot_vlines,
     _get_stylepath
 )

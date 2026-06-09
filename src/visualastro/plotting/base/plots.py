@@ -45,7 +45,7 @@ from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
 from visualastro.plotting.core.axes import ax3d_axis_style
-from visualastro.plotting.core.plot_utils import (
+from visualastro.plotting.core.utils import (
     contour,
     _get_zorder,
     _normalize_plotting_input,

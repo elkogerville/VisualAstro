@@ -885,7 +885,7 @@ def _normalize_plotting_inputs(
     dimensionality for broadcasting. Generates implicit X indices when not
     provided. Wraps scalars and 1D data in lists to match 2D counterparts.
 
-    See `visualastro.plotting.core.plot_utils._extract_xy` for documentation
+    See `visualastro.plotting.core.utils._extract_xy` for documentation
     on how `*data` is interpreted.
 
     Parameters

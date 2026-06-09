@@ -33,7 +33,7 @@ from visualastro.plotting.core.colors import (
     plot_colortable,
     simulate_colorblindness
 )
-from visualastro.plotting.core.plot_utils import _get_stylepath
+from visualastro.plotting.core.utils import _get_stylepath
 
 
 class help:
