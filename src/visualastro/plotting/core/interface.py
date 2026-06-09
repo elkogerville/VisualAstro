@@ -259,13 +259,10 @@ def _apply_plot_utils(
             ax.legend(**legend_kwargs)
 
     set_axis_limits(
-        xlist,
-        ylist,
+        xlist, ylist,
         ax=ax,
-        xlim=params.xlim,
-        ylim=params.ylim,
-        xpad=params.xpad,
-        ypad=params.ypad
+        xlim=params.xlim, ylim=params.ylim,
+        xpad=params.xpad, ypad=params.ypad
     )
 
     if isinstance(ax, WCSAxes):
