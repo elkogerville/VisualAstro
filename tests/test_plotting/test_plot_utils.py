@@ -25,7 +25,7 @@ from visualastro.core.validation import allclose
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
-from visualastro.plotting.core.plot_utils import (
+from visualastro.plotting.core.utils import (
     _extract_xy,
     _normalize_plotting_input
 )
