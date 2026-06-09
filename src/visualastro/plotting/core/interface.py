@@ -40,11 +40,12 @@ from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
-from visualastro.plotting.core.plot_utils import (
+from visualastro.plotting.core.utils import (
     add_colorbar,
     plot_ellipses,
     plot_hlines,
     plot_interactive_ellipse,
+    plot_points,
     plot_vlines,
 )
 from visualastro.core.numerical_utils import _cycle
