@@ -149,7 +149,8 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
 
             plt.show()
 
@@ -578,7 +579,8 @@ class ax:
                                        histtype, normalize, colors, **kwargs)
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
 
 
@@ -629,7 +631,8 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
 
 
@@ -683,7 +686,8 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
 
 
@@ -743,7 +747,8 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
 
 
@@ -802,7 +807,8 @@ class ax:
             )
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
 
 
@@ -876,6 +882,7 @@ class ax:
                 plt.tight_layout()
 
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
 
             plt.show()
