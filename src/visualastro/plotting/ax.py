@@ -35,7 +35,7 @@ from visualastro.plotting.base.plots import (
     scatter3D,
     scatter_fit
 )
-from visualastro.plotting.core.plot_utils import apply_style_modifiers, _get_stylepath
+from visualastro.plotting.core.utils import apply_style_modifiers, _get_stylepath
 from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectrum
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
@@ -216,7 +216,8 @@ class ax:
                 **kwargs
             )
             if savefigure:
-                savefig(dpi=dpi)
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
 
             plt.show()
 
