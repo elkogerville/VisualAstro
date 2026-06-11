@@ -10,15 +10,21 @@ from typing import Literal
 
 import astropy.units as u
 from astropy.visualization import AsinhStretch, ImageNormalize
+import matplotlib.axes as maxes
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
+from scipy.spatial.distance import cdist
 from spectral_cube import SpectralCube
 
 from visualastro.analysis.image_utils import stack_cube
+from visualastro.core.io import _get_src_path
 from visualastro.core.config import (
     get_config_value,
     config,
+    _resolve_default,
     _Unset,
     _UNSET,
 )
@@ -306,3 +312,77 @@ def nanpercentile_limits(
         np.nanpercentile(arr, vmin),
         np.nanpercentile(arr, vmax),
     )
+
+
+def thorlabs_logo(
+    ax: maxes.Axes,
+    loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None | _Unset = _UNSET
+) -> None:
+    """
+    Add a thorlabs logo to a plot.
+
+    Parameters
+    ----------
+    ax : maxes.Axes
+        Matplotlib axes to plot on.
+    loc : {'best', 'lower left', 'lower right', 'upper left', 'upper right'} | None | _Unset, optional, default=_UNSET
+        Figure location to plot image on. If `'best'`, finds the most optimal location for the image.
+        If `None`, does nothing. If `_UNSET`, uses `config.thorlabs_loc`.
+    """
+    if loc is None:
+        return None
+    loc = _resolve_default(loc, config.thorlabs_loc)
+
+    srcpath = _get_src_path()
+    thorpath = srcpath / 'data' / 'thorlabs.JPG'
+
+    thorlabs = plt.imread(thorpath)
+    if plt.rcParams['image.origin'] == 'lower':
+        thorlabs = thorlabs[::-1]
+
+    imagebox = OffsetImage(thorlabs, zoom=0.1)
+
+    if loc == 'best':
+        segments = []
+        for line in ax.lines:
+            segments.append(line.get_xydata())
+        for col in ax.collections:
+            offsets = col.get_offsets().data
+            if len(offsets) > 0:
+                segments.append(offsets)
+        legend = ax.get_legend()
+        if legend is not None:
+            bb = legend.get_window_extent().transformed(ax.transData.inverted())
+            segments.append([[bb.x0, bb.y0], [bb.x1, bb.y1]])
+
+        xy = np.vstack(segments) if segments else None
+        if xy is not None:
+            xmin, xmax = ax.get_xlim()
+            ymin, ymax = ax.get_ylim()
+            corners = {
+                'lower left':  (xmin, ymin),
+                'lower right': (xmax, ymin),
+                'upper left':  (xmin, ymax),
+                'upper right': (xmax, ymax),
+            }
+            loc = max(corners, key=lambda k: np.nanmin(cdist(xy, [corners[k]])))
+
+        else:
+            loc = 'upper right'
+
+    img_locations = {
+        'lower left': (0.01, 0.01, 0, 0),
+        'lower right': (0.99, 0.01, 1, 0),
+        'upper left': (0.01, 0.99, 0, 1),
+        'upper right': (0.99, 0.99, 1, 1),
+    }
+
+    img_loc = img_locations.get(loc, (0.99, 0.99, 1, 1))
+    ab = AnnotationBbox(
+        imagebox,
+        xy=img_loc[:2],
+        xycoords='axes fraction',
+        box_alignment=img_loc[2:],
+        frameon=False
+    )
+    ax.add_artist(ab)

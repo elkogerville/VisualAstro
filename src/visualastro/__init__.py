@@ -109,6 +109,7 @@ from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
     get_vmin_vmax,
     nanpercentile_limits,
+    thorlabs_logo,
 )
 from visualastro.plotting.core.utils import (
     add_colorbar,
