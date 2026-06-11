@@ -714,7 +714,7 @@ def savefig(
         )
 
 
-def _find_root(marker='pyproject.toml') -> Path:
+def _find_root_path(marker='pyproject.toml') -> Path:
     """Find path to VisualAstro root directory."""
     path = Path(__file__).resolve()
     for parent in path.parents:
@@ -724,7 +724,7 @@ def _find_root(marker='pyproject.toml') -> Path:
 
 def _get_src_path() -> Path:
     """Find path to VisualAstro source directory."""
-    rootdir = _find_root()
+    rootdir = _find_root_path()
     srcpath = rootdir / 'src' / 'visualastro'
     if srcpath.exists():
         return srcpath
