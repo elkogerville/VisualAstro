@@ -714,6 +714,24 @@ def savefig(
         )
 
 
+def _find_root(marker='pyproject.toml') -> Path:
+    """Find path to VisualAstro root directory."""
+    path = Path(__file__).resolve()
+    for parent in path.parents:
+        if (parent / marker).exists():
+            return parent
+    raise FileNotFoundError(f'Could not find project root via {marker}')
+
+def _get_src_path() -> Path:
+    """Find path to VisualAstro source directory."""
+    rootdir = _find_root()
+    srcpath = rootdir / 'src' / 'visualastro'
+    if srcpath.exists():
+        return srcpath
+    raise FileNotFoundError(
+        'Fatal error! Could not find src path! This is not supposed to happen >.<'
+    )
+
 def _get_dtype(
     data: ArrayLike | u.Quantity,
     dtype=None,
