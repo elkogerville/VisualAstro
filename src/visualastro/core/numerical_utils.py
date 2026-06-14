@@ -413,6 +413,43 @@ def _is_2d(obj: Any) -> bool:
     return False
 
 
+def _is_wrapped_1d(obj) -> bool:
+    """
+    Check that an object is either a Sequence of sequences of len 1,
+    or is a 2D array with shape (N,1) or (1,N).
+
+    In other words, does `obj[0]` still contain all the data values of `obj`,
+    minus the extra unused axis.
+
+    Examples
+    --------
+    >>> obj = [1,2,3]
+    >>> _is_wrapped_1d(obj)
+    False
+
+    >>> obj = [[1,2,3]]
+    >>> _is_wrapped_1d(obj)
+    True
+
+    >>> obj = np.random.rand(10)
+    >>> _is_wrapped_1d(obj)
+    False
+    >>> _is_wrapped_1d(obj.reshape(10, 1))
+    True
+    """
+    if _is_sequence_of_sequences(obj) and len(obj) == 1:
+        return True
+
+    if isinstance(obj, (np.ndarray, u.Quantity)) and obj.ndim == 2:
+        shape = obj.shape
+        if shape[0] == 1 or shape[1] == 1:
+            return True
+
+    return False
+
+
+
+
 @overload
 def _cycle(data: list[T], i: int, j: int = 0) -> T: ...
 
