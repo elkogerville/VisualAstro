@@ -62,6 +62,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'cbar_tick_dir': ('colorbar_tick_dir', 'colorbar_tick_direction', 'cbar_tick_direction'),
     'gridlines': ('gridline', 'grid_line', 'grid_lines'),
     'ellipses': ('ellipse',),
+    'points': ('point',),
     'text_color': ('textcolor',),
     'unit_fmt': ('unit_format', 'unit_label_fmt', 'unit_label_format'),
     'axis_style': ('axes_style',),
