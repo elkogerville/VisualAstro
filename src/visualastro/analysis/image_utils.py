@@ -722,13 +722,14 @@ def detect_edges(
 ) -> NDArray:
     """
     Detect edges on an image using a sobel filter.
+    Works on images with `ndim ∈ [2,3]`.
 
     Parameters
     ----------
     input_data : np.ndarray | str
         Input data to run sobel filter on. Can either be
         an array-like or a path to an image readable by
-        `plt.imread`.
+        `plt.imread`. RGB and RGBA images are supported.
     mode : {'rgb', 'sum'}, optional, default='rgb'
         Method to convert to grayscale if ndim > 2.
 
@@ -765,9 +766,23 @@ def detect_edges(
     return sobel_img
 
 
-def compute_sobel_filter(image):
+def compute_sobel_filter(image: NDArray) -> NDArray:
     """
+    Convolve an image with the sobel operator.
+    Brings out the edges of an image.
 
+    Users should use `detect_edges` for a more stable api,
+    which supports images with more than 2 dimensions (ie. RGB / RGBA).
+
+    Parameters
+    ----------
+    image : np.ndarray
+        2D numpy array.
+
+    Returns
+    -------
+    np.ndarray :
+        Edge detected image.
     """
     Kx = np.array([[1., 0., -1.], [2., 0., -2.], [1., 0., -1.]])
     Ky = np.array([[1., 2., 1.], [0., 0., 0.], [-1., -2., -1.]])
@@ -804,7 +819,7 @@ def image_2_grayscale(
         Grayscale version of the image, now with ndim=2.
     """
     image = np.asarray(get_value(image))
-    if image.ndim < 2:
+    if image.ndim < 2 or image.ndim > 3:
         raise ValueError(
             f'Incorrect image shape! Should have ndim ∈ [2,3], got {image.ndim}.'
         )
