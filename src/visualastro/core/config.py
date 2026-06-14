@@ -188,14 +188,16 @@ class VisualAstroConfig:
     target_wcs: Header | WCS | None = None
     hdu: HDUConfig = field(default_factory=HDUConfig)
     array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
+    index_specification: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+    index_specification_3D: tuple[int, int, int] = (0, 1, 2)
 
     # figure params
     style: str = 'smplot' # default style
     style_fallback: str = 'default' # style if default style fails
     figsize: tuple = (6, 6)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
-    grid_figsize: tuple = (12, 6)
-    figsize3d: tuple = (10, 10)
+    figsize_gridspec: tuple = (12, 6)
+    figsize3D: tuple = (8, 8)
     # if _UNSET, defaults to `self.default_colorset`.
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.
