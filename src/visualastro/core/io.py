@@ -6,6 +6,7 @@ Description:
     Functions for I/O operations within visualastro.
 """
 
+from dataclasses import dataclass
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -622,6 +623,67 @@ def load_quantity(filename):
     '''
     with np.load(filename) as f:
         return f['data'] * u.Unit(f['unit'].item())
+
+
+@dataclass
+class ImageArray:
+    """
+    Container to hold non Fits file images (jpgs, pngs, etc)
+    readable by `plt.imread`.
+
+    Is used by `visualastro.core.io.imread`
+
+    Attributes
+    ----------
+    data : np.ndarray
+        Image data as returned by `plt.imread`.
+    is_rgb : bool
+        `True` if `data.ndim=3` and `data.shape` is either
+        `(N,M,3)` or `(N,M,4)`.
+    """
+    data: np.ndarray
+    is_rgb: bool = False
+
+
+def imread(
+    filepath: str,
+    as_array: bool = False
+) -> ImageArray | NDArray:
+    """
+    Equivalent to `plt.imread`.
+
+    This is the prefered way to read images (pngs, jpgs, etc)
+    into visualastro. The image is accessible via the `data`
+    attribute.
+
+    Rgb and rgba images will have the attribute `is_rgb` set to
+    `True` (used by other visualastro functions to differentiate
+    images from astronomical data).
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the image.
+    as_array : bool, optional, default=False
+        If `True`, return just the image data as a `np.ndarray`.
+
+    Returns
+    -------
+    ImageArray :
+        Dataclass containing the image. Only if `as_array=False`.
+    array : np.ndarray
+        Image as a np.ndarray. Only if `as_array=True`.
+    """
+    img = plt.imread(filepath)
+    if as_array:
+        return img
+
+    if img.ndim == 3 and img.shape[2] == 3 or img.shape[2] == 4:
+        is_rgb = True
+    else:
+        is_rgb = False
+
+    return ImageArray(img, is_rgb=is_rgb)
 
 
 def savefig(
