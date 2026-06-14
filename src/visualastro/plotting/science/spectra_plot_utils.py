@@ -80,8 +80,8 @@ def spectral_line_marker(
     label : str, optional
         Label for the group of lines.
     direction : Literal['up', 'down'] | _Unset, optional, default=_UNSET
-        Direction of the prongs. If `_UNSET`, uses the default value
-        from `config.spectral_line_marker.marker_direction`.
+        Direction of the prongs. If `_UNSET`, uses
+        `config.spectral_line_marker.marker_direction`.
     label_offset_points : tuple[float, float], optional, default=_UNSET
         (dx, dy) offset of the label in points (display coordinates).
         If `_UNSET`, uses

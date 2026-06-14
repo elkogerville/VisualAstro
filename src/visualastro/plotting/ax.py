@@ -257,8 +257,7 @@ class ax:
             Fitted continuum array.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color colorset from
-            `config.default_colorset`.
+            If None, `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -376,8 +375,7 @@ class ax:
             `use_samecolor` is also set to True.
         colors : list of colors, str, or None, optional, default=None
             Colors to use for each scatter group or dataset.
-            If None, uses the default color colorset from
-            `config.default_colorset`.
+            If None, `config.default_colorset`.
 
         **kwargs : dict, optional
             Additional parameters.
@@ -483,10 +481,9 @@ class ax:
             The y-axis data or list of data arrays.
         bins : int, sequence, str, or None, optional, default=None
             Histogram bin specification. Passed directly to
-            `matplotlib.pyplot.hist`. If None, uses the default
-            value from `config.bins`. If `bins` is a str, use
-            one of the supported binning strategies 'auto', 'fd',
-            'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
+            `matplotlib.pyplot.hist`. If None, uses `config.bins`.
+            If `bins` is a str, use one of the supported binning strategies
+            'auto', 'fd', 'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
         xlog : bool or None, optional, default=None
             Whether to use a logarithmic x-axis scale for the scatter plot.
             If None, uses `config.axes.xlog`.

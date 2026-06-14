@@ -367,7 +367,7 @@ def get_errors(
         The HDUList object containing FITS extensions to search for errors or variance.
     dtype : np.dtype | str | None, optional, default=None
         The desired NumPy dtype of the returned error array.
-        If None, uses the default unit set in `config.default_dtype`.
+        If None, uses `config.default_dtype`.
 
     Returns
     -------
@@ -821,7 +821,7 @@ def _get_dtype(
         `default_dtype` if integer or unsigned.
     default_dtype : data-type, optional, default=None
         Float type to use if `data` is integer or unsigned.
-        If None, uses the default unit set in `config.default_dtype`.
+        If None, uses `config.default_dtype`.
 
     Returns
     -------
