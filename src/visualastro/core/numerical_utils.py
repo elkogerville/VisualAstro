@@ -14,6 +14,13 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from spectral_cube import SpectralCube
 
+from visualastro.core.config import (
+    config,
+    _Unset,
+    _UNSET,
+    _resolve_default
+)
+
 
 T = TypeVar('T')
 
@@ -367,6 +374,18 @@ def _is_ndarray(obj) -> bool:
     if isinstance(obj, (list, tuple)):
         return False
     return _is_array_like(obj)
+
+
+def _is_sequence_of_sequences(obj: Sequence) -> bool:
+    """
+    Check if an object is a list[array-like]
+    or a tuple[array-like]. Array-like includes
+    `lists`, `tuples`, `np.ndarray` and `u.Quantity` arrays.
+    """
+    return (
+        isinstance(obj, (list, tuple)) and
+        all(_is_array_like(o) for o in obj)
+    )
 
 
 def _is_1d(obj: Any) -> bool:
