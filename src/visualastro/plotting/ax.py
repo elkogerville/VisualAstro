@@ -814,9 +814,7 @@ class ax:
 
     @staticmethod
     def scatter3D(
-        X,
-        Y,
-        Z,
+        *data,
         elev: float | _Unset = 30,
         azim: float | _Unset = 45,
         roll: float | _Unset = 0,
@@ -845,7 +843,7 @@ class ax:
             >>> va.scatter3D(X, Y, Z, ax=ax, **kwargs)
             >>> plt.show()
         """
-        figsize = kwargs.pop('figsize', config.figsize3d)
+        figsize = kwargs.pop('figsize', config.figsize3D)
         style = kwargs.pop('style', config.style)
         tight_layout = kwargs.pop('tight_layout', True)
         savefigure = kwargs.pop('savefig', config.savefig.enable)
@@ -857,9 +855,7 @@ class ax:
             ax = fig.add_subplot(111, projection='3d')
 
             _ = scatter3D(
-                X,
-                Y,
-                Z,
+                *data,
                 ax=ax,
                 elev=elev,
                 azim=azim,

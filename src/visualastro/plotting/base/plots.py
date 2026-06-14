@@ -34,6 +34,7 @@ from visualastro.core.numerical_utils import (
     get_data,
     to_array,
     to_list,
+    _extract_xyz,
     _cycle,
 )
 from visualastro.core.stats import normalize as _normalize
@@ -1108,9 +1109,7 @@ def scatter_fit(
 
 
 def scatter3D(
-    X,
-    Y,
-    Z,
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     ax: Axes3D,
     elev: float | _Unset = 30,
     azim: float | _Unset = 45,
@@ -1260,6 +1259,7 @@ def scatter3D(
             _param('array_order', array_order, config.array_order),
         ],
         [
+            _kwarg('index_spec', config.index_specification_3D),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
@@ -1291,9 +1291,8 @@ def scatter3D(
     zlabel = kwargs.pop('zlabel', 'Z')
     minor_ticks = kwargs.pop('minor_ticks', False)
 
-    X = to_list(X)
-    Y = to_list(Y)
-    Z = to_list(Z)
+    plot_data = _extract_xyz(*data, order=params.array_order, index_spec=params.index_spec)
+    X, Y, Z = map(list, zip(*plot_data))
     c_list = to_list(params.c) if params.c is not None else None
 
     if not (len(X) == len(Y) == len(Z)):
