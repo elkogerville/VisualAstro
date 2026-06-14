@@ -269,7 +269,7 @@ lines.linestyle: -                 # solid line
 font.family:  sans-serif
 font.style:   normal
 #font.variant: normal
-font.weight:  bold
+font.weight:  540
 #font.stretch: normal
 font.size:    14.0
 
@@ -377,7 +377,7 @@ axes.grid:           True   # display grid or not
 axes.grid.axis:     both    # which axis the grid should apply to
 axes.grid.which:    both   # grid lines at {major, minor, both} ticks
 #axes.titlelocation: center  # alignment of the title: {left, right, center}
-#axes.titlesize:     large   # font size of the axes title
+axes.titlesize:     13   # font size of the axes title
 axes.titleweight:   600  # font weight of title
 #axes.titlecolor:    auto    # color of the axes title, auto falls back to
                              # text.color as default value
@@ -385,7 +385,7 @@ axes.titleweight:   600  # font weight of title
 #axes.titlepad:      6.0     # pad between axes and title in points
 axes.labelsize:     13  # font size of the x and y labels
 #axes.labelpad:      4.0     # space between label and axis
-axes.labelweight:   600  # weight of the x and y labels
+axes.labelweight:   550  # weight of the x and y labels
 #axes.labelcolor:    black
 #axes.axisbelow:     line    # draw axis gridlines and ticks:
                              #     - below patches (True)
@@ -532,7 +532,7 @@ ytick.alignment:     center_baseline  # alignment of yticks
 ## ***************************************************************************
 ## * GRIDS                                                                   *
 ## ***************************************************************************
-grid.color:     "#b0b0b0"  # grid color
+grid.color:     "#CDCDCD"  # grid color
 grid.linestyle: -          # solid
 grid.linewidth: 0.8        # in points
 grid.alpha:     0.8       # transparency, between 0.0 and 1.0

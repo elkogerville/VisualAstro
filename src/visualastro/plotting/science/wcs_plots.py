@@ -224,8 +224,6 @@ def imshow(
     image_list = []
 
     for i, image in enumerate(images):
-        image = get_data(image)
-
         data_slice = stack_cube(
             image, idx=_cycle(idxs, i), method=stack_method, axis=axis
         )

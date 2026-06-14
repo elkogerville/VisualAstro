@@ -849,7 +849,7 @@ def _get_zorder(zorders: list[float] | None, i: int, fallback: float):
 # ----------------------------------
 def plot_circles(
     circles,
-    ax,
+    ax: maxes.Axes,
     colors=None,
     linewidth=None,
     fill=None,
@@ -909,7 +909,7 @@ def plot_circles(
             ax.add_patch(circle_patch)
 
 
-def plot_ellipses(ellipses, ax):
+def plot_ellipses(ellipses: Ellipse | list[Ellipse], ax: maxes.Axes) -> None:
     """
     Plots an ellipse or list of ellipses to an axes.
 
@@ -932,7 +932,7 @@ def plot_ellipses(ellipses, ax):
             ax.add_patch(_copy_ellipse(ellipse))
 
 
-def _copy_ellipse(ellipse):
+def _copy_ellipse(ellipse: Ellipse) -> Ellipse:
     """
     Returns a copy of an Ellipse object.
 
