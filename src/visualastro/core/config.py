@@ -217,6 +217,8 @@ class VisualAstroConfig:
     autoscale: bool = True
     ax3d_axis_style: Literal['triad', 'semi', 'cube'] | None = None
     thorlabs_loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None = 'best'
+    thorlabs_transparent: bool = False
+    thorlabs_darkmode: bool = False
 
     # figure grid params
     gridlines: bool = False
