@@ -836,8 +836,7 @@ def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
         Fitted continuum array.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color colorset from
-        `config.default_colorset`.
+        If None, uses `config.default_colorset`.
     vline : Quantity or float or None, optional
         If provided, draw a vertical dotted reference line at this wavelength.
         If unitless, the value is assumed to be in the same units as the
@@ -1096,8 +1095,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
         `use_samecolor` is also set to True.
     colors : list of colors, str, or None, optional, default=None
         Colors to use for each scatter group or dataset.
-        If None, uses the default color colorset from
-        `config.default_colorset`.
+        If None, uses `config.default_colorset`.
 
     **kwargs : dict, optional
         Additional parameters.

@@ -384,8 +384,7 @@ def reproject_wcs(
         Reprojection method:
             - 'interp' : use `reproject_interp`
             - 'exact' : use `reproject_exact`
-        If None, uses the default value
-        set by `config.reproject_method`.
+        If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
@@ -493,8 +492,7 @@ def _reproject_wcs(
         Reprojection method:
             - 'interp' : use `reproject_interp`
             - 'exact' : use `reproject_exact`
-        If None, uses the default value
-        set by `config.reproject_method`.
+        If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.

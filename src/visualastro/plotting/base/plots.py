@@ -77,10 +77,9 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         Axis for the right histogram (y-axis).
     bins : int, sequence, str, or None, optional, default=None
         Histogram bin specification. Passed directly to
-        `matplotlib.pyplot.hist`. If None, uses the default
-        value from `config.bins`. If `bins` is a str, use
-        one of the supported binning strategies 'auto', 'fd',
-        'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
+        `matplotlib.pyplot.hist`. If None, uses `config.bins`.
+        If `bins` is a str, use one of the supported binning strategies
+        'auto', 'fd', 'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
     xlog : bool or None, optional, default=None
         Whether to use a logarithmic x-axis scale for the scatter plot.
         If None, uses `config.axes.xlog`.
@@ -360,8 +359,7 @@ def hist(
         If `True`, use logarithmic scale on y-axis.
         If `_UNSET`, uses `config.axes.ylog`.
     colors : list of colors, str, or None, optional, default=None
-        Colors to use for each dataset. If None,
-        uses the default color colorset from `config.default_colorset`.
+        Colors to use for each dataset. If None, uses `config.default_colorset`.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
     loc : str, optional, default=config.legend.loc
