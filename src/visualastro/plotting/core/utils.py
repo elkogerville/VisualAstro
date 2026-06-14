@@ -47,13 +47,11 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
-from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
 @contextmanager
-def style(name: str | _Unset = _UNSET, rc: dict | None = None, **rc_kwargs):
+def style(name: str | _Unset = _UNSET, *additional_styles, rc: dict | None = None, **rc_kwargs):
     """
     Context manager to temporarily apply a Matplotlib or VisualAstro style,
     with optional rcParams overrides.
@@ -94,8 +92,14 @@ def style(name: str | _Unset = _UNSET, rc: dict | None = None, **rc_kwargs):
         rc_combined.update({
             k.replace('_', '.'): v for k, v in rc_kwargs.items()
         })
-
-    context = [style_name, rc_combined] if rc_combined else style_name
+    styles = [style_name, rc_combined]
+    modifiers = []
+    for style in additional_styles:
+        if isinstance(style, str):
+            modifiers.append(style)
+        if len(modifiers) > 0:
+            styles += modifiers
+    context = styles if rc_combined else style_name
 
     with plt.style.context(context):
         yield
