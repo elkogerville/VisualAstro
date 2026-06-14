@@ -316,7 +316,10 @@ def nanpercentile_limits(
 
 def thorlabs_logo(
     ax: maxes.Axes,
-    loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None | _Unset = _UNSET
+    loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None | _Unset = _UNSET,
+    transparent: bool | _Unset = _UNSET,
+    zoom: float = 0.015,
+    darkmode: bool | _Unset = _UNSET
 ) -> None:
     """
     Add a thorlabs logo to a plot.
@@ -327,20 +330,35 @@ def thorlabs_logo(
         Matplotlib axes to plot on.
     loc : {'best', 'lower left', 'lower right', 'upper left', 'upper right'} | None | _Unset, optional, default=_UNSET
         Figure location to plot image on. If `'best'`, finds the most optimal location for the image.
+        The algorithm chooses the corner farthest away from any data point or legend on the plot.
         If `None`, does nothing. If `_UNSET`, uses `config.thorlabs_loc`.
+    transparent : bool | _Unset, optional, default=_UNSET
+        If `True`, logo will have a transparent background. If `_UNSET`,
+        uses `config.thorlabs_transparent`.
+    zoom : float, optional, default=0.015
+        Logo size scaling factor.
+    darkmode : bool | _Unset, optional, default=_UNSET
+        If `True`, inverts the color of the logo. If `_UNSET`,
+        uses `config.thorlabs_darkmode`.
     """
     if loc is None:
         return None
+
     loc = _resolve_default(loc, config.thorlabs_loc)
+    transparent = _resolve_default(transparent, config.thorlabs_transparent)
+    darkmode = _resolve_default(darkmode, config.thorlabs_darkmode)
+
+    logo_name = 'thorlabs_dark' if darkmode else 'thorlabs'
+    logo = logo_name+'.png' if transparent else logo_name+'.jpg'
 
     srcpath = _get_src_path()
-    thorpath = srcpath / 'data' / 'thorlabs.JPG'
+    thorpath = srcpath / 'data' / logo
 
     thorlabs = plt.imread(thorpath)
     if plt.rcParams['image.origin'] == 'lower':
         thorlabs = thorlabs[::-1]
 
-    imagebox = OffsetImage(thorlabs, zoom=0.1)
+    imagebox = OffsetImage(thorlabs, zoom=zoom)
 
     if loc == 'best':
         segments = []
@@ -365,7 +383,10 @@ def thorlabs_logo(
                 'upper left':  (xmin, ymax),
                 'upper right': (xmax, ymax),
             }
-            loc = max(corners, key=lambda k: np.nanmin(cdist(xy, [corners[k]])))
+            loc = max(
+                corners,
+                key=lambda k: np.nanmin(cdist(xy, [corners[k]], 'sqeuclidean'))
+            )
 
         else:
             loc = 'upper right'
