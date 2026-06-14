@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-03-14
+Date Modified: 2026-06-14
 Description:
     VisualAstro help documentation class.
 """
@@ -22,9 +22,11 @@ import numpy as np
 
 from visualastro.analysis.ic import blob
 from visualastro.core.config import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.io import _get_src_path, imread
 from visualastro.core.numerical import number_density
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
+from visualastro.plotting.base.plots import plot
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
     COLORNAMES,
@@ -33,12 +35,13 @@ from visualastro.plotting.core.colors import (
     plot_colortable,
     simulate_colorblindness
 )
-from visualastro.plotting.core.utils import _get_stylepath
+from visualastro.plotting.core.image_utils import thorlabs_logo
+from visualastro.plotting.core.utils import _get_stylepath, legend, style
 
 
 class help:
     @staticmethod
-    def colors(
+    def color(
         color: str | ColorType | int | Sequence[ColorType] | None = None,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
         severity: int = 100,
@@ -134,6 +137,8 @@ class help:
             plt.tight_layout()
             plt.show()
 
+    colors = color
+
     @staticmethod
     def named_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(ncols=ncols, sort_colors=sort_colors)
@@ -184,7 +189,7 @@ class help:
 
 
     @staticmethod
-    def styles(style_name: str | None = None) -> None:
+    def style(style_name: str | None = None) -> None:
         """
         Display example plots for one or more available matplotlib style sheets.
 
@@ -212,7 +217,8 @@ class help:
             style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
         else:
             style_names = to_list(style_name)
-        colors = get_colors(len(style_names))
+        colors = get_colors(len(style_names), cmap=config.cmap)
+        ecs = get_colors('astro')
         print(
             'Here are sample plot made with the available visualastro plot styles. '
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
@@ -234,7 +240,8 @@ class help:
                 ax.scatter(
                     x, y,
                     color=colors[i%len(colors)],
-                    s=8,
+                    ec=_cycle(ecs, i),
+                    s=15,
                     label=r'${\lambda}$',
                     zorder=config.zorder.plot_data
                 )
@@ -244,6 +251,98 @@ class help:
                 ax.set_title(fr'Style : {style_name}', fontdict={'fontsize': 15})
 
                 ax.legend(loc='upper left')
+
+                if style_name == 'thorlabs':
+                    thorlabs_logo(ax, loc='best')
+
+                plt.show()
+
+    styles = style
+
+    @staticmethod
+    def imshow() -> None:
+        srcpath = _get_src_path()
+        foampath = srcpath / 'data' / 'foamrnbw.png'
+        foam = imread(foampath)
+        _ax.imshow(foam, origin='upper')
+
+    @staticmethod
+    def plot() -> None:
+        i = np.random.randint(0, 3, 1)
+        if i == 0:
+            def function(lamda, x):
+                return (x/lamda - 1)*np.exp(2*x)
+            x = np.linspace(-10,10,1000)
+            l0 = function(1.5, x)
+            l1 = function(1, x)
+            l2 = function(.5, x)
+            l3 = function(.25, x)
+            l4 = function(.1, x)
+            labels = [
+                r'$\lambda$ = 1.5',
+                r'$\lambda$ = 1.0',
+                r'$\lambda$ = 0.5',
+                r'$\lambda$ = 0.25',
+                r'$\lambda$ = 0.1'
+            ]
+            with style('thorlabs'):
+                fig, ax = plt.subplots(figsize=(6,6))
+                plot(
+                    x, [l0,l1,l2,l3,l4],
+                    ax=ax,
+                    lw=1,
+                    xlim=(-2.6, 2.6), ylim=(-2.6, 2.6),
+                    xlabel=r'$ka$',
+                    ylabel=r'$[\frac{ka}{\lambda} - 1]e^{2ka}$',
+                    color='high_vis',
+                    label=labels,
+                    hlines=[-1,1]
+                )
+                thorlabs_logo(ax=ax, loc='best', transparent=False, darkmode=False)
+                plt.show()
+        if i == 1:
+            t = np.arange(0,2*np.pi,.01)
+            x = (8**(1/2))*np.cos(t)
+            y = (8**(1/2))*np.sin(t)
+            x2 = (4**(1/2))*np.cos(t)
+            y2 = (4**(1/2))*np.sin(t)
+            x3 = (16**(1/2))*np.cos(t)
+            y3 = (16**(1/2))*np.sin(t)
+            x4 = ((2*(6/5))**(1/2))*np.cos(t)
+            y4 = ((10*(6/5))**(1/2))*np.sin(t)
+            labels = [
+                'Px=x=2', r'px=x=$\sqrt{2}$', r'px=x=$\sqrt{8}$', r'px=x=$\sqrt{2}$'
+            ]
+
+            _ax.plot(
+                [x,x2,x3,x4], [y,y2,y3,y4],
+                xlim=(-4.5,6), ylim=(-4.5,6),
+                color='MSG',
+                xlabel='x', ylabel=r'P$_{\mathrm{x}}$',
+                point=[0,0],
+                label=labels,
+                legend_ncols=2
+            )
+        if i == 2:
+            with style(config.style):
+                t = np.arange(0,2*np.pi,0.01)
+                ft = (4/np.pi)*np.sin(t)+(4/(3*np.pi))*np.sin(3*t) + \
+                    (4/(5*np.pi))*np.sin(5*t)+(4/(7*np.pi))*np.sin(7*t)
+                fig, ax = plt.subplots(figsize=(6,6))
+                plot(
+                    t, ft,
+                    ax=ax,
+                    color='darkslateblue',
+                    xlabel='Time [s]', ylabel='Intensity Value',
+                    label='Fourier Expansion'
+                )
+                ax.vlines(x=np.pi, ymin=-1, ymax=1, color='red', label='Square Wave')
+                ax.vlines(x=2*np.pi, ymin=-1, ymax=0, color='red')
+                ax.vlines(x=0, ymin=0, ymax=1, color='red')
+                ax.hlines(y=1, xmin=0, xmax=np.pi, color='red')
+                ax.hlines(y=-1, xmin=np.pi, xmax=2*np.pi, color='red')
+
+                legend(ax=ax)
 
                 plt.show()
 
@@ -273,7 +372,7 @@ class help:
         x=np.linspace(1,300,50) * u.radian
         y=np.sin(x) * u.Lsun
         y2=np.sin(-2*x) * u.Lsun
-        _ax.scatter_fit(x, [y, y2], deg=10, **kwargs)
+        _ax.scatter_fit(x, [y, y2], deg=20, **kwargs)
 
     @staticmethod
     def scatter3D(
