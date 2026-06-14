@@ -102,6 +102,9 @@ from visualastro.plotting.core.colors import (
     simulate_colorblindness
 )
 from visualastro.plotting.core.axes import (
+    add_subplot,
+    ax3d,
+    gridspec,
     set_axis_labels,
     set_axis_limits,
 )
@@ -113,12 +116,10 @@ from visualastro.plotting.core.image_utils import (
 )
 from visualastro.plotting.core.utils import (
     add_colorbar,
-    add_subplot,
     close,
     contour,
     contourf,
     ellipse_patch,
-    gridspec,
     inline,
     interactive,
     legend,

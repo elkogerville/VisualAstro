@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-03-14
+Date Modified: 2026-06-13
 Description:
     Plotting utility functions.
 """
@@ -15,23 +15,18 @@ from functools import partial
 
 import astropy.units as u
 from astropy.units import Quantity
-from astropy.visualization import ImageNormalize
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
-import matplotlib.ticker as ticker
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from regions import PixCoord, EllipsePixelRegion
-from spectral_cube import SpectralCube
 
-from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
     get_config_value,
     config,
@@ -256,191 +251,6 @@ def apply_style_modifiers(ax, style: str):
 
 # Axes Labels, Format, and Styling
 # --------------------------------
-def gridspec(
-    nrows: int | _Unset = _UNSET,
-    ncols: int | _Unset = _UNSET,
-    figsize: tuple[float, float] | _Unset = _UNSET,
-    sharex: bool | _Unset = _UNSET,
-    sharey: bool | _Unset = _UNSET,
-    hspace: float | None | _Unset = _UNSET,
-    wspace: float | None | _Unset = _UNSET,
-    width_ratios: ArrayLike | None = None,
-    height_ratios: ArrayLike | None = None,
-    fancy_axes: bool = False,
-    Nticks: int | None | _Unset = _UNSET,
-    aspect: float | None = None
-):
-    """
-    Create a grid of Matplotlib axes panels with consistent sizing
-    and optional fancy tick styling.
-
-    Parameters
-    ----------
-    nrows : int | _Unset, optional, default=_UNSET
-        Number of subplot rows. If `_UNSET`, uses `config.nrows`.
-    ncols : int | _Unset, optional, default=_UNSET
-        Number of subplot columns. If `_UNSET`, uses `config.ncols`.
-    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
-        Figure size in inches as (width, height). If `_UNSET`,
-        uses `config.grid_figsize`.
-    sharex : bool | _Unset, optional, default=_UNSET
-        If `True`, share the x-axis among all subplots. If `_UNSET`,
-        uses `config.axes.sharex`.
-    sharey : bool | _Unset, optional, default=_UNSET
-        If `True`, share the y-axis among all subplots. If `_UNSET`,
-        uses `config.axes.sharey`.
-    hspace : float | None | _Unset, optional, default=`_UNSET`
-        Height padding between subplots. If `None`,
-        Matplotlib’s default spacing is used. If `_UNSET`,
-        uses `config.axes.hspace`.
-    wspace : float | None | _Unset, optional, default=`_UNSET`
-        Width padding between subplots. If `None`,
-        Matplotlib’s default spacing is used. If `_UNSET`,
-        uses `config.axes.wspace`.
-    width_ratios : ArrayLike | None, optional, default=None
-        ArrayLike of length `ncols` defining the width padding between
-        subplots. If `None`, Matplotlib’s default spacing is used.
-        Defines the relative widths of the columns. Each column gets a
-        relative width of `width_ratios[i] / sum(width_ratios)`. If not
-        given, all columns will have the same width.
-    height_ratios : ArrayLike | None, optional, default=None
-        ArrayLike of length `nrows` defining the relative heights of the rows.
-        Each row gets a relative height of `height_ratios[i] / sum(height_ratios)`.
-        If not given, all rows will have the same height.
-    fancy_axes : bool, optional, default=False
-        If True, enables 'fancy' axes styling:
-
-        * minor ticks on
-        * inward ticks on all sides
-        * axes labels on outer grid axes
-        * h/wspace = 0.0
-
-    Nticks : int | None | _Unset, optional, default=`_UNSET`
-        Maximum number of major ticks per axis. If `None`,
-        uses the default matplotlib settings. If `_UNSET`,
-        uses `config.axes.Nticks`.
-    aspect : float | None, optional, default=None
-        Changes the physical dimensions of the Axes,
-        such that the ratio of the Axes height to the
-        Axes width in physical units is equal to aspect.
-        None will disable a fixed box aspect so that height
-        and width of the Axes are chosen independently.
-
-    Returns
-    -------
-    fig : ~matplotlib.figure.Figure
-        The created Matplotlib Figure instance.
-    axs : ndarray[~matplotlib.axes.Axes]
-        Flattened array of Axes objects, ordered row-wise.
-    """
-    nrows = _resolve_default(nrows, config.nrows)
-    ncols = _resolve_default(ncols, config.ncols)
-    figsize = _resolve_default(figsize, config.grid_figsize)
-    sharex = _resolve_default(sharex, config.axes.sharex)
-    sharey = _resolve_default(sharey, config.axes.sharey)
-    hspace = _resolve_default(hspace, config.axes.hspace)
-    wspace = _resolve_default(wspace, config.axes.wspace)
-    Nticks = _resolve_default(Nticks, config.axes.Nticks)
-
-    Nx = nrows
-    Ny = ncols
-
-    if fancy_axes:
-        labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
-        labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
-        hspace = 0.0 if hspace is None else hspace
-        wspace = 0.0 if wspace is None else wspace
-
-    fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace,
-                          width_ratios=width_ratios,
-                          height_ratios=height_ratios)
-    axs = gs.subplots(sharex=sharex, sharey=sharey)
-    axs = np.atleast_1d(axs).ravel()
-
-    for i in range(Nx):
-        for j in range(Ny):
-            ax = axs[j + Ny*i]
-
-            if fancy_axes:
-                ax.minorticks_on()
-                ax.tick_params(axis='both', length=2, direction='in',
-                               which='both', labeltop=labeltop[i][j],
-                               labelright=labelright[i][j],
-                               right=True, top=True)
-            if Nticks is not None:
-                ax.xaxis.set_major_locator(ticker.MaxNLocator(Nticks))
-                ax.yaxis.set_major_locator(ticker.MaxNLocator(Nticks))
-            ax.set_box_aspect(aspect)
-
-    return fig, axs
-
-
-def add_subplot(
-    shape=111,
-    fig=None,
-    figsize=None,
-    projection=None,
-    return_fig=False,
-    **kwargs):
-    '''
-    Add a subplot to a figure, optionally creating a new figure.
-
-    Parameters
-    ----------
-    shape : int or tuple, default: 111
-        The subplot specification. Can be given as a three-digit integer
-        (e.g., 211 means 2 rows, 1 column, subplot index 1) or a tuple
-        `(nrows, ncols, index)`.
-    fig : matplotlib.figure.Figure or None, optional, default=None
-        Existing figure to add the subplot to. If None,
-        a new figure is created.
-    figsize : tuple of float, optional, default=None
-        Figure size in inches. If None, uses `config.figsize`.
-    projection : str or None, optional, default=None
-        Projection type for the subplot. Examples include WCSAxes or
-        {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
-        'rectilinear', str}. If None, defaults to 'rectilinear'.
-    return_fig : bool, optional, default=False
-        If True, return both `(fig, ax)`. Otherwise return only `ax`.
-
-    **kwargs
-        Additional keyword arguments passed directly to
-        `matplotlib.figure.Figure.add_subplot`. This allows supplying any
-        subplot or axes-related parameters supported by Matplotlib (e.g.,
-        `aspect`, `facecolor`, etc.).
-
-    Returns
-    -------
-    ax : matplotlib.axes.Axes
-        The created or retrieved subplot axes.
-    fig : matplotlib.figure.Figure, optional
-        The figure object containing the subplot.
-        Returned only if `return_fig=True`.
-
-    Examples
-    --------
-    Create a new figure and subplot:
-    >>> fig, ax = add_subplot(return_fig=True)
-
-    Add a subplot to an existing figure:
-    >>> fig = plt.figure()
-    >>> ax = add_subplot(fig=fig, shape=121)
-
-    Create a 3D subplot:
-    >>> fig, ax = add_subplot(projection='3d', return_fig=True)
-    '''
-    # get default config values
-    figsize = get_config_value(figsize, 'figsize')
-    # create figure if not passed in
-    if fig is None:
-        fig = plt.figure(figsize=figsize)
-    # add desired subplot with projection
-    ax = fig.add_subplot(shape, projection=projection, **kwargs)
-
-    return (fig, ax) if return_fig else ax
-
-
 def add_colorbar(
     im: ScalarMappable,
     ax: maxes.Axes,
