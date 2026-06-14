@@ -450,9 +450,10 @@ def stack_cube(
             f"Options: {', '.join(config._STACK_METHODS.keys())}"
         )
 
+    is_rgb = getattr(cube, 'is_rgb', False)
     cube = get_data(cube)
 
-    if cube.ndim < 3:
+    if cube.ndim < 3 or is_rgb:
         return cube
 
     if idx is not None:
