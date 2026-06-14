@@ -448,6 +448,166 @@ def _is_wrapped_1d(obj) -> bool:
     return False
 
 
+def _extract_xyz(
+    *data: NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float,
+    order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    index_spec: tuple[int, int, int] | _Unset = _UNSET
+) -> list[tuple]:
+    """
+    Extract X, Y, Z coordinates from a variety of supported input formats.
+
+    Supported inputs:
+
+    * Single 2D array with at least 3 columns/rows, or a list of such arrays.
+    * Three 1D array-like: `(X, Y, Z)`.
+    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three scalars: `(x, y, z)`.
+
+    Parameters
+    ----------
+    *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
+        Input(s) to extract X, Y, Z values from.
+        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+
+        Supported calling conventions:
+
+        * NDArray | Sequence[NDArray]:
+
+            * Each array should be 2D and have at least 3 axes. The extracted
+            axes are set by `index_spec`.
+
+        * Three 1D array-like:
+
+            * Three 1D arrays of the same shape.
+
+        * Three Sequences[1D array-like]
+
+            * Three Sequences each containing an array-like to plot.
+            Corresponding elements across sequences must share the same shape,
+            i.e. `shape(xi) == shape(yi) == shape(zi)`.
+
+    order : {'c', 'fortran'}, optional
+        Array traversal order used when extracting from 2D arrays.
+        If `_UNSET` uses `config.array_order`.
+    index_spec : tuple[int, int, int], optional
+        Axis indices `(i_x, i_y, i_z)` identifying X, Y, Z columns/rows
+        in the 2D input array. If `_UNSET`, uses `config.index_specification_3D`.
+
+    Returns
+    -------
+    list[tuple] :
+        List of `(x, y, z)` tuples. Each tuple represents a collection to plot,
+        and can either be a tuple of scalars or a tuple of 1D array-like.
+
+    Raises
+    ------
+    ValueError :
+        If `len(data) == 3` and the three array-likes are not uniformly
+        1D or flattenable to 1D (shapes `(N,1)` or `(1,N)`).
+    ValueError
+        If the input signature matches none of the supported conventions.
+    """
+    array_order = _resolve_default(order, config.array_order)
+    index_spec = _resolve_default(index_spec, config.index_specification_3D)
+
+    # input is either 2D NDArray or Sequence[2D NDArray]
+    if len(data) == 1:
+        obj = to_list(data[0])
+        result = []
+        for o in obj:
+            result.append(_extract_xyz_from_ndarray(o, array_order, index_spec))
+        return result
+
+    # input is tuple[Any, Any, Any]
+    elif len(data) == 3:
+        if all(_is_array_like(d) for d in data):
+            # input is tuple[Sequence[array-like], Sequence[array-like], Sequence[array-like]]
+            # where array-like is all 1D
+            if (
+                all(isinstance(d, (list, tuple)) for d in data) and
+                all(_is_1d(sublist) for d in data for sublist in d)
+            ):
+                return [tuple(d) for d in zip(*data)]
+
+            # input is tuple[array-like, array-like, array-like]
+            # where array-like is either all 1D or all (N,1) or (1,N)
+            if (
+                all(_is_wrapped_1d(d) for d in data) or
+                all(_is_1d(d) for d in data)
+            ):
+                return [tuple(d) for d in zip(*data)]
+
+            raise ValueError(
+                'inputs must either be all 1D or must all be 2D '
+                ' arrays with shapes: (N,1) or (1,N)!'
+            )
+
+        # input is tuple[scalar, scalar, scalar]
+        if all(_is_scalar(d) for d in data):
+            return as_list((data[0], data[1], data[2]))
+
+    raise ValueError(
+        'inputs must either be a 2D array, list[2D arrays] or X, Y, Z inputs! '
+        'X, Y, Z must all be array-like or list of such.'
+    )
+
+
+def _extract_xyz_from_ndarray(
+    obj: NDArray | u.Quantity,
+    order: Literal['c', 'fortran'],
+    index_spec: tuple[int, int, int]
+) -> tuple[NDArray | u.Quantity, NDArray | u.Quantity, NDArray | u.Quantity]:
+    """
+    Given a 2D NDArray with shape (N,3) or (3,N), extract the x,y,z values.
+
+    Parameters
+    ----------
+    obj : np.ndarray | u.Quantity
+        2D array with shape (N,3) or (3,N), depending on `order`.
+    order : {'c', 'fortran'}
+        Array order. If `'c'`, `obj` should have shape (N,3).
+        If `'fortran'`, `obj` should have shape (3,N).
+    index_spec : tuple[int, int, int]
+        Specifies which columns (`order='c'`) or rows (`order='fortran'`)
+        should be used for extraction.
+
+    Returns
+    -------
+    tuple[NDArray | u.Quantity, NDArray | u.Quantity, NDArray | u.Quantity] :
+        X, Y, and Z values extracted from `obj`. Are all 1D arrays.
+        Units are preserved.
+
+    Examples
+    --------
+    >>> a = np.random.rand(10,3)
+    >>> _extract_xyz_from_ndarray(a, order='c', index_spec=[0,1,2])
+    (a[:,0], a[:,1], a[:,2])
+
+    >>> _extract_xyz_from_ndarray(a.T, order='fortran', index_spec=[0,1,2])
+    (a[0,:], a[1,:], a[2,:])
+
+    >>> b = np.random.rand(10,8)
+    >>> _extract_xyz_from_ndarray(a, order='c', index_spec=[0,4,7])
+    (a[0,:], a[4,:], a[7,:])
+    """
+    if (
+        isinstance(obj, (np.ndarray, u.Quantity))
+        and _is_array_like(obj) and obj.ndim == 2
+    ):
+        if len(index_spec) != 3:
+            raise ValueError(
+                'index_spec must be a tuple[int, int, int]!'
+            )
+        ax0, ax1, ax2 = index_spec
+        if order.lower() == 'c':
+            return obj[:,ax0], obj[:,ax1], obj[:,ax2]
+        else:
+            return obj[ax0,:], obj[ax1,:], obj[ax2,:]
+    else:
+        raise ValueError(
+            'input arrays must be 2D with at least 3 axes! '
+            'ie. np.random.rand(10,3) or a list of such.'
+        )
 
 
 @overload
