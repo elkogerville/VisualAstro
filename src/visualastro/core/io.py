@@ -66,6 +66,8 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'text_color': ('textcolor',),
     'unit_fmt': ('unit_format', 'unit_label_fmt', 'unit_label_format'),
     'axis_style': ('axes_style',),
+    'plot_contours': ('plot_contour',),
+    'plot_contour_offset': ('plot_contour_offsets', 'contour_offsets', 'contour_offset'),
 }
 
 
