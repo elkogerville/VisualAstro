@@ -95,7 +95,7 @@ class SavefigConfig:
     pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
     transparent: bool = False
     bbox_inches: str | Bbox | None = 'tight'
-    allowed_formats = {'eps', 'pdf', 'png', 'svg'}
+    allowed_formats = {'eps', 'pdf', 'png', 'svg', 'jpg'}
 
 @dataclass(slots=True)
 class CurveFitConfig:
