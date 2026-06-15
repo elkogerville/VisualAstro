@@ -18,6 +18,7 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import PathCollection
 import numpy as np
 from numpy.typing import NDArray
 

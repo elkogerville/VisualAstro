@@ -839,6 +839,15 @@ def _get_zorder(zorders: list[float] | None, i: int, fallback: float):
     """
     Get zorder value from a list of zorders with a fallback zorder.
     Increments the fallback value by i.
+
+    Parameters
+    ----------
+    zorders : list[float] | None
+        List of zorders to cycle through. If `None`, returns
+        `fallback + 1`.
+    fallback : float
+        Fallback value if `zorders` or `zorders[i]` is `None`.
+        Always incremented by 1.
     """
     if zorders is None:
         return fallback + 1
