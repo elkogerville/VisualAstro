@@ -346,20 +346,20 @@ def hist(
     align : {'left', 'mid', 'right'}, optional, default: 'mid'
         The horizontal alignment of the histogram bars.
 
-            * 'left': bars are centered on the left bin edges.
-            * 'mid': bars are centered between the bin edges.
-            * 'right': bars are centered on the right bin edges.
+            * `'left'`: bars are centered on the left bin edges.
+            * `'mid'`: bars are centered between the bin edges.
+            * `'right'`: bars are centered on the right bin edges.
 
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.axes.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.axes.ylog`.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each dataset. If None, uses `config.default_colorset`.
+    xlog, ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on the respective axis.
+        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
+        `config.axes.ylog` for `ylog`.
+    zorder : float | list[float] | None, optional, default=None
+        Order in which to plot lines in. Lines are drawn in order
+        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
+        and increments the zorder by 1 for each subsequent line drawn.
     label : str | list[str], optional, default=None
         Legend labels for scatter datasets.
     loc : str, optional, default=config.legend.loc
@@ -372,9 +372,9 @@ def hist(
         Limits for x-axis as (xmin, xmax).
     ylim : tuple[float, float], optional, default=None
         Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.axes.ypad
+    xpad : float, optional, default=config.axes.xpad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.xpad
+    ypad : float, optional, default=config.axes.ypad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -521,16 +521,14 @@ def plot(
     normalize : bool | _Unset, optional, default=_UNSET
         If `True`, normalize each dataset by its maximum value.
         If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.axes.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.axes.ylog`.
+    xlog, ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on the respective axis.
+        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
+        `config.axes.ylog` for `ylog`.
     zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
-        of greatest to lowest zorder. If None, starts at 0 and increments
-        the zorder by 1 for each subsequent line drawn.
+        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
+        and increments the zorder by 1 for each subsequent line drawn.
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
@@ -542,13 +540,11 @@ def plot(
         Label for x-axis.
     ylabel : str, optional, default=None
         Label for y-axis.
-    xlim : tuple[float, float], optional, default=None
-        Limits for x-axis as (xmin, xmax).
-    ylim : tuple[float, float], optional, default=None
-        Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.axes.ypad
+    xlim, ylim : tuple[float, float], optional, default=None
+        Limits for x and y axes as (min, max).
+    xpad : float, optional, default=config.axes.xpad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.xpad
+    ypad : float, optional, default=config.axes.ypad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -724,12 +720,14 @@ def scatter(
     normalize : bool | _Unset, optional, default=_UNSET
         If `True`, normalize each dataset by its maximum value.
         If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.axes.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.axes.ylog`.
+    xlog, ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on the respective axis.
+        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
+        `config.axes.ylog` for `ylog`.
+    zorder : float | list[float] | None, optional, default=None
+        Order in which to plot lines in. Lines are drawn in order
+        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
+        and increments the zorder by 1 for each subsequent line drawn.
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
@@ -737,14 +735,10 @@ def scatter(
         Legend labels for scatter datasets.
     loc : str, optional, default=config.legend.loc
         Legend location.
-    xlabel : str, optional, default=None
-        Label for x-axis.
-    ylabel : str, optional, default=None
-        Label for y-axis.
-    xlim : tuple[float, float], optional, default=None
-        Limits for x-axis as (xmin, xmax).
-    ylim : tuple[float, float], optional, default=None
-        Limits for y-axis as (ymin, ymax).
+    xlabel, ylabel : str, optional, default=None
+        Label for x and y axes.
+    xlim, ylim : tuple[float, float], optional, default=None
+        Limits for x and y axes as (min, max).
     xpad : float, optional, default=config.axes.ypad
         Fractional padding added to the x-axis data range when computing axis limits.
     ypad : float, optional, default=config.axes.xpad
@@ -985,16 +979,14 @@ def scatter_fit(
     normalize : bool | _Unset, optional, default=_UNSET
         If `True`, normalize each dataset by its maximum value.
         If `_UNSET`, uses `config.normalize_data`.
-    xlog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on x-axis.
-        If `_UNSET`, uses `config.axes.xlog`.
-    ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, use logarithmic scale on y-axis.
-        If `_UNSET`, uses `config.axes.ylog`.
+    xlog, ylog : bool | _Unset, optional, default=_UNSET
+        If `True`, uses logarithmic scale on the respective axis.
+        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
+        `config.axes.ylog` for `ylog`.
     zorder : float | list[float] | None, optional, default=None
         Order in which to plot lines in. Lines are drawn in order
-        of greatest to lowest zorder. If None, starts at 0 and increments
-        the zorder by 1 for each subsequent line drawn.
+        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
+        and increments the zorder by 1 for each subsequent line drawn.
     array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
         Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
         while `'F'` and `'fortran'` are for (2,N) shaped arrays.
@@ -1002,17 +994,13 @@ def scatter_fit(
         Legend labels for scatter datasets.
     loc : str, optional, default=config.legend.loc
         Legend location.
-    xlabel : str, optional, default=None
-        Label for x-axis.
-    ylabel : str, optional, default=None
-        Label for y-axis.
-    xlim : tuple[float, float], optional, default=None
-        Limits for x-axis as (xmin, xmax).
-    ylim : tuple[float, float], optional, default=None
-        Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.axes.ypad
+    xlabel, ylabel : str, optional, default=None
+        Label for x and y axes.
+    xlim, ylim : tuple[float, float], optional, default=None
+        Limits for x and y axes as (min, max).
+    xpad : float, optional, default=config.axes.xpad
         Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.xpad
+    ypad : float, optional, default=config.axes.ypad
         Fractional padding added to the y-axis data range when computing axis limits.
     cmap : Colormap | str, optional, default=config.cmap
         Colormap used to generate colors if `color` is an int.
@@ -1123,103 +1111,116 @@ def scatter3D(
     facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
     plot_contours: Literal['x', 'y', 'z', 'all'] | list[Literal['x', 'y', 'z']] | None = None,
     array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+    index_spec: tuple[int, int, int] | _Unset = _UNSET,
     **kwargs
-) -> list:
-    '''
+) -> list[PathCollection]:
+    """
     Scatter plot in 3D with support for multiple datasets.
+
+    Supported inputs:
+
+    * Single 2D array with at least 3 columns/rows, or a list of such arrays.
+    * Three 1D array-like: `(X, Y, Z)`.
+    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
-    X, Y, Z : array-like or list of array-like
-        Coordinates of the data points. Each of `X`, `Y`, and `Z`
-        may be a single array or a list of arrays for plotting
-        multiple groups. All three must have the same number of arrays.
-    ax : `matplotlib.axes._subplots.Axes3DSubplot`
+    *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
+        Input(s) to extract X, Y, Z values from.
+        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+
+        Supported calling conventions:
+
+        * NDArray | Sequence[NDArray]:
+
+            * Each array should be 2D and have at least 3 axes. The extracted
+            axes are set by `index_spec`.
+
+        * Three 1D array-like:
+
+            * Three 1D arrays of the same shape.
+
+        * Three Sequences[1D array-like]
+
+            * Three Sequences each containing an array-like to plot.
+            Corresponding elements across sequences must share the same shape,
+            i.e. `shape(xi) == shape(yi) == shape(zi)`.
+
+    ax : Axes3D
         The 3D axes object on which to draw the scatter plot.
-    elev : float, default=30
-        Elevation angle in degrees (rotation around camera x-axis).
-    azim : float, default=45
-        Azimuth angle in degrees (rotation around the z-axis).
-    roll : float, default=0
-        Roll angle in degrees (rotation around the view direction).
-    scale : float or None, default=None
+    elev, axim, roll : float | _Unset, optional, default=(30,45,0)
+        Elevation (rotation around camera x-axis), azimuth (rotation around the z-axis),
+        and roll (rotation around the view direction) angles in degrees. If `_UNSET`,
+        uses `config.elev`, `config.azim`, and `config.roll` respectively.
+    scale : float | None, optional, default=None
         If given, sets symmetric limits for all axes as `[-scale, scale]`.
-    axes_off : bool, default=False
-        If True, hides all axes spines, ticks, and labels.
-    grid_lines : bool, default=False
-        If False, disables gridlines on the 3D plot.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses the default color colorset from
-        `config.default_colorset`.
-    size : float, list of float, or None, optional, default=None
-        Size of scatter dots. If None, uses the default
-        value in `config.scatter_size`.
-    marker : str, list of str, or None, optional, default=None
-        Marker style for scatter dots. If None, uses the
-        default value in `config.marker`.
-    alpha : float, list of float, or None, default=None
-        The alpha blending value, between 0 (transparent) and 1 (opaque).
-        If None, uses `config.alpha`.
-    edgecolors : {'face', 'none', None}, color, list of color, or None, default=`_UNSET`
-        The edge color of the marker. Possible values:
-        - 'face': The edge color will always be the same as the face color.
-        - 'none': No patch boundary will be drawn.
-        - A color or sequence of colors.
-        If `_UNSET`, uses `config.edgecolor`.
-    plot_contours : {'x', 'y', 'z', 'all'}, sequence of {'x', 'y', 'z'}, or None, optional, default=None
+        If `None`, limits are set individually by `xlim`, `ylim`, and `zlim`.
+    axes_off : bool, optional, default=False
+        If `True`, hides all axes spines, ticks, and labels.
+    grid_lines : bool, optional, default=False
+        If `False`, disables gridlines on the 3D plot.
+    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
+        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
+    marker : str | list[str] | _Unset, optional, default=_UNSET
+        Marker style(s). If `_UNSET`, uses config.marker.
+    size : float | list[float] | _Unset, optional, default=_UNSET
+        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
+    alpha : float | list[float] | _Unset, optional, default=_UNSET
+        Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
+    edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
+        Edge color of markers.
+
+            * 'face': Match face color
+            * 'none': No edge
+            * color or sequence: Explicit color(s)
+
+        If not set, uses `config.edgecolor`.
+
+    facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
+        Face color of markers.
+
+            * 'none': Transparent
+            * color or sequence: Explicit color(s)
+
+        If not set, uses `config.facecolor`.
+    plot_contours : {'x', 'y', 'z', 'all'}, Sequence[{'x', 'y', 'z'}] | None, optional, default=None
         Specifies which contour projections to draw onto the side planes of the 3D axes.
         Each entry indicates the axis *normal* to the projection plane:
-        - 'x' : Project onto the **YZ** plane at a fixed X offset.
-        - 'y' : Project onto the **XZ** plane at a fixed Y offset.
-        - 'z' : Project onto the **XY** plane at a fixed Z offset.
-        - 'all' : Equivalent to `['x', 'y', 'z']`.
-        If None, no contour projections are drawn.
 
-    **kwargs : dict, optional
-        Additional parameters.
+        * 'x' : Project onto the **YZ** plane at a fixed X offset.
+        * 'y' : Project onto the **XZ** plane at a fixed Y offset.
+        * 'z' : Project onto the **XY** plane at a fixed Z offset.
+        * 'all' : Equivalent to `['x', 'y', 'z']`.
 
-        Supported keywords:
-
-        - `rasterized` : bool, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        - `color`, `c` : str, list of str or None, optional, default=`config.color`
-            Aliases for `colors`.
-        - `sizes`, `s` : float or list of float, optional, default=`config.scatter_size`
-            Aliases for `size`.
-        - `markers`, `m` : str or list of str, optional, default=`config.marker`
-            Aliases for `marker`.
-        - `alphas`, `a` : float or list of float default=`config.alpha`
-            Aliases for `alpha`.
-        - `edgecolor`, `ec` : {'face', 'none', None}, color, list of color, or None, default=`config.edgecolor`
-            Aliases for `edgecolors`.
-        - `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        - `xlim` : tuple of two floats or None
-            Limits for the x-axis.
-        - `ylim` : tuple of two floats or None
-            Limits for the y-axis.
-        - `zlim` : tuple of two floats or None
-            Limits for the z-axis.
-        - `plot_contour_offset` : float or sequence of float, optional, default=None
-            Manual positional offsets for the contour projection planes.
-            If a single float is given, the same offset is used for all projections.
-            If a sequence is given (e.g., array-like), its length must match
-            the number of entries in `plot_contours`, providing one offset per projection
-            in the same order. If None, offsets are automatically chosen based
-            on current axis limits (i.e., `ax.get_xlim()[0]`, `ax.get_ylim()[0]`,
-            `ax.get_zlim()[0]`).
-        - `xlabel` : str or None
-            Label for the x-axis.
-        - `ylabel` : str or None
-            Label for the y-axis.
-        - `zlabel` : str or None
-            Label for the z-axis.
-        - `minor_ticks` : bool, default=False
-            If True, sets minor ticks for all axes.
+        If None, no contour projections are drawn. The offsets are set by
+        `plot_contour_offset`.
+    array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
+        Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
+        while `'F'` and `'fortran'` are for (2,N) shaped arrays.
+    index_spec : tuple[int, int, int], | _Unset, optional, default=_UNSET
+        Axis indices `(i_x, i_y, i_z)` identifying X, Y, Z columns/rows
+        in the 2D input array. If `_UNSET`, uses `config.index_specification_3D`.
+    xlim, ylim, zlim : tuple[float, float], optional, default=None
+        Limits for x, y, and z axes as (min, max). Are overridden by `scale`.
+        If `None`, limits are controlled by `autoscale`.
+    autoscale : bool, optional, default=config.autoscale
+        If `True`, lets matplotlib scale the axes automatically.
+    plot_contour_offset : float | Sequence[float], optional, default=None
+        Manual positional offsets for the contour projection planes.
+        If a single float is given, the same offset is used for all projections.
+        If a sequence is given (e.g., array-like), its length must match
+        the number of entries in `plot_contours`, providing one offset per projection
+        in the same order. If None, offsets are automatically chosen based
+        on current axis limits.
+    cmap : Colormap | str, optional, default=config.cmap
+        Colormap used to generate colors if `color` is an int.
+    rasterized : bool, optional, default=config.rasterized
+        If `True`, rasterize artists when saving to vector formats.
+    xlabel, ylabel, zlabel : str | None, optional, default=None
+        Label for x, y, and z axes.
+    minor_ticks : bool, optional, default=False
+        If `True`, sets minor ticks for all axes.
 
     Returns
     -------
@@ -1238,10 +1239,7 @@ def scatter3D(
     - The function cycles through `colors`, `sizes`, `markers`,
       `alphas`, and `edgecolors` if fewer values are given than
       datasets.
-    - Pane backgrounds are set to white (`(1, 1, 1, 1)`).
-    - Axis limits are applied in the order of `xlim`, `ylim`, `zlim`,
-      and finally `scale` if provided.
-    '''
+    """
     params = _resolve_kwargs(
         kwargs,
         [
@@ -1255,9 +1253,9 @@ def scatter3D(
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
             _param('array_order', array_order, config.array_order),
+            _param('index_spec', index_spec, config.index_specification_3D),
         ],
         [
-            _kwarg('index_spec', config.index_specification_3D),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
