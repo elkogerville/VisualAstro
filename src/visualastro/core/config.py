@@ -7,7 +7,7 @@ Date Modified: 2026-04-08
 from collections.abc import Sequence
 from dataclasses import dataclass, field, fields
 from enum import Enum
-from typing import Literal, TypeVar
+from typing import Callable, Literal, TypeVar
 
 from astropy.wcs import WCS
 from astropy.io.fits import Header
@@ -32,8 +32,16 @@ class _Unset(Enum):
 _UNSET = _Unset.UNSET
 
 
-@dataclass(slots=True)
-class AxesConfig:
+@dataclass
+class PrettyRepr:
+    """Template class for adding a pretty __repr__ to config dataclasses."""
+    def __repr__(self):
+        fields = {k: getattr(self, k) for k in self.__dataclass_fields__}
+        field_str = '\n'.join(f'  {k}: {v!r}' for k, v in fields.items())
+        return f'{self.__class__.__name__}(\n{field_str}\n)'
+
+@dataclass(slots=True, repr=False)
+class AxesConfig(PrettyRepr):
     """matplotlib.axes config"""
     xpad: float = 0.05  # set_axis_limits() xpad
     ypad: float = 0.05 # set_axis_limits() ypad
@@ -48,8 +56,8 @@ class AxesConfig:
     Nticks = None
     aspect = None
 
-@dataclass(slots=True)
-class ZorderLayers:
+@dataclass(slots=True, repr=False)
+class ZorderLayers(PrettyRepr):
     gridlines: float = 10
     wcs_grid: float = 11
     contourf: float = 20
@@ -61,8 +69,8 @@ class ZorderLayers:
     text: float = 90
     axes: float = 100
 
-@dataclass(slots=True)
-class AXLineConfig:
+@dataclass(slots=True, repr=False)
+class AXLineConfig(PrettyRepr):
     """ax.vline / ax.hline config"""
     linestyle: Literal['-', '--', '-.', ':', ''] = ':'
     linewidth: float = 1.0
@@ -70,8 +78,8 @@ class AXLineConfig:
     alpha: float | None = 0.7
     zorder: float = 0
 
-@dataclass(slots=True)
-class LegendConfig:
+@dataclass(slots=True, repr=False)
+class LegendConfig(PrettyRepr):
     """ax.legend config"""
     handles: Sequence | None = None
     labels: Sequence[str] | None = None
@@ -87,8 +95,8 @@ class LegendConfig:
     columnspacing: float = 2
     draggable: bool = True
 
-@dataclass(slots=True)
-class SavefigConfig:
+@dataclass(slots=True, repr=False)
+class SavefigConfig(PrettyRepr):
     """plt.savefig config"""
     enable: bool = False
     dpi: float = 600
@@ -97,8 +105,8 @@ class SavefigConfig:
     bbox_inches: str | Bbox | None = 'tight'
     allowed_formats = {'eps', 'pdf', 'png', 'svg', 'jpg'}
 
-@dataclass(slots=True)
-class CurveFitConfig:
+@dataclass(slots=True, repr=False)
+class CurveFitConfig(PrettyRepr):
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
     absolute_sigma: bool = False
@@ -107,8 +115,8 @@ class CurveFitConfig:
     interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
 
-@dataclass(slots=True)
-class ErrorBarConfig:
+@dataclass(slots=True, repr=False)
+class ErrorBarConfig(PrettyRepr):
     """ax.errorbar config"""
     fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
     colors: ColorType | None = None
@@ -137,15 +145,15 @@ class SpectralLineConfig:
     label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
     label_rotation: float = 0
 
-@dataclass(slots=True)
-class DereddenConfig:
+@dataclass(slots=True, repr=False)
+class DereddenConfig(PrettyRepr):
     method: str | None = None
     region: str | None = None
     Rv: float | None = None
     Ebv: float | None = None
 
-@dataclass(slots=True)
-class HDUConfig:
+@dataclass(slots=True, repr=False)
+class HDUConfig(PrettyRepr):
     """HDU config"""
     index: int = 0
     error_extensions: list[str] = field(
@@ -158,8 +166,8 @@ class HDUConfig:
     ])
 
 
-@dataclass(slots=True)
-class VisualAstroConfig:
+@dataclass(slots=True, repr=False)
+class VisualAstroConfig(PrettyRepr):
     """
     Global configuration object for controlling default behavior
     across the visualastro package.
