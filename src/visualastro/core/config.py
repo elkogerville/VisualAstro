@@ -126,17 +126,27 @@ class ErrorBarConfig(PrettyRepr):
     barsabove: bool = False
     markeredgecolor: ColorType | None = None
 
-@dataclass(slots=True)
-class ColorbarConfig:
+@dataclass(slots=True, repr=False)
+class ColorbarConfig(PrettyRepr):
     enable: bool = True
     width: float = 0.03
     pad: float = 0.015
     label: bool = True
-    tick_which = 'both'
-    tick_dir = 'out'
+    tick_which: str = 'both'
+    tick_dir: str = 'out'
 
-@dataclass(slots=True)
-class SpectralLineConfig:
+@dataclass(slots=True, repr=False)
+class ContourConfig(PrettyRepr):
+    levels: int = 20
+    method: Literal['contour', 'contourf'] = 'contour'
+    bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott'
+    gridsize: int = 200
+    padding: float = 0.2
+    clabel: bool = False
+    zdir : Literal['x', 'y', 'z'] = 'z'
+
+@dataclass(slots=True, repr=False)
+class SpectralLineConfig(PrettyRepr):
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
     label_offset_points: tuple[float, float] = (0.0, 4.0)
@@ -281,6 +291,7 @@ class VisualAstroConfig(PrettyRepr):
     legend: LegendConfig = field(default_factory=LegendConfig)
     savefig: SavefigConfig = field(default_factory=SavefigConfig)
     colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
+    contour: ContourConfig = field(default_factory=ContourConfig)
 
     # text params
     fontsize: float = 10

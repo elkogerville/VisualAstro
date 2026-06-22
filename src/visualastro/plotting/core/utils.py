@@ -9,7 +9,7 @@ Description:
 from collections.abc import Sequence
 from contextlib import contextmanager
 from importlib.resources import files
-from typing import Literal
+from typing import Callable, Literal
 import warnings
 from functools import partial
 
@@ -18,11 +18,14 @@ from astropy.units import Quantity
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Colormap
+from matplotlib.contour import QuadContourSet
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 from matplotlib.typing import ColorType
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from regions import PixCoord, EllipsePixelRegion
@@ -34,7 +37,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.io import _extract_kwargs, _kwarg
+from visualastro.core.io import _extract_kwargs, _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
     get_value,
@@ -47,7 +50,7 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
-from visualastro.plotting.core.colors import get_colors, sample_cmap
+from visualastro.plotting.core.colors import get_cmap, get_colors, sample_cmap
 
 
 @contextmanager
@@ -407,13 +410,26 @@ def legend(*args, ax, **kwargs) -> None:
     ax.legend(**legend_kwargs)
 
 
-def contour(x, y, ax, levels=20, contour_method='contour',
-            bw_method: Literal['scott', 'silverman']='scott',
-            gridsize=200, padding=0.2,
-            cslabel=False, zdir=None, offset=None, cmap=None,
-            zorder=None, xlim=None, ylim=None, **kwargs):
+def contour(
+    x,
+    y,
+    ax: maxes.Axes | Axes3D,
+    levels: int | _Unset = _UNSET,
+    contour_method: Literal['contour', 'contourf'] | _Unset = _UNSET,
+    bw_method: Literal['scott', 'silverman'] | float | Callable | _Unset = _UNSET,
+    gridsize: int | _Unset = _UNSET,
+    padding: float | _Unset = _UNSET,
+    cslabel: bool | _Unset = _UNSET,
+    zdir=None,
+    offset=None,
+    cmap: Colormap | str | _Unset = _UNSET,
+    zorder=None,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
+    **kwargs
+) -> QuadContourSet:
     """
-    Add 2D or 3D Gaussian KDE density contours to an axis.
+    Add 2D Gaussian KDE density contours to an axis.
     This function computes a 2D Gaussian kernel density estimate (KDE)
     from input data (`x`, `y`) using `kde2d` and plots
     contour lines or filled contours using either `ax.contour` or
@@ -426,54 +442,69 @@ def contour(x, y, ax, levels=20, contour_method='contour',
         1D array of x-values for the dataset.
     y : array-like
         1D array of y-values for the dataset.
-    ax : matplotlib.axes.Axes or mpl_toolkits.mplot3d.axes3d.Axes3D
+    ax : matplotlib.axes.Axes | mpl_toolkits.mplot3d.axes3d.Axes3D
         Axis on which to draw the contours.
-    levels : int or array-like, default=20
-        Number or list of contour levels to draw.
-    contour_method : {'contour', 'contourf'}, default='contour'
-        Method used to draw contours. 'contour' draws lines, while
-        `'contourf'` draws filled contours.
-    bw_method : str, scalar or callable, optional, default='scott'
+    levels : int | array-like | _Unset, optional, default=_UNSET
+        Number or list of contour levels to draw. If `_UNSET`,
+        uses `config.contour.levels`.
+    contour_method : {'contour', 'contourf'} | _Unset, optional, default=_UNSET
+        Method used to draw contours. `'contour'` draws lines, while
+        `'contourf'` draws filled contours. If `_UNSET`, uses
+        `config.contour.method`.
+    bw_method : str | float | Callable | _Unset, optional, default=_UNSET
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
-        - `'scott'` or `'silverman'`: use standard rules of thumb.
-        - a scalar constant: directly used as the bandwidth factor.
-        - a callable: should take a `scipy.stats.gaussian_kde` instance as its
+
+        * `'scott'` or `'silverman'`: use standard rules of thumb.
+        * a scalar constant: directly used as the bandwidth factor.
+        * a callable: should take a `scipy.stats.gaussian_kde` instance as its
             sole argument and return a scalar bandwidth factor.
-    gridsize : int, default=200
+
+    gridsize : int | _Unset, optional, default=_UNSET
         Number of grid points used per axis for density estimation.
-    padding : float, default=0.2
+        If `_UNSET`, uses `config.contour.gridsize`.
+    padding : float | _Unset, optional, default=_UNSET
         Fractional padding applied to the data range when generating
-        the KDE grid.
-    cslabel : bool, default=False
-        If True, label contour levels with their corresponding values.
-        Only works in 2D plots.
-    zdir : {'x', 'y', 'z'} or None, default=None
+        the KDE grid. If `_UNSET`, uses `config.contour.padding`.
+    cslabel : bool | _Unset, optional, default=_UNSET
+        If `True`, label contour levels with their corresponding values.
+        Only works in 2D plots. If `_UNSET`, uses `config.contour.clabel`.
+    zdir : {'x', 'y', 'z'} | None, default=None
         Direction normal to the plane where contours are drawn.
         If None, contours are plotted in 2D.
     offset : float or None, default=None
         Offset along the `zdir` direction for projecting contours in 3D space.
-    cmap : str, optional, default=config.cmap
-        Colormap used for plotting contours.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `fontsize` : float, default=`config.fontsize`
-            Fontsize of contour labels.
+    cmap : Colormap | str | _Unset, optional, default=_UNSET
+        Colormap used for plotting contours. If `_UNSET`,
+        uses `config.cmap`.
+    fontsize : float, optional, default=config.fontsize
+        Fontsize of contour labels.
 
     Returns
     -------
-    cs : `matplotlib.contour.QuadContourSet` or `mpl_toolkits.mplot3d.art3d.QuadContourSet3D`
+    cs : matplotlib.contour.QuadContourSet | mpl_toolkits.mplot3d.art3d.QuadContourSet3D
         The contour set object created by Matplotlib.
     """
-    # ---- KWARGS ----
-    fontsize = kwargs.get('fontsize', config.fontsize)
-    cmap = get_config_value(cmap, 'cmap')
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('levels', levels, config.contour.levels),
+            _param('contour_method', contour_method, config.contour.method),
+            _param('bw_method', bw_method, config.contour.bw_method),
+            _param('gridsize', gridsize, config.contour.gridsize),
+            _param('padding', padding, config.contour.padding),
+            _param('cslabel', cslabel, config.contour.clabel),
+            _param('cmap', cmap, config.cmap),
+        ],
+        additional_kwargs=[
+            _kwarg('fontsize', config.fontsize),
+            _kwarg('bad_color', None),
+        ]
 
-    c_method = contour_method.lower()
+    )
+    cmap = get_cmap(params.cmap, params.bad_color)
+
+    c_method = params.contour_method.lower()
     contour_methods = {
         'contour': ax.contour,
         'contourf': ax.contourf
@@ -481,17 +512,12 @@ def contour(x, y, ax, levels=20, contour_method='contour',
     contour_func = contour_methods.get(c_method, ax.contour)
     c_method_name = c_method if c_method in contour_methods else 'contour'
 
-    contour_method = {
-        'contour': ax.contour,
-        'contourf': ax.contourf
-    }.get(contour_method.lower(), ax.contour)
-
     # compute kde density
     X, Y, Z = kde2d(
         x, y,
-        bw_method=bw_method,
-        gridsize=gridsize,
-        padding=padding,
+        bw_method=params.bw_method,
+        gridsize=params.gridsize,
+        padding=params.padding,
         xlim=xlim, ylim=ylim
     )
 
@@ -502,23 +528,33 @@ def contour(x, y, ax, levels=20, contour_method='contour',
     valid_zdirs = {'x', 'y', 'z'}
     zdir = zdir.lower() if isinstance(zdir, str) else None
     if zdir in valid_zdirs and offset is not None:
-        if zdir == 'z':
-            cs = contour_func(
-                X, Y, Z, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
-            )
-        elif zdir == 'y':
-            cs = contour_func(
-                X, Z, Y, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
-            )
-        else:
-            cs = contour_func(
-                Z, Y, X, levels=levels, cmap=cmap, zdir=zdir, offset=offset, zorder=zorder
-            )
-    else:
-        cs = contour_func(X, Y, Z, levels=levels, cmap=cmap, zorder=zorder)
+        input_data = {
+            'z': (X, Y, Z),
+            'y': (X, Z, Y),
+            'x': (Z, Y, X),
+        }.get(zdir, (X, Y, Z))
 
-    if cslabel:
-        ax.clabel(cs, fontsize=fontsize)
+        cs = contour_func(
+            *input_data,
+            levels=params.levels,
+            cmap=cmap,
+            zdir=zdir,
+            offset=offset,
+            zorder=zorder,
+            **kwargs
+        )
+
+    else:
+        cs = contour_func(
+            X, Y, Z,
+            levels=params.levels,
+            cmap=cmap,
+            zorder=zorder,
+            **kwargs
+        )
+
+    if params.cslabel:
+        ax.clabel(cs, fontsize=params.fontsize)
 
     return cs
 
@@ -526,17 +562,19 @@ def contour(x, y, ax, levels=20, contour_method='contour',
 def contourf(
     x,
     y,
-    ax,
-    levels=20,
-    bw_method: Literal['scott', 'silverman'] ='scott',
-    gridsize=200,
-    padding=0.2,
-    cslabel=False,
+    ax: maxes.Axes | Axes3D,
+    levels: int | _Unset = _UNSET,
+    bw_method: Literal['scott', 'silverman'] | float | Callable | _Unset = _UNSET,
+    gridsize: int | _Unset = _UNSET,
+    padding: float | _Unset = _UNSET,
+    cslabel: bool | _Unset = _UNSET,
     zdir=None,
     offset=None,
-    cmap=None,
+    cmap: Colormap | str | _Unset = _UNSET,
     zorder=None,
-    **kwargs,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
+    **kwargs
 ):
     """
     Filled contour wrapper around `contour`.
@@ -561,14 +599,16 @@ def contourf(
         offset=offset,
         cmap=cmap,
         zorder=zorder,
+        xlim=xlim,
+        ylim=ylim,
         **kwargs,
     )
 
 
 def _extract_xy(
-    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET
 ) -> tuple[
     float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray] | None,
     float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
