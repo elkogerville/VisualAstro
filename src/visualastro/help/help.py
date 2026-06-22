@@ -330,10 +330,10 @@ class help:
                     (4/(5*np.pi))*np.sin(5*t)+(4/(7*np.pi))*np.sin(7*t)
                 fig, ax = plt.subplots(figsize=(6,6))
                 plot(
-                    t, ft,
+                    t*u.s, ft,
                     ax=ax,
                     color='darkslateblue',
-                    xlabel='Time [s]', ylabel='Intensity Value',
+                    xlabel='Time', ylabel='Intensity Value',
                     label='Fourier Expansion'
                 )
                 ax.vlines(x=np.pi, ymin=-1, ymax=1, color='red', label='Square Wave')
@@ -383,7 +383,8 @@ class help:
         data = blob(7000, as_array=True)
         _ax.scatter3D(
             data[:,0], data[:,1], data[:,2],
-            c=number_density(data, 100), figsize=figsize,
+            c=number_density(data, 100),
+            figsize=figsize,
             plot_contours=plot_contours,
             axis_style='cube',
             **kwargs
