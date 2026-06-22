@@ -458,8 +458,8 @@ def _extract_xyz(
 
     Supported inputs:
 
-    * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D array-like: `(X, Y, Z)`.
+    * 2D array with at least 3 columns/rows, or a list of such arrays.
+    * Three 1D array-like or a list of such: `(X, Y, Z)`.
     * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
     * Three scalars: `(x, y, z)`.
 
@@ -521,6 +521,10 @@ def _extract_xyz(
     # input is tuple[Any, Any, Any]
     elif len(data) == 3:
         if all(_is_array_like(d) for d in data):
+            # input is tuple[array, array, array] where array is either
+            # NDArray or u.Quantity array
+            if (all(_is_ndarray(d) for d in data)):
+                return [tuple(data)]
             # input is tuple[Sequence[array-like], Sequence[array-like], Sequence[array-like]]
             # where array-like is all 1D
             if (
