@@ -656,7 +656,7 @@ def _cycle(data, i):
             'data must be a Sequence or NDArray! '
             f'got {type(data).__name__}'
         )
-    return data[int(i + j) % len(data)]
+    return data[int(i) % len(data)]
 
 
 @overload
