@@ -812,9 +812,9 @@ class ax:
     @staticmethod
     def scatter3D(
         *data,
-        elev: float | _Unset = 30,
-        azim: float | _Unset = 45,
-        roll: float | _Unset = 0,
+        elev: float | _Unset = _UNSET,
+        azim: float | _Unset = _UNSET,
+        roll: float | _Unset = _UNSET,
         scale: float | None = None,
         axes_off: bool = False,
         grid_lines: bool = False,
