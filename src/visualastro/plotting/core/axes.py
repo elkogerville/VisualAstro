@@ -676,21 +676,41 @@ def _format_axis_label(
     return fr'{physical_label} {unit_label}'.strip()
 
 
-
-def ax3d_axis_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -> None:
+def ax3d_axis_style(
+    ax: Axes3D,
+    style: str | None = 'cube'
+) -> None:
     """
-    Configure the bounding box style of a 3D matplotlib axes.
+    Set the spine style of a 3D matplotlib axes by drawing explicit edge lines.
+
+    Overrides matplotlib axes rendering while keeping the ticks and tick labels.
+    For this reason these styles are experimental and may break in interactive mode.
+
+    The styles are defined with respect to the default matplotlib viewing angles of
+    `elev=30`, `azim=-60`, and `roll=0`.
 
     Parameters
     ----------
     ax : Axes3D
         Target 3D axes object.
-    mode : str, optional, default='triad'
-        Box style to apply:
-        - 'triad'   : 3 edges from origin corner only (default matplotlib-like)
-        - 'cube'    : all 12 edges of the bounding box
-        - 'pillar'  : triad + 3 opposing vertical/depth edges (semi-open box)
+    style : str | None, optional, default='cube'
+        Spine layout to apply.
+
+        * `'triad'`        : 3 edges from the front-right-bottom corner (matplotlib default-like).
+        * `'floor'`        : 4 bottom edges of the bounding box.
+        * `'ceiling'`      : 4 top edges of the bounding box.
+        * `'cube'`         : all 12 edges of the bounding box.
+        * `'panel_back'`   : floor + back vertical edges + back-top edges (alias `'panel'`).
+        * `'panel_front'`  : floor + front vertical edges + front-top edges (alias `'panel_r'`).
+        * `'x_panel'`      : floor + back x-aligned top edge + right vertical edges.
+        * `'x_panel_front'`: floor + front x-aligned top edge + left vertical edges (alias `'x_panel_r'`).
+        * `'y_panel'`      : floor + back y-aligned top edge + left vertical edges.
+        * `'y_panel_front'`: floor + front y-aligned top edge + right vertical edges (alias `'y_panel_r'`).
+
+    If `None`, uses matplotlib rendering engine.
     """
+    if style is None: return
+
     xmin, xmax = ax.get_xlim()
     ymin, ymax = ax.get_ylim()
     zmin, zmax = ax.get_zlim()
@@ -702,41 +722,56 @@ def ax3d_axis_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -
     color = ax.spines['left'].get_edgecolor()
     lw = ax.spines['left'].get_linewidth()
 
+    x_top_front = ([xmin, xmax], [ymin, ymin], [zmax, zmax])
+    x_top_back = ([xmin, xmax], [ymax, ymax], [zmax, zmax])
+    x_bottom_front = ([xmin, xmax], [ymin, ymin], [zmin, zmin])
+    x_bottom_back = ([xmin, xmax], [ymax, ymax], [zmin, zmin])
+
+    y_top_front = ([xmax, xmax], [ymin, ymax], [zmax, zmax])
+    y_top_back = ([xmin, xmin], [ymin, ymax], [zmax, zmax])
+    y_bottom_front = ([xmax, xmax], [ymin, ymax], [zmin, zmin])
+    y_bottom_back = ([xmin, xmin], [ymin, ymax], [zmin, zmin])
+
+    z_center_front = ([xmax, xmax], [ymin, ymin], [zmin, zmax])
+    z_center_back = ([xmin, xmin], [ymax, ymax], [zmin, zmax])
+    z_left = ([xmin, xmin], [ymin, ymin], [zmin, zmax])
+    z_right = ([xmax, xmax], [ymax, ymax], [zmin, zmax])
+
+    triad = [x_bottom_front, y_bottom_front, z_right]
+    floor = [x_bottom_front, x_bottom_back, y_bottom_front, y_bottom_back]
+    ceiling = [x_top_front, x_top_back, y_top_front, y_top_back]
+    sides = [z_center_front, z_center_back, z_left, z_right]
+    panel_back = [*floor, x_top_back, y_top_back, z_left, z_right, z_center_back]
+    panel_front = [*floor, x_top_front, y_top_front, z_left, z_right, z_center_front]
+    x_panel_back = [*floor, x_top_back, z_center_back, z_right]
+    x_panel_front = [*floor, x_top_front, z_center_front, z_left]
+    y_panel_back = [*floor, y_top_back, z_center_back, z_left]
+    y_panel_front = [*floor, y_top_front, z_center_front, z_right]
+    cube = [*floor, *ceiling, *sides]
+
+    axis_modes = {
+        'triad': triad,
+        'floor': floor,
+        'ceiling': ceiling,
+        'panel': panel_back,
+        'panel_r': panel_front,
+        'panel_back': panel_back,
+        'panel_front': panel_front,
+        'x_panel': x_panel_back,
+        'x_panel_r': x_panel_front,
+        'x_panel_front': x_panel_front,
+        'y_panel': y_panel_back,
+        'y_panel_r': y_panel_front,
+        'y_panel_front': y_panel_front,
+        'cube': cube,
+    }
+    edges = axis_modes.get(style, None)
+    if edges is None: return
+
     ax.xaxis.line.set_linewidth(0)
     ax.yaxis.line.set_linewidth(0)
-    ax.zaxis.line.set_linewidth(0)
-
-    # original
-    triad = [
-        ([xmin, xmax], [ymin, ymin], [zmin, zmin]),  # x-axis
-        ([xmax, xmax], [ymin, ymax], [zmin, zmin]),  # y-axis
-        ([xmax, xmax], [ymax, ymax], [zmin, zmax]),  # z-axis
-    ]
-    semi = [
-        # x-axis
-        ([xmin, xmax], [ymax, ymax], [zmin, zmin]),
-        ([xmin, xmax], [ymax, ymax], [zmax, zmax]),
-        # y-axis
-        ([xmin, xmin], [ymin, ymax], [zmin, zmin]),
-        ([xmin, xmin], [ymin, ymax], [zmax, zmax]),
-        # z-axis
-        ([xmin, xmin], [ymax, ymax], [zmin, zmax]),
-        ([xmin, xmin], [ymin, ymin], [zmin, zmax]),
-    ]
-    cube = [
-        ([xmin, xmax], [ymin, ymin], [zmax, zmax]), # x-axis
-        ([xmax, xmax], [ymin, ymax], [zmax, zmax]), # y-axis
-        ([xmax, xmax], [ymin, ymin], [zmin, zmax]), # z-axis
-    ]
-
-    if mode == 'triad':
-        edges = triad
-    elif mode == 'semi':
-        edges = triad + semi
-    elif mode == 'cube':
-        edges = triad + semi + cube
-    else:
-        raise ValueError(f"Invalid mode '{mode}'. Choose from: 'triad', 'cube', 'pillar'.")
+    if not style == 'floor' and not style == 'ceiling':
+        ax.zaxis.line.set_linewidth(0)
 
     for xs, ys, zs in edges:
         ax.plot(xs, ys, zs, lw=lw, color=color, zorder=config.zorder.axes)
