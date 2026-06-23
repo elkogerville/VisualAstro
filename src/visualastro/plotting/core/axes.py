@@ -340,7 +340,7 @@ def gridspec(
                           width_ratios=width_ratios,
                           height_ratios=height_ratios)
     axs = gs.subplots(sharex=sharex, sharey=sharey)
-    axs = np.atleast_1d(axs).ravel()
+    axs = np.atleast_1d(np.asarray(axs)).ravel()
 
     for i in range(Nx):
         for j in range(Ny):
