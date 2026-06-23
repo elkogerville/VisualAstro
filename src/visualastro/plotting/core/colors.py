@@ -232,7 +232,9 @@ def get_colors(
     colors = _get_colors(colors, cmap, transform=transform, factor=factor, fmt=fmt)
     if cvd_type is not None:
         colors = simulate_colorblindness(colors, cvd_type=cvd_type, severity=severity)
-    return colors
+
+    modulo_idx = config.color_cycle_idx % len(colors)
+    return colors[modulo_idx:] + colors[:modulo_idx]
 
 
 def _get_colors(
