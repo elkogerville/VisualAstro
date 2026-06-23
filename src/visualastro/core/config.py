@@ -229,7 +229,7 @@ class VisualAstroConfig(PrettyRepr):
     rasterized: bool = False # rasterize plot artists wherever possible
     show_plot: bool = True
     elev: float = 30
-    azim: float = 45
+    azim: float = -60
     roll: float = 0
     pane_color: ColorType = 'white'
     autoscale: bool = True
