@@ -379,6 +379,9 @@ class help:
         figsize: tuple[float, float] = (6,6),
         plot_contours: Literal['x', 'y', 'z', 'all'] = 'all',
         axis_style='cube',
+        elev=30,
+        azim=-60,
+        roll=0,
         **kwargs
     ) -> None:
         data = blob(7000, as_array=True)
@@ -388,7 +391,7 @@ class help:
             figsize=figsize,
             plot_contours=plot_contours,
             axis_style=axis_style,
-            azim=120, elev=20,
+            elev=elev, azim=azim, roll=roll,
             **kwargs
         )
 
