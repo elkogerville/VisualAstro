@@ -811,7 +811,7 @@ class ax:
 
     @staticmethod
     def scatter3D(
-        *data,
+        *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
         elev: float | _Unset = _UNSET,
         azim: float | _Unset = _UNSET,
         roll: float | _Unset = _UNSET,
