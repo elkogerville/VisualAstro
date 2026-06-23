@@ -275,15 +275,15 @@ def gridspec(
         uses `config.axes.sharey`.
     hspace : float | None | _Unset, optional, default=`_UNSET`
         Height padding between subplots. If `None`,
-        Matplotlib’s default spacing is used. If `_UNSET`,
+        Matplotlib's default spacing is used. If `_UNSET`,
         uses `config.axes.hspace`.
     wspace : float | None | _Unset, optional, default=`_UNSET`
         Width padding between subplots. If `None`,
-        Matplotlib’s default spacing is used. If `_UNSET`,
+        Matplotlib's default spacing is used. If `_UNSET`,
         uses `config.axes.wspace`.
     width_ratios : ArrayLike | None, optional, default=None
         ArrayLike of length `ncols` defining the width padding between
-        subplots. If `None`, Matplotlib’s default spacing is used.
+        subplots. If `None`, Matplotlib's default spacing is used.
         Defines the relative widths of the columns. Each column gets a
         relative width of `width_ratios[i] / sum(width_ratios)`. If not
         given, all columns will have the same width.
@@ -358,80 +358,6 @@ def gridspec(
             ax.set_box_aspect(aspect)
 
     return fig, axs
-
-
-def add_subplot(
-    *args : int | tuple[int, int, int],
-    fig: Figure | None = None,
-    figsize : tuple[float, float] | _Unset = _UNSET,
-    projection: str | None = None,
-    return_fig:  bool = False,
-    **kwargs
-) -> maxes.Axes | tuple[Figure, maxes.Axes]:
-    """
-    Add a subplot to a figure, optionally creating a new figure.
-
-    Parameters
-    ----------
-    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
-        The position of the subplot described by one of:
-
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
-
-    fig : matplotlib.figure.Figure or None, optional, default=None
-        Existing figure to add the subplot to. If None,
-        a new figure is created.
-    figsize : tuple of float, optional, default=None
-        Figure size in inches. If None, uses `config.figsize`.
-    projection : str or None, optional, default=None
-        Projection type for the subplot. Examples include WCSAxes or
-        {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
-        'rectilinear', str}. If None, defaults to 'rectilinear'.
-    return_fig : bool, optional, default=False
-        If True, return both `(fig, ax)`. Otherwise return only `ax`.
-
-    **kwargs
-        Additional keyword arguments passed directly to
-        `matplotlib.figure.Figure.add_subplot`. This allows supplying any
-        subplot or axes-related parameters supported by Matplotlib (e.g.,
-        `aspect`, `facecolor`, etc.).
-
-    Returns
-    -------
-    ax : matplotlib.axes.Axes
-        The created or retrieved subplot axes.
-    fig : matplotlib.figure.Figure, optional
-        The figure object containing the subplot.
-        Returned only if `return_fig=True`.
-
-    Examples
-    --------
-    Create a new figure and subplot:
-    >>> fig, ax = add_subplot(return_fig=True)
-
-    Add a subplot to an existing figure:
-    >>> fig = plt.figure()
-    >>> ax = add_subplot(121, fig=fig)
-
-    Create a 3D subplot:
-    >>> fig, ax = add_subplot(projection='3d', return_fig=True)
-    """
-    figsize = _resolve_default(figsize, config.figsize)
-
-    if fig is None:
-        fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(*args, projection=projection, **kwargs)
-
-    return (fig, ax) if return_fig else ax
 
 
 def set_axis_limits(
@@ -815,3 +741,40 @@ def ax3d_axis_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -
 
     for xs, ys, zs in edges:
         ax.plot(xs, ys, zs, lw=lw, color=color, zorder=config.zorder.axes)
+
+
+def ax3d_pane_color(
+    pane_color: ColorType | tuple[ColorType, ColorType, ColorType],
+    ax: Axes3D
+) -> None:
+    """
+    Set 3D plot pane color.
+
+    Parameters
+    ----------
+    pane_color: ColorType | tuple[ColorType, ColorType, ColorType]
+        Either color for all panels or a tuple of X, Y, Z panel colors.
+    ax : Axes3D
+        3D axes instance on which to set panel colors.
+
+    Examples
+    --------
+    # set all pane colors to red
+    >>> fig = plt.figure(figsize=figsize, **kwargs)
+    >>> ax = fig.add_subplot(*args, projection='3d')
+    >>> ax3d_border_color('r', ax)
+
+    # set each x,y,z color separately
+    >>> fig = plt.figure(figsize=figsize, **kwargs)
+    >>> ax = fig.add_subplot(*args, projection='3d')
+    >>> ax3d_border_color(('r', 'g', 'b'), ax)
+    """
+    colors = to_list(pane_color)
+    if len(colors) >= 3:
+        colors = [as_color(get_colors(c), fmt='rgba') for c in colors]
+    else:
+        colors = [colors[0]]*3
+
+    ax.xaxis.set_pane_color(colors[0])
+    ax.yaxis.set_pane_color(colors[1])
+    ax.zaxis.set_pane_color(colors[2])
