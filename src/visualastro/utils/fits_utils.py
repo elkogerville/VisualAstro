@@ -22,8 +22,8 @@ def _copy_headers(headers: Header) -> Header: ...
 def _copy_headers(headers: Sequence[Header]) -> list[Header]: ...
 
 def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
-    '''
-    Copy a single or list of fits.Header.
+    """
+    Copy a single or list of `fits.Header`.
 
     Parameters
     ----------
@@ -33,14 +33,14 @@ def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
     Returns
     -------
     fits.Header or list of fits.Header
-    '''
+    """
 
     if isinstance(headers, Header):
         return headers.copy()
 
     elif (
         isinstance(headers, (list, np.ndarray, tuple))
-        and isinstance(headers[0], Header)
+        and all(isinstance(header, Header) for header in headers)
     ):
         return [hdu.copy() for hdu in headers]
 
@@ -51,7 +51,7 @@ def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
 
 
 def _get_history(header):
-    '''
+    """
     Get `HISTORY` cards from a Header as a list.
 
     Parameters
@@ -63,7 +63,7 @@ def _get_history(header):
     -------
     list or None :
         all `HISTORY` cards or None if no entries.
-    '''
+    """
     if not isinstance(header, Header) or 'HISTORY' not in header:
         return None
 
@@ -76,7 +76,7 @@ def _get_history(header):
 
 
 def _log_history(header, description):
-    '''
+    """
     Add a `HISTORY` entry to header
     in place. A timestamp is included.
     If `header` is a list of Headers,
@@ -89,7 +89,7 @@ def _log_history(header, description):
         Header for logging a `HISTORY` card.
     description : str
         Description of log.
-    '''
+    """
     timestamp = Time.now().isot
     log = f'{timestamp} {description}'
 
@@ -106,14 +106,14 @@ def _log_history(header, description):
 
 
 def _remove_history(header):
-    '''
-    Remove any `HISTORY` cards from a header in place.
+    """
+    Remove all `HISTORY` cards from a header in place.
 
     Parameters
     ----------
     header : fits.Header or list of fits.Header
         Header(s) with `HISTORY` cards to remove.
-    '''
+    """
     if isinstance(header, (list, tuple, np.ndarray)):
         for h in header:
             _remove_history(h)
@@ -124,7 +124,7 @@ def _remove_history(header):
 
 
 def _transfer_history(header1, header2):
-    '''
+    """
     Transfer `HISTORY` cards from one header (header1)
     to another (header2). If header2 is a list of headers,
     the HISTORY is written to header2[0].
@@ -142,7 +142,7 @@ def _transfer_history(header1, header2):
     -------
     header2 : Header
         Fits Header with updated `HISTORY`.
-    '''
+    """
     # get logs from header 1
     hdr1_history = _get_history(header1)
 
@@ -187,7 +187,7 @@ def _region_to_history(region: SpectralRegion) -> str:
 
 
 def _update_header_key(key, value, header, primary_header=None):
-    '''
+    """
     Update header(s) in place with a new key-value pair.
 
     Parameters
@@ -205,7 +205,7 @@ def _update_header_key(key, value, header, primary_header=None):
     Returns
     -------
     None
-    '''
+    """
     try:
         value_str = value.to_string()
     except AttributeError:
