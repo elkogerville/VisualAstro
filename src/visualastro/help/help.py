@@ -378,15 +378,17 @@ class help:
     def scatter3D(
         figsize: tuple[float, float] = (6,6),
         plot_contours: Literal['x', 'y', 'z', 'all'] = 'all',
+        axis_style='cube',
         **kwargs
     ) -> None:
         data = blob(7000, as_array=True)
         _ax.scatter3D(
             data[:,0], data[:,1], data[:,2],
-            c=number_density(data, 100),
+            c=number_density(data, 1000),
             figsize=figsize,
             plot_contours=plot_contours,
-            axis_style='cube',
+            axis_style=axis_style,
+            azim=120, elev=20,
             **kwargs
         )
 
