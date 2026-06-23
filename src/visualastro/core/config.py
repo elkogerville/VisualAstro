@@ -58,6 +58,7 @@ class AxesConfig(PrettyRepr):
 
 @dataclass(slots=True, repr=False)
 class ZorderLayers(PrettyRepr):
+    axes: float = 0
     gridlines: float = 10
     wcs_grid: float = 11
     contourf: float = 20
@@ -67,7 +68,6 @@ class ZorderLayers(PrettyRepr):
     hlines: float = 60
     regions: float = 70
     text: float = 90
-    axes: float = 100
 
 @dataclass(slots=True, repr=False)
 class AXLineConfig(PrettyRepr):
@@ -215,7 +215,7 @@ class VisualAstroConfig(PrettyRepr):
     figsize: tuple = (6, 6)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     figsize_gridspec: tuple = (12, 6)
-    figsize3D: tuple = (8, 8)
+    figsize3D: tuple = (7, 7)
     # if _UNSET, defaults to `self.default_colorset`.
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.

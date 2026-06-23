@@ -691,7 +691,6 @@ def ax3d_axis_style(ax: Axes3D, mode: Literal['triad', 'semi', 'cube']='cube') -
         - 'cube'    : all 12 edges of the bounding box
         - 'pillar'  : triad + 3 opposing vertical/depth edges (semi-open box)
     """
-
     xmin, xmax = ax.get_xlim()
     ymin, ymax = ax.get_ylim()
     zmin, zmax = ax.get_zlim()
