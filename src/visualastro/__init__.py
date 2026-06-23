@@ -103,10 +103,14 @@ from visualastro.plotting.core.colors import (
 )
 from visualastro.plotting.core.axes import (
     add_subplot,
+    add_ax3d,
     ax3d,
+    ax3d_axis_style,
+    ax3d_border_color,
     gridspec,
     set_axis_labels,
     set_axis_limits,
+    subplot,
 )
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,

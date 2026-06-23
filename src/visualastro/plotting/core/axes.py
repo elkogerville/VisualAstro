@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-06-02
+Date Modified: 2026-06-22
 Description:
     Functions related to matplotlib axes.
 """
@@ -10,9 +10,10 @@ from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
-from matplotlib.figure import Figure
+from matplotlib.figure import Figure, SubFigure
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import ArrayLike
@@ -28,12 +29,126 @@ from visualastro.core.numerical_utils import (
     flatten,
     get_value,
     _is_iterable,
+    to_list,
 )
 from visualastro.core.units import (
     get_physical_type,
     get_unit_label,
     _infer_physical_type_label,
 )
+from visualastro.plotting.core.colors import as_color, get_colors
+
+
+def subplot(
+    *args : int | tuple[int, int, int],
+    figsize : tuple[float, float] | _Unset = _UNSET,
+    projection: str | None = None,
+    **kwargs
+) -> tuple[Figure, maxes.Axes]:
+    """
+    Create a 3D plot instance.
+
+    Parameters
+    ----------
+    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
+        The position of the subplot described by one of:
+
+        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+        take the *index* position on a grid with *nrows* rows and *ncols* columns.
+        *index* starts at 1 in the upper left corner and increases to the right.
+        *index* can also be a two-tuple specifying the (*first*, *last*) indices
+        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        makes a subplot that spans the upper 2/3 of the figure.
+        * A 3-digit integer. The digits are interpreted as if given separately as
+        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+        Note that this can only be used if there are no more than 9 subplots.
+
+    figsize : tuple[float, float]
+        Figure size. If `_UNSET`, uses `config.figsize`.
+    projection : str | None, optional, default=None
+        The projection type of the subplot. Can be one of the accepted values:
+        `'aitoff'`, `'hammer'`, `'lambert'`, `'mollweide'`, `'polar'`, `'rectilinear'`.
+        If `None`, uses `'rectilinear'` projection.
+    **kwargs :
+        Additional keyword arguments passed to `plt.figure`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure instance.
+    ax : matplotlib.axes.Axes
+        Axes instance.
+    """
+    figsize = _resolve_default(figsize, config.figsize)
+
+    fig = plt.figure(figsize=figsize, **kwargs)
+    ax = fig.add_subplot(*args, projection=projection)
+
+    return fig, ax
+
+
+def add_subplot(
+    *args : int | tuple[int, int, int],
+    ax: maxes.Axes | None = None,
+    fig: Figure | SubFigure | None = None,
+    projection: str | None = None,
+    **kwargs
+) -> maxes.Axes | tuple[Figure, maxes.Axes]:
+    """
+    Add a subplot to a figure, optionally creating a new figure.
+
+    Parameters
+    ----------
+    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
+        The position of the subplot described by one of:
+
+        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+        take the *index* position on a grid with *nrows* rows and *ncols* columns.
+        *index* starts at 1 in the upper left corner and increases to the right.
+        *index* can also be a two-tuple specifying the (*first*, *last*) indices
+        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        makes a subplot that spans the upper 2/3 of the figure.
+        * A 3-digit integer. The digits are interpreted as if given separately as
+        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+        Note that this can only be used if there are no more than 9 subplots.
+
+    ax : Axes | None, optional, default=None
+        Axes instance. Either `ax` or `fig` should be provided.
+    fig : Figure | SubFigure | None, optional, default=None
+        Figure instance.  Either `ax` or `fig` should be provided.
+    projection : str or None, optional, default=None
+        Projection type for the subplot. Examples include WCSAxes or
+        {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
+        'rectilinear', str}. If None, defaults to 'rectilinear'.
+    **kwargs :
+        Additional keyword arguments passed to `fig.add_subplot`.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        Created subplot axes.
+
+    Examples
+    --------
+    Create a new figure and subplot:
+    >>> fig, ax = add_subplot(return_fig=True)
+
+    Add a subplot to an existing figure:
+    >>> fig = plt.figure()
+    >>> ax = add_subplot(121, fig=fig)
+
+    Create a 3D subplot:
+    >>> fig, ax = add_subplot(projection='3d', return_fig=True)
+    """
+    fig = ax.figure if ax is not None else fig
+    if fig is None:
+        raise ValueError(
+            'Provide at least fig or ax!'
+        )
+
+    ax = fig.add_subplot(*args, projection=projection, **kwargs)
+
+    return ax
 
 
 def ax3d(
@@ -55,7 +170,6 @@ def ax3d(
         *index* can also be a two-tuple specifying the (*first*, *last*) indices
         (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
         makes a subplot that spans the upper 2/3 of the figure.
-
         * A 3-digit integer. The digits are interpreted as if given separately as
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
@@ -78,6 +192,53 @@ def ax3d(
     ax = fig.add_subplot(*args, projection='3d')
 
     return fig, ax
+
+
+def add_ax3d(
+    *args : int | tuple[int, int, int],
+    ax: maxes.Axes | Axes3D | None = None,
+    fig: Figure | SubFigure | None = None,
+    **kwargs
+) -> Axes3D:
+    """
+    Add a 3D subplot to a figure.
+
+    Parameters
+    ----------
+    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
+        The position of the subplot described by one of:
+
+        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+        take the *index* position on a grid with *nrows* rows and *ncols* columns.
+        *index* starts at 1 in the upper left corner and increases to the right.
+        *index* can also be a two-tuple specifying the (*first*, *last*) indices
+        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        makes a subplot that spans the upper 2/3 of the figure.
+        * A 3-digit integer. The digits are interpreted as if given separately as
+        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+        Note that this can only be used if there are no more than 9 subplots.
+
+    ax : Axes | Axes3D | None, optional, default=None
+        Axes instance. Either `ax` or `fig` should be provided.
+    fig : Figure | SubFigure | None, optional, default=None
+        Figure instance.  Either `ax` or `fig` should be provided.
+    **kwargs :
+        Additional keyword arguments passed to `fig.add_subplot`.
+
+    Returns
+    -------
+    ax : mpl_toolkits.mplot3d.axes3d.Axes3D
+        Created 3D axes instance.
+    """
+    fig = ax.figure if ax is not None else fig
+    if fig is None:
+        raise ValueError(
+            'Provide at least fig or ax!'
+        )
+    ax = fig.add_subplot(*args, projection='3d', **kwargs)
+
+    return ax
+
 
 def gridspec(
     nrows: int | _Unset = _UNSET,
