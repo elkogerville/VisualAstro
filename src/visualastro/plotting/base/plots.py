@@ -1360,7 +1360,7 @@ def scatter3D(
             zlims = ax.get_zlim()
             pairs = {
                 'x': (y, z, 'x', xlims[0], (ylims, zlims)),
-                'y': (x, z, 'y', ylims[0], (xlims, zlims)),
+                'y': (x, z, 'y', ylims[1], (xlims, zlims)),
                 'z': (x, y, 'z', zlims[0], (xlims, ylims)),
             }
             if plot_contours.lower() == 'all': # type: ignore
