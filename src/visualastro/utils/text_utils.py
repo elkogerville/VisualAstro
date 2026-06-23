@@ -1,15 +1,21 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-23
-Date Modified: 2026-05-28
+Date Modified: 2026-06-16
 Description:
     Text utility functions.
 """
 
-from visualastro.core.config import config, _resolve_default
+from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
 
 
-def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
+def pretty_table(
+    headers: list[str] | None,
+    data: list[list],
+    precision: int | _Unset = _UNSET,
+    sci_notation: bool | _Unset = _UNSET,
+    pad: int | _Unset = _UNSET
+) -> str:
     """
     Format a pretty table given a 2D list of table cells. Each cell
     can be either a numerical value with or without units, a string, or None.
@@ -18,26 +24,28 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
 
     Parameters
     ----------
-    headers : list of str or None
+    headers : list[str] | None
         Names of each column. If None, skips rendering the header row
         and starts directly with the separator line.
-    data : list of lists
+    data : list[list]
         2D list containing each table cell. Should have shape
         (Nrows, Ncols). Each cell can be:
-        - Numerical value (int, float)
-        - Quantity object with units (e.g., astropy.units.Quantity)
-        - String
-        - None (renders as empty string)
-    precision : int, optional, default=None
+
+        * Numerical value (int, float)
+        * Quantity object with units (e.g., astropy.units.Quantity)
+        * String
+        * None(renders as empty string)
+
+    precision : int | _Unset, optional, default=_UNSET
         Number of decimal places for numerical formatting.
-        If None, uses `config.table_precision`.
-    sci_notation : bool, optional, default=None
-        If True, formats numbers in scientific notation (e.g., 1.23e-04).
-        If False, formats as fixed-point decimals (e.g., 0.000123).
-        If None, uses `config.table_sci_notation`.
-    pad : int, optional, default=3
+        If `_UNSET`, uses `config.table_precision`.
+    sci_notation : bool | _Unset, optional, default=_UNSET
+        If `True`, formats numbers in scientific notation (e.g., 1.23e-04).
+        If `False`, formats as fixed-point decimals (e.g., 0.000123).
+        If `_UNSET`, uses `config.table_sci_notation`.
+    pad : int | _Unset, optional, default=_UNSET
         Number of spaces between columns for visual separation.
-        If None, uses `config.table_column_pad`.
+        If `_UNSET`, uses `config.table_column_pad`.
 
     Returns
     -------
@@ -124,35 +132,42 @@ def pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
     return table
 
 
-def print_pretty_table(headers, data, precision=None, sci_notation=None, pad=None):
+def print_pretty_table(
+    headers: list[str] | None,
+    data: list[list],
+    precision: int | _Unset = _UNSET,
+    sci_notation: bool | _Unset = _UNSET,
+    pad: int | _Unset = _UNSET
+) -> None:
     """
     Format a pretty table given a 2D list of table cells and print it. Each cell
     can be either a numerical value with or without units, a string, or None.
 
     Parameters
     ----------
-    headers : list of str or None
+    headers : list[str] | None
         Names of each column. If None, skips rendering the header row
         and starts directly with the separator line.
-    data : list of lists
+    data : list[list]
         2D list containing each table cell. Should have shape
         (Nrows, Ncols). Each cell can be:
-        - Numerical value (int, float)
-        - Quantity object with units (e.g., astropy.units.Quantity)
-        - String
-        - None (renders as empty string)
-    precision : int, optional, default=None
-        Number of decimal places for numerical formatting.
-        If None, uses `config.table_precision`.
-    sci_notation : bool, optional, default=None
-        If True, formats numbers in scientific notation (e.g., 1.23e-04).
-        If False, formats as fixed-point decimals (e.g., 0.000123).
-        If None, uses `config.table_sci_notation`.
-    pad : int, optional, default=None
-        Number of spaces between columns for visual separation.
-        If None, uses `config.table_column_pad`.
-    """
 
+        * Numerical value (int, float)
+        * Quantity object with units (e.g., astropy.units.Quantity)
+        * String
+        * None(renders as empty string)
+
+    precision : int | _Unset, optional, default=_UNSET
+        Number of decimal places for numerical formatting.
+        If `_UNSET`, uses `config.table_precision`.
+    sci_notation : bool | _Unset, optional, default=_UNSET
+        If `True`, formats numbers in scientific notation (e.g., 1.23e-04).
+        If `False`, formats as fixed-point decimals (e.g., 0.000123).
+        If `_UNSET`, uses `config.table_sci_notation`.
+    pad : int | _Unset, optional, default=_UNSET
+        Number of spaces between columns for visual separation.
+        If `_UNSET`, uses `config.table_column_pad`.
+    """
     table = pretty_table(
         headers, data, precision=precision, sci_notation=sci_notation, pad=pad
     )
