@@ -46,7 +46,7 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
-from visualastro.plotting.core.axes import ax3d_axis_style
+from visualastro.plotting.core.axes import ax3d_axis_style, ax3d_pane_color
 from visualastro.plotting.core.utils import (
     contour,
     _get_zorder,
@@ -1260,16 +1260,27 @@ def scatter3D(
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
+            _kwarg('xlabel', 'X'),
+            _kwarg('ylabel', 'Y'),
+            _kwarg('zlabel', 'Z'),
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('zlim', None),
             _kwarg('autoscale', config.autoscale),
             _kwarg('contour_cmap', None),
+            _kwarg('contour_method', 'contour'),
+            _kwarg('contour_offset', None),
+            _kwarg('extend3d', False),
             _kwarg('bad_color', None),
             _kwarg('axis_style', config.ax3d_axis_style),
             _kwarg('pane_color', config.pane_color),
+            _kwarg('minor_ticks', False),
             _kwarg('rasterized', config.rasterized),
         ]
     )
-    cmap = get_cmap(params.cmap, params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
+    cmaps = to_list(params.cmap)
+    cmaps = [get_cmap(c, params.bad_color) for c in cmaps]
+    colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
 
     markers = to_list(params.marker)
     sizes = to_list(params.size)
@@ -1279,19 +1290,10 @@ def scatter3D(
     labels = to_list(params.label)
     contour_cmaps = to_list(params.contour_cmap)
 
-    xlim = kwargs.pop('xlim', None)
-    ylim = kwargs.pop('ylim', None)
-    zlim = kwargs.pop('zlim', None)
-    plot_contour_offset = kwargs.get('contour_offset', None)
-    xlabel = kwargs.pop('xlabel', 'X')
-    ylabel = kwargs.pop('ylabel', 'Y')
-    zlabel = kwargs.pop('zlabel', 'Z')
-    minor_ticks = kwargs.pop('minor_ticks', False)
-
     plot_data = _extract_xyz(*data, order=params.array_order, index_spec=params.index_spec)
     X, Y, Z = map(list, zip(*plot_data))
-    c_list = to_list(params.c) if params.c is not None else None
 
+    c_list = to_list(params.c) if params.c is not None else None
     if not (len(X) == len(Y) == len(Z)):
         raise ValueError(
             f'`x`, `y`, and `z` must have the same number of arrays '
@@ -1312,9 +1314,9 @@ def scatter3D(
         ax.set_ylim(-scale, scale)
         ax.set_zlim(-scale, scale)
     else:
-        if xlim: ax.set_xlim(xlim)
-        if ylim: ax.set_ylim(ylim)
-        if zlim: ax.set_zlim(zlim)
+        if params.xlim: ax.set_xlim(params.xlim)
+        if params.ylim: ax.set_ylim(params.ylim)
+        if params.zlim: ax.set_zlim(params.zlim)
 
     ax.set_autoscale_on(params.autoscale)
 
@@ -1333,6 +1335,7 @@ def scatter3D(
         a = _cycle(alphas, i)
         ec = _cycle(edgecolors, i)
         fc = _cycle(facecolors, i)
+        cmap = _cycle(cmaps, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
         scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
@@ -1355,6 +1358,8 @@ def scatter3D(
         if plot_contours is not None:
             ax.set_autoscale_on(False)
 
+            plot_contours = to_list(plot_contours)
+
             xlims = ax.get_xlim()
             ylims = ax.get_ylim()
             zlims = ax.get_zlim()
@@ -1363,24 +1368,24 @@ def scatter3D(
                 'y': (x, z, 'y', ylims[1], (xlims, zlims)),
                 'z': (x, y, 'z', zlims[0], (xlims, ylims)),
             }
-            if plot_contours.lower() == 'all': # type: ignore
+            if plot_contours[0].lower() == 'all':
                 plotting_contours = ['x', 'y', 'z']
             else:
                 plotting_contours = [c.lower() for c in plot_contours]
 
-            if isinstance(plot_contour_offset, (list, tuple, np.ndarray)):
-                if len(plotting_contours) != len(plot_contour_offset):
+            if isinstance(params.contour_offset, (list, tuple, np.ndarray)):
+                if len(plotting_contours) != len(params.contour_offset):
                     raise ValueError(
                         'If `plot_contour_offset` is provided, it must have exactly '
                         'one offset per contour direction.'
                     )
-            elif isinstance(plot_contour_offset, (float, int)):
-                plot_contour_offset = [plot_contour_offset]*len(plotting_contours)
+            elif isinstance(params.contour_offset, (float, int)):
+                params.contour_offset = [params.contour_offset]*len(plotting_contours)
 
             for j, zdir in enumerate(plotting_contours):
                 try:
                     data1, data2, axis_name, offset_val, (lim1, lim2) = pairs[zdir.lower()]
-                    offset = offset_val if plot_contour_offset is None else plot_contour_offset[j]
+                    offset = offset_val if params.contour_offset is None else params.contour_offset[j]
                 except KeyError:
                     raise ValueError(
                         f"Invalid contour projection '{zdir}'. "
@@ -1393,29 +1398,28 @@ def scatter3D(
                     ax,
                     zdir=axis_name,
                     offset=offset,
+                    contour_method=params.contour_method,
                     cmap=(
                         get_cmap(_cycle(contour_cmaps, i)) if
                         _cycle(contour_cmaps, i) is not None else cmap
                     ),
                     zorder=_get_zorder(None, i, config.zorder.contour),
+                    extend3d=params.extend3d,
                     xlim=lim1,
                     ylim=lim2,
                 )
 
     if params.axis_style is not None:
-        ax3d_axis_style(ax, mode=params.axis_style)
+        ax3d_axis_style(ax, style=params.axis_style)
 
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_zlabel(zlabel)
+    ax.set_xlabel(params.xlabel)
+    ax.set_ylabel(params.ylabel)
+    ax.set_zlabel(params.zlabel)
 
-    border_color = as_color(get_colors(params.pane_color), fmt='rgba')
-    ax.xaxis.set_pane_color(border_color)
-    ax.yaxis.set_pane_color(border_color)
-    ax.zaxis.set_pane_color(border_color)
+    ax3d_pane_color(params.pane_color, ax=ax)
 
     if not grid_lines: ax.grid(False)
-    if minor_ticks:
+    if params.minor_ticks:
         for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
             axis.set_minor_locator(AutoMinorLocator())
         ax.tick_params(which='minor', direction='in', length=2, width=0.5)
