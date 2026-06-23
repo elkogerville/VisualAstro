@@ -20,15 +20,12 @@ import pytest
 from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_spectralcube
-from visualastro.core.numerical_utils import get_value
+from visualastro.core.numerical_utils import get_value, _extract_xy
 from visualastro.core.validation import allclose
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
-from visualastro.plotting.core.utils import (
-    _extract_xy,
-    _normalize_plotting_input
-)
+from visualastro.plotting.core.utils import _normalize_plotting_input
 
 
 class TestNormalizePlottingInputs:
