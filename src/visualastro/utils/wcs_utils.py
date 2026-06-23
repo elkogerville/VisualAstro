@@ -4,15 +4,6 @@ Date Created: 2025-12-06
 Date Modified: 2026-03-11
 Description:
     WCS utility functions.
-Dependencies:
-    - astropy
-    - numpy
-    - reproject
-    - spectral-cube
-    - tqdm
-Module Structure:
-    - Data Transformations
-        Lightweight data class for fits files.
 """
 
 from collections.abc import Sequence

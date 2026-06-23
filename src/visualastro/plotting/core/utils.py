@@ -27,7 +27,7 @@ import matplotlib.style as mplstyle
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 
 from visualastro.core.config import (
