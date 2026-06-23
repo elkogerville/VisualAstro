@@ -43,6 +43,7 @@ from visualastro.core.numerical_utils import (
     get_value,
     to_list,
     _cycle,
+    _extract_xy,
     _is_1d,
     _is_2d,
     _is_iterable,
@@ -605,131 +606,10 @@ def contourf(
     )
 
 
-def _extract_xy(
+def _normalize_plotting_inputs(
     *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET
-) -> tuple[
-    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray] | None,
-    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
-]:
-    """
-    Extract X and Y coordinates from flexible numeric inputs.
-
-    Interprets input based on dimensionality and structure. For 2D arrays,
-    extracts columns according to `order` and `index_spec`. Returns X as None
-    if only Y values are detected.
-
-    This function is used by `_normalize_plotting_input(s)`.
-
-    Parameters
-    ----------
-    *data : tuple
-        Input data. Supported forms:
-
-        * Single argument:
-            * 1D array-like or Quantity: Y values, X = None
-            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
-            * list/tuple of scalars: Y values, X = None
-            * scalar or scalar Quantity: single Y value, X = None
-            * Two arguments: (X, Y) pairs passed through unchanged
-
-    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
-
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
-
-        If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
-        Column extraction mode for 2D inputs.
-
-        * 'implicit': return (None, [col_0, col_1, ...])
-        * 'explicit': return (col_0, col_1)
-        * tuple (i, j): return (col_i, col_j)
-
-    Returns
-    -------
-    X : ndarray | Quantity | scalar | list | None
-        X coordinates. None indicates implicit indexing (caller should generate).
-        Type preserves input semantics.
-    Y : ndarray | Quantity | scalar | list
-        Y coordinates. Preserves input type.
-
-    Raises
-    ------
-    ValueError
-        If input has unsupported dimensionality, structure, or count.
-
-    Notes
-    -----
-    For 2D inputs with 'implicit' mode, X is returned as None and Y as a list
-    of column arrays, delegating index generation to the caller.
-    """
-    array_order = _resolve_default(order, config.array_order)
-
-    if len(data) == 1:
-        obj = data[0]
-        if isinstance(obj, (np.ndarray, u.Quantity)):
-            if obj.ndim == 1:
-                return None, obj
-            if obj.ndim == 2:
-                if array_order.lower() == 'c':
-                    axis = 0
-                    get_col = lambda i: obj[:, i]
-                else:
-                    axis = 1
-                    get_col = lambda i: obj[i, :]
-
-                if isinstance(index_spec, (list, tuple)):
-                    ix, iy = index_spec
-                    return get_col(ix), get_col(iy)
-                elif index_spec == 'explicit':
-                    return get_col(0), get_col(1)
-                elif index_spec == 'implicit':
-                    y = [
-                        get_col(i) for i in range(
-                            obj.shape[1] if axis == 0 else obj.shape[0]
-                        )
-                    ]
-                    return None, y
-
-        if _is_scalar(obj):
-            return None, obj
-
-        if isinstance(obj, (list, tuple)):
-            if all(_is_scalar(x) for x in obj):
-                return None, obj
-
-            if all(isinstance(x, (np.ndarray, u.Quantity)) for x in obj):
-                xlist, ylist = [], []
-                for o in obj:
-                    x, y = _extract_xy(o, order=array_order, index_spec=index_spec)
-                    xlist.append(x)
-                    ylist.append(y)
-
-                if all(x is None for x in xlist):
-                    xlist = None
-                # flatten the ylist if list[list[NDArray]]
-                if all(isinstance(y, (list, tuple)) for y in ylist):
-                    if all(_is_ndarray(item) for y in ylist for item in y):
-                        ylist = [item for sublist in ylist for item in sublist]
-
-                return xlist, ylist
-
-        raise ValueError(f'Unsupported input type {type(obj).__name__}')
-
-    if len(data) == 2:
-        return data[0], data[1]
-
-    raise ValueError(f'Expected 1 or 2 arguments, got {len(data)}')
-
-
-def _normalize_plotting_inputs(
-    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET,
     mode: Literal['plot', 'scatter'] = 'scatter'
 ):
     """
