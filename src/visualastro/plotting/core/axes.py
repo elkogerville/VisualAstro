@@ -412,7 +412,7 @@ def set_axis_limits(
     xpad_frac = kwargs.pop('xpad', config.axes.xpad)
     ypad_frac = kwargs.pop('ypad', config.axes.ypad)
 
-    if compute_limits:
+    if not compute_limits:
         return None
 
     if ax is None:
