@@ -48,7 +48,13 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"visualastro" = ["stylelib/*.mplstyle", "*.md", "LICENSE"]
+"visualastro" = [
+    "stylelib/*.mplstyle",
+    "stylelib/Fonts/**/*.ttf",
+    "stylelib/Fonts/**/LICENSE",
+    "*.md",
+    "LICENSE"
+]
 
 [tool.setuptools.exclude-package-data]
 "*" = [
