@@ -36,7 +36,7 @@ from visualastro.plotting.base.plots import (
     scatter_fit
 )
 from visualastro.plotting.core.utils import apply_style_modifiers, _get_stylepath
-from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectrum
+from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
 
@@ -224,97 +224,25 @@ class ax:
 
 
     @staticmethod
-    def plot_spectrum(extracted_spectrums=None, plot_norm_continuum=None,
-                      plot_continuum=None, emission_line=None, wavelength=None,
-                      flux=None, continuum=None, colors=None, **kwargs):
-        '''
-        Convenience wrapper for `plot_spectrum`, which visualizes extracted
-        spectra with optional continuum fits and emission-line overlays.
-
-        Initializes a Matplotlib figure and axis using the specified plotting
-        style, then calls the core `plot_spectrum` routine with the provided
-        parameters. This method is intended for rapid visualization and consistent
-        figure formatting, while preserving full configurability through **kwargs.
-
-        Parameters
-        ----------
-        extracted_spectrums : SpectrumPlus or list of SpectrumPlus, optional
-            Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
-            and `flux` must be given.
-        plot_norm_continuum : bool, optional, default=None
-            If True, plot normalized flux instead of raw flux.
-            If None, uses `plot_normalized_continuum`.
-        plot_continuum : bool, optional, default=None
-            If True, overplot continuum fit. If None, uses
-            the default value set by `config.plot_continuum_fit`.
-        emission_line : str, optional, default=None
-            Label for an emission line to annotate on the plot.
-        wavelength : array-like, optional, default=None
-            Wavelength array (required if `extracted_spectrums` is None).
-        flux : array-like, optional, default=None
-            Flux array (required if `extracted_spectrums` is None).
-        continuum : array-like, optional, default=None
-            Fitted continuum array.
-        colors : list of colors, str, or None, optional, default=None
-            Colors to use for each scatter group or dataset.
-            If None, `config.default_colorset`.
-
-        **kwargs : dict, optional
-            Additional parameters.
-
-            Supported keywords:
-
-            - `rasterized` : bool, default=`config.rasterized`
-                Whether to rasterize plot artists. Rasterization
-                converts the artist to a bitmap when saving to
-                vector formats (e.g., PDF, SVG), which can
-                significantly reduce file size for complex plots.
-            - `color` or `c` : list of colors or None, optional, default=None
-                Aliases for `colors`.
-            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
-                Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
-                Line width for the plotted lines.
-            - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
-                The alpha blending value, between 0 (transparent) and 1 (opaque).
-            - `zorders`, `zorder` : float, default=None
-                Order of line placement. If None, will increment by 1 for
-                each additional line plotted.
-            - `cmap` : str, optional, default=`config.cmap`
-                Colormap to use if `colors` is not provided.
-            - `xlim` : tuple, optional, default=None
-                Wavelength range to display.
-            - `ylim` : tuple, optional
-                Flux range to display.
-            - `labels`, `label`, `l` : str or list of str, default=None
-                Legend labels.
-            - `loc` : str, default=`config.legend.loc`
-                Location of legend.
-            - `xlabel` : str, optional
-                Label for the x-axis.
-            - `ylabel` : str, optional
-                Label for the y-axis.
-            - `text_loc` : list of float, optional, default=`config.text_loc`
-                Location for emission line annotation text in axes coordinates.
-            - unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
-                If `'round`' displays `extracted_spectrums` unit as (unit). If `'square`' as [unit].
-            - `figsize` : tuple of float, default=`config.figsize`
-                Figure size in inches.
-            - `style` : str, default=`config.style`
-                Matplotlib or visualastro style name to apply during plotting.
-                Ex: 'astro', 'classic', etc...
-            - `savefig` : bool, default=`config.savefig.enable`
-                If True, saves the figure to disk using `savefig`.
-            - `dpi` : int, default=`config.savefig.dpi`
-                Resolution (dots per inch) for saved figure.
-        '''
-        # ---- KWARGS ----
-        # figure params
+    def plot_spectra(
+        extracted_spectra=None,
+        plot_continuum=_UNSET,
+        plot_norm_continuum=_UNSET,
+        emission_line=None,
+        wavelength=None,
+        flux=None,
+        continuum=None,
+        color=_UNSET,
+        vline=None,
+        **kwargs
+    ):
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
         # savefig
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
+
+        print(plot_continuum, plot_norm_continuum)
 
         # set plot style
         style = _get_stylepath(style)
@@ -322,9 +250,19 @@ class ax:
         with plt.style.context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_spectrum(extracted_spectrums, ax, plot_norm_continuum,
-                              plot_continuum, emission_line, wavelength,
-                              flux, continuum, colors, **kwargs)
+            _ = plot_spectra(
+                extracted_spectra,
+                ax=ax,
+                plot_continuum=plot_continuum,
+                plot_norm_continuum=plot_norm_continuum,
+                emission_line=emission_line,
+                wavelength=wavelength,
+                flux=flux,
+                continuum=continuum,
+                color=color,
+                vline=vline,
+                **kwargs
+            )
 
             if savefigure:
                 savefig(dpi=dpi)

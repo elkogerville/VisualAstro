@@ -22,7 +22,9 @@ from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 
-from visualastro.core.config import get_config_value, config
+from visualastro.core.config import (
+    get_config_value, config, _resolve_default, _Unset, _UNSET
+)
 from visualastro.core.numerical_utils import (
     get_value,
     mask_within_range,
@@ -54,8 +56,10 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
         Input 1D spectrum object containing flux and spectral_axis.
     fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used for fitting the continuum.
-        - 'fit_continuum': uses `fit_continuum` with a specified window
-        - 'generic' : uses `fit_generic_continuum`
+
+        * 'fit_continuum': uses `fit_continuum` with a specified window
+        * 'generic' : uses `fit_generic_continuum`
+
     region : array-like of tuple, optional
         Spectral region(s) to include in the continuum fit when
         `fit_method='fit_continuum'`. Each region is specified as a
