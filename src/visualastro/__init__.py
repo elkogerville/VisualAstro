@@ -175,18 +175,21 @@ def _register_fonts():
     """
     Register additional fonts into matplotlib.
     To add more fonts, simply add a folder to
-    VisualAstro/src/visualastro/stylelib/Fonts
-    with .ttf or .otf files.
+    `VisualAstro/src/visualastro/stylelib/Fonts`
+    with `.ttf` or `.otf` files.
     """
-    from pathlib import Path
     import warnings
     import matplotlib.font_manager as fm
+    from visualastro.core.io import _get_src_path
 
-    package_dir = Path(__file__).parent
-    fonts_dir = package_dir / 'stylelib' / 'Fonts'
+    src = _get_src_path()
+    fonts_dir = src / 'stylelib' / 'Fonts'
 
     if not fonts_dir.exists():
-        return
+        raise NotADirectoryError(
+            'Fatal Error: Could not find font directory! '
+            'This means you probably broke visualastro...'
+        )
 
     font_files = list(fonts_dir.rglob('*.ttf')) + list(fonts_dir.rglob('*.otf'))
 
