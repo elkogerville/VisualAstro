@@ -290,6 +290,14 @@ def _get_colors(
                     factor=factor
                 )
             )
+        if 'xkcd:' + colors in mcolors.XKCD_COLORS and colors not in mcolors.CSS4_COLORS:
+            return as_list(
+                get_complimentary_colors(
+                    as_color('xkcd:' + colors, fmt),
+                    transform=transform,
+                    factor=factor
+                )
+            )
 
         else:
             return as_list(
