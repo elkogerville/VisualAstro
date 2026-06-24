@@ -7,6 +7,7 @@ Description:
 """
 
 from typing import Literal
+from importlib.resources import files
 
 import astropy.units as u
 from astropy.visualization import AsinhStretch, ImageNormalize
@@ -20,7 +21,6 @@ from scipy.spatial.distance import cdist
 from spectral_cube import SpectralCube
 
 from visualastro.analysis.image_utils import stack_cube
-from visualastro.core.io import _get_src_path
 from visualastro.core.config import (
     get_config_value,
     config,
@@ -351,10 +351,9 @@ def thorlabs_logo(
     logo_name = 'thorlabs_dark' if darkmode else 'thorlabs'
     logo = logo_name+'.png' if transparent else logo_name+'.jpg'
 
-    srcpath = _get_src_path()
-    thorpath = srcpath / 'data' / logo
+    img_path = files('visualastro') / 'data' / logo
 
-    thorlabs = plt.imread(thorpath)
+    thorlabs = plt.imread(img_path)
     if plt.rcParams['image.origin'] == 'lower':
         thorlabs = thorlabs[::-1]
 

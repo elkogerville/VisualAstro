@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visualastro"
-version = "0.1.62"
+version = "0.1.63"
 description = "Astro data analysis and plotting package"
 authors = [
     {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
@@ -52,6 +52,8 @@ where = ["src"]
     "stylelib/*.mplstyle",
     "stylelib/Fonts/**/*.ttf",
     "stylelib/Fonts/**/LICENSE",
+    "data/*.png",
+    "data/*.jpg",
     "*.md",
     "LICENSE"
 ]
