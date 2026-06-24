@@ -6,6 +6,7 @@ Description:
     Functions related to matplotlib axes.
 """
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 import astropy.units as u
@@ -16,7 +17,7 @@ import matplotlib.ticker as ticker
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.config import (
     config,
@@ -361,62 +362,124 @@ def gridspec(
 
 
 def set_axis_limits(
-    xdata=None,
-    ydata=None,
+    xdata: ArrayLike | Sequence[ArrayLike] | None = None,
+    ydata: ArrayLike | Sequence[ArrayLike] | None = None,
     *,
-    ax=None,
-    xlim=None,
-    ylim=None,
+    ax: maxes.Axes | None = None,
+    compute_limits: bool | _Unset = _UNSET,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
     **kwargs,
-) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
+) -> tuple[tuple[float, float] | None, tuple[float, float] | None] | None:
     """
     Set axis limits on a Matplotlib Axes based on data range
     and optional user-specified limits.
 
+    To disable visualastro limit computation, set `compute_limits=False`
+    or `config.axes.compute_limits=False`. This is recommended for heavy
+    plotting calls.
+
     Parameters
     ----------
-    xdata : array-like, list of array-like, or None, optional
-        X-axis data. Can be a single array, a list of arrays, or None.
+    xdata : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
+        X-axis data. Can be a single array, a sequence of arrays, or None.
         If None, the X-axis will be autoscaled unless `xlim` is provided.
     ydata : array-like, list of array-like, or None, optional
         Y-axis data. Can be a single array, a list of arrays, or None.
         If None, the Y-axis will be autoscaled unless `ylim` is provided.
     ax : matplotlib.axes.Axes
         The Axes object on which to set the limits. Required.
-    xlim : tuple of float, optional
+    compute_limits : bool | _Unset, optional, default=_UNSET
+        If `False`, does not compute any limits based on data,
+        and lets matplotlib decide axes limits. If `_UNSET`,
+        uses `config.axes.compute_limits`.
+    xlim : tuple[float, float] | None, optional, default=None
         User-defined X-axis limits. If provided, only data within this range
-        is considered when computing Y-axis limits automatically.
-    ylim : tuple of float, optional
+        is considered when computing Y-axis limits automatically. If `None`,
+        uses the whole data range.
+    ylim : tuple[float, float] | None, optional, default=None
         User-defined Y-axis limits. If provided, only data within this range
-        is considered when computing X-axis limits automatically.
-    xpad : float or None, optional, default=None
+        is considered when computing X-axis limits automatically. If `None`,
+        uses the whole data range.
+    xpad : float | None, optional, default=None
         Fractional padding to apply to X-axis limits. If None,
         uses `config.axes.xpad`.
-    ypad : float or None, optional, default=None
+    ypad : float | None, optional, default=None
         Fractional padding to apply to Y-axis limits. If None,
         uses `config.axes.ypad`.
-
-    Returns
-    -------
-    xlim_out : tuple of float
-        The X-axis limits that were applied to the Axes.
-    ylim_out : tuple of float
-        The Y-axis limits that were applied to the Axes.
-
-    Notes
-    -----
-    - If both `xdata` and `ydata` are provided as lists, they must have the same length
-        or be broadcastable (single array broadcast across multiple arrays of the other axis).
-    - Data outside user-provided `xlim` or `ylim` is ignored when computing automatic limits.
-    - Both scalar and multi-dimensional arrays are flattened before processing.
-    - If all data is `None` or empty, the corresponding axis will not be modified.
     """
-    xpad_frac = kwargs.get('xpad', config.axes.xpad)
-    ypad_frac = kwargs.get('ypad', config.axes.ypad)
+    compute_limits = _resolve_default(compute_limits, config.axes.compute_limits)
+    xpad_frac = kwargs.pop('xpad', config.axes.xpad)
+    ypad_frac = kwargs.pop('ypad', config.axes.ypad)
+
+    if compute_limits:
+        return None
 
     if ax is None:
         raise ValueError('ax must be an axes instance')
 
+    xvals, yvals = _extract_xy_within_bounds(xdata, ydata, xlim=xlim, ylim=ylim)
+    xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax)
+
+    if xlim is None and xvals is not None:
+        xmin, xmax = np.nanmin(xvals), np.nanmax(xvals)
+        if xmin == xmax:
+            xpad = (
+                abs(xmin) * xpad_frac if xmin != 0 else
+                (xpad_frac if xpad_frac > 0 else 0.1)
+            )
+        else:
+            xpad = xpad_frac * (xmax - xmin)
+        xlim = (xmin - xpad, xmax + xpad)
+
+    if ylim is None and yvals is not None:
+        ymin, ymax = np.nanmin(yvals), np.nanmax(yvals)
+        if ymin == ymax:
+            ypad = (
+                abs(ymin) * ypad_frac if ymin != 0 else
+                (ypad_frac if ypad_frac > 0 else 0.1)
+            )
+        else:
+            ypad = ypad_frac * (ymax - ymin)
+        ylim = (ymin - ypad, ymax + ypad)
+
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
+    return xlim, ylim
+
+
+def _extract_xy_within_bounds(
+    xdata,
+    ydata,
+    *,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None
+) -> tuple[NDArray | None, NDArray | None]:
+    """
+    Extracts the xy values of `xdata` and `ydata` within the bounds `xlim`
+    and `ylim`.
+
+    Helper function for `visualastro.plotting.core.axes.set_axis_limits`.
+
+    Parameters
+    ----------
+    xdata, ydata : np.ndarray | Sequence[np.ndarray] :
+        X and Y values to extract.
+    xlim : tuple[float, float] | None, optional, default=None
+        User-defined X-axis limits. If provided, only data within this range
+        is considered when computing Y-axis limits automatically. If `None`,
+        uses the whole data range.
+    ylim : tuple[float, float] | None, optional, default=None
+        User-defined Y-axis limits. If provided, only data within this range
+        is considered when computing X-axis limits automatically. If `None`,
+        uses the whole data range.
+
+    Returns
+    -------
+    tuple[np.ndarray | None, np.ndarray | None] :
+        Array of X/Y values if `xdata`/`ydata` is provided, else `None`.
+    """
     if xdata is not None and ydata is not None:
         if not _is_iterable(xdata):
             xdata = as_list(xdata)
@@ -471,35 +534,72 @@ def set_axis_limits(
                 mask = (yvals >= get_value(ylim[0])) & (yvals <= get_value(ylim[1]))
                 yvals = yvals[mask] if np.any(mask) else yvals
 
-    if xlim is None and xvals is not None and len(xvals) > 0:
-        xmin, xmax = np.nanmin(xvals), np.nanmax(xvals)
-        if xmin == xmax:
-            xpad = (
-                abs(xmin) * xpad_frac if xmin != 0 else
-                (xpad_frac if xpad_frac > 0 else 0.1)
-            )
-        else:
-            xpad = xpad_frac * (xmax - xmin)
-        xlim = (xmin - xpad, xmax + xpad)
+    return xvals, yvals
 
-    if ylim is None and yvals is not None and len(yvals) > 0:
-        ymin, ymax = np.nanmin(yvals), np.nanmax(yvals)
-        if ymin == ymax:
-            ypad = (
-                abs(ymin) * ypad_frac if ymin != 0 else
-                (ypad_frac if ypad_frac > 0 else 0.1)
-            )
-        else:
-            ypad = ypad_frac * (ymax - ymin)
-        ylim = (ymin - ypad, ymax + ypad)
 
-    if xlim is not None:
-        ax.set_xlim(xlim)
+def _add_bounds_from_ax(
+    xvals: NDArray | None,
+    yvals: NDArray | None,
+    ax: maxes.Axes
+) -> tuple[NDArray | None, NDArray | None]:
+    """
+    Add current axes bounds from an ax instance to
+    existing arrays containing the plotting values
+    used to determine optimal plotting limits.
 
-    if ylim is not None:
-        ax.set_ylim(ylim)
+    Parameters
+    ----------
+    xvals, yvals : np.ndarray | None
+        Array of X and Y plotting values, or `None` if not available.
+    ax : maxes.Axes
+        Axes instance to grab existing plotting data from.
 
-    return xlim, ylim
+    Returns
+    -------
+    tuple[np.ndarray | None, np.ndarray | None] :
+        Array of X and Y values if `xvals` or `yvals` is
+        not `None` or if `ax` has plotting data.
+    """
+    xy = _get_xydata_from_ax(ax)
+
+    xvals = np.empty(0) if xvals is None else xvals
+    yvals = np.empty(0) if yvals is None else yvals
+
+    if xy is not None:
+        xlim = np.nanmin(xy[:,0]), np.nanmax(xy[:,0])
+        ylim = np.nanmin(xy[:,1]), np.nanmax(xy[:,1])
+        xvals = np.append(xvals, xlim)
+        yvals = np.append(yvals, ylim)
+
+    if xvals.size == 0:
+        xvals = None
+    if yvals.size == 0:
+        yvals = None
+
+    return xvals, yvals
+
+
+def _get_xydata_from_ax(ax: maxes.Axes) -> NDArray | None:
+    """
+    Get the xy plotting data from an Axes instance.
+
+    Returns
+    -------
+    xy : np.ndarray | None
+        Array of `ndim=2` of xy plotting data, or `None`
+        if `ax` is empty.
+    """
+    segments = []
+    for line in ax.lines:
+        segments.append(line.get_xydata())
+    for col in ax.collections:
+        offsets = col.get_offsets().data
+        if len(offsets) > 0:
+            segments.append(offsets)
+
+    xy = np.vstack(segments) if segments else None
+
+    return xy
 
 
 def set_axis_labels(
