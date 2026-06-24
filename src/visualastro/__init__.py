@@ -182,16 +182,15 @@ def _register_fonts():
     import warnings
     import matplotlib.font_manager as fm
 
-    from visualastro.core.io import _get_src_path
-
     src = Path(__file__).parent
     fonts_dir = src / 'stylelib' / 'Fonts'
 
     if not fonts_dir.exists():
-        raise NotADirectoryError(
-            'Fatal Error: Could not find font directory! '
-            'This means you probably broke visualastro...'
+        warnings.warn(
+            '[visualastro] Font directory not found. '
+            'Falling back to matplotlib default fonts.'
         )
+        return
 
     font_files = list(fonts_dir.rglob('*.ttf')) + list(fonts_dir.rglob('*.otf'))
 
