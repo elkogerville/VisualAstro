@@ -579,7 +579,7 @@ def extract_cube_pixel_spectra(
             colors = sample_cmap(n_plot, cmap)
 
         for i in tqdm(range(len(spectra)), desc='plotting'):
-            plot_spectrum(
+            plot_spectra(
                 spectra[i],
                 ax,
                 color=[colors[i]],
@@ -590,7 +590,7 @@ def extract_cube_pixel_spectra(
         fluxes = [spec.flux for spec in spectra]
 
         if combine_spectra and isinstance(combined_spec, SpectrumPlus):
-            plot_spectrum(
+            plot_spectra(
                 combined_spec,
                 ax,
                 color='k',
@@ -807,9 +807,19 @@ def plot_extracted_pixel_map(
 
 # Spectra Plotting Functions
 # --------------------------
-def plot_spectrum(extracted_spectra=None, ax=None, plot_norm_continuum=None,
-                  plot_continuum=None, emission_line=None, wavelength=None,
-                  flux=None, continuum=None, colors=_UNSET, vline=None, **kwargs):
+def plot_spectra(
+    extracted_spectra=None,
+    ax=None,
+    plot_continuum=_UNSET,
+    plot_norm_continuum=_UNSET,
+    emission_line=None,
+    wavelength=None,
+    flux=None,
+    continuum=None,
+    color=_UNSET,
+    vline=None,
+    **kwargs
+):
     '''
     Plot one or more extracted spectra on a matplotlib Axes.
 

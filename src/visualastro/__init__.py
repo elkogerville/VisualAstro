@@ -149,7 +149,7 @@ from visualastro.plotting.science.spectra_plots import (
     fit_gaussian_2_spec,
     plot_combine_spectrum,
     plot_extracted_pixel_map,
-    plot_spectrum
+    plot_spectra
 )
 from visualastro.plotting.science.spectra_plot_utils import (
     mark_spectral_lines,
