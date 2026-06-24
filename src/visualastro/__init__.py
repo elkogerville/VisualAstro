@@ -178,11 +178,13 @@ def _register_fonts():
     `VisualAstro/src/visualastro/stylelib/Fonts`
     with `.ttf` or `.otf` files.
     """
+    from pathlib import Path
     import warnings
     import matplotlib.font_manager as fm
+
     from visualastro.core.io import _get_src_path
 
-    src = _get_src_path()
+    src = Path(__file__).parent
     fonts_dir = src / 'stylelib' / 'Fonts'
 
     if not fonts_dir.exists():
