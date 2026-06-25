@@ -236,15 +236,24 @@ class ax:
         vline=None,
         **kwargs
     ):
+        """
+        Wrapper for `plot_spectra` with automatic figure creation.
+
+        See `visualastro.plotting.science.spectra_plots.plot_spectra` for full
+        documentation.
+
+        Equivalent to:
+
+            >>> spectrum = Spectrum(spectral_axis, flux)
+            >>> fig, ax = plt.subplots()
+            >>> va.plot_spectra(spectrum, idx, ax=ax, **kwargs)
+            >>> plt.show()
+        """
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
-        # savefig
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        print(plot_continuum, plot_norm_continuum)
-
-        # set plot style
         style = _get_stylepath(style)
 
         with plt.style.context(style):
