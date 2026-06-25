@@ -8,7 +8,7 @@ Description:
 
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import Any, overload
+from typing import Any, Literal, overload
 import warnings
 
 import astropy.units as u
@@ -16,7 +16,7 @@ from astropy.units import Quantity
 from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from spectral_cube import SpectralCube
 from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
@@ -111,66 +111,72 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     return fit(spectral_axis)
 
 
-def deredden_flux(wavelength, flux, Rv=None, Ebv=None,
-                  deredden_method=None, region=None):
-    '''
+def deredden_flux(
+    wavelength: ArrayLike | u.Quantity,
+    flux: ArrayLike | u.Quantity,
+    Rv: float | _Unset =_UNSET,
+    Ebv: float | _Unset =_UNSET,
+    deredden_method: Literal['G23', 'WD01', 'M14'] | _Unset = _UNSET,
+    region: str | _Unset = _UNSET
+):
+    """
     Apply extinction correction (dereddening) to a spectrum.
     Default values are for LMC parameters.
 
     Parameters
     ----------
-    wavelength : array-like
+    wavelength : ArrayLike | u.Quantity
         Wavelength array (in Angstroms, microns, or units expected by the
         extinction law being used).
-    flux : array-like
+    flux : ArrayLike | u.Quantity
         Observed flux values at the corresponding wavelengths. Must be in
         linear units (e.g., erg/s/cm^2/Å, Jy).
-    Rv : float or None, optional, default=None
+    Rv : float | _Unset, optional, default=_UNSET
         Ratio of total-to-selective extinction (A_V / E(B-V)).
-        If None, uses `config.deredden.Rv`.
-    Ebv : float or None, optional, default=None
+        If `_UNSET`, uses `config.deredden.Rv`.
+    Ebv : float | _Unset, optional, default=_UNSET
         Color excess E(B-V), representing the amount of reddening.
-        If None, uses `config.deredden.Ebv`.
-    deredden_method : {'G23', 'WD01', 'M14'} or None, optional, default=None
+        If `_UNSET, uses `config.deredden.Ebv`.
+    deredden_method : {'G23', 'WD01', 'M14'} | _Unset, optional, default=_UNSET
         Choice of extinction law:
-        - 'G23' : Gordon et al. (2023)
-        - 'WD01': Weingartner & Draine (2001)
-        - 'M14' : Maíz Apellániz et al. (2014)
-        If None, uses `config.deredden.method`.
-    region : str or None, optional, default=None
-        For WD01 extinction, the environment/region to use (e.g., 'MWAvg',
-        'LMC', 'LMCAvg', 'SMCBar'). Ignored for other methods.
-        If None, uses `config.deredden.region`.
+
+        * 'G23' : Gordon et al. (2023)
+        * 'WD01': Weingartner & Draine (2001)
+        * `'M14'` : Maíz Apellániz et al. (2014)
+
+        If `_UNSET`, uses `config.deredden.method`.
+    region : str | _Unset, optional, default=_Unset
+        For `deredden_method='WD01'` extinction: the environment/region
+        to use (e.g., `'MWAvg'`, `'LMC'`, `'LMCAvg'`, `'SMCBar'`).
+        Ignored for other methods. If `_UNSET`, uses `config.deredden.region`.
 
     Returns
     -------
     deredden_flux : array-like
         Flux array corrected for extinction.
-    '''
-    # get default config values
-    Rv = get_config_value(Rv, 'Rv')
-    Ebv = get_config_value(Ebv, 'Ebv')
-    deredden_method = get_config_value(deredden_method, 'deredden_method')
-    region = get_config_value(region, 'deredden_region')
+    """
+    Rv = _resolve_default(Rv, config.deredden.Rv)
+    Ebv = _resolve_default(Ebv, config.deredden.Ebv)
+    dered_method = str(_resolve_default(deredden_method, config.deredden.method))
+    region = _resolve_default(region, config.deredden.region)
 
-    # select appropriate dereddening method
     methods = {
         'G23': G23,
         'WD01': WD01,
         'M14': M14
     }
-    if deredden_method not in methods:
+    if dered_method not in methods:
         raise ValueError(
-            f"Unknown deredden_method '{deredden_method}'. "
+            f"Unknown deredden_method '{dered_method}'. "
             "Choose from 'G23', 'WD01', or 'M14'."
         )
-    deredden = methods[deredden_method]
+    deredden = methods[dered_method]
 
-    if deredden_method == 'WD01':
+    if dered_method == 'WD01':
         extinction = deredden(region)
     else:
         extinction = deredden(Rv=Rv)
-    # deredden flux
+
     dereddened_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
 
     return dereddened_flux
