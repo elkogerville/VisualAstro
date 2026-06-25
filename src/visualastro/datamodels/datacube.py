@@ -637,6 +637,8 @@ class DataCube:
         figsize: tuple[float, float] = (10,6),
         style: str | _Unset = _UNSET,
         peaks: Literal['mean', 'std', 'none'] | None = 'mean',
+        prominence: float | NDArray | tuple[float, float] | _Unset = _UNSET,
+        distance: float | _Unset = _UNSET,
         annotate_peaks: bool = True,
         **kwargs
     ) -> None:
@@ -662,6 +664,14 @@ class DataCube:
 
             Peak locations are identified using `scipy.signal.find_peaks`.
             Additional keyword arguments are passed directly to this function.
+        prominence : float | ndarray | tuple[float, float], optional, default=_Unset
+            Required prominence of peaks. Either a number, None, an array
+            of shape `self.data.shape[0]` or a 2-element sequence of the former.
+            The first element is always interpreted as the  minimal and the second,
+            if supplied, as the maximal required prominence. If `_Unset`,
+        distance : float | _Unset, optional, default=_UNSET
+            Required minimal horizontal distance (>= 1) in samples between neighbouring peaks.
+            Smaller peaks are removed first until the condition is fulfilled for all remaining peaks.
         annotate_peaks : bool, optional, default=True
             If `True`, will annotate the index of the peaks.
         text_color : ColorType, optional, default=config.text_color
@@ -686,12 +696,12 @@ class DataCube:
         peak_data = mean_flux if peaks == 'mean' else std_flux
 
         if peaks is not None and peaks != 'none':
-            prominence = kwargs.pop('prominence', 0.5 * np.nanstd(peak_data))
-            distance = kwargs.pop('distance', max(1, len(peak_data) // 50))
+            p = 0.5 * np.nanstd(peak_data) if prominence is _UNSET else prominence
+            d = max(1, len(peak_data) // 50) if distance is _UNSET else distance
             peak_idx, _ = find_peaks(
                 peak_data,
-                prominence=prominence,
-                distance=distance,
+                prominence=p,
+                distance=d,
                 **kwargs
             )
         else:
