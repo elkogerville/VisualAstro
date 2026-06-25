@@ -266,9 +266,9 @@ def nanpercentile_limits(
     vmax,
     *,
     slice_idx=None,
-    stack_method=None,
+    stack_method=_UNSET,
     axis=0,
-):
+) -> tuple[np.floating, np.floating]:
     """
     Compute NaN-safe percentile-based color limits.
 
@@ -280,11 +280,15 @@ def nanpercentile_limits(
         Input image or cube.
     vmin, vmax : float
         Lower and upper percentiles (0–100).
-    slice_idx : int, list of int, or None, optional, default=None
-        Optional slicing for cube-like inputs. If None,
-        is ignored.
-    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} or None, default=None
-        Reduction method if stacking is required. If None,
+    slice_idx : int | tuple[int, int] | None, optional, default=None
+        Index specification:
+
+        * int: extract single slice
+        * tuple[start, end]: extract range (inclusive)
+        * None: use entire cube
+
+    stack_method : {'mean', 'median', 'sum', 'max', 'min', 'std'} | _Unset, default=_UNSET
+        Reduction method if stacking is required. If `_UNSET`,
         uses `config.stack_cube_method`.
     axis : int, default=0
         Axis to flatten if data.ndim > 2 and no slice_idx is given.
@@ -294,7 +298,7 @@ def nanpercentile_limits(
     vmin_val, vmax_val : float
         Lower and upper intensity bounds.
     """
-    stack_method = get_config_value(stack_method, 'stack_cube_method')
+    stack_method = _resolve_default(stack_method, config.stack_cube_method)
 
     data = get_data(data)
 
