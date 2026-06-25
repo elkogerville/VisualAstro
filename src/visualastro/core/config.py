@@ -32,7 +32,7 @@ class _Unset(Enum):
 _UNSET = _Unset.UNSET
 
 
-@dataclass
+@dataclass(slots=True)
 class PrettyRepr:
     """Template class for adding a pretty __repr__ to config dataclasses."""
     def __repr__(self):
@@ -158,10 +158,10 @@ class SpectralLineConfig(PrettyRepr):
 
 @dataclass(slots=True, repr=False)
 class DereddenConfig(PrettyRepr):
-    method: str | None = None
-    region: str | None = None
-    Rv: float | None = None
-    Ebv: float | None = None
+    method: str | _Unset = _UNSET
+    region: str | _Unset = _UNSET
+    Rv: float | _Unset = _UNSET
+    Ebv: float | _Unset = _UNSET
 
 @dataclass(slots=True, repr=False)
 class HDUConfig(PrettyRepr):
@@ -360,8 +360,8 @@ class VisualAstroConfig(PrettyRepr):
     plot_normalized_continuum: bool = False
     plot_continuum_fit: bool = False
 
-    # plot_spectrum params
-    plot_spectrum_text_loc: tuple[float, float] = (0.025, 0.95)
+    # plot_spectra params
+    plot_spectra_text_loc: tuple[float, float] = (0.025, 0.95)
 
     deredden: DereddenConfig = field(default_factory=DereddenConfig)
     curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
@@ -378,7 +378,7 @@ class VisualAstroConfig(PrettyRepr):
     reproject_parallel: bool = False
 
     # error propagation
-    propagate_flux_error_method: Literal['mean', 'sum', 'median'] | None = None
+    propagate_flux_error_method: Literal['mean', 'sum', 'median'] | _Unset = _UNSET
 
     # Utils Params
     # ------------
