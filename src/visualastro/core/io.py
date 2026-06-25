@@ -68,6 +68,8 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'axis_style': ('axes_style',),
     'plot_contours': ('plot_contour',),
     'plot_contour_offset': ('plot_contour_offsets', 'contour_offsets', 'contour_offset'),
+    'extract_mode': ('how',),
+    'zorder': ('zorders', 'z'),
 }
 
 
