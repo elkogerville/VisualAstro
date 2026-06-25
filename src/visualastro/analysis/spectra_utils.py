@@ -577,25 +577,29 @@ def mask_spectral_region(x, spectral_region):
     return mask
 
 
-def propagate_flux_errors(errors, method=None):
-    '''
+def propagate_flux_errors(
+    errors: NDArray,
+    method: Literal['mean', 'sum', 'median'] | _Unset = _UNSET
+):
+    """
     Compute propagated flux errors from individual pixel errors in a spectrum.
 
     Parameters
     ----------
     errors : np.ndarray
         Either:
-        - 2D array with shape (N_spectra, N_pixels), or
-        - 1D array with shape (N_pixels,) for a single spectrum.
-    method : {'mean', 'sum', 'median'} or None, optional
-        Flux extraction method. If None, uses `config.propagate_flux_error_method`.
+
+        * 2D array with shape (N_spectra, N_pixels), or
+        * 1D array with shape (N_pixels,) for a single spectrum.
+
+    method : {'mean', 'sum', 'median'} | _Unset, optional, default=_UNSET
+        Flux extraction method. If `_UNSET`, uses `config.propagate_flux_error_method`.
 
     Returns
     -------
     flux_errors : np.ndarray
         1D array of propagated flux errors (shape N_spectra).
-    '''
-    # get default config value
+    """
     method = str(get_config_value(method, 'propagate_flux_error_method')).lower()
     if method is None:
         raise ValueError(
