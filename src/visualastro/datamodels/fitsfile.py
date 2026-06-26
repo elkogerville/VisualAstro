@@ -473,7 +473,7 @@ class FitsFile:
 
         # update header BUNIT
         new_hdr = _copy_headers(self.header)
-        new_hdr = _update_header_key('BUNIT', unit, new_hdr)
+        _update_header_key('BUNIT', unit, new_hdr)
         _log_history(new_hdr, f'Converted unit to {unit.to_string()}')
 
         return FitsFile(

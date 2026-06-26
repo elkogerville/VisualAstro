@@ -4,10 +4,6 @@ Date Created: 2026-04-08
 Date Modified: 2026-04-08
 Description:
     Spectra plot utility functions.
-Dependencies:
-    - astropy
-    - matplotlib
-    - specutils
 """
 
 from collections.abc import Sequence

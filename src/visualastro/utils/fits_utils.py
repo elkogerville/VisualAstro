@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2026-03-11
+Date Modified: 2026-06-26
 """
 
 from collections.abc import Sequence
@@ -9,6 +9,7 @@ from typing import overload
 
 from astropy.io.fits import Header
 from astropy.time import Time
+import astropy.units as u
 import numpy as np
 from specutils import SpectralRegion
 
@@ -23,16 +24,16 @@ def _copy_headers(headers: Sequence[Header]) -> list[Header]: ...
 
 def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
     """
-    Copy a single or list of `fits.Header`.
+    Copy a single or `Sequence` of `fits.Header`.
 
     Parameters
     ----------
-    headers : fits.Header or array-like of fits.Header
+    headers : fits.Header | Sequence[fits.Header]
         Header(s) to be copied.
 
     Returns
     -------
-    fits.Header or list of fits.Header
+    fits.Header | list[fits.Header]
     """
 
     if isinstance(headers, Header):
