@@ -32,7 +32,8 @@ from visualastro.analysis.spectra_utils import (
     gaussian_continuum as _gaussian_continuum,
     gaussian_line as _gaussian_line,
     shift_by_radial_vel,
-    _get_spectral_axis
+    _get_spectral_axis,
+    _spectral_axis_to_array,
 )
 from visualastro.core.config import (
     get_config_value,
@@ -76,12 +77,6 @@ from visualastro.plotting.core.utils import (
     _get_zorder
 )
 
-def spectral_axis_to_array(spectral_axis: SpectralAxis) -> NDArray:
-    if _is_spectral_axis(spectral_axis):
-        return np.asarray(spectral_axis)
-    raise ValueError(
-        'spectral_axis is not a SpectralAxis!'
-    )
 
 def extract_cube_spectra(
     cubes,
