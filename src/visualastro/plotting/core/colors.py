@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-05-11
+Date Modified: 2026-06-26
 Description:
     Functions related to colors and colormaps in plotting.
 """
@@ -22,8 +22,12 @@ import numpy as np
 from numpy.typing import NDArray
 import tol_colors as tc
 
-from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
-from visualastro.core.numerical_utils import as_list, to_list, _unwrap_if_single
+from visualastro.core.config import (
+    config, _resolve_default, _Unset, _UNSET
+)
+from visualastro.core.numerical_utils import (
+    as_list, to_list, _unwrap_if_single
+)
 
 
 RGBTuple: TypeAlias = tuple[float, float, float]
@@ -178,7 +182,7 @@ def get_colors(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
     severity: int = 100
-) -> list[str | RGBTuple | RGBATuple]:
+) -> list[str | RGBTuple | RGBATuple] | list[str | None]:
     """
     Get colors from colorset name, colormap sampling, or explicit colors.
 
@@ -228,8 +232,16 @@ def get_colors(
         If `fmt='rgb'`.
     list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+    list[str | None]:
+        If `colors` is either `None`, `'face'`, or `'none'`.
     """
-    colors = _get_colors(colors, cmap, transform=transform, factor=factor, fmt=fmt)
+    if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
+         return [colors]
+    else:
+        colors = _get_colors(colors, cmap, fmt=fmt)
+        colors = as_list(
+            get_complimentary_colors(colors, transform=transform, factor=factor)
+        )
     if cvd_type is not None:
         colors = simulate_colorblindness(colors, cvd_type=cvd_type, severity=severity)
 
@@ -240,8 +252,6 @@ def get_colors(
 def _get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
-    transform: Literal['lighten', 'desaturate'] | None = None,
-    factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """Helper function for `get_colors`"""
@@ -249,16 +259,7 @@ def _get_colors(
 
     if colors is _UNSET:
         colorset = COLORSETS.get(config.default_colorset, COLORSETS['visualastro'])
-        return as_list(
-            get_complimentary_colors(
-                as_color(colorset, fmt=fmt),
-                transform=transform,
-                factor=factor
-            )
-        )
-
-    if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
-        return [colors] # type: ignore
+        return as_list(as_color(colorset, fmt=fmt))
 
     if colors == 'random':
         return random_colors(
@@ -275,63 +276,29 @@ def _get_colors(
             # if '_r', reverse colorset
             if colors.endswith('_r'):
                 colorset = colorset[::-1]
-            return as_list(
-                get_complimentary_colors(
-                    as_color(colorset, fmt),
-                    transform=transform,
-                    factor=factor
-                )
-            )
+            return as_list(as_color(colorset, fmt))
+
         if colors in _NAMED_COLORS:
-            return as_list(
-                get_complimentary_colors(
-                    as_color(_NAMED_COLORS[colors], fmt),
-                    transform=transform,
-                    factor=factor
-                )
-            )
-        if 'xkcd:' + colors in mcolors.XKCD_COLORS and colors not in mcolors.CSS4_COLORS:
-            return as_list(
-                get_complimentary_colors(
-                    as_color('xkcd:' + colors, fmt),
-                    transform=transform,
-                    factor=factor
-                )
-            )
+            return as_list(as_color(_NAMED_COLORS[colors], fmt))
+
+        if (
+            'xkcd:' + colors in mcolors.XKCD_COLORS and
+            colors not in mcolors.CSS4_COLORS
+        ):
+            return as_list(as_color('xkcd:' + colors, fmt))
 
         else:
-            return as_list(
-                get_complimentary_colors(
-                    as_color(colors, fmt),
-                    transform=transform,
-                    factor=factor
-                )
-            )
+            return as_list(as_color(colors, fmt))
 
     if isinstance(colors, (np.ndarray, list)):
-        return [
-            get_colors(c, fmt=fmt, transform=transform, factor=factor)[0]
-            for c in colors
-        ]
+        return [get_colors(c, fmt=fmt)[0] for c in colors]
 
     if isinstance(colors, tuple):
-        return as_list(
-            get_complimentary_colors(
-                as_color(colors, fmt),
-                transform=transform,
-                factor=factor
-            )
-        )
+        return as_list(as_color(colors, fmt))
 
     # if user passes an integer N, sample a cmap for N colors
     if isinstance(colors, int):
-        return as_list(
-            get_complimentary_colors(
-                sample_cmap(colors, cmap=cmap, fmt=fmt),
-                transform=transform,
-                factor=factor
-            )
-        )
+        return as_list(sample_cmap(colors, cmap=cmap, fmt=fmt))
 
     raise TypeError(
         'colors must be None, a str colorset name, a str color, '

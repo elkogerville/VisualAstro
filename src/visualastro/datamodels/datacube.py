@@ -173,16 +173,16 @@ class DataCube:
     Raises
     ------
     TypeError
-        - If `data`, `header`, or `error` are not of an expected type.
+        * If `data`, `header`, or `error` are not of an expected type.
     UnitsError
-        - If `BUNIT` is inconsistent across headers in a header list.
-        - If `BUNIT` in `header` does not match the unit of `data`.
-        - If `error` units do not match `data` units.
+        * If `BUNIT` is inconsistent across headers in a header list.
+        * If `BUNIT` in `header` does not match the unit of `data`.
+        * If `error` units do not match `data` units.
     ValueError
-        - If `data` is not 3D with shape (T,N,M).
-        - If `error` shape does not match `data` shape.
-        - If the header list is empty.
-        - If length of the header list does not match data T dimension.
+        * If `data` is not 3D with shape (T,N,M).
+        * If `error` shape does not match `data` shape.
+        * If the header list is empty.
+        * If length of the header list does not match data T dimension.
 
     Examples
     --------
