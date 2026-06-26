@@ -33,6 +33,10 @@ from visualastro.core.config import (
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
 
 
+# define units
+u.def_physical_type(u.solMass/u.yr, 'Star Formation Rate')
+
+
 def convert_quantity(
     quantity,
     unit,
