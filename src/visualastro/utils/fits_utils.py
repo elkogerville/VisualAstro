@@ -267,3 +267,13 @@ def _update_header_key(
         )
 
     _log_history(primary_header, msg)
+
+
+def _is_sequence_of_headers(headers: Header | Sequence[Header]) -> bool:
+    """Check that a list contains only `Header` objects."""
+    if (
+        isinstance(headers, (list, tuple)) and
+        all(isinstance(h, Header) for h in headers)
+    ):
+        return True
+    return False
