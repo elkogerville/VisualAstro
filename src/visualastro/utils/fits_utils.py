@@ -51,32 +51,43 @@ def _copy_headers(headers: Header | Sequence[Header]) -> Header | list[Header]:
         )
 
 
-def _get_history(header):
+def _get_history(header: Header | Sequence[Header]) -> list | None:
     """
     Get `HISTORY` cards from a Header as a list.
+    If `header` is a `Sequence` of `Header`, only
+    the `HISTORY` cards in `header[0]` are transfered.
 
     Parameters
     ----------
-    header : Header
-        Fits Header with `HISTORY` cards.
+    header : Header | Sequence[Header]
+        Fits Header(s) with `HISTORY` cards. If a `Sequence`,
+        only the first header is queried.
 
     Returns
     -------
-    list or None :
-        all `HISTORY` cards or None if no entries.
+    list | None :
+        all `HISTORY` cards or `None` if no entries.
     """
+    if _is_sequence_of_headers(header):
+        header = header[0]
+
     if not isinstance(header, Header) or 'HISTORY' not in header:
         return None
 
     history = header['HISTORY']
+    if history is None:
+        return None
 
     if isinstance(history, str):
         return [history]
 
-    return list(history) # type: ignore
+    return list(history)
 
 
-def _log_history(header, description):
+def _log_history(
+    header: Header | Sequence[Header],
+    description: str
+) -> None:
     """
     Add a `HISTORY` entry to header
     in place. A timestamp is included.
@@ -86,7 +97,7 @@ def _log_history(header, description):
 
     Parameters
     ----------
-    header : astropy.Header
+    header : fits.Header | Sequence[fits.Header]
         Header for logging a `HISTORY` card.
     description : str
         Description of log.
@@ -97,7 +108,10 @@ def _log_history(header, description):
     if isinstance(header, Header):
         header.add_history(log)
 
-    elif isinstance(header, (list, np.ndarray, tuple)):
+    elif (
+        isinstance(header, (list, np.ndarray, tuple)) and
+        isinstance(header[0], Header)
+    ):
         header[0].add_history(log)
 
     else:
@@ -106,13 +120,13 @@ def _log_history(header, description):
         )
 
 
-def _remove_history(header):
+def _remove_history(header: Header | Sequence[Header]) -> None:
     """
     Remove all `HISTORY` cards from a header in place.
 
     Parameters
     ----------
-    header : fits.Header or list of fits.Header
+    header : fits.Header | Sequence[fits.Header]
         Header(s) with `HISTORY` cards to remove.
     """
     if isinstance(header, (list, tuple, np.ndarray)):
@@ -120,23 +134,30 @@ def _remove_history(header):
             _remove_history(h)
         return
 
-    while 'HISTORY' in header:
-        header.remove('HISTORY')
+    if isinstance(header, Header):
+        while 'HISTORY' in header:
+            header.remove('HISTORY')
 
 
-def _transfer_history(header1, header2):
+def _transfer_history(
+    sender_header: Header | Sequence[Header],
+    reciever_header: Header | Sequence[Header]
+) -> Header | list[Header]:
     """
-    Transfer `HISTORY` cards from one header (header1)
-    to another (header2). If header2 is a list of headers,
-    the HISTORY is written to header2[0].
+    Transfer `HISTORY` cards from one `sender_header`
+    to `reciever_header`.
+
+    If `sender_header` is a `Sequence`, only the first
+    header is queried. If `reciever_header` is a `Sequence`,
+    the HISTORY is written to `reciever_header[0]`.
 
     This is not a destructive action.
 
     Parameters
     ----------
-    header1 : Header
+    sender_header : Header | Sequence[Header]
         Fits Header with `HISTORY` cards to send.
-    header2 : Header
+    reciever_header : Header | Sequence[Header]
         Fits Header to copy `HISTORY` cards to.
 
     Returns
@@ -144,20 +165,22 @@ def _transfer_history(header1, header2):
     header2 : Header
         Fits Header with updated `HISTORY`.
     """
-    # get logs from header 1
-    hdr1_history = _get_history(header1)
+    sender_history = _get_history(sender_header)
 
-    if isinstance(header2, list):
-        target_header = header2[0]
+    if isinstance(reciever_header, Sequence):
+        if not _is_sequence_of_headers(reciever_header):
+            raise ValueError(
+                'Non Header objects detected in reciever_header!'
+            )
+        target_header = reciever_header[0]
     else:
-        target_header = header2
+        target_header = reciever_header
 
-    # add logs to header 2
-    if hdr1_history is not None:
-        for history in hdr1_history:
+    if sender_history is not None:
+        for history in sender_history:
             target_header.add_history(history)
 
-    return header2
+    return list(reciever_header)
 
 
 def _region_to_history(region: SpectralRegion) -> str:
@@ -187,7 +210,12 @@ def _region_to_history(region: SpectralRegion) -> str:
     return f'region[{unit}]: ' + ', '.join(parts)
 
 
-def _update_header_key(key, value, header, primary_header=None):
+def _update_header_key(
+    key: str,
+    value: str | u.UnitBase | u.StructuredUnit,
+    header: Header | Sequence[Header],
+    primary_header: Header | None = None
+) -> None:
     """
     Update header(s) in place with a new key-value pair.
 
@@ -195,11 +223,11 @@ def _update_header_key(key, value, header, primary_header=None):
     ----------
     key : str
         FITS header keyword to update (e.g., 'BUNIT', 'CTYPE1').
-    value : str or Unit or any FITS-serializable value
+    value : str | u.UnitBase | u.StructuredUnit | any FITS-serializable value
         New value for the keyword.
-    header : Header or list[Header]
+    header : Header | Sequence[Header]
         The header(s) to update in place.
-    primary_header : Header
+    primary_header : Header | None
         Header used for logging the key update.
         If None, uses `header` for logging.
 
