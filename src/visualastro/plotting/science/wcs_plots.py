@@ -208,7 +208,7 @@ def imshow(
     plot_params = _extract_plot_util_kwargs(kwargs)
 
     images = to_list(images)
-    idxs = as_list(idx)
+    idxs = [idx] if isinstance(idx, list) else as_list(idx)
     cmaps = to_list(params.cmap)
 
     ref_unit = ensure_common_unit(images)
@@ -477,7 +477,7 @@ def plot_spectral_cube(
     plot_params = _extract_plot_util_kwargs(kwargs)
 
     cubes = to_list(cubes)
-    idxs = as_list(idx)
+    idxs = [idx] if isinstance(idx, list) else as_list(idx)
     cmaps = to_list(params.cmap)
 
     ref_unit = ensure_common_unit(cubes, on_mismatch=config.unit_mismatch)
@@ -492,7 +492,6 @@ def plot_spectral_cube(
                 'For non SpectralCube data, use imshow.'
             )
 
-        # return data cube slices
         cube_slice = stack_cube(
             cube, idx=_cycle(idxs, i), method=stack_method, axis=axis
         )
