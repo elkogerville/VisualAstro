@@ -688,6 +688,15 @@ def _convert_region_units(region, spectral_axis):
         raise TypeError(f'region must be SpectralRegion or list of tuples, got {type(region).__name__}')
 
 
+def _spectral_axis_to_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
+    """Convert a `SpectralAxis` or `u.Quantity` representing a `SpectralAxis` to an array."""
+    if _is_spectral_axis(spectral_axis):
+        return np.asarray(spectral_axis)
+    raise ValueError(
+        'spectral_axis is not a SpectralAxis!'
+    )
+
+
 # Model Fitting Functions
 # -----------------------
 def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
