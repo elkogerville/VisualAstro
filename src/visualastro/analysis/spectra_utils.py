@@ -688,7 +688,7 @@ def _convert_region_units(region, spectral_axis):
         raise TypeError(f'region must be SpectralRegion or list of tuples, got {type(region).__name__}')
 
 
-def _spectral_axis_to_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
+def _spectral_axis_2_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
     """Convert a `SpectralAxis` or `u.Quantity` representing a `SpectralAxis` to an array."""
     if _is_spectral_axis(spectral_axis):
         return np.asarray(spectral_axis)
