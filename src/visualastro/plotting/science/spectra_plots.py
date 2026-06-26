@@ -33,7 +33,7 @@ from visualastro.analysis.spectra_utils import (
     gaussian_line as _gaussian_line,
     shift_by_radial_vel,
     _get_spectral_axis,
-    _spectral_axis_to_array,
+    _spectral_axis_2_array,
 )
 from visualastro.core.config import (
     get_config_value,
