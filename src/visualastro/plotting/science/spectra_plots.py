@@ -40,24 +40,29 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.io import _pop_kwargs
+from visualastro.core.io import (
+    savefig, _pop_kwargs, _param, _kwarg, _resolve_kwargs
+)
 from visualastro.core.numerical import interpolate as _interpolate
 from visualastro.core.numerical_utils import (
     get_value,
     mask_within_range,
     to_array,
     to_list,
+    _cycle,
     _unwrap_if_single
 )
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
-    get_unit
+    get_unit,
+    _is_spectral_axis
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colors import (
+    get_cmap,
     get_colors,
     sample_cmap,
     _lighten_color
@@ -67,16 +72,32 @@ from visualastro.plotting.core.axes import (
 )
 from visualastro.plotting.core.utils import (
     plot_vlines,
-    _get_stylepath
+    _get_stylepath,
+    _get_zorder
 )
 
+def spectral_axis_to_array(spectral_axis: SpectralAxis) -> NDArray:
+    if _is_spectral_axis(spectral_axis):
+        return np.asarray(spectral_axis)
+    raise ValueError(
+        'spectral_axis is not a SpectralAxis!'
+    )
 
-# Spectra Extraction Functions
-# ----------------------------
-def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit_method=_UNSET,
-                         region=None, radial_vel=_UNSET, rest_freq=_UNSET,
-                         deredden=None, unit=_UNSET, emission_line=None,
-                         plot_continuum=None, plot_norm_continuum=None, **kwargs):
+def extract_cube_spectra(
+    cubes,
+    flux_extract_method=_UNSET,
+    extract_mode=None,
+    fit_method=_UNSET,
+    region=None,
+    radial_vel=_UNSET,
+    rest_freq=_UNSET,
+    deredden=_UNSET,
+    unit=_UNSET,
+    emission_line=None,
+    plot_continuum=_UNSET,
+    plot_norm_continuum=_UNSET,
+    **kwargs
+):
     '''
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
@@ -202,82 +223,77 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
     SpectrumPlus or list of SpectrumPlus
         Single object if one cube is provided, list if multiple cubes are provided.
     '''
-    # ---- KWARGS ----
-    # spectra extraction memory mode
-    extract_mode = _pop_kwargs(kwargs, 'how', default=extract_mode)
-    # doppler convention
-    convention = kwargs.get('convention', None)
-    # dereddening parameters
-    Rv = kwargs.get('Rv', config.deredden.Rv)
-    Ebv = kwargs.get('Ebv', config.deredden.Ebv)
-    deredden_method = kwargs.get('deredden_method', config.deredden.method)
-    deredden_region = kwargs.get('deredden_region', config.deredden.region)
-    # figure params
-    figsize = kwargs.get('figsize', config.figsize)
-    style = kwargs.get('style', config.style)
-    # savefig
-    savefig = kwargs.get('savefig', config.savefig.enable)
-    dpi = kwargs.get('dpi', config.savefig.dpi)
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('flux_extract_method', flux_extract_method, config.flux_extract_method),
+            _param('extract_mode', extract_mode, config.spectral_cube_extraction_mode),
+            _param('fit_method', fit_method, config.spectrum_continuum_fit_method),
+            _param('radial_vel', radial_vel, config.radial_velocity),
+            _param('rest_freq', rest_freq, config.spectra_rest_frequency),
+            _param('deredden', deredden, config.deredden_spectrum),
+            _param('unit', unit, config.wavelength_unit),
+            _param('plot_continuum', plot_continuum, config.plot_continuum_fit),
+            _param('plot_norm_continuum', plot_norm_continuum, config.plot_normalized_continuum),
+        ],
+        additional_kwargs=[
+            _kwarg('convention', None),
+            _kwarg('Rv', config.deredden.Rv),
+            _kwarg('Ebv', config.deredden.Ebv),
+            _kwarg('deredden_method', config.deredden.method),
+            _kwarg('deredden_region', config.deredden.region),
+            _kwarg('figsize', config.figsize),
+            _kwarg('style', config.style),
+            _kwarg('savefigure', config.savefig.enable),
+            _kwarg('dpi', config.savefig.dpi),
+        ]
+    )
+    style = _get_stylepath(params.style)
 
-    # get default config values
-    extract_mode = get_config_value(extract_mode, 'spectral_cube_extraction_mode')
     methods = {
-        'mean': lambda cube: cube.mean(axis=(1, 2), how=extract_mode),
-        'median': lambda cube: cube.median(axis=(1, 2), how=extract_mode),
-        'sum': lambda cube: cube.sum(axis=(1, 2), how=extract_mode)
+        'mean': lambda cube: cube.mean(axis=(1, 2), how=params.extract_mode),
+        'median': lambda cube: cube.median(axis=(1, 2), how=params.extract_mode),
+        'sum': lambda cube: cube.sum(axis=(1, 2), how=params.extract_mode)
     }
 
-    flux_extract_method = str(get_config_value(flux_extract_method, 'flux_extract_method')).lower()
-    extract_method = methods.get(flux_extract_method)
+    extract_method = methods.get(params.flux_extract_method, None)
     if extract_method is None:
         raise ValueError(
             f"Invalid flux_extract_method '{flux_extract_method}'. "
             f'Choose from {list(methods.keys())}.'
         )
-    fit_method = fit_method if fit_method is not _UNSET else config.spectrum_continuum_fit_method
-    radial_vel = config.radial_velocity if radial_vel is _UNSET else radial_vel
-    rest_freq = config.spectra_rest_frequency if rest_freq is _UNSET else rest_freq
-    deredden = get_config_value(deredden, 'deredden_spectrum')
-    unit = config.wavelength_unit if unit is _UNSET else unit
-    plot_continuum = get_config_value(plot_continuum, 'plot_continuum_fit')
-    plot_norm_continuum = get_config_value(plot_norm_continuum, 'plot_normalized_continuum')
 
-    # ensure cubes are iterable
     cubes = to_list(cubes)
     ensure_common_unit(cubes)
-
-    # set plot style and colors
-    style = _get_stylepath(style)
 
     extracted_spectra = []
 
     for cube in cubes:
 
         # shift by radial velocity
-        spectral_axis = shift_by_radial_vel(cube.spectral_axis, radial_vel)
-        spectral_axis = convert_quantity(spectral_axis, unit, equivalencies=u.spectral())
+        spectral_axis = shift_by_radial_vel(cube.spectral_axis, params.radial_vel)
+        spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
 
         # extract spectrum flux
         flux = extract_method(cube)
         # convert to Quantity
         flux = flux.value * flux.unit
 
-        if deredden:
+        if params.deredden:
             flux = deredden_flux(
-                spectral_axis, flux, Rv, Ebv,
-                deredden_method, deredden_region
+                spectral_axis, flux, params.Rv, params.Ebv,
+                params.deredden_method, params.deredden_region
             )
 
         # initialize Spectrum object
         spectrum = Spectrum(
             spectral_axis=spectral_axis,
             flux=flux,
-            rest_value=rest_freq,
-            velocity_convention=convention
+            rest_value=params.rest_freq,
+            velocity_convention=params.convention
         )
 
-        # compute continuum fit
-        continuum = fit_continuum(spectrum, fit_method, region)
+        continuum = fit_continuum(spectrum, params.fit_method, region)
 
         # compute normalized flux
         flux_normalized = spectrum / continuum
@@ -287,24 +303,25 @@ def extract_cube_spectra(cubes, flux_extract_method=None, extract_mode=None, fit
             spectrum=spectrum,
             normalized=flux_normalized.flux,
             continuum=continuum,
-            fit_method=fit_method,
+            fit_method=params.fit_method,
             region=region
         ))
 
-    # plot spectrum
     with plt.style.context(style):
-        fig, ax = plt.subplots(figsize=figsize)
-
-        _ = plot_spectrum(extracted_spectra, ax, plot_norm_continuum,
-                          plot_continuum, emission_line, **kwargs)
-        if savefig:
-            savefig(dpi=dpi)
+        fig, ax = plt.subplots(figsize=params.figsize)
+        _ = plot_spectra(
+            extracted_spectra,
+            ax=ax,
+            plot_continuum=params.plot_continuum,
+            plot_norm_continuum=params.plot_norm_continuum,
+            emission_line=emission_line,
+            **kwargs
+        )
+        if params.savefigure:
+            savefig(dpi=params.dpi)
         plt.show()
 
-    # ensure a list is only returned if returning more than 1 spectrum
-    spectra_out = _unwrap_if_single(extracted_spectra)
-
-    return spectra_out
+    return extracted_spectra
 
 
 def extract_cube_pixel_spectra(
