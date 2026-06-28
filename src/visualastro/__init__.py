@@ -53,15 +53,10 @@ from visualastro.core.numerical import (
     number_density,
 )
 from visualastro.core.numerical_utils import (
-    as_list,
     finite,
     flatten,
-    get_data,
-    get_value,
     mask_finite,
     mask_within_range,
-    to_array,
-    to_list
 )
 from visualastro.core.stats import (
     normalize,
@@ -85,9 +80,14 @@ from visualastro.core.units import (
 )
 from visualastro.core.validation import allclose
 from visualastro.help.help import help, getsource
-from visualastro.plotting.science.wcs_plots import (
-    imshow,
-    plot_spectral_cube
+from visualastro.plotting.ax import ax
+from visualastro.plotting.base.plots import (
+    hist,
+    plot_density_histogram,
+    plot,
+    scatter,
+    scatter_fit,
+    scatter3D
 )
 from visualastro.plotting.core.colors import (
     Color,
@@ -135,14 +135,6 @@ from visualastro.plotting.core.utils import (
     plot_vlines,
     style
 )
-from visualastro.plotting.base.plots import (
-    hist,
-    plot_density_histogram,
-    plot,
-    scatter,
-    scatter_fit,
-    scatter3D
-)
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
     extract_cube_spectra,
@@ -156,7 +148,10 @@ from visualastro.plotting.science.spectra_plot_utils import (
     spectral_axis_label,
     spectral_line_marker
 )
-from visualastro.plotting.ax import ax
+from visualastro.plotting.science.wcs_plots import (
+    imshow,
+    plot_spectral_cube
+)
 from visualastro.utils.text_utils import (
     pretty_table,
     print_pretty_table
