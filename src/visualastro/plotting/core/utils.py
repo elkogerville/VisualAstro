@@ -37,7 +37,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.io import _extract_kwargs, _kwarg, _param, _resolve_kwargs
+from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
     get_value,

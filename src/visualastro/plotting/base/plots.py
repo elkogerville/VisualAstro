@@ -29,7 +29,7 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.io import _kwarg, _param, _pop_kwargs, _resolve_kwargs
+from visualastro.core.kwargs import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.numerical_utils import (
     get_value,
     get_data,
