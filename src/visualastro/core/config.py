@@ -1,7 +1,11 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-04-08
+Date Modified: 2026-06-29
+Description:
+    VisualAstro configuration. Change function defaults at runtime through config:
+    >>> import visualastro as va
+    >>> va.config
 """
 
 from collections.abc import Sequence
