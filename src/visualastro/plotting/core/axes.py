@@ -29,8 +29,9 @@ from visualastro.core.numerical_utils import (
     as_list,
     flatten,
     get_value,
-    _is_iterable,
     to_list,
+    _is_iterable,
+    _is_ndarray_or_quantity_array,
 )
 from visualastro.core.units import (
     get_physical_type,

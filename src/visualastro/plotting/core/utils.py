@@ -47,7 +47,7 @@ from visualastro.core.numerical_utils import (
     _is_1d,
     _is_2d,
     _is_iterable,
-    _is_ndarray,
+    _is_ndarray_or_quantity_array,
     _is_scalar,
 )
 from visualastro.core.units import to_unit
@@ -667,7 +667,7 @@ def _normalize_plotting_inputs(
             ylist.append(yi)
 
         if all(isinstance(y, (list, tuple)) for y in ylist):
-            if all(_is_ndarray(item) for y in ylist for item in y):
+            if all(_is_ndarray_or_quantity_array(item) for y in ylist for item in y):
                 ylist = [item for sublist in ylist for item in sublist]
 
         return xlist, ylist
