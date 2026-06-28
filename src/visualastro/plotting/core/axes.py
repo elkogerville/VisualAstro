@@ -374,7 +374,8 @@ def set_axis_limits(
     compute_limits: bool | _Unset = _UNSET,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
-    **kwargs,
+    xpad: float | _Unset = _UNSET,
+    ypad: float | _Unset = _UNSET,
 ) -> tuple[tuple[float, float] | None, tuple[float, float] | None] | None:
     """
     Set axis limits on a Matplotlib Axes based on data range
@@ -406,16 +407,16 @@ def set_axis_limits(
         User-defined Y-axis limits. If provided, only data within this range
         is considered when computing X-axis limits automatically. If `None`,
         uses the whole data range.
-    xpad : float | None, optional, default=None
-        Fractional padding to apply to X-axis limits. If None,
+    xpad : float | _Unset, optional, default=_UNSET
+        Fractional padding to apply to X-axis limits. If `_UNSET`,
         uses `config.axes.xpad`.
-    ypad : float | None, optional, default=None
-        Fractional padding to apply to Y-axis limits. If None,
+    ypad : float | _Unset, optional, default=_UNSET
+        Fractional padding to apply to Y-axis limits. If `_UNSET`,
         uses `config.axes.ypad`.
     """
     compute_limits = _resolve_default(compute_limits, config.axes.compute_limits)
-    xpad_frac = kwargs.pop('xpad', config.axes.xpad)
-    ypad_frac = kwargs.pop('ypad', config.axes.ypad)
+    xpad_frac = _resolve_default(xpad, config.axes.xpad)
+    ypad_frac = _resolve_default(ypad, config.axes.ypad)
 
     if not compute_limits:
         return None
@@ -427,7 +428,8 @@ def set_axis_limits(
     xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax)
 
     if xlim is None and xvals is not None:
-        xmin, xmax = np.nanmin(xvals), np.nanmax(xvals)
+        xmin: float = np.nanmin(xvals)
+        xmax: float = np.nanmax(xvals)
         if xmin == xmax:
             xpad = (
                 abs(xmin) * xpad_frac if xmin != 0 else
@@ -438,7 +440,8 @@ def set_axis_limits(
         xlim = (xmin - xpad, xmax + xpad)
 
     if ylim is None and yvals is not None:
-        ymin, ymax = np.nanmin(yvals), np.nanmax(yvals)
+        ymin: float = np.nanmin(yvals)
+        ymax: float = np.nanmax(yvals)
         if ymin == ymax:
             ypad = (
                 abs(ymin) * ypad_frac if ymin != 0 else
@@ -496,7 +499,11 @@ def _extract_xy_within_bounds(
         if len(ydata) == 1:
             ydata = ydata * len(xdata)
         if len(xdata) != len(ydata):
-            raise ValueError('Cannot broadcast xdata and ydata')
+            if _is_ndarray_or_quantity_array(xdata):
+                xdata = [xdata]
+                xdata = xdata * len(ydata)
+            if len(xdata) != len(ydata):
+                raise ValueError('Cannot broadcast xdata and ydata')
 
         xs, ys = [], []
         for x, y in zip(xdata, ydata):
