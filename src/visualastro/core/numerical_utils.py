@@ -334,12 +334,12 @@ def mask_within_range(
     return mask
 
 
-def _is_scalar_quantity(obj):
+def _is_scalar_quantity(obj) -> bool:
     """Check if `obj` is a scalar Quantity (0-dimensional)."""
     return isinstance(obj, u.Quantity) and obj.ndim == 0
 
 
-def _is_scalar(obj):
+def _is_scalar(obj) -> bool:
     """Check if `obj` is a scalar or scalar Quantity."""
     if np.isscalar(obj):
         return True
@@ -366,7 +366,7 @@ def _is_array_like(obj) -> bool:
     return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
 
 
-def _is_ndarray(obj) -> bool:
+def _is_ndarray_or_quantity_array(obj) -> bool:
     """
     Check if an object is either a `NDArray` or a `u.Quantity` array.
     `u.Quantity` scalars return `False`.
@@ -559,7 +559,7 @@ def _extract_xy(
                     xlist = None
                 # flatten the ylist if list[list[NDArray]]
                 if all(isinstance(y, (list, tuple)) for y in ylist):
-                    if all(_is_ndarray(item) for y in ylist for item in y):
+                    if all(_is_ndarray_or_quantity_array(item) for y in ylist for item in y):
                         ylist = [item for sublist in ylist for item in sublist]
 
                 return xlist, ylist
@@ -647,7 +647,7 @@ def _extract_xyz(
         if all(_is_array_like(d) for d in data):
             # input is tuple[array, array, array] where array is either
             # NDArray or u.Quantity array
-            if (all(_is_ndarray(d) for d in data)):
+            if (all(_is_ndarray_or_quantity_array(d) for d in data)):
                 return [tuple(data)]
             # input is tuple[Sequence[array-like], Sequence[array-like], Sequence[array-like]]
             # where array-like is all 1D

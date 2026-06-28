@@ -4,9 +4,6 @@ Date Created: 2025-09-22
 Date Modified: 2026-03-11
 Description:
     FitsFile data structure for 2D Fits data.
-Dependencies:
-    - astropy
-    - numpy
 """
 
 from typing import cast
