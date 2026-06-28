@@ -12,7 +12,7 @@ from typing import Literal
 
 import astropy.units as u
 from astropy.units import Quantity
-from matplotlib.colors import to_rgba
+from matplotlib.colors import Colormap, to_rgba
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
@@ -38,6 +38,7 @@ from visualastro.analysis.spectra_utils import (
 from visualastro.core.config import (
     get_config_value,
     config,
+    _Unset,
     _UNSET,
     _resolve_default
 )
@@ -57,7 +58,6 @@ from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
     get_unit,
-    _is_spectral_axis
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
@@ -265,13 +265,11 @@ def extract_cube_spectra(
 
     for cube in cubes:
 
-        # shift by radial velocity
         spectral_axis = shift_by_radial_vel(cube.spectral_axis, params.radial_vel)
         spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
 
-        # extract spectrum flux
         flux = extract_method(cube)
-        # convert to Quantity
+        # convert to u.Quantity
         flux = flux.value * flux.unit
 
         if params.deredden:
@@ -280,7 +278,6 @@ def extract_cube_spectra(
                 params.deredden_method, params.deredden_region
             )
 
-        # initialize Spectrum object
         spectrum = Spectrum(
             spectral_axis=spectral_axis,
             flux=flux,
@@ -290,10 +287,8 @@ def extract_cube_spectra(
 
         continuum = fit_continuum(spectrum, params.fit_method, region)
 
-        # compute normalized flux
         flux_normalized = spectrum / continuum
 
-        # save computed spectrum
         extracted_spectra.append(SpectrumPlus(
             spectrum=spectrum,
             normalized=flux_normalized.flux,
@@ -323,13 +318,13 @@ def extract_cube_pixel_spectra(
     cube: DataCube | SpectralCube | Quantity | NDArray,
     *,
     idx: int | Sequence[int] | None = None,
-    idx_range: Sequence[int] | None = None,
+    idx_range: tuple[int, int] | None = None,
     idx_drop: int | Sequence[int] | None = None,
     combine_spectra: bool = False,
-    combine_method: Literal['sum', 'mean', 'median'] | None = None,
+    combine_method: Literal['sum', 'mean', 'median'] | _Unset = _UNSET,
     plot_spatial_map: bool = True,
     vline: float | int | Quantity | None = None,
-    cmap: str | None = None,
+    cmap: str | Colormap | _Unset = _UNSET,
     **kwargs,
 ) -> ExtractedPixelSpectra:
     """
@@ -340,15 +335,15 @@ def extract_cube_pixel_spectra(
     extracted pixel spectra.
 
     NOTE : To ensure that the mapping between pixels and indices is correct,
-    set the `map_idx` to the correct cube slice!
+    set `map_idx` to the correct cube slice!
 
     Parameters
     ----------
-    cube : DataCube, SpectralCube, Quantity or array-like
+    cube : DataCube, SpectralCube, Quantity or ArrayLike
         Spectral cube with shape (T, N, M), where T is the spectral axis
         and (N,M) the spatial dimensions. If `cube` has no units, it is
         assined `u.dimensionless_unscaled`.
-    idx : int, sequence of int, or None, optional, default=None
+    idx : int | Sequence[int] | None None, optional, default=None
         Index or indices of the extracted per-pixel spectra to *select*.
         This controls which spatial pixels are extracted, combined,
         and plotted. If None, all valid spatial pixels are extracted.
@@ -357,48 +352,48 @@ def extract_cube_pixel_spectra(
         spectra are kept. The indices correspond to the ordering shown
         in the legend, where each entry is labeled as:
             <index>: (x=<x>, y=<y>)
-    idx_range : sequence of two int or None, optional, default=None
+    idx_range : tuple[int, int] | None, optional, default=None
         Inclusive range of indices of the extracted per-pixel spectra to *select*.
         This controls which spatial pixels are extracted, combined, and plotted.
         Equivalent to:
-            idx = np.arange(start, stop + 1)
+            `idx = np.arange(start, stop + 1)`
         Overrides `idx` if provided.
-    idx_drop : int, sequence of int, or None, optional, default=None
+    idx_drop : int | Sequence[int] | None, optional, default=None
         Index or indices of extracted per-pixel spectra to remove *after*
         applying `idx` or `idx_range`. This allows excluding specific spectra
         (e.g., bad pixels) without redefining the full selection.
     combine_spectra : bool, optional, default=False
-        If True, compute and plot a combined spectrum from all extracted
+        If `True`, compute and plot a combined spectrum from all extracted
         pixel spectra using `combine_method`.
-    combine_method : {'sum', 'mean', 'median'} or None, optional, default=None
+    combine_method : {'sum', 'mean', 'median'} | _Unset, optional, default=_UNSET
         Method used to combine per-pixel spectra when `plot_combined=True`.
-        If None, uses `config.flux_extract_method`.
+        If `_UNSET`, uses `config.flux_extract_method`.
     plot_spatial_map : bool, optional, default=True
-        If True, plot a 2D spatial map showing the locations of the
+        If `True`, plot a 2D spatial map showing the locations of the
         extracted pixels, color-coded to match the spectral plot.
-    vline : Quantity or float or None, optional
+    vline : Quantity | float | None, optional
         If provided, draw a vertical dotted reference line at this wavelength.
         If unitless, the value is assumed to be in the same units as the
         spectral axis.
-    cmap : str or None, optional, default=None
+    cmap : str | Colormap | _Unset, optional, default=_UNSET
         Colormap used to sample per-spectrum colors.
-        If None, uses `config.cmap`.
-    style : str or None, optional, default=None
+        If `_UNSET`, uses `config.cmap`.
+    style : str, optional, default=config.style
         Matplotlib style to use for plotting.
-        If None, uses `config.style`.
-    background_cube : DataCube, SpectralCube, Quantity, array-like, or None, default=None
+    background_cube : DataCube, SpectralCube, Quantity, ArrayLike | None, default=None
         Background cube to be plotted for the spatial map. Overrides
         `cube`, and should have the same shape as `cube`. This is
         an experimental feature, and does not guarantee perfect alignment.
-    map_idx : int, list of int, or None, optional, default=None
+    map_idx : int | tuple[int, int] | None, optional, default=None
         Index or indices specifying which cube slice to plot
         for the spatial map plot:
-            - i -> returns `cube[i]`
-            - [i] -> returns `cube[i]`
-            - [i, j] -> returns `cube[i:j+1].sum(axis=0)`
-        If None, uses `map_idx=0`.
+
+            - `i` or `[i]` -> returns `cube[i]`
+            - `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
+
+        If `None`, uses `map_idx=0`.
     legend : bool, optional, default=True
-        If True, displays the legend below the plot.
+        If `True`, displays the legend below the plot.
     figsize : tuple, optional, default=(12,6)
         Plot figsize.
     fontsize : float, optional, default=8
@@ -406,7 +401,7 @@ def extract_cube_pixel_spectra(
     ncols : int, optional, default=8
         Number of columns for the legend.
     savefig : bool, optional, default=False
-        If True, saves figure to disk.
+        If `True`, saves figure to disk.
     Any additional keyword arguments are forwarded to `plot_extracted_pixel_map`.
 
     Returns
@@ -414,39 +409,47 @@ def extract_cube_pixel_spectra(
     result : ExtractedPixelSpectra
         Container object holding the results of the extraction. It exposes
         the following attributes:
-        - `spectra` : SpectrumPlus or list of SpectrumPlus
+
+        * `spectra` : SpectrumPlus or list of SpectrumPlus
             Extracted per-pixel spectra. If a single index is selected,
             this is returned as a single `SpectrumPlus` instance;
             otherwise, a list is returned.
-        - `cube_array` : NDArray
+        * `cube_array` : NDArray
             Copy of the original cube, with all pixels set to NaN
             other than the pixels corresponding to `extract_idx`.
-        - `extract_idx` : ndarray of int, shape (N,)
+        * `extract_idx` : ndarray of int, shape (N,)
             Indices of the extracted spectra corresponding to the ordering
             of valid spatial pixels.
-        - `coords` : ndarray of int, shape (N, 2)
-        Spatial coordinates of extracted pixels in `(y, x)` order.
-        - `colors` : list
+        * `coords` : ndarray of int, shape (N, 2)
+            Spatial coordinates of extracted pixels in `(y, x)` order.
+        * `colors` : list
             Colors assigned to each extracted pixel/spectrum.
-        - `labels` : list of str
-        Human-readable labels of the form `<idx>: (x=<x>, y=<y>)`.
-        - `combined_spectrum` : SpectrumPlus or None
+        * `labels` : list of str
+            Human-readable labels of the form `<idx>: (x=<x>, y=<y>)`.
+        * `combined_spectrum` : SpectrumPlus or None
             Combined spectrum computed using `combine_method` if
             `combine_spectra=True`; otherwise None.
     """
-    style = kwargs.pop('style', None)
-    background_cube = kwargs.pop('background_cube', None)
-    map_idx = kwargs.pop('map_idx', None)
-    legend = kwargs.pop('legend', True)
-    figsize = kwargs.get('figsize', (12,6))
-    ncols = kwargs.get('ncols', 8)
-    savefig = kwargs.get('savefig', False)
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('combine_method', combine_method, config.flux_extract_method),
+            _param('cmap', cmap, config.cmap),
+        ],
+        additional_kwargs=[
+            _kwarg('background_cube', None),
+            _kwarg('map_idx', None),
+            _kwarg('legend', True),
+            _kwarg('figsize', (12,6)),
+            _kwarg('style', config.style),
+            _kwarg('ncols', 8),
+            _kwarg('savefig', False),
+        ]
+    )
 
-    combine_method = get_config_value(combine_method, 'flux_extract_method')
-    style = get_config_value(style, 'style')
-    cmap = get_config_value(cmap, 'cmap')
+    cmap = get_cmap(params.cmap)
 
-    if combine_spectra and combine_method not in {'sum', 'mean', 'median'}:
+    if combine_spectra and params.combine_method not in {'sum', 'mean', 'median'}:
         raise ValueError(
             "`combine_method` must be one of {'sum', 'mean', 'median'} when "
             "`combine_spectra=True`."
@@ -565,24 +568,24 @@ def extract_cube_pixel_spectra(
 
     n_plot = len(spectra)
     combined_spec = None
-    style = _get_stylepath(style)
+    style = _get_stylepath(params.style)
 
     if combine_spectra:
-        if combine_method == 'sum':
+        if params.combine_method == 'sum':
             combined_flux = np.nansum(flux_matrix, axis=0)
-        elif combine_method == 'mean':
+        elif params.combine_method == 'mean':
             combined_flux = np.nanmean(flux_matrix, axis=0)
-        elif combine_method == 'median':
+        elif params.combine_method == 'median':
             combined_flux = np.nanmedian(flux_matrix, axis=0)
         else:
-            raise ValueError(f'Unknown combine_method: {combine_method}')
+            raise ValueError(f'Unknown combine_method: {params.combine_method}')
 
         combined_spec = SpectrumPlus(
             Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
         )
 
     with plt.style.context(style):
-        fig, ax = plt.subplots(figsize=figsize)
+        fig, ax = plt.subplots(figsize=params.figsize)
         ax.set_autoscale_on(False)
 
         if isinstance(cmap, (list, tuple, np.ndarray)) and len(cmap) >= n_plot:
@@ -607,25 +610,30 @@ def extract_cube_pixel_spectra(
                 ax,
                 color='k',
                 ls='--',
-                label=f'combined ({combine_method})',
+                label=f'combined ({params.combine_method})',
                 plot_continuum=False
             )
             fluxes.append(combined_spec.flux)
 
         plot_vlines(vline, ax, fluxes[0].unit)
 
-        set_axis_limits(spectral_axis, fluxes, ax=ax, **kwargs)
+        set_axis_limits(
+            spectral_axis,
+            fluxes,
+            ax=ax,
+            xpad=0,
+            **kwargs
+        )
 
-        if legend:
+        if params.legend:
             ax.legend(
-                ncols=ncols,
+                ncols=params.ncols,
                 fontsize=8,
                 loc='upper center',
                 bbox_to_anchor=(0.5, -0.15),
                 frameon=False,
             )
-
-        if savefig:
+        if params.savefig:
             savefig(**kwargs)
 
         plt.show()
@@ -644,9 +652,12 @@ def extract_cube_pixel_spectra(
     if plot_spatial_map:
         plot_extracted_pixel_map(
             result,
-            cube=masked_data if background_cube is None else background_cube,
-            savefig=savefig,
-            idx=map_idx,
+            cube=(
+                masked_data if params.background_cube is None
+                else params.background_cube
+            ),
+            savefig=params.savefig,
+            idx=params.map_idx,
             **kwargs
         )
 
@@ -675,15 +686,17 @@ def plot_extracted_pixel_map(
     extracted_pixel_spectra : ExtractedPixelSpectra
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
-        - `cube_array` : 3D NDArray
+
+        * `cube_array` : 3D NDArray
           Numpy 3D array to plot spatial map onto.
-        - `extract_idx` : array-like of int
+        * `extract_idx` : array-like of int
           Indices of the extracted pixel spectra.
-        - `coords` : array-like, shape `(N, 2)`
+        * `coords` : array-like, shape `(N, 2)`
         Spatial pixel coordinates in `(y, x)` order.
-        - `colors` : sequence
+        * `colors` : sequence
           Colors assigned to each extracted pixel, matching the spectral plot.
-    cube : DataCube, SpectralCube, Quantity, or array-like, optional, default=None
+
+    cube : DataCube | SpectralCube | Quantity | np.ndarray, optional, default=None
         Spectral cube with shape `(T, N, M)` or a 2D spatial slice
         with shape `(N, M)`. If 3D, either the first spectral slice
         is shown or a slice specified by `idx`. Overrides `cube_array`
@@ -695,18 +708,22 @@ def plot_extracted_pixel_map(
     style : str, optional
         Matplotlib style name.
     annotate : bool, optional, default=True
-        If True, annotate each extracted pixel with its index.
-    idx : int, list of int, or None, optional, default=None
+        If `True`, annotate each extracted pixel with its index.
+    idx : int | list[int] | None, optional, default=None
         Index or indices specifying the slice along the first axis
         for the spatial map plot:
-            - i -> returns `cube[i]`
-            - [i] -> returns `cube[i]`
-            - [i, j] -> returns `cube[i:j+1].sum(axis=0)`
-        If None, uses `idx=0`.
+
+            * `i` -> returns `cube[i]`
+            * `[i]` -> returns `cube[i]`
+            * `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
+
+        If `None`, uses `idx=0`.
     savefig : bool, optional, default=False
-        If True, save the figure to disk using `savefig`.
+        If `True`, save the figure to disk using `savefig`.
     alpha : float, optional, default=0.8
         Alpha value for individual pixel colors.
+    fontsize : float, optional, default=8
+        Fontsize of annotations.
     Any additional keyword arguments are forwarded to `imshow`.
 
     Raises
@@ -720,22 +737,26 @@ def plot_extracted_pixel_map(
 
     Notes
     -----
-    - Spatial coordinates are interpreted in `(y, x)` order.
-    - Extracted pixels are rendered as an RGBA overlay for efficient,
+    * Spatial coordinates are interpreted in `(y, x)` order.
+    * Extracted pixels are rendered as an RGBA overlay for efficient,
       vectorized plotting.
-    - This function is intended to be used in conjunction with
+    * This function is intended to be used in conjunction with
       `extract_cube_pixel_spectra` and its returned extraction object.
-      - For best results, set `idx` to the correct cube slice to preserve
+    * For best results, set `idx` to the correct cube slice to preserve
       the correct mapping between pixels and indices.
     """
-
-    figsize = kwargs.get('figsize', (12, 6))
-    style = kwargs.get('style', config.style)
-    savefig = kwargs.get('savefig', False)
-    annotate = kwargs.get('annotate', True)
-    idx = kwargs.pop('idx', None)
-    alpha = kwargs.pop('alpha', 0.8)
-    fontsize = kwargs.pop('fontsize', 8)
+    params = _resolve_kwargs(
+        kwargs,
+        additional_kwargs=[
+            _kwarg('annotate', True),
+            _kwarg('idx', None),
+            _kwarg('figsize', (12, 6)),
+            _kwarg('style', config.style),
+            _kwarg('alpha', 0.8),
+            _kwarg('fontsize', 8),
+            _kwarg('savefig', False),
+        ]
+    )
 
     extract_idx = extracted_pixel_spectra.extract_idx
     coords = extracted_pixel_spectra.coords
@@ -754,9 +775,9 @@ def plot_extracted_pixel_map(
 
     background = to_array(cube, keep_unit=False)
     if background.ndim == 3:
-        if idx is not None:
+        if params.idx is not None:
             background = stack_cube(
-                background, idx=idx, method='sum', axis=0
+                background, idx=params.idx, method='sum', axis=0
             )
         else:
             background = background[0]
@@ -769,13 +790,13 @@ def plot_extracted_pixel_map(
     if np.any(ys < 0) or np.any(ys >= ny) or np.any(xs < 0) or np.any(xs >= nx):
         raise IndexError('Some coords fall outside cube spatial dimensions')
 
-    colors_rgba = np.array([to_rgba(c, alpha=alpha) for c in colors])
+    colors_rgba = np.array([to_rgba(c, alpha=params.alpha) for c in colors])
     overlay = np.zeros((ny, nx, 4), dtype=float)
     overlay[ys, xs] = colors_rgba
 
-    style = _get_stylepath(style)
+    style = _get_stylepath(params.style)
     with plt.style.context(style):
-        fig, ax = plt.subplots(figsize=figsize)
+        fig, ax = plt.subplots(figsize=params.figsize)
         imshow(
             background,
             ax,
@@ -784,20 +805,16 @@ def plot_extracted_pixel_map(
             colorbar=False,
             **kwargs
         )
-        imshow(
-            overlay,
-            ax,
-            origin='lower',
-            colorbar=False
-        )
 
-        if annotate:
+        ax.imshow(overlay, origin='lower')
+
+        if params.annotate:
             for idx, y, x in zip(extract_idx, ys, xs):
                 ax.text(
                     x, y, str(idx),
                     ha='center',
                     va='center',
-                    fontsize=fontsize,
+                    fontsize=params.fontsize,
                     color='black',
                     bbox=dict(
                         boxstyle='round,pad=0.2',
@@ -811,7 +828,7 @@ def plot_extracted_pixel_map(
         ax.set_ylabel('Y pixel')
         ax.set_title(f'Extracted Pixel Locations (n={len(extract_idx)})')
 
-        if savefig:
+        if params.savefig:
             savefig(**kwargs)
 
         plt.show()
