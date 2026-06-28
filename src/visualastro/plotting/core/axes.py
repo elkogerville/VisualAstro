@@ -12,6 +12,7 @@ from typing import Any, Literal
 import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.figure import Figure, SubFigure
+import matplotlib.gridspec as _gridspec
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.typing import ColorType
@@ -338,9 +339,12 @@ def gridspec(
         wspace = 0.0 if wspace is None else wspace
 
     fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(Nx, Ny, hspace=hspace, wspace=wspace,
-                          width_ratios=width_ratios,
-                          height_ratios=height_ratios)
+    gs = fig.add_gridspec(
+        Nx, Ny,
+        hspace=hspace, wspace=wspace,
+        width_ratios=width_ratios,
+        height_ratios=height_ratios
+    )
     axs = gs.subplots(sharex=sharex, sharey=sharey)
     axs = np.atleast_1d(np.asarray(axs)).ravel()
 
