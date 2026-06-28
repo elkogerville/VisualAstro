@@ -366,6 +366,97 @@ def gridspec(
     return fig, axs
 
 
+def tripanel_figure(
+    height_ratios: ArrayLike = (0.05, 1, 0.2),
+    width_ratios: ArrayLike = (1, 0.2),
+    left: float = 0.05,
+    right: float = 0.95,
+    bottom: float = 0.08,
+    top: float = 0.93,
+    hspace: float = 0.03,
+    wspace: float = 0.02,
+    figsize: tuple[float, float] = (8, 8),
+    colorbar: bool = False
+) -> tuple[Figure, np.ndarray]:
+    """
+    Create a triple-panel figure with a main axes, vertical marginal,
+    horizontal marginal, and an optional colorbar axes.
+
+    Layout (GridSpec 3x2):
+        [cbax ][ -  ]   row 0 — colorbar (optional)
+        [ ax  ][axv ]   row 1 — main + vertical marginal
+        [ axh ][ -  ]   row 2 — horizontal marginal
+
+    Parameters
+    ----------
+    height_ratios : ArrayLike, optional, default=(0.05, 1, 0.2)
+        Relative heights of the 3 rows.
+    width_ratios : ArrayLike, optional, default=(1, 0.2)
+        Relative widths of the 2 columns.
+    left : float, optional, default=0.05
+        Left boundary of the GridSpec as a fraction of figure width.
+    right : float, optional, default=0.95
+        Right boundary of the GridSpec as a fraction of figure width.
+    bottom : float, optional, default=0.08
+        Bottom boundary of the GridSpec as a fraction of figure height.
+    top : float, optional, default=0.93
+        Top boundary of the GridSpec as a fraction of figure height.
+    hspace : float, optional, default=0.03
+        Height spacing between rows as a fraction of average row height.
+    wspace : float, optional, default=0.02
+        Width spacing between columns as a fraction of average column width.
+    figsize : tuple[float, float], optional, default=(8, 8)
+        Figure dimensions (width, height) in inches.
+    colorbar : bool, optional, default=False
+        If `True`, a colorbar axes is added at row 0, column 0.
+        If `False`, the axis visibility is set to `False`. Regardless
+        of `colorbar`, axis is returned.
+
+    Returns
+    -------
+    axes : NDArray[Axes]
+        `NDArray[ax, axv, axh, cbax]`.
+    out : tuple[Figure, NDArray[Axes]]
+        Only when `return_fig=True`: `(fig, NDArray[ax, axv, axh, cbax])`.
+    """
+    nrows = 3
+    fig = plt.figure(figsize=figsize)
+    gs = _gridspec.GridSpec(
+        nrows, 2,
+        height_ratios=height_ratios,
+        width_ratios=width_ratios,
+        left=left, right=right,
+        bottom=bottom, top=top,
+        hspace=hspace, wspace=wspace,
+    )
+
+    ax = fig.add_subplot(gs[1, 0])
+    ax.tick_params(axis='x', bottom=False, labelbottom=False)
+
+    axv = fig.add_subplot(gs[1, 1])
+    axv.tick_params(
+        axis='both',
+        bottom=False, left=False,
+        labelbottom=False, labelleft=False
+    )
+
+    axh = fig.add_subplot(gs[2, 0])
+    axh.tick_params(axis='y', left=False, labelleft=False)
+
+    cbax = fig.add_subplot(gs[0, 0])
+    cbax.tick_params(
+        axis='both',
+        bottom=False, left=False,
+        labelbottom=False, labelleft=False
+    )
+    if not colorbar:
+        cbax.set_visible(False)
+
+    axes = np.asarray([ax, axv, axh, cbax]).ravel()
+
+    return fig, axes
+
+
 def set_axis_limits(
     xdata: ArrayLike | Sequence[ArrayLike] | None = None,
     ydata: ArrayLike | Sequence[ArrayLike] | None = None,

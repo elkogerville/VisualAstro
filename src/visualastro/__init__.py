@@ -89,6 +89,18 @@ from visualastro.plotting.base.plots import (
     scatter_fit,
     scatter3D
 )
+from visualastro.plotting.core.axes import (
+    add_subplot,
+    add_ax3d,
+    ax3d,
+    ax3d_axis_style,
+    ax3d_pane_color,
+    gridspec,
+    set_axis_labels,
+    set_axis_limits,
+    subplot,
+    tripanel_figure,
+)
 from visualastro.plotting.core.colors import (
     Color,
     as_color,
@@ -100,17 +112,6 @@ from visualastro.plotting.core.colors import (
     random_colors,
     sample_cmap,
     simulate_colorblindness
-)
-from visualastro.plotting.core.axes import (
-    add_subplot,
-    add_ax3d,
-    ax3d,
-    ax3d_axis_style,
-    ax3d_pane_color,
-    gridspec,
-    set_axis_labels,
-    set_axis_limits,
-    subplot,
 )
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
