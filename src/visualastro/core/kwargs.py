@@ -9,6 +9,7 @@ Description:
 from types import SimpleNamespace
 from typing import Any
 
+from visualastro.core.config import _UNSET
 
 
 # KWARGS
@@ -182,3 +183,89 @@ def _resolve_kwargs(
             out[name] = _pop_kwargs(kwargs, name, default)
 
     return SimpleNamespace(**out)
+
+
+def _get_kwargs(
+    kwargs: dict[str, Any],
+    name: str,
+    default: Any = None
+) -> Any:
+    """
+    Retrieve a keyword argument by canonical name or registered alias.
+
+    Identical to `_pop_kwargs` but does not mutate `kwargs`.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments to query.
+    name : str
+        Canonical name corresponding to a key in `KWARG_ALIASES`.
+    default : Any, optional
+        Value returned if `name` and all aliases absent from `kwargs`.
+        Default is None.
+
+    Returns
+    -------
+    Any
+        Value associated with `name` or its first matched alias.
+        If no match found, returns `default`.
+    """
+    for key in (name, *KWARG_ALIASES.get(name, ())):
+        if (value := kwargs.get(key, _UNSET)) is not _UNSET:
+            return value
+    return default
+
+
+def _pop_kwargs(
+    kwargs: dict[str, Any],
+    name: str,
+    default: Any = None
+) -> Any:
+    """
+    Pop a keyword argument by canonical name or registered alias.
+
+    Searches `kwargs` for the canonical `name` or any of its registered
+    aliases (from `KWARG_ALIASES` in `visualastro.core.io`), removes the
+    first match found, and returns its value.
+
+    Identical to `_get_kwargs` but does mutate `kwargs`.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments to mutate.
+    name : str
+        Canonical name corresponding to a key in `KWARG_ALIASES`.
+    default : Any, optional
+        Value returned if `name` and all aliases absent from `kwargs`.
+        Default is None.
+
+    Returns
+    -------
+    Any
+        Value associated with `name` or its first matched alias.
+        If no match found, returns `default`.
+
+    Notes
+    -----
+    Mutates `kwargs` by removing the matched key. Search order is:
+    canonical name first, then aliases in order defined in `KWARG_ALIASES`.
+
+    Examples
+    --------
+    >>> from visualastro.core.io import KWARG_ALIASES
+    >>> KWARG_ALIASES['edgecolor'] = ('edgecolors', 'ec')
+    >>> kwargs = {'ec': 'red', 'lw': 2}
+    >>> value = _pop_kwargs(kwargs, 'edgecolor', default='black')
+    >>> value
+    'red'
+    >>> kwargs
+    {'lw': 2}
+    """
+    for key in (name, *KWARG_ALIASES.get(name, ())):
+        if (value := kwargs.get(key, _UNSET)) is not _UNSET:
+            kwargs.pop(key)
+            return value
+
+    return default
