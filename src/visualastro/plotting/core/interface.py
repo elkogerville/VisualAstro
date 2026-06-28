@@ -26,7 +26,7 @@ To add the plotting interface to a visualastro plotting function:
 The interface is designed to be flexible and can be applied to any generic plotting function.
 """
 
-from dataclasses import dataclass
+from dataclasses import field, make_dataclass
 from typing import Any
 
 import astropy.units as u
@@ -51,61 +51,74 @@ from visualastro.plotting.core.utils import (
 from visualastro.core.numerical_utils import _cycle
 
 
-@dataclass(slots=True)
-class PlotUtilParams:
-    """
-    Each parameter defined here should also be defined in
-    `visualastro.plotting.core.interface._extract_plot_util_kwargs`.
-    """
-    reference_idx: Any = None
-    ellipses: Any = None
-    plot_ellipse: Any = None
-    highlight: Any = None
-    text_loc: Any = None
-    text_color: Any = None
-    vlines: Any = None
-    hlines: Any = None
-    label: Any = None
-    legend_handles: Any = None
-    legend_labels: Any = None
-    legend_loc: Any = None
-    legend_ncols: Any = None
-    legend_fontsize: Any = None
-    legend_fancybox: Any = None
-    legend_framealpha: Any = None
-    legend_facecolor: Any = None
-    legend_edgecolor: Any = None
-    legend_title: Any = None
-    legend_alignment: Any = None
-    legend_columnspacing: Any = None
-    legend_draggable: Any = None
-    xlabel: Any = None
-    ylabel: Any = None
-    unit_bracket_style: Any = None
-    show_physical_type: Any = None
-    show_unit: Any = None
-    unit_fmt: Any = None
-    xlim: Any = None
-    ylim: Any = None
-    xpad: Any = None
-    ypad: Any = None
-    wcs_grid: Any = None
-    wcs_grid_color: Any = None
-    wcs_grid_linestyle: Any = None
-    wcs_grid_linewidth: Any = None
-    wcs_grid_alpha: Any = None
-    gridlines: Any = None
-    grid_which: Any = None
-    grid_color: Any = None
-    grid_linestyle: Any = None
-    grid_linewidth: Any = None
-    grid_alpha: Any = None
-    colorbar: Any = None
-    cbar_width: Any = None
-    cbar_pad: Any = None
-    cbar_label: Any = None
-    cbar_tick_which: Any = None
-    cbar_tick_dir: Any = None
+_PLOT_UTILS_KWARGS = [
+    _kwarg('reference_idx', config.reference_idx),
+    _kwarg('array_order', config.array_order),
+    _kwarg('index_spec', config.index_specification),
+
+    _kwarg('ellipses', None),
+    _kwarg('plot_ellipse', False),
+    _kwarg('highlight', config.highlight),
+    _kwarg('text_loc', config.text_loc),
+    _kwarg('text_color', config.text_color),
+
+    _kwarg('points', None),
+
+    _kwarg('vlines', None),
+    _kwarg('hlines', None),
+
+    _kwarg('legend_handles', config.legend.handles),
+    _kwarg('legend_labels', config.legend.labels),
+    _kwarg('legend_loc', config.legend.loc),
+    _kwarg('legend_ncols', config.legend.ncols),
+    _kwarg('legend_fontsize', config.legend.fontsize),
+    _kwarg('legend_fancybox', config.legend.fancybox),
+    _kwarg('legend_framealpha', config.legend.framealpha),
+    _kwarg('legend_facecolor', config.legend.facecolor),
+    _kwarg('legend_edgecolor', config.legend.edgecolor),
+    _kwarg('legend_title', config.legend.title),
+    _kwarg('legend_alignment', config.legend.alignment),
+    _kwarg('legend_columnspacing', config.legend.columnspacing),
+    _kwarg('legend_draggable', config.legend.draggable),
+
+    _kwarg('xlabel', None),
+    _kwarg('ylabel', None),
+    _kwarg('unit_bracket_style', config.unit_bracket_style),
+    _kwarg('show_physical_type', config.show_type_label),
+    _kwarg('show_unit', config.show_unit_label),
+    _kwarg('unit_fmt', config.unit_label_format),
+
+    _kwarg('xlim', None),
+    _kwarg('ylim', None),
+    _kwarg('xpad', config.axes.xpad),
+    _kwarg('ypad', config.axes.ypad),
+
+    _kwarg('wcs_grid', config.wcs_grid),
+    _kwarg('wcs_grid_color', config.wcs_grid_color),
+    _kwarg('wcs_grid_linestyle', config.wcs_grid_linestyle),
+    _kwarg('wcs_grid_linewidth', config.wcs_grid_linewidth),
+    _kwarg('wcs_grid_alpha', config.wcs_grid_alpha),
+
+    _kwarg('gridlines', config.gridlines),
+    _kwarg('grid_which', config.grid_which),
+    _kwarg('grid_color', config.grid_color),
+    _kwarg('grid_linestyle', config.grid_linestyle),
+    _kwarg('grid_linewidth', config.grid_linewidth),
+    _kwarg('grid_alpha', config.grid_alpha),
+
+    _kwarg('colorbar', config.colorbar.enable),
+    _kwarg('cbar_width', config.colorbar.width),
+    _kwarg('cbar_pad', config.colorbar.pad),
+    _kwarg('cbar_label', config.colorbar.label),
+    _kwarg('cbar_tick_which', config.colorbar.tick_which),
+    _kwarg('cbar_tick_dir', config.colorbar.tick_dir),
+]
+
+PlotUtilParams = make_dataclass(
+    'PlotUtilParams',
+    [(kw[0], Any, field(default=kw[1])) for kw in _PLOT_UTILS_KWARGS],
+    slots=True
+)
 
 
 def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
@@ -127,68 +140,7 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     almost never happen because this would require being True for all plotting
     function that use the plotting interface.
     """
-    params = _extract_kwargs(
-        kwargs,
-        additional_kwargs=[
-            _kwarg('reference_idx', config.reference_idx),
-
-            _kwarg('ellipses', None),
-            _kwarg('plot_ellipse', False),
-            _kwarg('highlight', config.highlight),
-            _kwarg('text_loc', config.text_loc),
-            _kwarg('text_color', config.text_color),
-
-            _kwarg('vlines', None),
-            _kwarg('hlines', None),
-
-            _kwarg('legend_handles', config.legend.handles),
-            _kwarg('legend_labels', config.legend.labels),
-            _kwarg('legend_loc', config.legend.loc),
-            _kwarg('legend_ncols', config.legend.ncols),
-            _kwarg('legend_fontsize', config.legend.fontsize),
-            _kwarg('legend_fancybox', config.legend.fancybox),
-            _kwarg('legend_framealpha', config.legend.framealpha),
-            _kwarg('legend_facecolor', config.legend.facecolor),
-            _kwarg('legend_edgecolor', config.legend.edgecolor),
-            _kwarg('legend_title', config.legend.title),
-            _kwarg('legend_alignment', config.legend.alignment),
-            _kwarg('legend_columnspacing', config.legend.columnspacing),
-            _kwarg('legend_draggable', config.legend.draggable),
-
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('unit_bracket_style', config.unit_bracket_style),
-            _kwarg('show_physical_type', config.show_type_label),
-            _kwarg('show_unit', config.show_unit_label),
-            _kwarg('unit_fmt', config.unit_label_format),
-
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
-
-            _kwarg('wcs_grid', config.wcs_grid),
-            _kwarg('wcs_grid_color', config.wcs_grid_color),
-            _kwarg('wcs_grid_linestyle', config.wcs_grid_linestyle),
-            _kwarg('wcs_grid_linewidth', config.wcs_grid_linewidth),
-            _kwarg('wcs_grid_alpha', config.wcs_grid_alpha),
-
-            _kwarg('gridlines', config.gridlines),
-            _kwarg('grid_which', config.grid_which),
-            _kwarg('grid_color', config.grid_color),
-            _kwarg('grid_linestyle', config.grid_linestyle),
-            _kwarg('grid_linewidth', config.grid_linewidth),
-            _kwarg('grid_alpha', config.grid_alpha),
-
-            _kwarg('colorbar', config.colorbar.enable),
-            _kwarg('cbar_width', config.colorbar.width),
-            _kwarg('cbar_pad', config.colorbar.pad),
-            _kwarg('cbar_label', config.colorbar.label),
-            _kwarg('cbar_tick_which', config.colorbar.tick_which),
-            _kwarg('cbar_tick_dir', config.colorbar.tick_dir),
-        ],
-    )
-
+    params = _extract_kwargs(kwargs, additional_kwargs=_PLOT_UTILS_KWARGS)
     return PlotUtilParams(**params)
 
 
