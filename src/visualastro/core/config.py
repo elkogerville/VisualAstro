@@ -278,6 +278,7 @@ class VisualAstroConfig(PrettyRepr):
 
     # imshow params
     cmap: Colormap | str = 'turbo'
+    sample_cmap: Colormap | str = 'turbo'
     origin: Literal['lower', 'upper'] = 'lower'
     norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None = 'asinh'
     linear_width: float = 1 # AsinhNorm linear width
