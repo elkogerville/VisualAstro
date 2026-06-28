@@ -419,10 +419,9 @@ def tripanel_figure(
     out : tuple[Figure, NDArray[Axes]]
         Only when `return_fig=True`: `(fig, NDArray[ax, axv, axh, cbax])`.
     """
-    nrows = 3
     fig = plt.figure(figsize=figsize)
     gs = _gridspec.GridSpec(
-        nrows, 2,
+        3, 2,
         height_ratios=height_ratios,
         width_ratios=width_ratios,
         left=left, right=right,
