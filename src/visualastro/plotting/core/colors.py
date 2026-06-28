@@ -318,7 +318,7 @@ def get_cmap(
     cmap : mcolors.Colormap | str | int
         Colormap object or string name. If a string, attempts lookup in CMAPS
         registry before falling back to matplotlib's colormap registry.
-        If an int, returns `tol_colors.rainbow_discrete(colors)`.
+        If an `int`, returns `tol_colors.rainbow_discrete(colors)`.
     bad_color : ColorType | None, optional, default=None
         Bad data color (`bad_color`). If None, leaves the colormap unchanged.
 
