@@ -14,6 +14,7 @@ import colorsys
 from typing import Literal, TypeAlias
 import matplotlib as mpl
 from matplotlib import colors as mcolors
+from matplotlib.cm import ScalarMappable
 from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -740,3 +741,12 @@ def plot_colortable(
         )
 
     plt.show()
+
+
+def _has_color_mapping(mappable: ScalarMappable) -> bool:
+    """Check that a ScalarMappable instance has valid data for a colormap"""
+    return (
+        mappable is not None
+        and isinstance(mappable, ScalarMappable)
+        and mappable.get_array() is not None
+    )

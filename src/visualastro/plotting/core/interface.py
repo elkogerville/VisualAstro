@@ -32,7 +32,6 @@ from typing import Any
 import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
-from matplotlib.cm import ScalarMappable
 
 from visualastro.core.config import config
 from visualastro.core.io import _extract_kwargs, _kwarg
@@ -40,6 +39,7 @@ from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
+from visualastro.plotting.core.colors import _has_color_mapping
 from visualastro.plotting.core.utils import (
     add_colorbar,
     plot_ellipses,
@@ -297,12 +297,3 @@ def _apply_plot_utils(
                 params.text_color, params.highlight,
                 rotation_step=kwargs.get('rotation_step', 5)
             )
-
-
-def _has_color_mapping(mappable: ScalarMappable) -> bool:
-    """Check that a ScalarMappable instance has valid data for a colormap"""
-    return (
-        mappable is not None
-        and isinstance(mappable, ScalarMappable)
-        and mappable.get_array() is not None
-    )
