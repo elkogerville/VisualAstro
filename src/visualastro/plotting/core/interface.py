@@ -34,7 +34,7 @@ from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 
 from visualastro.core.config import config
-from visualastro.core.io import _extract_kwargs, _kwarg
+from visualastro.core.kwargs import _extract_kwargs, _kwarg
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
