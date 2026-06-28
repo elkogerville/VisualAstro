@@ -9,7 +9,7 @@ Description:
 from types import SimpleNamespace
 from typing import Any
 
-from visualastro.core.config import _UNSET
+from visualastro.core.config import _resolve_default, _UNSET
 
 
 # KWARGS
@@ -269,3 +269,51 @@ def _pop_kwargs(
             return value
 
     return default
+
+
+def _extract_kwargs(
+    kwargs: dict,
+    params: list[ParamSpec] | None = None,
+    additional_kwargs: list[KwargSpec] | None = None,
+    copy_kwargs: list[KwargSpec] | None = None
+) -> dict:
+    """
+    Helper function for to return the output of _resolve_kwargs
+    as a `dict` instead of `SimpleNamespace`.
+
+    See `visualastro.core.io._resolve_kwargs` for documentation.
+    """
+    return vars(_resolve_kwargs(kwargs, params, additional_kwargs, copy_kwargs))
+
+
+def _param(name: str, value: Any, default: Any) -> ParamSpec:
+    """
+    Helper function for defining a parameter in `_resolve_kwargs`.
+
+    Parameters
+    ----------
+    name : str
+        Name of the parameter.
+    value : Any
+        Value of the parameter.
+    default : Any
+        Fallback value if `value` is `_UNSET`.
+
+    Returns
+    -------
+    tuple :
+        Returns a tuple of name, value, and default, unchanged.
+    """
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {type(name).__name__}'
+        )
+    return (name, value, default)
+
+
+def _kwarg(name: str, default: Any) -> KwargSpec:
+    if not isinstance(name, str):
+        raise ValueError(
+            f'name must be a str! got: {type(name).__name__}'
+        )
+    return (name, default)
