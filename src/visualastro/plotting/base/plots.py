@@ -439,7 +439,7 @@ def hist(
     for i, data in enumerate(datas):
         bin = _cycle(bins_list, i)
         htype = _cycle(histtypes, i)
-        color = _cycle(colors, i)
+        col = _cycle(colors, i)
         z = _get_zorder(zorders, i, config.zorder.plot_data)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
         data = to_array(data)
@@ -453,7 +453,7 @@ def hist(
             histtype=htype,
             density=params.normalize,
             align=align,
-            color=color,
+            color=col,
             label=label,
             rasterized=params.rasterized,
             zorder=z
@@ -704,17 +704,17 @@ def scatter(
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 
-            * 'face': Match face color
-            * 'none': No edge
-            * color or sequence: Explicit color(s)
+        * 'face': Match face color
+        * 'none': No edge
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.edgecolor`.
 
     facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
 
-            * 'none': Transparent
-            * color or sequence: Explicit color(s)
+        * 'none': Transparent
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.facecolor`.
 
@@ -951,17 +951,17 @@ def scatter_fit(
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 
-            * 'face': Match face color
-            * 'none': No edge
-            * color or sequence: Explicit color(s)
+        * 'face': Match face color
+        * 'none': No edge
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.edgecolor`.
 
     facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
 
-            * 'none': Transparent
-            * color or sequence: Explicit color(s)
+        * 'none': Transparent
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.facecolor`.
 
@@ -1172,17 +1172,17 @@ def scatter3D(
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Edge color of markers.
 
-            * 'face': Match face color
-            * 'none': No edge
-            * color or sequence: Explicit color(s)
+        * 'face': Match face color
+        * 'none': No edge
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.edgecolor`.
 
     facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
         Face color of markers.
 
-            * 'none': Transparent
-            * color or sequence: Explicit color(s)
+        * 'none': Transparent
+        * color or sequence: Explicit color(s)
 
         If not set, uses `config.facecolor`.
     plot_contours : {'x', 'y', 'z', 'all'}, Sequence[{'x', 'y', 'z'}] | None, optional, default=None
