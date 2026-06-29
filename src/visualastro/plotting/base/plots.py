@@ -1456,7 +1456,7 @@ def scatter_project(
     array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
     index_spec: tuple[int, int, int] | _Unset = _UNSET,
     **kwargs
-):
+) -> PathCollection:
     """
     Project 3D scatter data onto a 2D axis along a specified direction.
 
