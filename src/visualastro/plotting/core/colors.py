@@ -15,7 +15,7 @@ from typing import Literal, TypeAlias
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap
+from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap, LogNorm, Normalize
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
@@ -652,7 +652,8 @@ def _resolve_color_kwargs(
     color: ColorType,
     c: NDArray | float | int | None,
     kwargs: dict,
-    cmap: Colormap | str | None = None
+    cmap: Colormap | str | None = None,
+    norm: Normalize | None = None
 ) -> dict:
     """Resolve `color` and `c` kwargs, giving priority to `c`"""
     scatter_kwargs = dict(kwargs)
@@ -661,9 +662,13 @@ def _resolve_color_kwargs(
         scatter_kwargs['c'] = c
         if cmap is not None:
             scatter_kwargs['cmap'] = cmap
+        if norm is not None:
+            scatter_kwargs['norm'] = norm
+
     elif color is not None:
         scatter_kwargs.pop('c', None)
         scatter_kwargs['color'] = color
+
     else:
         scatter_kwargs.pop('c', None)
         scatter_kwargs.pop('color', None)
@@ -750,3 +755,43 @@ def _has_color_mapping(mappable: ScalarMappable) -> bool:
         and isinstance(mappable, ScalarMappable)
         and mappable.get_array() is not None
     )
+
+
+def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
+    """
+    Resolve a matplotlib normalization object for scatter color mapping.
+
+    Parameters
+    ----------
+    c_list : list of array-like | None
+        List of color value arrays, one per population. If `None`, returns `None`.
+    norm_method : {'log', 'global'} | None
+        Normalization method.
+
+        * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
+        * `'global'` -> linear scaling using `Normalize` with global min/max.
+        * `None` -> per-population normalization (matplotlib default).
+
+    log_floor : float, optional, default=1e-10
+        Minimum value clamp for `vmin` when `norm_method='log'`, to avoid
+        `log(0)` errors.
+
+    Returns
+    -------
+    norm : LogNorm | Normalize | None
+        Normalization object to pass to `scatter`, or `None` for
+        per-population default scaling.
+    """
+    if c_list is not None:
+        global_min = min(np.nanmin(c) for c in c_list)
+        global_max = max(np.nanmax(c) for c in c_list)
+        if norm_method == 'log':
+            norm = LogNorm(vmin=max(global_min, log_floor), vmax=global_max)
+        elif norm_method == 'global':
+            norm = Normalize(vmin=global_min, vmax=global_max)
+        else:
+            norm = None
+    else:
+        norm = None
+
+    return norm
