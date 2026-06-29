@@ -367,14 +367,14 @@ def gridspec(
 
 
 def tripanel_figure(
-    height_ratios: ArrayLike = (0.05, 1, 0.2),
-    width_ratios: ArrayLike = (1, 0.2),
+    height_ratios: ArrayLike = (0.05, 1, 0.25),
+    width_ratios: ArrayLike = (1, 0.25),
     left: float = 0.05,
     right: float = 0.95,
     bottom: float = 0.08,
     top: float = 0.93,
-    hspace: float = 0.03,
-    wspace: float = 0.02,
+    hspace: float = 0.07,
+    wspace: float = 0.055,
     figsize: tuple[float, float] = (8, 8),
     colorbar: bool = False
 ) -> tuple[Figure, np.ndarray]:
@@ -386,6 +386,8 @@ def tripanel_figure(
         [cbax ][ -  ]   row 0 — colorbar (optional)
         [ ax  ][axv ]   row 1 — main + vertical marginal
         [ axh ][ -  ]   row 2 — horizontal marginal
+
+    Returns `Fig, NDArray[ax, axh, axv, cbax]`
 
     Parameters
     ----------
@@ -414,10 +416,10 @@ def tripanel_figure(
 
     Returns
     -------
+    fig : Figure
+        Figure instance.
     axes : NDArray[Axes]
-        `NDArray[ax, axv, axh, cbax]`.
-    out : tuple[Figure, NDArray[Axes]]
-        Only when `return_fig=True`: `(fig, NDArray[ax, axv, axh, cbax])`.
+        `NDArray[ax, axh, axv, cbax]`.
     """
     fig = plt.figure(figsize=figsize)
     gs = _gridspec.GridSpec(
@@ -432,15 +434,15 @@ def tripanel_figure(
     ax = fig.add_subplot(gs[1, 0])
     ax.tick_params(axis='x', bottom=False, labelbottom=False)
 
+    axh = fig.add_subplot(gs[2, 0])
+    axh.tick_params(axis='y', left=False, labelleft=True)
+
     axv = fig.add_subplot(gs[1, 1])
     axv.tick_params(
         axis='both',
         bottom=False, left=False,
-        labelbottom=False, labelleft=False
+        labelbottom=True, labelleft=False,
     )
-
-    axh = fig.add_subplot(gs[2, 0])
-    axh.tick_params(axis='y', left=False, labelleft=False)
 
     cbax = fig.add_subplot(gs[0, 0])
     cbax.tick_params(
@@ -451,7 +453,7 @@ def tripanel_figure(
     if not colorbar:
         cbax.set_visible(False)
 
-    axes = np.asarray([ax, axv, axh, cbax]).ravel()
+    axes = np.asarray([ax, axh, axv, cbax]).ravel()
 
     return fig, axes
 

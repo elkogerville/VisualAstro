@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-26-29
 Description:
     General plotting functions.
 """
@@ -41,7 +41,7 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colors import (
-    as_color, get_cmap, get_colors, _resolve_color_kwargs
+    get_cmap, get_colors, _resolve_color_kwargs
 )
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
