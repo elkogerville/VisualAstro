@@ -464,6 +464,7 @@ def set_axis_limits(
     *,
     ax: maxes.Axes | None = None,
     compute_limits: bool | _Unset = _UNSET,
+    scale: float | tuple[float, float] | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
     xpad: float | _Unset = _UNSET,
@@ -481,16 +482,20 @@ def set_axis_limits(
     ----------
     xdata : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
         X-axis data. Can be a single array, a sequence of arrays, or None.
-        If None, the X-axis will be autoscaled unless `xlim` is provided.
+        If `None`, the X-axis will be autoscaled unless `xlim` is provided.
     ydata : array-like, list of array-like, or None, optional
         Y-axis data. Can be a single array, a list of arrays, or None.
-        If None, the Y-axis will be autoscaled unless `ylim` is provided.
+        If `None`, the Y-axis will be autoscaled unless `ylim` is provided.
     ax : matplotlib.axes.Axes
         The Axes object on which to set the limits. Required.
     compute_limits : bool | _Unset, optional, default=_UNSET
         If `False`, does not compute any limits based on data,
         and lets matplotlib decide axes limits. If `_UNSET`,
         uses `config.axes.compute_limits`.
+    scale : float | tuple[float, float] | None, optional, default=None
+        Set symmetric axis limits. Overrides `xlim` and `ylim`.
+        If a single float, sets `xlim=ylim=(-abs(scale), scale)`.
+        If a `tuple[float, float]`, sets `xlim=ylim=(scale[0], scale[1])`.
     xlim : tuple[float, float] | None, optional, default=None
         User-defined X-axis limits. If provided, only data within this range
         is considered when computing Y-axis limits automatically. If `None`,
@@ -505,6 +510,19 @@ def set_axis_limits(
     ypad : float | _Unset, optional, default=_UNSET
         Fractional padding to apply to Y-axis limits. If `_UNSET`,
         uses `config.axes.ypad`.
+
+    Returns
+    -------
+    xlim, ylim : tuple[float, float] | None
+        X and Y axis limits. Is only `None` if `xdata/ydata` and `xlim/ylim`
+        are also `None`.
+    None :
+        Returns `None` if `compute_limit=False`.
+
+    Raises
+    ------
+    ValueError :
+        If `scale` is not `None` and isn't either a `float` or `tuple[float, float]`.
     """
     compute_limits = _resolve_default(compute_limits, config.axes.compute_limits)
     xpad_frac = _resolve_default(xpad, config.axes.xpad)
@@ -515,6 +533,24 @@ def set_axis_limits(
 
     if ax is None:
         raise ValueError('ax must be an axes instance')
+
+    if scale is not None:
+        if isinstance(scale, (list, tuple)) and len(scale) == 2:
+            lmin, lmax = scale[0], scale[1]
+        elif isinstance(scale, (float, int, np.floating, np.integer)):
+            scale = np.abs(scale)
+            lmin, lmax = -1*scale, scale
+        else:
+            raise ValueError(
+                'scale must be either a scalar or a tuple[float, float]! '
+                f'got {type(scale).__name__}!'
+            )
+        xlim = (lmin, lmax)
+        ylim = (lmin, lmax)
+
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        return xlim, ylim
 
     xvals, yvals = _extract_xy_within_bounds(xdata, ydata, xlim=xlim, ylim=ylim)
     xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax)
