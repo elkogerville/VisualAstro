@@ -13,6 +13,7 @@ from typing import Literal, Sequence
 import astropy.units as u
 import matplotlib.axes as maxes
 from matplotlib.collections import PatchCollection
+from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.ticker import AutoMinorLocator, NullLocator
@@ -41,7 +42,11 @@ from visualastro.core.numerical_utils import (
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colors import (
-    get_cmap, get_colors, _resolve_color_kwargs
+    as_color,
+    get_cmap,
+    get_colors,
+    _resolve_color_kwargs,
+    _resolve_scatter_norm,
 )
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
@@ -1259,6 +1264,7 @@ def scatter3D(
         [
             _kwarg('label', None),
             _kwarg('c', None),
+            _kwarg('norm', None),
             _kwarg('cmap', config.cmap),
             _kwarg('xlabel', 'X'),
             _kwarg('ylabel', 'Y'),
@@ -1307,6 +1313,8 @@ def scatter3D(
 
     ensure_common_unit(X + Y + Z)
 
+    norm = _resolve_scatter_norm(c_list, params.norm)
+
     ax.view_init(elev=params.elev, azim=params.azim, roll=params.roll)
 
     if scale is not None:
@@ -1338,7 +1346,9 @@ def scatter3D(
         cmap = _cycle(cmaps, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
-        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
+        scatter_kwargs = _resolve_color_kwargs(
+            color, c, kwargs, cmap, norm=norm
+        )
 
         sc = ax.scatter3D(
             x,

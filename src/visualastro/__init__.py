@@ -88,6 +88,7 @@ from visualastro.plotting.base.plots import (
     plot,
     scatter,
     scatter_fit,
+    scatter_project,
     scatter3D
 )
 from visualastro.plotting.core.axes import (
