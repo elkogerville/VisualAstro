@@ -496,6 +496,7 @@ def set_axis_limits(
         Set symmetric axis limits. Overrides `xlim` and `ylim`.
         If a single float, sets `xlim=ylim=(-abs(scale), scale)`.
         If a `tuple[float, float]`, sets `xlim=ylim=(scale[0], scale[1])`.
+        If `None`, delegates limits to `xlim` and `ylim`.
     xlim : tuple[float, float] | None, optional, default=None
         User-defined X-axis limits. If provided, only data within this range
         is considered when computing Y-axis limits automatically. If `None`,

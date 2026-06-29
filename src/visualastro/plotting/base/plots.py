@@ -1439,3 +1439,244 @@ def scatter3D(
     if axes_off: ax.set_axis_off()
 
     return scatters
+
+
+def scatter_project(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    ax: maxes.Axes,
+    scale: float | tuple[float, float] | None = None,
+    zdir: Literal['x', 'y', 'z'] = 'z',
+    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
+    marker: MarkerStyle | _Unset = _UNSET,
+    size: float | list[float] | _Unset = _UNSET,
+    alpha: float | list[float] | _Unset = _UNSET,
+    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    norm: Literal['global', 'log'] | None = 'global',
+    array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+    index_spec: tuple[int, int, int] | _Unset = _UNSET,
+    **kwargs
+):
+    """
+    Project 3D scatter data onto a 2D axis along a specified direction.
+
+    Concatenates multiple populations into a single scatter call, enabling
+    global sorting and consistent color normalization across populations.
+    Each population can have an independent colormap.
+
+    * Single 2D array with at least 3 columns/rows, or a list of such arrays.
+    * Three 1D array-like: `(X, Y, Z)`.
+    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three scalars: `(x, y, z)`.
+
+    Parameters
+    ----------
+    *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
+        Input(s) to extract X, Y, Z values from.
+        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+
+        Supported calling conventions:
+
+        * NDArray | Sequence[NDArray]:
+
+            * Each array should be 2D and have at least 3 axes. The extracted
+            axes are set by `index_spec`.
+
+        * Three 1D array-like:
+
+            * Three 1D arrays of the same shape.
+
+        * Three Sequences[1D array-like]
+
+            * Three Sequences each containing an array-like to plot.
+            Corresponding elements across sequences must share the same shape,
+            i.e. `shape(xi) == shape(yi) == shape(zi)`.
+
+    ax : matplotlib.axes.Axes
+        Target 2D axes to plot onto.
+    scale : float | tuple[float, float] | None, optional, default=None
+        Set symmetric axis limits. Overrides `xlim` and `ylim`.
+        If a single float, sets `xlim=ylim=(-abs(scale), scale)`.
+        If a `tuple[float, float]`, sets `xlim=ylim=(scale[0], scale[1])`.
+        If `None`, delegates limits to `xlim` and `ylim`.
+    zdir : {'x', 'y', 'z'}, optional, default='z'
+        Axis to project along. Points are collapsed onto the plane
+        perpendicular to `zdir`.
+    color : ColorType | list[ColorType | int] | int, optional, default=config.color
+        Point color(s) per population. Ignored if `c` is provided.
+    marker : MarkerStyle, optional, default=config.marker
+        Marker style. `marker` is used for all points.
+    size : float | np.ndarray | list[float | np.ndarray], optional, default=config.scatter_size
+        Marker size(s) in points**2. If `np.ndarray`, should contain the same number of points
+        as each collection of `data`.
+    alpha : float | list[float], optional, default=config.alpha
+        Opacity per population, in `[0, 1]`.
+    edgecolor : {'face', 'none'} | ColorType | list[ColorType], optional, default=config.edgecolor
+        Marker edge color(s).
+    facecolor : {'none'} | ColorType | list[ColorType], optional, default=config.facecolor
+        Marker face color(s).
+    norm : {'global', 'log'} | None, optional, default='global'
+        Color normalization strategy applied across all populations.
+
+        * `'global'` -> linear normalization using global min/max across
+            all populations, preserving relative density information.
+        * `'log'` -> logarithmic normalization using global min/max.
+            Recommended for number density data spanning large dynamic ranges.
+        * `None` -> per-population linear normalization. Each population's
+            colormap is scaled independently; cross-population color comparison
+            is not meaningful.
+
+    array_order : {'C', 'c', 'F', 'fortran'}, optional, default=config.array_order
+        Memory layout of input arrays used to extract x, y, z columns.
+    index_spec : tuple[int, int, int], optional, default=config.index_specification_3D
+        Column indices for x, y, z extraction from input arrays.
+
+    Returns
+    -------
+    scatter : matplotlib.collections.PathCollection
+        The scatter plot object returned by `ax.scatter`.
+
+    Notes
+    -----
+    All populations are concatenated and rendered in a single `ax.scatter`
+    call. Render order is controlled by `sort_by_c` and `reverse_sort`:
+    * `sort_by_c=True, reverse_sort=False` -> low density rendered first,
+        high density on top (recommended for density plots).
+    * `sort_by_c=False` -> sort by projected axis coordinate (`zdir`).
+    """
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('color', color, config.color),
+            _param('marker', marker, config.marker),
+            _param('size', size, config.scatter_size),
+            _param('alpha', alpha, config.alpha),
+            _param('edgecolor', edgecolor, config.edgecolor),
+            _param('facecolor', facecolor, config.facecolor),
+            _param('array_order', array_order, config.array_order),
+            _param('index_spec', index_spec, config.index_specification_3D),
+        ],
+        [
+            _kwarg('label', None),
+            _kwarg('c', None),
+            _kwarg('cmap', config.cmap),
+            _kwarg('xlabel', 'X'),
+            _kwarg('ylabel', 'Y'),
+            _kwarg('xlim', None),
+            _kwarg('ylim', None),
+            _kwarg('autoscale', config.autoscale),
+            _kwarg('bad_color', None),
+            _kwarg('rasterized', config.rasterized),
+            _kwarg('reverse_sort', False),
+            _kwarg('sort_by_c', False),
+        ]
+    )
+    kwargs['scale'] = scale
+    plot_params = _extract_plot_util_kwargs(kwargs)
+
+    cmaps = to_list(params.cmap)
+    cmaps = [get_cmap(c, params.bad_color) for c in cmaps]
+    colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
+
+    sizes = to_list(params.size)
+    alphas = to_list(params.alpha)
+    edgecolors = to_list(params.edgecolor)
+    facecolors = to_list(params.facecolor)
+    labels = to_list(params.label)
+
+    sort_axis = {
+        'x': 0,
+        'y': 1,
+        'z': 2,
+    }.get(zdir, 2)
+    ax1, ax2 = {
+        'x': (1, 2),
+        'y': (0, 2),
+        'z': (0, 1),
+    }.get(zdir, (0, 1))
+
+    plot_data = _extract_xyz(*data, order=params.array_order, index_spec=params.index_spec)
+    X, Y, Z = map(list, zip(*plot_data))
+
+    c_list = to_list(params.c) if params.c is not None else None
+    if not (len(X) == len(Y) == len(Z)):
+        raise ValueError(
+            f'`x`, `y`, and `z` must have the same number of arrays '
+            f'\n(got {len(X)}, {len(Y)}, and {len(Z)}).'
+        )
+    if c_list is not None and len(c_list) != len(X):
+        raise ValueError(
+            'c must have same length as number of inputs to plot! '
+            f'got c: {len(c_list)}, X: {len(X)}'
+        )
+
+    ensure_common_unit(X + Y + Z)
+
+    xpos = [np.asarray(x) for x in X]
+    ypos = [np.asarray(y) for y in Y]
+    zpos = [np.asarray(z) for z in Z]
+
+    nrows = [len(x) for x in xpos]
+    nsum = sum(nrows)
+    pos = np.empty((nsum, 3))
+    size_arr = np.empty((nsum))
+
+    c_arrs = [np.asarray(c) for c in c_list] if c_list is not None else None
+    c_arr = np.empty((nsum, 4))
+    c_arr_1d = np.empty((nsum))
+
+    scatter_norm = _resolve_scatter_norm(c_arrs, norm)
+
+    for i, (x, y, z) in enumerate(zip(xpos, ypos, zpos)):
+        start = sum(nrows[:i])
+        end = start + nrows[i]
+
+        pos[start:end, 0] = x
+        pos[start:end, 1] = y
+        pos[start:end, 2] = z
+
+        size_arr[start:end] = _cycle(sizes, i)
+
+        if c_arrs is not None:
+            cmap = get_cmap(_cycle(cmaps, i))
+            if scatter_norm is not None:
+                cvals_normed = scatter_norm(c_arrs[i])
+            else:
+                per_norm = Normalize(vmin=c_arrs[i].min(), vmax=c_arrs[i].max())
+                cvals_normed = per_norm(c_arrs[i])
+            c_arr[start:end, 0:4] = cmap(cvals_normed)
+            c_arr[start:end, 3] = _cycle(alphas, i)
+            c_arr_1d[start:end] = cvals_normed
+        else:
+            c_arr[start:end, 0:3] = np.asarray(as_color(colors[i], fmt='rgb'))
+            c_arr[start:end, 3] = _cycle(alphas, i)
+
+    if params.sort_by_c and c_arrs is not None:
+        sorted_indeces = np.argsort(c_arr_1d)
+    else:
+        sorted_indeces = np.argsort(pos[:, sort_axis])
+    if params.reverse_sort:
+        sorted_indeces = sorted_indeces[::-1]
+
+    pos_sorted = pos[sorted_indeces]
+    c_arr_sorted = c_arr[sorted_indeces]
+    size_arr_sorted = size_arr[sorted_indeces]
+
+    ax.set_autoscale_on(params.autoscale)
+
+    scatter = ax.scatter(
+        pos_sorted[:, ax1], pos_sorted[:, ax2],
+        c=c_arr_sorted,
+        s=size_arr_sorted,
+        marker=params.marker,
+        **kwargs
+    )
+
+    _apply_plot_utils(
+        plot_params, ax,
+        im_list=[scatter],
+        xlist=[pos_sorted[:,ax1]],
+        ylist=[pos_sorted[:,ax2]],
+    )
+
+    return scatter
