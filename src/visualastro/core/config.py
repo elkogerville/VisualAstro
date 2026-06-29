@@ -151,6 +151,13 @@ class ContourConfig(PrettyRepr):
     zdir : Literal['x', 'y', 'z'] = 'z'
 
 @dataclass(slots=True, repr=False)
+class RugPlotConfig(PrettyRepr):
+    color: ColorType | int | Sequence[ColorType | int] = 'k'
+    marker: str | Sequence[str] = '+'
+    markersize: float | Sequence[float] = 2
+    linewidth: float | Sequence[float] = 1
+
+@dataclass(slots=True, repr=False)
 class SpectralLineConfig(PrettyRepr):
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
@@ -298,6 +305,7 @@ class VisualAstroConfig(PrettyRepr):
     savefig: SavefigConfig = field(default_factory=SavefigConfig)
     colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
     contour: ContourConfig = field(default_factory=ContourConfig)
+    plot_rug: RugPlotConfig = field(default_factory=RugPlotConfig)
 
     # text params
     fontsize: float = 10
