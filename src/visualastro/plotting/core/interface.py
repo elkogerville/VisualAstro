@@ -88,6 +88,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('show_unit', config.show_unit_label),
     _kwarg('unit_fmt', config.unit_label_format),
 
+    _kwarg('scale', None),
     _kwarg('xlim', None),
     _kwarg('ylim', None),
     _kwarg('xpad', config.axes.xpad),
@@ -188,6 +189,8 @@ def _apply_plot_utils(
         provided, a horizontal line is drawn for each element. If `None`, no lines
         are drawn.
     """
+    # PRE SETTING AXIS LIMITS
+    # -----------------------
     if 'labels' in kwargs:
         if _cycle(kwargs['labels'], params.reference_idx) is not None:
             legend_kwargs = {
@@ -218,14 +221,16 @@ def _apply_plot_utils(
         order=params.array_order,
         index_spec=params.index_spec
     )
-
     set_axis_limits(
         xlist, ylist,
         ax=ax,
+        scale=params.scale,
         xlim=params.xlim, ylim=params.ylim,
         xpad=params.xpad, ypad=params.ypad
     )
 
+    # POST SETTING AXIS LIMITS
+    # ------------------------
     if isinstance(ax, WCSAxes):
         xlabel = params.xlabel if params.xlabel is not None else config.right_ascension_label
         ylabel = params.ylabel if params.ylabel is not None else config.declination_label
