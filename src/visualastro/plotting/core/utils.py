@@ -1076,40 +1076,73 @@ def ellipse_patch(
     )
 
 
-def plot_points(points, ax, color='r', size=20, marker='*'):
-    '''
-    Plot points on a given Matplotlib axis with customizable style.
+def plot_points(
+    *points: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
+    ax: maxes.Axes,
+    color: ColorType | list[ColorType] | int = 'astro',
+    size: float | list[float] = 20,
+    marker: MarkerStyle | list[MarkerStyle] = '*',
+    order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+) -> None:
+    """
+    Plot points on a given Matplotlib axis.
 
     Parameters
     ----------
-    points : array-like or None
-        Coordinates of points to plot. Can be a single point `[x, y]`
-        or a list/array of points `[[x1, y1], [x2, y2], ...]`.
-        If None, no points are plotted.
+    points : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
+        Input data. Supported forms:
+
+        * Single argument:
+            * 1D array-like or Quantity: Y values, X = None
+            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
+            * list/tuple of scalars: Y values, X = None
+            * scalar or scalar Quantity: single Y value, X = None
+
+        * Two arguments:
+            * (X, Y) pairs passed through unchanged
+
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the points.
-    color : str or list or int, optional, default='r'
-        Color of the points. If an integer, will draw colors
-        from sample_cmap().
-    size : float, optional, default=20
-        Marker size.
-    marker : str, optional, default='*'
-        Matplotlib marker style.
-    '''
-    if points is not None:
-        points = np.asarray(points)
-        # ensure points is list [x,y] or list of list [[x,y],[x,y]...]
-        if points.ndim == 1 and points.shape[0] == 2:
-            points = points[np.newaxis, :]
-        elif points.ndim != 2 or points.shape[1] != 2:
-            error = 'Points must be either [x, y] or [[x1, y1], [x2, y2], ...]'
-            raise ValueError(error)
-        if isinstance(color, int):
-            color = sample_cmap(color)
-        color = color if isinstance(color, list) else [color]
-        # loop through each set of points in points and plot
-        for i, point in enumerate(points):
-            ax.scatter(point[0], point[1], s=size, marker=marker, c=color[i%len(color)])
+    color : ColorType | list[ColorType] | int, optional, default='astro'
+        Color of the points. If an integer, will draw colors using `config.cmap`.
+    size : float | list[float], optional, default=20
+        Marker size(s).
+    marker : MarkerStyle | list[MarkerStyle], optional, default='*'
+        Matplotlib marker style(s).
+    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+        Memory layout for 2D input interpretation. Defines what a
+        column is for `index_spec`.
+
+        * 'c': row-major, shape (N, 2)
+        * 'fortran': column-major, shape (2, N)
+
+        If `_UNSET`, uses `config.array_order`.
+    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
+        Column extraction mode for 2D inputs.
+
+        * 'implicit': return (None, [col_0, col_1, ...])
+        * 'explicit': return (col_0, col_1)
+        * tuple (i, j): return (col_i, col_j)
+    """
+    if points[0] is not None:
+        xlist, ylist = _normalize_plotting_inputs(
+            *points, order=order, index_spec=index_spec
+        )
+
+        colors = get_colors(color)
+        sizes = to_list(size)
+        markers = to_list(marker)
+        for i in range(len(ylist)):
+            x = get_value(_cycle(xlist, i))
+            y = get_value(_cycle(ylist, i))
+
+            ax.scatter(
+                x, y,
+                marker=_cycle(markers, i),
+                s=_cycle(sizes, i),
+                color=_cycle(colors, i)
+            )
 
 
 def plot_vlines(vlines, ax, unit=None, equivalencies=None) -> None:

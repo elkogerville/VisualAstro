@@ -211,6 +211,14 @@ def _apply_plot_utils(
 
             ax.legend(**legend_kwargs)
 
+    plot_ellipses(params.ellipses, ax)
+    plot_points(
+        params.points,
+        ax=ax,
+        order=params.array_order,
+        index_spec=params.index_spec
+    )
+
     set_axis_limits(
         xlist, ylist,
         ax=ax,
@@ -277,7 +285,6 @@ def _apply_plot_utils(
                 rasterized=kwargs.get('rasterized', None)
             )
 
-    plot_ellipses(params.ellipses, ax)
     plot_vlines(params.vlines, ax, ref_unit)
     plot_hlines(params.hlines, ax, ref_unit)
 
