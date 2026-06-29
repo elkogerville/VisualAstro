@@ -49,6 +49,7 @@ from visualastro.core.io import (
 )
 from visualastro.core.numerical import (
     interpolate,
+    kde1d,
     kde2d,
     number_density,
 )

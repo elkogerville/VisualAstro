@@ -126,6 +126,56 @@ def interpolate(
     return x_interp, y_interp
 
 
+def kde1d(
+    x: NDArray,
+    bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott',
+    gridsize: int = 200,
+    padding: float = 0.2,
+    xlim: tuple[float, float] | None = None,
+) -> tuple[NDArray, NDArray]:
+    """
+    Estimate the 1D density of a sample using a Gaussian KDE.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        1D sample values.
+    bw_method : {'scott', 'silverman'} | scalar | callable, optional
+        Bandwidth selection method passed to scipy.stats.gaussian_kde.
+    gridsize : int, optional
+        Number of evaluation points.
+    padding : float, optional
+        Fractional padding added to the data range.
+    xlim : tuple of float, optional
+        Explicit evaluation limits.
+
+    Returns
+    -------
+    xgrid : np.ndarray
+        Evaluation coordinates.
+    density : np.ndarray
+        KDE evaluated on `xgrid`.
+    """
+    x = np.asarray(x)
+    gridsize = int(gridsize)
+
+    if xlim is None:
+        xmin = np.nanmin(x)
+        xmax = np.nanmax(x)
+        dx = (xmax - xmin) * padding
+        xmin -= dx
+        xmax += dx
+    else:
+        xmin, xmax = xlim
+
+    xgrid = np.linspace(xmin, xmax, gridsize)
+
+    kernel = stats.gaussian_kde(x, bw_method=bw_method)
+    density = kernel(xgrid)
+
+    return xgrid, density
+
+
 def kde2d(
     x: NDArray,
     y: NDArray,
