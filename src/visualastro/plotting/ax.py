@@ -33,7 +33,8 @@ from visualastro.plotting.base.plots import (
     plot,
     scatter,
     scatter3D,
-    scatter_fit
+    scatter_fit,
+    scatter_project
 )
 from visualastro.plotting.core.utils import apply_style_modifiers, _get_stylepath
 from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
@@ -825,4 +826,62 @@ class ax:
                 filename = savefigure if isinstance(savefigure, str) else None
                 savefig(filename, dpi=dpi)
 
+            plt.show()
+
+    @staticmethod
+    def scatter_project(
+        *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+        scale: float | tuple[float, float] | None = None,
+        zdir: Literal['x', 'y', 'z'] = 'z',
+        color: ColorType | list[ColorType] | int | _Unset = _UNSET,
+        marker: MarkerStyle | _Unset = _UNSET,
+        size: float | list[float] | _Unset = _UNSET,
+        alpha: float | list[float] | _Unset = _UNSET,
+        edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+        norm: Literal['global', 'log'] | None = 'global',
+        array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+        index_spec: tuple[int, int, int] | _Unset = _UNSET,
+        **kwargs
+    ) -> None:
+        """
+        Wrapper for `scatter_project` with automatic figure creation.
+
+        See `visualastro.plotting.base.plots.scatter_project` for full documentation.
+
+        Equivalent to:
+
+            >>> fig, ax = plt.subplots()
+            >>> va.scatter_project(X, Y, Z, ax=ax, **kwargs)
+            >>> plt.show()
+        """
+        figsize = kwargs.pop('figsize', config.figsize)
+        style = kwargs.pop('style', config.style)
+        savefigure = kwargs.pop('savefig', config.savefig.enable)
+        dpi = kwargs.pop('dpi', config.savefig.dpi)
+
+        style = _get_stylepath(style)
+        with plt.style.context(style):
+            fig, ax = plt.subplots(figsize=figsize)
+
+            scatter = scatter_project(
+                *data,
+                ax=ax,
+                scale=scale,
+                zdir=zdir,
+                color=color,
+                marker=marker,
+                size=size,
+                alpha=alpha,
+                edgecolor=edgecolor,
+                facecolor=facecolor,
+                norm=norm,
+                array_order=array_order,
+                index_spec=index_spec,
+                **kwargs
+            )
+
+            if savefigure:
+                filename = savefigure if isinstance(savefigure, str) else None
+                savefig(filename, dpi=dpi)
             plt.show()
