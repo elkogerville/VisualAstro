@@ -88,6 +88,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('show_unit', config.show_unit_label),
     _kwarg('unit_fmt', config.unit_label_format),
 
+    _kwarg('compute_limits', config.axes.compute_limits),
     _kwarg('scale', None),
     _kwarg('xlim', None),
     _kwarg('ylim', None),

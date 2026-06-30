@@ -48,6 +48,7 @@ class PrettyRepr:
 class AxesConfig(PrettyRepr):
     """matplotlib.axes config"""
     compute_limits: bool = True
+    autoscale: bool = False
     xpad: float = 0.05  # set_axis_limits() xpad
     ypad: float = 0.05 # set_axis_limits() ypad
     xlog: bool = False
@@ -244,7 +245,6 @@ class VisualAstroConfig(PrettyRepr):
     azim: float = -60
     roll: float = 0
     pane_color: ColorType = 'white'
-    autoscale: bool = True
     ax3d_axis_style: Literal['triad', 'semi', 'cube'] | None = None
     thorlabs_loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None = 'best'
     thorlabs_transparent: bool = False
