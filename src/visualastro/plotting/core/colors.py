@@ -677,21 +677,27 @@ def _resolve_color_kwargs(
 
 
 def plot_colortable(
-    colors: dict[str, ColorType] | None = None,
+    colors: dict[str, ColorType] | str | None = None,
     *,
     ncols: int = 4,
     sort_colors: bool = True
 ) -> None:
     """
-    Plot all the named colors in matplotlib!
+    Adapted from matplotlib gallery example:
+    https://matplotlib.org/stable/gallery/color/named_colors.html
 
-    Taken from:
-        https://matplotlib.org/stable/gallery/color/named_colors.html
+    Copyright (c) 2012-2023 Matplotlib Development Team
+    Licensed under the Matplotlib License (BSD-compatible)
+    https://matplotlib.org/stable/users/project/license.html
+
+    Plot all the named colors in matplotlib!
 
     Parameters
     ----------
-    colors : dict[str, ColorType] | None, optional, default=None
-        Dictionary containing colors to plot.
+    colors : dict[str, ColorType] | str | None, optional, default=None
+        Dictionary containing colors to plot. If str, should be one
+        of the following: `'named_colors'`, `'xkcd'`, `'base'`, or
+        `'tableau'`. If `None`, plots `mcolors.CSS4_COLORS`.
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
@@ -700,6 +706,12 @@ def plot_colortable(
 
     if colors == 'named_colors' or colors is None:
         colors = mcolors.CSS4_COLORS
+    elif colors == 'xkcd' or colors == 'xkcd_colors':
+        colors = mcolors.XKCD_COLORS
+    elif colors == 'base' or colors == 'base_colors':
+        colors = mcolors.BASE_COLORS
+    elif colors == 'tableau' or colors == 'tableau_colors':
+        colors = mcolors.TABLEAU_COLORS
 
     cell_width = 212
     cell_height = 22
