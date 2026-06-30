@@ -1056,3 +1056,37 @@ def ax3d_pane_color(
     ax.xaxis.set_pane_color(colors[0])
     ax.yaxis.set_pane_color(colors[1])
     ax.zaxis.set_pane_color(colors[2])
+
+
+def _set_limits_scaling_mode(ax, autoscale, compute_limits):
+    """
+    Set axes limit scaling mode. Must be called before
+    the main plotting call/loop in a plotting function.
+
+    Parameters
+    ----------
+    ax : maxes.Axes
+        Axes instance.
+    autoscale : bool
+        If `True`, uses native matplotlib autoscaling,
+        ie. `ax.set_autoscale_on(True)`, and disables
+        VisualAstro's manual limits computation
+        (`compute_limits=False`).
+    compute_limits : bool
+        Flag to be passed on to one of the visualastro
+        plotting interface functions. If `True`, will
+        invoke `visualastro.plotting.core.axes.set_axis_limits`.
+
+    Returns
+    -------
+    compute_limits : bool
+        Set to `False` if `autoscale=True`. Otherwise is left
+        unchanged.
+    """
+    if autoscale:
+        ax.set_autoscale_on(True)
+        compute_limits = False
+    else:
+        ax.set_autoscale_on(False)
+
+    return compute_limits
