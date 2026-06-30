@@ -54,7 +54,7 @@ from visualastro.plotting.core.interface import (
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
-    _set_limits_scaling_mode
+    _set_axis_limits_scaling_mode
 )
 from visualastro.plotting.core.utils import (
     contour,
@@ -444,7 +444,7 @@ def hist(
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
 
-    plot_params.compute_limits = _set_limits_scaling_mode(
+    plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
 
@@ -622,7 +622,7 @@ def plot(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
-    plot_params.compute_limits = _set_limits_scaling_mode(
+    plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
 
@@ -848,7 +848,7 @@ def scatter(
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
 
-    plot_params.compute_limits = _set_limits_scaling_mode(
+    plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
 
@@ -1677,7 +1677,7 @@ def scatter_project(
     c_arr_sorted = c_arr[sorted_indeces]
     size_arr_sorted = size_arr[sorted_indeces]
 
-    plot_params.compute_limits = _set_limits_scaling_mode(
+    plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
 
