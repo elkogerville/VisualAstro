@@ -547,7 +547,7 @@ def set_axis_limits(
         return xlim, ylim
 
     xvals, yvals = _extract_xy_within_bounds(xdata, ydata, xlim=xlim, ylim=ylim)
-    xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax)
+    xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax, xlim=xlim, ylim=ylim)
 
     if xlim is None and xvals is not None:
         xmin: float = np.nanmin(xvals)
@@ -674,7 +674,10 @@ def _extract_xy_within_bounds(
 def _add_bounds_from_ax(
     xvals: NDArray | None,
     yvals: NDArray | None,
-    ax: maxes.Axes
+    ax: maxes.Axes,
+    *,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None
 ) -> tuple[NDArray | None, NDArray | None]:
     """
     Add current axes bounds from an ax instance to
@@ -700,10 +703,17 @@ def _add_bounds_from_ax(
     yvals = np.empty(0) if yvals is None else yvals
 
     if xy is not None:
-        xlim = np.nanmin(xy[:,0]), np.nanmax(xy[:,0])
-        ylim = np.nanmin(xy[:,1]), np.nanmax(xy[:,1])
-        xvals = np.append(xvals, xlim)
-        yvals = np.append(yvals, ylim)
+        mask = np.ones(len(xy), dtype=bool)
+        if xlim is not None:
+            mask &= (xy[:, 0] >= xlim[0]) & (xy[:, 0] <= xlim[1])
+        if ylim is not None:
+            mask &= (xy[:, 1] >= ylim[0]) & (xy[:, 1] <= ylim[1])
+        xy_masked = xy[mask]
+        if xy_masked.size > 0:
+            xlim_data = np.nanmin(xy_masked[:, 0]), np.nanmax(xy_masked[:, 0])
+            ylim_data = np.nanmin(xy_masked[:, 1]), np.nanmax(xy_masked[:, 1])
+            xvals = np.append(xvals, xlim_data)
+            yvals = np.append(yvals, ylim_data)
 
     if xvals.size == 0:
         xvals = None
