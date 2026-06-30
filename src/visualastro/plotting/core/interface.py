@@ -177,6 +177,9 @@ def _apply_plot_utils(
 
     Attributes
     ----------
+    compute_limits : bool, optional, default=config.axes.compute_limits
+        If `False`, does not compute any limits based on data,
+        and lets matplotlib decide axes limits.
     ellipses : matplotlib.patches.Ellipse | list[matplotlib.patches.Ellipse]
         The Ellipse or list of Ellipses to plot.
     vlines : float | Quantity | Sequence[float | Quantity] | None, optional, default=None
@@ -189,6 +192,7 @@ def _apply_plot_utils(
         each value is converted to `ref_unit` before plotting. If an iterable is
         provided, a horizontal line is drawn for each element. If `None`, no lines
         are drawn.
+
     """
     # PRE SETTING AXIS LIMITS
     # -----------------------
@@ -222,13 +226,14 @@ def _apply_plot_utils(
         order=params.array_order,
         index_spec=params.index_spec
     )
-    set_axis_limits(
-        xlist, ylist,
-        ax=ax,
-        scale=params.scale,
-        xlim=params.xlim, ylim=params.ylim,
-        xpad=params.xpad, ypad=params.ypad
-    )
+    if params.compute_limits:
+        set_axis_limits(
+            xlist, ylist,
+            ax=ax,
+            scale=params.scale,
+            xlim=params.xlim, ylim=params.ylim,
+            xpad=params.xpad, ypad=params.ypad
+        )
 
     # POST SETTING AXIS LIMITS
     # ------------------------
