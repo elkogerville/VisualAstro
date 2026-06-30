@@ -51,7 +51,11 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
-from visualastro.plotting.core.axes import ax3d_axis_style, ax3d_pane_color
+from visualastro.plotting.core.axes import (
+    ax3d_axis_style,
+    ax3d_pane_color,
+    _set_limits_scaling_mode
+)
 from visualastro.plotting.core.utils import (
     contour,
     _get_zorder,
@@ -416,13 +420,14 @@ def hist(
             _param('ylog', ylog, config.axes.ylog_hist),
         ],
         [
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
         ]
     )
-    fig_params = _extract_plot_util_kwargs(kwargs)
+    plot_params = _extract_plot_util_kwargs(kwargs)
 
     datas = to_list(datas)
     bins_list = to_list(params.bins)
@@ -432,12 +437,16 @@ def hist(
 
     ref_unit = ensure_common_unit(datas)
 
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
-
     cmap = get_cmap(params.cmap, params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     data_list = []
+
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
+
+    plot_params.compute_limits = _set_limits_scaling_mode(
+        ax, params.autoscale, plot_params.compute_limits
+    )
 
     hists = []
 
@@ -471,7 +480,7 @@ def hist(
             SimpleNamespace(**{'n': h[0], 'bins': h[1], 'patches': h[2]})
         )
 
-    _apply_plot_utils(fig_params, ax=ax, ref_unit=ref_unit, xlist=data_list, labels=labels)
+    _apply_plot_utils(plot_params, ax=ax, ref_unit=ref_unit, xlist=data_list, labels=labels)
 
     return hists
 
@@ -579,6 +588,7 @@ def plot(
         ],
         [
             _kwarg('index_spec', 'implicit'),
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
@@ -611,6 +621,10 @@ def plot(
 
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
+
+    plot_params.compute_limits = _set_limits_scaling_mode(
+        ax, params.autoscale, plot_params.compute_limits
+    )
 
     lines = []
 
@@ -795,6 +809,7 @@ def scatter(
         ],
         [
             _kwarg('index_spec', 'implicit'),
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
@@ -805,7 +820,6 @@ def scatter(
             _kwarg('capsize', config.errorbar.capsize),
             _kwarg('capthick', config.errorbar.capthick),
             _kwarg('barsabove', config.errorbar.barsabove),
-            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('rasterized', config.rasterized),
         ]
     )
@@ -833,6 +847,10 @@ def scatter(
 
     if params.xlog: ax.set_xscale('log')
     if params.ylog: ax.set_yscale('log')
+
+    plot_params.compute_limits = _set_limits_scaling_mode(
+        ax, params.autoscale, plot_params.compute_limits
+    )
 
     scatters = []
 
@@ -1263,6 +1281,7 @@ def scatter3D(
             _param('index_spec', index_spec, config.index_specification_3D),
         ],
         [
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('norm', None),
@@ -1273,7 +1292,6 @@ def scatter3D(
             _kwarg('xlim', None),
             _kwarg('ylim', None),
             _kwarg('zlim', None),
-            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('contour_cmap', None),
             _kwarg('contour_method', 'contour'),
             _kwarg('contour_offset', None),
@@ -1558,14 +1576,10 @@ def scatter_project(
             _param('index_spec', index_spec, config.index_specification_3D),
         ],
         [
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
-            _kwarg('xlabel', 'X'),
-            _kwarg('ylabel', 'Y'),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
             _kwarg('reverse_sort', False),
@@ -1663,7 +1677,9 @@ def scatter_project(
     c_arr_sorted = c_arr[sorted_indeces]
     size_arr_sorted = size_arr[sorted_indeces]
 
-    ax.set_autoscale_on(params.autoscale)
+    plot_params.compute_limits = _set_limits_scaling_mode(
+        ax, params.autoscale, plot_params.compute_limits
+    )
 
     scatter = ax.scatter(
         pos_sorted[:, ax1], pos_sorted[:, ax2],
