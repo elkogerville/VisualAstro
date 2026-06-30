@@ -805,6 +805,7 @@ def scatter(
             _kwarg('capsize', config.errorbar.capsize),
             _kwarg('capthick', config.errorbar.capthick),
             _kwarg('barsabove', config.errorbar.barsabove),
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('rasterized', config.rasterized),
         ]
     )
@@ -1210,7 +1211,7 @@ def scatter3D(
     xlim, ylim, zlim : tuple[float, float], optional, default=None
         Limits for x, y, and z axes as (min, max). Are overridden by `scale`.
         If `None`, limits are controlled by `autoscale`.
-    autoscale : bool, optional, default=config.autoscale
+    autoscale : bool, optional, default=config.axes.autoscale
         If `True`, lets matplotlib scale the axes automatically.
     plot_contour_offset : float | Sequence[float], optional, default=None
         Manual positional offsets for the contour projection planes.
@@ -1272,7 +1273,7 @@ def scatter3D(
             _kwarg('xlim', None),
             _kwarg('ylim', None),
             _kwarg('zlim', None),
-            _kwarg('autoscale', config.autoscale),
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('contour_cmap', None),
             _kwarg('contour_method', 'contour'),
             _kwarg('contour_offset', None),
@@ -1564,7 +1565,7 @@ def scatter_project(
             _kwarg('ylabel', 'Y'),
             _kwarg('xlim', None),
             _kwarg('ylim', None),
-            _kwarg('autoscale', config.autoscale),
+            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
             _kwarg('reverse_sort', False),
