@@ -145,6 +145,21 @@ class help:
         plot_colortable(ncols=ncols, sort_colors=sort_colors)
 
     @staticmethod
+    def xkcd_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(colors='xkcd', ncols=ncols, sort_colors=sort_colors)
+    xkcd = xkcd_colors
+
+    @staticmethod
+    def base_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(colors='base', ncols=ncols, sort_colors=sort_colors)
+    base = base_colors
+
+    @staticmethod
+    def tableau_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(colors='tableau', ncols=ncols, sort_colors=sort_colors)
+    tableau = tableau_colors
+
+    @staticmethod
     def cmap(
         cmap: str | mcolors.Colormap | list[str | mcolors.Colormap] | None = None
     ) -> None:
