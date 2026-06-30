@@ -463,13 +463,12 @@ def set_axis_limits(
     ydata: ArrayLike | Sequence[ArrayLike] | None = None,
     *,
     ax: maxes.Axes | None = None,
-    compute_limits: bool | _Unset = _UNSET,
     scale: float | tuple[float, float] | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
     xpad: float | _Unset = _UNSET,
     ypad: float | _Unset = _UNSET,
-) -> tuple[tuple[float, float] | None, tuple[float, float] | None] | None:
+) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
     """
     Set axis limits on a Matplotlib Axes based on data range
     and optional user-specified limits.
@@ -517,20 +516,14 @@ def set_axis_limits(
     xlim, ylim : tuple[float, float] | None
         X and Y axis limits. Is only `None` if `xdata/ydata` and `xlim/ylim`
         are also `None`.
-    None :
-        Returns `None` if `compute_limit=False`.
 
     Raises
     ------
     ValueError :
         If `scale` is not `None` and isn't either a `float` or `tuple[float, float]`.
     """
-    compute_limits = _resolve_default(compute_limits, config.axes.compute_limits)
     xpad_frac = _resolve_default(xpad, config.axes.xpad)
     ypad_frac = _resolve_default(ypad, config.axes.ypad)
-
-    if not compute_limits:
-        return None
 
     if ax is None:
         raise ValueError('ax must be an axes instance')
