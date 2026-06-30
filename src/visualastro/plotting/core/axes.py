@@ -1058,7 +1058,7 @@ def ax3d_pane_color(
     ax.zaxis.set_pane_color(colors[2])
 
 
-def _set_limits_scaling_mode(ax, autoscale, compute_limits):
+def _set_axis_limits_scaling_mode(ax, autoscale, compute_limits):
     """
     Set axes limit scaling mode. Must be called before
     the main plotting call/loop in a plotting function.
