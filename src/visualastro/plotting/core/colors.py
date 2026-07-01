@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-06-26
+Date Modified: 2026-07-01
 Description:
     Functions related to colors and colormaps in plotting.
 """
@@ -16,7 +16,13 @@ from typing import Literal, TypeAlias
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap, LogNorm, Normalize
+from matplotlib.colors import (
+    TABLEAU_COLORS,
+    Colormap,
+    ListedColormap,
+    LogNorm,
+    Normalize
+)
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
@@ -137,7 +143,9 @@ class Color:
         sort_colors : bool, optional, default=True
             If `True`, sort colors by hsv value.
         """
-        plot_colortable(colors='visualastro', ncols=ncols, sort_colors=sort_colors)
+        plot_colortable(
+            colors='visualastro', ncols=ncols, sort_colors=sort_colors
+        )
 
     def __repr__(self) -> str:
         lines = [self.__class__.__name__ + ':']
@@ -520,7 +528,7 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | Sequence[ColorType],
-    transform: Literal['lighten', 'desaturate'] | None = 'lighten',
+    transform: Literal['lighten', 'desaturate', 'saturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
@@ -571,7 +579,8 @@ def get_complimentary_colors(
         return as_color(color, fmt=fmt)
     method = {
         'lighten': _lighten_color,
-        'desaturate': _desaturate_color
+        'desaturate': _desaturate_color,
+        'saturate': _saturate_color,
     }.get(transform, _lighten_color)
 
     colors = to_list(color)
@@ -581,7 +590,7 @@ def get_complimentary_colors(
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
-    """Lightens the given matplotlib color by mixing it with white"""
+    """Lightens the given matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
     mixed = (1 - mix) * rgb + mix * white
@@ -590,11 +599,19 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
 
 
 def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
-    """Desaturate a color by moving it toward gray"""
+    """Desaturate a color by moving it toward gray."""
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     s_new = s * (1 - factor)
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
+
+    return mcolors.to_hex(rgb_new)
+
+def _saturate_color(color: ColorType, factor: float = 1) -> str:
+    """Saturate a color by shifting the saturation in hls space."""
+    rgb = mcolors.to_rgb(color)
+    h, l, s = colorsys.rgb_to_hls(*rgb)
+    rgb_new = colorsys.hls_to_rgb(h, l, factor)
 
     return mcolors.to_hex(rgb_new)
 
