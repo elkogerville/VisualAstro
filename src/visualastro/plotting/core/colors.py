@@ -607,6 +607,7 @@ def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
 
     return mcolors.to_hex(rgb_new)
 
+
 def _saturate_color(color: ColorType, factor: float = 1) -> str:
     """Saturate a color by shifting the saturation in hls space."""
     rgb = mcolors.to_rgb(color)
