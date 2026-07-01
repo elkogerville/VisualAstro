@@ -703,26 +703,36 @@ def plot_colortable(
     sort_colors : bool, optional, default=True
         Sort colors by rgb value.
     """
-
-    if colors == 'named_colors' or colors is None:
-        colors = mcolors.CSS4_COLORS
-    elif colors == 'xkcd' or colors == 'xkcd_colors':
-        colors = mcolors.XKCD_COLORS
-    elif colors == 'base' or colors == 'base_colors':
-        colors = mcolors.BASE_COLORS
-    elif colors == 'tableau' or colors == 'tableau_colors':
-        colors = mcolors.TABLEAU_COLORS
+    if isinstance(colors, str) or colors is None:
+        if colors == 'named_colors' or colors == 'css4' or colors is None:
+            colors = mcolors.CSS4_COLORS
+        elif colors == 'xkcd' or colors == 'xkcd_colors':
+            colors = mcolors.XKCD_COLORS
+        elif colors == 'base' or colors == 'base_colors':
+            colors = mcolors.BASE_COLORS
+        elif colors == 'tableau' or colors == 'tableau_colors':
+            colors = mcolors.TABLEAU_COLORS
+        else:
+            raise ValueError(
+                "colors must be either 'named_colors', 'xkcd', 'base', or 'tableau'! "
+                f'got {colors}'
+            )
 
     cell_width = 212
     cell_height = 22
     swatch_width = 48
     margin = 12
 
+    import operator as op
+
     if sort_colors is True:
         names = sorted(
-            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c))))
+            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c)))
+        )
     else:
         names = list(colors)
+
+    color_names = [n.split('xkcd:')[1] if op.contains(n, 'xkcd:') else n for n in names]
 
     n = len(names)
     nrows = np.ceil(n / ncols)
@@ -732,8 +742,13 @@ def plot_colortable(
     dpi = 72
 
     fig, ax = plt.subplots(figsize=(width / dpi, height / dpi), dpi=dpi)
-    fig.subplots_adjust(margin/width, margin/height,
-                        (width-margin)/width, (height-margin)/height)
+    fig.subplots_adjust(
+        margin/width,
+        margin/height,
+        (width-margin)/width,
+        (height-margin)/height
+    )
+
     ax.set_xlim(0, cell_width * ncols)
     ax.set_ylim(cell_height * (nrows-0.5), -cell_height/2.)
     ax.yaxis.set_visible(False)
@@ -748,13 +763,21 @@ def plot_colortable(
         swatch_start_x = cell_width * col
         text_pos_x = cell_width * col + swatch_width + 7
 
-        ax.text(text_pos_x, y, name, fontsize=14,
-                horizontalalignment='left',
-                verticalalignment='center')
+        ax.text(
+            text_pos_x, y, color_names[i],
+            fontsize=14,
+            horizontalalignment='left',
+            verticalalignment='center'
+        )
 
         ax.add_patch(
-            mpatches.Rectangle(xy=(swatch_start_x, y-9), width=swatch_width,
-                      height=18, facecolor=colors[name], edgecolor='0.7')
+            mpatches.Rectangle(
+                xy=(swatch_start_x, y-9),
+                width=swatch_width,
+                height=18,
+                facecolor=colors[name],
+                edgecolor='0.7'
+            )
         )
 
     plt.show()
