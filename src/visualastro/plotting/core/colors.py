@@ -537,7 +537,7 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | Sequence[ColorType],
-    transform: Literal['lighten', 'desaturate', 'saturate'] | None = 'lighten',
+    transform: Literal['lighten', 'saturate', 'desaturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
@@ -547,7 +547,7 @@ def get_complimentary_colors(
     | list[str | RGBTuple | RGBATuple]
 ):
     """
-    Lightens or desaturates a color or list of colors.
+    Lightens, saturates, or desaturates a color or list of colors.
     Mixes colors with white to lighten, and moves colors
     towards grey to desaturate.
 
@@ -562,15 +562,20 @@ def get_complimentary_colors(
     factor : float or int
         Modification strength.
 
-        - If `transform='lighten'`: Blending ratio with white.
+        * If `transform='lighten'`: Blending ratio with white.
 
             * `factor=0`: Original color
             * `factor=1`: Pure white
 
-        - If `transform='desaturate'`: Desaturation amount.
+        * If `transform='saturate'`: Saturation level in hsl space.
+
+            * `factor=1`: Maximum saturation for each given color
+            * `factor=0`: Grayscale
+
+        * If `transform='desaturate'`: Desaturation amount.
 
             * `factor=0`: Original color
-            * `factor=1`: Full gray
+            * `factor=1`: Grayscale
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
@@ -588,8 +593,8 @@ def get_complimentary_colors(
         return as_color(color, fmt=fmt)
     method = {
         'lighten': _lighten_color,
-        'desaturate': _desaturate_color,
         'saturate': _saturate_color,
+        'desaturate': _desaturate_color,
     }.get(transform, _lighten_color)
 
     colors = to_list(color)
