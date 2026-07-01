@@ -105,14 +105,20 @@ class ax:
                 try:
                     wcs = WCS(wcs_input)
                 except Exception as e:
-                    warnings.warn(f'Failed to create WCS from Header: {e}')
+                    warnings.warn(
+                        f'Failed to create WCS from Header: {e}',
+                        stacklevel=2
+                    )
                     wcs_input = None
 
             elif isinstance(wcs_input, (list, np.ndarray, tuple)):
                 try:
                     wcs = WCS(wcs_input[0])
                 except Exception as e:
-                    warnings.warn(f'Failed to create WCS from array-like: {e}')
+                    warnings.warn(
+                        f'Failed to create WCS from array-like: {e}',
+                        stacklevel=2
+                    )
                     wcs_input = None
 
             elif isinstance(wcs_input, WCS):
