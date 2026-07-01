@@ -785,7 +785,9 @@ def plot_colortable(
     colors: dict[str, ColorType] | str | None = None,
     *,
     ncols: int = 4,
-    sort_colors: bool = True
+    sort_colors: bool = True,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100
 ) -> None:
     """
     Adapted from matplotlib gallery example:
@@ -839,6 +841,14 @@ def plot_colortable(
         names = list(colors)
 
     color_names = [n.split('xkcd:')[1] if op.contains(n, 'xkcd:') else n for n in names]
+    if cvd_type is not None:
+        facecolors = {
+            name:simulate_colorblindness(
+                color, cvd_type=cvd_type, severity=severity
+            )[0] for name, color in colors.items()
+        }
+    else:
+        facecolors = colors
 
     n = len(names)
     nrows = np.ceil(n / ncols)
@@ -881,7 +891,7 @@ def plot_colortable(
                 xy=(swatch_start_x, y-9),
                 width=swatch_width,
                 height=18,
-                facecolor=colors[name],
+                facecolor=facecolors[name],
                 edgecolor='0.7'
             )
         )
