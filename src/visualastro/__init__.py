@@ -1,3 +1,8 @@
+from importlib.resources import files
+import warnings
+
+import matplotlib.pyplot as plt
+
 # core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
@@ -174,6 +179,8 @@ from visualastro.utils.wcs_utils import (
 __all__ = [name for name in dir() if not name.startswith('_')]
 
 
+# REGISTER FONTS
+# --------------
 def _register_fonts():
     """
     Register additional fonts into matplotlib.
@@ -191,7 +198,8 @@ def _register_fonts():
     if not fonts_dir.exists():
         warnings.warn(
             '[visualastro] Font directory not found. '
-            'Falling back to matplotlib default fonts.'
+            'Falling back to matplotlib default fonts.',
+            stacklevel=2
         )
         return
 
@@ -202,7 +210,43 @@ def _register_fonts():
             fm.fontManager.addfont(str(font_file))
         except Exception as e:
             warnings.warn(
-                f'[visualastro] Could not register font {font_file.name}: {e}'
+                f'[visualastro] Could not register font {font_file.name}: {e}',
+                stacklevel=2
             )
 
 _register_fonts()
+
+# REGISTER STYLES
+# ---------------
+def _register_styles():
+    """
+    Register additional styles with matplotlib.
+
+    Available under `plt.style.use('stylename')`
+    after importing visualastro.
+    """
+    stylelib = files('visualastro') / 'stylelib'
+
+    # matplotlib >= 3.11
+    try:
+        _plt_read_style_dir = plt.style.read_style_directory
+    except AttributeError:
+        _plt_read_style_dir = plt.style.core.read_style_directory
+
+    styledict = _plt_read_style_dir(stylelib)
+
+    for key in styledict.keys():
+        if key not in plt.style.library:
+            plt.style.library[key] = styledict[key]
+        else:
+            warnings.warn(
+                f"Found custom visualastro style of name: '{key}', which "
+                'conflicts with a pre-existing matplotlib style! '
+                'Skipping registration, please change name collision.',
+                stacklevel=2
+            )
+
+    plt.style.available[:] = sorted(plt.style.library.keys())
+
+import scienceplots
+_register_styles()
