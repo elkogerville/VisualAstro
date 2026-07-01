@@ -104,16 +104,19 @@ from visualastro.plotting.core.axes import (
     tripanel_figure,
 )
 from visualastro.plotting.core.colors import (
-    Color,
     as_color,
+    _color as color,
     create_cmap,
+    desaturate_colors,
     get_cmap,
     get_colors,
     get_complimentary_colors,
+    lighten_colors,
     plot_colortable,
     random_colors,
     sample_cmap,
-    simulate_colorblindness
+    saturate_colors,
+    simulate_colorblindness,
 )
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
@@ -167,7 +170,9 @@ from visualastro.utils.wcs_utils import (
     reproject_wcs
 )
 
-color = Color()
+
+__all__ = [name for name in dir() if not name.startswith('_')]
+
 
 def _register_fonts():
     """

@@ -154,7 +154,8 @@ class Color:
             lines.append(f'  {field.name}: {value!r}')
         return '\n'.join(lines)
 
-VISUALASTRO_NAMED_COLORS = vars(Color())
+_color = Color()
+VISUALASTRO_NAMED_COLORS = vars(_color)
 
 
 def get_colors(
