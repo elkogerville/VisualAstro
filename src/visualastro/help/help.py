@@ -139,7 +139,6 @@ class help:
             plt.tight_layout()
             plt.show()
 
-    colors = color
 
     @staticmethod
     def named_colors(ncols: int = 4, sort_colors: bool = True) -> None:
@@ -148,17 +147,21 @@ class help:
     @staticmethod
     def xkcd_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='xkcd', ncols=ncols, sort_colors=sort_colors)
-    xkcd = xkcd_colors
 
     @staticmethod
     def base_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='base', ncols=ncols, sort_colors=sort_colors)
-    base = base_colors
 
     @staticmethod
     def tableau_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='tableau', ncols=ncols, sort_colors=sort_colors)
-    tableau = tableau_colors
+
+    @staticmethod
+    def va_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(
+            colors=VISUALASTRO_NAMED_COLORS, ncols=ncols, sort_colors=sort_colors
+        )
+
 
     @staticmethod
     def cmap(
@@ -274,7 +277,6 @@ class help:
 
                 plt.show()
 
-    styles = style
 
     @staticmethod
     def imshow() -> None:
