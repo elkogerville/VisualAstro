@@ -95,7 +95,7 @@ COLORSETS: dict[str, list[ColorType]] = {
 # -----------------
 COLORSETS['va'] = COLORSETS['visualastro']
 
-COLORNAMES = [key for key in COLORSETS.keys()]
+COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
 # VISUALASTRO COLOR ALIASES
@@ -172,7 +172,7 @@ class Color:
             lines.append(f'  {field.name}: {value!r}')
         return '\n'.join(lines)
 
-_NAMED_COLORS = vars(Color())
+VISUALASTRO_NAMED_COLORS = vars(Color())
 
 
 def get_colors(
@@ -279,8 +279,8 @@ def _get_colors(
                 colorset = colorset[::-1]
             return as_list(as_color(colorset, fmt))
 
-        if colors in _NAMED_COLORS:
-            return as_list(as_color(_NAMED_COLORS[colors], fmt))
+        if colors in VISUALASTRO_NAMED_COLORS:
+            return as_list(as_color(VISUALASTRO_NAMED_COLORS[colors], fmt))
 
         if (
             'xkcd:' + colors in mcolors.XKCD_COLORS and
