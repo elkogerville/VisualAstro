@@ -30,11 +30,12 @@ from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
-    COLORNAMES,
+    COLORSET_NAMES,
+    VISUALASTRO_NAMED_COLORS,
     get_cmap,
     get_colors,
     plot_colortable,
-    simulate_colorblindness
+    simulate_colorblindness,
 )
 from visualastro.plotting.core.image_utils import thorlabs_logo
 from visualastro.plotting.core.utils import _get_stylepath, legend, style
@@ -81,7 +82,7 @@ class help:
 
         if color is None:
             with plt.style.context(style):
-                named_colors = COLORNAMES + ['random']
+                named_colors = COLORSET_NAMES + ['random']
                 n_rows = len(named_colors) * (1 + len(cvd_types))
                 fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
                 ax.axis('off')
