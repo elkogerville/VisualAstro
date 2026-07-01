@@ -1,13 +1,14 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-06-26
+Date Modified: 2026-07-01
 Description:
     Functions related to colors and colormaps in plotting.
 """
 
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
+import operator as op
 
 from colorspacious import cspace_convert
 import colorsys
@@ -15,7 +16,13 @@ from typing import Literal, TypeAlias
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import TABLEAU_COLORS, Colormap, ListedColormap, LogNorm, Normalize
+from matplotlib.colors import (
+    TABLEAU_COLORS,
+    Colormap,
+    ListedColormap,
+    LogNorm,
+    Normalize
+)
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
@@ -95,7 +102,7 @@ COLORSETS: dict[str, list[ColorType]] = {
 # -----------------
 COLORSETS['va'] = COLORSETS['visualastro']
 
-COLORNAMES = [key for key in COLORSETS.keys()]
+COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
 # VISUALASTRO COLOR ALIASES
@@ -125,45 +132,20 @@ class Color:
         """Return all defined colors as a list of colors"""
         return [getattr(cls, f.name) for f in fields(cls)]
 
-    def plot(self, cols: int = 4) -> None:
+    def plot(self, ncols: int = 4, sort_colors: bool = True) -> None:
         """
         Display color swatches in a grid with labels.
 
         Parameters
         ----------
-        cols : int, default 4
-            Number of columns in grid
+        ncols : int, optional, default=4
+            Number of columns to plot.
+        sort_colors : bool, optional, default=True
+            If `True`, sort colors by hsv value.
         """
-        color_list = [(f.name, getattr(self, f.name)) for f in fields(self)]
-        rows = (len(color_list) + cols - 1) // cols
-        fig, ax = plt.subplots(figsize=(cols * 0.9, rows * 1.2), tight_layout=True)
-        ax.set_xlim(0, cols)
-        ax.set_ylim(0, rows)
-        ax.invert_yaxis()
-        ax.axis('off')
-
-        for idx, (name, color) in enumerate(color_list):
-            row, col = divmod(idx, cols)
-            x, y = col, row
-
-            rect = mpatches.FancyBboxPatch(
-                (x + 0.25, y + 0.1), 0.5, 0.4,
-                boxstyle='round,pad=0.02',
-                facecolor=color,
-                edgecolor='#333',
-                linewidth=0.5
-            )
-            ax.add_patch(rect)
-
-            ax.text(
-                x + 0.5, y + 0.52,
-                name,
-                ha='center', va='top',
-                fontsize=7,
-                fontweight='normal'
-            )
-
-        plt.show()
+        plot_colortable(
+            colors='visualastro', ncols=ncols, sort_colors=sort_colors
+        )
 
     def __repr__(self) -> str:
         lines = [self.__class__.__name__ + ':']
@@ -172,7 +154,7 @@ class Color:
             lines.append(f'  {field.name}: {value!r}')
         return '\n'.join(lines)
 
-_NAMED_COLORS = vars(Color())
+VISUALASTRO_NAMED_COLORS = vars(Color())
 
 
 def get_colors(
@@ -264,7 +246,7 @@ def _get_colors(
 
     if colors == 'random':
         return random_colors(
-            int(np.random.randint(0, config.random_colors_max_N, 1)[0])
+            int(np.random.randint(1, config.random_colors_max_N, 1)[0])
         )
 
     if isinstance(colors, str):
@@ -279,8 +261,8 @@ def _get_colors(
                 colorset = colorset[::-1]
             return as_list(as_color(colorset, fmt))
 
-        if colors in _NAMED_COLORS:
-            return as_list(as_color(_NAMED_COLORS[colors], fmt))
+        if colors in VISUALASTRO_NAMED_COLORS:
+            return as_list(as_color(VISUALASTRO_NAMED_COLORS[colors], fmt))
 
         if (
             'xkcd:' + colors in mcolors.XKCD_COLORS and
@@ -546,7 +528,7 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | Sequence[ColorType],
-    transform: Literal['lighten', 'desaturate'] | None = 'lighten',
+    transform: Literal['lighten', 'desaturate', 'saturate'] | None = 'lighten',
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
@@ -597,7 +579,8 @@ def get_complimentary_colors(
         return as_color(color, fmt=fmt)
     method = {
         'lighten': _lighten_color,
-        'desaturate': _desaturate_color
+        'desaturate': _desaturate_color,
+        'saturate': _saturate_color,
     }.get(transform, _lighten_color)
 
     colors = to_list(color)
@@ -607,7 +590,7 @@ def get_complimentary_colors(
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
-    """Lightens the given matplotlib color by mixing it with white"""
+    """Lightens the given matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
     mixed = (1 - mix) * rgb + mix * white
@@ -616,11 +599,20 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
 
 
 def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
-    """Desaturate a color by moving it toward gray"""
+    """Desaturate a color by moving it toward gray."""
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     s_new = s * (1 - factor)
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
+
+    return mcolors.to_hex(rgb_new)
+
+
+def _saturate_color(color: ColorType, factor: float = 1) -> str:
+    """Saturate a color by shifting the saturation in hls space."""
+    rgb = mcolors.to_rgb(color)
+    h, l, s = colorsys.rgb_to_hls(*rgb)
+    rgb_new = colorsys.hls_to_rgb(h, l, factor)
 
     return mcolors.to_hex(rgb_new)
 
@@ -701,17 +693,25 @@ def plot_colortable(
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
-        Sort colors by rgb value.
+        If `True`, sort colors by hsv value.
     """
-
-    if colors == 'named_colors' or colors is None:
-        colors = mcolors.CSS4_COLORS
-    elif colors == 'xkcd' or colors == 'xkcd_colors':
-        colors = mcolors.XKCD_COLORS
-    elif colors == 'base' or colors == 'base_colors':
-        colors = mcolors.BASE_COLORS
-    elif colors == 'tableau' or colors == 'tableau_colors':
-        colors = mcolors.TABLEAU_COLORS
+    if isinstance(colors, str) or colors is None:
+        colors = str(colors).lower()
+        if colors == 'named_colors' or colors == 'css4' or colors is None:
+            colors = mcolors.CSS4_COLORS
+        elif colors == 'xkcd' or colors == 'xkcd_colors':
+            colors = mcolors.XKCD_COLORS
+        elif colors == 'base' or colors == 'base_colors':
+            colors = mcolors.BASE_COLORS
+        elif colors == 'tableau' or colors == 'tableau_colors':
+            colors = mcolors.TABLEAU_COLORS
+        elif colors == 'visualastro' or colors == 'va':
+            colors = VISUALASTRO_NAMED_COLORS
+        else:
+            raise ValueError(
+                "colors must be either 'named_colors', 'xkcd', 'base', or 'tableau'! "
+                f'got {colors}'
+            )
 
     cell_width = 212
     cell_height = 22
@@ -720,9 +720,12 @@ def plot_colortable(
 
     if sort_colors is True:
         names = sorted(
-            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c))))
+            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(colors[c])))
+        )
     else:
         names = list(colors)
+
+    color_names = [n.split('xkcd:')[1] if op.contains(n, 'xkcd:') else n for n in names]
 
     n = len(names)
     nrows = np.ceil(n / ncols)
@@ -732,8 +735,13 @@ def plot_colortable(
     dpi = 72
 
     fig, ax = plt.subplots(figsize=(width / dpi, height / dpi), dpi=dpi)
-    fig.subplots_adjust(margin/width, margin/height,
-                        (width-margin)/width, (height-margin)/height)
+    fig.subplots_adjust(
+        margin/width,
+        margin/height,
+        (width-margin)/width,
+        (height-margin)/height
+    )
+
     ax.set_xlim(0, cell_width * ncols)
     ax.set_ylim(cell_height * (nrows-0.5), -cell_height/2.)
     ax.yaxis.set_visible(False)
@@ -748,13 +756,21 @@ def plot_colortable(
         swatch_start_x = cell_width * col
         text_pos_x = cell_width * col + swatch_width + 7
 
-        ax.text(text_pos_x, y, name, fontsize=14,
-                horizontalalignment='left',
-                verticalalignment='center')
+        ax.text(
+            text_pos_x, y, color_names[i],
+            fontsize=14,
+            horizontalalignment='left',
+            verticalalignment='center'
+        )
 
         ax.add_patch(
-            mpatches.Rectangle(xy=(swatch_start_x, y-9), width=swatch_width,
-                      height=18, facecolor=colors[name], edgecolor='0.7')
+            mpatches.Rectangle(
+                xy=(swatch_start_x, y-9),
+                width=swatch_width,
+                height=18,
+                facecolor=colors[name],
+                edgecolor='0.7'
+            )
         )
 
     plt.show()

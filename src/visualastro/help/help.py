@@ -30,11 +30,12 @@ from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
-    COLORNAMES,
+    COLORSET_NAMES,
+    VISUALASTRO_NAMED_COLORS,
     get_cmap,
     get_colors,
     plot_colortable,
-    simulate_colorblindness
+    simulate_colorblindness,
 )
 from visualastro.plotting.core.image_utils import thorlabs_logo
 from visualastro.plotting.core.utils import _get_stylepath, legend, style
@@ -81,7 +82,7 @@ class help:
 
         if color is None:
             with plt.style.context(style):
-                named_colors = COLORNAMES + ['random']
+                named_colors = COLORSET_NAMES + ['random']
                 n_rows = len(named_colors) * (1 + len(cvd_types))
                 fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
                 ax.axis('off')
@@ -138,7 +139,6 @@ class help:
             plt.tight_layout()
             plt.show()
 
-    colors = color
 
     @staticmethod
     def named_colors(ncols: int = 4, sort_colors: bool = True) -> None:
@@ -147,17 +147,21 @@ class help:
     @staticmethod
     def xkcd_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='xkcd', ncols=ncols, sort_colors=sort_colors)
-    xkcd = xkcd_colors
 
     @staticmethod
     def base_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='base', ncols=ncols, sort_colors=sort_colors)
-    base = base_colors
 
     @staticmethod
     def tableau_colors(ncols: int = 4, sort_colors: bool = True) -> None:
         plot_colortable(colors='tableau', ncols=ncols, sort_colors=sort_colors)
-    tableau = tableau_colors
+
+    @staticmethod
+    def va_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+        plot_colortable(
+            colors=VISUALASTRO_NAMED_COLORS, ncols=ncols, sort_colors=sort_colors
+        )
+
 
     @staticmethod
     def cmap(
@@ -273,7 +277,6 @@ class help:
 
                 plt.show()
 
-    styles = style
 
     @staticmethod
     def imshow() -> None:
