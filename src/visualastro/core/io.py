@@ -92,7 +92,8 @@ def get_errors(
                     errors *= error_unit
                 except Exception:
                     warnings.warn(
-                        'Error extension has invalid BUNIT; returning errors without units.'
+                        'Error extension has invalid BUNIT; returning errors without units.',
+                        stacklevel=2
                     )
 
             break
@@ -120,7 +121,7 @@ def get_errors(
                         warnings.warn(
                             f'Variance extension {extname} has invalid or missing BUNIT; '
                             'returning errors without units.',
-                            UserWarning
+                            stacklevel=2
                         )
                         errors = np.sqrt(variance)
                 break

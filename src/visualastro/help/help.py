@@ -308,7 +308,8 @@ class help:
                     warnings.warn(
                         "\nWARNING: cm10 style sheet cannont properly render 'º'! "
                         'This is mostly an issue for plots with WCSAxes. Either use '
-                        "'cmu' or 'latex' stylesheets to get around this issue."
+                        "'cmu' or 'latex' stylesheets to get around this issue.",
+                        stacklevel=2
                     )
                 fig, ax = plt.subplots(figsize=(7,2))
                 ax.set_xscale('log')

@@ -83,7 +83,8 @@ def convert_quantity(
         if on_failure == 'warn':
             warnings.warn(
                 f'Could not convert from {quantity.unit} to {target_unit}; '
-                f'leaving quantity unchanged.'
+                f'leaving quantity unchanged.',
+                stacklevel=2
             )
         return quantity
 
@@ -723,7 +724,8 @@ def ensure_common_unit(
         if on_mismatch == 'warn':
             warnings.warn(
                 f'{prefix} Unit mismatch at index {i}: {u} != {ref_unit}. '
-                'Values may be interpreted incorrectly.'
+                'Values may be interpreted incorrectly.',
+                stacklevel=2
             )
 
     return ref_unit

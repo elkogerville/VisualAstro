@@ -161,7 +161,8 @@ def _get_stylepath(style: str | None) -> str:
     except Exception as e:
         warnings.warn(
             f"[visualastro] Could not apply style '{style}' ({e}). "
-            f"Falling back to '{config.style_fallback}' style."
+            f"Falling back to '{config.style_fallback}' style.",
+            stacklevel=2
         )
         style = config.style_fallback
         base_style = style.split('_')[0] if '_' in style else style
