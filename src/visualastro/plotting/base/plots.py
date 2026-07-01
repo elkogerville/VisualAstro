@@ -1229,7 +1229,7 @@ def scatter3D(
     xlim, ylim, zlim : tuple[float, float], optional, default=None
         Limits for x, y, and z axes as (min, max). Are overridden by `scale`.
         If `None`, limits are controlled by `autoscale`.
-    autoscale : bool, optional, default=config.axes.autoscale
+    autoscale : bool, optional, default=config.axes.autoscale3d
         If `True`, lets matplotlib scale the axes automatically.
     plot_contour_offset : float | Sequence[float], optional, default=None
         Manual positional offsets for the contour projection planes.
@@ -1281,7 +1281,7 @@ def scatter3D(
             _param('index_spec', index_spec, config.index_specification_3D),
         ],
         [
-            _kwarg('autoscale', config.axes.autoscale),
+            _kwarg('autoscale', config.axes.autoscale3d),
             _kwarg('label', None),
             _kwarg('c', None),
             _kwarg('norm', None),
