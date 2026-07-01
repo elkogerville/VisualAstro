@@ -451,7 +451,7 @@ def simulate_colorblindness(
     colors : ColorType | list[ColorType]
         Color or list of colors recognized by matplotlib.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}, optional, default='deuteranomaly'
-        Type of colorblindness to simulate.
+        Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
     severity : int, optional, default=100
         Severity level (0-100). 100 = complete colorblindness.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
@@ -466,14 +466,22 @@ def simulate_colorblindness(
         raise ValueError(
             'severity must be >= 0 and <= 100!'
         )
+
+    aliases = {
+        'd': 'deuteranomaly',
+        'p': 'protanomaly',
+        't': 'tritanomaly'
+    }
+    colorblind_type = aliases.get(cvd_type, cvd_type)
+
     cvd_space = {
         'name': 'sRGB1+CVD',
-        'cvd_type': cvd_type,
+        'cvd_type': colorblind_type,
         'severity': severity
     }
 
     # convert to RGB [0, 1]
-    rgb = np.array(as_color(colors, fmt='rgb'))
+    rgb = np.array(as_list(as_color(colors, fmt='rgb')))
 
     cvd_rgb = cspace_convert(rgb, cvd_space, 'sRGB1')
     cvd_rgb = np.clip(cvd_rgb, 0, 1)
