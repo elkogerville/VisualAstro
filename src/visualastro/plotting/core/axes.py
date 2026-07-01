@@ -369,6 +369,8 @@ def gridspec(
 def tripanel_figure(
     height_ratios: ArrayLike = (0.05, 1, 0.25),
     width_ratios: ArrayLike = (1, 0.25),
+    sharex: bool = True,
+    sharey: bool = True,
     left: float = 0.05,
     right: float = 0.95,
     bottom: float = 0.08,
@@ -395,6 +397,9 @@ def tripanel_figure(
         Relative heights of the 3 rows.
     width_ratios : ArrayLike, optional, default=(1, 0.2)
         Relative widths of the 2 columns.
+    sharex, sharey : bool, optional, default=True
+        If `True`, `axh` and `axv` will share the x and y axes of `ax`
+        respectively.
     left : float, optional, default=0.05
         Left boundary of the GridSpec as a fraction of figure width.
     right : float, optional, default=0.95
@@ -434,10 +439,10 @@ def tripanel_figure(
     ax = fig.add_subplot(gs[1, 0])
     ax.tick_params(axis='x', bottom=False, labelbottom=False)
 
-    axh = fig.add_subplot(gs[2, 0])
+    axh = fig.add_subplot(gs[2, 0], sharex=ax if sharex else None)
     axh.tick_params(axis='y', left=False, labelleft=True)
 
-    axv = fig.add_subplot(gs[1, 1])
+    axv = fig.add_subplot(gs[1, 1], sharey=ax if sharey else None)
     axv.tick_params(
         axis='both',
         bottom=False, left=False,
