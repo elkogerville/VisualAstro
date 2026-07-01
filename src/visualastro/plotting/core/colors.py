@@ -246,7 +246,7 @@ def _get_colors(
 
     if colors == 'random':
         return random_colors(
-            int(np.random.randint(0, config.random_colors_max_N, 1)[0])
+            int(np.random.randint(1, config.random_colors_max_N, 1)[0])
         )
 
     if isinstance(colors, str):
