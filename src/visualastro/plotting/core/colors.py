@@ -811,7 +811,7 @@ def plot_colortable(
         If `True`, sort colors by hsv value.
     """
     if isinstance(colors, str) or colors is None:
-        colors = str(colors).lower()
+        colors = str(colors).lower() if isinstance(colors, str) else None
         if colors == 'named_colors' or colors == 'css4' or colors is None:
             colors = mcolors.CSS4_COLORS
         elif colors == 'xkcd' or colors == 'xkcd_colors':
