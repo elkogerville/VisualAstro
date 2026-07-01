@@ -141,25 +141,83 @@ class help:
 
 
     @staticmethod
-    def named_colors(ncols: int = 4, sort_colors: bool = True) -> None:
-        plot_colortable(ncols=ncols, sort_colors=sort_colors)
-
-    @staticmethod
-    def xkcd_colors(ncols: int = 4, sort_colors: bool = True) -> None:
-        plot_colortable(colors='xkcd', ncols=ncols, sort_colors=sort_colors)
-
-    @staticmethod
-    def base_colors(ncols: int = 4, sort_colors: bool = True) -> None:
-        plot_colortable(colors='base', ncols=ncols, sort_colors=sort_colors)
-
-    @staticmethod
-    def tableau_colors(ncols: int = 4, sort_colors: bool = True) -> None:
-        plot_colortable(colors='tableau', ncols=ncols, sort_colors=sort_colors)
-
-    @staticmethod
-    def va_colors(ncols: int = 4, sort_colors: bool = True) -> None:
+    def named_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot matplotlib named colors."""
         plot_colortable(
-            colors=VISUALASTRO_NAMED_COLORS, ncols=ncols, sort_colors=sort_colors
+            colors='named_colors',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def va_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot visualastro named colors."""
+        plot_colortable(
+            colors=VISUALASTRO_NAMED_COLORS,
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def xkcd_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot xkcd named colors."""
+        plot_colortable(
+            colors='xkcd',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def base_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot matplotlib base named colors."""
+        plot_colortable(
+            colors='base',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def tableau_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot matplotlib tableau colors."""
+        plot_colortable(
+            colors='tableau',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
         )
 
 
