@@ -109,7 +109,7 @@ def style(name: str | _Unset = _UNSET, *additional_styles, rc: dict | None = Non
         yield
 
 
-def _get_stylepath(style: str) -> str:
+def _get_stylepath(style: str | None) -> str:
     """
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters.
@@ -143,6 +143,9 @@ def _get_stylepath(style: str) -> str:
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
         return style
+
+    if style is None:
+        style = 'default-minimal'
 
     # if style is a visualastro stylesheet
     stylelib = files('visualastro').joinpath('stylelib')
