@@ -126,45 +126,18 @@ class Color:
         """Return all defined colors as a list of colors"""
         return [getattr(cls, f.name) for f in fields(cls)]
 
-    def plot(self, cols: int = 4) -> None:
+    def plot(self, ncols: int = 4, sort_colors: bool = True) -> None:
         """
         Display color swatches in a grid with labels.
 
         Parameters
         ----------
-        cols : int, default 4
-            Number of columns in grid
+        ncols : int, optional, default=4
+            Number of columns to plot.
+        sort_colors : bool, optional, default=True
+            If `True`, sort colors by hsv value.
         """
-        color_list = [(f.name, getattr(self, f.name)) for f in fields(self)]
-        rows = (len(color_list) + cols - 1) // cols
-        fig, ax = plt.subplots(figsize=(cols * 0.9, rows * 1.2), tight_layout=True)
-        ax.set_xlim(0, cols)
-        ax.set_ylim(0, rows)
-        ax.invert_yaxis()
-        ax.axis('off')
-
-        for idx, (name, color) in enumerate(color_list):
-            row, col = divmod(idx, cols)
-            x, y = col, row
-
-            rect = mpatches.FancyBboxPatch(
-                (x + 0.25, y + 0.1), 0.5, 0.4,
-                boxstyle='round,pad=0.02',
-                facecolor=color,
-                edgecolor='#333',
-                linewidth=0.5
-            )
-            ax.add_patch(rect)
-
-            ax.text(
-                x + 0.5, y + 0.52,
-                name,
-                ha='center', va='top',
-                fontsize=7,
-                fontweight='normal'
-            )
-
-        plt.show()
+        plot_colortable(colors='visualastro', ncols=ncols, sort_colors=sort_colors)
 
     def __repr__(self) -> str:
         lines = [self.__class__.__name__ + ':']
@@ -702,9 +675,10 @@ def plot_colortable(
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
-        Sort colors by rgb value.
+        If `True`, sort colors by hsv value.
     """
     if isinstance(colors, str) or colors is None:
+        colors = str(colors).lower()
         if colors == 'named_colors' or colors == 'css4' or colors is None:
             colors = mcolors.CSS4_COLORS
         elif colors == 'xkcd' or colors == 'xkcd_colors':
@@ -713,6 +687,8 @@ def plot_colortable(
             colors = mcolors.BASE_COLORS
         elif colors == 'tableau' or colors == 'tableau_colors':
             colors = mcolors.TABLEAU_COLORS
+        elif colors == 'visualastro' or colors == 'va':
+            colors = VISUALASTRO_NAMED_COLORS
         else:
             raise ValueError(
                 "colors must be either 'named_colors', 'xkcd', 'base', or 'tableau'! "
