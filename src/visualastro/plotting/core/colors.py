@@ -603,6 +603,37 @@ def get_complimentary_colors(
     return as_color(colors, fmt=fmt)
 
 
+def lighten_colors(
+    color: ColorType | Sequence[ColorType],
+    mix: float = 0.5,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
+    """
+    Lighten a set of color(s) by mixing the each color with white.
+
+    Parameters
+    ----------
+    color : ColorType | Sequence[ColorType]
+        Color(s) to lighten.
+    mix : float, optional, default=0.5
+        Mixing factor. `1` results in all white, while `0`
+        leaves `color` unchanged.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If `fmt='hex'`.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If `fmt='rgb'`.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If `fmt='rgba'`.
+    """
+    colors = to_list(color)
+    return as_color([_lighten_color(c, mix=mix) for c in colors], fmt=fmt)
+
+
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
     """Lightens the given matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
@@ -612,14 +643,38 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
     return mcolors.to_hex(tuple(mixed))
 
 
-def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
-    """Desaturate a color by moving it toward gray."""
-    rgb = mcolors.to_rgb(color)
-    h, l, s = colorsys.rgb_to_hls(*rgb)
-    s_new = s * (1 - factor)
-    rgb_new = colorsys.hls_to_rgb(h, l, s_new)
+def saturate_colors(
+    color: ColorType | Sequence[ColorType],
+    factor: float = 1,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
+    """
+    Saturate a set of color(s) by modifying the saturation level
+    of each color in hls space.
 
-    return mcolors.to_hex(rgb_new)
+    Parameters
+    ----------
+    color : ColorType | Sequence[ColorType]
+        Color(s) to saturate.
+    factor : float, optional, default=1
+        Saturation level. `1` results in maximum saturation, while `0`
+        returns `color` in grayscale.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If `fmt='hex'`.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If `fmt='rgb'`.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If `fmt='rgba'`.
+    """
+    colors = to_list(color)
+    return as_color(
+        [_saturate_color(c, factor=factor) for c in colors], fmt=fmt
+    )
 
 
 def _saturate_color(color: ColorType, factor: float = 1) -> str:
@@ -627,6 +682,50 @@ def _saturate_color(color: ColorType, factor: float = 1) -> str:
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
     rgb_new = colorsys.hls_to_rgb(h, l, factor)
+
+    return mcolors.to_hex(rgb_new)
+
+
+def desaturate_colors(
+    color: ColorType | Sequence[ColorType],
+    factor: float = 0.5,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
+    """
+    Desaturate a set of color(s) by moving each color towards gray
+    in hsl space.
+
+    Parameters
+    ----------
+    color : ColorType | Sequence[ColorType]
+        Color(s) to desaturate.
+    factor : float, optional, default=0.5
+        Desaturation level. `1` returns `color` in grayscale while
+        `0` returns the colors unchanged.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If `fmt='hex'`.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If `fmt='rgb'`.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If `fmt='rgba'`.
+    """
+    colors = to_list(color)
+    return as_color(
+        [_desaturate_color(c, factor=factor) for c in colors], fmt=fmt
+    )
+
+
+def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
+    """Desaturate a color by moving it toward gray."""
+    rgb = mcolors.to_rgb(color)
+    h, l, s = colorsys.rgb_to_hls(*rgb)
+    s_new = s * (1 - factor)
+    rgb_new = colorsys.hls_to_rgb(h, l, s_new)
 
     return mcolors.to_hex(rgb_new)
 
