@@ -1,9 +1,4 @@
-from importlib.resources import files
-import warnings
-
-import matplotlib.pyplot as plt
-
-# core classes
+ # core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -225,6 +220,10 @@ def _register_styles():
     Available under `plt.style.use('stylename')`
     after importing visualastro.
     """
+    from importlib.resources import files
+    import warnings
+    import matplotlib.pyplot as plt
+
     stylelib = files('visualastro') / 'stylelib'
 
     # matplotlib >= 3.11
