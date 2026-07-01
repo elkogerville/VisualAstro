@@ -8,6 +8,7 @@ Description:
 
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
+import operator as op
 
 from colorspacious import cspace_convert
 import colorsys
@@ -723,11 +724,9 @@ def plot_colortable(
     swatch_width = 48
     margin = 12
 
-    import operator as op
-
     if sort_colors is True:
         names = sorted(
-            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(c)))
+            colors, key=lambda c: tuple(mcolors.rgb_to_hsv(mcolors.to_rgb(colors[c])))
         )
     else:
         names = list(colors)
