@@ -25,6 +25,7 @@ dependencies = [
     "numpy",
     "regions",
     "reproject",
+    "scienceplots",
     "scipy",
     "spectral_cube",
     "specutils",

@@ -21,13 +21,17 @@
 Currently, the most stable version of python for visualastro is version >=3.10.
 To install visualastro, it is advised to create a new conda environment if possible:
 ```
-$ conda create -n visualastro -c conda-forge python=3.14
+$ conda create -n visualastro -c conda-forge python=3.13
 $ conda activate visualastro
 ```
 Then install the dependencies with:
 ```
 $ conda install -c conda-forge \
-    astropy colorspacious dust_extinction matplotlib numpy regions reproject spectral-cube specutils scipy tqdm
+    astropy colorspacious dust_extinction matplotlib numpy regions reproject scienceplots scipy spectral-cube specutils tqdm
+```
+And finally run:
+```
+$ pip install visualastro
 ```
 For additional interactive functionality inside of jupyter lab:
 ```
@@ -36,10 +40,6 @@ $ conda install -c conda-forge ipympl ipywidgets jupyterlab
 For classic jupyter notebook users:
 ```
 $ conda install -c conda-forge ipympl ipywidgets notebook jupyter_server notebook-shim
-```
-And finally run:
-```
-$ pip install visualastro
 ```
 
 NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then run jupyter notebook!
@@ -54,6 +54,8 @@ NOTE: To ensure that interactive mode works in notebooks, first activate your co
 
 ## Documentation
 Visualastro is still under development! A full documentation of the package's features is coming soon.
+
+Check the `examples/` folder for notebook tutorials!
 
 The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
 

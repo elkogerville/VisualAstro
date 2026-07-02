@@ -270,7 +270,10 @@ def load_fits(filepath, header=True, error=True,
 
     # disable transpose if reprojecting
     if target_wcs is not None and transpose:
-        warnings.warn('`transpose=True` ignored because `target_wcs` was provided.')
+        warnings.warn(
+            '`transpose=True` ignored because `target_wcs` was provided.',
+            stacklevel=2
+        )
         transpose = False
 
     data = None
