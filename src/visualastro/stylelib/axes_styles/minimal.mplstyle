@@ -73,7 +73,7 @@ ytick.alignment:     center_baseline  # alignment of yticks
 ## * LEGEND                                                                  *
 ## ***************************************************************************
 legend.loc:           best
-legend.frameon:       True     # if True, draw the legend on a background patch
+legend.frameon:       False     # if True, draw the legend on a background patch
 legend.framealpha:    1        # legend patch transparency
 legend.edgecolor:     'w'      # background patch boundary color
 legend.fancybox:      False    # if True, use a rounded box for the
