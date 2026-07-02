@@ -109,22 +109,17 @@ def style(name: str | _Unset = _UNSET, *additional_styles, rc: dict | None = Non
         yield
 
 
-def _get_stylepath(style: str) -> str:
+def _get_stylepath(style: str | list[str]) -> str | list[str]:
     """
     Returns the path to a visualastro mpl stylesheet for
     consistent plotting parameters.
-    Avaliable styles:
-        - 'astro'
-        - 'default'
-        - 'latex'
-        - 'minimal'
 
     Matplotlib styles are also allowed (ex: 'classic').
 
     To add custom user defined mpl sheets, add files in:
     VisualAstro/visualastro/stylelib/
     Ensure the stylesheet follows the naming convention:
-        mystylesheet.mplstyle
+        `mystylesheet.mplstyle`
 
     If a style is unable to load due to missing fonts
     or other errors, `config.style_fallback` is used.
@@ -143,6 +138,15 @@ def _get_stylepath(style: str) -> str:
     # if style is a default matplotlib stylesheet
     if style in mplstyle.available:
         return style
+
+    if isinstance(style, list):
+        if all(s in mplstyle.available for s in style):
+            return style
+        else:
+            raise ValueError(
+                'Invalid styles! To check available styles, '
+                "run `plt.style.available`."
+            )
 
     # if style is a visualastro stylesheet
     stylelib = files('visualastro').joinpath('stylelib')
