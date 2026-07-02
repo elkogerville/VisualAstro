@@ -51,8 +51,8 @@ where = ["src"]
 [tool.setuptools.package-data]
 "visualastro" = [
     "stylelib/*.mplstyle",
-    "stylelib/Fonts/**/*.ttf",
-    "stylelib/Fonts/**/LICENSE",
+    "stylelib/fontlib/**/*.ttf",
+    "stylelib/fontlib/**/LICENSE",
     "data/*.png",
     "data/*.jpg",
     "*.md",
