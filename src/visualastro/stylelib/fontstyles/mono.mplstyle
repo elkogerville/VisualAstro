@@ -1,0 +1,14 @@
+# Monospace Typewriter font
+# -------------------------
+# No Latex
+#
+# visualastro 2026
+
+font.family:         monospace
+font.monospace:      DejaVu Sans Mono, Bitstream Vera Sans Mono, Computer Modern Typewriter, Andale Mono, Nimbus Mono L, Courier New, Courier, Fixed, Terminal, monospace
+
+text.usetex:         False
+mathtext.fontset:    cm
+
+#axes.unicode_minus: True  # use Unicode for the minus symbol rather than hyphen.  See
+                           # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
