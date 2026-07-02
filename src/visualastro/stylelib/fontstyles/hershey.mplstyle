@@ -1,0 +1,44 @@
+# AVHershey TrueType Font
+# ------------------------
+# No LaTeX
+#
+# prepared for visualastro, 2026
+
+# Courtesy of:
+# @software{jiaxuan_li_2023_8126529,
+#   author       = {Jiaxuan Li},
+#   title        = {AstroJacobLi/smplotlib: v0.0.9},
+#   month        = jul,
+#   year         = 2023,
+#   publisher    = {Zenodo},
+#   version      = {v0.0.9},
+#   doi          = {10.5281/zenodo.8126529},
+#   url          = {https://doi.org/10.5281/zenodo.8126529},
+# }
+
+font.family:  AVHershey Complex
+font.size:    12.0
+
+font.serif: AVHershey Complex
+font.sans-serif: AVHershey Duplex
+font.monospace: AVHershey Complex
+
+text.usetex: False
+mathtext.fontset: custom
+mathtext.bf:  AVHershey Complex:heavy # such that font_manager can find it
+mathtext.cal: AVHershey Complex:medium
+mathtext.it:  AVHershey Complex:medium:italic
+mathtext.rm:  AVHershey Complex:medium
+mathtext.sf:  AVHershey Duplex:medium
+mathtext.tt:  AVHershey Simplex:medium
+mathtext.fallback: cm  # Select fallback font from ['cm' (Computer Modern), 'stix'
+                        # 'stixsans'] when a symbol can not be found in one of the
+                        # custom math fonts. Select 'None' to not perform fallback
+                        # and replace the missing character by a dummy symbol.
+mathtext.default: regular  # The default font to use for math.
+                       # Can be any of the LaTeX font names, including
+                       # the special name "regular" for the same font
+                       # used in regular text.
+
+#axes.unicode_minus: True  # use Unicode for the minus symbol rather than hyphen.  See
+                           # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
