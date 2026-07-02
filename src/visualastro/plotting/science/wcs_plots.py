@@ -216,7 +216,8 @@ def imshow(
     if isinstance(ax, WCSAxes) and origin == 'upper':
         warnings.warn(
             "origin cannot be 'upper' if ax is a WCSAxes! "
-            "setting invert_yaxis=True and origin='lower'!"
+            "setting invert_yaxis=True and origin='lower'!",
+            stacklevel=2
         )
         origin = 'lower'
         params.invert_yaxis = True
