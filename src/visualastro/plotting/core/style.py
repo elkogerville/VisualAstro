@@ -10,6 +10,7 @@ from contextlib import contextmanager, nullcontext
 from importlib.resources import files
 import warnings
 
+from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 

@@ -37,8 +37,7 @@ from visualastro.plotting.base.plots import (
     scatter_fit,
     scatter_project
 )
-from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.core.utils import apply_style_modifiers
+from visualastro.plotting.core.style import apply_style_modifiers, _style_context
 from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
 from visualastro.utils.wcs_utils import get_wcs_celestial
 

@@ -139,7 +139,6 @@ from visualastro.plotting.core.utils import (
     plot_interactive_ellipse,
     plot_points,
     plot_vlines,
-    style
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
