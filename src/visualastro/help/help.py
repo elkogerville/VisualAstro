@@ -38,7 +38,8 @@ from visualastro.plotting.core.colors import (
     simulate_colorblindness,
 )
 from visualastro.plotting.core.image_utils import thorlabs_logo
-from visualastro.plotting.core.utils import _get_stylepath, legend, style
+from visualastro.plotting.core.style import _style_context
+from visualastro.plotting.core.utils import legend
 
 
 class help:
@@ -78,10 +79,9 @@ class help:
             ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
             else ([cvd_type] if cvd_type else [])
         )
-        style = _get_stylepath(config.style)
 
         if color is None:
-            with plt.style.context(style):
+            with _style_context(config.style):
                 named_colors = COLORSET_NAMES + ['random']
                 n_rows = len(named_colors) * (1 + len(cvd_types))
                 fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
@@ -302,8 +302,7 @@ class help:
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
-            style = _get_stylepath(style_name)
-            with plt.style.context(style):
+            with _style_context(style_name):
                 if style_name == 'cm10':
                     warnings.warn(
                         "\nWARNING: cm10 style sheet cannont properly render 'º'! "
@@ -327,7 +326,7 @@ class help:
 
                 ax.set_xlabel(r'Wavelength [$\mu m$]')
                 ax.set_ylabel('Counts')
-                ax.set_title(fr'Style : {style_name}', fontdict={'fontsize': 15})
+                ax.set_title(fr'Style : {style_name}', fontdict={'fontsize': 13})
 
                 ax.legend(loc='upper left')
 
@@ -362,7 +361,7 @@ class help:
                 r'$\lambda$ = 0.25',
                 r'$\lambda$ = 0.1'
             ]
-            with style('thorlabs'):
+            with plt.style.context('thorlabs'):
                 fig, ax = plt.subplots(figsize=(6,6))
                 plot(
                     x, [l0,l1,l2,l3,l4],
@@ -401,7 +400,7 @@ class help:
                 legend_ncols=2
             )
         if i == 2:
-            with style(config.style):
+            with _style_context(config.style):
                 t = np.arange(0,2*np.pi,0.01)
                 ft = (4/np.pi)*np.sin(t)+(4/(3*np.pi))*np.sin(3*t) + \
                     (4/(5*np.pi))*np.sin(5*t)+(4/(7*np.pi))*np.sin(7*t)

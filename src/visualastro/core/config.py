@@ -224,9 +224,9 @@ class VisualAstroConfig(PrettyRepr):
     index_specification_3D: tuple[int, int, int] = (0, 1, 2)
 
     # figure params
-    style: str = 'smplot' # default style
+    style: str | None = None # default style
     style_available: list | None = None
-    style_fallback: str = 'default' # style if default style fails
+    style_fallback: str = 'default'
     figsize: tuple = (6, 6)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     figsize_gridspec: tuple = (12, 6)
