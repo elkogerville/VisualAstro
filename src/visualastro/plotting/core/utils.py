@@ -1,16 +1,13 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-06-13
+Date Modified: 2026-07-03
 Description:
     Plotting utility functions.
 """
 
 from collections.abc import Sequence
-from contextlib import contextmanager
-from importlib.resources import files
 from typing import Callable, Literal
-import warnings
 from functools import partial
 
 import astropy.units as u
@@ -23,7 +20,6 @@ from matplotlib.contour import QuadContourSet
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
-import matplotlib.style as mplstyle
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -31,82 +27,29 @@ from numpy.typing import NDArray
 from regions import PixCoord, EllipsePixelRegion
 
 from visualastro.core.config import (
-    get_config_value,
     config,
-    _Unset,
-    _UNSET,
+    get_config_value,
+    _Unset, _UNSET,
     _resolve_default
 )
-from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param, _resolve_kwargs
+from visualastro.core.kwargs import (
+    _extract_kwargs,
+    _kwarg, _param,
+    _resolve_kwargs
+)
 from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
     get_value,
     to_list,
     _cycle,
     _extract_xy,
-    _is_1d,
-    _is_2d,
+    _is_1d, _is_2d,
     _is_iterable,
     _is_ndarray_or_quantity_array,
     _is_scalar,
 )
 from visualastro.core.units import to_unit
 from visualastro.plotting.core.colors import get_cmap, get_colors, sample_cmap
-
-
-@contextmanager
-def style(name: str | _Unset = _UNSET, *additional_styles, rc: dict | None = None, **rc_kwargs):
-    """
-    Context manager to temporarily apply a Matplotlib or VisualAstro style,
-    with optional rcParams overrides.
-
-    Parameters
-    ----------
-    name : str | _Unset, optional, default=_UNSET
-        Matplotlib or VisualAstro style name. If `_UNSET`,
-        uses `config.style`. Ex: 'astro' or 'latex'.
-    rc : dict, optional
-        Dictionary of rcParams overrides.
-        Ex: {'font.size': 14}
-    **rc_kwargs :
-        Additional rcParams overrides supplied as keyword arguments.
-        Use underscores in place of dots: font_size → font.size
-
-    Examples
-    --------
-    >>> with style('latex', font_size=23, axes_labelsize=40):
-    ...     plt.plot(x, y)
-
-    >>> with style('paper', rc={'font.size': 14, 'lines.linewidth': 2}):
-    ...     fig, ax = plt.subplots()
-
-    >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
-    ...     # rc dict and kwargs are merged (kwargs take precedence)
-    ...     plt.plot(x, y)
-    """
-    name = _resolve_default(name, config.style)
-    style_name = _get_stylepath(name)
-
-    # update rcParams, with priority to kwargs
-    rc_combined = {}
-    if rc is not None:
-        rc_combined.update(rc)
-    if rc_kwargs:
-        # replace '_' with '.' for rcParams
-        rc_combined.update({
-            k.replace('_', '.'): v for k, v in rc_kwargs.items()
-        })
-    styles = [style_name, rc_combined]
-    modifiers = []
-    for style in additional_styles:
-        if isinstance(style, str):
-            modifiers.append(style)
-        if len(modifiers) > 0:
-            styles += modifiers
-    context = styles if rc_combined else style_name
-
-    with plt.style.context(context):
-        yield
 
 
 def apply_style_modifiers(ax, style: str):

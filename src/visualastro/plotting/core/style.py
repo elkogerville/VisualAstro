@@ -6,14 +6,18 @@ Description:
     Functions related to setting the plotting style.
 """
 
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from importlib.resources import files
 import warnings
 
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 
-from visualastro.core.config import config
+from visualastro.core.config import (
+    config,
+    _Unset, _UNSET,
+    _resolve_default
+)
 
 
 def _style_context(style: str | None = None, *, path: str | None = None):
@@ -89,3 +93,62 @@ def _get_stylepath(style: str | list[str] | None) -> str | list[str] | None:
         style = config.style_fallback
         base_style = style.split('_')[0] if '_' in style else style
         return str(stylelib.joinpath(f'{base_style}.mplstyle'))
+
+
+@contextmanager
+def style(
+    name: str | _Unset = _UNSET,
+    *additional_styles, rc: dict | None = None,
+    **rc_kwargs
+):
+    """
+    Context manager to temporarily apply a Matplotlib or VisualAstro style,
+    with optional rcParams overrides.
+
+    Parameters
+    ----------
+    name : str | _Unset, optional, default=_UNSET
+        Matplotlib or VisualAstro style name. If `_UNSET`,
+        uses `config.style`. Ex: 'astro' or 'latex'.
+    rc : dict, optional
+        Dictionary of rcParams overrides.
+        Ex: {'font.size': 14}
+    **rc_kwargs :
+        Additional rcParams overrides supplied as keyword arguments.
+        Use underscores in place of dots: font_size → font.size
+
+    Examples
+    --------
+    >>> with style('latex', font_size=23, axes_labelsize=40):
+    ...     plt.plot(x, y)
+
+    >>> with style('paper', rc={'font.size': 14, 'lines.linewidth': 2}):
+    ...     fig, ax = plt.subplots()
+
+    >>> with style('astro', rc={'font.size': 12}, xtick_labelsize=10):
+    ...     # rc dict and kwargs are merged (kwargs take precedence)
+    ...     plt.plot(x, y)
+    """
+    name = _resolve_default(name, config.style)
+    style_name = _get_stylepath(name)
+
+    # update rcParams, with priority to kwargs
+    rc_combined = {}
+    if rc is not None:
+        rc_combined.update(rc)
+    if rc_kwargs:
+        # replace '_' with '.' for rcParams
+        rc_combined.update({
+            k.replace('_', '.'): v for k, v in rc_kwargs.items()
+        })
+    styles = [style_name, rc_combined]
+    modifiers = []
+    for style in additional_styles:
+        if isinstance(style, str):
+            modifiers.append(style)
+        if len(modifiers) > 0:
+            styles += modifiers
+    context = styles if rc_combined else style_name
+
+    with plt.style.context(context):
+        yield
