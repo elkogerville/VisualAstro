@@ -120,7 +120,7 @@ class Color:
     msg: ColorType = 'mediumseagreen'
     jade: ColorType = '#26DCBA'
     nebula: ColorType = '#9FB7FF'
-    bbypnk: ColorType = '#DBB0FF'
+    unicorn: ColorType = '#DBB0FF'
     pondwater: ColorType = '#CFE23C'
     ibmpur: ColorType = '#785EF0'
     ibmpnk: ColorType = '#DC267F'
