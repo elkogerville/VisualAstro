@@ -686,9 +686,9 @@ class DataCube:
         This method visualizes the mean and standard deviation of flux across
         each 2D slice of the cube as a function of slice index.
         """
-        from visualastro.plotting.core.utils import _get_stylepath
+        from visualastro.plotting.core.style import _style_context
 
-        style = _resolve_default(style, config.style)
+        plot_style = _resolve_default(style, config.style)
         text_color = _pop_kwargs(kwargs, 'text_color', config.text_color)
 
         cube = self.value
@@ -710,8 +710,8 @@ class DataCube:
             peak_idx = None
 
         T = np.arange(mean_flux.shape[0])
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+
+        with _style_context(plot_style):
             _, ax = plt.subplots(figsize=figsize)
 
             ax.plot(T, mean_flux, c='darkslateblue', label='Mean')

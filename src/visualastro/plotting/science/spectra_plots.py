@@ -72,9 +72,9 @@ from visualastro.plotting.core.colors import (
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
+from visualastro.plotting.core.style import _style_context
 from visualastro.plotting.core.utils import (
     plot_vlines,
-    _get_stylepath,
     _get_zorder
 )
 
@@ -244,7 +244,6 @@ def extract_cube_spectra(
             _kwarg('dpi', config.savefig.dpi),
         ]
     )
-    style = _get_stylepath(params.style)
 
     methods = {
         'mean': lambda cube: cube.mean(axis=(1, 2), how=params.extract_mode),
@@ -298,7 +297,7 @@ def extract_cube_spectra(
             region=region
         ))
 
-    with plt.style.context(style):
+    with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
         _ = plot_spectra(
             extracted_spectra,
@@ -569,7 +568,6 @@ def extract_cube_pixel_spectra(
 
     n_plot = len(spectra)
     combined_spec = None
-    style = _get_stylepath(params.style)
 
     if combine_spectra:
         if params.combine_method == 'sum':
@@ -585,7 +583,7 @@ def extract_cube_pixel_spectra(
             Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
         )
 
-    with plt.style.context(style):
+    with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
         ax.set_autoscale_on(False)
 
@@ -795,8 +793,7 @@ def plot_extracted_pixel_map(
     overlay = np.zeros((ny, nx, 4), dtype=float)
     overlay[ys, xs] = colors_rgba
 
-    style = _get_stylepath(params.style)
-    with plt.style.context(style):
+    with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
         imshow(
             background,
@@ -1612,9 +1609,8 @@ def fit_gaussian_2_spec(
 
     # set plot style and colors
     colors = get_colors(colors)
-    style = _get_stylepath(style)
 
-    with plt.style.context(style):
+    with _style_context(style):
         fig, ax = plt.subplots(figsize=figsize)
         # determine plot type
         plt_plot = {

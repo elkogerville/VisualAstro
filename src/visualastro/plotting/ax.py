@@ -9,6 +9,7 @@ Description:
 from collections.abc import Sequence
 from typing import Literal
 import warnings
+
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.wcs import WCS
@@ -36,7 +37,8 @@ from visualastro.plotting.base.plots import (
     scatter_fit,
     scatter_project
 )
-from visualastro.plotting.core.utils import apply_style_modifiers, _get_stylepath
+from visualastro.plotting.core.style import _style_context
+from visualastro.plotting.core.utils import apply_style_modifiers
 from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
@@ -132,8 +134,7 @@ class ax:
                 if invert_wcs:
                     wcs = wcs.swapaxes(0, 1)
 
-        stylepath = _get_stylepath(style)
-        with plt.style.context(stylepath):
+        with _style_context(style):
             plt.figure(figsize=figsize)
             ax = plt.subplot(111) if wcs_input is None else plt.subplot(111, projection=wcs)
             apply_style_modifiers(ax, style)
@@ -197,9 +198,7 @@ class ax:
 
         cubes = to_list(cubes)
 
-        # define wcs figure axes
-        stylepath = _get_stylepath(style)
-        with plt.style.context(stylepath):
+        with _style_context(style):
             fig = plt.figure(figsize=figsize)
             wcs2d = get_wcs_celestial(_cycle(cubes, config.reference_idx))
             if isinstance(wcs2d, WCS):
@@ -261,9 +260,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
             _ = plot_spectra(
@@ -390,10 +387,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        # set plot style
-        style = _get_stylepath(style)
-
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
             if return_spectra:
                 combined_spectra = plot_combine_spectrum(extracted_spectra, ax, idx,
@@ -512,8 +506,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig = plt.figure(figsize=figsize)
             # adjust grid layout to prevent overlap
             gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.6),
@@ -564,8 +557,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
             _ = hist(
@@ -617,8 +609,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
             _ = plot(
@@ -674,9 +665,8 @@ class ax:
         style = kwargs.pop('style', config.style)
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
-        style = _get_stylepath(style)
 
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
             _ = scatter(
@@ -736,8 +726,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
             _ = scatter_fit(
                 *data,
@@ -800,8 +789,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig = plt.figure(figsize=figsize)
             ax = fig.add_subplot(111, projection='3d')
 
@@ -866,8 +854,7 @@ class ax:
         savefigure = kwargs.pop('savefig', config.savefig.enable)
         dpi = kwargs.pop('dpi', config.savefig.dpi)
 
-        style = _get_stylepath(style)
-        with plt.style.context(style):
+        with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
             scatter = scatter_project(
