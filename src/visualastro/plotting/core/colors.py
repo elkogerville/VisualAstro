@@ -409,13 +409,14 @@ VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
         name='shrek'
     ),
 }
-CMAPNAMES = [key for key in CMAPS.keys()]
+CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
 
 
 def sample_cmap(
     N: int,
     cmap: str | mcolors.Colormap | _Unset = _UNSET,
-    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+    cmap_range: tuple[float, float] = (0, 1),
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
 ) -> list[str | RGBTuple | RGBATuple]:
     """
     Sample N distinct colors from a given matplotlib colormap
@@ -428,6 +429,9 @@ def sample_cmap(
     cmap : str | Colormap | _Unset, optional, default=_UNSET
         Name of the matplotlib colormap or Colormap object. If
         `_UNSET` uses `config.cmap`.
+    cmap_range : tuple[float, float], optional, default=(0,1)
+        The normalized value range in the colormap from which colors
+        should be taken. By default, the entire colormap is used.
     fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
@@ -441,7 +445,7 @@ def sample_cmap(
         If `fmt='rgba'`.
     """
     cmap = _resolve_default(cmap, config.cmap)
-    colors = plt.get_cmap(cmap)(np.linspace(0, 1, N))
+    colors = plt.get_cmap(cmap)(np.linspace(cmap_range[0], cmap_range[1], N))
 
     return [_convert_color(c, fmt) for c in colors]
 
