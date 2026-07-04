@@ -330,9 +330,6 @@ class help:
 
                 ax.legend(loc='upper left')
 
-                if style_name == 'thorlabs':
-                    thorlabs_logo(ax, loc='best')
-
                 plt.show()
 
 
@@ -374,7 +371,6 @@ class help:
                     label=labels,
                     hlines=[-1,1]
                 )
-                thorlabs_logo(ax=ax, loc='best', transparent=False, darkmode=False)
                 plt.show()
         if i == 1:
             t = np.arange(0,2*np.pi,.01)
