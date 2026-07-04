@@ -309,7 +309,7 @@ def get_cmap(
     Parameters
     ----------
     cmap : mcolors.Colormap | str | int
-        Colormap object or string name. If a string, attempts lookup in CMAPS
+        Colormap object or string name. If a string, attempts lookup in VISUALASTRO_CMAPS
         registry before falling back to matplotlib's colormap registry.
         If an `int`, returns `tol_colors.rainbow_discrete(colors)`.
     bad_color : ColorType | None, optional, default=None
@@ -336,7 +336,7 @@ def get_cmap(
 
     if isinstance(cmap, str):
         cmap_name = cmap.removesuffix('_r')
-        cm = CMAPS.get(cmap_name, None)
+        cm = VISUALASTRO_CMAPS.get(cmap_name, None)
         if cm is not None:
             cm = cm.reversed() if cmap.endswith('_r') else cm
             return set_bad_color(cm, bad_color)
@@ -396,7 +396,7 @@ BuWhRd = create_cmap(
 tol_rainbow = plt.get_cmap('tol.rainbow').copy()
 tol_rainbow.set_bad(color='white')
 
-CMAPS: dict[str, mcolors.Colormap] = {
+VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
     'iridescent': iridescent,
     'BuWhRd': BuWhRd,
     'tol_rainbow': tol_rainbow,
