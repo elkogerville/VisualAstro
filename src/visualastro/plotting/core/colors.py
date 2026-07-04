@@ -66,6 +66,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
+    'temple_os': ['#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'],
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
         '#00FFFF', '#FF00FF', '#FFFF00'
