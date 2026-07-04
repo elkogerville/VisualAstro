@@ -165,7 +165,7 @@ VISUALASTRO_NAMED_COLORS = vars(_color)
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
-    transform: Literal['lighten', 'desaturate'] | None = None,
+    transform: Literal['lighten', 'saturate', 'desaturate'] | None = None,
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
@@ -194,15 +194,20 @@ def get_colors(
     factor : float or int
         Modification strength.
 
-        - If `transform='lighten'`: Blending ratio with white.
+        * If `transform='lighten'`: Blending ratio with white.
 
             * `factor=0`: Original color
             * `factor=1`: Pure white
 
-        - If `transform='desaturate'`: Desaturation amount.
+        * If `transform='saturate'`: Saturation level in hsl space.
+
+            * `factor=1`: Maximum saturation for each given color
+            * `factor=0`: Grayscale
+
+        * If `transform='desaturate'`: Desaturation amount.
 
             * `factor=0`: Original color
-            * `factor=1`: Full gray
+            * `factor=1`: Grayscale
 
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
@@ -279,7 +284,7 @@ def _get_colors(
             return as_list(as_color(colors, fmt))
 
     if isinstance(colors, (np.ndarray, list)):
-        return [get_colors(c, fmt=fmt)[0] for c in colors]
+        return [_get_colors(c, fmt=fmt)[0] for c in colors]
 
     if isinstance(colors, tuple):
         return as_list(as_color(colors, fmt))
