@@ -84,7 +84,7 @@ class help:
             with _style_context(config.style):
                 named_colors = COLORSET_NAMES + ['random']
                 n_rows = len(named_colors) * (1 + len(cvd_types))
-                fig, ax = plt.subplots(figsize=(8, n_rows * 0.5))
+                fig, ax = plt.subplots(figsize=(8, n_rows * 0.3))
                 ax.axis('off')
                 row = 0
 
