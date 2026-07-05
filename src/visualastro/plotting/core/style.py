@@ -1,12 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2026-07-03
+Date Modified: 2026-07-04
 Description:
     Functions related to setting the plotting style.
 """
 
-from contextlib import contextmanager, nullcontext
+from contextlib import AbstractContextManager, contextmanager, nullcontext
 from importlib.resources import files
 import warnings
 
@@ -21,11 +21,23 @@ from visualastro.core.config import (
 )
 
 
-def _style_context(style: str | None = None, *, path: str | None = None):
+def _style_context(style: str | None = None) -> AbstractContextManager:
     """
-    Helper function to facilitate
+    Return a context manager applying a Matplotlib style, or `nullcontext`
+    if none is resolved.
+
+    Parameters
+    ----------
+    style : str | None, optional, default=None
+        Name of the style to resolve via `_get_stylepath`. Ignored if `path` is given.
+
+    Returns
+    -------
+    AbstractContextManager
+        `plt.style.context(stylepath)` if a style path was resolved, otherwise
+        `nullcontext()`.
     """
-    stylepath = _get_stylepath(style) if path is None else path
+    stylepath = _get_stylepath(style)
     return (
         plt.style.context(stylepath) if stylepath is not None else nullcontext()
     )
