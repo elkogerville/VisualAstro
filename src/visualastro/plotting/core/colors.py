@@ -167,6 +167,7 @@ VISUALASTRO_NAMED_COLORS = vars(_color)
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
+    cmap_range: tuple[float, float] = (0, 1),
     transform: Literal['lighten', 'saturate', 'desaturate'] | None = None,
     factor: float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
@@ -191,6 +192,10 @@ def get_colors(
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap for sampling when colors is int. If `_UNSET`,
         uses `config.cmap`.
+    cmap_range : tuple[float, float], optional, default=(0, 1)
+        The normalized range of the colormap. By default, is `(0,1)`,
+        meaning the returned colormap has its entire range. Ignored
+        if `cmap` is an `int`.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
     factor : float or int
@@ -233,12 +238,22 @@ def get_colors(
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
     else:
-        colors = _get_colors(colors, cmap, fmt=fmt)
+        colors = _get_colors(colors, cmap, fmt=fmt, cmap_range=cmap_range)
         colors = as_list(
-            get_complimentary_colors(colors, transform=transform, factor=factor)
+            get_complimentary_colors(
+                colors,
+                transform=transform,
+                factor=factor,
+                fmt=fmt
+            )
         )
     if cvd_type is not None:
-        colors = simulate_colorblindness(colors, cvd_type=cvd_type, severity=severity)
+        colors = simulate_colorblindness(
+            colors,
+            cvd_type=cvd_type,
+            severity=severity,
+            fmt=fmt
+        )
 
     modulo_idx = config.color_cycle_idx % len(colors)
     return colors[modulo_idx:] + colors[:modulo_idx]
@@ -247,10 +262,13 @@ def get_colors(
 def _get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
+    cmap_range: tuple[float, float] = (0, 1),
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """Helper function for `get_colors`"""
-    cmap = get_cmap(_resolve_default(cmap, config.sample_cmap))
+    cmap = get_cmap(
+        _resolve_default(cmap, config.sample_cmap), cmap_range=cmap_range
+    )
 
     if colors is _UNSET:
         colorset = COLORSETS.get(config.default_colorset, COLORSETS['visualastro'])
