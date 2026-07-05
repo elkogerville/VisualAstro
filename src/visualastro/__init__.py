@@ -104,8 +104,9 @@ from visualastro.plotting.core.axes import (
     tripanel_figure,
 )
 from visualastro.plotting.core.colormaps import (
-    get_cmap,
     create_cmap,
+    get_cmap,
+    plot_cmap_lightness,
 )
 from visualastro.plotting.core.colors import (
     as_color,
