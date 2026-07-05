@@ -301,35 +301,6 @@ def _get_colors(
     )
 
 
-
-# VISUALASTRO COLOR MAPS
-# ----------------------
-iridescent = plt.get_cmap('tol.iridescent').copy()
-iridescent.set_bad(color='white')
-BuWhRd = create_cmap(
-    ['#191970', '#0000FF', '#FFFFFF', '#FF0000', '#8b0000'],
-    [0, 0.25, 0.5, 0.75, 1],
-    'BuWhRd'
-)
-tol_rainbow = plt.get_cmap('tol.rainbow').copy()
-tol_rainbow.set_bad(color='white')
-
-VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
-    'iridescent': iridescent,
-    'BuWhRd': BuWhRd,
-    'tol_rainbow': tol_rainbow,
-    'nuclear_waste': create_cmap(
-        ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
-        name='nuclear_waste'
-    ),
-    'shrek': create_cmap(
-        ['#6CA838', '#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#7E8140', '#575931'],
-        name='shrek'
-    ),
-}
-CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
-
-
 def sample_cmap(
     N: int,
     cmap: str | mcolors.Colormap | _Unset = _UNSET,

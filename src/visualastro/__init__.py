@@ -268,7 +268,7 @@ def _register_cmaps():
     """Register additional colormaps with matplotlib"""
     import cmasher
     import matplotlib as mpl
-    from visualastro.plotting.core.colors import VISUALASTRO_CMAPS
+    from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
 
     mpl_cmaps = {name for name in mpl.colormaps.keys()}
 
