@@ -9,11 +9,16 @@ Description:
 """
 
 import cmasher
+from colorspacious import cspace_converter
+from matplotlib.axes import Axes
+from matplotlib.collections import PathCollection
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 import tol_colors as tc
+
+from visualastro.core.config import config
 
 
 def get_cmap(
@@ -114,6 +119,50 @@ def create_cmap(
              for idx, channel in enumerate(['red', 'green', 'blue'])}
 
     return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
+
+
+def plot_cmap_lightness(
+    cmap: str | mcolors.Colormap,
+    ax: Axes | None = None,
+    s: float = 300,
+    **kwargs
+) ->  PathCollection:
+    """
+     Plot L* (CAM02-UCS lightness) as a function of colormap index.
+
+     Parameters
+     ---------------
+     cmap : str | matplotlib.colors.Colormap
+         Colormap name or instance.
+     ax : matplotlib.axes.Axes, optional, default=None
+         Target axes. Created via `plt.subplots` if None.
+     s : float, optional, default=300
+         Marker size passed to `ax.scatter`.
+     **kwargs : dict, optional
+         Additional keyword arguments passed to `ax.scatter`.
+
+     Returns
+     ---------------
+     ax : PathCollection
+         Scatter artist.
+     """
+    cmap = get_cmap(cmap)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=config.figsize)
+
+    x = np.linspace(0.0, 1.0, 100)
+    n = 256
+
+    rgb = cmap(x)[np.newaxis, :, :3]
+    lab = cspace_converter('sRGB1', 'CAM02-UCS')(rgb)
+    L = lab[0, :, 0]
+
+    scatter = ax.scatter(x, L, s=s, c=x, cmap=cmap, **kwargs)
+
+    ax.set_ylabel(r'L$^*$', fontsize=config.axes.label_fontsize)
+
+    return scatter
+
 
 
 # VISUALASTRO COLOR MAPS
