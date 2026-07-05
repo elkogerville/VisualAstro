@@ -30,9 +30,8 @@ from visualastro.core.numerical import number_density
 from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
-from visualastro.plotting.core.colormaps import get_cmap
+from visualastro.plotting.core.colormaps import CMAPNAMES, get_cmap
 from visualastro.plotting.core.colors import (
-    CMAPNAMES,
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
     get_colors,
