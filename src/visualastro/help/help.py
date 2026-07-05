@@ -30,7 +30,7 @@ from visualastro.core.numerical import number_density
 from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
-from visualastro.plotting.core.colormaps import get_cmap
+from visualastro.plotting.core.colormaps import get_cmap, plot_cmap_lightness
 from visualastro.plotting.core.colors import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
@@ -263,6 +263,37 @@ class help:
             ax.axis('off')
 
         plt.tight_layout()
+        plt.show()
+
+
+    @staticmethod
+    def cmap_lightness(
+        cmap: str | mcolors.Colormap | None = None,
+        ncols=1
+    ):
+        if cmap is None:
+            cmaps = [c for c in colormaps() if not c.endswith('_r')]
+            ncols = 12
+            fig, ax = plt.subplots(figsize=(12,30))
+            inline_offset = 30
+        else:
+            cmaps = to_list(cmap)
+            fig, ax = plt.subplots(figsize=(5,5))
+            inline_offset = 0
+
+        legend_label = True if len(cmaps) <= 5 else False
+        inline_label = not legend_label
+
+        plot_cmap_lightness(
+            cmaps,
+            ax=ax,
+            s=150,
+            ncols=ncols,
+            offset=5,
+            legend_label=legend_label,
+            inline_label=inline_label,
+            inline_label_offset=inline_offset
+        )
         plt.show()
 
 
