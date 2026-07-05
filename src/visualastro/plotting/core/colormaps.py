@@ -126,8 +126,8 @@ def plot_cmap_lightness(
     cmap: str | mcolors.Colormap | list[str | mcolors.Colormap],
     ax: Axes | None = None,
     s: float = 300,
-    xtick_labels: bool = True,
     xticks: bool = True,
+    xtick_labels: bool = True,
     **kwargs
 ) ->  list[PathCollection]:
     """
@@ -141,6 +141,10 @@ def plot_cmap_lightness(
         Target axes. Created via `plt.subplots` if None.
     s : float, optional, default=300
         Marker size passed to `ax.scatter`.
+    xticks: bool, optional, default=True
+        If `True`, plot xticks.
+    xtick_labels: bool, optional, default=True
+        If `True`, plot xtick labels.
     **kwargs : dict, optional
         Additional keyword arguments passed to `ax.scatter`.
 
