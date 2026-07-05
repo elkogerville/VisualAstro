@@ -49,7 +49,8 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
-from visualastro.plotting.core.colors import get_cmap, get_colors, sample_cmap
+from visualastro.plotting.core.colormaps import get_cmap
+from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
 # Axes Labels, Format, and Styling

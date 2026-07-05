@@ -63,8 +63,8 @@ from visualastro.core.units import (
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.plotting.science.wcs_plots import imshow
+from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
-    get_cmap,
     get_colors,
     sample_cmap,
     _lighten_color
