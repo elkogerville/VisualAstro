@@ -10,6 +10,7 @@ import cmasher
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
+import numpy as np
 import tol_colors as tc
 
 

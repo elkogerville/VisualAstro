@@ -36,6 +36,7 @@ from visualastro.core.config import (
 from visualastro.core.numerical_utils import (
     as_list, to_list, _unwrap_if_single
 )
+from visualastro.plotting.core.colormaps import get_cmap
 
 
 RGBTuple: TypeAlias = tuple[float, float, float]

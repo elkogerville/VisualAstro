@@ -30,7 +30,9 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.kwargs import _kwarg, _param, _pop_kwargs, _resolve_kwargs
+from visualastro.core.kwargs import (
+    _kwarg, _param, _pop_kwargs, _resolve_kwargs
+)
 from visualastro.core.numerical_utils import (
     get_value,
     get_data,
@@ -41,9 +43,9 @@ from visualastro.core.numerical_utils import (
 )
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
+from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
     as_color,
-    get_cmap,
     get_colors,
     _resolve_color_kwargs,
     _resolve_scatter_norm,

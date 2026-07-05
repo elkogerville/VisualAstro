@@ -22,22 +22,23 @@ from matplotlib.typing import ColorType
 import numpy as np
 
 from visualastro.analysis.ic import blob
-from visualastro.core.config import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.config import (
+    config, _Unset, _UNSET, _resolve_default
+)
 from visualastro.core.io import imread
 from visualastro.core.numerical import number_density
 from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
+from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
     CMAPNAMES,
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
-    get_cmap,
     get_colors,
     plot_colortable,
     simulate_colorblindness,
 )
-from visualastro.plotting.core.image_utils import thorlabs_logo
 from visualastro.plotting.core.style import _style_context
 from visualastro.plotting.core.utils import legend
 
