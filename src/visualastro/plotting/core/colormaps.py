@@ -19,6 +19,7 @@ import numpy as np
 import tol_colors as tc
 
 from visualastro.core.config import config
+from visualastro.core.numerical_utils import to_list
 
 
 def get_cmap(
@@ -122,46 +123,62 @@ def create_cmap(
 
 
 def plot_cmap_lightness(
-    cmap: str | mcolors.Colormap,
+    cmap: str | mcolors.Colormap | list[str | mcolors.Colormap],
     ax: Axes | None = None,
     s: float = 300,
+    xtick_labels: bool = True,
+    xticks: bool = True,
     **kwargs
-) ->  PathCollection:
+) ->  list[PathCollection]:
     """
-     Plot L* (CAM02-UCS lightness) as a function of colormap index.
+    Plot L* (CAM02-UCS lightness) as a function of colormap index.
 
-     Parameters
-     ---------------
-     cmap : str | matplotlib.colors.Colormap
-         Colormap name or instance.
-     ax : matplotlib.axes.Axes, optional, default=None
-         Target axes. Created via `plt.subplots` if None.
-     s : float, optional, default=300
-         Marker size passed to `ax.scatter`.
-     **kwargs : dict, optional
-         Additional keyword arguments passed to `ax.scatter`.
+    Parameters
+    ---------------
+    cmap : str | matplotlib.colors.Colormap
+        Colormap name or instance.
+    ax : matplotlib.axes.Axes, optional, default=None
+        Target axes. Created via `plt.subplots` if None.
+    s : float, optional, default=300
+        Marker size passed to `ax.scatter`.
+    **kwargs : dict, optional
+        Additional keyword arguments passed to `ax.scatter`.
 
-     Returns
-     ---------------
-     ax : PathCollection
-         Scatter artist.
-     """
-    cmap = get_cmap(cmap)
+    Returns
+    ---------------
+    ax : PathCollection
+        Scatter artist.
+    """
+    from visualastro.plotting.core.utils import legend
+
     if ax is None:
         fig, ax = plt.subplots(figsize=config.figsize)
 
-    x = np.linspace(0.0, 1.0, 100)
+    x = np.linspace(0.0, 1.0, 1000)
     n = 256
+    scatters = []
 
-    rgb = cmap(x)[np.newaxis, :, :3]
-    lab = cspace_converter('sRGB1', 'CAM02-UCS')(rgb)
-    L = lab[0, :, 0]
+    cmaps = to_list(cmap)
+    for cmap in cmaps:
+        cmap = get_cmap(cmap)
 
-    scatter = ax.scatter(x, L, s=s, c=x, cmap=cmap, **kwargs)
+        rgb = cmap(x)[np.newaxis, :, :3]
+        lab = cspace_converter('sRGB1', 'CAM02-UCS')(rgb)
+        L = lab[0, :, 0]
 
+        scatter = ax.scatter(x, L, s=s, c=x, cmap=cmap, **kwargs)
+
+        scatters.append(scatter)
+        cmasher.set_cmap_legend_entry(scatter, cmap.name)
+
+    legend(ax=ax)
     ax.set_ylabel(r'L$^*$', fontsize=config.axes.label_fontsize)
+    if not xtick_labels:
+        ax.set_xticklabels([])
+    if not xticks:
+        ax.set_xticks([])
 
-    return scatter
+    return scatters
 
 
 
