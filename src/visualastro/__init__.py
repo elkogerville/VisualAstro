@@ -105,11 +105,11 @@ from visualastro.plotting.core.axes import (
 )
 from visualastro.plotting.core.colormaps import (
     get_cmap,
+    create_cmap,
 )
 from visualastro.plotting.core.colors import (
     as_color,
     _color as color,
-    create_cmap,
     desaturate_colors,
     get_colors,
     get_complimentary_colors,
