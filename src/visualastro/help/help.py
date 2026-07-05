@@ -30,7 +30,7 @@ from visualastro.core.numerical import number_density
 from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
-from visualastro.plotting.core.colormaps import CMAPNAMES, get_cmap
+from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
@@ -244,9 +244,9 @@ class help:
         gradient = np.linspace(0, 1, 256).reshape(1, -1)
         if cmap is None:
             cmaps = [c for c in colormaps() if not c.endswith('_r')]
-            cmaps += CMAPNAMES
         else:
             cmaps = to_list(cmap)
+
         n = len(cmaps)
         ncols = 4
         nrows = (n + ncols - 1) // ncols
