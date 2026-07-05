@@ -258,3 +258,27 @@ def _register_styles():
 
 import scienceplots
 _register_styles()
+
+
+# REGISTER COLORMAPS
+# ------------------
+def _register_cmaps():
+    """Register additional colormaps with matplotlib"""
+    import cmasher
+    import matplotlib as mpl
+    from visualastro.plotting.core.colors import VISUALASTRO_CMAPS
+
+    mpl_cmaps = {name for name in mpl.colormaps.keys()}
+
+    cmasher_cmaps_names = cmasher.get_cmap_list()
+    for name in cmasher_cmaps_names:
+        cmap = getattr(cmasher, name, None)
+        if cmap is not None and name not in mpl_cmaps:
+            mpl.colormaps.register(cmap, name=name)
+
+    for name, cmap in VISUALASTRO_CMAPS.items():
+        mpl.colormaps.register(cmap, name=name)
+        mpl.colormaps.register(cmap.reversed(), name=name+'_r')
+
+
+_register_cmaps()
