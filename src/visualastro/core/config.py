@@ -52,6 +52,7 @@ class AxesConfig(PrettyRepr):
     autoscale3d: bool = True
     xpad: float = 0.05  # set_axis_limits() xpad
     ypad: float = 0.05 # set_axis_limits() ypad
+    label_fontsize: float = 13
     xlog: bool = False
     ylog: bool = False
     xlog_hist: bool = True
