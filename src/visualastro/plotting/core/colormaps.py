@@ -14,6 +14,7 @@ from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
 import numpy as np
 import tol_colors as tc
@@ -126,64 +127,112 @@ def plot_cmap_lightness(
     cmap: str | mcolors.Colormap | list[str | mcolors.Colormap],
     ax: Axes | None = None,
     s: float = 300,
+    offset: float = 0,
+    ncols: int = 1,
+    legend_label: bool = True,
+    inline_label: bool = False,
+    inline_label_offset: float = 0,
     xticks: bool = True,
     xtick_labels: bool = True,
     **kwargs
-) ->  list[PathCollection]:
+) -> list[PathCollection]:
     """
     Plot L* (CAM02-UCS lightness) as a function of colormap index.
 
     Parameters
     ---------------
-    cmap : str | matplotlib.colors.Colormap
-        Colormap name or instance.
+    cmap : str | mcolors.Colormap | list[str | mcolors.Colormap]
+        Colormap name(s) or instance(s).
     ax : matplotlib.axes.Axes, optional, default=None
         Target axes. Created via `plt.subplots` if None.
     s : float, optional, default=300
         Marker size passed to `ax.scatter`.
-    xticks: bool, optional, default=True
+    offset : float, optional, default=0
+        Gap inserted between adjacent columns along x. Column `col` spans
+        `[col*(1+offset), col*(1+offset)+1]`.
+    ncols : int, optional, default=1
+        Number of columns before wrapping to a new row.
+    legend_label : bool, optional, default=True
+        If `True`, add each colormap to the axes legend.
+    inline_label : bool, optional, default=False
+        If `True`, annotate the colormap name directly above its column
+        instead of relying on the legend. Recommended when `ncols > 1`.
+    inline_label_offset : float, optional, default=0
+        Additional vertical stagger applied to inline labels on odd-indexed
+        columns (`col % 2 == 1`) to reduce label collisions when adjacent
+        columns are closely spaced. Has no effect if `inline_label=False`.
+    xticks : bool, optional, default=True
         If `True`, plot xticks.
-    xtick_labels: bool, optional, default=True
+    xtick_labels : bool, optional, default=True
         If `True`, plot xtick labels.
     **kwargs : dict, optional
         Additional keyword arguments passed to `ax.scatter`.
 
     Returns
     ---------------
-    ax : PathCollection
-        Scatter artist.
+    scatters : list[matplotlib.collections.PathCollection]
+        Scatter artists, one per colormap.
     """
-    from visualastro.plotting.core.utils import legend
+    from visualastro.plotting.core.utils import legend as _legend
 
     if ax is None:
         fig, ax = plt.subplots(figsize=config.figsize)
 
-    x = np.linspace(0.0, 1.0, 1000)
-    n = 256
-    scatters = []
+    ncols = int(ncols)
+    if ncols < 1:
+        raise ValueError('ncols must be >= 1!')
 
     cmaps = to_list(cmap)
-    for cmap in cmaps:
-        cmap = get_cmap(cmap)
+    samples = np.linspace(0.0, 1.0, 1000)
+    row_spacing = 200
+    col_stride = 1 + offset
+    label_pad = 20
+    scatters = []
 
-        rgb = cmap(x)[np.newaxis, :, :3]
+    for i, c in enumerate(cmaps):
+        row, col = divmod(i, ncols)
+        x_start = col * col_stride
+        x = np.linspace(x_start, x_start + 1, 1000)
+        y_offset = -row * row_spacing if ncols != 1 else 0
+
+        c = get_cmap(c)
+        rgb = c(samples)[np.newaxis, :, :3]
         lab = cspace_converter('sRGB1', 'CAM02-UCS')(rgb)
         L = lab[0, :, 0]
 
-        scatter = ax.scatter(x, L, s=s, c=x, cmap=cmap, **kwargs)
-
+        scatter = ax.scatter(x, L + y_offset, s=s, c=x, cmap=c, **kwargs)
         scatters.append(scatter)
-        cmasher.set_cmap_legend_entry(scatter, cmap.name)
 
-    legend(ax=ax)
+        if legend_label:
+            cmasher.set_cmap_legend_entry(scatter, c.name)
+
+        if inline_label:
+            stagger = inline_label_offset if col % 2 else 0
+            ax.text(
+                x_start + 0.5, y_offset + 100 + label_pad + stagger, c.name,
+                ha='center', va='bottom',
+                fontsize=config.fontsize
+            )
+
+    if legend_label:
+        _legend(ax=ax)
+
     ax.set_ylabel(r'L$^*$', fontsize=config.axes.label_fontsize)
+
+    if ncols != 1:
+        n_rows = -(-len(cmaps) // ncols)
+        yticks = [r * -row_spacing + v for r in range(n_rows) for v in (0, 50, 100)]
+        ax.set_yticks(yticks)
+        ax.yaxis.set_major_formatter(
+            FuncFormatter(lambda y, pos: f'{y % row_spacing:.0f}')
+        )
+
     if not xtick_labels:
         ax.set_xticklabels([])
     if not xticks:
         ax.set_xticks([])
 
     return scatters
-
 
 
 # VISUALASTRO COLOR MAPS
