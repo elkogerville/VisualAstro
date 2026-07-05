@@ -4,6 +4,8 @@ Date Created: 2026-07-04
 Date Modified: 2026-07-04
 Description:
     Functions related to colormaps in plotting.
+    To define custom colormaps, define them at
+    the bottom of this file in `VISUALASTRO_CMAPS`.
 """
 
 import cmasher
