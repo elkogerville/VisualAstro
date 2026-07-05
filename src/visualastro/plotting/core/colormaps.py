@@ -75,3 +75,40 @@ def get_cmap(
     return cmasher.get_sub_cmap(
         out_cmap, cmap_range[0], cmap_range[1], N=N
     )
+
+
+def create_cmap(
+    colors: list[ColorType] | int,
+    positions: list[float] | None = None,
+    name: str = 'continous_cmap'
+) -> mcolors.LinearSegmentedColormap | mcolors.ListedColormap:
+    """
+    Creates a colormap from colors with optional position control.
+
+    Parameters
+    ----------
+    colors : list[ColorType] | int
+        Color specifications (hex, named colors, RGB tuples, etc.).
+        The cmap will be created from these colors. If `colors` is
+        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
+    positions : list[float] | None, optional
+        Positions in [0, 1] for each color. Must start with 0 and end with 1.
+        If None, colors are evenly spaced.
+
+    Returns
+    -------
+    LinearSegmentedColormap
+    """
+    if isinstance(colors, int):
+        return tc.rainbow_discrete(colors)
+
+    rgb_list = [mcolors.to_rgb(color) for color in colors]
+
+    if positions is None:
+        positions = list(np.linspace(0, 1, len(rgb_list)))
+
+    cdict = {channel: [[positions[i], rgb_list[i][idx], rgb_list[i][idx]]
+                       for i in range(len(positions))]
+             for idx, channel in enumerate(['red', 'green', 'blue'])}
+
+    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
