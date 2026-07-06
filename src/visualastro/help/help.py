@@ -25,7 +25,7 @@ from visualastro.analysis.ic import blob
 from visualastro.core.config import (
     config, _Unset, _UNSET, _resolve_default
 )
-from visualastro.core.io import imread
+from visualastro.core.io import imread, savefig as _savefig
 from visualastro.core.numerical import number_density
 from visualastro.core.numerical_utils import to_list, _cycle
 from visualastro.plotting.ax import ax as _ax
@@ -269,7 +269,8 @@ class help:
     @staticmethod
     def cmap_lightness(
         cmap: str | mcolors.Colormap | None = None,
-        ncols=1
+        ncols: int = 1,
+        savefig: bool = False
     ):
         if cmap is None:
             cmaps = [c for c in colormaps() if not c.endswith('_r')]
@@ -294,6 +295,8 @@ class help:
             inline_label=inline_label,
             inline_label_offset=inline_offset
         )
+        if savefig:
+            _savefig()
         plt.show()
 
 
