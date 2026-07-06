@@ -717,6 +717,9 @@ def plot_color_deltaE(
     optionally alongside CVD-simulated deltaE ratios showing distinguishability
     loss under color vision deficiency.
 
+    For the plots of the deltaE to CVD-simulated deltaE ratios, the closer a pair
+    is to 1, the better.
+
     Parameters
     ---------------
     colorset : ColorType | int | Sequence[ColorType]
@@ -776,7 +779,14 @@ def plot_color_deltaE(
     imgs = []
 
     if cvd_type == 'all' or cvd_type is None:
-        img = imshow(deltaE, ax=axs[0], cmap=cmap, cbar_width=0.02, cbar_label=label)
+        img = imshow(
+            deltaE,
+            ax=axs[0],
+            cmap=cmap,
+            vmin=0,
+            cbar_width=0.02,
+            cbar_label=label,
+        )
         imgs.append(img)
 
     for i, ax in enumerate(axs):
@@ -796,7 +806,14 @@ def plot_color_deltaE(
             ratio = np.where(deltaE > 0, deltaE_cvd / deltaE, np.nan)
 
         cvd_label = fr'$\Delta E_{{{cvd}}}$'
-        img = imshow(ratio, ax=axs[i], cmap=cmap, cbar_width=0.02, cbar_label=label+r'/'+cvd_label)
+        img = imshow(
+            ratio,
+            ax=axs[i],
+            cmap=cmap,
+            vmin=0,
+            cbar_width=0.02,
+            cbar_label=cvd_label+r'/'+label,
+        )
 
         imgs.append(img)
 
