@@ -13,8 +13,10 @@ import operator as op
 from colorspacious import cspace_convert
 import colorsys
 from typing import Literal, TypeAlias
+import colorspacious
 import matplotlib as mpl
 from matplotlib import colors as mcolors
+from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import (
     TABLEAU_COLORS,
@@ -699,6 +701,106 @@ def _resolve_color_kwargs(
         scatter_kwargs.pop('color', None)
 
     return scatter_kwargs
+
+
+def plot_color_deltaE(
+    colorset: ColorType | int | Sequence[ColorType],
+    ax: Axes | None = None,
+    cmap: str | Colormap = 'viridis',
+    uniform_space: str = 'CIELab',
+    cvd_type: Literal['all', 'deuteranomaly', 'protanomaly', 'tritanomaly'] | None = 'all',
+    wspace: float = 0.4,
+    hspace: float = 0.0
+):
+    """
+    Plot pairwise CAM/CIE color-difference (deltaE) matrices for a colorset,
+    optionally alongside CVD-simulated deltaE ratios showing distinguishability
+    loss under color vision deficiency.
+
+    Parameters
+    ---------------
+    colorset : ColorType | int | Sequence[ColorType]
+        Colors to compare, or colormap/count reference resolvable via `get_colors`.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        Target axes. Ignored if `None`; axes are created via `gridspec` (when
+        `cvd_type='all'`) or `plt.subplots` (otherwise).
+    cmap : str | matplotlib.colors.Colormap, optional, default='viridis'
+        Colormap passed to `imshow` for the deltaE / ratio matrices.
+    uniform_space : str, optional, default='CIELab'
+        Perceptual uniform color space passed to `colorspacious.deltaE`.
+    cvd_type : {'all', 'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default='all'
+        CVD condition(s) to simulate. `'all'` plots normal deltaE plus all three
+        deficiencies in a 2x2 grid. A single condition plots normal deltaE
+        alongside that one condition. `None` plots only the normal deltaE matrix.
+    wspace : float, optional, default=0.4
+        Horizontal spacing between subplots, passed to `gridspec`. Only used
+        when `cvd_type='all'`.
+    hspace : float, optional, default=0.4
+        Vertical spacing between subplots, passed to `gridspec`. Only used
+        when `cvd_type='all'`.
+
+    Returns
+    ---------------
+    imgs : list[matplotlib.image.AxesImage]
+        Image artists, one per plotted matrix.
+    """
+    from visualastro.plotting.core.axes import gridspec
+    from visualastro.plotting.science.wcs_plots import imshow
+
+    colors = np.asarray(get_colors(colorset, fmt='rgb'))
+
+    cvds = [None, 'deuteranomaly', 'protanomaly', 'tritanomaly']
+
+    if ax is None:
+        if cvd_type == 'all':
+            fig, axs = gridspec(2, 2, figsize=(10,10), hspace=hspace, wspace=wspace)
+        else:
+            fig, axs = plt.subplots(figsize=config.figsize)
+            axs = to_list(axs)
+    else:
+        axs = to_list(ax)
+
+    for axis in axs:
+        axis.set_xticks(np.arange(0, len(colors), 1))
+        axis.set_yticks(np.arange(0, len(colors), 1))
+        for i, c in enumerate(colors):
+            axis.get_xticklabels()[i].set_color(c)
+            axis.get_yticklabels()[i].set_color(c)
+
+    c1 = colors[:, np.newaxis, :]
+    c2 = colors[np.newaxis, :, :]
+    deltaE = colorspacious.deltaE(c1, c2, uniform_space=uniform_space)
+
+    label = r'$\Delta E$'
+
+    imgs = []
+
+    if cvd_type == 'all' or cvd_type is None:
+        img = imshow(deltaE, ax=axs[0], cmap=cmap, cbar_width=0.02, cbar_label=label)
+        imgs.append(img)
+
+    for i, ax in enumerate(axs):
+        cvd = cvds[i] if cvd_type == 'all' else cvd_type
+        if cvd is None:
+            continue
+
+        colors_cvd = np.asarray(get_colors(
+            colorset, fmt='rgb', cvd_type=cvd)
+        )
+
+        c1_cvd = colors_cvd[:, np.newaxis, :]
+        c2_cvd = colors_cvd[np.newaxis, :, :]
+        deltaE_cvd = colorspacious.deltaE(c1_cvd, c2_cvd, uniform_space=uniform_space)
+
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ratio = np.where(deltaE > 0, deltaE_cvd / deltaE, np.nan)
+
+        cvd_label = fr'$\Delta E_{{{cvd}}}$'
+        img = imshow(ratio, ax=axs[i], cmap=cmap, cbar_width=0.02, cbar_label=label+r'/'+cvd_label)
+
+        imgs.append(img)
+
+    return imgs
 
 
 def plot_colortable(
