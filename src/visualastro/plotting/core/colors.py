@@ -104,6 +104,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#E69F00', '#56B4E9', '#009E73', '#F0E442',
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
     ],
+    'oit': ['#E69F00', '#56B4E9', '#D55E00', '#009E73', '#CC79A7'],
     'tab20b': mpl.color_sequences['tab20b'],
 }
 # COLORSETS ALIASES
