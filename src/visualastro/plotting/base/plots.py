@@ -439,7 +439,7 @@ def hist(
 
     ref_unit = ensure_common_unit(datas)
 
-    cmap = get_cmap(params.cmap, params.bad_color)
+    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     data_list = []
 
@@ -600,7 +600,7 @@ def plot(
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
-    cmap = get_cmap(params.cmap, params.bad_color)
+    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
 
     alphas = to_list(params.alpha)
@@ -827,7 +827,7 @@ def scatter(
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
-    cmap = get_cmap(params.cmap, params.bad_color)
+    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     edgecolors = get_colors(params.edgecolor, cmap=cmap)
     facecolors = get_colors(params.facecolor, cmap=cmap)
@@ -1306,7 +1306,7 @@ def scatter3D(
         ]
     )
     cmaps = to_list(params.cmap)
-    cmaps = [get_cmap(c, params.bad_color) for c in cmaps]
+    cmaps = [get_cmap(c, bad_color=params.bad_color) for c in cmaps]
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
 
     markers = to_list(params.marker)
@@ -1592,7 +1592,7 @@ def scatter_project(
     plot_params = _extract_plot_util_kwargs(kwargs)
 
     cmaps = to_list(params.cmap)
-    cmaps = [get_cmap(c, params.bad_color) for c in cmaps]
+    cmaps = [get_cmap(c, bad_color=params.bad_color) for c in cmaps]
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
 
     sizes = to_list(params.size)

@@ -960,7 +960,7 @@ def plot_spectra(
             _kwarg('rasterized', config.rasterized),
         ]
     )
-    cmap = get_cmap(params.cmap, params.bad_color)
+    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     fit_colors = [_lighten_color(c) for c in colors]
 
