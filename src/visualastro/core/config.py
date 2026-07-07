@@ -236,7 +236,7 @@ class VisualAstroConfig(PrettyRepr):
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.
     color: ColorType | int | Sequence[ColorType] | None | _Unset = _UNSET
-    default_colorset: str = 'ibm_contrast' # see `get_colors` in plot_utils.py
+    default_colorset: str = 'astro_seq' # see `get_colors` in plot_utils.py
     color_cycle_idx: int = 0
     random_colors_max_N: int = 20
     alpha: int = 1
