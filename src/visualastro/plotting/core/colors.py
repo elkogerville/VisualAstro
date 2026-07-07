@@ -21,7 +21,6 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import (
     TABLEAU_COLORS,
     Colormap,
-    ListedColormap,
     LogNorm,
     Normalize
 )
@@ -61,6 +60,10 @@ COLORSETS: dict[str, list[ColorType]] = {
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
         '#FFB000', '#9FB7FF', '#CFE23C',
+    ],
+    'astro_contrast': [
+        '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f',
+        '#6c7a0e', '#cfe23c', '#26dcba'
     ],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
