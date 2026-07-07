@@ -299,7 +299,7 @@ def contour(
         ]
 
     )
-    cmap = get_cmap(params.cmap, params.bad_color)
+    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
 
     c_method = params.contour_method.lower()
     contour_methods = {
