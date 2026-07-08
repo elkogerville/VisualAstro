@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-06-29
+Date Modified: 2026-06-08
 Description:
     Functions related to matplotlib axes.
 """
@@ -77,7 +77,8 @@ def get_ax3d(
     **kwargs
 ) -> Axes3D:
     """
-    Get either the current `Axes3d` or the instanced pass in.
+    Get either the current `Axes3d` or the instanced passed in.
+
     If The current axis is an `Axes`, it is closed if no data
     is found via `has_data()`.
 
