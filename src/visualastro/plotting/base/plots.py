@@ -51,16 +51,18 @@ from visualastro.plotting.core.colors import (
     _resolve_color_kwargs,
     _resolve_scatter_norm,
 )
-from visualastro.plotting.core.interface import (
-    _apply_plot_utils, _extract_plot_util_kwargs
-)
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
-    _set_axis_limits_scaling_mode
+    get_ax,
+    _set_axis_limits_scaling_mode,
+    get_ax3d
+)
+from visualastro.plotting.core.interface import (
+    _apply_plot_utils, _extract_plot_util_kwargs
 )
 from visualastro.plotting.core.utils import (
-    contour,
+    contour_kde,
     _get_zorder,
     _normalize_plotting_input,
     _normalize_plotting_inputs,

@@ -42,6 +42,76 @@ from visualastro.core.units import (
 from visualastro.plotting.core.colors import as_color, get_colors
 
 
+def get_ax(
+    ax: maxes.Axes | None,
+    figsize: tuple[float, float] | _Unset = _UNSET
+) -> maxes.Axes:
+    """
+    Get either the current `Axes` or the instanced pass in.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes | None
+        If `Axes`, returns unchanged. If `None`, returns `plt.gca()`
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+    """
+    if isinstance(ax, maxes.Axes):
+        return ax
+
+    figsize = _resolve_default(figsize, config.figsize)
+
+    current_ax = plt.gca()
+    fig = current_ax.figure
+    fig.set_figwidth(figsize[0])
+    fig.set_figheight(figsize[1])
+
+    return current_ax
+
+
+def get_ax3d(
+    ax: Axes3D | None,
+    figsize: tuple[float, float] | _Unset = _UNSET,
+    **kwargs
+) -> Axes3D:
+    """
+    Get either the current `Axes3d` or the instanced pass in.
+    If The current axis is an `Axes`, it is closed if no data
+    is found via `has_data()`.
+
+    Parameters
+    ----------
+    ax : Axes3D | None
+        Returns `ax` if is an `Axes3D`. Otherwise returns
+        `plt.gca()` if the current axis is an `Axis3D`.
+        If `plt.gca()` is an `Axes`, returns a new
+        `Axes3D` instance.
+    figsize : tuple[float | float] | _Unset, optional, default=_UNSET
+        Figsize if `ax` has to be created. If `_UNSET`, uses
+        `config.figsize`.
+    **kwargs :
+        Additional keyword arguments passed to `plt.figure`.
+
+    Returns
+    -------
+    ax : Axes3D
+    """
+    if isinstance(ax, Axes3D):
+        return ax
+
+    current_ax = plt.gca()
+    if isinstance(current_ax, Axes3D):
+        return current_ax
+
+    if not current_ax.has_data():
+        plt.close()
+
+    fig, ax = ax3d(figsize=figsize, **kwargs)
+    return ax
+
+
 def subplot(
     *args : int | tuple[int, int, int],
     figsize : tuple[float, float] | _Unset = _UNSET,
