@@ -131,8 +131,8 @@ from visualastro.plotting.core.image_utils import (
 from visualastro.plotting.core.utils import (
     add_colorbar,
     close,
-    contour,
-    contourf,
+    contour_kde,
+    contourf_kde,
     ellipse_patch,
     inline,
     interactive,

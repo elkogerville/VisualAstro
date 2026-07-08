@@ -207,7 +207,7 @@ def legend(*args, ax, **kwargs) -> None:
     ax.legend(**legend_kwargs)
 
 
-def contour(
+def contour_kde(
     x,
     y,
     ax: maxes.Axes | Axes3D,
@@ -356,7 +356,7 @@ def contour(
     return cs
 
 
-def contourf(
+def contourf_kde(
     x,
     y,
     ax: maxes.Axes | Axes3D,
@@ -376,13 +376,13 @@ def contourf(
     """
     Filled contour wrapper around `contour`.
 
-    Equivalent to calling `contour(..., contour_method='contourf')`.
+    Equivalent to calling `contour_kde(..., contour_method='contourf')`.
 
     See Also
     --------
     contour : Full parameter documentation.
     """
-    return contour(
+    return contour_kde(
         x,
         y,
         ax,
