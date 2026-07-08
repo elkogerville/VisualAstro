@@ -1423,7 +1423,7 @@ def scatter3D(
                         "Use 'x', 'y', 'z', or 'all'."
                     )
 
-                contour(
+                contour_kde(
                     data1,
                     data2,
                     ax,
