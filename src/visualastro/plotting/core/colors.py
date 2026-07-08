@@ -713,16 +713,21 @@ def plot_color_deltaE(
     cmap: str | Colormap = 'viridis',
     uniform_space: str = 'CIELab',
     cvd_type: Literal['all', 'deuteranomaly', 'protanomaly', 'tritanomaly'] | None = 'all',
+    normalize: bool = False,
     wspace: float = 0.4,
     hspace: float = 0.0
 ):
     """
     Plot pairwise CAM/CIE color-difference (deltaE) matrices for a colorset,
     optionally alongside CVD-simulated deltaE ratios showing distinguishability
-    loss under color vision deficiency.
+    loss under color vision deficiency. The higher the value, the farther apart
+    two colors are from each other.
 
-    For the plots of the deltaE to CVD-simulated deltaE ratios, the closer a pair
-    is to 1, the better.
+    If `normalize=True`, the cvd ratios compare the color-differences as calculated
+    in each colorspace. The higher the value, the more consistent the two color
+    differences, i.e. a ratio of 1 means the pair's perceptual distance under CVD
+    equals the distance under normal vision (no distinguishability loss). Ratios
+    below 1 indicate a loss of distinguishability under the simulated CVD.
 
     Parameters
     ---------------
@@ -730,19 +735,31 @@ def plot_color_deltaE(
         Colors to compare, or colormap/count reference resolvable via `get_colors`.
     ax : matplotlib.axes.Axes | None, optional, default=None
         Target axes. Ignored if `None`; axes are created via `gridspec` (when
-        `cvd_type='all'`) or `plt.subplots` (otherwise).
+        `cvd_type='all'`) or `plt.subplots` (otherwise). If `cvd_type='all'`,
+        `ax` should be an array-like of 4 `Axes`, ie `list[Axes, Axes, Axes, Axes]`.
     cmap : str | matplotlib.colors.Colormap, optional, default='viridis'
         Colormap passed to `imshow` for the deltaE / ratio matrices.
+        It is recommended to use perceptually uniform sequential colormaps
+        such as `'viridis'`, `'cividis'`, `'plasma'`, `'inferno'`, or `'magma'`.
     uniform_space : str, optional, default='CIELab'
         Perceptual uniform color space passed to `colorspacious.deltaE`.
     cvd_type : {'all', 'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default='all'
         CVD condition(s) to simulate. `'all'` plots normal deltaE plus all three
         deficiencies in a 2x2 grid. A single condition plots normal deltaE
         alongside that one condition. `None` plots only the normal deltaE matrix.
+    normalize : bool, optional, default=False
+        If `True`:
+
+        * Normal deltaE matrix is scaled by its own max value (relative distance).
+        * CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
+        retention). A ratio of 1 means the color pair remains equally
+        distinguishable under CVD as under normal vision; lower values indicate
+        greater loss of distinguishability.
+
     wspace : float, optional, default=0.4
         Horizontal spacing between subplots, passed to `gridspec`. Only used
         when `cvd_type='all'`.
-    hspace : float, optional, default=0.4
+    hspace : float, optional, default=0.0
         Vertical spacing between subplots, passed to `gridspec`. Only used
         when `cvd_type='all'`.
 
@@ -778,18 +795,20 @@ def plot_color_deltaE(
     c2 = colors[np.newaxis, :, :]
     deltaE = colorspacious.deltaE(c1, c2, uniform_space=uniform_space)
 
-    label = r'$\Delta E$'
-
+    label = r'$\Delta E^*$'
     imgs = []
 
     if cvd_type == 'all' or cvd_type is None:
+        deltaE_plot = deltaE / np.nanmax(deltaE) if normalize else deltaE
+        label_plot = 'normalized ' + label if normalize else label
         img = imshow(
-            deltaE,
+            deltaE_plot,
             ax=axs[0],
             cmap=cmap,
             vmin=0,
             cbar_width=0.02,
-            cbar_label=label,
+            cbar_label=label_plot,
+            norm=None
         )
         imgs.append(img)
 
@@ -809,14 +828,20 @@ def plot_color_deltaE(
         with np.errstate(divide='ignore', invalid='ignore'):
             ratio = np.where(deltaE > 0, deltaE_cvd / deltaE, np.nan)
 
-        cvd_label = fr'$\Delta E_{{{cvd}}}$'
+        cvd_plot = ratio if normalize else deltaE_cvd
+        cvd_label = fr'$\Delta E^*_{{{cvd}}}$'
+        cbar_label = cvd_label+r'/'+label if normalize else cvd_label
+        vmax = 1 if normalize else None
+
         img = imshow(
-            ratio,
+            cvd_plot,
             ax=axs[i],
             cmap=cmap,
+            vmax=vmax,
             vmin=0,
             cbar_width=0.02,
-            cbar_label=cvd_label+r'/'+label,
+            cbar_label=cbar_label,
+            norm=None
         )
 
         imgs.append(img)

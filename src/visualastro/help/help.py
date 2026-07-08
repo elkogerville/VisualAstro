@@ -180,6 +180,11 @@ class help:
         severity: int = 100
     ) -> None:
         """Plot xkcd named colors."""
+        msg = (
+            'All colors displayed here are recognizable by matplotlib under the name space '
+            "'xkcd:colorname'. \nVisualastro will also recognize the colors if 'xkcd:' is dropped."
+        )
+        print(msg)
         plot_colortable(
             colors='xkcd',
             ncols=ncols,
