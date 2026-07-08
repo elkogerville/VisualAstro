@@ -37,6 +37,7 @@ from visualastro.core.numerical_utils import (
 )
 from visualastro.core.units import ensure_common_unit
 from visualastro.datamodels.datacube import DataCube
+from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
