@@ -16,6 +16,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
+import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, NullLocator
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
@@ -309,7 +310,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
 def hist(
     datas: u.Quantity | NDArray | list[u.Quantity | NDArray],
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     bins: int | Sequence[float] | str | _Unset = _UNSET,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
@@ -426,6 +427,7 @@ def hist(
             _kwarg('label', None),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
+            _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
@@ -439,6 +441,7 @@ def hist(
 
     ref_unit = ensure_common_unit(datas)
 
+    ax = get_ax(ax, figsize=params.figsize)
     cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     data_list = []
@@ -489,7 +492,7 @@ def hist(
 
 def plot(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     color: ColorType | list[ColorType] | _Unset = _UNSET,
     linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
     linewidth: float | list[float] | _Unset = _UNSET,
@@ -595,11 +598,13 @@ def plot(
             _kwarg('c', None),
             _kwarg('cmap', config.cmap),
             _kwarg('bad_color', None),
+            _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
+    ax = get_ax(ax, params.figsize)
     cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
 
@@ -671,7 +676,7 @@ def plot(
 
 def scatter(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
     yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
     color: ColorType | list[ColorType] | int | _Unset = _UNSET,
@@ -822,11 +827,13 @@ def scatter(
             _kwarg('capsize', config.errorbar.capsize),
             _kwarg('capthick', config.errorbar.capthick),
             _kwarg('barsabove', config.errorbar.barsabove),
+            _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
 
+    ax = get_ax(ax, figsize=params.figsize)
     cmap = get_cmap(params.cmap, bad_color=params.bad_color)
     colors = get_colors(params.color, cmap=cmap)
     edgecolors = get_colors(params.edgecolor, cmap=cmap)
@@ -926,7 +933,7 @@ def scatter(
 
 def scatter_fit(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     deg: int,
     xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
     yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
@@ -1123,7 +1130,7 @@ def scatter_fit(
 
 def scatter3D(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    ax: Axes3D,
+    ax: Axes3D | None = None,
     elev: float | _Unset = _UNSET,
     azim: float | _Unset = _UNSET,
     roll: float | _Unset = _UNSET,
@@ -1302,9 +1309,11 @@ def scatter3D(
             _kwarg('axis_style', config.ax3d_axis_style),
             _kwarg('pane_color', config.pane_color),
             _kwarg('minor_ticks', False),
+            _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
+    ax = get_ax3d(ax, figsize=params.figsize)
     cmaps = to_list(params.cmap)
     cmaps = [get_cmap(c, bad_color=params.bad_color) for c in cmaps]
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
@@ -1464,7 +1473,7 @@ def scatter3D(
 
 def scatter_project(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     scale: float | tuple[float, float] | None = None,
     zdir: Literal['x', 'y', 'z'] = 'z',
     color: ColorType | list[ColorType] | int | _Unset = _UNSET,
@@ -1585,12 +1594,14 @@ def scatter_project(
             _kwarg('bad_color', None),
             _kwarg('rasterized', config.rasterized),
             _kwarg('reverse_sort', False),
+            _kwarg('figsize', config.figsize),
             _kwarg('sort_by_c', False),
         ]
     )
     kwargs['scale'] = scale
     plot_params = _extract_plot_util_kwargs(kwargs)
 
+    ax = get_ax(ax, figsize=params.figsize)
     cmaps = to_list(params.cmap)
     cmaps = [get_cmap(c, bad_color=params.bad_color) for c in cmaps]
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
