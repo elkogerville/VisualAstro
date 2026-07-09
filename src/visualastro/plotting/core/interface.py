@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-05-28
+Date Modified: 2026-07-09
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,
@@ -52,73 +52,82 @@ from visualastro.core.numerical_utils import _cycle
 
 
 _PLOT_UTILS_KWARGS = [
-    _kwarg('reference_idx', config.reference_idx),
-    _kwarg('array_order', config.array_order),
-    _kwarg('index_spec', config.index_specification),
+    _kwarg('reference_idx', lambda: config.reference_idx),
+    _kwarg('array_order', lambda: config.array_order),
+    _kwarg('index_spec', lambda: config.index_specification),
 
-    _kwarg('ellipses', None),
-    _kwarg('plot_ellipse', False),
-    _kwarg('highlight', config.highlight),
-    _kwarg('text_loc', config.text_loc),
-    _kwarg('text_color', config.text_color),
+    _kwarg('ellipses', lambda: None),
+    _kwarg('plot_ellipse', lambda: False),
+    _kwarg('highlight', lambda: config.highlight),
+    _kwarg('text_loc', lambda: config.text_loc),
+    _kwarg('text_color', lambda: config.text_color),
 
-    _kwarg('points', None),
+    _kwarg('points', lambda: None),
 
-    _kwarg('vlines', None),
-    _kwarg('hlines', None),
+    _kwarg('vlines', lambda: None),
+    _kwarg('hlines', lambda: None),
 
-    _kwarg('legend_handles', config.legend.handles),
-    _kwarg('legend_labels', config.legend.labels),
-    _kwarg('legend_loc', config.legend.loc),
-    _kwarg('legend_ncols', config.legend.ncols),
-    _kwarg('legend_fontsize', config.legend.fontsize),
-    _kwarg('legend_fancybox', config.legend.fancybox),
-    _kwarg('legend_framealpha', config.legend.framealpha),
-    _kwarg('legend_facecolor', config.legend.facecolor),
-    _kwarg('legend_edgecolor', config.legend.edgecolor),
-    _kwarg('legend_title', config.legend.title),
-    _kwarg('legend_alignment', config.legend.alignment),
-    _kwarg('legend_columnspacing', config.legend.columnspacing),
-    _kwarg('legend_draggable', config.legend.draggable),
+    _kwarg('legend_handles', lambda: config.legend.handles),
+    _kwarg('legend_labels', lambda: config.legend.labels),
+    _kwarg('legend_loc', lambda: config.legend.loc),
+    _kwarg('legend_ncols', lambda: config.legend.ncols),
+    _kwarg('legend_fontsize', lambda: config.legend.fontsize),
+    _kwarg('legend_numpoints', lambda: config.legend.numpoints),
+    _kwarg('legend_scatterpoints', lambda: config.legend.scatterpoints),
+    _kwarg('legend_markerscale', lambda: config.legend.markerscale),
+    _kwarg('legend_markerfirst', lambda: config.legend.markerfirst),
+    _kwarg('legend_reverse', lambda: config.legend.reverse),
+    _kwarg('legend_frameon', lambda: config.legend.frameon),
+    _kwarg('legend_fancybox', lambda: config.legend.fancybox),
+    _kwarg('legend_framealpha', lambda: config.legend.framealpha),
+    _kwarg('legend_facecolor', lambda: config.legend.facecolor),
+    _kwarg('legend_edgecolor', lambda: config.legend.edgecolor),
+    _kwarg('legend_title', lambda: config.legend.title),
+    _kwarg('legend_alignment', lambda: config.legend.alignment),
+    _kwarg('legend_borderpad', lambda: config.legend.borderpad),
+    _kwarg('legend_labelspacing', lambda: config.legend.labelspacing),
+    _kwarg('legend_borderaxespad', lambda: config.legend.borderaxespad),
+    _kwarg('legend_columnspacing', lambda: config.legend.columnspacing),
+    _kwarg('legend_draggable', lambda: config.legend.draggable),
 
-    _kwarg('xlabel', None),
-    _kwarg('ylabel', None),
-    _kwarg('unit_bracket_style', config.unit_bracket_style),
-    _kwarg('show_physical_type', config.show_type_label),
-    _kwarg('show_unit', config.show_unit_label),
-    _kwarg('unit_fmt', config.unit_label_format),
+    _kwarg('xlabel', lambda: None),
+    _kwarg('ylabel', lambda: None),
+    _kwarg('unit_bracket_style', lambda: config.unit_bracket_style),
+    _kwarg('show_physical_type', lambda: config.show_type_label),
+    _kwarg('show_unit', lambda: config.show_unit_label),
+    _kwarg('unit_fmt', lambda: config.unit_label_format),
 
-    _kwarg('compute_limits', config.axes.compute_limits),
-    _kwarg('scale', None),
-    _kwarg('xlim', None),
-    _kwarg('ylim', None),
-    _kwarg('xpad', config.axes.xpad),
-    _kwarg('ypad', config.axes.ypad),
+    _kwarg('compute_limits', lambda: config.axes.compute_limits),
+    _kwarg('scale', lambda: None),
+    _kwarg('xlim', lambda: None),
+    _kwarg('ylim', lambda: None),
+    _kwarg('xpad', lambda: config.axes.xpad),
+    _kwarg('ypad', lambda: config.axes.ypad),
 
-    _kwarg('wcs_grid', config.wcs_grid),
-    _kwarg('wcs_grid_color', config.wcs_grid_color),
-    _kwarg('wcs_grid_linestyle', config.wcs_grid_linestyle),
-    _kwarg('wcs_grid_linewidth', config.wcs_grid_linewidth),
-    _kwarg('wcs_grid_alpha', config.wcs_grid_alpha),
+    _kwarg('wcs_grid', lambda: config.wcs_grid),
+    _kwarg('wcs_grid_color', lambda: config.wcs_grid_color),
+    _kwarg('wcs_grid_linestyle', lambda: config.wcs_grid_linestyle),
+    _kwarg('wcs_grid_linewidth', lambda: config.wcs_grid_linewidth),
+    _kwarg('wcs_grid_alpha', lambda: config.wcs_grid_alpha),
 
-    _kwarg('gridlines', config.gridlines),
-    _kwarg('grid_which', config.grid_which),
-    _kwarg('grid_color', config.grid_color),
-    _kwarg('grid_linestyle', config.grid_linestyle),
-    _kwarg('grid_linewidth', config.grid_linewidth),
-    _kwarg('grid_alpha', config.grid_alpha),
+    _kwarg('gridlines', lambda: config.gridlines),
+    _kwarg('grid_which', lambda: config.grid_which),
+    _kwarg('grid_color', lambda: config.grid_color),
+    _kwarg('grid_linestyle', lambda: config.grid_linestyle),
+    _kwarg('grid_linewidth', lambda: config.grid_linewidth),
+    _kwarg('grid_alpha', lambda: config.grid_alpha),
 
-    _kwarg('colorbar', config.colorbar.enable),
-    _kwarg('cbar_width', config.colorbar.width),
-    _kwarg('cbar_pad', config.colorbar.pad),
-    _kwarg('cbar_label', config.colorbar.label),
-    _kwarg('cbar_tick_which', config.colorbar.tick_which),
-    _kwarg('cbar_tick_dir', config.colorbar.tick_dir),
+    _kwarg('colorbar', lambda: config.colorbar.enable),
+    _kwarg('cbar_width', lambda: config.colorbar.width),
+    _kwarg('cbar_pad', lambda: config.colorbar.pad),
+    _kwarg('cbar_label', lambda: config.colorbar.label),
+    _kwarg('cbar_tick_which', lambda: config.colorbar.tick_which),
+    _kwarg('cbar_tick_dir', lambda: config.colorbar.tick_dir),
 ]
 
 PlotUtilParams = make_dataclass(
     'PlotUtilParams',
-    [(kw[0], Any, field(default=kw[1])) for kw in _PLOT_UTILS_KWARGS],
+    [(kw[0], Any, field(default=None)) for kw in _PLOT_UTILS_KWARGS],
     slots=True
 )
 
@@ -142,7 +151,16 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     almost never happen because this would require being True for all plotting
     function that use the plotting interface.
     """
-    params = _extract_kwargs(kwargs, additional_kwargs=_PLOT_UTILS_KWARGS)
+    params = _extract_kwargs(
+        kwargs,
+        additional_kwargs=[
+            _kwarg(
+                kw[0],
+                kw[1]() if callable(kw[1]) else kw[1]
+            )
+            for kw in _PLOT_UTILS_KWARGS
+        ]
+    )
     return PlotUtilParams(**params)
 
 
