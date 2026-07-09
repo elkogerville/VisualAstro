@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-06-08
+Date Modified: 2026-06-09
 Description:
     Functions related to matplotlib axes.
 """
@@ -47,12 +47,12 @@ def get_ax(
     figsize: tuple[float, float] | _Unset = _UNSET
 ) -> maxes.Axes:
     """
-    Get either the current `Axes` or the instanced pass in.
+    Get either the current `Axes` or the instance passed in.
 
     Parameters
     ----------
     ax : matplotlib.axes.Axes | None
-        If `Axes`, returns unchanged. If `None`, returns `plt.gca()`
+        If an `Axes`, returns unchanged. If `None`, returns `plt.gca()`
 
     Returns
     -------
@@ -77,7 +77,7 @@ def get_ax3d(
     **kwargs
 ) -> Axes3D:
     """
-    Get either the current `Axes3d` or the instanced passed in.
+    Get either the current `Axes3d` or the instance passed in.
 
     If The current axis is an `Axes`, it is closed if no data
     is found via `has_data()`.
@@ -93,7 +93,8 @@ def get_ax3d(
         Figsize if `ax` has to be created. If `_UNSET`, uses
         `config.figsize`.
     **kwargs :
-        Additional keyword arguments passed to `plt.figure`.
+        Additional keyword arguments passed to `plt.figure` if
+        `Axes3D` must be created.
 
     Returns
     -------
