@@ -453,7 +453,7 @@ class help:
                 ax.hlines(y=1, xmin=0, xmax=np.pi, color='red')
                 ax.hlines(y=-1, xmin=np.pi, xmax=2*np.pi, color='red')
 
-                legend(ax=ax)
+                legend()
 
                 plt.show()
 
