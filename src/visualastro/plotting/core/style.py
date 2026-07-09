@@ -123,7 +123,6 @@ def print_rcParams(print_nondefault: bool = True) -> None:
     ---------
     print_nondefault : bool, optional, default=True
         If `True`, print only the non default values.
-
     """
     if print_nondefault:
         diffs = {k: v for k, v in mpl.rcParams.items() if v != mpl.rcParamsDefault[k]}
