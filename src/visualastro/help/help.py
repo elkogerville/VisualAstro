@@ -445,7 +445,7 @@ class help:
                     ax=ax,
                     color='darkslateblue',
                     xlabel='Time', ylabel='Intensity Value',
-                    label='Fourier Expansion'
+                    label='Fourier \nExpansion'
                 )
                 ax.vlines(x=np.pi, ymin=-1, ymax=1, color='red', label='Square Wave')
                 ax.vlines(x=2*np.pi, ymin=-1, ymax=0, color='red')
