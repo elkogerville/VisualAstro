@@ -151,6 +151,7 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     almost never happen because this would require being True for all plotting
     function that use the plotting interface.
     """
+    # kw[1]() extracts the config from the lambda at runtime
     params = _extract_kwargs(
         kwargs,
         additional_kwargs=[
