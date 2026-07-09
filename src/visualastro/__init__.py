@@ -128,6 +128,10 @@ from visualastro.plotting.core.image_utils import (
     nanpercentile_limits,
     thorlabs_logo,
 )
+from visualastro.plotting.core.style import (
+    print_rcParams,
+    reset_rcParams,
+)
 from visualastro.plotting.core.utils import (
     add_colorbar,
     close,

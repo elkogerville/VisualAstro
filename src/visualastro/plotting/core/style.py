@@ -8,9 +8,11 @@ Description:
 
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from importlib.resources import files
+from pprint import pprint
 import warnings
 
 from astropy.visualization.wcsaxes.core import WCSAxes
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 
@@ -106,6 +108,28 @@ def _get_stylepath(style: str | list[str] | None) -> str | list[str] | None:
         style = config.style_fallback
         base_style = style.split('_')[0] if '_' in style else style
         return str(stylelib.joinpath(f'{base_style}.mplstyle'))
+
+
+def reset_rcParams() -> None:
+    """Reset all rcParams to their default values."""
+    mpl.rcdefaults()
+
+
+def print_rcParams(print_nondefault: bool = True) -> None:
+    """
+    Print all current rcParams.
+
+    Paramters
+    ---------
+    print_nondefault : bool, optional, default=True
+        If `True`, print only the non default values.
+
+    """
+    if print_nondefault:
+        diffs = {k: v for k, v in mpl.rcParams.items() if v != mpl.rcParamsDefault[k]}
+        pprint(diffs)
+    else:
+        print(mpl.rcParams)
 
 
 @contextmanager
