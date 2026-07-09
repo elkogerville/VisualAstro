@@ -49,6 +49,7 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
+from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 
@@ -117,7 +118,7 @@ def add_colorbar(
         cbar.solids.set_rasterized(True)
 
 
-def legend(*args, ax, **kwargs) -> None:
+def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     """
     Create a legend on the specified axes with configuration defaults.
 
@@ -175,16 +176,27 @@ def legend(*args, ax, **kwargs) -> None:
             _kwarg('loc', config.legend.loc),
             _kwarg('ncols', config.legend.ncols),
             _kwarg('fontsize', config.legend.fontsize),
+            _kwarg('numpoints', config.legend.numpoints),
+            _kwarg('scatterpoints', config.legend.scatterpoints),
+            _kwarg('markerscale', config.legend.markerscale),
+            _kwarg('markerfirst', config.legend.markerfirst),
+            _kwarg('reverse', config.legend.reverse),
+            _kwarg('frameon', config.legend.frameon),
             _kwarg('fancybox', config.legend.fancybox),
             _kwarg('framealpha', config.legend.framealpha),
             _kwarg('facecolor', config.legend.facecolor),
             _kwarg('edgecolor', config.legend.edgecolor),
             _kwarg('title', config.legend.title),
             _kwarg('alignment', config.legend.alignment),
+            _kwarg('borderpad', config.legend.borderpad),
+            _kwarg('labelspacing', config.legend.labelspacing),
+            _kwarg('borderaxespad', config.legend.borderaxespad),
             _kwarg('columnspacing', config.legend.columnspacing),
             _kwarg('draggable', config.legend.draggable),
         ]
     )
+
+    ax = get_ax(ax)
 
     handles = None
     labels = None

@@ -94,13 +94,24 @@ class LegendConfig(PrettyRepr):
     loc: str = 'best'
     ncols: int = 1
     fontsize: int | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] = 13
+    labelcolor: str | list[str] | Literal['none', 'linecolor', 'mec', 'mfc'] = 'none'
+    numpoints: int = 1
+    scatterpoints: int = 1
+    markerscale: float = 1.0
+    markerfirst: bool = True
+    reverse: bool = False
+    frameon: bool = False
     fancybox: bool = False
     framealpha: float = 0.8
     facecolor: Literal['inherit'] | ColorType = 'inherit'
     edgecolor: Literal['inherit'] | ColorType = 'w'
+    linewidth: float | None = None
     title: str | None = None
     alignment: Literal['center', 'left', 'right'] = 'center'
-    columnspacing: float = 2
+    borderpad: float = 0.4
+    labelspacing: float = 0.5
+    borderaxespad: float = 0.5
+    columnspacing: float = 2.0
     draggable: bool = True
 
 @dataclass(slots=True, repr=False)
