@@ -448,12 +448,10 @@ def hist(
     colors = get_colors(params.color, cmap=cmap)
     data_list = []
 
+    ax.set_autoscale_on(True)
+    plot_params.compute_limits = False
     if xlog: ax.set_xscale('log')
     if ylog: ax.set_yscale('log')
-
-    plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
-    )
 
     hists = []
 
