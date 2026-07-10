@@ -134,6 +134,7 @@ from visualastro.plotting.core.style import (
 )
 from visualastro.plotting.core.utils import (
     add_colorbar,
+    axhline,
     close,
     contour_kde,
     contourf_kde,
@@ -143,10 +144,9 @@ from visualastro.plotting.core.utils import (
     legend,
     plot_circles,
     plot_ellipses,
-    plot_hlines,
     plot_interactive_ellipse,
     plot_points,
-    plot_vlines,
+    axvline,
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
