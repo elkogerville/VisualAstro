@@ -74,7 +74,7 @@ from visualastro.plotting.core.axes import (
 )
 from visualastro.plotting.core.style import _style_context
 from visualastro.plotting.core.utils import (
-    plot_vlines,
+    axvline,
     _get_zorder
 )
 
@@ -614,7 +614,7 @@ def extract_cube_pixel_spectra(
             )
             fluxes.append(combined_spec.flux)
 
-        plot_vlines(vline, ax, fluxes[0].unit)
+        axvline(vline, ax, fluxes[0].unit)
 
         set_axis_limits(
             spectral_axis,
@@ -1096,7 +1096,7 @@ def plot_spectra(
         unit_bracket_style=params.unit_bracket_style
     )
 
-    plot_vlines(vline, ax, _cycle(extracted_spectra, config.reference_idx).unit)
+    axvline(vline, ax, _cycle(extracted_spectra, config.reference_idx).unit)
 
     if labels[0] is not None:
         ax.legend(loc=params.loc)

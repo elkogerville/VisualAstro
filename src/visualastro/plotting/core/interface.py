@@ -42,11 +42,11 @@ from visualastro.plotting.core.axes import (
 from visualastro.plotting.core.colors import _has_color_mapping
 from visualastro.plotting.core.utils import (
     add_colorbar,
+    axhline,
     plot_ellipses,
-    plot_hlines,
     plot_interactive_ellipse,
     plot_points,
-    plot_vlines,
+    axvline,
 )
 from visualastro.core.numerical_utils import _cycle
 
@@ -324,8 +324,8 @@ def _apply_plot_utils(
                 rasterized=kwargs.get('rasterized', None)
             )
 
-    plot_vlines(params.vlines, ax, ref_unit)
-    plot_hlines(params.hlines, ax, ref_unit)
+    axvline(params.vlines, ax, ref_unit)
+    axhline(params.hlines, ax, ref_unit)
 
     if params.plot_ellipse and im_list is not None:
         im = _cycle(im_list, params.reference_idx)

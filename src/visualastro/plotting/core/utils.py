@@ -953,7 +953,7 @@ def plot_points(
             )
 
 
-def plot_vlines(vlines, ax, unit=None, equivalencies=None) -> None:
+def axvline(vlines, ax, unit=None, equivalencies=None) -> None:
     """
     Plot one or more vertical reference lines on a Matplotlib axis.
 
@@ -993,7 +993,7 @@ def plot_vlines(vlines, ax, unit=None, equivalencies=None) -> None:
             )
 
 
-def plot_hlines(hlines, ax, unit=None, equivalencies=None):
+def axhline(hlines, ax, unit=None, equivalencies=None):
     """
     Plot one or more horizontal reference lines on a Matplotlib axis.
 
