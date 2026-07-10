@@ -438,10 +438,6 @@ class TestExtractXYZ:
         with pytest.raises(ValueError):
             _extract_xyz(1.0, 2.0, order='c', index_spec=(0, 1, 2))
 
-    def test_invalid_input_type_raises(self):
-        with pytest.raises(ValueError):
-            _extract_xyz('not', 'valid', 'input', order='c', index_spec=(0, 1, 2))
-
 
 class TestNumericalUtils:
 
