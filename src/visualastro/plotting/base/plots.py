@@ -626,12 +626,11 @@ def plot(
     ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
-
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
     lines = []
 
@@ -854,12 +853,11 @@ def scatter(
     yerrs = _normalize_plotting_input(yerr) if yerr is not None else yerr
     c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
 
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
-
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
         ax, params.autoscale, plot_params.compute_limits
     )
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
     scatters = []
 
@@ -1611,6 +1609,12 @@ def scatter_project(
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
     labels = to_list(params.label)
+
+    plot_params.compute_limits = _set_axis_limits_scaling_mode(
+        ax, params.autoscale, plot_params.compute_limits
+    )
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
     sort_axis = {
         'x': 0,
