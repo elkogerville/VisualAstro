@@ -602,8 +602,7 @@ def set_axis_limits(
     xpad_frac = _resolve_default(xpad, config.axes.xpad)
     ypad_frac = _resolve_default(ypad, config.axes.ypad)
 
-    if ax is None:
-        raise ValueError('ax must be an axes instance')
+    ax = get_ax(ax)
 
     if scale is not None:
         if isinstance(scale, (list, tuple)) and len(scale) == 2:
@@ -817,6 +816,8 @@ def _get_xydata_from_ax(ax: maxes.Axes) -> NDArray | None:
         offsets = col.get_offsets().data
         if len(offsets) > 0:
             segments.append(offsets)
+    for patch in ax.patches:
+        segments.append(patch.get_xy())
 
     xy = np.vstack(segments) if segments else None
 
