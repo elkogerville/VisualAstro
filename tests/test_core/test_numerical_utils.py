@@ -17,6 +17,8 @@ from visualastro.core.numerical_utils import (
     to_array,
     to_list,
     _extract_xy,
+    _extract_xyz,
+    _extract_xyz_from_ndarray,
     _unwrap_if_single
 )
 from visualastro.datamodels.datacube import DataCube
@@ -312,6 +314,133 @@ class TestExtractXY:
         with pytest.raises(ValueError):
             y = [[1,2,3],[4,5,6]]
             _extract_xy(y)
+
+
+class TestExtractXYZFromNDArray:
+    """Test `_extract_xyx_from_ndarray`."""
+    def test_c_order_default_index_spec(self):
+        a = np.arange(30).reshape(10, 3)
+        x, y, z = _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 1, 2))
+        np.testing.assert_array_equal(x, a[:, 0])
+        np.testing.assert_array_equal(y, a[:, 1])
+        np.testing.assert_array_equal(z, a[:, 2])
+
+    def test_fortran_order(self):
+        a = np.arange(30).reshape(3, 10)
+        x, y, z = _extract_xyz_from_ndarray(a, order='fortran', index_spec=(0, 1, 2))
+        np.testing.assert_array_equal(x, a[0, :])
+        np.testing.assert_array_equal(y, a[1, :])
+        np.testing.assert_array_equal(z, a[2, :])
+
+    def test_custom_index_spec(self):
+        a = np.arange(80).reshape(10, 8)
+        x, y, z = _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 4, 7))
+        np.testing.assert_array_equal(x, a[:, 0])
+        np.testing.assert_array_equal(y, a[:, 4])
+        np.testing.assert_array_equal(z, a[:, 7])
+
+    def test_quantity_preserves_units(self):
+        a = np.arange(30).reshape(10, 3) * u.m
+        x, y, z = _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 1, 2))
+        assert x.unit == u.m
+        assert y.unit == u.m
+        assert z.unit == u.m
+        np.testing.assert_array_equal(x.value, a.value[:, 0])
+
+    def test_order_case_insensitive(self):
+        a = np.arange(30).reshape(10, 3)
+        x, y, z = _extract_xyz_from_ndarray(a, order='C', index_spec=(0, 1, 2))
+        np.testing.assert_array_equal(x, a[:, 0])
+
+    def test_1d_input_raises(self):
+        a = np.arange(10)
+        with pytest.raises(ValueError):
+            _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 1, 2))
+
+    def test_3d_input_raises(self):
+        a = np.arange(60).reshape(5, 4, 3)
+        with pytest.raises(ValueError):
+            _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 1, 2))
+
+    def test_wrong_index_spec_length_raises(self):
+        a = np.arange(30).reshape(10, 3)
+        with pytest.raises(ValueError):
+            _extract_xyz_from_ndarray(a, order='c', index_spec=(0, 1))
+
+    def test_non_array_input_raises(self):
+        with pytest.raises(ValueError):
+            _extract_xyz_from_ndarray([[1, 2, 3], [4, 5, 6]], order='c', index_spec=(0, 1, 2))
+
+
+class TestExtractXYZ:
+    """Test `_extract_xyz`."""
+    def test_single_2d_array(self):
+        a = np.arange(30).reshape(10, 3)
+        result = _extract_xyz(a, order='c', index_spec=(0, 1, 2))
+        assert len(result) == 1
+        x, y, z = result[0]
+        np.testing.assert_array_equal(x, a[:, 0])
+        np.testing.assert_array_equal(y, a[:, 1])
+        np.testing.assert_array_equal(z, a[:, 2])
+
+    def test_list_of_2d_arrays(self):
+        a1 = np.arange(30).reshape(10, 3)
+        a2 = np.arange(30, 60).reshape(10, 3)
+        result = _extract_xyz([a1, a2], order='c', index_spec=(0, 1, 2))
+        assert len(result) == 2
+        np.testing.assert_array_equal(result[0][0], a1[:, 0])
+        np.testing.assert_array_equal(result[0][1], a1[:, 1])
+        np.testing.assert_array_equal(result[0][2], a1[:, 2])
+        np.testing.assert_array_equal(result[1][0], a2[:, 0])
+        np.testing.assert_array_equal(result[1][1], a2[:, 1])
+        np.testing.assert_array_equal(result[1][2], a2[:, 2])
+
+    def test_three_1d_arrays(self):
+        x = np.arange(5)
+        y = np.arange(5, 10)
+        z = np.arange(10, 15)
+        result = _extract_xyz(x, y, z, order='c', index_spec=(0, 1, 2))
+        assert result == [(x, y, z)]
+
+    def test_three_quantity_arrays(self):
+        x = np.arange(5) * u.m
+        y = np.arange(5, 10) * u.m
+        z = np.arange(10, 15) * u.m
+        result = _extract_xyz(x, y, z, order='c', index_spec=(0, 1, 2))
+        assert len(result) == 1
+        assert all(arr.unit == u.m for arr in result[0])
+
+    def test_three_wrapped_1d_arrays(self):
+        # shapes (N,1)
+        x = np.arange(5).reshape(-1, 1)
+        y = np.arange(5, 10).reshape(-1, 1)
+        z = np.arange(10, 15).reshape(-1, 1)
+        result = _extract_xyz(x, y, z, order='c', index_spec=(0, 1, 2))
+        assert len(result) == 1
+
+    def test_three_sequences_of_1d_arrays(self):
+        x1, x2 = np.arange(5), np.arange(5, 10)
+        y1, y2 = np.arange(10, 15), np.arange(15, 20)
+        z1, z2 = np.arange(20, 25), np.arange(25, 30)
+        result = _extract_xyz(
+            [x1, x2], [y1, y2], [z1, z2], order='c', index_spec=(0, 1, 2)
+        )
+        assert len(result) == 2
+        np.testing.assert_array_equal(result[0], (x1, y1, z1))
+        np.testing.assert_array_equal(result[1], (x2, y2, z2))
+
+    def test_three_scalars(self):
+        result = _extract_xyz(1.0, 2.0, 3.0, order='c', index_spec=(0, 1, 2))
+        assert len(result) == 1
+        assert result[0] == (1.0, 2.0, 3.0)
+
+    def test_two_positional_args_raises(self):
+        with pytest.raises(ValueError):
+            _extract_xyz(1.0, 2.0, order='c', index_spec=(0, 1, 2))
+
+    def test_invalid_input_type_raises(self):
+        with pytest.raises(ValueError):
+            _extract_xyz('not', 'valid', 'input', order='c', index_spec=(0, 1, 2))
 
 
 class TestNumericalUtils:
