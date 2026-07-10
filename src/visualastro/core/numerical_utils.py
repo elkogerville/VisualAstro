@@ -341,12 +341,14 @@ def _is_scalar_quantity(obj) -> bool:
 
 def _is_scalar(obj) -> bool:
     """Check if `obj` is a scalar or scalar Quantity."""
+    if isinstance(obj, str):
+        return False
+
     if np.isscalar(obj):
         return True
 
     if isinstance(obj, np.ndarray) and obj.shape == ():
         return True
-
     return _is_scalar_quantity(obj)
 
 
