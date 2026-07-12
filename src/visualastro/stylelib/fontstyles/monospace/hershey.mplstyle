@@ -17,7 +17,6 @@
 # }
 
 font.family:  AVHershey Complex
-font.size:    12.0
 
 font.serif: AVHershey Complex
 font.sans-serif: AVHershey Duplex
@@ -42,3 +41,7 @@ mathtext.default: regular  # The default font to use for math.
 
 #axes.unicode_minus: True  # use Unicode for the minus symbol rather than hyphen.  See
                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
+
+svg.fonttype: none
+pdf.fonttype: 42
+ps.fonttype: 42
