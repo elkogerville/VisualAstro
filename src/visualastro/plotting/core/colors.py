@@ -67,6 +67,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f',
         '#6c7a0e', '#cfe23c', '#26dcba'
     ],
+    'turbo5': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
