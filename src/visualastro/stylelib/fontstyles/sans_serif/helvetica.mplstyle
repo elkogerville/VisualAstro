@@ -5,7 +5,7 @@
 # visualastro 2026
 
 font.family:         sans-serif
-font.serif:          Helvetica, Arial, Liberation Sans, DejaVu Sans, sans-serif
+font.sans-serif:     Helvetica, Arial, Liberation Sans, DejaVu Sans, sans-serif
 
 text.usetex:         False
 mathtext.fontset:    dejavusans
