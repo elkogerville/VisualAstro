@@ -18,12 +18,14 @@ import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
+from matplotlib.collections import PatchCollection
 from matplotlib.colors import (
     TABLEAU_COLORS,
     Colormap,
     LogNorm,
     Normalize
 )
+from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
@@ -705,6 +707,75 @@ def _resolve_color_kwargs(
         scatter_kwargs.pop('color', None)
 
     return scatter_kwargs
+
+
+def plot_colorset(
+    colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
+    style: str | list[str] = 'full',
+    legend: bool = True
+) -> list[list[Line2D] | list[PatchCollection]]:
+    """
+    Plot a sample figure demonstrating a VisualAstro color set.
+
+    Parameters
+    ----------
+    colors : ColorType | int | Sequence[ColorType | int], optional
+        Color set to visualize. Passed to `get_colors`.
+    style : str | list[str], optional
+        Matplotlib style(s) applied while plotting. See `plt.style.available`
+        or `va.style.available`.
+    legend : bool, optional
+        Whether to include labels for the plotted color examples.
+
+    Returns
+    -------
+    list[list[Line2D | PatchCollection]]
+        Artists returned by the plotting functions, grouped by plot element.
+    """
+    from visualastro.plotting.base.plots import plot, scatter
+    colorset = get_colors(colors)
+    N = len(colorset)
+
+    r_p = 1.0
+    theta = np.linspace(0, 2 * np.pi, 500)
+    if N < 6:
+        e_vals = np.logspace(-.9, -0.1, N)
+    else:
+        e_vals = np.logspace(-.9, 0.2, N)
+
+    with np.errstate(invalid='ignore', divide='ignore'):
+        a_vals = [r_p / (1 - e) for e in e_vals]
+        r_vals = [a * (1 - e**2) / (1 + e * np.cos(theta)) for (a, e) in zip(a_vals, e_vals)]
+    x_vals = [r * np.cos(theta) for r in r_vals]
+    y_vals = [r * np.sin(theta) for r in r_vals]
+
+    labels = [f'e={e:.1f}' for e in e_vals]
+
+    artists = []
+
+    with plt.style.context(style):
+        fig, ax = plt.subplots(figsize=(6,6))
+        labels = labels if legend else None
+        pl = plot(
+            x_vals[:N], y_vals[:N],
+            label=labels, color=colorset, lw=1,
+            xlim=(-5, 3), ylim=(-4, 4),
+            xlabel='X', ylabel='Y',
+        )
+
+        sc = scatter(
+            0, 0,
+            color='k', fc='none',
+            s=55, label='star',
+            compute_limits=False,
+            legend_loc='upper right',
+            legend_title='Eccentricity',
+            legend_frameon=True
+        )
+        artists.extend([pl, sc])
+        plt.show()
+
+        return artists
 
 
 def plot_color_deltaE(
