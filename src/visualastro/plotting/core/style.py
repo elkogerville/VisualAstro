@@ -8,6 +8,7 @@ Description:
 
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from importlib.resources import files
+from importlib.resources.abc import Traversable
 from pprint import pprint
 import warnings
 
@@ -21,6 +22,102 @@ from visualastro.core.config import (
     _Unset, _UNSET,
     _resolve_default
 )
+
+
+class VisualAstroStyles:
+    """
+    Container providing information on VisualAstro Matplotlib styles.
+
+    Styles can be used directly with `matplotlib.pyplot.style.use`
+    or `matplotlib.pyplot.style.context`.
+
+    Attributes
+    ----------
+    available : list[str]
+        All available VisualAstro styles registered with Matplotlib.
+    axes : AxesStyles
+        Collection of axes-related styles.
+    fonts : FontStyles
+        Collection of font-related styles.
+
+    Examples
+    --------
+    >>> va.styles.available
+    ['computer-modern-serif', 'computer-modern-mono', 'full', 'minimal' ...]
+
+    >>> va.styles.fonts.serif
+    ['computer-modern-serif', 'stix', 'times-serif', ...]
+
+    >>> va.styles.axes.available
+    ['full', 'minimal', ...]
+
+    >>> plt.style.use(['full', 'computer-modern-serif'])
+    """
+    class Fonts:
+        """
+        Collection of font-related styles.
+
+        Attributes
+        ----------
+        available : list[str]
+            All available font styles.
+        mono : list[str]
+            Available monospace font styles.
+        sans : list[str]
+            Available sans-serif font styles.
+        serif : list[str]
+            Available serif font styles.
+        """
+        def __init__(self, fontstyles):
+            self.available = _get_styles(fontstyles)
+
+            for family in ('monospace', 'sans_serif', 'serif'):
+                setattr(
+                    self,
+                    family.replace('_', ''),
+                    _get_styles(fontstyles / family)
+                )
+
+        def __repr__(self):
+            styles = ',\n'.join(f'    {item!r}' for item in self.available)
+            return f'Fonts([\n{styles}\n])'
+
+    class Axes:
+        """
+        Collection of axes-related styles.
+
+        Attributes
+        ----------
+        available : list[str]
+            All available axes styles.
+        """
+        def __init__(self, axesstyles):
+            self.available = _get_styles(axesstyles)
+
+        def __repr__(self):
+            styles = ',\n'.join(f'    {item!r}' for item in self.available)
+            return f'Axes([\n{styles}\n])'
+
+    def __init__(self, available_styles):
+        """VisualAstroStyles initialization."""
+        stylelib = files('visualastro') / 'stylelib'
+
+        self.available = available_styles
+        self.axes = self.Axes(stylelib / 'axes_styles')
+        self.fonts = self.Fonts(stylelib / 'fontstyles')
+
+    def __repr__(self):
+        styles = ',\n'.join(f'    {item!r}' for item in self.available)
+        return f'Available Styles([\n{styles}\n])'
+
+
+def _get_styles(directory: Traversable) -> list[str]:
+    """
+    Helper function used by `VisualAstroStyles`.
+
+    Returns a sorted list of style names in a given directory.
+    """
+    return sorted(list({p.stem for p in directory.rglob('*.mplstyle')}))
 
 
 def _style_context(style: str | None = None) -> AbstractContextManager:
