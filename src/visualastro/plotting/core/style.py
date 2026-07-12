@@ -8,7 +8,6 @@ Description:
 
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from importlib.resources import files
-from importlib.resources.abc import Traversable
 from pprint import pprint
 import warnings
 
@@ -111,7 +110,7 @@ class VisualAstroStyles:
         return f'Available Styles([\n{styles}\n])'
 
 
-def _get_styles(directory: Traversable) -> list[str]:
+def _get_styles(directory) -> list[str]:
     """
     Helper function used by `VisualAstroStyles`.
 
