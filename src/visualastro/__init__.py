@@ -245,7 +245,7 @@ def _register_styles():
     styledict = {}
     style_root = Path(stylelib)
 
-    config.style_available = list({p.stem for p in style_root.rglob('*.mplstyle')})
+    config.style_available = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
 
     # create set of each valid parent directory to a .mplstyle in stylelib
     dirs = {p.parent for p in style_root.rglob('*.mplstyle')}
