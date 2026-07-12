@@ -93,7 +93,7 @@ class LegendConfig(PrettyRepr):
     labels: Sequence[str] | None = None
     loc: str = 'best'
     ncols: int = 1
-    fontsize: int | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] = 13
+    fontsize: int | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] = 10
     labelcolor: str | list[str] | Literal['none', 'linecolor', 'mec', 'mfc'] = 'none'
     numpoints: int = 1
     scatterpoints: int = 1
