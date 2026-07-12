@@ -30,7 +30,7 @@ class TestGetImshowNorm:
     def test_supported_norms(self):
         assert isinstance(get_imshow_norm('asinh', 0.1, 9), ImageNormalize)
         assert isinstance(get_imshow_norm('log', 0.1, 9), LogNorm)
-        assert isinstance(get_imshow_norm( 'power', 0.1, 9), PowerNorm)
+        assert isinstance(get_imshow_norm('power', 0.1, 9), PowerNorm)
         assert isinstance(get_imshow_norm('asinhnorm', 0.1, 9), AsinhNorm)
 
     def test_boolean_images(self):
