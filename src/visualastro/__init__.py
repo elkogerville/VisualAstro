@@ -206,15 +206,17 @@ def _register_fonts():
         return
 
     font_files = list(fonts_dir.rglob('*.ttf')) + list(fonts_dir.rglob('*.otf'))
+    registered = {font.fname for font in fm.fontManager.ttflist}
 
     for font_file in font_files:
-        try:
-            fm.fontManager.addfont(str(font_file))
-        except Exception as e:
-            warnings.warn(
-                f'[visualastro] Could not register font {font_file.name}: {e}',
-                stacklevel=2
-            )
+        if str(font_file) not in registered:
+            try:
+                fm.fontManager.addfont(str(font_file))
+            except Exception as e:
+                warnings.warn(
+                    f'[visualastro] Could not register font {font_file.name}: {e}',
+                    stacklevel=2
+                )
 
 _register_fonts()
 
