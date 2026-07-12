@@ -210,13 +210,23 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
 
     handles = kwargs.pop('handles', handles)
     labels = kwargs.pop('labels', labels)
+    linewidth = kwargs.pop('linewidth', config.legend.linewidth)
 
     if handles is not None:
         legend_kwargs['handles'] = handles
     if labels is not None:
         legend_kwargs['labels'] = labels
 
-    ax.legend(**legend_kwargs)
+    leg = ax.legend(**legend_kwargs)
+
+    if linewidth is None:
+        return
+
+    if linewidth == 'spines':
+        spines = [a for a in ax.spines.values()]
+        linewidth = spines[0].get_linewidth()
+
+    leg.get_frame().set_linewidth(linewidth)
 
 
 def contour_kde(
