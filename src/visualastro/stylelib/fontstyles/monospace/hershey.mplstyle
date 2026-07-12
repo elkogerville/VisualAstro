@@ -44,4 +44,4 @@ mathtext.default: regular  # The default font to use for math.
 
 svg.fonttype: none
 pdf.fonttype: 42
-ps.fonttype: 42
+ps.fonttype:  42
