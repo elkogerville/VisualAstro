@@ -76,6 +76,7 @@ class ZorderLayers(PrettyRepr):
     hlines: float = 60
     regions: float = 70
     text: float = 90
+    legend: float = 100
 
 @dataclass(slots=True, repr=False)
 class AXLineConfig(PrettyRepr):
