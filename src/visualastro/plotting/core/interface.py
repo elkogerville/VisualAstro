@@ -43,6 +43,7 @@ from visualastro.plotting.core.colors import _has_color_mapping
 from visualastro.plotting.core.utils import (
     add_colorbar,
     axhline,
+    legend,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
@@ -82,6 +83,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('legend_framealpha', lambda: config.legend.framealpha),
     _kwarg('legend_facecolor', lambda: config.legend.facecolor),
     _kwarg('legend_edgecolor', lambda: config.legend.edgecolor),
+    _kwarg('legend_linewidth', lambda: config.legend.linewidth),
     _kwarg('legend_title', lambda: config.legend.title),
     _kwarg('legend_alignment', lambda: config.legend.alignment),
     _kwarg('legend_borderpad', lambda: config.legend.borderpad),
@@ -218,6 +220,8 @@ def _apply_plot_utils(
     if 'labels' in kwargs:
         if _cycle(kwargs['labels'], params.reference_idx) is not None:
             legend_kwargs = {
+                'handles': params.legend_handles,
+                'labels': params.legend_labels,
                 'loc': params.legend_loc,
                 'ncols': params.legend_ncols,
                 'fontsize': params.legend_fontsize,
@@ -231,6 +235,7 @@ def _apply_plot_utils(
                 'framealpha': params.legend_framealpha,
                 'facecolor': params.legend_facecolor,
                 'edgecolor': params.legend_edgecolor,
+                'linewidth': params.legend_linewidth,
                 'title': params.legend_title,
                 'alignment': params.legend_alignment,
                 'borderpad': params.legend_borderpad,
@@ -240,12 +245,7 @@ def _apply_plot_utils(
                 'draggable': params.legend_draggable,
             }
 
-            if params.legend_handles is not None:
-                legend_kwargs['handles'] = params.legend_handles
-            if params.legend_labels is not None:
-                legend_kwargs['labels'] = params.legend_labels
-
-            ax.legend(**legend_kwargs)
+            legend(ax=ax, **legend_kwargs)
 
     plot_ellipses(params.ellipses, ax)
     plot_points(

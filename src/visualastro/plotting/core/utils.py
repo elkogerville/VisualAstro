@@ -151,6 +151,9 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
         Frame background color.
     edgecolor : str, optional, default=config.legend.edgecolor
         Frame edge color.
+    linewidth : float | {'spline'}, None, optional, default='spline'
+        Linewidth of the legend. If `spline`, uses the `linewidth` of
+        the splines from `ax`. If `None`, does not set.
     title : str, optional, default=config.legend.title
         Legend title.
     alignment : {'center', 'left', 'right'}, optional, default=config.legend.alignment
@@ -169,7 +172,6 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     -------
     None
     """
-
     legend_kwargs = _extract_kwargs(
         kwargs,
         additional_kwargs=[
@@ -197,7 +199,6 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     )
 
     ax = get_ax(ax)
-
     handles = None
     labels = None
 
@@ -213,9 +214,9 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     linewidth = kwargs.pop('linewidth', config.legend.linewidth)
 
     if handles is not None:
-        legend_kwargs['handles'] = handles
+        legend_kwargs['handles'] = to_list(handles)
     if labels is not None:
-        legend_kwargs['labels'] = labels
+        legend_kwargs['labels'] = to_list(labels)
 
     leg = ax.legend(**legend_kwargs)
 
