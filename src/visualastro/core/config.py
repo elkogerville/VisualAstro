@@ -102,10 +102,10 @@ class LegendConfig(PrettyRepr):
     reverse: bool = False
     frameon: bool = False
     fancybox: bool = False
-    framealpha: float = 0.8
+    framealpha: float = 1.0
     facecolor: Literal['inherit'] | ColorType = 'inherit'
     edgecolor: Literal['inherit'] | ColorType = 'w'
-    linewidth: float | None = None
+    linewidth: float | Literal['spines'] | None = 'spines'
     title: str | None = None
     alignment: Literal['center', 'left', 'right'] = 'center'
     borderpad: float = 0.4
