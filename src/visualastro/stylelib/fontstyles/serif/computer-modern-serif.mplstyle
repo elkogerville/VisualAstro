@@ -1,0 +1,18 @@
+# Computer Modern font
+# --------------------
+# No Latex
+#
+# visualastro 2026
+
+font.family:         serif
+font.serif:          CMU Serif, Computer Modern, Latin Modern Roman, DejaVu Serif, serif
+
+text.usetex:         False
+mathtext.fontset:    cm
+
+axes.unicode_minus:  True   # use Unicode for the minus symbol rather than hyphen.  See
+                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
+
+svg.fonttype: none
+pdf.fonttype: 42
+ps.fonttype:  42
