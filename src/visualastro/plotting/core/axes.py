@@ -63,10 +63,13 @@ def get_ax(
 
     figsize = _resolve_default(figsize, config.figsize)
 
+    fig = plt.gcf()
+    has_axes = bool(fig.axes)
+
     current_ax = plt.gca()
-    fig = current_ax.figure
-    fig.set_figwidth(figsize[0])
-    fig.set_figheight(figsize[1])
+
+    if not has_axes:
+        fig.set_size_inches(figsize)
 
     return current_ax
 
