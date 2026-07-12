@@ -160,6 +160,8 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
         Legend alignment.
     columnspacing : float, optional, default=config.legend.columnspacing
         Spacing between columns in units of fontsize.
+    zorder : float, optional, default=config.zorder.legend
+        Legend zorder.
     draggable : bool, optional, default=config.legend.draggable
         Enable legend dragging.
 
@@ -197,7 +199,6 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
             _kwarg('draggable', config.legend.draggable),
         ]
     )
-
     ax = get_ax(ax)
     handles = None
     labels = None
@@ -212,6 +213,7 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     handles = kwargs.pop('handles', handles)
     labels = kwargs.pop('labels', labels)
     linewidth = kwargs.pop('linewidth', config.legend.linewidth)
+    zorder = kwargs.pop('zorder', config.zorder.legend)
 
     if handles is not None:
         legend_kwargs['handles'] = to_list(handles)
@@ -220,14 +222,15 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
 
     leg = ax.legend(**legend_kwargs)
 
-    if linewidth is None:
-        return
+    if linewidth is not None:
+        if linewidth == 'spines':
+            spines = [a for a in ax.spines.values()]
+            linewidth = spines[0].get_linewidth()
 
-    if linewidth == 'spines':
-        spines = [a for a in ax.spines.values()]
-        linewidth = spines[0].get_linewidth()
+        leg.get_frame().set_linewidth(linewidth)
 
-    leg.get_frame().set_linewidth(linewidth)
+    leg.set_zorder(zorder)
+
 
 
 def contour_kde(
