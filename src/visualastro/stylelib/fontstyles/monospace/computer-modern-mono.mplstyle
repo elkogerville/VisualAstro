@@ -10,6 +10,7 @@ font.monospace:      CMU Typewriter Text
 text.usetex:         False
 mathtext.fontset:    cm
 
+axes.formatter.use_mathtext: False
 axes.unicode_minus:  False  # use Unicode for the minus symbol rather than hyphen.  See
                             # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
 
