@@ -178,9 +178,6 @@ from visualastro.utils.wcs_utils import (
 )
 
 
-__all__ = [name for name in dir() if not name.startswith('_')]
-
-
 # REGISTER FONTS
 # --------------
 def _register_fonts() -> None:
@@ -297,3 +294,6 @@ def _register_cmaps() -> None:
 
 
 _register_cmaps()
+
+
+__all__ = [name for name in dir() if not name.startswith('_')]
