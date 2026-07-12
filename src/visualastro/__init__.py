@@ -116,6 +116,7 @@ from visualastro.plotting.core.colors import (
     get_complimentary_colors,
     lighten_colors,
     plot_color_deltaE,
+    plot_colorset,
     plot_colortable,
     random_colors,
     sample_cmap,
