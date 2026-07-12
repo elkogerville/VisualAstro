@@ -183,7 +183,7 @@ __all__ = [name for name in dir() if not name.startswith('_')]
 
 # REGISTER FONTS
 # --------------
-def _register_fonts():
+def _register_fonts() -> None:
     """
     Register additional fonts into matplotlib.
     To add more fonts, simply add a folder to
@@ -234,6 +234,9 @@ def _register_styles():
     import warnings
     import matplotlib.pyplot as plt
 
+    from visualastro.plotting.core.style import VisualAstroStyles
+
+
     stylelib = files('visualastro') / 'stylelib'
 
     # matplotlib >= 3.11
@@ -245,7 +248,7 @@ def _register_styles():
     styledict = {}
     style_root = Path(stylelib)
 
-    config.style_available = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
+    available_styles = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
 
     # create set of each valid parent directory to a .mplstyle in stylelib
     dirs = {p.parent for p in style_root.rglob('*.mplstyle')}
@@ -266,13 +269,15 @@ def _register_styles():
 
     plt.style.available[:] = sorted(plt.style.library.keys())
 
+    return VisualAstroStyles(available_styles)
+
 import scienceplots
-_register_styles()
+styles = _register_styles()
 
 
 # REGISTER COLORMAPS
 # ------------------
-def _register_cmaps():
+def _register_cmaps() -> None:
     """Register additional colormaps with matplotlib"""
     import cmasher
     import matplotlib as mpl
