@@ -39,7 +39,7 @@ _UNSET = _Unset.UNSET
 @dataclass(slots=True)
 class PrettyRepr:
     """Template class for adding a pretty __repr__ to config dataclasses."""
-    def __repr__(self):
+    def __repr__(self) -> str:
         fields = {k: getattr(self, k) for k in self.__dataclass_fields__}
         field_str = '\n'.join(f'  {k}: {v!r}' for k, v in fields.items())
         return f'{self.__class__.__name__}(\n{field_str}\n)'
