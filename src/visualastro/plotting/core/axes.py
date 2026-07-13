@@ -543,7 +543,7 @@ def set_axis_limits(
     ydata: ArrayLike | Sequence[ArrayLike] | None = None,
     *,
     ax: maxes.Axes | None = None,
-    scale: float | tuple[float, float] | None = None,
+    limits: float | tuple[float, float] | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
     xpad: float | _Unset = _UNSET,
@@ -571,10 +571,10 @@ def set_axis_limits(
         If `False`, does not compute any limits based on data,
         and lets matplotlib decide axes limits. If `_UNSET`,
         uses `config.axes.compute_limits`.
-    scale : float | tuple[float, float] | None, optional, default=None
+    limits : float | tuple[float, float] | None, optional, default=None
         Set symmetric axis limits. Overrides `xlim` and `ylim`.
-        If a single float, sets `xlim=ylim=(-abs(scale), scale)`.
-        If a `tuple[float, float]`, sets `xlim=ylim=(scale[0], scale[1])`.
+        If a single float, sets `xlim=ylim=(-abs(limits), limits)`.
+        If a `tuple[float, float]`, sets `xlim=ylim=(limits[0], limits[1])`.
         If `None`, delegates limits to `xlim` and `ylim`.
     xlim : tuple[float, float] | None, optional, default=None
         User-defined X-axis limits. If provided, only data within this range
@@ -600,23 +600,23 @@ def set_axis_limits(
     Raises
     ------
     ValueError :
-        If `scale` is not `None` and isn't either a `float` or `tuple[float, float]`.
+        If `limits` is not `None` and isn't either a `float` or `tuple[float, float]`.
     """
     xpad_frac = _resolve_default(xpad, config.axes.xpad)
     ypad_frac = _resolve_default(ypad, config.axes.ypad)
 
     ax = get_ax(ax)
 
-    if scale is not None:
-        if isinstance(scale, (list, tuple)) and len(scale) == 2:
-            lmin, lmax = scale[0], scale[1]
-        elif isinstance(scale, (float, int, np.floating, np.integer)):
-            scale = np.abs(scale)
-            lmin, lmax = -1*scale, scale
+    if limits is not None:
+        if isinstance(limits, (list, tuple)) and len(limits) == 2:
+            lmin, lmax = limits[0], limits[1]
+        elif isinstance(limits, (float, int, np.floating, np.integer)):
+            limits = np.abs(limits)
+            lmin, lmax = -1*limits, limits
         else:
             raise ValueError(
-                'scale must be either a scalar or a tuple[float, float]! '
-                f'got {type(scale).__name__}!'
+                'limits must be either a scalar or a tuple[float, float]! '
+                f'got {type(limits).__name__}!'
             )
         xlim = (lmin, lmax)
         ylim = (lmin, lmax)
