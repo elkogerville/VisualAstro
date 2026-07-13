@@ -331,8 +331,9 @@ def hist(
     datas : u.Quantity | NDArray | list[u.Quantity | NDArray]
         Input data to histogram. Can be a single 1D array or a
         list of 1D/2D arrays. 2D arrays are automatically flattened.
-    ax : matplotlib.axes.Axes
-        The Axes object on which to plot the histogram.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
     bins : int | Sequence[float] | str | _Unset, optional, default=_UNSET
         From ax.hist documentation:
 
@@ -525,8 +526,9 @@ def plot(
         either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
         one array is passed in, x values are automatically generated with
         np.arange(len(array)).
-    ax : matplotlib.axes.Axes
-        The Axes object to plot on.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
     linestyle : str | list[str] | _Unset, optional, default=_UNSET
@@ -712,8 +714,9 @@ def scatter(
         either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
         one array is passed in, x values are automatically generated with
         np.arange(len(array)).
-    ax : matplotlib.axes.Axes
-        Axes to plot on.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
     xerr : array-like | list[array-like] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
     yerr : array-like | list[array-like] | None, optional, default=None
@@ -963,8 +966,9 @@ def scatter_fit(
         either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
         one array is passed in, x values are automatically generated with
         np.arange(len(array)).
-    ax : matplotlib.axes.Axes
-        Axes to plot on.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
     deg : int
         Degree of the polynomial fit.
     xerr : array-like | list[array-like] | None, optional, default=None
@@ -1179,8 +1183,9 @@ def scatter3D(
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
-    ax : Axes3D
+    ax : Axes3D | None, optional, default=None
         The 3D axes object on which to draw the scatter plot.
+        If `None` uses `plt.gca()`.
     elev, axim, roll : float | _Unset, optional, default=(30,45,0)
         Elevation (rotation around camera x-axis), azimuth (rotation around the z-axis),
         and roll (rotation around the view direction) angles in degrees. If `_UNSET`,
@@ -1520,8 +1525,9 @@ def scatter_project(
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
-    ax : matplotlib.axes.Axes
-        Target 2D axes to plot onto.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
     limits : float | tuple[float, float] | None, optional, default=None
         Set symmetric axis limits. Overrides `xlim` and `ylim`.
         If a single float, sets `xlim=ylim=(-abs(limits), limits)`.
