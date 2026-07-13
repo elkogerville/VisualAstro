@@ -57,7 +57,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'astro_seq': [
         '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
-        '#FFB000', '#CFE23C', '#26DCBA'
+        '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
