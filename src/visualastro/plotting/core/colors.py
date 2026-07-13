@@ -712,6 +712,7 @@ def _resolve_color_kwargs(
 
 def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
+    ax: Axes | None = None,
     style: str | list[str] = 'full',
     legend: bool = True
 ) -> list[list[Line2D] | list[PatchCollection]]:
@@ -720,13 +721,16 @@ def plot_colorset(
 
     Parameters
     ----------
-    colors : ColorType | int | Sequence[ColorType | int], optional
+    colors : ColorType | int | Sequence[ColorType | int], optional, default='astro_seq'
         Color set to visualize. Passed to `get_colors`.
-    style : str | list[str], optional
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to plot the histogram. If `None`,
+        uses `plt.gca()`.
+    style : str | list[str], optional, default='full'
         Matplotlib style(s) applied while plotting. See `plt.style.available`
         or `va.style.available`.
-    legend : bool, optional
-        Whether to include labels for the plotted color examples.
+    legend : bool, optional, default=True
+        If `True`, plots the legend.
 
     Returns
     -------
@@ -734,6 +738,9 @@ def plot_colorset(
         Artists returned by the plotting functions, grouped by plot element.
     """
     from visualastro.plotting.base.plots import plot, scatter
+    from visualastro.plotting.core.axes import get_ax
+
+    ax = get_ax(ax)
     colorset = get_colors(colors)
     N = len(colorset)
 
@@ -755,10 +762,10 @@ def plot_colorset(
     artists = []
 
     with plt.style.context(style):
-        fig, ax = plt.subplots(figsize=(6,6))
         labels = labels if legend else None
         pl = plot(
             x_vals[:N], y_vals[:N],
+            ax=ax,
             label=labels, color=colorset, lw=1,
             xlim=(-5, 3), ylim=(-4, 4),
             xlabel='X', ylabel='Y',
@@ -766,15 +773,15 @@ def plot_colorset(
 
         sc = scatter(
             0, 0,
+            ax=ax,
             color='k', fc='none',
-            s=55, label='star',
+            s=55, label='star' if legend else None,
             compute_limits=False,
             legend_loc='upper right',
             legend_title='Eccentricity',
             legend_frameon=True
         )
         artists.extend([pl, sc])
-        plt.show()
 
         return artists
 
