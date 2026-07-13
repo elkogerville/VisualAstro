@@ -100,7 +100,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('unit_fmt', lambda: config.unit_label_format),
 
     _kwarg('compute_limits', lambda: config.axes.compute_limits),
-    _kwarg('scale', lambda: None),
+    _kwarg('limits', lambda: None),
     _kwarg('xlim', lambda: None),
     _kwarg('ylim', lambda: None),
     _kwarg('xpad', lambda: config.axes.xpad),
@@ -258,7 +258,7 @@ def _apply_plot_utils(
         set_axis_limits(
             xlist, ylist,
             ax=ax,
-            scale=params.scale,
+            limits=params.limits,
             xlim=params.xlim, ylim=params.ylim,
             xpad=params.xpad, ypad=params.ypad
         )

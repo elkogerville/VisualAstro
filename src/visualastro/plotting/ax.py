@@ -757,7 +757,7 @@ class ax:
         elev: float | _Unset = _UNSET,
         azim: float | _Unset = _UNSET,
         roll: float | _Unset = _UNSET,
-        scale: float | None = None,
+        limits: float | None = None,
         axes_off: bool = False,
         grid_lines: bool = False,
         color: ColorType | list[ColorType] | int | _Unset = _UNSET,
@@ -798,7 +798,7 @@ class ax:
                 elev=elev,
                 azim=azim,
                 roll=roll,
-                scale=scale,
+                limits=limits,
                 axes_off=axes_off,
                 grid_lines=grid_lines,
                 color=color,
@@ -824,7 +824,7 @@ class ax:
     @staticmethod
     def scatter_project(
         *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
-        scale: float | tuple[float, float] | None = None,
+        limits: float | tuple[float, float] | None = None,
         zdir: Literal['x', 'y', 'z'] = 'z',
         color: ColorType | list[ColorType] | int | _Unset = _UNSET,
         marker: MarkerStyle | _Unset = _UNSET,
@@ -859,7 +859,7 @@ class ax:
             scatter = scatter_project(
                 *data,
                 ax=ax,
-                scale=scale,
+                limits=limits,
                 zdir=zdir,
                 color=color,
                 marker=marker,

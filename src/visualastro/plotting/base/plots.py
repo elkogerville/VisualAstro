@@ -1132,7 +1132,7 @@ def scatter3D(
     elev: float | _Unset = _UNSET,
     azim: float | _Unset = _UNSET,
     roll: float | _Unset = _UNSET,
-    scale: float | None = None,
+    limits: float | None = None,
     axes_off: bool = False,
     grid_lines: bool = False,
     color: ColorType | list[ColorType] | int | _Unset = _UNSET,
@@ -1185,8 +1185,8 @@ def scatter3D(
         Elevation (rotation around camera x-axis), azimuth (rotation around the z-axis),
         and roll (rotation around the view direction) angles in degrees. If `_UNSET`,
         uses `config.elev`, `config.azim`, and `config.roll` respectively.
-    scale : float | None, optional, default=None
-        If given, sets symmetric limits for all axes as `[-scale, scale]`.
+    limits : float | None, optional, default=None
+        If given, sets symmetric limits for all axes as `[-limits, limits]`.
         If `None`, limits are set individually by `xlim`, `ylim`, and `zlim`.
     axes_off : bool, optional, default=False
         If `True`, hides all axes spines, ticks, and labels.
@@ -1345,10 +1345,10 @@ def scatter3D(
 
     ax.view_init(elev=params.elev, azim=params.azim, roll=params.roll)
 
-    if scale is not None:
-        ax.set_xlim(-scale, scale)
-        ax.set_ylim(-scale, scale)
-        ax.set_zlim(-scale, scale)
+    if limits is not None:
+        ax.set_xlim(-limits, limits)
+        ax.set_ylim(-limits, limits)
+        ax.set_zlim(-limits, limits)
     else:
         if params.xlim: ax.set_xlim(params.xlim)
         if params.ylim: ax.set_ylim(params.ylim)
@@ -1472,7 +1472,7 @@ def scatter3D(
 def scatter_project(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     ax: maxes.Axes | None = None,
-    scale: float | tuple[float, float] | None = None,
+    limits: float | tuple[float, float] | None = None,
     zdir: Literal['x', 'y', 'z'] = 'z',
     color: ColorType | list[ColorType] | int | _Unset = _UNSET,
     marker: MarkerStyle | _Unset = _UNSET,
@@ -1522,10 +1522,10 @@ def scatter_project(
 
     ax : matplotlib.axes.Axes
         Target 2D axes to plot onto.
-    scale : float | tuple[float, float] | None, optional, default=None
+    limits : float | tuple[float, float] | None, optional, default=None
         Set symmetric axis limits. Overrides `xlim` and `ylim`.
-        If a single float, sets `xlim=ylim=(-abs(scale), scale)`.
-        If a `tuple[float, float]`, sets `xlim=ylim=(scale[0], scale[1])`.
+        If a single float, sets `xlim=ylim=(-abs(limits), limits)`.
+        If a `tuple[float, float]`, sets `xlim=ylim=(limits[0], limits[1])`.
         If `None`, delegates limits to `xlim` and `ylim`.
     zdir : {'x', 'y', 'z'}, optional, default='z'
         Axis to project along. Points are collapsed onto the plane
@@ -1596,7 +1596,7 @@ def scatter_project(
             _kwarg('sort_by_c', False),
         ]
     )
-    kwargs['scale'] = scale
+    kwargs['limits'] = limits
     plot_params = _extract_plot_util_kwargs(kwargs)
 
     ax = get_ax(ax, figsize=params.figsize)
