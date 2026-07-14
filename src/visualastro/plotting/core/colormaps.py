@@ -81,9 +81,12 @@ def get_cmap(
     if cmap_range[0] == 0 and cmap_range[1] == 1:
         return out_cmap
 
-    return cmasher.get_sub_cmap(
-        out_cmap, cmap_range[0], cmap_range[1], N=N
+    return set_bad_color(
+        cmasher.get_sub_cmap(
+            out_cmap, cmap_range[0], cmap_range[1], N=N
+        ), bad_color
     )
+
 
 
 def create_cmap(
