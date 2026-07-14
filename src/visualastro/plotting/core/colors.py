@@ -57,16 +57,14 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
     'ibm_contrast': [
-        '#648FFF', '#DC267F', '#785EF0',
-        '#26DCBA', '#FFB000', '#FE6100'
+        '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
-        '#FFB000', '#9FB7FF', '#CFE23C',
+        '#FFB000', '#9FB7FF', '#CFE23C', '#FE6100'
     ],
     'astro_contrast': [
-        '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f',
-        '#6c7a0e', '#cfe23c', '#26dcba'
+        '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f', '#6c7a0e', '#cfe23c', '#26dcba'
     ],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
