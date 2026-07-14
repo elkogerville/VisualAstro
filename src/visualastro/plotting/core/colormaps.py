@@ -88,7 +88,6 @@ def get_cmap(
     )
 
 
-
 def create_cmap(
     colors: list[ColorType] | int,
     positions: list[float] | None = None,
