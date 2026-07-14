@@ -50,14 +50,15 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 # --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
     'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+    'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
+    'astro_seq': [
+        '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
+        '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
+    ],
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
     'ibm_contrast': [
         '#648FFF', '#DC267F', '#785EF0',
         '#26DCBA', '#FFB000', '#FE6100'
-    ],
-    'astro_seq': [
-        '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
-        '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
@@ -67,7 +68,6 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f',
         '#6c7a0e', '#cfe23c', '#26dcba'
     ],
-    'turbo5': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
@@ -713,7 +713,6 @@ def _resolve_color_kwargs(
 def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
-    style: str | list[str] = 'full',
     legend: bool = True
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
@@ -726,9 +725,6 @@ def plot_colorset(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
         uses `plt.gca()`.
-    style : str | list[str], optional, default='full'
-        Matplotlib style(s) applied while plotting. See `plt.style.available`
-        or `va.style.available`.
     legend : bool, optional, default=True
         If `True`, plots the legend.
 
@@ -761,29 +757,28 @@ def plot_colorset(
 
     artists = []
 
-    with plt.style.context(style):
-        labels = labels if legend else None
-        pl = plot(
-            x_vals[:N], y_vals[:N],
-            ax=ax,
-            label=labels, color=colorset, lw=1,
-            xlim=(-5, 3), ylim=(-4, 4),
-            xlabel='X', ylabel='Y',
-        )
+    labels = labels if legend else None
+    pl = plot(
+        x_vals[:N], y_vals[:N],
+        ax=ax,
+        label=labels, color=colorset, lw=1,
+        xlim=(-5, 3), ylim=(-4, 4),
+        xlabel='X', ylabel='Y',
+    )
 
-        sc = scatter(
-            0, 0,
-            ax=ax,
-            color='k', fc='none',
-            s=55, label='star' if legend else None,
-            compute_limits=False,
-            legend_loc='upper right',
-            legend_title='Eccentricity',
-            legend_frameon=True
-        )
-        artists.extend([pl, sc])
+    sc = scatter(
+        0, 0,
+        ax=ax,
+        color='k', fc='none',
+        s=55, label='star' if legend else None,
+        compute_limits=False,
+        legend_loc='upper right',
+        legend_title='Eccentricity',
+        legend_frameon=True
+    )
+    artists.extend([pl, sc])
 
-        return artists
+    return artists
 
 
 def plot_color_deltaE(
