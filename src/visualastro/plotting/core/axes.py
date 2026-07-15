@@ -202,7 +202,7 @@ def subplot(
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
 
-    figsize : tuple[float, float]
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize`.
     projection : str | None, optional, default=None
         The projection type of the subplot. Can be one of the accepted values:
@@ -313,7 +313,7 @@ def ax3d(
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
 
-    figsize : tuple[float, float]
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize3D`.
     **kwargs :
         Additional keyword arguments passed to `plt.figure`.
@@ -377,6 +377,51 @@ def add_ax3d(
     ax = fig.add_subplot(*args, projection='3d', **kwargs)
 
     return ax
+
+
+def wcsax(
+    wcs: WCS | Header,
+    figsize: tuple[float, float] | _Unset = _UNSET,
+    **kwargs
+) -> tuple[Figure, WCSAxes]:
+    """
+    Create a `WCSAxes` plot instance.
+
+    Parameters
+    ----------
+    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
+        The position of the subplot described by one of:
+
+        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+        take the *index* position on a grid with *nrows* rows and *ncols* columns.
+        *index* starts at 1 in the upper left corner and increases to the right.
+        *index* can also be a two-tuple specifying the (*first*, *last*) indices
+        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        makes a subplot that spans the upper 2/3 of the figure.
+        * A 3-digit integer. The digits are interpreted as if given separately as
+        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+        Note that this can only be used if there are no more than 9 subplots.
+
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
+        Figure size. If `_UNSET`, uses `config.figsize`.
+    **kwargs :
+        Additional keyword arguments passed to `plt.figure`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure instance.
+    ax : WCSAxes
+        `WCSAxes` instance.
+    """
+    figsize = _resolve_default(figsize, config.figsize)
+
+    fig = plt.figure(figsize=figsize, **kwargs)
+    wcs2d = get_wcs_celestial(wcs)
+    ax = fig.add_subplot(111, projection=wcs2d)
+
+    return fig, ax
+
 
 
 def gridspec(
