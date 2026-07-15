@@ -380,6 +380,7 @@ def add_ax3d(
 
 
 def wcsax(
+    *args : int | tuple[int, int, int],
     wcs: WCS | Header,
     figsize: tuple[float, float] | _Unset = _UNSET,
     **kwargs
@@ -418,7 +419,7 @@ def wcsax(
 
     fig = plt.figure(figsize=figsize, **kwargs)
     wcs2d = get_wcs_celestial(wcs)
-    ax = fig.add_subplot(111, projection=wcs2d)
+    ax = fig.add_subplot(*args, projection=wcs2d)
 
     return fig, ax
 
