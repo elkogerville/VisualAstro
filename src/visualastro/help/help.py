@@ -17,7 +17,6 @@ import warnings
 import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 from matplotlib.typing import ColorType
 import numpy as np
 
@@ -32,11 +31,10 @@ from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
 from visualastro.plotting.core.colormaps import get_cmap, plot_cmap_lightness
 from visualastro.plotting.core.colors import (
-    COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
     get_colors,
+    plot_colors,
     plot_colortable,
-    simulate_colorblindness,
 )
 from visualastro.plotting.core.style import _style_context
 from visualastro.plotting.core.utils import legend
@@ -45,10 +43,10 @@ from visualastro.plotting.core.utils import legend
 class help:
     @staticmethod
     def color(
-        color: str | ColorType | int | Sequence[ColorType] | None = None,
+        color: ColorType | int | Sequence[ColorType] | None = None,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
         severity: int = 100,
-        show_color_name: bool = False
+        show_color_name: bool = True
     ) -> None:
         """
         Display VisualAstro color colorsets with optional colorblindness simulation.
@@ -75,69 +73,12 @@ class help:
         Display the 'astro' colorset with all colorblindness simulations:
         >>> va.help.colors('astro', cvd_type='all')
         """
-        cvd_types = (
-            ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
-            else ([cvd_type] if cvd_type else [])
+        plot_colors(
+            color=color,
+            cvd_type=cvd_type,
+            severity=severity,
+            show_color_name=show_color_name
         )
-
-        if color is None:
-            with _style_context(config.style):
-                named_colors = COLORSET_NAMES + ['random']
-                n_rows = len(named_colors) * (1 + len(cvd_types))
-                fig, ax = plt.subplots(figsize=(8, n_rows * 0.3))
-                ax.axis('off')
-                row = 0
-
-                for color_name in named_colors:
-                    plot_colors = get_colors(color_name)
-
-                    # original
-                    for j, c in enumerate(plot_colors):
-                        ax.add_patch(Rectangle((j, -row), 1, 1, color=c, ec='black'))
-                    ax.text(-0.5, -row + 0.5, color_name, va='center', ha='right')
-                    row += 1
-
-                    # CVD simulations
-                    for cvd in cvd_types:
-                        cvd_colors = simulate_colorblindness(plot_colors, cvd, severity) # type: ignore
-                        for j, c in enumerate(cvd_colors):
-                            ax.add_patch(Rectangle((j, -row), 1, 1, color=c, ec='black'))
-                        ax.text(-0.5, -row + 0.5, f'{color_name} ({cvd})',
-                                va='center', ha='right', fontsize=9)
-                        row += 1
-
-                ax.set_xlim(-2, max(len(get_colors(c)) for c in named_colors))
-                ax.set_ylim(-n_rows, 1)
-                plt.tight_layout()
-                plt.show()
-        else:
-            colorset = get_colors(color)
-            n_rows = 1 + len(cvd_types)
-            fig, ax = plt.subplots(figsize=(8, n_rows + 0.5))
-            ax.axis('off')
-            row = 0
-
-            # original
-            for i, c in enumerate(colorset):
-                ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
-            if show_color_name:
-                ax.text(-0.5, -row + 0.5, color, va='center', ha='right') # type: ignore
-            row += 1
-
-            # CVD simulations
-            for cvd in cvd_types:
-                cvd_colors = simulate_colorblindness(colorset, cvd, severity) # type: ignore
-                for i, c in enumerate(cvd_colors):
-                    ax.add_patch(Rectangle((i, -row), 1, 1, color=c, ec='black'))
-                if show_color_name:
-                    ax.text(-0.5, -row + 0.5, f'{color} ({cvd})',
-                            va='center', ha='right', fontsize=9)
-                row += 1
-
-            ax.set_xlim(-2, len(colorset))
-            ax.set_ylim(-n_rows, 1)
-            plt.tight_layout()
-            plt.show()
 
 
     @staticmethod

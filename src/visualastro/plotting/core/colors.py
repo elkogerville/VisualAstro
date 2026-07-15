@@ -708,6 +708,89 @@ def _resolve_color_kwargs(
     return scatter_kwargs
 
 
+def plot_colors(
+    color: ColorType | int | Sequence[ColorType] | None = None,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
+    severity: int = 100,
+    show_color_name: bool = True
+) -> None:
+    """
+    Visualize one or multiple colorsets.
+
+    Parameters
+    ----------
+    color : ColorType | int | Sequence[ColorType] | None, optional, default=None
+        Plot each sequence of colors as a set of colored rectangle patches.
+        If `None`, plots each colorset in visualastro.
+    cvd_type : str | None, optional, default=None
+        Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
+        If `'all'`, simulates all cvd types.
+    severity : float, optional, default=100
+        Severity of colorblindness. Must be < 100.
+    show_color_name : bool, optional, default=True
+        If `True`, also plots the colorset name. Only applicable to visualastro
+        colorsets (as opposed to a sequence of colors).
+
+    Examples
+    --------
+    Display all default VisualAstro color colorsets:
+    >>> plot_colors()
+
+    Display the 'astro' colorset as perceived by protanomaly:
+    >>> plot_colors('astro', cvd_type='protanomaly')
+
+    Display the 'astro' colorset with all colorblindness simulations:
+    >>> plot_colors('astro', cvd_type='all')
+    """
+    cvd_types = (
+        ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
+        else ([cvd_type] if cvd_type else [])
+    )
+    if color is None:
+        color_names = COLORSET_NAMES + ['random']
+        colorsets = [get_colors(c) for c in color_names]
+    else:
+        colors = as_list(color)
+        if all(c in COLORSET_NAMES for c in colors):
+            color_names = colors
+            colorsets = [get_colors(c) for c in colors]
+        else:
+            colorsets = [get_colors(color)]
+            color_names = ['']*len(colorsets)
+
+    n_rows = len(colorsets) * (1 + len(cvd_types))
+    factor = 0.3 if n_rows > 10 else 1
+    fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
+    ax.axis('off')
+
+    row = 0
+    for i, colorset in enumerate(colorsets):
+        for j, c in enumerate(colorset):
+            ax.add_patch(mpatches.Rectangle((j, -row), 1, 1, color=c, ec='black'))
+
+        if show_color_name:
+            ax.text(-0.5, -row + 0.5, color_names[i], va='center', ha='right')
+        row += 1
+
+        # CVD simulations
+        for cvd in cvd_types:
+            cvd_colors = simulate_colorblindness(colorset, cvd, severity) # type: ignore
+            for j, c in enumerate(cvd_colors):
+                ax.add_patch(mpatches.Rectangle((j, -row), 1, 1, color=c, ec='black'))
+            ax.text(
+                -0.5, -row + 0.5,
+                f'{color_names[i]} ({cvd})',
+                va='center', ha='right',
+                fontsize=9
+            )
+            row += 1
+
+    ax.set_xlim(-0.1, max(len(get_colors(c)) for c in colorsets)+0.1)
+    ax.set_ylim(-n_rows, 1)
+
+    plt.show()
+
+
 def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
