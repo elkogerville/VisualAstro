@@ -71,6 +71,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
+    'crayola': ['#ED0A3F', '#FF8833', '#FBE870', '#01A368', '#0066FF', '#8359A3', '#AF593E', '#000000'],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
     'temple_os': ['#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'],
