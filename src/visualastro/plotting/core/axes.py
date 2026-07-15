@@ -423,7 +423,6 @@ def wcsax(
     return fig, ax
 
 
-
 def gridspec(
     nrows: int | _Unset = _UNSET,
     ncols: int | _Unset = _UNSET,
