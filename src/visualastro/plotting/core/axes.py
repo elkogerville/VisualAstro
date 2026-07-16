@@ -51,7 +51,7 @@ def get_ax(
     figsize: tuple[float, float] | _Unset = _UNSET
 ) -> maxes.Axes:
     """
-    Get either the current `Axes` or the instance passed in.
+    Get either the instance passed in or the current `Axes`.
 
     Parameters
     ----------
@@ -84,9 +84,9 @@ def get_ax3d(
     **kwargs
 ) -> Axes3D:
     """
-    Get either the current `Axes3d` or the instance passed in.
+    Get either the instance passed in or the current `Axes3d`.
 
-    If The current axis is an `Axes`, it is closed if no data
+    If the current axis is an `Axes`, its figure is closed if no data
     is found via `has_data()`.
 
     Parameters
@@ -128,9 +128,9 @@ def get_wcsax(
     **kwargs
 ) -> WCSAxes:
     """
-    Get either the current `WCSAxes` or the instance passed in.
+    Get either the instance passed in or the current `WCSAxes`.
 
-    If The current axis is an `Axes`, it is closed if no data
+    If the current axis is an `Axes`, its figure is closed if no data
     is found via `has_data()`.
 
     Parameters
@@ -144,6 +144,8 @@ def get_wcsax(
         WCS information required to create `ax` if no valid
         `WCSAxes` could be found. If `None`, will only raise
         a `ValueError` if a valid `ax` cannot be returned.
+        See docstring for ``get_wcs_celestial`` for full list
+        of acceptable types.
     figsize : tuple[float | float] | _Unset, optional, default=_UNSET
         Figsize if `ax` has to be created. If `_UNSET`, uses
         `config.figsize`.
@@ -170,11 +172,9 @@ def get_wcsax(
     if not current_ax.has_data():
         plt.close()
     if wcs is None:
-        raise ValueError(
-            f'Cannot create WCSAxes from header, got: {type(wcs).__name__}'
-        )
+        raise ValueError('No existing WCSAxes found and `wcs` is None.')
 
-    fig, ax = wcsax(wcs, figsize=figsize)
+    fig, ax = wcsax(wcs, figsize=figsize, **kwargs)
     return ax
 
 
@@ -402,6 +402,10 @@ def wcsax(
         * A 3-digit integer. The digits are interpreted as if given separately as
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
+    
+    wcs : WCS | Header
+        Object from which to extract WCS. See docstring for
+        ``get_wcs_celestial`` for full list of acceptable types.
 
     figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize`.
