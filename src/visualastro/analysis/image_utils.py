@@ -20,7 +20,6 @@ import numpy as np
 from numpy.typing import DTypeLike, NDArray
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from scipy.ndimage import convolve
-from spectral_cube import SpectralCube
 from tqdm import tqdm
 
 from visualastro.core.config import (
