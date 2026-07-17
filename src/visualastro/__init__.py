@@ -102,7 +102,6 @@ from visualastro.plotting.core.axes import (
     set_axis_limits,
     subplot,
     tripanel_figure,
-    wcsax,
 )
 from visualastro.plotting.core.colormaps import (
     create_cmap,

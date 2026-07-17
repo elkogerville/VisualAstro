@@ -9,10 +9,7 @@ Description:
 from collections.abc import Sequence
 from typing import Any, Literal
 
-from astropy.io.fits import Header
 import astropy.units as u
-from astropy.visualization.wcsaxes.core import WCSAxes
-from astropy.wcs import WCS
 import matplotlib.axes as maxes
 from matplotlib.figure import Figure, SubFigure
 import matplotlib.gridspec as _gridspec
@@ -43,7 +40,6 @@ from visualastro.core.units import (
     _infer_physical_type_label,
 )
 from visualastro.plotting.core.colors import as_color, get_colors
-from visualastro.utils.wcs_utils import get_wcs_celestial
 
 
 def get_ax(
@@ -118,63 +114,6 @@ def get_ax3d(
         plt.close()
 
     fig, ax = ax3d(figsize=figsize, **kwargs)
-    return ax
-
-
-def get_wcsax(
-    ax: WCSAxes | None,
-    wcs: WCS | Header | None = None,
-    figsize: tuple[float, float] | _Unset = _UNSET,
-    **kwargs
-) -> WCSAxes:
-    """
-    Get either the current `WCSAxes` or the instance passed in.
-
-    If The current axis is an `Axes`, it is closed if no data
-    is found via `has_data()`.
-
-    Parameters
-    ----------
-    ax : WCSAxes | None
-        Returns `ax` if is an `WCSAxes`. Otherwise returns
-        `plt.gca()` if the current axis is an `WCSAxis`.
-        If `plt.gca()` is an `Axes`, returns a new
-        `WCSAxes` instance.
-    wcs : WCS | Header | None, optional, default=None
-        WCS information required to create `ax` if no valid
-        `WCSAxes` could be found. If `None`, will only raise
-        a `ValueError` if a valid `ax` cannot be returned.
-    figsize : tuple[float | float] | _Unset, optional, default=_UNSET
-        Figsize if `ax` has to be created. If `_UNSET`, uses
-        `config.figsize`.
-    **kwargs :
-        Additional keyword arguments passed to `plt.figure` if
-        `WCSAxes` must be created.
-
-    Returns
-    -------
-    ax : WCSAxes
-
-    Raises
-    ------
-    ValueError :
-        If `wcs` does not have valid WCS and `ax` could not be found.
-    """
-    if isinstance(ax, WCSAxes):
-        return ax
-
-    current_ax = plt.gca()
-    if isinstance(current_ax, WCSAxes):
-        return current_ax
-
-    if not current_ax.has_data():
-        plt.close()
-    if wcs is None:
-        raise ValueError(
-            f'Cannot create WCSAxes from header, got: {type(wcs).__name__}'
-        )
-
-    fig, ax = wcsax(wcs, figsize=figsize)
     return ax
 
 
