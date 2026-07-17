@@ -12,13 +12,16 @@ from typing import Any, Literal, TypeVar, overload
 from astropy import units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from spectral_cube import SpectralCube
 
 from visualastro.core.config import (
     config,
     _Unset,
     _UNSET,
     _resolve_default
+)
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE
 )
 
 
@@ -119,7 +122,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
     if isinstance(obj, u.Quantity):
         return obj if keep_unit else np.asarray(obj.value)
 
-    elif isinstance(obj, SpectralCube):
+    elif _HAS_SPECTRAL_CUBE and isinstance(obj, SpectralCube):
         q = obj.filled_data[:]
         if not isinstance(q, u.Quantity):
             q = u.Quantity(np.asarray(q), unit=obj.unit)
