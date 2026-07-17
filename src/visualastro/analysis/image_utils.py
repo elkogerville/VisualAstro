@@ -31,7 +31,7 @@ from visualastro.core.numerical_utils import get_data, get_value
 from visualastro.core.optional_deps import (
     SpectralCube,
     _HAS_SPECTRAL_CUBE,
-    _require_spectral_cube
+    _require_dependency
 )
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
@@ -394,7 +394,7 @@ def load_spectral_cube(
         Ex:
         data = cube.data
     """
-    _require_spectral_cube()
+    _require_dependency('spectral-cube')
     print_info = get_config_value(print_info, 'print_info')
 
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
