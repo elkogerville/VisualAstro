@@ -28,6 +28,11 @@ from visualastro.core.config import (
 )
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data, get_value
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+    _require_spectral_cube
+)
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -389,9 +394,9 @@ def load_spectral_cube(
         Ex:
         data = cube.data
     """
+    _require_spectral_cube()
     print_info = get_config_value(print_info, 'print_info')
 
-    # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects
     error_array = None
@@ -474,7 +479,7 @@ def stack_cube(
         else:
             raise TypeError(f'idx must be int, list, or None; got {type(idx).__name__}')
 
-    if isinstance(cube, SpectralCube):
+    if _HAS_SPECTRAL_CUBE and isinstance(cube, SpectralCube):
         stack_func = getattr(cube, stack_method)
         return stack_func(axis=axis)
 
