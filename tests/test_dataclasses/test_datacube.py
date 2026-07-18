@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-14
-Date Modified: 2026-03-29
+Date Modified: 2026-07-17
 Description:
     Tests for DataCube datastructure.
 Dependencies:
@@ -18,7 +18,8 @@ from numpy.typing import NDArray
 
 from tests.conftest import generate_test_cube
 from visualastro.core.optional_deps import (
-    SpectralCube, _HAS_SPECTRAL_CUBE
+    SpectralCube, 
+    _HAS_SPECTRAL_CUBE
 )
 from visualastro.datamodels.datacube import DataCube
 
