@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-08
-Date Modified: 2026-04-08
+Date Modified: 2026-07-17
 Description:
     Spectra plot utility functions.
 """
