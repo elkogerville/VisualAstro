@@ -51,12 +51,12 @@ def get_wcs(obj: Any) -> WCS | None:
     associated with the input object. The extraction proceeds in the
     following order:
 
-    - If the object is already a ``WCS`` instance, it is returned directly.
-    - If the object is a FITS ``Header``, a ``WCS`` is constructed from it.
-    - If the object has a ``.wcs`` attribute, that attribute is recursively
-      inspected until a ``WCS`` or ``Header`` is found.
-    - If the object has a ``.data`` attribute, that attribute is recursively
-      inspected until a ``WCS`` or ``Header`` is found.
+    - If the object is already a `WCS` instance, it is returned directly.
+    - If the object is a FITS `Header`, a `WCS` is constructed from it.
+    - If the object has a `.wcs` attribute, that attribute is recursively
+      inspected until a `WCS` or `Header` is found.
+      - If the object has a `.data` attribute, that attribute is recursively
+      inspected until a `WCS` or `Header` is found.
     - Otherwise, None is returned.
 
     Parameters
@@ -65,8 +65,8 @@ def get_wcs(obj: Any) -> WCS | None:
         The input object from which to extract a WCS. This can be:
         - an astropy.wcs.WCS instance
         - an astropy.io.fits.Header
-        - any object with a ``.wcs`` attribute
-        - any object with a ``.data`` attribute
+        - any object with a `.wcs` attribute
+        - any object with a `.data` attribute
         - any other object (returns None)
 
     Returns
@@ -77,8 +77,8 @@ def get_wcs(obj: Any) -> WCS | None:
 
     Notes
     -----
-    This function follows attribute references recursively via ``.wcs`` and
-    ``.data`` to support nested container objects such as NDData, SpectralCube,
+    This function follows attribute references recursively via `.wcs` and
+    `.data` to support nested container objects such as NDData, SpectralCube,
     or custom data structures.
     """
     if isinstance(obj, WCS):
@@ -118,7 +118,7 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
     Extract the celestial WCS from an object, if it exists.
 
     This function retrieves the World Coordinate System (WCS) associated
-    with the input object using ``get_wcs`` and returns its celestial
+    with the input object using `get_wcs` and returns its celestial
     component. The celestial WCS contains only the sky-coordinate axes
     (e.g., right ascension and declination), excluding spectral, temporal,
     or other non-celestial axes.
@@ -129,8 +129,8 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
         The input object from which to extract a celestial WCS. This can be:
         - an astropy.wcs.WCS instance
         - an astropy.io.fits.Header
-        - any object with a ``.wcs`` attribute
-        - any object with a ``.data`` attribute
+        - any object with a `.wcs` attribute
+        - any object with a `.data` attribute
         - any nested combination of the above
 
     Returns
@@ -165,10 +165,10 @@ def get_header_wcs(header: Header | Sequence[Header]) -> WCS | list[WCS] | None:
     Returns
     -------
     WCS, list of WCS, or None
-        - Single ``WCS`` if ``header`` is a ``Header`` and wcs extraction succeeds.
-        - List of ``WCS`` if ``header`` is a sequence and *all* headers yield
+        - Single `WCS` if `header` is a `Header` and wcs extraction succeeds.
+        - List of `WCS` if `header` is a sequence and *all* headers yield
             valid WCS objects.
-        - None if ``header`` is a single ``Header`` and WCS extraction fails,
+        - None if `header` is a single `Header` and WCS extraction fails,
             or if a sequence is provided and *no* headers yield valid WCS.
 
     Raises
@@ -739,7 +739,7 @@ def _update_header_from_wcs(header, wcs):
     The WCS is converted to a Header, then each key-value
     pair is iterated over to update the original header.
     This should only update WCS related keys. It is ideal
-    to call ``_strip_wcs_from_header`` before calling this function,
+    to call `_strip_wcs_from_header` before calling this function,
     to avoid stale WCS keywords.
 
     Parameters
