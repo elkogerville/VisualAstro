@@ -50,23 +50,24 @@ def get_wcs(obj: Any) -> WCS | None:
     associated with the input object. The extraction proceeds in the
     following order:
 
-    - If the object is already a `WCS` instance, it is returned directly.
-    - If the object is a FITS `Header`, a `WCS` is constructed from it.
-    - If the object has a `.wcs` attribute, that attribute is recursively
+    * If the object is already a `WCS` instance, it is returned directly.
+    * If the object is a FITS `Header`, a `WCS` is constructed from it.
+    * If the object has a `.wcs` attribute, that attribute is recursively
       inspected until a `WCS` or `Header` is found.
-      - If the object has a `.data` attribute, that attribute is recursively
+    * If the object has a `.data` attribute, that attribute is recursively
       inspected until a `WCS` or `Header` is found.
-    - Otherwise, None is returned.
+    * Otherwise, None is returned.
 
     Parameters
     ----------
     obj : object
         The input object from which to extract a WCS. This can be:
-        - an astropy.wcs.WCS instance
-        - an astropy.io.fits.Header
-        - any object with a `.wcs` attribute
-        - any object with a `.data` attribute
-        - any other object (returns None)
+        
+        * an astropy.wcs.WCS instance
+        * an astropy.io.fits.Header
+        * any object with a `.wcs` attribute
+        * any object with a `.data` attribute
+        * any other object (returns None)
 
     Returns
     -------
@@ -126,11 +127,12 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
     ----------
     obj : object
         The input object from which to extract a celestial WCS. This can be:
-        - an astropy.wcs.WCS instance
-        - an astropy.io.fits.Header
-        - any object with a `.wcs` attribute
-        - any object with a `.data` attribute
-        - any nested combination of the above
+        
+        * an astropy.wcs.WCS instance
+        * an astropy.io.fits.Header
+        * any object with a `.wcs` attribute
+        * any object with a `.data` attribute
+        * any nested combination of the above
 
     Returns
     -------
@@ -164,11 +166,12 @@ def get_header_wcs(header: Header | Sequence[Header]) -> WCS | list[WCS] | None:
     Returns
     -------
     WCS, list of WCS, or None
-        - Single `WCS` if `header` is a `Header` and wcs extraction succeeds.
-        - List of `WCS` if `header` is a sequence and *all* headers yield
-            valid WCS objects.
-        - None if `header` is a single `Header` and WCS extraction fails,
-            or if a sequence is provided and *no* headers yield valid WCS.
+    
+        * Single `WCS` if `header` is a `Header` and wcs extraction succeeds.
+        * List of `WCS` if `header` is a sequence and *all* headers yield
+          valid WCS objects.
+        * None if `header` is a single `Header` and WCS extraction fails,
+          or if a sequence is provided and *no* headers yield valid WCS.
 
     Raises
     ------
@@ -230,23 +233,29 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     size : Quantity, float, int, or tuple
         Size of the cutout. Interpreted as pixels if unitless.
         Ex:
-            - 6 * u.arcsec
-            - (6*u.deg, 4*u.deg)
-            - (7, 8)
+        
+            * 6 * u.arcsec
+            * (6*u.deg, 4*u.deg)
+            * (7, 8)
+            
     position : tuple, Quantity tuple, or SkyCoord, optional, default=None
         The center of the cutout region. Accepted formats are:
-        - `(x, y)` : pixel coordinates (integers or floats)
-        - `(ra, dec)` : sky coordinates as `~astropy.units.Quantity` in angular units
-        - `~astropy.coordinates.SkyCoord` : directly specify a coordinate object
-        - If None, defaults to the center of the image.
+        
+        * `(x, y)` : pixel coordinates (integers or floats)
+        * `(ra, dec)` : sky coordinates as `~astropy.units.Quantity` in angular units
+        * `~astropy.coordinates.SkyCoord` : directly specify a coordinate object
+        * If None, defaults to the center of the image.
+        
     wcs : astropy.wcs.WCS
         WCS corresponding to `data`. If `data` has an attribute
         `.wcs`, it will be used automatically.
     mode : {'trim', 'partial', 'strict'}, default='trim'
         Defines how the function handles edges that fall outside the image:
-        - 'trim': Trim the cutout to fit within the image bounds.
-        - 'partial': Include all pixels that overlap the image, padded with NaNs.
-        - 'strict': Raise an error if any part of the cutout is outside the image.
+        
+        * 'trim': Trim the cutout to fit within the image bounds.
+        * 'partial': Include all pixels that overlap the image, padded with NaNs.
+        * 'strict': Raise an error if any part of the cutout is outside the image.
+        
     frame : str, default='icrs'
         Coordinate frame for interpreting RA/Dec values when creating the `SkyCoord`.
     origin_idx : int, default=0
@@ -268,8 +277,8 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 
     Notes
     -----
-    - If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,
-        the method will automatically attempt to correct for inverted RA/Dec axes.
+    If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,
+    the method will automatically attempt to correct for inverted RA/Dec axes.
 
     """
     if isinstance(wcs, WCS):
@@ -362,21 +371,29 @@ def reproject_wcs(
     input_data_list : tuple or list of tuple
         A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
         Note:
-            - [np.ndarray, WCS/Header] is not allowed!
+        
+            * [np.ndarray, WCS/Header] is not allowed!
               Ensure they follow the format:
-                - [(np.ndarray, WCS/Header), ...]
+              
+                * [(np.ndarray, WCS/Header), ...]
+                
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
         Input WCS → Reference WCS
-            - 2D → 2D: Direct reprojection
-            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
-            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
-            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+        
+            * 2D → 2D: Direct reprojection
+            * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)
+            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves 
+              spectral axis)
+            * 3D → 3D: Direct reprojection (spectral axes must be compatible)
+            
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
-            - 'interp' : use `reproject_interp`
-            - 'exact' : use `reproject_exact`
+        
+            * 'interp' : use `reproject_interp`
+            * 'exact' : use `reproject_exact`
+            
         If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
@@ -534,20 +551,27 @@ def _reproject_wcs(
     input_data : tuple
         A `(np.ndarray | Quantity, WCS)` or `(np.ndarray, Header)` tuple
         Note:
-            - [np.ndarray | Quantity, WCS/Header] is not allowed!
-            Ensure they are all tuples.
+        
+            * [np.ndarray | Quantity, WCS/Header] is not allowed!
+              Ensure they are all tuples.
+              
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
         Input WCS → Reference WCS
-            - 2D → 2D: Direct reprojection
-            - 2D → 3D: Uses celestial WCS from 3D target (ignores spectral)
-            - 3D → 2D: Reprojects each spectral slice onto 2D target (preserves spectral axis)
-            - 3D → 3D: Direct reprojection (spectral axes must be compatible)
+        
+            * 2D → 2D: Direct reprojection
+            * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)
+            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves 
+              spectral axis)
+            * 3D → 3D: Direct reprojection (spectral axes must be compatible)
+            
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
-            - 'interp' : use `reproject_interp`
-            - 'exact' : use `reproject_exact`
+        
+            * 'interp' : use `reproject_interp`
+            * 'exact' : use `reproject_exact`
+            
         If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
