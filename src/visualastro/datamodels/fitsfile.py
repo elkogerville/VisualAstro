@@ -1,7 +1,7 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-07-18
 Description:
     FitsFile data structure for 2D Fits data.
 """
@@ -34,9 +34,9 @@ from visualastro.utils.fits_utils import (
 )
 from visualastro.utils.wcs_utils import (
     get_header_wcs,
+    strip_wcs_from_header,
+    update_header_from_wcs
     _is_valid_wcs_slice,
-    _strip_wcs_from_header,
-    _update_header_from_wcs
 )
 
 
@@ -214,10 +214,10 @@ class FitsFile:
                     'wcs must be a WCS instance! '
                     f'got: {type(wcs).__name__}'
                 )
-            _update_header_from_wcs(header, wcs)
+            update_header_from_wcs(header, wcs)
 
         # extract non WCS info from header
-        nowcs_header = _strip_wcs_from_header(header)
+        nowcs_header = strip_wcs_from_header(header)
         assert isinstance(nowcs_header, Header)
         _remove_history(nowcs_header)
 
@@ -526,7 +526,7 @@ class FitsFile:
             if self.wcs is not None:
                 try:
                     new_wcs = self.wcs[key]
-                    _update_header_from_wcs(new_hdr, new_wcs)
+                    update_header_from_wcs(new_hdr, new_wcs)
 
                 except (AttributeError, TypeError, ValueError) as e:
                     new_wcs = None

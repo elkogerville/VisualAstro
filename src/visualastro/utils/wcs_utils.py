@@ -1,7 +1,7 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-12-06
-Date Modified: 2026-03-11
+Date Modified: 2026-07-18
 Description:
     WCS utility functions.
 """
@@ -28,12 +28,7 @@ from visualastro.core.config import (
     _UNSET
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    strip_wcs_from_header,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
-)
+from visualastro.core.optional_deps import SpectralCube, _HAS_SPECTRAL_CUBE
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
 
@@ -397,8 +392,8 @@ def reproject_wcs(
         block sizes are clamped to output space edges when a block would extend
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
-        not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_UNSET`, uses `config.reproject_block_size`.
+        not specified or set to None, the reprojection will not be carried out
+        in blocks. If `_UNSET`, uses `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -454,6 +449,68 @@ def reproject_wcs(
     return (reprojected_data, footprints) if return_footprint else reprojected_data
 
 
+def strip_wcs_from_header(
+    header: Header | list[Header] | tuple[Header]
+) -> Header | list[Header]:
+    """
+    Strip all WCS information from a Header.
+
+    Calls `_strip_wcs_from_header`, which is adapted from
+    the spectral-cube package.
+
+    Parameters
+    ----------
+    header : Header or array-like of Headers
+        Header(s) to strip WCS related entries from.
+
+    Returns
+    -------
+    nowcs_header : Header or array-like of Headers
+        Header(s) with no WCS information.
+    """
+    if isinstance(header, (list, tuple)):
+        return [_strip_wcs_from_header(h) for h in header]
+
+    if not isinstance(header, Header):
+        raise TypeError(
+            'header must be an astropy.io.fits.Header or sequence thereof'
+        )
+
+    return _strip_wcs_from_header(header)
+
+
+def update_header_from_wcs(header, wcs):
+    """
+    Update Header key-value pairs in place using a WCS object.
+
+    The WCS is converted to a Header, then each key-value
+    pair is iterated over to update the original header.
+    This should only update WCS related keys. It is ideal
+    to call `strip_wcs_from_header` before calling this function,
+    to avoid stale WCS keywords.
+
+    Parameters
+    ----------
+    header : Header
+        Astropy Header object to update.
+    wcs : WCS
+        WCS object to update header with.
+    """
+    if not isinstance(header, Header):
+        raise ValueError(
+            'header must be a Fits Header!'
+        )
+    if isinstance(wcs, WCS):
+        wcs_header = wcs.to_header()
+    else:
+        raise ValueError(
+            'wcs must be a WCS object!'
+        )
+
+    for key in wcs_header:
+        header[key] = wcs_header[key]
+
+
 def _reproject_wcs(
     input_data: tuple[NDArray | Quantity, WCS | Header],
     reference_wcs: WCS | Header,
@@ -474,7 +531,8 @@ def _reproject_wcs(
     input_data : tuple
         A `(np.ndarray | Quantity, WCS)` or `(np.ndarray, Header)` tuple
         Note:
-            - [np.ndarray | Quantity, WCS/Header] is not allowed! Ensure they are all tuples.
+            - [np.ndarray | Quantity, WCS/Header] is not allowed!
+            Ensure they are all tuples.
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
@@ -505,8 +563,8 @@ def _reproject_wcs(
         block sizes are clamped to output space edges when a block would extend
         past edge. Specifying 'auto' means that reprojection will be done in
         blocks with the block size automatically determined. If `block_size` is
-        not specified or set to None, the reprojection will not be carried out in blocks.
-        If `_UNSET`, uses `config.reproject_block_size`.
+        not specified or set to None, the reprojection will not be carried out
+        in blocks. If `_UNSET`, uses `config.reproject_block_size`.
     log_file : fits.Header or None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
@@ -580,7 +638,8 @@ def _reproject_wcs(
         footprint = np.stack(footprints_slice, axis=0)
         if log_file is not None:
             _log_history(
-                log_file, 'Reprojection mode: 3D data -> 2D reference (slice-by-slice)'
+                log_file,
+                'Reprojection mode: 3D data -> 2D reference (slice-by-slice)'
             )
 
     # single reprojection
@@ -687,7 +746,8 @@ def _normalize_reproject_input(
         wcs = wcs_or_header
     else:
         raise TypeError(
-            f'WCS must be a Header or WCS object, got {type(wcs_or_header).__name__}'
+            'WCS must be a Header or WCS object, '
+            f'got {type(wcs_or_header).__name__}'
         )
 
     if _HAS_SPECTRAL_CUBE and isinstance(data, SpectralCube):
@@ -706,61 +766,98 @@ def _normalize_reproject_input(
     return (value, wcs), unit_cast
 
 
-def _strip_wcs_from_header(
-    header: Header | list[Header] | tuple[Header]
-) -> Header | list[Header]:
+# ----------------------------------------------------------------------------
+# The following function is adapted from spectral-cube:
+# https://github.com/radio-astro-tools/spectral-cube
+#
+# Copyright (c) 2014, spectral-cube developers
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# ----------------------------------------------------------------------------
+
+def _strip_wcs_from_header(header: Header) -> Header:
     """
-    Strip all WCS information from a Header.
+    Given a header with WCS information,
+    remove ALL WCS information from that header.
 
-    Uses `spectral_cube.wcs_utils.strip_wcs_from_header` under the hood.
+    This function is adapted from spectral-cube:
+    https://github.com/radio-astro-tools/spectral-cube.
+    See notes above for full license.
 
-    Parameters
-    ----------
-    header : Header or array-like of Headers
-        Header(s) to strip WCS related entries from.
-
-    Returns
-    -------
-    nowcs_header : Header or array-like of Headers
-        Header(s) with no WCS information.
-    """
-    _require_dependency('spectral-cube')
-    if isinstance(header, (list, tuple)):
-        return [strip_wcs_from_header(h) for h in header]
-
-    if not isinstance(header, Header):
-        raise TypeError('header must be an astropy.io.fits.Header or sequence thereof')
-
-    return strip_wcs_from_header(header)
-
-
-def _update_header_from_wcs(header, wcs):
-    """
-    Update Header key-value pairs in place using a WCS object.
-
-    The WCS is converted to a Header, then each key-value
-    pair is iterated over to update the original header.
-    This should only update WCS related keys. It is ideal
-    to call `_strip_wcs_from_header` before calling this function,
-    to avoid stale WCS keywords.
+    Copyright (c) 2014, spectral-cube developers. All rights reserved.
 
     Parameters
     ----------
     header : Header
-        Astropy Header object to update.
-    wcs : WCS
-        WCS object to update header with.
-    """
-    if not isinstance(header, Header):
-        raise ValueError(
-            'header must be a Fits Header!'
-        )
-    if isinstance(wcs, WCS):
-        wcs_header = wcs.to_header()
-    else:
-        raise ValueError(
-            'wcs must be a WCS object!'
-        )
+        Header to strip WCS from.
 
-    for key in wcs_header:
-        header[key] = wcs_header[key]
+    Returns
+    -------
+    newheader : Header
+        Header without WCS.
+    """
+    hwcs = WCS(header)
+    wcsh = hwcs.to_header()
+
+    keys_to_keep = [
+        k for k in header if (k and k not in wcsh and 'NAXIS' not in k)
+    ]
+
+    newheader = header.copy()
+
+    # Strip blanks first. They appear to cause serious problems,
+    # like not deleting things they should!
+    if '' in newheader:
+        del newheader['']
+
+    for kw in list(newheader.keys()):
+        if kw not in keys_to_keep:
+            del newheader[kw]
+
+    for kw in (
+        'CRPIX{ii}',
+        'CRVAL{ii}',
+        'CDELT{ii}',
+        'CUNIT{ii}',
+        'CTYPE{ii}',
+        'PC0{ii}_0{jj}',
+        'CD{ii}_{jj}',
+        'CROTA{ii}',
+        'PC{ii}_{jj}',
+        'PC{ii:03d}{jj:03d}',
+        'PV0{ii}_0{jj}',
+        'PV{ii}_{jj}'
+    ):
+        for ii in range(5):
+            for jj in range(5):
+                k = kw.format(ii=ii,jj=jj)
+                if k in newheader.keys():
+                    del newheader[k]
+
+    return newheader

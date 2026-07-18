@@ -5,4 +5,4 @@ dist/
 *.egg-info/
 *.pyc
 src/visualastro/dev/
-*/.ipynb_checkpoints/
+**/.ipynb_checkpoints/

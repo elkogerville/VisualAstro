@@ -1,7 +1,7 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-03-29
+Date Modified: 2026-07-18
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
@@ -52,10 +52,10 @@ from visualastro.utils.fits_utils import (
 )
 from visualastro.utils.wcs_utils import (
     get_header_wcs,
+    strip_wcs_from_header,
+    update_header_from_wcs
     _is_valid_wcs_slice,
     _reproject_wcs,
-    _strip_wcs_from_header,
-    _update_header_from_wcs
 )
 
 
@@ -218,7 +218,7 @@ class DataCube:
 
         nowcs_header = primary_hdr.copy()
         if wcs is not None:
-            _strip_wcs_from_header(nowcs_header)
+            strip_wcs_from_header(nowcs_header)
         _remove_history(nowcs_header)
 
         # assign attributes
@@ -385,7 +385,7 @@ class DataCube:
                 _log_history(primary_hdr, 'Extracted WCS from header(s)')
             return wcs
 
-        header = _strip_wcs_from_header(header)
+        header = strip_wcs_from_header(header)
 
         if isinstance(header, list):
             if not isinstance(wcs, list):
@@ -398,14 +398,14 @@ class DataCube:
                     f'WCS list length ({len(wcs)})'
                 )
             for hdr, w in zip(header, wcs):
-                _update_header_from_wcs(hdr, w)
+                update_header_from_wcs(hdr, w)
         else:
             # single header case
             if isinstance(wcs, list):
                 raise ValueError(
                     'If wcs is a list, header must also be a list'
                 )
-            _update_header_from_wcs(header, wcs)
+            update_header_from_wcs(header, wcs)
 
         return wcs
 
@@ -908,13 +908,13 @@ class DataCube:
             # timeseries cube
             new_wcs: list[WCS] = []
             for hdr in new_header:
-                _update_header_from_wcs(hdr, ref_wcs)
+                update_header_from_wcs(hdr, ref_wcs)
                 new_wcs.append(WCS(hdr))
                 _log_history(new_header, 'Assigned 2D reference WCS to all slices')
         else:
             # non-timeseries cube
             if reference_wcs.naxis == new_data.ndim:
-                _update_header_from_wcs(new_header, reference_wcs)
+                update_header_from_wcs(new_header, reference_wcs)
                 _log_history(new_header, 'Updated all WCS keys in header')
                 new_wcs = WCS(new_header)
             else:
@@ -1500,7 +1500,7 @@ class DataCube:
         else:
             try:
                 new_wcs = self.wcs[key]
-                _update_header_from_wcs(new_hdr, new_wcs)
+                update_header_from_wcs(new_hdr, new_wcs)
 
             except (AttributeError, TypeError, ValueError) as e:
                 new_wcs = None
