@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-29
-Date Modified: 2026-07-10
+Date Modified: 2026-07-17
 Description:
     Tests for numerical utils module.
 """
