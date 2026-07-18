@@ -14,6 +14,8 @@ Description:
     recognize the dependency.
 """
 
+from textwrap import dedent
+
 try:
     from spectral_cube import SpectralCube
     from spectral_cube.lower_dimensional_structures import Slice
@@ -22,20 +24,21 @@ try:
 except ImportError:
     SpectralCube = None
     Slice = None
+    strip_wcs_from_header = None
     _HAS_SPECTRAL_CUBE = False
 
 
 _OPTIONAL_DEPS = {
     'spectral-cube': {
         'flag': _HAS_SPECTRAL_CUBE,
-        'msg': """
+        'msg': dedent("""\
             spectral-cube is required for this function.
             Install via:
                 CONDA :
                     $ conda install conda-forge::spectral-cube
                 PIP :
                     $ pip install spectral-cube
-        """
+        """)
     }
 }
 
