@@ -137,7 +137,7 @@ def get_wcsax(
     ----------
     ax : WCSAxes | None
         Returns `ax` if `ax` is a `WCSAxes`. Otherwise returns
-        `plt.gca()` if the current axis is an `WCSAxis`.
+        `plt.gca()` if the current axis is an `WCSAxes`.
         If `plt.gca()` is an `Axes`, returns a new
         `WCSAxes` instance.
     wcs : WCS | Header | None, optional, default=None
