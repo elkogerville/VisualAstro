@@ -35,7 +35,7 @@ from visualastro.utils.fits_utils import (
 from visualastro.utils.wcs_utils import (
     get_header_wcs,
     strip_wcs_from_header,
-    update_header_from_wcs
+    update_header_from_wcs,
     _is_valid_wcs_slice,
 )
 
