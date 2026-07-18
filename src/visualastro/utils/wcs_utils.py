@@ -32,6 +32,7 @@ from visualastro.core.optional_deps import (
     SpectralCube,
     strip_wcs_from_header,
     _HAS_SPECTRAL_CUBE,
+    _require_dependency
 )
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
@@ -723,6 +724,7 @@ def _strip_wcs_from_header(
     nowcs_header : Header or array-like of Headers
         Header(s) with no WCS information.
     """
+    _require_dependency('spectral-cube')
     if isinstance(header, (list, tuple)):
         return [strip_wcs_from_header(h) for h in header]
 
