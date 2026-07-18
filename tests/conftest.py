@@ -1,14 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-15
-Date Modified: 2026-05-11
+Date Modified: 2026-07-18
 Description:
     Fixtures for visualastro tests.
-Dependencies:
-    - astropy
-    - numpy
-    - pytest
-    - spectral_cube
 """
 
 from astropy.io import fits
