@@ -18,8 +18,6 @@ from matplotlib.colors import Colormap
 from matplotlib.image import AxesImage
 import numpy as np
 from numpy.typing import NDArray
-from spectral_cube import SpectralCube
-from spectral_cube.lower_dimensional_structures import Slice
 
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
@@ -34,6 +32,11 @@ from visualastro.core.numerical_utils import (
     get_value,
     to_list,
     _cycle,
+)
+from visualastro.core.optional_deps import (
+    Slice,
+    SpectralCube,
+    _require_dependency
 )
 from visualastro.core.units import ensure_common_unit
 from visualastro.datamodels.datacube import DataCube
@@ -446,6 +449,7 @@ def plot_spectral_cube(
     - If multiple cubes are provided, they are overplotted in sequence
     on the wcs of `cubes[config.reference_idx]`.
     """
+    _require_dependency('spectral-cube')
     params = _resolve_kwargs(
         kwargs,
         params=[

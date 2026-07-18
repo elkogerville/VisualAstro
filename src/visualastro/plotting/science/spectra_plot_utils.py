@@ -14,7 +14,6 @@ import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 from matplotlib.typing import ColorType
-from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 
 from visualastro.analysis.spectra_utils import (
@@ -30,6 +29,7 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.numerical_utils import get_value, _cycle
+from visualastro.core.optional_deps import SpectralCube
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,

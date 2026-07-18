@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.optimize import curve_fit
-from spectral_cube import SpectralCube
 from specutils import SpectralAxis
 from specutils.spectra import Spectrum
 from tqdm import tqdm
@@ -55,6 +54,7 @@ from visualastro.core.numerical_utils import (
     _cycle,
     _unwrap_if_single
 )
+from visualastro.core.optional_deps import SpectralCube
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,

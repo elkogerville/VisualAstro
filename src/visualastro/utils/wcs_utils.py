@@ -20,7 +20,6 @@ from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
 from reproject import reproject_interp, reproject_exact
-from spectral_cube import SpectralCube
 from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
 
@@ -30,6 +29,10 @@ from visualastro.core.config import (
     _UNSET
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+)
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
 
@@ -686,7 +689,7 @@ def _normalize_reproject_input(
             f'WCS must be a Header or WCS object, got {type(wcs_or_header).__name__}'
         )
 
-    if isinstance(data, SpectralCube):
+    if _HAS_SPECTRAL_CUBE and isinstance(data, SpectralCube):
         value = data.filled_data[:].value
         unit  = data.unit
     else:
