@@ -28,7 +28,10 @@ from visualastro.core.config import (
     _UNSET
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
-from visualastro.core.optional_deps import SpectralCube, _HAS_SPECTRAL_CUBE
+from visualastro.core.optional_deps import (
+    SpectralCube, 
+    _HAS_SPECTRAL_CUBE
+)
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
 
