@@ -16,9 +16,11 @@ Description:
 
 try:
     from spectral_cube import SpectralCube
+    from spectral_cube.lower_dimensional_structures import Slice
     _HAS_SPECTRAL_CUBE = True
 except ImportError:
     SpectralCube = None
+    Slice = None
     _HAS_SPECTRAL_CUBE = False
 
 

@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
-from spectral_cube import SpectralCube
 from specutils import SpectralRegion, Spectrum
 from tqdm import tqdm
 
@@ -25,6 +24,11 @@ from visualastro.core.config import (
     config, get_config_value, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.kwargs import _pop_kwargs
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+    _require_dependency
+)
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
@@ -308,7 +312,7 @@ class DataCube:
         if header is None:
             if isinstance(wcs, list):
                 header = [Header() for _ in wcs]
-            elif isinstance(data, SpectralCube):
+            elif _HAS_SPECTRAL_CUBE and isinstance(data, SpectralCube):
                 header = data.header
             if not isinstance(header, (Header, list)):
                 header = Header()
@@ -356,7 +360,8 @@ class DataCube:
             _update_header_key('BUNIT', unit, header, primary_hdr)
 
         # attatch units to data if is bare numpy array
-        if not isinstance(data, (Quantity, SpectralCube)):
+        _valid_types = (Quantity, SpectralCube) if _HAS_SPECTRAL_CUBE else (Quantity,)
+        if not isinstance(data, _valid_types):
             if unit is not None:
                 data = data * unit
                 _log_history(primary_hdr, f'Attached unit to data: unit={unit}')
@@ -438,7 +443,7 @@ class DataCube:
             Spectral axis of the data or None if data
             is not a `spectral_cube`.
         """
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
             return self.data.spectral_axis
         return None
 
@@ -460,7 +465,7 @@ class DataCube:
         UnitBase or None:
             Astropy.Unit of the spectral axis or None if not found.
         """
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
             return self.data.spectral_axis.unit
         return None
 
@@ -935,7 +940,7 @@ class DataCube:
             if get_unit(new_error) is None:
                 new_error *= self.unit
 
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
             if isinstance(new_header, list):
                 raise RuntimeError(
                     'SpectralCube reprojection resulted in per-slice headers; '
@@ -991,6 +996,7 @@ class DataCube:
         --------
         spectral_world_2_idx : Inverse operation, maps spectral value to index.
         """
+        _require_dependency('spectral-cube')
         from visualastro.analysis.spectra_utils import (
             spectral_idx_2_world as _spectral_idx_2_world
         )
@@ -1022,6 +1028,7 @@ class DataCube:
         ValueError :
             If `data` attribute is not a `SpectralCube`.
         """
+        _require_dependency('spectral-cube')
         from visualastro.analysis.spectra_utils import (
             spectral_world_2_idx as _spectral_world_2_idx
         )
@@ -1064,16 +1071,20 @@ class DataCube:
         ----------
         region : SpectralRegion, region input, or None
             Spectral region(s) to use for continuum fitting. Can be:
-            - SpectralRegion object
-            - (low, high) * unit for single region
-            - [(low, high), ...] * unit for multiple regions
-            - [(low * unit, high * unit), ...] for single or multiple regions
-            - None (uses the entire spectral_axis range)
+
+            * SpectralRegion object
+            * (low, high) * unit for single region
+            * [(low, high), ...] * unit for multiple regions
+            * [(low * unit, high * unit), ...] for single or multiple regions
+            * None (uses the entire spectral_axis range)
+
             Regions outside emission/absorption features are typically chosen.
         fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
             Method used for fitting the continuum.
-            - 'fit_continuum': uses `fit_continuum` with a specified window
-            - 'generic' : uses `fit_generic_continuum`
+
+            * 'fit_continuum': uses `fit_continuum` with a specified window
+            * 'generic' : uses `fit_generic_continuum`
+
             If None, uses `config.spectrum_continuum_fit_method`.
         min_valid_pixels : int or 'auto', optional, default='auto'
             Minimum valid flux data points needed in order to attempt a continuum fit.
@@ -1115,6 +1126,7 @@ class DataCube:
         >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
         >>> cube_sub = datacube.subtract_continuum(region)
         """
+        _require_dependency('spectral-cube')
         from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
 
         fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
@@ -1264,7 +1276,8 @@ class DataCube:
         unit = Unit(unit)
 
         # check that data has a unit
-        if not isinstance(self.data, (Quantity, SpectralCube)):
+        _valid_types = (Quantity, SpectralCube) if _HAS_SPECTRAL_CUBE else (Quantity,)
+        if not isinstance(self.data, _valid_types):
             raise TypeError(
                 'DataCube.data has no unit. Cannot use .to() '
                 'unless data is an astropy Quantity.\n'
@@ -1347,7 +1360,7 @@ class DataCube:
                 )
 
         # case 1: mask SpectralCube
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
             new_data = self.data.with_mask(mask)
         # case 2: mask ndarray or Quantity
         elif isinstance(self.data, (np.ndarray, Quantity)):
@@ -1377,7 +1390,8 @@ class DataCube:
 
     def with_spectral_unit(self, unit, velocity_convention=None, rest_value=None):
         """
-        Convert the spectral axis of the DataCube to a new unit.
+        Convert the spectral axis of the DataCube to a new unit. `self.data`
+        must be a `SpectralCube`.
 
         Parameters
         ----------
@@ -1394,6 +1408,7 @@ class DataCube:
         DataCube
             New cube with converted spectral axis.
         """
+        _require_dependency('spectral-cube')
         if not isinstance(self.data, SpectralCube):
             raise TypeError(
                 'with_spectral_unit() can only be used when DataCube.data '
@@ -1554,7 +1569,7 @@ class DataCube:
         value :
             np.ndarray
         """
-        if isinstance(data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(data, SpectralCube):
             array = data.filled_data[:].value
             unit = to_unit(data.unit)
         elif isinstance(data, Quantity):
@@ -1604,7 +1619,7 @@ class DataCube:
 
         # evaluate SpectralCubes with lazy methods
         # ex: self.data.min()
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
             method = getattr(self.data, func)
             return method()
 
@@ -1621,7 +1636,7 @@ class DataCube:
         -------
         str : String representation of DataCube.
         """
-        if isinstance(self.data, SpectralCube):
+        if _HAS_SPECTRAL_CUBE and isinstance(self.data, SpectralCube):
 
             flux_unit = self.unit
             ns, ny, nx = self.shape
