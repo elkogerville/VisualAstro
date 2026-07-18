@@ -15,9 +15,11 @@ import astropy.units as u
 from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
-from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_cube
+from visualastro.core.optional_deps import (
+    SpectralCube, _HAS_SPECTRAL_CUBE
+)
 from visualastro.datamodels.datacube import DataCube
 
 
