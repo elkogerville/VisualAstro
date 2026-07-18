@@ -17,6 +17,7 @@ Description:
 try:
     from spectral_cube import SpectralCube
     from spectral_cube.lower_dimensional_structures import Slice
+    from spectral_cube.wcs_utils import strip_wcs_from_header
     _HAS_SPECTRAL_CUBE = True
 except ImportError:
     SpectralCube = None

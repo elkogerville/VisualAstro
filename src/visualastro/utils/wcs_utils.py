@@ -20,7 +20,6 @@ from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
 from reproject import reproject_interp, reproject_exact
-from spectral_cube.wcs_utils import strip_wcs_from_header
 from tqdm import tqdm
 
 from visualastro.core.config import (
@@ -31,6 +30,7 @@ from visualastro.core.config import (
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
 from visualastro.core.optional_deps import (
     SpectralCube,
+    strip_wcs_from_header,
     _HAS_SPECTRAL_CUBE,
 )
 from visualastro.core.units import get_unit
