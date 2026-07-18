@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-03-11
+Date Modified: 2026-07-17
 Description:
     Plotting functions for 2D and 3D astronomical images.
 """
