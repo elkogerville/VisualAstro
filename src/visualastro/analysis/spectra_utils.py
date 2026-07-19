@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-07-17
 Description:
     Spectra utility functions.
 """
@@ -17,7 +17,6 @@ from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from spectral_cube import SpectralCube
 from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
@@ -31,6 +30,7 @@ from visualastro.core.numerical_utils import (
     to_list,
     _unwrap_if_single
 )
+from visualastro.core.optional_deps import SpectralCube
 from visualastro.core.units import (
     ensure_common_unit,
     get_spectral_unit,

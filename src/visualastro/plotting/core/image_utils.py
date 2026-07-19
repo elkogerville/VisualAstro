@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-07
-Date Modified: 2026-06-07
+Date Modified: 2026-07-17
 Description:
     Image utility functions for plotting.
 """
@@ -12,23 +12,26 @@ from importlib.resources import files
 import astropy.units as u
 from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib.axes as maxes
-from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
+from matplotlib.colors import (
+    AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
+)
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.spatial.distance import cdist
-from spectral_cube import SpectralCube
 
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.core.config import (
-    get_config_value,
     config,
     _resolve_default,
     _Unset,
     _UNSET,
 )
-from visualastro.core.numerical_utils import get_data, get_value, to_array
+from visualastro.core.numerical_utils import (
+    get_data, get_value, to_array
+)
+from visualastro.core.optional_deps import SpectralCube
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 

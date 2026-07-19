@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-07-17
 Description:
     Utility functions for image manipulations.
 """
@@ -20,7 +20,6 @@ import numpy as np
 from numpy.typing import DTypeLike, NDArray
 from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from scipy.ndimage import convolve
-from spectral_cube import SpectralCube
 from tqdm import tqdm
 
 from visualastro.core.config import (
@@ -28,6 +27,11 @@ from visualastro.core.config import (
 )
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data, get_value
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+    _require_dependency
+)
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -389,9 +393,9 @@ def load_spectral_cube(
         Ex:
         data = cube.data
     """
+    _require_dependency('spectral-cube')
     print_info = get_config_value(print_info, 'print_info')
 
-    # load SpectralCube from filepath
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects
     error_array = None
@@ -474,7 +478,7 @@ def stack_cube(
         else:
             raise TypeError(f'idx must be int, list, or None; got {type(idx).__name__}')
 
-    if isinstance(cube, SpectralCube):
+    if _HAS_SPECTRAL_CUBE and isinstance(cube, SpectralCube):
         stack_func = getattr(cube, stack_method)
         return stack_func(axis=axis)
 

@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-29
-Date Modified: 2026-07-10
+Date Modified: 2026-07-17
 Description:
     Tests for numerical utils module.
 """
@@ -9,7 +9,6 @@ Description:
 import astropy.units as u
 import numpy as np
 import pytest
-from spectral_cube import SpectralCube
 
 from tests.conftest import generate_test_cube
 from visualastro.core.numerical import interpolate
@@ -20,6 +19,11 @@ from visualastro.core.numerical_utils import (
     _extract_xyz,
     _extract_xyz_from_ndarray,
     _unwrap_if_single
+)
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+    _require_dependency
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -442,40 +446,34 @@ class TestExtractXYZ:
 class TestNumericalUtils:
 
     def test_to_array_keep_unit(self, generate_test_cube):
-        """Test that to array returns either array or Quantity."""
+        """Test that to_array returns either array or Quantity, for non-cube inputs."""
         a = np.random.rand(10)
         b = np.random.rand(10, 10, 10) * u.erg
-        hdu = generate_test_cube
-        c = SpectralCube.read(hdu)
         d = DataCube(data=b)
         e = FitsFile(data=b)
 
         A = to_array(a)
         AA = to_array(a, keep_unit=False)
         B = to_array(b, keep_unit=False)
-        C = to_array(c, keep_unit=False)
         D = to_array(d, keep_unit=False)
         E = to_array(e, keep_unit=False)
 
-        assert isinstance(A, np.ndarray)
-        assert isinstance(AA, np.ndarray)
-        assert isinstance(B, np.ndarray)
-        assert isinstance(C, np.ndarray)
-        assert isinstance(D, np.ndarray)
-        assert isinstance(E, np.ndarray)
-
-        assert not isinstance(A, u.Quantity)
-        assert not isinstance(AA, u.Quantity)
-        assert not isinstance(B, u.Quantity)
-        assert not isinstance(C, u.Quantity)
-        assert not isinstance(D, u.Quantity)
-        assert not isinstance(E, u.Quantity)
+        for result in (A, AA, B, D, E):
+            assert isinstance(result, np.ndarray)
+            assert not isinstance(result, u.Quantity)
 
         assert not isinstance(to_array(a, keep_unit=True), u.Quantity)
         assert isinstance(to_array(b, keep_unit=True), u.Quantity)
-        assert isinstance(to_array(c, keep_unit=True), u.Quantity)
         assert isinstance(to_array(d, keep_unit=True), u.Quantity)
         assert isinstance(to_array(e, keep_unit=True), u.Quantity)
+
+    def test_to_array_keep_unit_spectral_cube(self, generate_test_spectralcube):
+        """Test that to_array handles SpectralCube input."""
+        c = generate_test_spectralcube
+        C = to_array(c, keep_unit=False)
+        assert isinstance(C, np.ndarray)
+        assert not isinstance(C, u.Quantity)
+        assert isinstance(to_array(c, keep_unit=True), u.Quantity)
 
     def test_to_list(self):
         """Test that inputs are converted to a list"""

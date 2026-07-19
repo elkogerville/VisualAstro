@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-10
-Date Modified: 2026-07-10
+Date Modified: 2026-07-17
 Description:
     Tests for image utils plotting module.
 """
@@ -11,9 +11,13 @@ from astropy.visualization import ImageNormalize
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import numpy as np
 import pytest
-from spectral_cube import SpectralCube
 
 from visualastro.core.numerical_utils import get_value
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+    _require_dependency
+)
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
@@ -77,18 +81,20 @@ class TestVminVmax:
                 cube, percentile=None, vmin=None, vmax=None
             )
 
-    def test_get_vmin_vmax(self, generate_test_spectralcube):
-        """Tests for get_vmin_vmax"""
+    def test_get_vmin_vmax_spectralcube(self, generate_test_spectralcube):
+        """Tests for get_vmin_vmax with SpectralCube input."""
         cube = generate_test_spectralcube
         datacube = DataCube(data=cube)
+        assert isinstance(cube, SpectralCube)
+        assert isinstance(datacube, DataCube)
+        self._validate_vmin_vmax(cube)
+        self._validate_vmin_vmax(datacube)
+
+    def test_get_vmin_vmax_boolean(self, generate_test_spectralcube):
+        """Tests for get_vmin_vmax with boolean array inputs."""
         boolarray = np.zeros((10, 10), dtype=bool)
         array = np.random.rand(10, 10)
 
-        assert isinstance(cube, SpectralCube)
-        assert isinstance(datacube, DataCube)
-
-        self._validate_vmin_vmax(cube)
-        self._validate_vmin_vmax(datacube)
         self._validate_vmin_vmax(array)
         self._validate_vmin_vmax(array * u.um)
         self._validate_vmin_vmax(FitsFile(array * u.um))

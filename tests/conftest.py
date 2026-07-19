@@ -1,14 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-15
-Date Modified: 2026-05-11
+Date Modified: 2026-07-18
 Description:
     Fixtures for visualastro tests.
-Dependencies:
-    - astropy
-    - numpy
-    - pytest
-    - spectral_cube
 """
 
 from astropy.io import fits
@@ -16,8 +11,11 @@ import astropy.units as u
 from astropy.wcs import WCS
 import numpy as np
 import pytest
-from spectral_cube import SpectralCube
 
+from visualastro.core.optional_deps import (
+    SpectralCube,
+    _HAS_SPECTRAL_CUBE,
+)
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 
@@ -53,7 +51,6 @@ def generate_test_cube() -> fits.PrimaryHDU:
     assert isinstance(data, np.ndarray)
     assert isinstance(header, fits.Header)
     assert isinstance(hdu, fits.PrimaryHDU)
-
     return hdu
 
 
@@ -83,18 +80,18 @@ def generate_test_image() -> fits.PrimaryHDU:
     assert isinstance(data, np.ndarray)
     assert isinstance(header, fits.Header)
     assert isinstance(hdu, fits.PrimaryHDU)
-
     return hdu
 
 
 @pytest.fixture
 def generate_test_spectralcube(generate_test_cube) -> SpectralCube:
     """Generate test SpectralCube"""
+    if not _HAS_SPECTRAL_CUBE:
+        pytest.skip('spectral-cube not installed')
+
     hdu = generate_test_cube
     cube = SpectralCube.read(hdu)
-
     assert isinstance(cube, SpectralCube)
-
     return cube
 
 
@@ -108,7 +105,6 @@ def generate_test_datacube(generate_test_cube) -> DataCube:
     cube = DataCube(data=data, header=header)
 
     assert isinstance(cube, DataCube)
-
     return cube
 
 
@@ -123,5 +119,4 @@ def generate_test_fitsfile(generate_test_image) -> FitsFile:
     fitsfile = FitsFile(data=data, header=header)
 
     assert isinstance(fitsfile, FitsFile)
-
     return fitsfile
