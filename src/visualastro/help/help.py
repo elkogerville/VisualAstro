@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-06-14
+Date Modified: 2026-07-19
 Description:
     VisualAstro help documentation class.
 """
@@ -54,10 +54,10 @@ class help:
         Parameters
         ----------
         color : str | ColorType | int | Sequence[ColorType] | None, optional, default=None
-            Name of a specific color scheme to display. If `None`,
-            all visualastro colorsets are shown.
+            Name of a specific VisualAstro colorset to display. If `None`,
+            all VisualAstro colorsets are shown.
         cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
-            Simulate colorblindness. If `'all'`, displays all three types.
+            Simulate colorblindness. If `'all'`, all three types are simulated.
             If `None`, no simulation is applied.
         severity : int
             Severity level (0-100). 100 = complete colorblindness.
@@ -88,7 +88,7 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot matplotlib named colors."""
+        """Plot Matplotlib named colors."""
         plot_colortable(
             colors='named_colors',
             ncols=ncols,
@@ -104,7 +104,7 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot visualastro named colors."""
+        """Plot VisualAstro named colors."""
         plot_colortable(
             colors=VISUALASTRO_NAMED_COLORS,
             ncols=ncols,
@@ -122,8 +122,8 @@ class help:
     ) -> None:
         """Plot xkcd named colors."""
         msg = (
-            'All colors displayed here are recognizable by matplotlib under the name space '
-            "'xkcd:colorname'. \nVisualastro will also recognize the colors if 'xkcd:' is dropped."
+            'All colors displayed here are recognizable by Matplotlib under the name space '
+            "'xkcd:colorname'. \nVisualAstro will also recognize the colors if 'xkcd:' is dropped."
         )
         print(msg)
         plot_colortable(
@@ -141,7 +141,7 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot matplotlib base named colors."""
+        """Plot Matplotlib base named colors."""
         plot_colortable(
             colors='base',
             ncols=ncols,
@@ -157,7 +157,7 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot matplotlib tableau colors."""
+        """Plot Matplotlib tableau colors."""
         plot_colortable(
             colors='tableau',
             ncols=ncols,
@@ -249,7 +249,7 @@ class help:
     @staticmethod
     def style(style_name: str | None = None) -> None:
         """
-        Display example plots for one or more available matplotlib style sheets.
+        Display example plots for one or more available Matplotlib style sheets.
 
         This method is primarily intended for previewing and comparing the
         visual appearance of built-in style sheets such as `'astro'`,
@@ -259,13 +259,13 @@ class help:
         ----------
         style_name : str or None, optional
             Name of a specific style to preview. If `None` (default),
-            all predefined styles visualastro style are shown sequentially.
+            all predefined VisualAstro styles are shown sequentially.
 
         Examples
         --------
-        Display all visualastro plotting styles:
+        Display all VisualAstro plotting styles:
         >>> va.help.styles()
-        Display a matplotlib or visualastro plotting style:
+        Display a Matplotlib or VisualAstro plotting style:
         >>> va.help.styles('classic')
         """
 
@@ -278,7 +278,7 @@ class help:
         colors = get_colors(len(style_names), cmap=config.cmap)
         ecs = get_colors('astro')
         print(
-            'Here are sample plot made with the available visualastro plot styles. '
+            'Here are sample plots made with the available VisualAstro plot styles. '
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
