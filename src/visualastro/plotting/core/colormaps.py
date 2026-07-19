@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-04
-Date Modified: 2026-07-04
+Date Modified: 2026-07-19
 Description:
     Functions related to colormaps in plotting.
     To define custom colormaps, define them at
