@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-01
+Date Modified: 2026-07-19
 Description:
     Functions related to colors in plotting.
 """
