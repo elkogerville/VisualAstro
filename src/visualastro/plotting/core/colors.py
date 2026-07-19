@@ -71,7 +71,18 @@ COLORSETS: dict[str, list[ColorType]] = {
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
-    'crayola': ['#ED0A3F', '#FF8833', '#FBE870', '#01A368', '#0066FF', '#8359A3', '#AF593E', '#000000'],
+    'crayons': [
+        '#ED0A3F', '#FF8833', '#FBE870', '#01A368',
+        '#0066FF', '#8359A3', '#AF593E', '#000000'
+    ],
+    'crayons_neon_seq': [
+        '#00B9FB', '#00ECBD', '#66FF66', '#CCFF00', '#FFCC33',
+        '#FF9966', '#FD5B78', '#FF1DCE', '#FF6EFF'
+    ],
+    'crayons_neon': [
+        '#00B9FB', '#CCFF00' , '#FF6EFF', '#66FF66', '#FF9966',
+        '#00ECBD', '#FF1DCE', '#FFCC33', '#FD5B78'
+    ],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
     'temple_os': ['#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'],
@@ -87,6 +98,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
+    'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
     'evenaworm': ['#008b8b', '#98fb98', '#ff81c0', '#ceaefa', '#d81b60'],
     'ocean_seq': ['#253494', '#2c7fb8', '#41b6c4', '#a1dab4', '#ffffcc'],
     'forest_seq': ['#006837', '#31a354', '#78c679', '#c2e699', '#ffffcc'],
@@ -140,6 +152,14 @@ class Color:
     ibmblu: ColorType = '#648FFF'
     ibmylw: ColorType = '#FFB000'
     ibmorg: ColorType = '#FE6100'
+    laser_lemon: ColorType = '#E6FF66'
+    electric_lime: ColorType = '#CCFF00'
+    battery_charged_blue: ColorType = '#00B9FB'
+    shocking_pink: ColorType = '#FF6EFF'
+    hot_magenta: ColorType = '#FF1DCE'
+    wild_watermelon: ColorType = '#FD5B78'
+    atomic_tangerine: ColorType = '#FF9966'
+    sunglow: ColorType = '#FFCC33'
 
     @classmethod
     def all(cls) -> list[ColorType]:

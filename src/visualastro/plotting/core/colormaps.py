@@ -261,5 +261,9 @@ VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
         ['#6CA838', '#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#7E8140', '#575931'],
         name='shrek'
     ),
+    'crayons_neon': create_cmap(
+        ['#FF1DCE', '#CCFF00', '#00B9FB'],
+        name='crayons_neon'
+    ),
 }
 CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
