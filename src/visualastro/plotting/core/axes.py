@@ -9,7 +9,10 @@ Description:
 from collections.abc import Sequence
 from typing import Any, Literal
 
+from astropy.io.fits import Header
 import astropy.units as u
+from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.wcs import WCS
 import matplotlib.axes as maxes
 from matplotlib.figure import Figure, SubFigure
 import matplotlib.gridspec as _gridspec
@@ -40,6 +43,7 @@ from visualastro.core.units import (
     _infer_physical_type_label,
 )
 from visualastro.plotting.core.colors import as_color, get_colors
+from visualastro.utils.wcs_utils import get_wcs_celestial
 
 
 def get_ax(
@@ -47,7 +51,7 @@ def get_ax(
     figsize: tuple[float, float] | _Unset = _UNSET
 ) -> maxes.Axes:
     """
-    Get either the current `Axes` or the instance passed in.
+    Get either the instance passed in or the current `Axes`.
 
     Parameters
     ----------
@@ -80,9 +84,9 @@ def get_ax3d(
     **kwargs
 ) -> Axes3D:
     """
-    Get either the current `Axes3d` or the instance passed in.
+    Get either the instance passed in or the current `Axes3d`.
 
-    If The current axis is an `Axes`, it is closed if no data
+    If the current axis is an `Axes`, its figure is closed if no data
     is found via `has_data()`.
 
     Parameters
@@ -117,6 +121,63 @@ def get_ax3d(
     return ax
 
 
+def get_wcsax(
+    ax: WCSAxes | None,
+    wcs: WCS | Header | None = None,
+    figsize: tuple[float, float] | _Unset = _UNSET,
+    **kwargs
+) -> WCSAxes:
+    """
+    Get either the instance passed in or the current `WCSAxes`.
+
+    If the current axis is an `Axes`, its figure is closed if no data
+    is found via `has_data()`.
+
+    Parameters
+    ----------
+    ax : WCSAxes | None
+        Returns `ax` if `ax` is a `WCSAxes`. Otherwise returns
+        `plt.gca()` if the current axis is an `WCSAxes`.
+        If `plt.gca()` is an `Axes`, returns a new
+        `WCSAxes` instance.
+    wcs : WCS | Header | None, optional, default=None
+        WCS information required to create `ax` if no valid
+        `WCSAxes` could be found. If `None`, will only raise
+        a `ValueError` if a valid `ax` cannot be returned.
+        See docstring for ``get_wcs_celestial`` for full list
+        of acceptable types.
+    figsize : tuple[float | float] | _Unset, optional, default=_UNSET
+        Figsize if `ax` has to be created. If `_UNSET`, uses
+        `config.figsize`.
+    **kwargs :
+        Additional keyword arguments passed to `plt.figure` if
+        `WCSAxes` must be created.
+
+    Returns
+    -------
+    ax : WCSAxes
+
+    Raises
+    ------
+    ValueError :
+        If `wcs` does not have valid WCS and `ax` could not be found.
+    """
+    if isinstance(ax, WCSAxes):
+        return ax
+
+    current_ax = plt.gca()
+    if isinstance(current_ax, WCSAxes):
+        return current_ax
+
+    if not current_ax.has_data():
+        plt.close()
+    if wcs is None:
+        raise ValueError('No existing WCSAxes found and `wcs` is None.')
+
+    fig, ax = wcsax(wcs, figsize=figsize, **kwargs)
+    return ax
+
+
 def subplot(
     *args : int | tuple[int, int, int],
     figsize : tuple[float, float] | _Unset = _UNSET,
@@ -141,7 +202,7 @@ def subplot(
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
 
-    figsize : tuple[float, float]
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize`.
     projection : str | None, optional, default=None
         The projection type of the subplot. Can be one of the accepted values:
@@ -252,7 +313,7 @@ def ax3d(
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
 
-    figsize : tuple[float, float]
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize3D`.
     **kwargs :
         Additional keyword arguments passed to `plt.figure`.
@@ -316,6 +377,55 @@ def add_ax3d(
     ax = fig.add_subplot(*args, projection='3d', **kwargs)
 
     return ax
+
+
+def wcsax(
+    *args : int | tuple[int, int, int],
+    wcs: WCS | Header,
+    figsize: tuple[float, float] | _Unset = _UNSET,
+    **kwargs
+) -> tuple[Figure, WCSAxes]:
+    """
+    Create a `WCSAxes` plot instance.
+
+    Parameters
+    ----------
+    *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
+        The position of the subplot described by one of:
+
+        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+        take the *index* position on a grid with *nrows* rows and *ncols* columns.
+        *index* starts at 1 in the upper left corner and increases to the right.
+        *index* can also be a two-tuple specifying the (*first*, *last*) indices
+        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        makes a subplot that spans the upper 2/3 of the figure.
+        * A 3-digit integer. The digits are interpreted as if given separately as
+        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+        Note that this can only be used if there are no more than 9 subplots.
+    
+    wcs : WCS | Header
+        Object from which to extract WCS. See docstring for
+        ``get_wcs_celestial`` for full list of acceptable types.
+
+    figsize : tuple[float, float] | _Unset, optional, default=_UNSET
+        Figure size. If `_UNSET`, uses `config.figsize`.
+    **kwargs :
+        Additional keyword arguments passed to `plt.figure`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure instance.
+    ax : WCSAxes
+        `WCSAxes` instance.
+    """
+    figsize = _resolve_default(figsize, config.figsize)
+
+    fig = plt.figure(figsize=figsize, **kwargs)
+    wcs2d = get_wcs_celestial(wcs)
+    ax = fig.add_subplot(*args, projection=wcs2d)
+
+    return fig, ax
 
 
 def gridspec(
