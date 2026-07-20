@@ -149,13 +149,13 @@ VISUALASTRO_NAMED_COLORS = {
     'ibmblu': '#648FFF',
     'ibmylw': '#FFB000',
     'ibmorg': '#FE6100',
-    'laser_lemon': '#E6FF66',
-    'electric_lime': '#CCFF00',
-    'battery_charged_blue': '#00B9FB',
-    'shocking_pink': '#FF6EFF',
-    'hot_magenta': '#FF1DCE',
-    'wild_watermelon': '#FD5B78',
-    'atomic_tangerine': '#FF9966',
+    'laser lemon': '#E6FF66',
+    'electric lime': '#CCFF00',
+    'battery charged blue': '#00B9FB',
+    'shocking pink': '#FF6EFF',
+    'hot magenta': '#FF1DCE',
+    'wild watermelon': '#FD5B78',
+    'atomic tangerine': '#FF9966',
     'sunglow': '#FFCC33',
 }
 
@@ -322,7 +322,7 @@ def sample_cmap(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
 ) -> list[str | RGBTuple | RGBATuple]:
     """
-    Sample N distinct colors from a given matplotlib colormap
+    Sample N distinct colors from a given Matplotlib colormap
     returned as a list of colors in a specified format.
 
     Parameters
@@ -330,7 +330,7 @@ def sample_cmap(
     N : int
         Number of colors to sample.
     cmap : str | Colormap | _Unset, optional, default=_UNSET
-        Name of the matplotlib colormap or Colormap object. If
+        Name of the Matplotlib colormap or `Colormap` object. If
         `_UNSET` uses `config.cmap`.
     cmap_range : tuple[float, float], optional, default=(0,1)
         The normalized value range in the colormap from which colors
@@ -365,7 +365,7 @@ def simulate_colorblindness(
     Parameters
     ----------
     colors : ColorType | list[ColorType]
-        Color or list of colors recognized by matplotlib.
+        Color or list of colors recognized by Matplotlib.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}, optional, default='deuteranomaly'
         Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
     severity : int, optional, default=100
@@ -415,7 +415,7 @@ def as_color(
     | list[str | RGBTuple | RGBATuple]
 ):
     """
-    Convert a matplotlib `ColorType` or a `list[ColorType]` into
+    Convert a Matplotlib `ColorType` or a `list[ColorType]` into
     one of the following formats: `'hex'`, `'rgb'`, or `'rgba'`.
 
     Parameters
@@ -445,7 +445,7 @@ def _convert_color(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 )-> str | tuple[float, float, float] | tuple[float, float, float, float]:
     """
-    Convert a matplotlib `ColorType` into one of the following
+    Convert a Matplotlib `ColorType` into one of the following
     formats: `'hex`'', `'rgb'`, or `'rgba'`.
     """
     return getattr(mcolors, f'to_{fmt}')(c)
@@ -1002,21 +1002,22 @@ def plot_colortable(
     severity: int = 100
 ) -> None:
     """
-    Adapted from matplotlib gallery example:
+    Adapted from Matplotlib gallery example:
     https://matplotlib.org/stable/gallery/color/named_colors.html
 
     Copyright (c) 2012-2023 Matplotlib Development Team
     Licensed under the Matplotlib License (BSD-compatible)
     https://matplotlib.org/stable/users/project/license.html
 
-    Plot all the named colors in matplotlib!
+    Plot all the named colors in Matplotlib!
 
     Parameters
     ----------
     colors : dict[str, ColorType] | str | None, optional, default=None
         Dictionary containing colors to plot. If str, should be one
-        of the following: `'named_colors'`, `'xkcd'`, `'base'`, or
-        `'tableau'`. If `None`, plots `mcolors.CSS4_COLORS`.
+        of the following: `'named_colors'`, `'mpl_colors'`, `'xkcd'`,
+        `'visualastro'`, `'base'`, or `'tableau'`. If `None`, plots
+        `mcolors.CSS4_COLORS`.
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
@@ -1024,7 +1025,9 @@ def plot_colortable(
     """
     if isinstance(colors, str) or colors is None:
         colors = str(colors).lower() if isinstance(colors, str) else None
-        if colors == 'named_colors' or colors == 'css4' or colors is None:
+        if colors == 'named_colors' or colors is None:
+            colors = mcolors.CSS4_COLORS | VISUALASTRO_NAMED_COLORS
+        elif colors == 'mpl_colors' or colors == 'matplotlib_colors' or colors == 'css4':
             colors = mcolors.CSS4_COLORS
         elif colors == 'xkcd' or colors == 'xkcd_colors':
             colors = mcolors.XKCD_COLORS
@@ -1034,10 +1037,12 @@ def plot_colortable(
             colors = mcolors.TABLEAU_COLORS
         elif colors == 'visualastro' or colors == 'va':
             colors = VISUALASTRO_NAMED_COLORS
+        elif colors == 'all_colors' or colors == 'all':
+            colors = mcolors.CSS4_COLORS | mcolors.XKCD_COLORS | mcolors.BASE_COLORS | mcolors.TABLEAU_COLORS | VISUALASTRO_NAMED_COLORS
         else:
             raise ValueError(
-                "colors must be either 'named_colors', 'xkcd', 'base', or 'tableau'! "
-                f'got {colors}'
+                "colors must be 'named_colors', 'mpl_colors', 'xkcd', 'visualastro', "
+                f"'base', 'tableau', or 'all_colors' ! f'got {colors}'"
             )
 
     cell_width = 212
@@ -1122,7 +1127,7 @@ def _has_color_mapping(mappable: ScalarMappable) -> bool:
 
 def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
     """
-    Resolve a matplotlib normalization object for scatter color mapping.
+    Resolve a Matplotlib normalization object for scatter color mapping.
 
     Parameters
     ----------

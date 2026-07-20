@@ -88,9 +88,25 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot Matplotlib named colors."""
+        """Plot all VisualAstro and Matplotlib named colors together."""
         plot_colortable(
             colors='named_colors',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def mpl_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot Matplotlib named colors."""
+        plot_colortable(
+            colors='mpl_colors',
             ncols=ncols,
             sort_colors=sort_colors,
             cvd_type=cvd_type,
@@ -160,6 +176,25 @@ class help:
         """Plot Matplotlib tableau colors."""
         plot_colortable(
             colors='tableau',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def all_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """
+        Plot all named colors recognized by VisualAstro. Includes all named colors from
+        Matplotlib (including base and tableau colors), xkcd, and VisualAstro.
+        """
+        plot_colortable(
+            colors='all',
             ncols=ncols,
             sort_colors=sort_colors,
             cvd_type=cvd_type,
