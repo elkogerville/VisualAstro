@@ -131,7 +131,7 @@ COLORSETS['va'] = COLORSETS['visualastro']
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
-VISUALASTRO_NAMED_COLORS = {
+VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'dsb': 'darkslateblue',
     'msb': 'mediumslateblue',
     'sb': 'slateblue',
