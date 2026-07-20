@@ -85,7 +85,9 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
-    'temple_os': ['#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'],
+    'temple_os': [
+        '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
+    ],
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
         '#00FFFF', '#FF00FF', '#FFFF00'
@@ -109,14 +111,26 @@ COLORSETS: dict[str, list[ColorType]] = {
     'pastel5': ['#7fc97f', '#beaed4', '#fdc086', '#ffff99', '#386cb0'],
     'high_vis': ['#0d49fb', '#e6091c', '#26eb47', '#8936df', '#fec32d', '#25d7fd'],
     'retro': ['#4165c0', '#e770a2', '#5ac3be', '#696969', '#f79a1e', '#ba7dcd'],
-    'bright': [mcolors.to_hex(c) for c in tc.bright],
-    'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
-    'muted': [mcolors.to_hex(c) for c in tc.muted],
-    'light': [mcolors.to_hex(c) for c in tc.light],
-    'dark': [mcolors.to_hex(c) for c in tc.dark],
-    'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast[1:]],
-    'high_contrast': [mcolors.to_hex(c) for c in tc.high_contrast],
-    'land_cover': [mcolors.to_hex(c) for c in tc.land_cover],
+    'bright': ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'],
+    'vibrant': ['#ee7733', '#0077bb', '#33bbee', '#ee3377', '#cc3311', '#009988', '#bbbbbb'],
+    'muted': [
+        '#cc6677', '#332288', '#ddcc77', '#117733', '#88ccee',
+        '#882255', '#44aa99', '#999933', '#aa4499', '#dddddd'
+    ],
+    'light': [
+        '#77aadd', '#ee8866', '#eedd88', '#ffaabb', '#99ddff',
+        '#44bb99', '#bbcc33', '#aaaa00', '#dddddd'
+    ],
+    'dark': ['#222255', '#663333', '#225522', '#666633', '#225555', '#555555'],
+    'medium_contrast': [
+        '#6699cc', '#004488', '#eecc66', '#997700', '#ee99aa', '#994455', '#000000'
+    ],
+    'high_contrast': ['#000000', '#004488', '#bb5566', '#ddaa33', '#ffffff'],
+    'land_cover': [
+        '#5566aa', '#117733', '#668822', '#44aa66', '#99bb55',
+        '#55aa22', '#558877', '#88bbaa', '#ddcc66', '#ffdd44',
+        '#aaddcc', '#44aa88', '#ffee88', '#bb0011'
+    ],
     'okabe_ito': [
         '#E69F00', '#56B4E9', '#009E73', '#F0E442',
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
