@@ -1034,8 +1034,8 @@ def plot_colortable(
     colors : dict[str, ColorType] | str | None, optional, default=None
         Dictionary containing colors to plot. If str, should be one
         of the following: `'named_colors'`, `'mpl_colors'`, `'xkcd'`,
-        `'visualastro'`, `'base'`, or `'tableau'`. If `None`, plots
-        `mcolors.CSS4_COLORS`.
+        `'visualastro'`, `'base'`, `'tableau'`, or `'all'`. If `None`,
+        plots `'named_colors'`.
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
@@ -1047,16 +1047,22 @@ def plot_colortable(
             colors = mcolors.CSS4_COLORS | VISUALASTRO_NAMED_COLORS
         elif colors == 'mpl_colors' or colors == 'matplotlib_colors' or colors == 'css4':
             colors = mcolors.CSS4_COLORS
+        elif colors == 'visualastro' or colors == 'va':
+            colors = VISUALASTRO_NAMED_COLORS
         elif colors == 'xkcd' or colors == 'xkcd_colors':
             colors = mcolors.XKCD_COLORS
         elif colors == 'base' or colors == 'base_colors':
             colors = mcolors.BASE_COLORS
         elif colors == 'tableau' or colors == 'tableau_colors':
             colors = mcolors.TABLEAU_COLORS
-        elif colors == 'visualastro' or colors == 'va':
-            colors = VISUALASTRO_NAMED_COLORS
         elif colors == 'all_colors' or colors == 'all':
-            colors = mcolors.CSS4_COLORS | mcolors.XKCD_COLORS | mcolors.BASE_COLORS | mcolors.TABLEAU_COLORS | VISUALASTRO_NAMED_COLORS
+            colors = (
+                mcolors.CSS4_COLORS |
+                mcolors.XKCD_COLORS |
+                mcolors.BASE_COLORS |
+                mcolors.TABLEAU_COLORS |
+                VISUALASTRO_NAMED_COLORS
+            )
         else:
             raise ValueError(
                 "colors must be 'named_colors', 'mpl_colors', 'xkcd', 'visualastro', "
