@@ -131,65 +131,33 @@ COLORSETS['va'] = COLORSETS['visualastro']
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
-# VISUALASTRO COLOR ALIASES
-# -------------------------
-@dataclass(frozen=True)
-class Color:
-    dsb: ColorType = 'darkslateblue'
-    msb: ColorType = 'mediumslateblue'
-    sb: ColorType = 'slateblue'
-    mvr: ColorType = 'mediumvioletred'
-    pvr: ColorType = 'palevioletred'
-    violetred: ColorType = '#D81B60'
-    mam: ColorType = 'mediumaquamarine'
-    msg: ColorType = 'mediumseagreen'
-    jade: ColorType = '#26DCBA'
-    nebula: ColorType = '#9FB7FF'
-    unicorn: ColorType = '#DBB0FF'
-    pondwater: ColorType = '#CFE23C'
-    ibmpur: ColorType = '#785EF0'
-    ibmpnk: ColorType = '#DC267F'
-    ibmblu: ColorType = '#648FFF'
-    ibmylw: ColorType = '#FFB000'
-    ibmorg: ColorType = '#FE6100'
-    laser_lemon: ColorType = '#E6FF66'
-    electric_lime: ColorType = '#CCFF00'
-    battery_charged_blue: ColorType = '#00B9FB'
-    shocking_pink: ColorType = '#FF6EFF'
-    hot_magenta: ColorType = '#FF1DCE'
-    wild_watermelon: ColorType = '#FD5B78'
-    atomic_tangerine: ColorType = '#FF9966'
-    sunglow: ColorType = '#FFCC33'
-
-    @classmethod
-    def all(cls) -> list[ColorType]:
-        """Return all defined colors as a list of colors"""
-        return [getattr(cls, f.name) for f in fields(cls)]
-
-    def plot(self, ncols: int = 4, sort_colors: bool = True) -> None:
-        """
-        Display color swatches in a grid with labels.
-
-        Parameters
-        ----------
-        ncols : int, optional, default=4
-            Number of columns to plot.
-        sort_colors : bool, optional, default=True
-            If `True`, sort colors by hsv value.
-        """
-        plot_colortable(
-            colors='visualastro', ncols=ncols, sort_colors=sort_colors
-        )
-
-    def __repr__(self) -> str:
-        lines = [self.__class__.__name__ + ':']
-        for field in fields(self):
-            value = getattr(self, field.name)
-            lines.append(f'  {field.name}: {value!r}')
-        return '\n'.join(lines)
-
-_color = Color()
-VISUALASTRO_NAMED_COLORS = vars(_color)
+VISUALASTRO_NAMED_COLORS = {
+    'dsb': 'darkslateblue',
+    'msb': 'mediumslateblue',
+    'sb': 'slateblue',
+    'mvr': 'mediumvioletred',
+    'pvr': 'palevioletred',
+    'violetred': '#D81B60',
+    'mam': 'mediumaquamarine',
+    'msg': 'mediumseagreen',
+    'jade': '#26DCBA',
+    'nebula': '#9FB7FF',
+    'unicorn': '#DBB0FF',
+    'pondwater': '#CFE23C',
+    'ibmpur': '#785EF0',
+    'ibmpnk': '#DC267F',
+    'ibmblu': '#648FFF',
+    'ibmylw': '#FFB000',
+    'ibmorg': '#FE6100',
+    'laser_lemon': '#E6FF66',
+    'electric_lime': '#CCFF00',
+    'battery_charged_blue': '#00B9FB',
+    'shocking_pink': '#FF6EFF',
+    'hot_magenta': '#FF1DCE',
+    'wild_watermelon': '#FD5B78',
+    'atomic_tangerine': '#FF9966',
+    'sunglow': '#FFCC33',
+}
 
 
 def get_colors(
