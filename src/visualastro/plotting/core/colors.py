@@ -157,6 +157,10 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'wild watermelon': '#FD5B78',
     'atomic tangerine': '#FF9966',
     'sunglow': '#FFCC33',
+    'metis maroon': '#7B1242',
+    'worm of the day': '#b577ac',
+    'worm of the night': '#75415c',
+    'soup of the day': '#848a21',
 }
 
 
