@@ -85,7 +85,9 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
     'default': list(TABLEAU_COLORS.values()),
-    'temple_os': ['#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'],
+    'temple_os': [
+        '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
+    ],
     'smplot': [
         'k', '#FF0000', '#0000FF', '#00FF00',
         '#00FFFF', '#FF00FF', '#FFFF00'
@@ -109,14 +111,26 @@ COLORSETS: dict[str, list[ColorType]] = {
     'pastel5': ['#7fc97f', '#beaed4', '#fdc086', '#ffff99', '#386cb0'],
     'high_vis': ['#0d49fb', '#e6091c', '#26eb47', '#8936df', '#fec32d', '#25d7fd'],
     'retro': ['#4165c0', '#e770a2', '#5ac3be', '#696969', '#f79a1e', '#ba7dcd'],
-    'bright': [mcolors.to_hex(c) for c in tc.bright],
-    'vibrant': [mcolors.to_hex(c) for c in tc.vibrant],
-    'muted': [mcolors.to_hex(c) for c in tc.muted],
-    'light': [mcolors.to_hex(c) for c in tc.light],
-    'dark': [mcolors.to_hex(c) for c in tc.dark],
-    'medium_contrast': [mcolors.to_hex(c) for c in tc.medium_contrast[1:]],
-    'high_contrast': [mcolors.to_hex(c) for c in tc.high_contrast],
-    'land_cover': [mcolors.to_hex(c) for c in tc.land_cover],
+    'bright': ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'],
+    'vibrant': ['#ee7733', '#0077bb', '#33bbee', '#ee3377', '#cc3311', '#009988', '#bbbbbb'],
+    'muted': [
+        '#cc6677', '#332288', '#ddcc77', '#117733', '#88ccee',
+        '#882255', '#44aa99', '#999933', '#aa4499', '#dddddd'
+    ],
+    'light': [
+        '#77aadd', '#ee8866', '#eedd88', '#ffaabb', '#99ddff',
+        '#44bb99', '#bbcc33', '#aaaa00', '#dddddd'
+    ],
+    'dark': ['#222255', '#663333', '#225522', '#666633', '#225555', '#555555'],
+    'medium_contrast': [
+        '#6699cc', '#004488', '#eecc66', '#997700', '#ee99aa', '#994455', '#000000'
+    ],
+    'high_contrast': ['#000000', '#004488', '#bb5566', '#ddaa33', '#ffffff'],
+    'land_cover': [
+        '#5566aa', '#117733', '#668822', '#44aa66', '#99bb55',
+        '#55aa22', '#558877', '#88bbaa', '#ddcc66', '#ffdd44',
+        '#aaddcc', '#44aa88', '#ffee88', '#bb0011'
+    ],
     'okabe_ito': [
         '#E69F00', '#56B4E9', '#009E73', '#F0E442',
         '#0072B2', '#D55E00', '#CC79A7', '#000000'
@@ -131,65 +145,37 @@ COLORSETS['va'] = COLORSETS['visualastro']
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
-# VISUALASTRO COLOR ALIASES
-# -------------------------
-@dataclass(frozen=True)
-class Color:
-    dsb: ColorType = 'darkslateblue'
-    msb: ColorType = 'mediumslateblue'
-    sb: ColorType = 'slateblue'
-    mvr: ColorType = 'mediumvioletred'
-    pvr: ColorType = 'palevioletred'
-    violetred: ColorType = '#D81B60'
-    mam: ColorType = 'mediumaquamarine'
-    msg: ColorType = 'mediumseagreen'
-    jade: ColorType = '#26DCBA'
-    nebula: ColorType = '#9FB7FF'
-    unicorn: ColorType = '#DBB0FF'
-    pondwater: ColorType = '#CFE23C'
-    ibmpur: ColorType = '#785EF0'
-    ibmpnk: ColorType = '#DC267F'
-    ibmblu: ColorType = '#648FFF'
-    ibmylw: ColorType = '#FFB000'
-    ibmorg: ColorType = '#FE6100'
-    laser_lemon: ColorType = '#E6FF66'
-    electric_lime: ColorType = '#CCFF00'
-    battery_charged_blue: ColorType = '#00B9FB'
-    shocking_pink: ColorType = '#FF6EFF'
-    hot_magenta: ColorType = '#FF1DCE'
-    wild_watermelon: ColorType = '#FD5B78'
-    atomic_tangerine: ColorType = '#FF9966'
-    sunglow: ColorType = '#FFCC33'
-
-    @classmethod
-    def all(cls) -> list[ColorType]:
-        """Return all defined colors as a list of colors"""
-        return [getattr(cls, f.name) for f in fields(cls)]
-
-    def plot(self, ncols: int = 4, sort_colors: bool = True) -> None:
-        """
-        Display color swatches in a grid with labels.
-
-        Parameters
-        ----------
-        ncols : int, optional, default=4
-            Number of columns to plot.
-        sort_colors : bool, optional, default=True
-            If `True`, sort colors by hsv value.
-        """
-        plot_colortable(
-            colors='visualastro', ncols=ncols, sort_colors=sort_colors
-        )
-
-    def __repr__(self) -> str:
-        lines = [self.__class__.__name__ + ':']
-        for field in fields(self):
-            value = getattr(self, field.name)
-            lines.append(f'  {field.name}: {value!r}')
-        return '\n'.join(lines)
-
-_color = Color()
-VISUALASTRO_NAMED_COLORS = vars(_color)
+VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
+    'dsb': 'darkslateblue',
+    'msb': 'mediumslateblue',
+    'sb': 'slateblue',
+    'mvr': 'mediumvioletred',
+    'pvr': 'palevioletred',
+    'violetred': '#D81B60',
+    'mam': 'mediumaquamarine',
+    'msg': 'mediumseagreen',
+    'jade': '#26DCBA',
+    'nebula': '#9FB7FF',
+    'unicorn': '#DBB0FF',
+    'pondwater': '#CFE23C',
+    'ibmpur': '#785EF0',
+    'ibmpnk': '#DC267F',
+    'ibmblu': '#648FFF',
+    'ibmylw': '#FFB000',
+    'ibmorg': '#FE6100',
+    'laser lemon': '#E6FF66',
+    'electric lime': '#CCFF00',
+    'battery charged blue': '#00B9FB',
+    'shocking pink': '#FF6EFF',
+    'hot magenta': '#FF1DCE',
+    'wild watermelon': '#FD5B78',
+    'atomic tangerine': '#FF9966',
+    'sunglow': '#FFCC33',
+    'metis maroon': '#7B1242',
+    'worm of the day': '#b577ac',
+    'worm of the night': '#75415c',
+    'soup of the day': '#848a21',
+}
 
 
 def get_colors(
@@ -354,7 +340,7 @@ def sample_cmap(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
 ) -> list[str | RGBTuple | RGBATuple]:
     """
-    Sample N distinct colors from a given matplotlib colormap
+    Sample N distinct colors from a given Matplotlib colormap
     returned as a list of colors in a specified format.
 
     Parameters
@@ -362,7 +348,7 @@ def sample_cmap(
     N : int
         Number of colors to sample.
     cmap : str | Colormap | _Unset, optional, default=_UNSET
-        Name of the matplotlib colormap or Colormap object. If
+        Name of the Matplotlib colormap or `Colormap` object. If
         `_UNSET` uses `config.cmap`.
     cmap_range : tuple[float, float], optional, default=(0,1)
         The normalized value range in the colormap from which colors
@@ -397,7 +383,7 @@ def simulate_colorblindness(
     Parameters
     ----------
     colors : ColorType | list[ColorType]
-        Color or list of colors recognized by matplotlib.
+        Color or list of colors recognized by Matplotlib.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'}, optional, default='deuteranomaly'
         Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
     severity : int, optional, default=100
@@ -447,7 +433,7 @@ def as_color(
     | list[str | RGBTuple | RGBATuple]
 ):
     """
-    Convert a matplotlib `ColorType` or a `list[ColorType]` into
+    Convert a Matplotlib `ColorType` or a `list[ColorType]` into
     one of the following formats: `'hex'`, `'rgb'`, or `'rgba'`.
 
     Parameters
@@ -477,7 +463,7 @@ def _convert_color(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 )-> str | tuple[float, float, float] | tuple[float, float, float, float]:
     """
-    Convert a matplotlib `ColorType` into one of the following
+    Convert a Matplotlib `ColorType` into one of the following
     formats: `'hex`'', `'rgb'`, or `'rgba'`.
     """
     return getattr(mcolors, f'to_{fmt}')(c)
@@ -1034,21 +1020,28 @@ def plot_colortable(
     severity: int = 100
 ) -> None:
     """
-    Adapted from matplotlib gallery example:
+    Plot a grid of colors with their names.
+
+    Adapted from Matplotlib gallery example:
     https://matplotlib.org/stable/gallery/color/named_colors.html
 
-    Copyright (c) 2012-2023 Matplotlib Development Team
+    Copyright (c) 2012-2023 Matplotlib Development Team.
     Licensed under the Matplotlib License (BSD-compatible)
     https://matplotlib.org/stable/users/project/license.html
-
-    Plot all the named colors in matplotlib!
 
     Parameters
     ----------
     colors : dict[str, ColorType] | str | None, optional, default=None
-        Dictionary containing colors to plot. If str, should be one
-        of the following: `'named_colors'`, `'xkcd'`, `'base'`, or
-        `'tableau'`. If `None`, plots `mcolors.CSS4_COLORS`.
+        Dictionary containing colors to plot, or one of the following:
+
+            * `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+            * `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+            * `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+            * `'visualastro'` or `'va'`: VisualAstro named colors
+            * `'base'` or `'base_colors'`: Matplotlib base colors
+            * `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+            * `'all'` or `'all_colors'`: All of the above
+
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
@@ -1056,21 +1049,47 @@ def plot_colortable(
     """
     if isinstance(colors, str) or colors is None:
         colors = str(colors).lower() if isinstance(colors, str) else None
-        if colors == 'named_colors' or colors == 'css4' or colors is None:
+        if colors == 'named_colors' or colors is None:
+            colors = mcolors.CSS4_COLORS | VISUALASTRO_NAMED_COLORS
+        elif colors in {
+            'mpl', 'matplotlib', 'mpl_colors', 'matplotlib_colors', 'css4'
+        }:
             colors = mcolors.CSS4_COLORS
-        elif colors == 'xkcd' or colors == 'xkcd_colors':
-            colors = mcolors.XKCD_COLORS
-        elif colors == 'base' or colors == 'base_colors':
-            colors = mcolors.BASE_COLORS
-        elif colors == 'tableau' or colors == 'tableau_colors':
-            colors = mcolors.TABLEAU_COLORS
-        elif colors == 'visualastro' or colors == 'va':
+        elif colors in {'visualastro', 'va'}:
             colors = VISUALASTRO_NAMED_COLORS
+        elif colors in {'base', 'base_colors'}:
+            colors = mcolors.BASE_COLORS
+        elif colors in {'tableau', 'tableau_colors'}:
+            colors = mcolors.TABLEAU_COLORS
         else:
-            raise ValueError(
-                "colors must be either 'named_colors', 'xkcd', 'base', or 'tableau'! "
-                f'got {colors}'
+            all_colors = (
+                mcolors.CSS4_COLORS |
+                mcolors.BASE_COLORS |
+                mcolors.TABLEAU_COLORS |
+                VISUALASTRO_NAMED_COLORS
             )
+            xkcd_stripped = {
+                k.replace('xkcd:', ''): v \
+                    for k, v in mcolors.XKCD_COLORS.items()
+            }
+            overlap_stripped_names = all_colors.keys() & xkcd_stripped.keys()
+            xkcd_resolved = {
+                ('xkcd:' if k in overlap_stripped_names else '') + k: v \
+                    for k, v in xkcd_stripped.items()
+            }
+            if colors in {'xkcd', 'xkcd_colors'}:
+                colors = xkcd_resolved
+            elif colors in {'all', 'all_colors'}:
+                colors = all_colors | xkcd_resolved
+            else:
+                raise ValueError(
+                    "colors must be a dictionary or one of the following: "
+                    "'named_colors', 'mpl', 'matplotlib', 'mpl_colors', "
+                    "'matplotlib_colors', 'css4', 'visualastro', 'va', "
+                    "'base', 'base_colors', 'tableau', 'tableau_colors', "
+                    "'xkcd', 'xkcd_colors', 'all', 'all_colors'. "
+                    f"Got '{colors}'."
+                )
 
     cell_width = 212
     cell_height = 22
@@ -1084,7 +1103,6 @@ def plot_colortable(
     else:
         names = list(colors)
 
-    color_names = [n.split('xkcd:')[1] if op.contains(n, 'xkcd:') else n for n in names]
     if cvd_type is not None:
         facecolors = {
             name:simulate_colorblindness(
@@ -1124,7 +1142,7 @@ def plot_colortable(
         text_pos_x = cell_width * col + swatch_width + 7
 
         ax.text(
-            text_pos_x, y, color_names[i],
+            text_pos_x, y, names[i],
             fontsize=14,
             horizontalalignment='left',
             verticalalignment='center'
@@ -1154,7 +1172,7 @@ def _has_color_mapping(mappable: ScalarMappable) -> bool:
 
 def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
     """
-    Resolve a matplotlib normalization object for scatter color mapping.
+    Resolve a Matplotlib normalization object for scatter color mapping.
 
     Parameters
     ----------

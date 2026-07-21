@@ -88,9 +88,40 @@ class help:
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
         severity: int = 100
     ) -> None:
-        """Plot Matplotlib named colors."""
+        """Plot all VisualAstro and Matplotlib named colors together."""
         plot_colortable(
             colors='named_colors',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def mpl_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot Matplotlib named colors."""
+        plot_colortable(
+            colors='mpl_colors',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+    
+    @staticmethod
+    def matplotlib_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """Plot Matplotlib named colors. Alias for :meth:`mpl_colors`."""
+        self.mpl_colors(
             ncols=ncols,
             sort_colors=sort_colors,
             cvd_type=cvd_type,
@@ -122,8 +153,13 @@ class help:
     ) -> None:
         """Plot xkcd named colors."""
         msg = (
-            'All colors displayed here are recognizable by Matplotlib under the name space '
-            "'xkcd:colorname'. \nVisualAstro will also recognize the colors if 'xkcd:' is dropped."
+            "All colors displayed here are recognizable by VisualAstro and "
+            "Matplotlib under 'xkcd:color name'.\n\n"
+            "Unless there is a color with the same name, VisualAstro will "
+            "also recognize the colors if the 'xkcd:' prefix is dropped. "
+            "Colors are shown here with 'xkcd:' dropped "
+            "whenever possible.\n\n"
+            "Matplotlib does not recognize the colors if 'xkcd:' is dropped."
         )
         print(msg)
         plot_colortable(
@@ -160,6 +196,25 @@ class help:
         """Plot Matplotlib tableau colors."""
         plot_colortable(
             colors='tableau',
+            ncols=ncols,
+            sort_colors=sort_colors,
+            cvd_type=cvd_type,
+            severity=severity
+        )
+
+    @staticmethod
+    def all_colors(
+        ncols: int = 4,
+        sort_colors: bool = True,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ) -> None:
+        """
+        Plot all named colors recognized by VisualAstro. Includes all named colors from
+        Matplotlib (including base and tableau colors), xkcd, and VisualAstro.
+        """
+        plot_colortable(
+            colors='all',
             ncols=ncols,
             sort_colors=sort_colors,
             cvd_type=cvd_type,
