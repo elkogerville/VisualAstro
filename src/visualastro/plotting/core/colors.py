@@ -1020,22 +1020,28 @@ def plot_colortable(
     severity: int = 100
 ) -> None:
     """
+    Plot a grid of colors with their names.
+
     Adapted from Matplotlib gallery example:
     https://matplotlib.org/stable/gallery/color/named_colors.html
 
-    Copyright (c) 2012-2023 Matplotlib Development Team
+    Copyright (c) 2012-2023 Matplotlib Development Team.
     Licensed under the Matplotlib License (BSD-compatible)
     https://matplotlib.org/stable/users/project/license.html
-
-    Plot all the named colors in Matplotlib!
 
     Parameters
     ----------
     colors : dict[str, ColorType] | str | None, optional, default=None
-        Dictionary containing colors to plot. If str, should be one
-        of the following: `'named_colors'`, `'mpl_colors'`, `'xkcd'`,
-        `'visualastro'`, `'base'`, `'tableau'`, or `'all'`. If `None`,
-        plots `'named_colors'`.
+        Dictionary containing colors to plot, or one of the following:
+
+            * `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+            * `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+            * `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+            * `'visualastro'` or `'va'`: VisualAstro named colors
+            * `'base'` or `'base_colors'`: Matplotlib base colors
+            * `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+            * `'all'` or `'all_colors'`: All of the above
+
     ncols : int, optional, default=4
         Number of columns to plot.
     sort_colors : bool, optional, default=True
@@ -1045,29 +1051,45 @@ def plot_colortable(
         colors = str(colors).lower() if isinstance(colors, str) else None
         if colors == 'named_colors' or colors is None:
             colors = mcolors.CSS4_COLORS | VISUALASTRO_NAMED_COLORS
-        elif colors == 'mpl_colors' or colors == 'matplotlib_colors' or colors == 'css4':
+        elif colors in {
+            'mpl', 'matplotlib', 'mpl_colors', 'matplotlib_colors', 'css4'
+        }:
             colors = mcolors.CSS4_COLORS
-        elif colors == 'visualastro' or colors == 'va':
+        elif colors in {'visualastro', 'va'}:
             colors = VISUALASTRO_NAMED_COLORS
-        elif colors == 'xkcd' or colors == 'xkcd_colors':
-            colors = mcolors.XKCD_COLORS
-        elif colors == 'base' or colors == 'base_colors':
+        elif colors in {'base', 'base_colors'}:
             colors = mcolors.BASE_COLORS
-        elif colors == 'tableau' or colors == 'tableau_colors':
+        elif colors in {'tableau', 'tableau_colors'}:
             colors = mcolors.TABLEAU_COLORS
-        elif colors == 'all_colors' or colors == 'all':
-            colors = (
+        else:
+            all_colors = (
                 mcolors.CSS4_COLORS |
-                mcolors.XKCD_COLORS |
                 mcolors.BASE_COLORS |
                 mcolors.TABLEAU_COLORS |
                 VISUALASTRO_NAMED_COLORS
             )
-        else:
-            raise ValueError(
-                "colors must be 'named_colors', 'mpl_colors', 'xkcd', 'visualastro', "
-                f"'base', 'tableau', or 'all_colors' ! f'got {colors}'"
-            )
+            xkcd_stripped = {
+                k.replace('xkcd:', ''): v \
+                    for k, v in mcolors.XKCD_COLORS.items()
+            }
+            overlap_stripped_names = all_colors.keys() & xkcd_stripped.keys()
+            xkcd_resolved = {
+                ('xkcd:' if k in overlap_stripped_names else '') + k: v \
+                    for k, v in xkcd_stripped.items()
+            }
+            if colors in {'xkcd', 'xkcd_colors'}:
+                colors = xkcd_resolved
+            elif colors in {'all', 'all_colors'}:
+                colors = all_colors | xkcd_resolved
+            else:
+                raise ValueError(
+                    "colors must be a dictionary or one of the following: "
+                    "'named_colors', 'mpl', 'matplotlib', 'mpl_colors', "
+                    "'matplotlib_colors', 'css4', 'visualastro', 'va', "
+                    "'base', 'base_colors', 'tableau', 'tableau_colors', "
+                    "'xkcd', 'xkcd_colors', 'all', 'all_colors'. "
+                    f"Got '{colors}'."
+                )
 
     cell_width = 212
     cell_height = 22
@@ -1081,7 +1103,6 @@ def plot_colortable(
     else:
         names = list(colors)
 
-    color_names = [n.split('xkcd:')[1] if op.contains(n, 'xkcd:') else n for n in names]
     if cvd_type is not None:
         facecolors = {
             name:simulate_colorblindness(
@@ -1121,7 +1142,7 @@ def plot_colortable(
         text_pos_x = cell_width * col + swatch_width + 7
 
         ax.text(
-            text_pos_x, y, color_names[i],
+            text_pos_x, y, names[i],
             fontsize=14,
             horizontalalignment='left',
             verticalalignment='center'
