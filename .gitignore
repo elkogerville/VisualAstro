@@ -6,3 +6,4 @@ dist/
 *.pyc
 src/visualastro/dev/
 **/.ipynb_checkpoints/
+.zed
