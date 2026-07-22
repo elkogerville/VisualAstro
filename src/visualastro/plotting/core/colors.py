@@ -103,7 +103,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     'debos': ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
-    'deb': ['#3464F5',  '#93BFE6', '#F4C572', '#D3153A'],
+    'deb': ['#3464F5', '#93BFE6', '#F4C572', '#D3153A'],
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
