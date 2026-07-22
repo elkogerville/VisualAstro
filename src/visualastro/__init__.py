@@ -290,7 +290,8 @@ def _register_colors() -> None:
             warnings.warn(
                 f"Found custom visualastro color of name: '{name}', which "
                 'conflicts with a pre-existing matplotlib named color! '
-                'Skipping registration, please change name collision.',
+                'Skipping registration, please change name collision in '
+                'visualastro.plotting.core.colors.',
                 stacklevel=2
             )
 
