@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-19
+Date Modified: 2026-07-22
 Description:
     VisualAstro help documentation class.
 """
@@ -143,7 +143,7 @@ class help:
             "All colors displayed here are recognizable by VisualAstro and "
             "Matplotlib under 'xkcd:color name'.\n\n"
             "Unless there is a color with the same name, VisualAstro will "
-            "also recognize the colors if the 'xkcd:' prefix is dropped. "
+            "also recognize the colors if the \n'xkcd:' prefix is dropped. "
             "Colors are shown here with 'xkcd:' dropped "
             "whenever possible.\n\n"
             "Matplotlib does not recognize the colors if 'xkcd:' is dropped."

@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-19
+Date Modified: 2026-07-22
 Description:
     Functions related to colors in plotting.
 """
@@ -103,11 +103,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     'debos': ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
-<<<<<<< HEAD
-    'deb': ['#3464F5',  '#93BFE6', '#F4C572', '#D3153A'],
-=======
     'deb': ['#3464F5', '#93BFE6', '#F4C572', '#D3153A'],
->>>>>>> main
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
@@ -795,6 +791,7 @@ def plot_colors(
             colorsets = [get_colors(color)]
             color_names = ['']*len(colorsets)
 
+    pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))
     factor = 0.3 if n_rows > 10 else 1
     fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
@@ -805,8 +802,8 @@ def plot_colors(
         for j, c in enumerate(colorset):
             ax.add_patch(mpatches.Rectangle((j, -row), 1, 1, color=c, ec='black'))
 
-        if show_color_name:
-            ax.text(-0.5, -row + 0.5, color_names[i], va='center', ha='right')
+        if show_color_name and color_names[i] != '':
+            ax.text(-pad, -row + 0.5, f'{color_names[i]}', va='center', ha='right')
         row += 1
 
         # CVD simulations
@@ -814,16 +811,12 @@ def plot_colors(
             cvd_colors = simulate_colorblindness(colorset, cvd, severity) # type: ignore
             for j, c in enumerate(cvd_colors):
                 ax.add_patch(mpatches.Rectangle((j, -row), 1, 1, color=c, ec='black'))
-            ax.text(
-                -0.5, -row + 0.5,
-                f'{color_names[i]} ({cvd})',
-                va='center', ha='right',
-                fontsize=9
-            )
+            label = f'({cvd})' if color_names[i] == '' else f'{color_names[i]} ({cvd})'
+            ax.text(-pad, -row + 0.5, label, va='center', ha='right', fontsize=9)
             row += 1
 
-    ax.set_xlim(-0.1, max(len(get_colors(c)) for c in colorsets)+0.1)
-    ax.set_ylim(-n_rows, 1)
+    ax.set_xlim(-pad, max(len(get_colors(c)) for c in colorsets) + pad)
+    ax.set_ylim(-n_rows + 1 - pad, 1 + pad)
 
     plt.show()
 
