@@ -151,14 +151,14 @@ COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
 VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
-    'dsb': 'darkslateblue',
-    'msb': 'mediumslateblue',
-    'sb': 'slateblue',
-    'mvr': 'mediumvioletred',
-    'pvr': 'palevioletred',
+    'dsb': '#483d8b',
+    'msb': '#7b68ee',
+    'sb': '#6a5acd',
+    'mvr': '#c71585',
+    'pvr': '#db7093',
     'violetred': '#D81B60',
-    'mam': 'mediumaquamarine',
-    'msg': 'mediumseagreen',
+    'mam': '#66cdaa',
+    'msg': '#3cb371',
     'jade': '#26DCBA',
     'nebula': '#9FB7FF',
     'unicorn': '#DBB0FF',
