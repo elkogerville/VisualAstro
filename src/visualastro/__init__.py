@@ -273,10 +273,24 @@ import scienceplots
 styles = _register_styles()
 
 
+# REGISTER NAMED COLORS
+# ---------------------
+def _register_colors() -> None:
+    """Register additional named colors with matplotlib."""
+    import matplotlib as mpl
+    from visualastro.plotting.core.colors import VISUALASTRO_NAMED_COLORS
+
+    for name, color in VISUALASTRO_NAMED_COLORS.items():
+        if name not in mpl.colors.get_named_colors_mapping():
+            mpl.colors.get_named_colors_mapping()[name] = color
+
+_register_colors()
+
+
 # REGISTER COLORMAPS
 # ------------------
 def _register_cmaps() -> None:
-    """Register additional colormaps with matplotlib"""
+    """Register additional colormaps with matplotlib."""
     import cmasher
     import matplotlib as mpl
     from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
