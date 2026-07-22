@@ -283,6 +283,8 @@ def _register_colors() -> None:
     for name, color in VISUALASTRO_NAMED_COLORS.items():
         if name not in mpl.colors.get_named_colors_mapping():
             mpl.colors.get_named_colors_mapping()[name] = color
+            if name.lower() not in mpl.colors.get_named_colors_mapping():
+                mpl.colors.get_named_colors_mapping()[name.lower()] = color
 
 _register_colors()
 
