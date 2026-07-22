@@ -180,7 +180,17 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'worm of the day': '#b577ac',
     'worm of the night': '#75415c',
     'soup of the day': '#848a21',
-    'Holy Blue': '#5555FF'
+    'Holy Blue': '#5555FF',
+    'A train': '#005DAD',
+    'F train': '#F48820',
+    '4 train': '#00A66E',
+    'J train': '#A67837',
+    'Q train': '#FFD005',
+    'S train': '#929598',
+    '3 train': '#E42031',
+    'G train': '#72B444',
+    '7 train': '#AD3F97',
+    'T train': '#00ABCD',
 }
 
 
