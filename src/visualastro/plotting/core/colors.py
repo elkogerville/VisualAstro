@@ -175,6 +175,7 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'worm of the day': '#b577ac',
     'worm of the night': '#75415c',
     'soup of the day': '#848a21',
+    'Holy Blue': '#5555FF'
 }
 
 
