@@ -277,12 +277,23 @@ styles = _register_styles()
 # ---------------------
 def _register_colors() -> None:
     """Register additional named colors with matplotlib."""
+    import warnings
     import matplotlib as mpl
     from visualastro.plotting.core.colors import VISUALASTRO_NAMED_COLORS
 
     for name, color in VISUALASTRO_NAMED_COLORS.items():
         if name not in mpl.colors.get_named_colors_mapping():
             mpl.colors.get_named_colors_mapping()[name] = color
+            if name.lower() not in mpl.colors.get_named_colors_mapping():
+                mpl.colors.get_named_colors_mapping()[name.lower()] = color
+        else:
+            warnings.warn(
+                f"Found custom visualastro color of name: '{name}', which "
+                'conflicts with a pre-existing matplotlib named color! '
+                'Skipping registration, please change name collision in '
+                'visualastro.plotting.core.colors.',
+                stacklevel=2
+            )
 
 _register_colors()
 
