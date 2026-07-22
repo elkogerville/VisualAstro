@@ -84,6 +84,10 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#00ECBD', '#FF1DCE', '#FFCC33', '#FD5B78'
     ],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
+    'subway': [
+        '#005DAD', '#F48820', '#00A66E', '#A67837', '#FFD005',
+        '#929598', '#E42031', '#72B444', '#AD3F97', '#00ABCD'
+    ],
     'default': list(TABLEAU_COLORS.values()),
     'temple_os': [
         '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
