@@ -329,8 +329,10 @@ def _get_colors(
                 colorset = colorset[::-1]
             return as_list(as_color(colorset, fmt))
 
-        if colors in VISUALASTRO_NAMED_COLORS:
-            return as_list(as_color(VISUALASTRO_NAMED_COLORS[colors], fmt))
+        if colors in mpl.colors.get_named_colors_mapping():
+            return as_list(as_color(
+                mpl.colors.get_named_colors_mapping()[colors]
+            ))
 
         if (
             'xkcd:' + colors in mcolors.XKCD_COLORS and
