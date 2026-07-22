@@ -84,6 +84,10 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#00ECBD', '#FF1DCE', '#FFCC33', '#FD5B78'
     ],
     'toad': ['#BFDBE8', '#867E09', '#93CB59', '#34E693', '#97968B'],
+    'subway': [
+        '#005DAD', '#F48820', '#00A66E', '#A67837', '#FFD005',
+        '#929598', '#E42031', '#72B444', '#AD3F97', '#00ABCD'
+    ],
     'default': list(TABLEAU_COLORS.values()),
     'temple_os': [
         '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
@@ -99,6 +103,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     'debos': ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
+    'deb': ['#3464F5',  '#93BFE6', '#F4C572', '#D3153A'],
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
@@ -147,14 +152,14 @@ COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
 
 VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
-    'dsb': 'darkslateblue',
-    'msb': 'mediumslateblue',
-    'sb': 'slateblue',
-    'mvr': 'mediumvioletred',
-    'pvr': 'palevioletred',
+    'dsb': '#483D8B',
+    'msb': '#7B68EE',
+    'sb': '#6A5ACD',
+    'mvr': '#C71585',
+    'pvr': '#DB7093',
     'violetred': '#D81B60',
-    'mam': 'mediumaquamarine',
-    'msg': 'mediumseagreen',
+    'mam': '#66CDAA',
+    'msg': '#3CB371',
     'jade': '#26DCBA',
     'nebula': '#9FB7FF',
     'unicorn': '#DBB0FF',
@@ -183,6 +188,16 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'Holy Red': '#FF5555',
     'Holy Magenta': '#FF55FF',
     'Holy Yellow': '#FFFF55',
+    'A train': '#005DAD',
+    'F train': '#F48820',
+    '4 train': '#00A66E',
+    'J train': '#A67837',
+    'Q train': '#FFD005',
+    'S train': '#929598',
+    '3 train': '#E42031',
+    'G train': '#72B444',
+    '7 train': '#AD3F97',
+    'T train': '#00ABCD',
 }
 
 
