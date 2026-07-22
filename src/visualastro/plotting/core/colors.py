@@ -98,6 +98,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night': ['#719C95', '#9CD6CF', '#FFDA81', '#F3A169', '#8FB3D3', '#6B859C', '#435561'],
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
+    'debos': ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
@@ -171,11 +172,17 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'wild watermelon': '#FD5B78',
     'atomic tangerine': '#FF9966',
     'sunglow': '#FFCC33',
-    'metis maroon': '#7B1242',
-    'worm of the day': '#b577ac',
-    'worm of the night': '#75415c',
-    'soup of the day': '#848a21',
-    'Holy Blue': '#5555FF'
+    'metis merlot': '#7B1242',
+    'worm of the day': '#B577AC',
+    'worm of the night': '#75415C',
+    'soup of the day': '#848A21',
+    'Holy Grey': '#555555',
+    'Holy Blue': '#5555FF',
+    'Holy Green': '#55FF55',
+    'Holy Cyan': '#55FFFF',
+    'Holy Red': '#FF5555',
+    'Holy Magenta': '#FF55FF',
+    'Holy Yellow': '#FFFF55',
 }
 
 
