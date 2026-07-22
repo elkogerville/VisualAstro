@@ -112,21 +112,8 @@ class help:
             cvd_type=cvd_type,
             severity=severity
         )
-    
-    @staticmethod
-    def matplotlib_colors(
-        ncols: int = 4,
-        sort_colors: bool = True,
-        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
-        severity: int = 100
-    ) -> None:
-        """Plot Matplotlib named colors. Alias for :meth:`mpl_colors`."""
-        self.mpl_colors(
-            ncols=ncols,
-            sort_colors=sort_colors,
-            cvd_type=cvd_type,
-            severity=severity
-        )
+
+    matplotlib_colors = mpl_colors
 
     @staticmethod
     def va_colors(
