@@ -234,7 +234,9 @@ def _register_styles():
     import warnings
     import matplotlib.pyplot as plt
 
-    from visualastro.plotting.core.style import VisualAstroStyles
+    from visualastro.plotting.core.style import (
+        STYLE_ALIASES, VisualAstroStyles
+    )
 
 
     stylelib = files('visualastro') / 'stylelib'
@@ -256,16 +258,19 @@ def _register_styles():
     for directory in dirs:
         styledict.update(_plt_read_style_dir(directory))
 
-    for key in styledict.keys():
-        if key not in plt.style.library:
-            plt.style.library[key] = styledict[key]
-        else:
-            warnings.warn(
-                f"Found custom visualastro style of name: '{key}', which "
-                'conflicts with a pre-existing matplotlib style! '
-                'Skipping registration, please change name collision.',
-                stacklevel=2
-            )
+    for key, style in styledict.items():
+        aliases = STYLE_ALIASES.get(key, ())
+
+        for name in (key, *aliases):
+            if name in plt.style.library:
+                warnings.warn(
+                    f"Found custom visualastro style '{name}' that conflicts "
+                    "with an existing Matplotlib style. Skipping registration.",
+                    stacklevel=2,
+                )
+                continue
+
+            plt.style.library[name] = style.copy()
 
     plt.style.available[:] = sorted(plt.style.library.keys())
 
