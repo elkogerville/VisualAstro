@@ -11,6 +11,7 @@ font.family:         monospace
 font.monospace:      DejaVu Sans Mono, Liberation Mono, Consolas, Courier New, monospace
 
 text.usetex:         False
+
 mathtext.fontset:    stix
 
 axes.unicode_minus:  True

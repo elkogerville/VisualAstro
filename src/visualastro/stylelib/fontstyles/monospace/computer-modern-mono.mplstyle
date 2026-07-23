@@ -5,10 +5,19 @@
 # visualastro 2026
 
 font.family:         monospace
-font.monospace:      CMU Typewriter Text
+font.monospace:      NewComputerModern Mono
 
 text.usetex:         False
-mathtext.fontset:    cm
+
+mathtext.fontset:    custom
+mathtext.rm:         Concrete Math
+mathtext.bf:         Concrete Math
+mathtext.it:         Concrete Math
+mathtext.sf:         Concrete Math
+mathtext.tt:         Concrete Math
+mathtext.cal:        Concrete Math
+mathtext.fallback:   stix
+mathtext.default:    it
 
 axes.formatter.use_mathtext: False
 axes.unicode_minus:  False

@@ -5,16 +5,22 @@
 # visualastro 2026
 
 font.family:         sans-serif
-font.sans-serif:     CMU Sans Serif
+font.sans-serif:     NewComputerModern Sans
 
 text.usetex:         False
 
-mathtext.fontset:    stix
-mathtext.fallback:   stix
+mathtext.fontset:    custom
+mathtext.rm:         NewComputerModern Sans Math
+mathtext.bf:         NewComputerModern Sans Math
+mathtext.bfit:       NewComputerModern Sans Math
+mathtext.it:         NewComputerModern Sans Math
+mathtext.sf:         NewComputerModern Sans Math
+mathtext.tt:         NewComputerModern Sans Math
+mathtext.cal:        NewComputerModern Sans Math
+mathtext.fallback:   stixsans
 
-axes.formatter.use_mathtext: False
-axes.unicode_minus:  False
+axes.unicode_minus:  True
 
-svg.fonttype: none
+svg.fonttype: path
 pdf.fonttype: 42
 ps.fonttype:  42
