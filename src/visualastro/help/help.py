@@ -393,7 +393,7 @@ class help:
             ax.set_xlim(1e-2, 10000)
 
             samples = [
-                ('Text Styles', dict()),
+                ('Text Styles:', dict()),
                 ('Regular', dict(weight='normal')),
                 ('Bold', dict(weight='bold')),
                 ('Italic', dict(style='italic')),
@@ -415,9 +415,9 @@ class help:
 
             fig.text(
                 0.87,
-                0.5,
+                0.48,
                 (
-                    'MATHTEXT MODE'
+                    'MATHTEXT MODE:'
                     '\n'
                     r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
                     '\n'
@@ -439,7 +439,8 @@ class help:
                     '\n'
                     '\N{MINUS SIGN}1'
                     '\n'
-                    'Unicode Greek Letters:'
+                    '\n'
+                    'UNICODE GREEK LETTERS:'
                     '\n'
                     'α β γ δ ε ζ η θ ι κ λ μ '
                     '\n'
