@@ -15,6 +15,6 @@ mathtext.fallback:   stix
 axes.formatter.use_mathtext: False
 axes.unicode_minus:  False
 
-svg.fonttype: path
+svg.fonttype: none
 pdf.fonttype: 42
 ps.fonttype:  42
