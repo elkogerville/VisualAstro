@@ -363,7 +363,7 @@ class help:
         with _style_context(fontstyle):
             x = np.linspace(0, 2*np.pi, 500)
 
-            fig, ax = plt.subplots(figsize=(8, 8))
+            fig, ax = plt.subplots(figsize=(9, 9))
             ax.plot(x, np.sin(x), lw=2, label=r'$\sin(x)$', color='dsb')
 
             ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
@@ -415,7 +415,7 @@ class help:
 
             fig.text(
                 0.87,
-                0.58,
+                0.5,
                 (
                     'MATHTEXT MODE'
                     '\n'
@@ -438,6 +438,16 @@ class help:
                     r'\mathtt{Mono}$'
                     '\n'
                     '\N{MINUS SIGN}1'
+                    '\n'
+                    'Unicode Greek Letters:'
+                    '\n'
+                    'α β γ δ ε ζ η θ ι κ λ μ '
+                    '\n'
+                    'ν ξ ο π ρ σ τ υ φ χ ψ ω '
+                    '\n'
+                    'Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν'
+                    '\n'
+                    'Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω'
                 ),
                 fontsize=12,
                 horizontalalignment='right'
