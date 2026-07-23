@@ -8,12 +8,13 @@ font.family:         sans-serif
 font.sans-serif:     CMU Sans Serif
 
 text.usetex:         False
-mathtext.fontset:    cm
+
+mathtext.fontset:    stix
+mathtext.fallback:   stix
 
 axes.formatter.use_mathtext: False
-axes.unicode_minus:  False  # use Unicode for the minus symbol rather than hyphen.  See
-                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
+axes.unicode_minus:  False
 
-svg.fonttype: none
+svg.fonttype: path
 pdf.fonttype: 42
 ps.fonttype:  42

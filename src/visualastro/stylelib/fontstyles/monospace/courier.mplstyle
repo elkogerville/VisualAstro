@@ -17,7 +17,7 @@ mathtext.sf:         Concrete Math
 mathtext.tt:         Concrete Math
 mathtext.cal:        Concrete Math
 mathtext.fallback:   stix
-mathtext.default:    regular
+mathtext.default:    it
 
 axes.unicode_minus:  True
 
