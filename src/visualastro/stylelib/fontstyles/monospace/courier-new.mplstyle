@@ -8,6 +8,7 @@ font.family:         monospace
 font.monospace:      Courier New, Liberation Mono, DejaVu Sans Mono, Consolas, monospace
 
 text.usetex:         False
+
 mathtext.fontset:    custom
 mathtext.rm:         Concrete Math
 mathtext.bf:         Concrete Math
