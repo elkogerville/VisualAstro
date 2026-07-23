@@ -11,7 +11,6 @@ font.weight:         normal
 text.usetex:         False
 
 mathtext.fontset:    custom
-
 mathtext.rm:         Concrete Math
 mathtext.bf:         Concrete Math
 mathtext.it:         Concrete Math

@@ -8,10 +8,17 @@ font.family:         monospace
 font.monospace:      Courier New, Liberation Mono, DejaVu Sans Mono, Consolas, monospace
 
 text.usetex:         False
-mathtext.fontset:    stix
+mathtext.fontset:    custom
+mathtext.rm:         Concrete Math
+mathtext.bf:         Concrete Math
+mathtext.it:         Concrete Math
+mathtext.sf:         Concrete Math
+mathtext.tt:         Concrete Math
+mathtext.cal:        Concrete Math
+mathtext.fallback:   stix
+mathtext.default:    regular
 
-axes.unicode_minus:  True   # use Unicode for the minus symbol rather than hyphen.  See
-                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
+axes.unicode_minus:  True
 
 svg.fonttype: none
 pdf.fonttype: 42
