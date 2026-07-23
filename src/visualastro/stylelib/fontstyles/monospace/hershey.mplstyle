@@ -30,10 +30,10 @@ mathtext.it:  AVHershey Complex:medium:italic
 mathtext.rm:  AVHershey Complex:medium
 mathtext.sf:  AVHershey Duplex:medium
 mathtext.tt:  AVHershey Simplex:medium
-mathtext.fallback: stix
+mathtext.fallback: cm
 mathtext.default: it
 
-#axes.unicode_minus: True
+axes.unicode_minus: True
 
 svg.fonttype: path
 pdf.fonttype: 42

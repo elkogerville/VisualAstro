@@ -5,7 +5,7 @@
 # visualastro 2026
 
 font.family:         monospace
-font.monospace:      Courier
+font.monospace:      Courier, Liberation Mono, DejaVu Sans Mono, Consolas, monospace
 
 text.usetex:         False
 
