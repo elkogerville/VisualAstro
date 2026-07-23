@@ -377,7 +377,7 @@ class help:
             )
 
             ax.set_xlabel(
-                'Greek Letters:'
+                'Mathtext Greek Letters:'
                 '\n'
                 r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
                 r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$'
@@ -415,7 +415,7 @@ class help:
 
             fig.text(
                 0.87,
-                0.48,
+                0.5,
                 (
                     'MATHTEXT MODE:'
                     '\n'
@@ -442,13 +442,11 @@ class help:
                     '\n'
                     'UNICODE GREEK LETTERS:'
                     '\n'
-                    'α β γ δ ε ζ η θ ι κ λ μ '
+                    'Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
                     '\n'
-                    'ν ξ ο π ρ σ τ υ φ χ ψ ω '
+                    'Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
                     '\n'
-                    'Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν'
-                    '\n'
-                    'Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω'
+                    'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
                 ),
                 fontsize=12,
                 horizontalalignment='right'
