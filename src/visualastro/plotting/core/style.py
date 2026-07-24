@@ -286,6 +286,13 @@ def style(
         yield
 
 
+STYLE_ALIASES = {
+    'computer-modern': ('cm', 'cmu'),
+    'computer-modern-mono': ('cm-mono', 'cmu-mono'),
+    'computer-modern-sans': ('cm-sans', 'cmu-sans'),
+}
+
+
 def apply_style_modifiers(ax, style: str):
     """
     Apply programmatic style modifiers based on underscore-separated suffixes.

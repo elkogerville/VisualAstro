@@ -8,10 +8,10 @@ font.family:         serif
 font.serif:          Times New Roman, Liberation Serif, Times
 
 text.usetex:         False
+
 mathtext.fontset:    stix
 
-axes.unicode_minus:  True   # use Unicode for the minus symbol rather than hyphen.  See
-                            # https://en.wikipedia.org/wiki/Plus_and_minus_signs#Character_codes
+axes.unicode_minus:  True
 
 svg.fonttype: none
 pdf.fonttype: 42

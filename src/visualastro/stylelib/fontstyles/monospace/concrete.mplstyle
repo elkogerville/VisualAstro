@@ -1,11 +1,12 @@
-# DejaVu Mono Typewriter font
-# ---------------------------
+# Concrete Math font
+# ------------------
 # No Latex
 #
 # visualastro 2026
 
-font.family:         monospace
-font.monospace:      DejaVu Sans Mono, Liberation Mono, Consolas, Courier New, monospace
+font.family:         serif
+font.serif:          Concrete Math
+font.weight:         normal
 
 text.usetex:         False
 
@@ -21,6 +22,6 @@ mathtext.default:    it
 
 axes.unicode_minus:  True
 
-svg.fonttype: none
+svg.fonttype: path
 pdf.fonttype: 42
 ps.fonttype:  42

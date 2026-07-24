@@ -11,6 +11,7 @@ from glob import glob
 from importlib.resources import files
 import inspect
 import os
+from pathlib import Path
 from typing import Literal
 import warnings
 
@@ -36,7 +37,7 @@ from visualastro.plotting.core.colors import (
     plot_colors,
     plot_colortable,
 )
-from visualastro.plotting.core.style import _style_context
+from visualastro.plotting.core.style import _style_context, reset_rcParams
 from visualastro.plotting.core.utils import legend
 
 
@@ -312,9 +313,9 @@ class help:
         """
 
         if style_name is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            style_files = glob(os.path.join(base_dir, 'stylelib', '*.mplstyle'))
-            style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
+            stylelib = files('visualastro') / 'stylelib'
+            style_root = Path(stylelib)
+            style_names = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
         else:
             style_names = to_list(style_name)
         colors = get_colors(len(style_names), cmap=config.cmap)
@@ -324,14 +325,8 @@ class help:
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
+            reset_rcParams()
             with _style_context(style_name):
-                if style_name == 'cm10':
-                    warnings.warn(
-                        "\nWARNING: cm10 style sheet cannont properly render 'º'! "
-                        'This is mostly an issue for plots with WCSAxes. Either use '
-                        "'cmu' or 'latex' stylesheets to get around this issue.",
-                        stacklevel=2
-                    )
                 fig, ax = plt.subplots(figsize=(7,2))
                 ax.set_xscale('log')
 
@@ -354,6 +349,109 @@ class help:
 
                 plt.show()
 
+
+    @staticmethod
+    def fontstyle(fontstyle: str | None = None) -> None:
+        """
+        Make a plot of a fontsyle. See `styles.fonts` for available fonts.
+        """
+        with _style_context(fontstyle):
+            x = np.linspace(0, 2*np.pi, 500)
+
+            fig, ax = plt.subplots(figsize=(9, 9))
+            ax.plot(x, np.sin(x), lw=2, label=r'$\sin(x)$', color='dsb')
+
+            ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
+
+            ax.set_title(
+                'VisualAstro Font Test\n'
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
+                'abcdefghijklmnopqrstuvwxyz\n'
+                '0123456789',
+                fontsize=18,
+            )
+
+            ax.set_xlabel(
+                'Mathtext Greek Letters:'
+                '\n'
+                r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
+                r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$'
+                '\n'
+                r'$A B \Gamma \Delta E Z H \Theta I K \Lambda M N \Xi O \Pi P \Sigma T \Upsilon'
+                r'\Phi X \Psi \Omega$',
+                fontsize=15
+            )
+
+            ax.set_ylabel(r'$\pm \times \div − + 13°$', fontsize=15)
+
+            ax.set_xscale('log')
+            ax.set_xlim(1e-2, 10000)
+
+            samples = [
+                ('Text Styles:', dict()),
+                ('Regular', dict(weight='normal')),
+                ('Bold', dict(weight='bold')),
+                ('Italic', dict(style='italic')),
+                ('Bold Italic', dict(weight='bold', style='italic')),
+                ('Monospace 0123456789', dict(family='monospace')),
+            ]
+
+            y = 0.37
+            for text, kwargs in samples:
+                fig.text(
+                    0.87,
+                    y,
+                    text,
+                    fontsize=12,
+                    horizontalalignment='right',
+                    **kwargs,
+                )
+                y -= 0.045
+
+            fig.text(
+                0.87,
+                0.5,
+                (
+                    'MATHTEXT MODE:'
+                    '\n'
+                    r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
+                    '\n'
+                    r'$M_\odot L_\odot R_\oplus M_\star \odot \; \oplus \; \star$'
+                    '\n'
+                    r'$\leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    '\n'
+                    r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
+                    r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
+                    '\n'
+                    r'$\sum_{i=1}^{N}\alpha_i^2'
+                    r'=\int_0^\infty e^{-x}\,dx$'
+                    '\n'
+                    r'$\mathrm{Roman}\;'
+                    r'\mathit{Italic}\;'
+                    r'\mathbf{Bold}\;'
+                    r'\mathsf{Sans}\;'
+                    r'\mathtt{Mono}$'
+                    '\n'
+                    '\N{MINUS SIGN}1'
+                    '\n'
+                    '\n'
+                    'UNICODE GREEK LETTERS:'
+                    '\n'
+                    'Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
+                    '\n'
+                    'Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
+                    '\n'
+                    'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
+                ),
+                fontsize=12,
+                horizontalalignment='right'
+            )
+
+            legend(
+                title='Legend',
+                frameon=True,
+                loc='lower left'
+            )
 
     @staticmethod
     def imshow() -> None:

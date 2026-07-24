@@ -1,0 +1,26 @@
+# New Computer Modern Math font
+# -----------------------------
+# No Latex
+#
+# visualastro 2026
+
+font.family:         serif
+font.serif:          NewComputerModern
+
+text.usetex:         False
+
+mathtext.fontset:    custom
+mathtext.rm:         NewComputerModern Math
+mathtext.bf:         NewComputerModern Math:bold
+mathtext.bfit:       NewComputerModern Math
+mathtext.it:         NewComputerModern Math
+mathtext.sf:         NewComputerModern Math
+mathtext.tt:         NewComputerModern Math
+mathtext.cal:        NewComputerModern Math
+mathtext.fallback:   stix
+
+axes.unicode_minus:  True
+
+svg.fonttype: path
+pdf.fonttype: 42
+ps.fonttype:  42
