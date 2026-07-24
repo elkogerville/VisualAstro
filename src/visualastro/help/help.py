@@ -364,7 +364,7 @@ class help:
             ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
 
             ax.set_title(
-                'VisualAstro Font Test\n'
+                f'VisualAstro Font Test{f" [{fontstyle}]" if fontstyle else ""}\n'
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -407,6 +407,31 @@ class help:
                     **kwargs,
                 )
                 y -= 0.045
+
+            weights = [
+                ('Available Weights:', dict()),
+                ('100', dict(weight='100')),
+                ('200', dict(weight='200')),
+                ('300', dict(weight='300')),
+                ('400', dict(weight='400')),
+                ('500', dict(weight='500')),
+                ('600', dict(weight='600')),
+                ('700', dict(weight='700')),
+                ('800', dict(weight='800')),
+                ('900', dict(weight='900')),
+            ]
+
+            y = 0.45
+            for text, kwargs in weights:
+                fig.text(
+                    0.25,
+                    y,
+                    text,
+                    fontsize=12,
+                    horizontalalignment='right',
+                    **kwargs,
+                )
+                y -= 0.03
 
             fig.text(
                 0.87,
