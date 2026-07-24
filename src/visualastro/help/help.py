@@ -11,6 +11,7 @@ from glob import glob
 from importlib.resources import files
 import inspect
 import os
+from pathlib import Path
 from typing import Literal
 import warnings
 
@@ -36,7 +37,7 @@ from visualastro.plotting.core.colors import (
     plot_colors,
     plot_colortable,
 )
-from visualastro.plotting.core.style import _style_context
+from visualastro.plotting.core.style import _style_context, reset_rcParams
 from visualastro.plotting.core.utils import legend
 
 
@@ -312,9 +313,9 @@ class help:
         """
 
         if style_name is None:
-            base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-            style_files = glob(os.path.join(base_dir, 'stylelib', '*.mplstyle'))
-            style_names = np.sort([os.path.splitext(os.path.basename(f))[0] for f in style_files])
+            stylelib = files('visualastro') / 'stylelib'
+            style_root = Path(stylelib)
+            style_names = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
         else:
             style_names = to_list(style_name)
         colors = get_colors(len(style_names), cmap=config.cmap)
@@ -324,6 +325,7 @@ class help:
             '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
+            reset_rcParams()
             with _style_context(style_name):
                 if style_name == 'cm10':
                     warnings.warn(
