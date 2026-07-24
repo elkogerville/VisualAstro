@@ -1,4 +1,4 @@
- # core classes
+# core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -185,7 +185,7 @@ from visualastro.utils.wcs_utils import (
 # --------------
 def _register_fonts() -> None:
     """
-    Register additional fonts into matplotlib.
+    Register additional fonts into Matplotlib.
     To add more fonts, simply add a folder to
     `VisualAstro/src/visualastro/stylelib/fontlib`
     with `.ttf` or `.otf` files.
@@ -200,7 +200,7 @@ def _register_fonts() -> None:
     if not fonts_dir.exists():
         warnings.warn(
             '[visualastro] Font directory not found. '
-            'Falling back to matplotlib default fonts.',
+            'Falling back to Matplotlib default fonts.',
             stacklevel=2
         )
         return
@@ -224,10 +224,10 @@ _register_fonts()
 # ---------------
 def _register_styles():
     """
-    Register additional styles with matplotlib.
+    Register additional styles with Matplotlib.
 
     Available under `plt.style.use('stylename')`
-    after importing visualastro.
+    after importing VisualAstro.
     """
     from importlib.resources import files
     from pathlib import Path
@@ -264,7 +264,7 @@ def _register_styles():
         for name in (key, *aliases):
             if name in plt.style.library:
                 warnings.warn(
-                    f"Found custom visualastro style '{name}' that conflicts "
+                    f"Found custom VisualAstro style '{name}' that conflicts "
                     "with an existing Matplotlib style. Skipping registration.",
                     stacklevel=2,
                 )
@@ -283,7 +283,7 @@ styles = _register_styles()
 # REGISTER NAMED COLORS
 # ---------------------
 def _register_colors() -> None:
-    """Register additional named colors with matplotlib."""
+    """Register additional named colors with Matplotlib."""
     import warnings
     import matplotlib as mpl
     from visualastro.plotting.core.colors import VISUALASTRO_NAMED_COLORS
@@ -295,8 +295,8 @@ def _register_colors() -> None:
                 mpl.colors.get_named_colors_mapping()[name.lower()] = color
         else:
             warnings.warn(
-                f"Found custom visualastro color of name: '{name}', which "
-                'conflicts with a pre-existing matplotlib named color! '
+                f"Found custom VisualAstro color of name: '{name}', which "
+                'conflicts with a pre-existing Matplotlib named color! '
                 'Skipping registration, please change name collision in '
                 'visualastro.plotting.core.colors.',
                 stacklevel=2
@@ -308,7 +308,7 @@ _register_colors()
 # REGISTER COLORMAPS
 # ------------------
 def _register_cmaps() -> None:
-    """Register additional colormaps with matplotlib."""
+    """Register additional colormaps with Matplotlib."""
     import cmasher
     import matplotlib as mpl
     from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
