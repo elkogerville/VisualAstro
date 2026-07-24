@@ -21,8 +21,12 @@ mathtext.cal:        Concrete Math
 mathtext.fallback:   stix
 mathtext.default:    bf
 
+axes.titleweight:    700
+axes.labelweight:    700
 axes.unicode_minus:  True
-axes.labelweight:    bold
+
+figure.titleweight:  700
+figure.labelweight:  700
 
 svg.fonttype: path
 pdf.fonttype: 42
