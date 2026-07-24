@@ -127,7 +127,7 @@ def _style_context(style: str | None = None) -> AbstractContextManager:
     Parameters
     ----------
     style : str | None, optional, default=None
-        Name of the style to resolve via `_get_stylepath`. Ignored if `path` is given.
+        Name of the style to resolve via `_get_stylepath`.
 
     Returns
     -------

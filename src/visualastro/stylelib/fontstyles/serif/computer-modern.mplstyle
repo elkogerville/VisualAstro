@@ -6,6 +6,7 @@
 
 font.family:         serif
 font.serif:          NewComputerModern
+font.weight:         400
 
 text.usetex:         False
 
@@ -19,7 +20,12 @@ mathtext.tt:         NewComputerModern Math
 mathtext.cal:        NewComputerModern Math
 mathtext.fallback:   stix
 
+axes.titleweight:    400
+axes.labelweight:    400
 axes.unicode_minus:  True
+
+figure.titleweight:  400
+figure.labelweight:  400
 
 svg.fonttype: path
 pdf.fonttype: 42

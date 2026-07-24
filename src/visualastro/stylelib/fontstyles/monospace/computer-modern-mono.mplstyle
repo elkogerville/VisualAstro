@@ -6,6 +6,7 @@
 
 font.family:         monospace
 font.monospace:      NewComputerModern Mono
+font.weight:         400
 
 text.usetex:         False
 
@@ -19,7 +20,12 @@ mathtext.cal:        Concrete Math
 mathtext.fallback:   stix
 mathtext.default:    it
 
+axes.titleweight:    400
+axes.labelweight:    400
 axes.unicode_minus:  True
+
+figure.titleweight:  400
+figure.labelweight:  400
 
 svg.fonttype: none
 pdf.fonttype: 42
