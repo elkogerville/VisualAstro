@@ -6,7 +6,7 @@
 
 font.family:         serif
 font.serif:          Concrete Math
-font.weight:         bold
+font.weight:         700
 
 text.usetex:         False
 
