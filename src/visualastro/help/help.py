@@ -19,7 +19,7 @@ import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
-from matplotlib import font_manager
+from matplotlib import font_manager, ft2font
 import numpy as np
 
 from visualastro.analysis.ic import blob
@@ -38,7 +38,7 @@ from visualastro.plotting.core.colors import (
     plot_colors,
     plot_colortable,
 )
-from visualastro.plotting.core.style import _style_context, reset_rcParams
+from visualastro.plotting.core.style import VisualAstroStyles, _style_context, _get_styles, reset_rcParams
 from visualastro.plotting.core.utils import legend
 
 
@@ -350,6 +350,14 @@ class help:
 
                 plt.show()
 
+    @staticmethod # this function probably needs to go elsewhere or be better
+    def check_font(font_name: str): # check if font on comp, and check if it actually has glyphs
+        try:
+            font_path = font_manager.findfont(font_name, fallback_to_default=False)
+            font = ft2font.FT2Font(font_path)
+            return font.get_char_index(ord('D')) != 0 # glyph not found returns 0
+        except:
+            return False
 
     @staticmethod
     def fontstyle(fontstyle: str | None = None) -> None:
@@ -357,6 +365,19 @@ class help:
         Make a plot of a fontsyle. See `styles.fonts` for available fonts.
         `None` will test the default font, which is `'DejaVu Sans'`.
         """
+        # nasty way to get VA fontstyle names: (needs to use a helper function)
+        stylelib = files('visualastro') / 'stylelib' / 'fontstyles'
+        style_root = Path(stylelib)
+        style_names = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
+
+        if fontstyle in plt.style.available and fontstyle in style_names:
+            with plt.style.context(fontstyle):
+                font_family = plt.rcParams['font.family'][0]
+                font_name = plt.rcParams['font.' + str(font_family)][0]
+        else:
+            fontstyle = 'dejavu'
+            font_name = 'DejaVu Sans'
+
         with _style_context(fontstyle):
             x = np.linspace(0, 0.9, 5000)
 
@@ -364,9 +385,8 @@ class help:
             ax.plot(x, np.sin(80*x), lw=2, label=r'$\sin(80x)$', color='dsb')
             ax.plot(x, np.cos(80*x), '--', lw=2, label=r'$\cos(80x)$', color='mvr')
 
-            if fontstyle is None: fontstyle = plt.rcParams['font.sans-serif'][0]
             ax.set_title(
-                f"VisualAstro Font Test for '{fontstyle}'\n"
+                f"VisualAstro Font Test for '{font_name}'\n"
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -416,14 +436,15 @@ class help:
 
             weights = [
                 (f.name, f.weight) for f in font_manager.fontManager.ttflist
-                if fontstyle and fontstyle.lower() in f.name.lower()
+                if font_name.lower() in f.name.lower() and help.check_font(f.name)
             ]
+            print(weights)
 
             y = 0.4
             fig.text(
                 0.15,
                 y+0.035,
-                f'Available Weights\n{f"for {fontstyle} Fonts:" if fontstyle else ""}',
+                f"Available Weights\nfor '{font_name}' Fonts:",
                 fontsize=12,
                 horizontalalignment='left',
             )
