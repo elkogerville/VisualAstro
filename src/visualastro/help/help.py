@@ -358,12 +358,11 @@ class help:
         `None` will test the default font, which is `'DejaVu Sans'`.
         """
         with _style_context(fontstyle):
-            x = np.linspace(0, 2*np.pi, 500)
+            x = np.linspace(0, 0.9, 5000)
 
             fig, ax = plt.subplots(figsize=(9, 9))
-            ax.plot(x, np.sin(x), lw=2, label=r'$\sin(x)$', color='dsb')
-
-            ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
+            ax.plot(x, np.sin(80*x), lw=2, label=r'$\sin(80x)$', color='dsb')
+            ax.plot(x, np.cos(80*x), '--', lw=2, label=r'$\cos(80x)$', color='mvr')
 
             if fontstyle is None: fontstyle = plt.rcParams['font.sans-serif'][0]
             ax.set_title(
@@ -385,10 +384,14 @@ class help:
                 fontsize=15
             )
 
-            ax.set_ylabel(r'$\pm \times \div − + 13°$', fontsize=15)
+            ax.set_ylabel(
+                r'$\pm \times \div \AA \sim \leq \geq \approx − + 13° 14^\circ$',
+                fontsize=15
+            )
 
             ax.set_xscale('log')
-            ax.set_xlim(1e-2, 10000)
+            ax.set_xlim(0.8, 1.0)
+            ax.set_ylim(-5.0, 1.3)
 
             samples = [
                 ('Text Styles:', dict()),
