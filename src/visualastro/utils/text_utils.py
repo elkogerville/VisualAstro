@@ -6,6 +6,10 @@ Description:
     Text utility functions.
 """
 
+from textwrap import dedent
+
+from matplotlib import font_manager
+
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
 
 
@@ -173,3 +177,40 @@ def print_pretty_table(
     )
 
     print(table)
+
+
+def find_font(fontname: str) -> None:
+    """
+    Find and print the path of a registered matplotlib font.
+
+    Parameters
+    ----------
+    fontname : str
+        Name of font. Is case sensitive.
+    """
+    fontname = str(fontname)
+    for font in font_manager.fontManager.ttflist:
+        if fontname in font.name:
+            print(font.name, '->', font.fname)
+
+
+def print_font_info(fontname: str) -> None:
+    """
+    Print a matplotlib registered font's attributes.
+
+    Parameters
+    ----------
+    fontname : str
+        Name of font. Is case sensitive.
+    """
+    for f in font_manager.fontManager.ttflist:
+        if f.name == fontname:
+            print(dedent(f"""\
+                Family : {f.name}
+                Style  : {f.style}
+                Weight : {f.weight}
+                Stretch: {f.stretch}
+                Variant: {f.variant}
+                Size   : {f.size}
+                File   : {f.fname}
+            """))

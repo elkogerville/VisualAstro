@@ -281,8 +281,9 @@ def number_density(
     k : int
         Number of nearest neighbors used to define the local volume scale.
         Controls the bias–variance trade-off of the estimator:
-        - small `k` → high spatial resolution, noisy estimate
-        - large `k` → smoother estimate, reduced variance
+
+        * small `k` → high spatial resolution, noisy estimate
+        * large `k` → smoother estimate, reduced variance
 
     log : bool, default=False
         If `True`, returns `np.log10` of the density. Recommended when

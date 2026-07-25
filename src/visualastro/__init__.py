@@ -1,4 +1,4 @@
- # core classes
+# core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -167,7 +167,9 @@ from visualastro.plotting.science.wcs_plots import (
     plot_spectral_cube
 )
 from visualastro.utils.text_utils import (
+    find_font,
     pretty_table,
+    print_font_info,
     print_pretty_table
 )
 from visualastro.utils.wcs_utils import (
@@ -183,7 +185,7 @@ from visualastro.utils.wcs_utils import (
 # --------------
 def _register_fonts() -> None:
     """
-    Register additional fonts into matplotlib.
+    Register additional fonts into Matplotlib.
     To add more fonts, simply add a folder to
     `VisualAstro/src/visualastro/stylelib/fontlib`
     with `.ttf` or `.otf` files.
@@ -198,7 +200,7 @@ def _register_fonts() -> None:
     if not fonts_dir.exists():
         warnings.warn(
             '[visualastro] Font directory not found. '
-            'Falling back to matplotlib default fonts.',
+            'Falling back to Matplotlib default fonts.',
             stacklevel=2
         )
         return
@@ -222,17 +224,19 @@ _register_fonts()
 # ---------------
 def _register_styles():
     """
-    Register additional styles with matplotlib.
+    Register additional styles with Matplotlib.
 
     Available under `plt.style.use('stylename')`
-    after importing visualastro.
+    after importing VisualAstro.
     """
     from importlib.resources import files
     from pathlib import Path
     import warnings
     import matplotlib.pyplot as plt
 
-    from visualastro.plotting.core.style import VisualAstroStyles
+    from visualastro.plotting.core.style import (
+        STYLE_ALIASES, VisualAstroStyles
+    )
 
 
     stylelib = files('visualastro') / 'stylelib'
@@ -254,16 +258,19 @@ def _register_styles():
     for directory in dirs:
         styledict.update(_plt_read_style_dir(directory))
 
-    for key in styledict.keys():
-        if key not in plt.style.library:
-            plt.style.library[key] = styledict[key]
-        else:
-            warnings.warn(
-                f"Found custom visualastro style of name: '{key}', which "
-                'conflicts with a pre-existing matplotlib style! '
-                'Skipping registration, please change name collision.',
-                stacklevel=2
-            )
+    for key, style in styledict.items():
+        aliases = STYLE_ALIASES.get(key, ())
+
+        for name in (key, *aliases):
+            if name in plt.style.library:
+                warnings.warn(
+                    f"Found custom VisualAstro style '{name}' that conflicts "
+                    "with an existing Matplotlib style. Skipping registration.",
+                    stacklevel=2,
+                )
+                continue
+
+            plt.style.library[name] = style.copy()
 
     plt.style.available[:] = sorted(plt.style.library.keys())
 
@@ -276,7 +283,7 @@ styles = _register_styles()
 # REGISTER NAMED COLORS
 # ---------------------
 def _register_colors() -> None:
-    """Register additional named colors with matplotlib."""
+    """Register additional named colors with Matplotlib."""
     import warnings
     import matplotlib as mpl
     from visualastro.plotting.core.colors import VISUALASTRO_NAMED_COLORS
@@ -288,8 +295,8 @@ def _register_colors() -> None:
                 mpl.colors.get_named_colors_mapping()[name.lower()] = color
         else:
             warnings.warn(
-                f"Found custom visualastro color of name: '{name}', which "
-                'conflicts with a pre-existing matplotlib named color! '
+                f"Found custom VisualAstro color of name: '{name}', which "
+                'conflicts with a pre-existing Matplotlib named color! '
                 'Skipping registration, please change name collision in '
                 'visualastro.plotting.core.colors.',
                 stacklevel=2
@@ -301,7 +308,7 @@ _register_colors()
 # REGISTER COLORMAPS
 # ------------------
 def _register_cmaps() -> None:
-    """Register additional colormaps with matplotlib."""
+    """Register additional colormaps with Matplotlib."""
     import cmasher
     import matplotlib as mpl
     from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS

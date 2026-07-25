@@ -1,0 +1,27 @@
+# Libertinus Math font
+# --------------------
+# No Latex
+#
+# visualastro 2026
+
+font.family:         serif
+font.serif:          Libertinus Serif
+
+text.usetex:         False
+
+mathtext.fontset:    custom
+mathtext.rm:         Libertinus Math
+mathtext.bf:         Libertinus Serif:bold
+mathtext.bfit:       Libertinus Serif:italic:bold
+mathtext.it:         Libertinus Serif:italic
+mathtext.sf:         Libertinus Math
+mathtext.tt:         Libertinus Math
+mathtext.cal:        Libertinus Math
+mathtext.fallback:   stix
+mathtext.default:    it
+
+axes.unicode_minus:  True
+
+svg.fonttype: path
+pdf.fonttype: 42
+ps.fonttype:  42

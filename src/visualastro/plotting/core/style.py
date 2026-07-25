@@ -127,7 +127,7 @@ def _style_context(style: str | None = None) -> AbstractContextManager:
     Parameters
     ----------
     style : str | None, optional, default=None
-        Name of the style to resolve via `_get_stylepath`. Ignored if `path` is given.
+        Name of the style to resolve via `_get_stylepath`.
 
     Returns
     -------
@@ -284,6 +284,13 @@ def style(
 
     with plt.style.context(context):
         yield
+
+
+STYLE_ALIASES = {
+    'computer-modern': ('cm', 'cmu'),
+    'computer-modern-mono': ('cm-mono', 'cmu-mono'),
+    'computer-modern-sans': ('cm-sans', 'cmu-sans'),
+}
 
 
 def apply_style_modifiers(ax, style: str):
