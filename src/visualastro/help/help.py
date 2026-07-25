@@ -372,8 +372,8 @@ class help:
 
         if fontstyle in plt.style.available and fontstyle in style_names:
             with plt.style.context(fontstyle):
-                font_family = plt.rcParams['font.family'][0]
-                font_name = plt.rcParams['font.' + str(font_family)][0]
+                family: str = plt.rcParams['font.family'][0]
+                font_name = plt.rcParams['font.'+family][0]
         else:
             fontstyle = 'dejavu'
             font_name = 'DejaVu Sans'
@@ -405,7 +405,7 @@ class help:
             )
 
             ax.set_ylabel(
-                r'$\pm \times \div \AA \sim \leq \geq \approx − + 13° 14^\circ$',
+                r'$\pm \times \div − + \sim \leq \geq \approx$',
                 fontsize=15
             )
 
@@ -422,7 +422,7 @@ class help:
                 ('Monospace 0123456789', dict(family='monospace')),
             ]
 
-            y = 0.37
+            y = 0.28
             for text, kwargs in samples:
                 fig.text(
                     0.87,
@@ -432,7 +432,7 @@ class help:
                     horizontalalignment='right',
                     **kwargs,
                 )
-                y -= 0.045
+                y -= 0.025
 
             weights = [
                 (f.name, f.weight) for f in font_manager.fontManager.ttflist
@@ -440,7 +440,7 @@ class help:
             ]
             print(weights)
 
-            y = 0.4
+            y = 0.5
             fig.text(
                 0.15,
                 y+0.035,
@@ -459,7 +459,6 @@ class help:
                     horizontalalignment='left',
                 )
                 y -= 0.025
-                print(name, weight)
 
             fig.text(
                 0.87,
@@ -467,15 +466,13 @@ class help:
                 (
                     'MATHTEXT MODE:'
                     '\n'
-                    r'$Aa Bb Cc Dd Ee Ff Gg Hh Ii$'
+                    r'$Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm$'
                     '\n'
-                    r'$Jj Kk Ll Mm Nn Oo Pp Qq Rr$'
-                    '\n'
-                    r'$Ss Tt Uu Vv Ww Xx Yy Zz$'
+                    r'$Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz$'
                     '\n'
                     r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
                     '\n'
-                    r'$M_\odot L_\odot R_\oplus M_\star \odot \; \oplus \; \star$'
+                    r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \star$'
                     '\n'
                     r'$\leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
@@ -491,8 +488,6 @@ class help:
                     r'\mathsf{Sans}\;'
                     r'\mathtt{Mono}$'
                     '\n'
-                    '\N{MINUS SIGN}1'
-                    '\n'
                     '\n'
                     'UNICODE GREEK LETTERS:'
                     '\n'
@@ -501,9 +496,15 @@ class help:
                     'Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
                     '\n'
                     'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
+                    '\n'
+                    r'UNICODE degree: $13°$'
+                    '\n'
+                    r'MATHTEXT degree: $13^\circ$'
+                    '\n'
+                    'MINUS SIGN: \N{MINUS SIGN}1'
                 ),
                 fontsize=12,
-                horizontalalignment='right'
+                horizontalalignment='right',
             )
 
             legend(
