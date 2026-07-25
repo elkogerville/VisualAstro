@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-22
+Date Modified: 2026-07-24
 Description:
     VisualAstro help documentation class.
 """
@@ -19,6 +19,7 @@ import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
+from matplotlib import font_manager
 import numpy as np
 
 from visualastro.analysis.ic import blob
@@ -354,6 +355,7 @@ class help:
     def fontstyle(fontstyle: str | None = None) -> None:
         """
         Make a plot of a fontsyle. See `styles.fonts` for available fonts.
+        `None` will test the default font, which is `'DejaVu Sans'`.
         """
         with _style_context(fontstyle):
             x = np.linspace(0, 2*np.pi, 500)
@@ -363,8 +365,9 @@ class help:
 
             ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
 
+            if fontstyle is None: fontstyle = plt.rcParams['font.sans-serif'][0]
             ax.set_title(
-                'VisualAstro Font Test\n'
+                f"VisualAstro Font Test for '{fontstyle}'\n"
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -407,6 +410,32 @@ class help:
                     **kwargs,
                 )
                 y -= 0.045
+
+            weights = [
+                (f.name, f.weight) for f in font_manager.fontManager.ttflist
+                if fontstyle and fontstyle.lower() in f.name.lower()
+            ]
+
+            y = 0.4
+            fig.text(
+                0.15,
+                y+0.035,
+                f'Available Weights\n{f"for {fontstyle} Fonts:" if fontstyle else ""}',
+                fontsize=12,
+                horizontalalignment='left',
+            )
+            for name, weight in dict.fromkeys(sorted(weights)):
+                fig.text(
+                    0.15,
+                    y,
+                    name + f' ({weight})',
+                    font=name,
+                    weight=weight,
+                    fontsize=12,
+                    horizontalalignment='left',
+                )
+                y -= 0.025
+                print(name, weight)
 
             fig.text(
                 0.87,
