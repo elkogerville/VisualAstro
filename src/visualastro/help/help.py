@@ -442,9 +442,15 @@ class help:
 
             fig.text(
                 0.87,
-                0.5,
+                0.4,
                 (
                     'MATHTEXT MODE:'
+                    '\n'
+                    r'$Aa Bb Cc Dd Ee Ff Gg Hh Ii$'
+                    '\n'
+                    r'$Jj Kk Ll Mm Nn Oo Pp Qq Rr$'
+                    '\n'
+                    r'$Ss Tt Uu Vv Ww Xx Yy Zz$'
                     '\n'
                     r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
                     '\n'
