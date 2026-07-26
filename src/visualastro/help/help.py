@@ -396,7 +396,11 @@ class help:
             )
 
             ax.set_ylabel(
-                r'$\pm \times \div − + \sim \leq \geq \approx \propto$',
+                r'$\times \div - + \pm \leq \geq \ll \leqq$'
+                '\n'
+                r'$\equiv \neq \sim \simeq \approx \cong \propto$'
+                '\n'
+                r'$\therefore \because \subset \subseteq \in \Subset \cap \wedge$',
                 fontsize=15
             )
 
@@ -484,7 +488,7 @@ class help:
                     '\n'
                     r'$\partial \; \nabla \; \sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
                     '\n'
-                    r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \star$'
+                    r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$'
                     '\n'
                     r'$\to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
