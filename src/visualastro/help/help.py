@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-24
+Date Modified: 2026-07-26
 Description:
     VisualAstro help documentation class.
 """
@@ -38,7 +38,7 @@ from visualastro.plotting.core.colors import (
     plot_colors,
     plot_colortable,
 )
-from visualastro.plotting.core.style import VisualAstroStyles, _style_context, _get_styles, reset_rcParams
+from visualastro.plotting.core.style import _style_context, reset_rcParams
 from visualastro.plotting.core.utils import legend
 
 
@@ -350,12 +350,16 @@ class help:
 
                 plt.show()
 
-    @staticmethod # this function probably needs to go elsewhere or be better
-    def check_font(font_name: str): # check if font on comp, and check if it actually has glyphs
+    @staticmethod # this fn should go elsewhere or become/use a helper function
+    def check_font(font_name: str, glyph: str = 'D') -> bool:
+        """
+        Check if font `font_name` is available on the system and isn't
+        missing glyphs. Default `glyph` checked is `'D'`, for `DejaVu Sans`.
+        """
         try:
             font_path = font_manager.findfont(font_name, fallback_to_default=False)
             font = ft2font.FT2Font(font_path)
-            return font.get_char_index(ord('D')) != 0 # glyph not found returns 0
+            return font.get_char_index(ord(glyph)) != 0 # glyph not found returns 0
         except:
             return False
 
@@ -373,9 +377,13 @@ class help:
         if fontstyle in plt.style.available and fontstyle in style_names:
             with plt.style.context(fontstyle):
                 family: str = plt.rcParams['font.family'][0]
-                font_name = plt.rcParams['font.'+family][0]
+                try:
+                    font_name = plt.rcParams['font.'+family][0]
+                except:
+                    font_name = family # some styles have font name in place of font family
         else:
             fontstyle = 'dejavu'
+            family = 'sans-serif'
             font_name = 'DejaVu Sans'
 
         with _style_context(fontstyle):
@@ -422,7 +430,7 @@ class help:
                 ('Monospace 0123456789', dict(family='monospace')),
             ]
 
-            y = 0.28
+            y = 0.26
             for text, kwargs in samples:
                 fig.text(
                     0.87,
@@ -434,35 +442,56 @@ class help:
                 )
                 y -= 0.025
 
-            weights = [
+            weights = dict.fromkeys(sorted(
                 (f.name, f.weight) for f in font_manager.fontManager.ttflist
                 if font_name.lower() in f.name.lower() and help.check_font(f.name)
-            ]
-            print(weights)
+            ))
 
-            y = 0.5
-            fig.text(
-                0.15,
-                y+0.035,
-                f"Available Weights\nfor '{font_name}' Fonts:",
-                fontsize=12,
-                horizontalalignment='left',
-            )
-            for name, weight in dict.fromkeys(sorted(weights)):
+            if len(weights) == 0 and not help.check_font(font_name):
                 fig.text(
-                    0.15,
-                    y,
-                    name + f' ({weight})',
-                    font=name,
-                    weight=weight,
-                    fontsize=12,
-                    horizontalalignment='left',
+                    0.16,
+                    0.4,
+                    (
+                        f"No available '{font_name}'\nfonts found on system!"
+                        "\n\n(Currently using next\navailable font from family"
+                        f"\n'{family}', which is "
+                        f"'{font_manager.FontProperties().get_name()}')"
+                    ),
+                    fontsize = 12,
+                    horizontalalignment = 'left',
                 )
-                y -= 0.025
+            else:
+                y = 0.5
+                fig.text(
+                    0.16,
+                    y+0.03,
+                    f"Available Weights\nfor '{font_name}' Fonts:",
+                    fontsize = 12,
+                    horizontalalignment = 'left',
+                )
+
+                fs = 9 if len(weights) > 10 else 12
+                step = 0.017 if len(weights) > 10 else 0.025
+                for name, weight in weights:
+                    fig.text(
+                        0.16,
+                        y,
+                        name + f' ({weight})',
+                        font = name,
+                        weight = weight,
+                        fontsize = fs,
+                        horizontalalignment = 'left',
+                    )
+                    y -= step
+
+            smiley = (
+                "☺ UNICODE SMILEY ☻" if help.check_font(font_name, glyph='☺')
+                and help.check_font(font_name, glyph='☻') else "no unicode smiley </3"
+            )
 
             fig.text(
                 0.87,
-                0.4,
+                0.31,
                 (
                     'MATHTEXT MODE:'
                     '\n'
@@ -502,6 +531,14 @@ class help:
                     r'MATHTEXT degree: $13^\circ$'
                     '\n'
                     'MINUS SIGN: \N{MINUS SIGN}1'
+                    '\n'
+                    '[BRACKETS]: \N{LEFT SQUARE BRACKET}-:  ;-\N{RIGHT SQUARE BRACKET}'
+                    '\n'
+                    '{CURLY BRACKETS}: \N{LEFT CURLY BRACKET}^:  B-\N{RIGHT CURLY BRACKET}'
+                    '\n'
+                    '(PARENTHESIS): \N{LEFT PARENTHESIS}=  :\N{RIGHT PARENTHESIS}'
+                    '\n'
+                    f'{smiley}'
                 ),
                 fontsize=12,
                 horizontalalignment='right',
