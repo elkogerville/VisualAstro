@@ -135,9 +135,9 @@ def _style_context(style: str | None = None) -> AbstractContextManager:
         `plt.style.context(stylepath)` if a style path was resolved, otherwise
         `nullcontext()`.
     """
-    stylepath = _get_stylepath(style)
+    style = style if style in plt.style.available else None
     return (
-        plt.style.context(stylepath) if stylepath is not None else nullcontext()
+        plt.style.context(style) if style is not None else nullcontext()
     )
 
 

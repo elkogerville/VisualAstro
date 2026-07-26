@@ -1,24 +1,22 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-22
+Date Modified: 2026-07-26
 Description:
     VisualAstro help documentation class.
 """
 
 from collections.abc import Sequence
-from glob import glob
 from importlib.resources import files
 import inspect
-import os
 from pathlib import Path
 from typing import Literal
-import warnings
 
 import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
+from matplotlib import font_manager
 import numpy as np
 
 from visualastro.analysis.ic import blob
@@ -39,6 +37,7 @@ from visualastro.plotting.core.colors import (
 )
 from visualastro.plotting.core.style import _style_context, reset_rcParams
 from visualastro.plotting.core.utils import legend
+from visualastro.utils.text_utils import check_font
 
 
 class help:
@@ -354,17 +353,31 @@ class help:
     def fontstyle(fontstyle: str | None = None) -> None:
         """
         Make a plot of a fontsyle. See `styles.fonts` for available fonts.
+        `None` will test the default font, which is `'DejaVu Sans'`.
         """
+        if fontstyle in plt.style.available:
+            with plt.style.context(fontstyle):
+                family: str = plt.rcParams['font.family'][0]
+                try:
+                    font_name = plt.rcParams['font.'+family][0]
+                except:
+                    # some styles have font name in place of font family
+                    font_name = family
+        else:
+            fontstyle = 'dejavu'
+            family = 'sans-serif'
+            font_name = 'DejaVu Sans'
+
         with _style_context(fontstyle):
-            x = np.linspace(0, 2*np.pi, 500)
+            x = np.linspace(0, 0.9, 5000)
 
             fig, ax = plt.subplots(figsize=(9, 9))
-            ax.plot(x, np.sin(x), lw=2, label=r'$\sin(x)$', color='dsb')
-
-            ax.plot(x, np.cos(x), '--', lw=2, label=r'$\cos(x)$', color='mvr')
+            ax.plot(x, np.sin(80*x), lw=2, label=r'$\sin(80x)$', color='dsb')
+            ax.plot(x, np.cos(80*x), '--', lw=2, label=r'$\cos(80x)$', color='mvr')
 
             ax.set_title(
-                'VisualAstro Font Test\n'
+                f"VisualAstro Test for Font: '{font_name}'\n"
+                f"Stylesheet: {fontstyle}\n"
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -374,18 +387,26 @@ class help:
             ax.set_xlabel(
                 'Mathtext Greek Letters:'
                 '\n'
-                r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
-                r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$'
-                '\n'
                 r'$A B \Gamma \Delta E Z H \Theta I K \Lambda M N \Xi O \Pi P \Sigma T \Upsilon'
-                r'\Phi X \Psi \Omega$',
+                r'\Phi X \Psi \Omega$'
+                '\n'
+                r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
+                r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$',
                 fontsize=15
             )
 
-            ax.set_ylabel(r'$\pm \times \div − + 13°$', fontsize=15)
+            ax.set_ylabel(
+                r'$\times \div - + \pm \leq \geq \ll \leqq$'
+                '\n'
+                r'$\equiv \neq \sim \simeq \approx \cong \propto$'
+                '\n'
+                r'$\therefore \because \subset \subseteq \in \Subset \cap \wedge$',
+                fontsize=15
+            )
 
             ax.set_xscale('log')
-            ax.set_xlim(1e-2, 10000)
+            ax.set_xlim(0.8, 1.0)
+            ax.set_ylim(-5.0, 1.3)
 
             samples = [
                 ('Text Styles:', dict()),
@@ -396,7 +417,7 @@ class help:
                 ('Monospace 0123456789', dict(family='monospace')),
             ]
 
-            y = 0.37
+            y = 0.26
             for text, kwargs in samples:
                 fig.text(
                     0.87,
@@ -406,19 +427,72 @@ class help:
                     horizontalalignment='right',
                     **kwargs,
                 )
-                y -= 0.045
+                y -= 0.025
 
+            weights = dict.fromkeys(sorted(
+                (f.name, f.weight) for f in font_manager.fontManager.ttflist
+                if font_name.lower() in f.name.lower() and check_font(f.name)
+            ))
+
+            if len(weights) == 0 and not check_font(font_name):
+                fig.text(
+                    0.16,
+                    0.4,
+                    (
+                        f"No available '{font_name}'\nfonts found on system!"
+                        "\n\n(Currently using next\navailable font from family"
+                        f"\n'{family}', which is "
+                        f"'{font_manager.FontProperties().get_name()}')"
+                    ),
+                    fontsize = 12,
+                    horizontalalignment = 'left',
+                )
+            else:
+                y = 0.5
+                fig.text(
+                    0.16,
+                    y+0.03,
+                    f"Available Weights\nfor '{font_name}' Fonts:",
+                    fontsize = 12,
+                    horizontalalignment = 'left',
+                )
+
+                fs = 9 if len(weights) > 10 else 12
+                step = 0.017 if len(weights) > 10 else 0.025
+                for name, weight in weights:
+                    fig.text(
+                        0.16,
+                        y,
+                        name + f' ({weight})',
+                        font = name,
+                        weight = weight,
+                        fontsize = fs,
+                        horizontalalignment = 'left',
+                    )
+                    y -= step
+
+            smiley = (
+                "☺ UNICODE SMILEY ☻" if check_font(font_name, glyph='☺')
+                and check_font(font_name, glyph='☻') else "no unicode smiley </3"
+            )
+
+            mathfont = plt.rcParams['mathtext.fontset']
+            mathname = plt.rcParams['mathtext.rm'] if mathfont == 'custom' else mathfont
             fig.text(
                 0.87,
-                0.5,
+                0.55,
                 (
-                    'MATHTEXT MODE:'
+                    f'MATHTEXT Font: {mathname}'
                     '\n'
-                    r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
+                    r'$Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm$'
                     '\n'
-                    r'$M_\odot L_\odot R_\oplus M_\star \odot \; \oplus \; \star$'
+                    r'$Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz$'
                     '\n'
-                    r'$\leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    r'$\partial \; \nabla \; \sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
+                    '\n'
+                    r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$'
+                    '\n'
+                    r'$\to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
                     r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
                     r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
@@ -432,9 +506,17 @@ class help:
                     r'\mathsf{Sans}\;'
                     r'\mathtt{Mono}$'
                     '\n'
-                    '\N{MINUS SIGN}1'
-                    '\n'
-                    '\n'
+                    r'MATHTEXT degree: $13^\circ$'
+
+                ),
+                fontsize=12,
+                horizontalalignment='right',
+            )
+
+            fig.text(
+                0.87,
+                0.3,
+                (
                     'UNICODE GREEK LETTERS:'
                     '\n'
                     'Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
@@ -442,9 +524,21 @@ class help:
                     'Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
                     '\n'
                     'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
+                    '\n'
+                    'UNICODE degree: 13°'
+                    '\n'
+                    'MINUS SIGN: \N{MINUS SIGN}1'
+                    '\n[BRACKETS]: '
+                    r'$\left[-:  ;-\right]$'
+                    '\n{CURLY BRACKETS}: {^:  B-}'
+                    '\n(PARENTHESIS): '
+                    r'$\left( \text{=  :}\right)$'
+                    '\n'
+                    f'{smiley}'
                 ),
-                fontsize=12,
-                horizontalalignment='right'
+                fontsize=11,
+                horizontalalignment='right',
+                usetex=False
             )
 
             legend(

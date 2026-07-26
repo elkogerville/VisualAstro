@@ -167,6 +167,7 @@ from visualastro.plotting.science.wcs_plots import (
     plot_spectral_cube
 )
 from visualastro.utils.text_utils import (
+    check_font,
     find_font,
     pretty_table,
     print_font_info,
