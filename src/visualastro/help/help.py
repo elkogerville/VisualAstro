@@ -476,11 +476,13 @@ class help:
                 and check_font(font_name, glyph='☻') else "no unicode smiley </3"
             )
 
+            mathfont = plt.rcParams['mathtext.fontset']
+            mathname = plt.rcParams['mathtext.rm'] if mathfont == 'custom' else mathfont
             fig.text(
                 0.87,
-                0.3,
+                0.55,
                 (
-                    'MATHTEXT MODE:'
+                    f'MATHTEXT Font: {mathname}'
                     '\n'
                     r'$Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm$'
                     '\n'
@@ -504,7 +506,17 @@ class help:
                     r'\mathsf{Sans}\;'
                     r'\mathtt{Mono}$'
                     '\n'
-                    '\n'
+                    r'MATHTEXT degree: $13^\circ$'
+
+                ),
+                fontsize=12,
+                horizontalalignment='right',
+            )
+
+            fig.text(
+                0.87,
+                0.3,
+                (
                     'UNICODE GREEK LETTERS:'
                     '\n'
                     'Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
@@ -513,9 +525,7 @@ class help:
                     '\n'
                     'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
                     '\n'
-                    r'UNICODE degree: $13°$'
-                    '\n'
-                    r'MATHTEXT degree: $13^\circ$'
+                    'UNICODE degree: 13°'
                     '\n'
                     'MINUS SIGN: \N{MINUS SIGN}1'
                     '\n'
@@ -527,8 +537,9 @@ class help:
                     '\n'
                     f'{smiley}'
                 ),
-                fontsize=12,
+                fontsize=11,
                 horizontalalignment='right',
+                usetex=False
             )
 
             legend(
