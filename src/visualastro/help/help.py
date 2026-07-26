@@ -7,19 +7,16 @@ Description:
 """
 
 from collections.abc import Sequence
-from glob import glob
 from importlib.resources import files
 import inspect
-import os
 from pathlib import Path
 from typing import Literal
-import warnings
 
 import astropy.units as u
 from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
-from matplotlib import font_manager, ft2font
+from matplotlib import font_manager
 import numpy as np
 
 from visualastro.analysis.ic import blob
@@ -40,6 +37,7 @@ from visualastro.plotting.core.colors import (
 )
 from visualastro.plotting.core.style import _style_context, reset_rcParams
 from visualastro.plotting.core.utils import legend
+from visualastro.utils.text_utils import check_font
 
 
 class help:
@@ -350,18 +348,6 @@ class help:
 
                 plt.show()
 
-    @staticmethod # this fn should go elsewhere or become/use a helper function
-    def check_font(font_name: str, glyph: str = 'D') -> bool:
-        """
-        Check if font `font_name` is available on the system and isn't
-        missing glyphs. Default `glyph` checked is `'D'`, for `DejaVu Sans`.
-        """
-        try:
-            font_path = font_manager.findfont(font_name, fallback_to_default=False)
-            font = ft2font.FT2Font(font_path)
-            return font.get_char_index(ord(glyph)) != 0 # glyph not found returns 0
-        except:
-            return False
 
     @staticmethod
     def fontstyle(fontstyle: str | None = None) -> None:

@@ -8,7 +8,7 @@ Description:
 
 from textwrap import dedent
 
-from matplotlib import font_manager
+from matplotlib import font_manager, ft2font
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
 
@@ -214,3 +214,16 @@ def print_font_info(fontname: str) -> None:
                 Size   : {f.size}
                 File   : {f.fname}
             """))
+
+
+def check_font(font_name: str, glyph: str = 'D') -> bool:
+    """
+    Check if font `font_name` is available on the system and isn't
+    missing glyphs. Default `glyph` checked is `'D'`, for `DejaVu Sans`.
+    """
+    try:
+        font_path = font_manager.findfont(font_name, fallback_to_default=False)
+        font = ft2font.FT2Font(font_path)
+        return font.get_char_index(ord(glyph)) != 0 # glyph not found returns 0
+    except:
+        return False
