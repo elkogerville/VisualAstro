@@ -396,7 +396,7 @@ class help:
             )
 
             ax.set_ylabel(
-                r'$\pm \times \div − + \sim \leq \geq \approx$',
+                r'$\pm \times \div − + \sim \leq \geq \approx \propto$',
                 fontsize=15
             )
 
@@ -482,11 +482,11 @@ class help:
                     '\n'
                     r'$Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz$'
                     '\n'
-                    r'$\sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
+                    r'$\partial \; \nabla \; \sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$'
                     '\n'
                     r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \star$'
                     '\n'
-                    r'$\leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    r'$\to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
                     r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
                     r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
