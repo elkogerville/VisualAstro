@@ -355,18 +355,14 @@ class help:
         Make a plot of a fontsyle. See `styles.fonts` for available fonts.
         `None` will test the default font, which is `'DejaVu Sans'`.
         """
-        # nasty way to get VA fontstyle names: (needs to use a helper function)
-        stylelib = files('visualastro') / 'stylelib' / 'fontstyles'
-        style_root = Path(stylelib)
-        style_names = sorted(list({p.stem for p in style_root.rglob('*.mplstyle')}))
-
-        if fontstyle in plt.style.available and fontstyle in style_names:
+        if fontstyle in plt.style.available:
             with plt.style.context(fontstyle):
                 family: str = plt.rcParams['font.family'][0]
                 try:
                     font_name = plt.rcParams['font.'+family][0]
                 except:
-                    font_name = family # some styles have font name in place of font family
+                    # some styles have font name in place of font family
+                    font_name = family
         else:
             fontstyle = 'dejavu'
             family = 'sans-serif'
@@ -380,7 +376,8 @@ class help:
             ax.plot(x, np.cos(80*x), '--', lw=2, label=r'$\cos(80x)$', color='mvr')
 
             ax.set_title(
-                f"VisualAstro Font Test for '{font_name}'\n"
+                f"VisualAstro Test for Font: '{font_name}'\n"
+                f"Stylesheet: {fontstyle}\n"
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -390,11 +387,11 @@ class help:
             ax.set_xlabel(
                 'Mathtext Greek Letters:'
                 '\n'
-                r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
-                r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$'
-                '\n'
                 r'$A B \Gamma \Delta E Z H \Theta I K \Lambda M N \Xi O \Pi P \Sigma T \Upsilon'
-                r'\Phi X \Psi \Omega$',
+                r'\Phi X \Psi \Omega$'
+                '\n'
+                r'$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa'
+                r'\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$',
                 fontsize=15
             )
 
@@ -430,10 +427,10 @@ class help:
 
             weights = dict.fromkeys(sorted(
                 (f.name, f.weight) for f in font_manager.fontManager.ttflist
-                if font_name.lower() in f.name.lower() and help.check_font(f.name)
+                if font_name.lower() in f.name.lower() and check_font(f.name)
             ))
 
-            if len(weights) == 0 and not help.check_font(font_name):
+            if len(weights) == 0 and not check_font(font_name):
                 fig.text(
                     0.16,
                     0.4,
@@ -471,13 +468,13 @@ class help:
                     y -= step
 
             smiley = (
-                "☺ UNICODE SMILEY ☻" if help.check_font(font_name, glyph='☺')
-                and help.check_font(font_name, glyph='☻') else "no unicode smiley </3"
+                "☺ UNICODE SMILEY ☻" if check_font(font_name, glyph='☺')
+                and check_font(font_name, glyph='☻') else "no unicode smiley </3"
             )
 
             fig.text(
                 0.87,
-                0.31,
+                0.3,
                 (
                     'MATHTEXT MODE:'
                     '\n'
