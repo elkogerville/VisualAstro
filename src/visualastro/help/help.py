@@ -480,7 +480,7 @@ class help:
             mathname = plt.rcParams['mathtext.rm'] if mathfont == 'custom' else mathfont
             fig.text(
                 0.87,
-                0.55,
+                0.45,
                 (
                     f'MATHTEXT Font: {mathname}'
                     '\n'
@@ -507,7 +507,11 @@ class help:
                     r'\mathtt{Mono}$'
                     '\n'
                     r'MATHTEXT degree: $13^\circ$'
-
+                    '\n[BRACKETS]: '
+                    r'$\left[-:  ;-\right]$'
+                    '\n{CURLY BRACKETS}: {^:  B-}'
+                    '\n(PARENTHESIS): '
+                    r'$\left( \text{=  :}\right)$'
                 ),
                 fontsize=12,
                 horizontalalignment='right',
@@ -528,11 +532,6 @@ class help:
                     'UNICODE degree: 13°'
                     '\n'
                     'MINUS SIGN: \N{MINUS SIGN}1'
-                    '\n[BRACKETS]: '
-                    r'$\left[-:  ;-\right]$'
-                    '\n{CURLY BRACKETS}: {^:  B-}'
-                    '\n(PARENTHESIS): '
-                    r'$\left( \text{=  :}\right)$'
                     '\n'
                     f'{smiley}'
                 ),
