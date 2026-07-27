@@ -43,7 +43,7 @@ def _require_dependency(dependency: str) -> None:
     ----------
     dependency : str
         Dependency name. Must be defined in `_OPTIONAL_DEPS`
-        in `optional_dependencies.optional_deps._OPTIONAL_DEPS`.
+        in `visualastro.optional_dependencies.register`.
 
     Raises
     ------
