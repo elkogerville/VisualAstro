@@ -30,7 +30,6 @@ from visualastro.core.numerical_utils import (
     to_list,
     _unwrap_if_single
 )
-from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.core.units import (
     ensure_common_unit,
     get_spectral_unit,
@@ -41,6 +40,11 @@ from visualastro.core.units import (
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._specutils import (
+    SpectralAxis, SpectralRegion, Spectrum, _HAS_SPECUTILS
+)
 from visualastro.utils.text_utils import print_pretty_table
 
 
