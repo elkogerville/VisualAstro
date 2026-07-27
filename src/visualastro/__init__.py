@@ -239,7 +239,6 @@ def _register_styles():
         STYLE_ALIASES, VisualAstroStyles
     )
 
-
     stylelib = files('visualastro') / 'stylelib'
 
     # matplotlib >= 3.11
