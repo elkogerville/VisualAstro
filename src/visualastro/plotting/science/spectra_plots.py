@@ -1,11 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Spectra science functions.
 """
 
+from __future__ import annotations
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Literal
@@ -17,8 +18,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.optimize import curve_fit
-from specutils import SpectralAxis
-from specutils.spectra import Spectrum
 from tqdm import tqdm
 
 from visualastro.analysis.image_utils import stack_cube
@@ -61,7 +60,11 @@ from visualastro.core.units import (
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._specutils import (
+    SpectralAxis, Spectrum
+)
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
@@ -94,7 +97,7 @@ def extract_cube_spectra(
     plot_norm_continuum=_UNSET,
     **kwargs
 ):
-    '''
+    """
     Extract 1D spectra from one or more data cubes, with optional continuum normalization,
     dereddening, and plotting.
 
@@ -218,7 +221,8 @@ def extract_cube_spectra(
     -------
     SpectrumPlus or list of SpectrumPlus
         Single object if one cube is provided, list if multiple cubes are provided.
-    '''
+    """
+    _require_dependency('spectral-cube', 'specutils')
     params = _resolve_kwargs(
         kwargs,
         params=[
@@ -388,8 +392,8 @@ def extract_cube_pixel_spectra(
         Index or indices specifying which cube slice to plot
         for the spatial map plot:
 
-            - `i` or `[i]` -> returns `cube[i]`
-            - `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
+        * `i` or `[i]` -> returns `cube[i]`
+        * `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
 
         If `None`, uses `map_idx=0`.
     legend : bool, optional, default=True
@@ -847,7 +851,7 @@ def plot_spectra(
     vline=None,
     **kwargs
 ):
-    '''
+    """
     Plot one or more extracted spectra on a matplotlib Axes.
 
     Parameters
@@ -884,39 +888,39 @@ def plot_spectra(
 
         Supported keywords:
 
-        - `rasterized` : bool, default=`config.rasterized`
+        * `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color` or `c` : list of colors or None, optional, default=None
+        * `color` or `c` : list of colors or None, optional, default=None
             Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
+        * `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
             Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
+        * `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
             Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
+        * `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
             The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorders`, `zorder` : float, default=None
+        * `zorders`, `zorder` : float, default=None
             Order of line placement. If None, will increment by 1 for
             each additional line plotted.
-        - `cmap` : str, optional, default=`config.cmap`
+        * `cmap` : str, optional, default=`config.cmap`
             Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional, default=None
+        * `xlim` : tuple, optional, default=None
             Wavelength range to display.
-        - `ylim` : tuple, optional
+        * `ylim` : tuple, optional
             Flux range to display.
-        - `labels`, `label`, `l` : str or list of str, default=None
+        * `labels`, `label`, `l` : str or list of str, default=None
             Legend labels.
-        - `loc` : str, default=`config.legend.loc`
+        * `loc` : str, default=`config.legend.loc`
             Location of legend.
-        - `xlabel` : str, optional
+        * `xlabel` : str, optional
             Label for the x-axis.
-        - `ylabel` : str, optional
+        * `ylabel` : str, optional
             Label for the y-axis.
-        - `text_loc` : list of float, optional, default=`config.text_loc`
+        * `text_loc` : list of float, optional, default=`config.text_loc`
             Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+        * `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
             If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns

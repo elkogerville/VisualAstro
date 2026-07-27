@@ -6,6 +6,7 @@ Description:
     Utility functions for image manipulations.
 """
 
+from __future__ import annotations
 import glob
 from typing import Literal
 import warnings

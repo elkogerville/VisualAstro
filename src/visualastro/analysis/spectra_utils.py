@@ -6,6 +6,7 @@ Description:
     Spectra utility functions.
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import Any, Literal, overload
@@ -17,8 +18,6 @@ from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from specutils.fitting import fit_continuum as _fit_continuum
-from specutils.fitting import fit_generic_continuum as _fit_generic
 
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
@@ -42,7 +41,12 @@ from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import (
-    SpectralAxis, SpectralRegion, Spectrum, _HAS_SPECUTILS
+    SpectralAxis,
+    SpectralRegion,
+    Spectrum,
+    _HAS_SPECUTILS,
+    _fit_continuum,
+    _fit_generic,
 )
 from visualastro.utils.text_utils import print_pretty_table
 

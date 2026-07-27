@@ -6,6 +6,7 @@ Description:
     Spectra plot utility functions.
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 from typing import Literal, cast
 
@@ -14,7 +15,6 @@ import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 from matplotlib.typing import ColorType
-from specutils import SpectralAxis
 
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,

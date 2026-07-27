@@ -1,11 +1,12 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-07-18
+Date Modified: 2026-07-27
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
 """
+from __future__ import annotations
 from typing import Literal, cast
 
 from astropy.io.fits import Header

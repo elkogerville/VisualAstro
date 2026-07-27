@@ -6,6 +6,7 @@ Description:
     Plotting functions for 2D and 3D astronomical images.
 """
 
+from __future__ import annotations
 from typing import Literal
 import warnings
 

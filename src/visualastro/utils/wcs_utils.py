@@ -6,6 +6,7 @@ Description:
     WCS utility functions.
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 import copy
 from typing import Any, Literal, cast, overload
@@ -370,29 +371,29 @@ def reproject_wcs(
     input_data_list : tuple or list of tuple
         A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
         Note:
-        
+
             * [np.ndarray, WCS/Header] is not allowed!
               Ensure they follow the format:
-              
+
                 * [(np.ndarray, WCS/Header), ...]
-                
+
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
         Input WCS → Reference WCS
-        
+
             * 2D → 2D: Direct reprojection
             * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)
-            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves 
+            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves
               spectral axis)
             * 3D → 3D: Direct reprojection (spectral axes must be compatible)
-            
+
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
-        
+
             * 'interp' : use `reproject_interp`
             * 'exact' : use `reproject_exact`
-            
+
         If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection
@@ -550,27 +551,27 @@ def _reproject_wcs(
     input_data : tuple
         A `(np.ndarray | Quantity, WCS)` or `(np.ndarray, Header)` tuple
         Note:
-        
+
             * [np.ndarray | Quantity, WCS/Header] is not allowed!
               Ensure they are all tuples.
-              
+
     reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
         Input WCS → Reference WCS
-        
+
             * 2D → 2D: Direct reprojection
             * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)
-            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves 
+            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves
               spectral axis)
             * 3D → 3D: Direct reprojection (spectral axes must be compatible)
-            
+
     method : {'interp', 'exact'} or None, default=None
         Reprojection method:
-        
+
             * 'interp' : use `reproject_interp`
             * 'exact' : use `reproject_exact`
-            
+
         If None, uses `config.reproject_method`.
     return_footprint : bool or None, optional, default=None
         If True, return both reprojected data and reprojection

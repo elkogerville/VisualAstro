@@ -26,7 +26,7 @@ except ImportError:
 _SPECUTILS_DEP = {
     'flag': _HAS_SPECUTILS,
     'msg': dedent("""\
-        spectral-cube is required for this function.
+        specutils is required for this function.
         Install via:
             CONDA :
                 $ conda install -c conda-forge specutils

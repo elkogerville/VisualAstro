@@ -6,6 +6,7 @@ Description:
     Image utility functions for plotting.
 """
 
+from __future__ import annotations
 from typing import Literal
 from importlib.resources import files
 

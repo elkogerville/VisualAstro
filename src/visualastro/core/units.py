@@ -6,6 +6,7 @@ Description:
     Utility functions for astropy units.
 """
 
+from __future__ import annotations
 import warnings
 from typing import Any, Literal, overload
 

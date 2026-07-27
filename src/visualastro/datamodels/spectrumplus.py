@@ -8,15 +8,13 @@ Description:
     that offers convenience methods to work with spectra.
 """
 
+from __future__ import annotations
 import copy
 from typing import Literal, cast
 
 from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
-from specutils import SpectralAxis, SpectralRegion
-from specutils.manipulation import extract_region as _extract_region
-from specutils.spectra import Spectrum
 
 from visualastro.core.config import get_config_value
 from visualastro.core.units import (
@@ -24,6 +22,13 @@ from visualastro.core.units import (
     to_spectral_region,
     _check_unit_equality,
     _require_spectral_region
+)
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._specutils import (
+    SpectralAxis,
+    SpectralRegion,
+    Spectrum,
+    _extract_region
 )
 from visualastro.utils.fits_utils import (
     _copy_headers,
@@ -134,7 +139,7 @@ class SpectrumPlus:
         log_file=None,
         **kwargs
     ):
-
+        _require_dependency('specutils')
         fit_method = kwargs.pop('fit_method', None)
         fit_method = get_config_value(
             fit_method, 'spectrum_continuum_fit_method'
