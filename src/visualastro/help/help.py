@@ -522,18 +522,12 @@ class help:
                 0.3,
                 (
                     'UNICODE GREEK LETTERS:'
-                    '\n'
-                    'Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
-                    '\n'
-                    'Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
-                    '\n'
-                    'Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
-                    '\n'
-                    'UNICODE degree: 13°'
-                    '\n'
-                    'MINUS SIGN: \N{MINUS SIGN}1'
-                    '\n'
-                    f'{smiley}'
+                    '\nΑα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
+                    '\nΙι Κκ Λλ Μμ Νν Ξξ Οο Ππ'
+                    '\nΡρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω'
+                    '\nUNICODE degree: 13°'
+                    '\nMINUS SIGN: \N{MINUS SIGN}1'
+                    f'\n{smiley}'
                 ),
                 fontsize=11,
                 horizontalalignment='right',
