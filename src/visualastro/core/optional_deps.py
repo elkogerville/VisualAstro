@@ -14,36 +14,28 @@ Description:
     recognize the dependency.
 """
 
-from textwrap import dedent
+from visualastro.core.optional_dependencies._specutils import _SPECUTILS_DEP
+from visualastro.core.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
 
-try:
-    from spectral_cube import SpectralCube
-    from spectral_cube.lower_dimensional_structures import Slice
-    from spectral_cube.wcs_utils import strip_wcs_from_header
-    _HAS_SPECTRAL_CUBE = True
-except ImportError:
-    SpectralCube = None
-    Slice = None
-    strip_wcs_from_header = None
-    _HAS_SPECTRAL_CUBE = False
+# try:
+#     from spectral_cube import SpectralCube
+#     from spectral_cube.lower_dimensional_structures import Slice
+#     from spectral_cube.wcs_utils import strip_wcs_from_header
+#     _HAS_SPECTRAL_CUBE = True
+# except ImportError:
+#     SpectralCube = None
+#     Slice = None
+#     strip_wcs_from_header = None
+#     _HAS_SPECTRAL_CUBE = False
 
 
 _OPTIONAL_DEPS = {
-    'spectral-cube': {
-        'flag': _HAS_SPECTRAL_CUBE,
-        'msg': dedent("""\
-            spectral-cube is required for this function.
-            Install via:
-                CONDA :
-                    $ conda install conda-forge::spectral-cube
-                PIP :
-                    $ pip install spectral-cube
-        """)
-    }
+    'spectral-cube': _SPECTRALCUBE_DEP,
+    'specutils': _SPECUTILS_DEP,
 }
 
 
-def _require_dependency(dependency) -> None:
+def _require_dependency(dependency: str) -> None:
     """
     Raise `ImportError` if `dependency` is not installed.
 
@@ -51,7 +43,7 @@ def _require_dependency(dependency) -> None:
     ----------
     dependency : str
         Dependency name. Must be defined in `_OPTIONAL_DEPS`
-        in `core.optional_deps._OPTIONAL_DEPS`.
+        in `core.optional_dependencies.optional_deps._OPTIONAL_DEPS`.
 
     Raises
     ------

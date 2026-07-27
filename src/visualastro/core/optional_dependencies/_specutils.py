@@ -23,7 +23,7 @@ except ImportError:
     _HAS_SPECUTILS = False
 
 
-SPECUTILS_DEP = {
+_SPECUTILS_DEP = {
     'flag': _HAS_SPECUTILS,
     'msg': dedent("""\
         spectral-cube is required for this function.
