@@ -13,11 +13,13 @@ try:
     from specutils import SpectralAxis, SpectralRegion, Spectrum
     from specutils.fitting import fit_continuum as _fit_continuum
     from specutils.fitting import fit_generic_continuum as _fit_generic
+    from specutils.manipulation import extract_region as _extract_region
     _HAS_SPECUTILS = True
 except ImportError:
     SpectralAxis = None
     SpectralRegion = None
     Spectrum = None
+    _extract_region = None
     _fit_continuum = None
     _fit_generic = None
     _HAS_SPECUTILS = False
