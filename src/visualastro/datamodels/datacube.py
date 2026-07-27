@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
-from specutils import SpectralRegion, Spectrum
 from tqdm import tqdm
 
 from visualastro.core.config import (
@@ -40,6 +39,9 @@ from visualastro.core.validation import (
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
+)
+from visualastro.optional_dependencies._specutils import (
+    SpectralRegion, Spectrum
 )
 from visualastro.utils.fits_utils import (
     _copy_headers,
@@ -247,8 +249,12 @@ class DataCube:
 
         Normalizes headers and WCS to lists if they are sequences.
         """
+        _valid_types = (
+            (np.ndarray, Quantity, SpectralCube) if
+            _HAS_SPECTRAL_CUBE else (np.ndarray, Quantity,)
+        )
         data = _validate_type(
-            data, (np.ndarray, Quantity, SpectralCube),
+            data, _valid_types,
             allow_none=False, name='data'
         )
         header = _validate_type(
@@ -1043,9 +1049,9 @@ class DataCube:
     def subtract_continuum(
         self,
         region=None,
-        fit_method=None,
+        fit_method=_UNSET,
         min_valid_pixels='auto',
-        print_info=None,
+        print_info=_UNSET,
         auto_percentile=10,
         minimum_floor=3
     ):
@@ -1068,7 +1074,7 @@ class DataCube:
 
         Parameters
         ----------
-        region : SpectralRegion, region input, or None
+        region : SpectralRegion | region input | None
             Spectral region(s) to use for continuum fitting. Can be:
 
             * SpectralRegion object
@@ -1078,13 +1084,13 @@ class DataCube:
             * None (uses the entire spectral_axis range)
 
             Regions outside emission/absorption features are typically chosen.
-        fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
+        fit_method : {'fit_continuum', 'generic'} | _Unset, optional, default=_UNSET
             Method used for fitting the continuum.
 
             * 'fit_continuum': uses `fit_continuum` with a specified window
             * 'generic' : uses `fit_generic_continuum`
 
-            If None, uses `config.spectrum_continuum_fit_method`.
+            If `_UNSET`, uses `config.spectrum_continuum_fit_method`.
         min_valid_pixels : int or 'auto', optional, default='auto'
             Minimum valid flux data points needed in order to attempt a continuum fit.
             If `'auto'`, will compute a percentile-based threshold for valid pixels
@@ -1098,7 +1104,7 @@ class DataCube:
             or user-provided `min_valid_pixels` falls below this value, a `ValueError`
             is raised. This prevents continuum fitting attempts on pixels with
             insufficient spectral data.
-        print_info : bool or None, optional, default=None
+        print_info : bool | _Unset, optional, default=_UNSET
             If True, will print the value of `min_valid_pixels`.
             If None, uses `config.print_info`.
 
@@ -1125,11 +1131,11 @@ class DataCube:
         >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
         >>> cube_sub = datacube.subtract_continuum(region)
         """
-        _require_dependency('spectral-cube')
+        _require_dependency('spectral-cube', 'spectrum')
         from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
 
-        fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
-        print_info = get_config_value(print_info, 'print_info')
+        fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
+        print_info = _resolve_default(print_info, config.print_info)
 
         cube = self.data
         if not isinstance(cube, SpectralCube):
