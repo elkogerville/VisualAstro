@@ -123,7 +123,6 @@ class SpectrumPlus:
         Helper method to construct a Spectrum object.
 
     """
-
     def __init__(
         self,
         spectrum=None,

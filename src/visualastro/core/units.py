@@ -461,7 +461,7 @@ def to_fits_unit(
 def get_unit_label(
     unit: u.UnitBase | u.StructuredUnit | u.Quantity,
     bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+    fmt: str | _Unset = _UNSET
 ) -> str:
     r"""
     Return the unit of an object as a string for plotting.

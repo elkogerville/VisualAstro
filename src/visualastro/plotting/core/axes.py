@@ -402,7 +402,7 @@ def wcsax(
         * A 3-digit integer. The digits are interpreted as if given separately as
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
-    
+
     wcs : WCS | Header
         Object from which to extract WCS. See docstring for
         ``get_wcs_celestial`` for full list of acceptable types.
@@ -946,7 +946,7 @@ def set_axis_labels(
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
     show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+    fmt: str | _Unset = _UNSET
 ) -> None:
     """
     Automatically generate and set axis labels from objects with physical
@@ -1034,7 +1034,7 @@ def _format_axis_label(
     bracket_style: Literal['round', 'square'],
     show_physical_type: bool,
     show_unit: bool,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip']
+    fmt: str
 ) -> str:
     r"""
     Create a scientific axis label with physical type and unit information.
@@ -1074,10 +1074,11 @@ def _format_axis_label(
     -------
     str
         A formatted axis label string. The format depends on the parameters:
-        - Label only: 'Wavelength'
-        - Unit only: '[$\\mu$m]'
-        - Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
-        - Neither: '' (empty string)
+
+        * Label only: 'Wavelength'
+        * Unit only: '[$\\mu$m]'
+        * Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
+        * Neither: '' (empty string)
 
     Notes
     -----
