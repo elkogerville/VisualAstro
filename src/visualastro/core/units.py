@@ -21,7 +21,6 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
-from specutils import SpectralAxis, SpectralRegion
 
 from visualastro.core.config import (
     get_config_value,
@@ -31,6 +30,10 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._specutils import (
+    SpectralAxis, SpectralRegion, _HAS_SPECUTILS
+)
 
 
 # define units
