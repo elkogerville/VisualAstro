@@ -27,7 +27,7 @@ from visualastro.core.kwargs import _pop_kwargs
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.core.optional_deps import _require_dependency
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,

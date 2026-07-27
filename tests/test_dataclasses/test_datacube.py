@@ -17,9 +17,8 @@ import numpy as np
 from numpy.typing import NDArray
 
 from tests.conftest import generate_test_cube
-from visualastro.core.optional_deps import (
-    SpectralCube, 
-    _HAS_SPECTRAL_CUBE
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
 )
 from visualastro.datamodels.datacube import DataCube
 

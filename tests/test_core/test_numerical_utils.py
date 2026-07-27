@@ -20,10 +20,8 @@ from visualastro.core.numerical_utils import (
     _extract_xyz_from_ndarray,
     _unwrap_if_single
 )
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile

@@ -13,10 +13,8 @@ import numpy as np
 import pytest
 
 from visualastro.core.numerical_utils import get_value
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
@@ -90,7 +88,7 @@ class TestVminVmax:
         self._validate_vmin_vmax(cube)
         self._validate_vmin_vmax(datacube)
 
-    def test_get_vmin_vmax_boolean(self, generate_test_spectralcube):
+    def test_get_vmin_vmax_boolean(self):
         """Tests for get_vmin_vmax with boolean array inputs."""
         boolarray = np.zeros((10, 10), dtype=bool)
         array = np.random.rand(10, 10)
