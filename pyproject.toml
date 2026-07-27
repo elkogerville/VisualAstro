@@ -26,9 +26,7 @@ dependencies = [
     "numpy",
     "regions",
     "reproject",
-    "scienceplots",
     "scipy",
-    "specutils",
     "tol-colors",
     "tqdm",
 ]
@@ -40,6 +38,12 @@ dev = [
 ]
 spectralcube = [
     "spectral_cube",
+]
+spectra = [
+    "specutils"
+]
+styles = [
+    "scienceplots"
 ]
 
 [project.urls]
