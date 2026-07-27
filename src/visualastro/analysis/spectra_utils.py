@@ -1083,7 +1083,7 @@ def _get_spectral_axis(obj: Any) -> SpectralAxis | Quantity | None:
     spectral_axis : astropy.coordinates.SpectralAxis or astropy.units.Quantity or None
         The spectral axis associated with the object, or None if unavailable.
     """
-    if isinstance(obj, SpectralAxis):
+    if _HAS_SPECUTILS and isinstance(obj, SpectralAxis):
         return obj
 
     if isinstance(obj, Quantity) and _is_spectral_axis(obj):
@@ -1167,26 +1167,28 @@ def _get_continuum(
     ----------
     obj : Any
         Object from which to retrieve or compute a continuum. This may include:
-        - a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`
-        - a `specutils.Spectrum`
-        - container objects exposing `.spectrum`
-        - objects from which both a spectral axis and flux can be inferred
-    fit_method : str, optional
+
+        * a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`
+        * a `specutils.Spectrum`
+        * container objects exposing `.spectrum`
+        * objects from which both a spectral axis and flux can be inferred
+
+    fit_method : str, optional, default='fit_continuum'
         Continuum fitting method passed to `fit_continuum`.
-        Default is `'fit_continuum'`.
-    region : `SpectralRegion`, list of tuple, or None, optional
+        Either `'fit_continuum'`, or `'generic'`.
+    region : SpectralRegion | list[tuple] | None, optional, default=None
         Spectral region(s) used during continuum fitting.
 
     Returns
     -------
-    continuum : astropy.units.Quantity or None
+    continuum : astropy.units.Quantity | None
         Continuum flux array evaluated on the spectral axis, or None if
         no continuum can be determined.
     """
     if hasattr(obj, 'continuum'):
         return obj.continuum
 
-    if isinstance(obj, Spectrum):
+    if _HAS_SPECUTILS and isinstance(obj, Spectrum):
         return fit_continuum(
             obj, fit_method=fit_method, region=region
         )
@@ -1202,8 +1204,11 @@ def _get_continuum(
     flux = _get_flux(obj)
 
     if (
-        spectral_axis is not None and spectral_axis is not obj
-        and flux is not None and flux is not obj
+        _HAS_SPECUTILS and
+        spectral_axis is not None and
+        spectral_axis is not obj and
+        flux is not None and
+        flux is not obj
     ):
         spectrum = Spectrum(
             spectral_axis=spectral_axis, flux=flux
