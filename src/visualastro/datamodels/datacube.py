@@ -24,10 +24,6 @@ from visualastro.core.config import (
     config, get_config_value, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.kwargs import _pop_kwargs
-from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
-)
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
@@ -40,6 +36,10 @@ from visualastro.core.validation import (
     _check_shapes_match,
     _validate_iterable_type,
     _validate_type
+)
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
 )
 from visualastro.utils.fits_utils import (
     _copy_headers,

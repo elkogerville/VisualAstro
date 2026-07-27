@@ -33,12 +33,12 @@ from visualastro.core.numerical_utils import (
     to_list,
     _cycle,
 )
+from visualastro.core.units import ensure_common_unit
+from visualastro.datamodels.datacube import DataCube
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._spectralcube import (
     Slice, SpectralCube,
 )
-from visualastro.optional_dependencies.register import _require_dependency
-from visualastro.core.units import ensure_common_unit
-from visualastro.datamodels.datacube import DataCube
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.interface import (

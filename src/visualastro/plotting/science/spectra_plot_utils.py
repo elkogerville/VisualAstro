@@ -29,7 +29,6 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.numerical_utils import get_value, _cycle
-from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
@@ -37,6 +36,7 @@ from visualastro.core.units import (
     unit_2_string,
 )
 from visualastro.datamodels.datacube import DataCube
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 
 
 def spectral_line_marker(

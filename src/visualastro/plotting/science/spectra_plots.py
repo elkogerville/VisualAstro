@@ -54,7 +54,6 @@ from visualastro.core.numerical_utils import (
     _cycle,
     _unwrap_if_single
 )
-from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
@@ -62,6 +61,7 @@ from visualastro.core.units import (
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
