@@ -629,10 +629,11 @@ def plot(
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
 
     lines = []
 
@@ -857,11 +858,11 @@ def scatter(
     c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
-
     scatters = []
 
     for i in range(len(ylist)):
@@ -1617,10 +1618,11 @@ def scatter_project(
     labels = to_list(params.label)
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
 
     sort_axis = {
         'x': 0,
