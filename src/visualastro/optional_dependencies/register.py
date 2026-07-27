@@ -24,14 +24,14 @@ _OPTIONAL_DEPS = {
 }
 
 
-def _require_dependency(dependency: str) -> None:
+def _require_dependency(*dependency: str) -> None:
     """
     Raise `ImportError` if `dependency` is not installed.
 
     Parameters
     ----------
     dependency : str
-        Dependency name. Must be defined in `_OPTIONAL_DEPS`
+        Dependency name(s). Must be defined in `_OPTIONAL_DEPS`
         in `visualastro.optional_dependencies.register`.
 
     Raises
@@ -41,12 +41,13 @@ def _require_dependency(dependency: str) -> None:
     ValueError :
         If `_OPTIONAL_DEPS.get(dependency)=None`.
     """
-    dep_info = _OPTIONAL_DEPS.get(dependency, None)
-    if dep_info is None:
-        raise ValueError(
-            'Please specify an optional dependency!'
-        )
-    has_dependency: bool = dep_info['flag']
-    if not has_dependency:
-        msg: str = dep_info['msg']
-        raise ImportError(msg)
+    for dep in dependency:
+        dep_info = _OPTIONAL_DEPS.get(dep, None)
+        if dep_info is None:
+            raise ValueError(
+                'Please specify an optional dependency!'
+            )
+        has_dependency: bool = dep_info['flag']
+        if not has_dependency:
+            msg: str = dep_info['msg']
+            raise ImportError(msg)
