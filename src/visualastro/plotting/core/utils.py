@@ -24,7 +24,6 @@ from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import NDArray
-from regions import PixCoord, EllipsePixelRegion
 
 from visualastro.core.config import (
     config,
@@ -49,6 +48,10 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._regions import (
+    PixCoord, EllipsePixelRegion
+)
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
@@ -746,6 +749,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     """
+    _require_dependency('regions')
     text_loc = get_config_value(text_loc, 'ellipse_label_loc')
     text_color = get_config_value(text_color, 'text_color')
     highlight = get_config_value(highlight, 'highlight')

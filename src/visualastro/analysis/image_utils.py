@@ -19,7 +19,6 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import DTypeLike, NDArray
-from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from scipy.ndimage import convolve
 from tqdm import tqdm
 
@@ -32,6 +31,12 @@ from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._regions import (
+    PixCoord,
+    EllipseAnnulusPixelRegion,
+    EllipsePixelRegion,
+    _HAS_REGIONS,
+)
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
@@ -492,7 +497,7 @@ def mask_image(
     line_points=None, invert_region=False,
     above_line=True, preserve_shape=True,
     existing_mask=None, combine_method='union', **kwargs):
-    '''
+    """
     Mask an image with modular filters.
     Supports applying an elliptical or annular region mask, an optional
     line cut (upper or lower half-plane), and combining with an existing mask.
@@ -546,7 +551,7 @@ def mask_image(
     masks : ndarray of bool or list
         If multiple masks are combined, returns a list containing the
         master mask followed by individual masks. Otherwise returns a single mask.
-    '''
+    """
     # ---- Kwargs ----
     center = kwargs.get('center', None)
     w = kwargs.get('w', None)
@@ -613,7 +618,7 @@ def mask_image(
         raise ValueError("Either 'ellipse_region' or 'center', 'w', 'h' must be provided.")
 
     # construct region
-    if region is not None:
+    if _HAS_REGIONS and region is not None:
         if region.lower() == 'annulus':
             region_obj = EllipseAnnulusPixelRegion(
                 center=PixCoord(center[0], center[1]), # type: ignore
@@ -740,8 +745,8 @@ def detect_edges(
     mode : {'rgb', 'sum'}, optional, default='rgb'
         Method to convert to grayscale if ndim > 2.
 
-            * `'rgb'` : Only take into account `image[:,:,0:3]`.
-            * `'sum'` : Sum the entire second axis.
+        * `'rgb'` : Only take into account `image[:,:,0:3]`.
+        * `'sum'` : Sum the entire second axis.
 
     show_plot : bool | _Unset, optional, default=_UNSET
         If `True`, plot the output image. If `_UNSET`, uses
