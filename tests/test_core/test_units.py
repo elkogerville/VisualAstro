@@ -1,14 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-30
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for numerical utils module.
-Dependencies:
-    - astropy
-    - numpy
-    - spectral_cube
 """
+
+from __future__ import annotations
 
 import astropy.units as u
 import numpy as np

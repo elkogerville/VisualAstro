@@ -6,6 +6,8 @@ Description:
     Fixtures for visualastro tests.
 """
 
+from __future__ import annotations
+
 from astropy.io import fits
 import astropy.units as u
 from astropy.wcs import WCS

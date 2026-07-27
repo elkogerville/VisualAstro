@@ -1,17 +1,18 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-10
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for image utils plotting module.
 """
+
+from __future__ import annotations
 
 import astropy.units as u
 from astropy.visualization import ImageNormalize
 from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import numpy as np
 import pytest
-
 
 from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
@@ -20,7 +21,9 @@ from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
+from visualastro.plotting.core.image_utils import (
+    get_imshow_norm, get_vmin_vmax
+)
 
 
 class TestGetImshowNorm:

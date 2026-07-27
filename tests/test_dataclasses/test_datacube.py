@@ -1,14 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-14
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for DataCube datastructure.
-Dependencies:
-    - astropy
-    - numpy
-    - spectral_cube
 """
+
+from __future__ import annotations
 
 from astropy.io.fits import Header
 import astropy.units as u

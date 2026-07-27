@@ -1,10 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-29
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for numerical utils module.
 """
+
+from __future__ import annotations
 
 import astropy.units as u
 import numpy as np
