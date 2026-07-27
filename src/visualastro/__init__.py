@@ -277,7 +277,7 @@ def _register_styles():
 
     return VisualAstroStyles(available_styles)
 
-import scienceplots
+from visualastro.optional_dependencies import _scienceplots
 styles = _register_styles()
 
 
