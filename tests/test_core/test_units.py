@@ -14,11 +14,11 @@ import astropy.units as u
 import numpy as np
 
 from tests.conftest import generate_test_cube, generate_test_spectralcube
+from visualastro.core.units import get_unit, get_units, to_unit
+from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.core.units import get_unit, get_units, to_unit
-from visualastro.datamodels.datacube import DataCube
 
 
 class TestGetUnits:

@@ -17,10 +17,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 from tests.conftest import generate_test_cube
+from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.datamodels.datacube import DataCube
 
 
 class TestDataCubeInit:

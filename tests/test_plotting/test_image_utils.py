@@ -12,15 +12,15 @@ from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import numpy as np
 import pytest
 
+
+from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
-
-from tests.conftest import generate_test_spectralcube
 
 
 class TestGetImshowNorm:
