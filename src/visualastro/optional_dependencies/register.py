@@ -17,17 +17,6 @@ Description:
 from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
 from visualastro.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
 
-# try:
-#     from spectral_cube import SpectralCube
-#     from spectral_cube.lower_dimensional_structures import Slice
-#     from spectral_cube.wcs_utils import strip_wcs_from_header
-#     _HAS_SPECTRAL_CUBE = True
-# except ImportError:
-#     SpectralCube = None
-#     Slice = None
-#     strip_wcs_from_header = None
-#     _HAS_SPECTRAL_CUBE = False
-
 
 _OPTIONAL_DEPS = {
     'spectral-cube': _SPECTRALCUBE_DEP,
