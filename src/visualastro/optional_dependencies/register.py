@@ -47,6 +47,6 @@ def _require_dependency(dependency: str) -> None:
             'Please specify an optional dependency!'
         )
     has_dependency: bool = dep_info['flag']
-    msg: str = dep_info['msg']
     if not has_dependency:
+        msg: str = dep_info['msg']
         raise ImportError(msg)
