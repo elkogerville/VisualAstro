@@ -37,13 +37,15 @@ from visualastro.core.units import (
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._specutils import SpectralAxis
+from visualastro.plotting.core.axes import get_ax
 
 
 def spectral_line_marker(
     *x: float | u.Quantity,
     y: float | u.Quantity,
     h: float | u.Quantity,
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     style: Literal['marker', 'vline'] = 'marker',
     label: str | None = None,
     direction: Literal['up', 'down'] | _Unset = _UNSET,
@@ -67,8 +69,9 @@ def spectral_line_marker(
         Y-coordinate of the base of the markers.
     h : float or astropy.units.Quantity
         Height of the vertical markers.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the markers.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to draw the markers. If `None`,
+        uses `plt.gca()`.
     style : {'marker', 'vline'}, optional, default='marker'
         If `'marker'`, plots a multi-prong marker delineating
         each spectral peak location. If `'vline'`, plots a
@@ -133,6 +136,7 @@ def spectral_line_marker(
     rotation = _resolve_default(
         rotation, config.spectral_line_marker.label_rotation
     )
+    ax = get_ax(ax)
 
     if str(style).lower() not in {'vline', 'marker'}:
         raise ValueError(
