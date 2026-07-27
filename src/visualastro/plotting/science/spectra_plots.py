@@ -434,6 +434,7 @@ def extract_cube_pixel_spectra(
             Combined spectrum computed using `combine_method` if
             `combine_spectra=True`; otherwise None.
     """
+    _require_dependency('spectral-cube', 'specutils')
     params = _resolve_kwargs(
         kwargs,
         params=[
@@ -928,15 +929,17 @@ def plot_spectra(
     lines : Line2D or list of Line2D, or PlotSpectrum
         The plotted line object(s) created by `Axes.plot`.
 
-        - If `plot_continuum` is False, returns a single `Line2D` object
+        * If `plot_continuum` is False, returns a single `Line2D` object
           or a list of `Line2D` objects corresponding to the main spectrum.
-        - If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
+        * If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
           with the following fields:
+
             * `lines` : Line2D or list of Line2D
               The plotted spectrum line(s).
             * `continuum_lines` : Line2D or list of Line2D
               The plotted continuum fit line(s), if available.
-    '''
+    """
+    _require_dependency('specutils')
     params = _resolve_kwargs(
         kwargs,
         params=[
@@ -1197,6 +1200,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
     wavelength interval before plotting.
     '''
+    _require_dependency('specutils')
     # ---- KWARGS ----
     # figure params
     rasterized = kwargs.get('rasterized', config.rasterized)
@@ -1418,6 +1422,7 @@ def fit_gaussian_2_spec(
             - flux_error, FWHM_error, mu_error : Quantity
                 1σ uncertainties on the above quantities.
     '''
+    _require_dependency('specutils')
     # ---- KWARGS ----
     # figure params
     figsize = kwargs.get('figsize', config.figsize)
