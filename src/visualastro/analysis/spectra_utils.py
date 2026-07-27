@@ -187,7 +187,7 @@ def deredden_flux(
 
 
 def shift_by_radial_vel(spectral_axis, radial_vel):
-    '''
+    """
     Shift spectral axis to rest frame using a radial velocity.
     If `radial_vel` is None, return `spectral_axis` unchanged.
 
@@ -206,7 +206,7 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
         radial velocity. If the input is in frequency units, the classical
         Doppler formula for frequency is applied; otherwise, the classical
         formula for wavelength is applied.
-    '''
+    """
     # speed of light in km/s in vacuum
     c = 299792.458 # [km/s]
     if radial_vel is not None:
@@ -233,18 +233,18 @@ def estimate_spectrum_line_flux(spectra, spec_range):
 
     Parameters
     ----------
-    spectrum : Any or iterable of Any
+    spectrum : Any | Sequence[Any]
         Spectral object(s) from which a spectral axis, flux, and continuum
         can be extracted. This includes `ExtractedPixelSpectra` or
-        lists of `SpectrumPlus`.
-    spec_range : Quantity or array-like of length 2
+        lists of `Spectrum`/`SpectrumPlus`.
+    spec_range : Quantity | ArrayLike of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Must be compatible with the spectral axis units.
         If no units, the units of `spectrum` are assumed.
 
     Returns
     -------
-    line_flux : astropy.units.Quantity or list of Quantity
+    line_flux : astropy.units.Quantity | list[Quantity]
         Integrated line flux(es) over the specified interval.
     """
     if isinstance(spectra, ExtractedPixelSpectra):
@@ -284,7 +284,7 @@ def _estimate_spectrum_line_flux(
 
     Returns
     -------
-    line_flux : astropy.units.Quantity or float
+    line_flux : astropy.units.Quantity | float
         Integrated line flux over the specified interval. If no spectral
         samples fall within the interval, a zero-valued result is
         returned (with units if available).
@@ -490,7 +490,7 @@ def spectral_world_2_idx(
 
     Parameters
     ----------
-    spectral_axis : Quantity or SpectralAxis
+    spectral_axis : Quantity | SpectralAxis
         The spectral axis (e.g., wavelength, frequency, or
         velocity) as an `astropy.units.Quantity` or a
         `specutils.spectra.spectral_axis.SpectralAxis` array.
@@ -510,7 +510,8 @@ def spectral_world_2_idx(
         If a unit mismatch is detected.
     """
     spectral_axis = _get_spectral_axis(spectral_axis)
-    if not isinstance(spectral_axis, (Quantity, SpectralAxis)):
+    _valid_types = (Quantity, SpectralAxis) if _HAS_SPECUTILS else (Quantity,)
+    if not isinstance(spectral_axis, _valid_types):
         raise ValueError(
             'spectral_axis must be a Quantity or SpectralAxis!'
         )
@@ -586,7 +587,8 @@ def propagate_flux_errors(
     method: Literal['mean', 'sum', 'median'] | _Unset = _UNSET
 ):
     """
-    Compute propagated flux errors from individual pixel errors in a spectrum.
+    Compute propagated flux errors from individual
+    pixel errors in a spectrum.
 
     Parameters
     ----------
@@ -597,14 +599,15 @@ def propagate_flux_errors(
         * 1D array with shape (N_pixels,) for a single spectrum.
 
     method : {'mean', 'sum', 'median'} | _Unset, optional, default=_UNSET
-        Flux extraction method. If `_UNSET`, uses `config.propagate_flux_error_method`.
+        Flux extraction method. If `_UNSET`, uses
+        `config.propagate_flux_error_method`.
 
     Returns
     -------
     flux_errors : np.ndarray
         1D array of propagated flux errors (shape N_spectra).
     """
-    method = str(get_config_value(method, 'propagate_flux_error_method')).lower()
+    method = _resolve_default(method, config.propagate_flux_error_method)
     if method is None:
         raise ValueError(
             "method must be : {'mean', 'sum', 'median'}"
@@ -648,8 +651,8 @@ def _convert_region_units(region, spectral_axis):
     """
     Convert the units of a list of spectral regions to match
     a given spectral axis. Helper function used when fitting
-
     a spectrum continuum.
+
     Parameters
     ----------
     region : list of tuple of astropy.units.Quantity or None
@@ -704,12 +707,12 @@ def _spectral_axis_2_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
 # Model Fitting Functions
 # -----------------------
 def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
-    '''
+    """
     Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
 
     Parameters
     ----------
-    extracted_spectrum : `SpectrumPlus`
+    extracted_spectrum : SpectrumPlus
         `SpectrumPlus` object containing `wavelength` and `flux` attributes.
         These can be `numpy.ndarray` or `astropy.units.Quantity`.
     args : list or array-like
@@ -731,7 +734,8 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
     -----
     - Useful for feeding into `scipy.optimize.curve_fit`
       or similar fitting routines.
-    '''
+    """
+    _require_dependency('specutils')
     # extract wavelength and flux from SpectrumPlus object
     wavelength = get_value(extracted_spectrum.spectral_axis)
     flux = get_value(extracted_spectrum.flux)
@@ -751,7 +755,7 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
 
 
 def gaussian(x, A, mu, sigma):
-    '''
+    """
     Compute a gaussian curve.
 
     Parameters
@@ -771,13 +775,13 @@ def gaussian(x, A, mu, sigma):
     y : np.ndarray
         (N,) shaped array of values of gaussian function
         evaluated at each `x`.
-    '''
+    """
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y
 
 def gaussian_line(x, A, mu, sigma, m, b):
-    '''
+    """
     Compute a Gaussian curve with a linear continuum.
 
     Parameters
@@ -801,13 +805,13 @@ def gaussian_line(x, A, mu, sigma, m, b):
     y : np.ndarray
         (N,) shaped array of the Gaussian function evaluated
         at each `x`, including the linear continuum `m*x + b`.
-    '''
+    """
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2) + m*x+b
 
     return y
 
 def gaussian_continuum(x, A, mu, sigma, continuum):
-    '''
+    """
     Compute a Gaussian curve with a continuum offset.
 
     Parameters
@@ -830,7 +834,7 @@ def gaussian_continuum(x, A, mu, sigma, continuum):
     y : np.ndarray
         (N,) shaped array of the Gaussian function evaluated
         at `x`, including the continuum offset.
-    '''
+    """
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y + continuum
@@ -1015,6 +1019,7 @@ class ExtractedPixelSpectra:
         Combined spectrum computed using `combine_method` if
         `combine_spectra=True`; otherwise None.
     """
+    _require_dependency('specutils')
     spectra: SpectrumPlus | list[SpectrumPlus]
     cube_array : NDArray | Quantity
     error_array : NDArray | Quantity | None
