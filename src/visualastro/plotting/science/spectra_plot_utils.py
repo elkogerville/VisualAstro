@@ -29,7 +29,7 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.numerical_utils import get_value, _cycle
-from visualastro.core.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,

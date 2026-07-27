@@ -33,7 +33,7 @@ from visualastro.core.numerical_utils import (
     to_list,
     _cycle,
 )
-from visualastro.core.optional_dependencies._spectralcube import (
+from visualastro.optional_dependencies._spectralcube import (
     Slice, SpectralCube,
 )
 from visualastro.core.optional_deps import _require_dependency

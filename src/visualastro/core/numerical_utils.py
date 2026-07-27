@@ -19,7 +19,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.optional_dependencies._spectralcube import (
+from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE
 )
 

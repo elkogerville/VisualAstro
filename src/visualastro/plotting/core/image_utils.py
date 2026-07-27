@@ -31,7 +31,7 @@ from visualastro.core.config import (
 from visualastro.core.numerical_utils import (
     get_data, get_value, to_array
 )
-from visualastro.core.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 

@@ -14,8 +14,8 @@ Description:
     recognize the dependency.
 """
 
-from visualastro.core.optional_dependencies._specutils import _SPECUTILS_DEP
-from visualastro.core.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
+from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
+from visualastro.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
 
 # try:
 #     from spectral_cube import SpectralCube
@@ -43,7 +43,7 @@ def _require_dependency(dependency: str) -> None:
     ----------
     dependency : str
         Dependency name. Must be defined in `_OPTIONAL_DEPS`
-        in `core.optional_dependencies.optional_deps._OPTIONAL_DEPS`.
+        in `optional_dependencies.optional_deps._OPTIONAL_DEPS`.
 
     Raises
     ------
