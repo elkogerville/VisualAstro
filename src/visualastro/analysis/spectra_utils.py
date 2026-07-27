@@ -14,8 +14,6 @@ import warnings
 
 import astropy.units as u
 from astropy.units import Quantity
-from dust_extinction.parameter_averages import M14, G23
-from dust_extinction.grain_models import WD01
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
@@ -39,6 +37,7 @@ from visualastro.core.units import (
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._dust_extinction import M14, G23, WD01
 from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import (
     SpectralAxis,
@@ -86,7 +85,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
 
     Notes
     -----
-    - Warnings during the fitting process are suppressed.
+    * Warnings during the fitting process are suppressed.
     """
     _require_dependency('specutils')
     region = to_spectral_region(region)
@@ -163,6 +162,7 @@ def deredden_flux(
     deredden_flux : array-like
         Flux array corrected for extinction.
     """
+    _require_dependency('dust_extinction')
     Rv = _resolve_default(Rv, config.deredden.Rv)
     Ebv = _resolve_default(Ebv, config.deredden.Ebv)
     dered_method = str(_resolve_default(deredden_method, config.deredden.method))

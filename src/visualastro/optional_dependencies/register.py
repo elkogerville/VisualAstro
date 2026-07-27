@@ -14,11 +14,13 @@ Description:
     recognize the dependency.
 """
 
+from visualastro.optional_dependencies._dust_extinction import _DUST_EXTINCTION_DEP
 from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
 from visualastro.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
 
 
 _OPTIONAL_DEPS = {
+    'dust_extinction': _DUST_EXTINCTION_DEP,
     'spectral-cube': _SPECTRALCUBE_DEP,
     'specutils': _SPECUTILS_DEP,
 }
