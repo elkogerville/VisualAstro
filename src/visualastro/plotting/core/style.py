@@ -290,6 +290,7 @@ STYLE_ALIASES = {
     'computer-modern': ('cm', 'cmu'),
     'computer-modern-mono': ('cm-mono', 'cmu-mono'),
     'computer-modern-sans': ('cm-sans', 'cmu-sans'),
+    'times-new-roman': ('tnr', 'timesnewroman', 'times'),
 }
 
 
