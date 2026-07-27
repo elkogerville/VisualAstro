@@ -187,12 +187,13 @@ def get_units(
     ----------
     objs : Any | list[Any]
         The input object(s) from which to extract a unit. These can be:
-        - an astropy UnitBase
-        - an astropy.units.Quantity
-        - a list/tuple of `u.Quantities` (validates all have same unit)
-        - a fits.Header with a 'BUNIT' key
-        - any object with a .data attribute
-        - any object with a .header attribute
+
+        * an astropy UnitBase
+        * an astropy.units.Quantity
+        * a list/tuple of `u.Quantities` (validates all have same unit)
+        * a fits.Header with a 'BUNIT' key
+        * any object with a .data attribute
+        * any object with a .header attribute
 
     Returns
     -------
@@ -242,7 +243,7 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         A spectral unit (e.g. micron, Angstrom, Hz, eV) if found and valid,
         otherwise None.
     """
-    if isinstance(obj, SpectralAxis):
+    if _HAS_SPECUTILS and isinstance(obj, SpectralAxis):
         return to_unit(obj.unit)
 
     if isinstance(obj, Quantity) and _is_spectral_axis(obj):
@@ -412,7 +413,7 @@ def to_latex_unit(
         A LaTeX-formatted unit label if the input is recognized.
         Returns None if the unit is invalid.
     """
-    fmt = get_config_value(fmt, 'unit_label_format')
+    fmt = _resolve_default(fmt, config.unit_label_format)
     fmt = str(fmt).lower()
     if fmt not in {'latex', 'latex_inline', 'inline'}:
         raise ValueError(
@@ -535,15 +536,15 @@ def to_spectral_region(
 
     Parameters
     ----------
-    obj : SpectralRegion, Quantity, tuple, list, or None
+    obj : SpectralRegion | Quantity | tuple | list[tuple] | None
         Region specification. Accepted forms:
 
-        - `SpectralRegion`: returned as-is
-        - `(low, high) * unit`: single region with shared unit
-        - `[(low, high), ...] * unit`: multiple regions with shared unit
-        - `(Quantity, Quantity)`: single region with explicit units
-        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
-        - `None`: returned as-is
+        * `SpectralRegion`: returned as-is
+        * `(low, high) * unit`: single region with shared unit
+        * `[(low, high), ...] * unit`: multiple regions with shared unit
+        * `(Quantity, Quantity)`: single region with explicit units
+        * `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+        * `None`: returned as-is
 
     Returns
     -------
@@ -572,6 +573,7 @@ def to_spectral_region(
     >>> # Multiple regions with explicit units
     >>> to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
     """
+    _require_dependency('specutils')
     if obj is None:
         return None
 
@@ -697,7 +699,7 @@ def ensure_common_unit(
     UnitsError :
         If a unit mismatch is detected and `on_mismatch='raise'`.
     """
-    on_mismatch = get_config_value(on_mismatch, 'unit_mismatch')
+    on_mismatch = _resolve_default(on_mismatch, config.unit_mismatch)
 
     objs = to_list(objs)
     units = [get_unit(obj) for obj in objs]
@@ -795,7 +797,7 @@ def _is_spectral_axis(obj: Any) -> bool:
     - Doppler velocity units are recognized only if they can be converted
         to a spectral representation using `u.doppler_radio()` equivalencies.
     """
-    if isinstance(obj, SpectralAxis):
+    if _HAS_SPECUTILS and isinstance(obj, SpectralAxis):
         return True
 
     for attr in ('spectral_axis', 'spectral_unit'):
