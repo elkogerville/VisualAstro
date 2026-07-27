@@ -492,7 +492,7 @@ class help:
                     '\n'
                     r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$'
                     '\n'
-                    r'$\to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    r'$\infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
                     r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
                     r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
