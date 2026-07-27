@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-17
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     All optional dependencies are imported here.
     This centralizes the logic in visualastro for

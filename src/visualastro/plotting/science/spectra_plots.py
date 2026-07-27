@@ -54,7 +54,7 @@ from visualastro.core.numerical_utils import (
     _cycle,
     _unwrap_if_single
 )
-from visualastro.core.optional_deps import SpectralCube
+from visualastro.core.optional_dependencies._spectralcube import SpectralCube
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,

@@ -28,9 +28,8 @@ from visualastro.core.config import (
     _UNSET
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
-from visualastro.core.optional_deps import (
-    SpectralCube, 
-    _HAS_SPECTRAL_CUBE
+from visualastro.core.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE
 )
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
@@ -62,7 +61,7 @@ def get_wcs(obj: Any) -> WCS | None:
     ----------
     obj : object
         The input object from which to extract a WCS. This can be:
-        
+
         * an astropy.wcs.WCS instance
         * an astropy.io.fits.Header
         * any object with a `.wcs` attribute
@@ -127,7 +126,7 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
     ----------
     obj : object
         The input object from which to extract a celestial WCS. This can be:
-        
+
         * an astropy.wcs.WCS instance
         * an astropy.io.fits.Header
         * any object with a `.wcs` attribute
@@ -166,7 +165,7 @@ def get_header_wcs(header: Header | Sequence[Header]) -> WCS | list[WCS] | None:
     Returns
     -------
     WCS, list of WCS, or None
-    
+
         * Single `WCS` if `header` is a `Header` and wcs extraction succeeds.
         * List of `WCS` if `header` is a sequence and *all* headers yield
           valid WCS objects.
@@ -233,29 +232,29 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     size : Quantity, float, int, or tuple
         Size of the cutout. Interpreted as pixels if unitless.
         Ex:
-        
+
             * 6 * u.arcsec
             * (6*u.deg, 4*u.deg)
             * (7, 8)
-            
+
     position : tuple, Quantity tuple, or SkyCoord, optional, default=None
         The center of the cutout region. Accepted formats are:
-        
+
         * `(x, y)` : pixel coordinates (integers or floats)
         * `(ra, dec)` : sky coordinates as `~astropy.units.Quantity` in angular units
         * `~astropy.coordinates.SkyCoord` : directly specify a coordinate object
         * If None, defaults to the center of the image.
-        
+
     wcs : astropy.wcs.WCS
         WCS corresponding to `data`. If `data` has an attribute
         `.wcs`, it will be used automatically.
     mode : {'trim', 'partial', 'strict'}, default='trim'
         Defines how the function handles edges that fall outside the image:
-        
+
         * 'trim': Trim the cutout to fit within the image bounds.
         * 'partial': Include all pixels that overlap the image, padded with NaNs.
         * 'strict': Raise an error if any part of the cutout is outside the image.
-        
+
     frame : str, default='icrs'
         Coordinate frame for interpreting RA/Dec values when creating the `SkyCoord`.
     origin_idx : int, default=0
