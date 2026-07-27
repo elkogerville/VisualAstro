@@ -17,7 +17,6 @@ from dust_extinction.parameter_averages import M14, G23
 from dust_extinction.grain_models import WD01
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from specutils import SpectralAxis, SpectralRegion, Spectrum
 from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 
@@ -51,7 +50,7 @@ from visualastro.utils.text_utils import print_pretty_table
 # Science Spectrum Functions
 # --------------------------
 def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
-    '''
+    """
     Fit the continuum of a 1D spectrum using a specified method.
 
     Parameters
@@ -84,7 +83,8 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     Notes
     -----
     - Warnings during the fitting process are suppressed.
-    '''
+    """
+    _require_dependency('specutils')
     region = to_spectral_region(region)
     # if input spectrum is SpectrumPlus object
     # extract the spectrum attribute
