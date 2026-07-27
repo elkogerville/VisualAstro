@@ -23,7 +23,6 @@ from astropy.units.physical import PhysicalType
 import numpy as np
 
 from visualastro.core.config import (
-    get_config_value,
     config,
     _Unset,
     _UNSET,

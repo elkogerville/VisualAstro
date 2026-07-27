@@ -21,7 +21,7 @@ from specutils.fitting import fit_continuum as _fit_continuum
 from specutils.fitting import fit_generic_continuum as _fit_generic
 
 from visualastro.core.config import (
-    get_config_value, config, _resolve_default, _Unset, _UNSET
+    config, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.numerical_utils import (
     get_value,
