@@ -369,7 +369,7 @@ class help:
             font_name = 'DejaVu Sans'
 
         with _style_context(fontstyle):
-            x = np.linspace(0, 0.9, 5000)
+            x = np.linspace(0, 0.89, 5000)
 
             fig, ax = plt.subplots(figsize=(9, 9))
             ax.plot(x, np.sin(80*x), lw=2, label=r'$\sin(80x)$', color='dsb')
@@ -526,7 +526,7 @@ class help:
 
             fig.text(
                 0.87,
-                0.3,
+                0.25,
                 (
                     'UNICODE GREEK LETTERS:'
                     '\nΑα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'
