@@ -1023,7 +1023,6 @@ class ExtractedPixelSpectra:
         Combined spectrum computed using `combine_method` if
         `combine_spectra=True`; otherwise None.
     """
-    _require_dependency('specutils')
     spectra: SpectrumPlus | list[SpectrumPlus]
     cube_array : NDArray | Quantity
     error_array : NDArray | Quantity | None
@@ -1032,6 +1031,9 @@ class ExtractedPixelSpectra:
     colors: Sequence | NDArray
     labels: Sequence
     combined_spectrum: object | None = None
+
+    def __post_init__(self):
+        _require_dependency('specutils')
 
     def __repr__(self) -> str:
         n = len(self.extract_idx)
