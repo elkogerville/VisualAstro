@@ -21,7 +21,6 @@ dependencies = [
     "astropy",
     "cmasher",
     "colorspacious",
-    "dust_extinction",
     "matplotlib",
     "numpy",
     "regions",
@@ -40,10 +39,11 @@ spectralcube = [
     "spectral_cube",
 ]
 spectra = [
-    "specutils"
+    "specutils",
+    "dust_extinction",
 ]
 styles = [
-    "scienceplots"
+    "scienceplots",
 ]
 
 [project.urls]
