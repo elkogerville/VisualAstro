@@ -487,7 +487,7 @@ class help:
             mathname = plt.rcParams['mathtext.rm'] if mathfont == 'custom' else mathfont
             fig.text(
                 0.87,
-                0.45,
+                0.44,
                 (
                     f'MATHTEXT Font: {mathname}'
                     '\n'
@@ -499,7 +499,7 @@ class help:
                     '\n'
                     r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$'
                     '\n'
-                    r'$\infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    r'$0 1 2 3 4 5 6 7 8 9 \; \infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
                     r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
                     r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
