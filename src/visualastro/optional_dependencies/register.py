@@ -9,6 +9,7 @@ Description:
     should have its own file.
 """
 
+from visualastro.optional_dependencies._colorspacious import _COLORSPACIOUS_DEP
 from visualastro.optional_dependencies._dust_extinction import _DUST_EXTINCTION_DEP
 from visualastro.optional_dependencies._regions import _REGIONS_DEP
 from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
@@ -16,6 +17,7 @@ from visualastro.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
 
 
 _OPTIONAL_DEPS = {
+    'colorspacious': _COLORSPACIOUS_DEP,
     'dust_extinction': _DUST_EXTINCTION_DEP,
     'regions': _REGIONS_DEP,
     'spectral-cube': _SPECTRALCUBE_DEP,

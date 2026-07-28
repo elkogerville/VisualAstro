@@ -20,7 +20,6 @@ classifiers = [
 dependencies = [
     "astropy",
     "cmasher",
-    "colorspacious",
     "matplotlib",
     "numpy",
     "reproject",
@@ -48,7 +47,11 @@ spectra = [
 styles = [
     "scienceplots",
 ]
+utils = [
+    "colorspacious",
+]
 all = [
+    "colorspacious",
     "dust_extinction",
     "regions",
     "scienceplots",

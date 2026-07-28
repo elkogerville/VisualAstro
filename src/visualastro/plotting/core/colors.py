@@ -7,13 +7,9 @@ Description:
 """
 
 from collections.abc import Sequence
-from dataclasses import dataclass, fields
-import operator as op
-
-from colorspacious import cspace_convert
 import colorsys
+
 from typing import Literal, TypeAlias
-import colorspacious
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -38,6 +34,11 @@ from visualastro.core.config import (
 )
 from visualastro.core.numerical_utils import (
     as_list, to_list, _unwrap_if_single
+)
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._colorspacious import (
+    cspace_convert,
+    deltaE as cs_deltaE,
 )
 from visualastro.plotting.core.colormaps import get_cmap
 
@@ -422,6 +423,7 @@ def simulate_colorblindness(
     list of ColorType
         List of ColorType as perceived by colorblind vision.
     """
+    _require_dependency('colorspacious')
     if not 0 <= severity <= 100:
         raise ValueError(
             'severity must be >= 0 and <= 100!'
@@ -978,7 +980,7 @@ def plot_color_deltaE(
 
     c1 = colors[:, np.newaxis, :]
     c2 = colors[np.newaxis, :, :]
-    deltaE = colorspacious.deltaE(c1, c2, uniform_space=uniform_space)
+    deltaE = cs_deltaE(c1, c2, uniform_space=uniform_space)
 
     label = r'$\Delta E^*$'
     imgs = []
@@ -1008,7 +1010,7 @@ def plot_color_deltaE(
 
         c1_cvd = colors_cvd[:, np.newaxis, :]
         c2_cvd = colors_cvd[np.newaxis, :, :]
-        deltaE_cvd = colorspacious.deltaE(c1_cvd, c2_cvd, uniform_space=uniform_space)
+        deltaE_cvd = cs_deltaE(c1_cvd, c2_cvd, uniform_space=uniform_space)
 
         with np.errstate(divide='ignore', invalid='ignore'):
             ratio = np.where(deltaE > 0, deltaE_cvd / deltaE, np.nan)

@@ -9,7 +9,6 @@ Description:
 """
 
 import cmasher
-from colorspacious import cspace_converter
 from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
 import matplotlib.colors as mcolors
@@ -21,6 +20,8 @@ import tol_colors as tc
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._colorspacious import cspace_converter
 
 
 def get_cmap(
@@ -175,6 +176,7 @@ def plot_cmap_lightness(
     scatters : list[matplotlib.collections.PathCollection]
         Scatter artists, one per colormap.
     """
+    _require_dependency('colorspacious')
     from visualastro.plotting.core.utils import legend as _legend
 
     if ax is None:
