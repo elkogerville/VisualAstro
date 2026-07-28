@@ -815,6 +815,7 @@ class DataCube:
         - If `return_footprint=True`, the reprojection footprint is attached
           to the returned DataCube as the `.footprint` attribute.
         """
+        _offer_dependency('tqdm')
         return_footprint = get_config_value(return_footprint, 'return_footprint')
 
         if self.wcs is None and self.header is None:
@@ -844,7 +845,6 @@ class DataCube:
             reprojected_cube = []
             footprint = []
 
-            if not _HAS_TQDM: _offer_dependency('tqdm')
             for i, wcs in tqdm(enumerate(wcs_info), desc='Reprojecting each data slice'):
                 reprojected, fp = _reproject_wcs(
                     (data[i], wcs),
@@ -1135,7 +1135,8 @@ class DataCube:
         >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
         >>> cube_sub = datacube.subtract_continuum(region)
         """
-        _require_dependency('spectral-cube', 'spectrum')
+        _require_dependency('spectral-cube', 'specutils')
+        _offer_dependency('tqdm')
         from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
 
         fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
@@ -1229,7 +1230,6 @@ class DataCube:
                   f'median={np.median(N_nonzero):.0f}, '
                   f'max={N_nonzero.max()}')
 
-        if not _HAS_TQDM: _offer_dependency('tqdm')
         for j in tqdm(range(ny), desc='Fitting continuum'):
             for i in range(nx):
 

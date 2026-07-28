@@ -106,6 +106,7 @@ def load_data_cube(
     Search for all fits files starting with 'HARPS' with .fits extention and load them:
         >>> filepath = 'Spectro-Module/raw/HARPS.*.fits'
     """
+    _offer_dependency('tqdm')
     hdu = _resolve_default(hdu, config.hdu_idx)
     dtype = _resolve_default(dtype, config.default_dtype)
     print_info = _resolve_default(print_info, config.print_info)
@@ -156,7 +157,6 @@ def load_data_cube(
         error_array[0] = err.astype(dt)
 
     # loop through remaining files
-    if not _HAS_TQDM: _offer_dependency('tqdm')
     for i, file in enumerate(tqdm(fits_files[1:], desc='Loading FITS')):
         with fits.open(file) as hdul:
             data = hdul[hdu].data

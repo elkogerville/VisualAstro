@@ -439,6 +439,7 @@ def extract_cube_pixel_spectra(
             `combine_spectra=True`; otherwise None.
     """
     _require_dependency('spectral-cube', 'specutils')
+    _offer_dependency('tqdm')
     params = _resolve_kwargs(
         kwargs,
         params=[
@@ -601,7 +602,6 @@ def extract_cube_pixel_spectra(
         else:
             colors = sample_cmap(n_plot, cmap)
 
-        if not _HAS_TQDM: _offer_dependency('tqdm')
         for i in tqdm(range(len(spectra)), desc='plotting'):
             plot_spectra(
                 spectra[i],

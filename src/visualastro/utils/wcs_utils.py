@@ -610,6 +610,7 @@ def _reproject_wcs(
     ValueError
         If the inputs are not able to be reprojected.
     """
+    _offer_dependency('tqdm')
     description = kwargs.get('description', None)
 
     method = get_config_value(method, 'reproject_method')
@@ -652,7 +653,6 @@ def _reproject_wcs(
         footprints_slice = []
         desc = 'Looping over each slice' if description is None else description
 
-        if not _HAS_TQDM: _offer_dependency('tqdm')
         for i in tqdm(range(data.shape[0]), desc=desc):
             repr_i, foot_i = reproject_func(
                 (data[i], wcs_celestial), reference_wcs,

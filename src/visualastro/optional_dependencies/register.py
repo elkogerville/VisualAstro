@@ -82,4 +82,4 @@ def _offer_dependency(*dependency: str) -> None:
         has_dependency: bool = dep_info['flag']
         if not has_dependency:
             msg: str = dep_info['msg']
-            warnings.warn(msg, ImportWarning)
+            warnings.warn(msg, stacklevel=2)

@@ -228,10 +228,10 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     Prints a message indicating the number of
     frames and the base filename.
     """
+    _offer_dependency('tqdm')
     N_frames, N, M = cube.shape
     print(f'Writing {N_frames} FITS files to {filename}_i.fits')
 
-    if not _HAS_TQDM: _offer_dependency('tqdm')
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
