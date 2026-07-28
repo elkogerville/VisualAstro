@@ -27,11 +27,11 @@ $ conda activate visualastro
 Then install the dependencies with:
 ```
 $ conda install -c conda-forge \
-    astropy cmasher matplotlib numpy reproject scipy tqdm
+    astropy cmasher matplotlib numpy reproject scipy
 ```
 Optionally, you can install optional dependencies as well if you plan to use related functionalities:
 ```
-$ conda install -c conda-forge colorspacious dust_extinction regions spectral-cube scienceplots specutils
+$ conda install -c conda-forge colorspacious dust_extinction regions spectral-cube scienceplots specutils tqdm
 ```
 And finally run:
 ```
@@ -51,13 +51,13 @@ NOTE: To ensure that interactive mode works in notebooks, first activate your co
 
 ## Features
 
-- Unified interface for matplotlib, astropy, numpy, spectral-cube, specutils, and other astronomy packages
+- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
 - High-level wrappers of common functions and algorithms used in astrophysical research
 - Custom matplotlib style sheets optimized for publication-quality figures
 - Full compatibility with WCS, FITS, and astropy units
 
 ## Documentation
-Visualastro is still under development! A full documentation of the package's features is coming soon.
+VisualAstro is still under development! A full documentation of the package's features is coming soon.
 
 Check the `examples/` folder for notebook tutorials!
 
@@ -67,7 +67,7 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 
-astropy, cmasher, matplotlib, numpy, reproject, scipy, tol_colors, and tqdm.
+astropy, cmasher, matplotlib, numpy, reproject, scipy, and tol_colors.
 
 ### Optional dependencies
 
@@ -78,6 +78,7 @@ Optionally, some functionalities of VisualAstro requires:
 * Spectra: `specutils`, `dust_extinction`
 * Extra Stylesheets: `scienceplots`
 * Color Utilities: `colorspacious`
+* Progress Bar: `tqdm`
 
 If you try to use functionalities that require an optionally dependent package but do not have that package installed, VisualAstro will raise an ImportError and prompt you to install that package.
 

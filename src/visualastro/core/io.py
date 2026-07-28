@@ -1,9 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-06-29
+Date Modified: 2026-07-27
 Description:
-    Functions for I/O operations within visualastro.
+    Functions for I/O operations within VisualAstro.
 """
 
 from dataclasses import dataclass
@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
-from tqdm import tqdm
 
 from visualastro.core.config import (
     get_config_value,
@@ -29,6 +28,8 @@ from visualastro.core.config import (
 from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
+from visualastro.optional_dependencies.register import _offer_dependency
+from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
 
 
 def get_sci_from_hdul(
@@ -228,14 +229,16 @@ def write_cube_2_fits(cube, filename, overwrite=False):
     frames and the base filename.
     """
     N_frames, N, M = cube.shape
-    print(f'Writing {N_frames} fits files to {filename}_i.fits')
+    print(f'Writing {N_frames} FITS files to {filename}_i.fits')
+
+    if not _HAS_TQDM: _offer_dependency('tqdm')
     for i in tqdm(range(N_frames)):
         output_name = filename + f'_{i}.fits'
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
 
 def save_array(arr, filename, fmt=None):
-    '''
+    """
     Save a NumPy array to disk.
 
     Parameters
@@ -255,7 +258,7 @@ def save_array(arr, filename, fmt=None):
     ------
     ValueError :
         If provided `fmt` is invalid.
-    '''
+    """
     VALID_EXTS = {'.dat', '.csv', '.npy', '.txt'}
 
     fmt = get_config_value(fmt, 'save_format')
@@ -282,8 +285,8 @@ def save_array(arr, filename, fmt=None):
 
 
 def save_quantity(quantity, filename):
-    '''
-    Save an astropy Quantity to disk.
+    """
+    Save an Astropy Quantity to disk.
 
     Parameters
     ----------
@@ -296,7 +299,7 @@ def save_quantity(quantity, filename):
     ------
     TypeError :
         If `quantity` is not a astropy.units.Quantity.
-    '''
+    """
     if not isinstance(quantity, u.Quantity):
         raise TypeError('quantity must be an astropy.units.Quantity')
 
@@ -308,7 +311,7 @@ def save_quantity(quantity, filename):
 
 
 def load_quantity(filename):
-    '''
+    """
     Load a saved quantity array.
 
     Parameters
@@ -319,8 +322,8 @@ def load_quantity(filename):
     Returns
     -------
     Quantity : astropy.units.Quantity
-        Numpy array with units.
-    '''
+        NumPy array with units.
+    """
     with np.load(filename) as f:
         return f['data'] * u.Unit(f['unit'].item())
 
@@ -328,7 +331,7 @@ def load_quantity(filename):
 @dataclass
 class ImageArray:
     """
-    Container to hold non Fits file images (jpgs, pngs, etc)
+    Container to hold non FITS file images (jpgs, pngs, etc)
     readable by `plt.imread`.
 
     Is used by `visualastro.core.io.imread`
@@ -353,11 +356,11 @@ def imread(
     Equivalent to `plt.imread`.
 
     This is the prefered way to read images (pngs, jpgs, etc)
-    into visualastro. The image is accessible via the `data`
+    into VisualAstro. The image is accessible via the `data`
     attribute.
 
     Rgb and rgba images will have the attribute `is_rgb` set to
-    `True` (used by other visualastro functions to differentiate
+    `True` (used by other VisualAstro functions to differentiate
     images from astronomical data).
 
     Parameters
@@ -486,7 +489,7 @@ def _get_dtype(
     Returns the dtype from the provided data. Promotes
     integers and unsigned to floats.
 
-    Used internally by visualastro data I/O functions.
+    Used internally by VisualAstro data I/O functions.
 
     Parameters
     ----------

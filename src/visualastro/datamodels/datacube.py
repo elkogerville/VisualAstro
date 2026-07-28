@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
-from tqdm import tqdm
 
 from visualastro.core.config import (
     config, get_config_value, _resolve_default, _Unset, _UNSET
@@ -37,13 +36,16 @@ from visualastro.core.validation import (
     _validate_iterable_type,
     _validate_type
 )
-from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies.register import (
+    _require_dependency, _offer_dependency,
+)
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
 from visualastro.optional_dependencies._specutils import (
     SpectralRegion, Spectrum
 )
+from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
@@ -107,7 +109,7 @@ class DataCube:
     Properties
     ----------
     value : np.ndarray
-        Raw numpy array of the cube values.
+        Raw NumPy array of the cube values.
     quantity : Quantity
         Quantity array of data values (values + astropy units).
     unit : astropy.units.Unit or None
@@ -170,7 +172,7 @@ class DataCube:
     Array Interface
     ---------------
     __array__
-        Return the underlying data as a Numpy array.
+        Return the underlying data as a NumPy array.
     __getitem__
         Return a slice of the data.
     __len__()
@@ -422,7 +424,7 @@ class DataCube:
         """
         Returns
         -------
-        np.ndarray : View of the underlying numpy array.
+        np.ndarray : View of the underlying NumPy array.
         """
         value, unit = self._get_value(self.data)
         return value
@@ -842,6 +844,7 @@ class DataCube:
             reprojected_cube = []
             footprint = []
 
+            if not _HAS_TQDM: _offer_dependency('tqdm')
             for i, wcs in tqdm(enumerate(wcs_info), desc='Reprojecting each data slice'):
                 reprojected, fp = _reproject_wcs(
                     (data[i], wcs),
@@ -1226,6 +1229,7 @@ class DataCube:
                   f'median={np.median(N_nonzero):.0f}, '
                   f'max={N_nonzero.max()}')
 
+        if not _HAS_TQDM: _offer_dependency('tqdm')
         for j in tqdm(range(ny), desc='Fitting continuum'):
             for i in range(nx):
 

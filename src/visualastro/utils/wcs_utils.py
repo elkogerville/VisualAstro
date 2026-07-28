@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-12-06
-Date Modified: 2026-07-18
+Date Modified: 2026-07-27
 Description:
     WCS utility functions.
 """
@@ -21,17 +21,16 @@ from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
 from reproject import reproject_interp, reproject_exact
-from tqdm import tqdm
 
 from visualastro.core.config import (
-    get_config_value,
-    config,
-    _UNSET
+    get_config_value, config, _UNSET,
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.optional_dependencies.register import _offer_dependency
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE
+    SpectralCube, _HAS_SPECTRAL_CUBE,
 )
+from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
 
@@ -653,6 +652,7 @@ def _reproject_wcs(
         footprints_slice = []
         desc = 'Looping over each slice' if description is None else description
 
+        if not _HAS_TQDM: _offer_dependency('tqdm')
         for i in tqdm(range(data.shape[0]), desc=desc):
             repr_i, foot_i = reproject_func(
                 (data[i], wcs_celestial), reference_wcs,
