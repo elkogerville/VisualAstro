@@ -23,7 +23,6 @@ dependencies = [
     "colorspacious",
     "matplotlib",
     "numpy",
-    "regions",
     "reproject",
     "scipy",
     "tol-colors",
@@ -35,8 +34,12 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+images = [
+    "regions",
+]
 spectralcube = [
     "spectral_cube",
+    "regions",
 ]
 spectra = [
     "specutils",
@@ -44,6 +47,13 @@ spectra = [
 ]
 styles = [
     "scienceplots",
+]
+all = [
+    "dust_extinction",
+    "regions",
+    "scienceplots"
+    "spectral_cube",
+    "specutils"
 ]
 
 [project.urls]
