@@ -195,7 +195,7 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     '4 train': '#00A66E',
     'J train': '#A67837',
     'Q train': '#FFD005',
-    'S train': '#929598',
+    'L train': '#929598',
     '3 train': '#E42031',
     'G train': '#72B444',
     '7 train': '#AD3F97',
@@ -274,6 +274,7 @@ def get_colors(
     list[str | None]:
         If `colors` is either `None`, `'face'`, or `'none'`.
     """
+    colorname = colors
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
     else:
@@ -293,9 +294,11 @@ def get_colors(
             severity=severity,
             fmt=fmt
         )
+    if isinstance(colorname, str) and colorname.removesuffix('_r') in COLORSETS:
+        modulo_idx = config.color_cycle_idx % len(colors)
+        colors = colors[modulo_idx:] + colors[:modulo_idx]
 
-    modulo_idx = config.color_cycle_idx % len(colors)
-    return colors[modulo_idx:] + colors[:modulo_idx]
+    return colors
 
 
 def _get_colors(
@@ -792,13 +795,11 @@ def plot_colors(
         else:
             colorsets = [get_colors(color)]
             color_names = ['']*len(colorsets)
-
     pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))
     factor = 0.3 if n_rows > 10 else 1
     fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
     ax.axis('off')
-
     row = 0
     for i, colorset in enumerate(colorsets):
         for j, c in enumerate(colorset):
