@@ -21,7 +21,7 @@ except ImportError:
 _TQDM_DEP = {
     'flag': _HAS_TQDM,
     'msg': dedent("""\
-        tqdm is available for this function!
+        tqdm is available to add a progress bar to this operation!
         Install via:
             CONDA :
                 $ conda install -c conda-forge tqdm

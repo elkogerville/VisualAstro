@@ -1,5 +1,5 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Audrey Whitmer
 Date Created: 2026-07-17
 Date Modified: 2026-07-27
 Description:
