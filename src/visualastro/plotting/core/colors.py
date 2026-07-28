@@ -874,7 +874,7 @@ def plot_colorset(
     pl = plot(
         x_vals[:N], y_vals[:N],
         ax=ax,
-        label=labels, color=colorset, lw=1,
+        label=labels, color=colorset, lw=2,
         xlim=(-5, 3), ylim=(-4, 4),
         xlabel='X', ylabel='Y',
     )
