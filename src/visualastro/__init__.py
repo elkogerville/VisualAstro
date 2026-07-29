@@ -283,6 +283,7 @@ styles = _register_styles()
 # REGISTER COLORSETS
 # ------------------
 def _register_colorsets() -> None:
+    """Register VisualAstro colorsets with matplotlib."""
     import matplotlib as mpl
     from visualastro.plotting.core.colors import COLORSETS
 
