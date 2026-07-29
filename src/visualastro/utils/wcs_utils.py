@@ -74,7 +74,7 @@ def get_wcs(obj: Any) -> WCS | None:
 
     Returns
     -------
-    astropy.wcs.WCS or None
+    astropy.wcs.WCS | None
         The WCS associated with the input object, if it exists and can be
         constructed. Returns None if no valid WCS is found or extraction fails.
 
@@ -139,7 +139,7 @@ def get_wcs_celestial(obj: Any) -> WCS | None:
 
     Returns
     -------
-    astropy.wcs.WCS or None
+    astropy.wcs.WCS | None
         The celestial component of the object's WCS, if it exists.
         Returns None if no valid WCS is found or if the WCS has no
         celestial axes.
@@ -163,12 +163,12 @@ def get_header_wcs(header: Header | Sequence[Header]) -> WCS | list[WCS] | None:
 
     Parameters
     ----------
-    header : Header or array-like of Header
-        Single Header or array-like of Headers.
+    header : Header | ArrayLike[Header]
+        Single Header or ArrayLike of Headers.
 
     Returns
     -------
-    WCS, list of WCS, or None
+    WCS | list[WCS] | None
 
         * Single `WCS` if `header` is a `Header` and wcs extraction succeeds.
         * List of `WCS` if `header` is a sequence and *all* headers yield
@@ -206,7 +206,7 @@ def _is_valid_wcs_slice(key):
 
     Parameters
     ----------
-    key : slice or tuple
+    key : slice | tuple
         key to slice WCS with.
 
     Returns
@@ -231,9 +231,9 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
 
     Parameters
     ----------
-    data : array-like or Quantity
+    data : ArrayLike | Quantity
         The image to crop. Must be 2D.
-    size : Quantity, float, int, or tuple
+    size : Quantity | float | int | tuple
         Size of the cutout. Interpreted as pixels if unitless.
         Ex:
 
@@ -241,7 +241,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
             * (6*u.deg, 4*u.deg)
             * (7, 8)
 
-    position : tuple, Quantity tuple, or SkyCoord, optional, default=None
+    position : tuple | Quantity tuple | SkyCoord, optional, default=None
         The center of the cutout region. Accepted formats are:
 
         * `(x, y)` : pixel coordinates (integers or floats)
@@ -252,21 +252,21 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     wcs : astropy.wcs.WCS
         WCS corresponding to `data`. If `data` has an attribute
         `.wcs`, it will be used automatically.
-    mode : {'trim', 'partial', 'strict'}, default='trim'
+    mode : {'trim', 'partial', 'strict'}, optional,default='trim'
         Defines how the function handles edges that fall outside the image:
 
         * 'trim': Trim the cutout to fit within the image bounds.
         * 'partial': Include all pixels that overlap the image, padded with NaNs.
         * 'strict': Raise an error if any part of the cutout is outside the image.
 
-    frame : str, default='icrs'
+    frame : str, optional, default='icrs'
         Coordinate frame for interpreting RA/Dec values when creating the `SkyCoord`.
-    origin_idx : int, default=0
+    origin_idx : int, optional, default=0
         Origin index for pixel-to-world conversion (0 for 0-based, 1 for 1-based).
 
     Returns
     -------
-    Quantity or ndarray
+    Quantity | ndarray
         The cropped region with units if the original data had units.
     WCS
         The WCS of the cropped region
@@ -371,7 +371,7 @@ def reproject_wcs(
     """
     Parameters
     ----------
-    input_data_list : tuple or list of tuple
+    input_data_list : tuple | list[tuple]
         A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.
         Note:
 
@@ -380,7 +380,7 @@ def reproject_wcs(
 
                 * [(np.ndarray, WCS/Header), ...]
 
-    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header
+    reference_wcs : astropy.wcs.WCS | astropy.io.fits.Header
         The target WCS or FITS header to which `input_data` will be reprojected.
         Dimensional handling:
         Input WCS → Reference WCS
@@ -391,25 +391,25 @@ def reproject_wcs(
               spectral axis)
             * 3D → 3D: Direct reprojection (spectral axes must be compatible)
 
-    method : {'interp', 'exact'} or None, default=None
+    method : {'interp', 'exact'} | None, optional, default=None
         Reprojection method:
 
             * 'interp' : use `reproject_interp`
             * 'exact' : use `reproject_exact`
 
         If None, uses `config.reproject_method`.
-    return_footprint : bool or None, optional, default=None
+    return_footprint : bool | None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
         If None, uses `config.return_footprint`.
-    parallel : bool, int, str, or None, optional, default=None
+    parallel : bool | int | str | None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
         If None, uses `config.reproject_parallel`.
-    block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
+    block_size : tuple | 'auto' | None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
         block sizes are clamped to output space edges when a block would extend
@@ -417,19 +417,19 @@ def reproject_wcs(
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out
         in blocks. If `_UNSET`, uses `config.reproject_block_size`.
-    log_file : fits.Header or None, optional, default=None
+    log_file : fits.Header | None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
-    description : str or None, optional, default=None
+    description : str | None, optional, default=None
         Description message for the progress bar. If None, a default message
         is used. Intended for internal use within VisualAstro.
 
     Returns
     -------
-    reprojected_data : ndarray or list of ndarray
+    reprojected_data : ndarray | list[ndarray]
         Reprojected data. A single array is returned if a single input
         was provided; otherwise a list of arrays.
-    footprint : ndarray or list of ndarray, optional
+    footprint : ndarray | list[ndarray], optional
         Reprojection footprint(s), returned only if `return_footprint=True`.
 
     Raises
@@ -485,12 +485,12 @@ def strip_wcs_from_header(
 
     Parameters
     ----------
-    header : Header or array-like of Headers
+    header : Header | ArrayLike[Header]
         Header(s) to strip WCS related entries from.
 
     Returns
     -------
-    nowcs_header : Header or array-like of Headers
+    nowcs_header : Header | ArrayLike[Header]
         Header(s) with no WCS information.
     """
     if isinstance(header, (list, tuple)):
@@ -571,25 +571,25 @@ def _reproject_wcs(
               spectral axis)
             * 3D → 3D: Direct reprojection (spectral axes must be compatible)
 
-    method : {'interp', 'exact'} or None, default=None
+    method : {'interp', 'exact'} | None, optional, default=None
         Reprojection method:
 
             * 'interp' : use `reproject_interp`
             * 'exact' : use `reproject_exact`
 
         If None, uses `config.reproject_method`.
-    return_footprint : bool or None, optional, default=None
+    return_footprint : bool | None, optional, default=None
         If True, return both reprojected data and reprojection
         footprints. If False, return only the reprojected data.
         If None, uses `config.return_footprint`.
-    parallel : bool, int, str, or None, optional, default=None
+    parallel : bool | int | str | None, optional, default=None
         If True, the reprojection is carried out in parallel,
         and if a positive integer, this specifies the number
         of threads to use. The reprojection will be parallelized
         over output array blocks specified by `block_size` (if the
         block size is not set, it will be determined automatically).
         If None, uses `config.reproject_parallel`.
-    block_size : tuple, ‘auto’, or None, optional, default=`_UNSET`
+    block_size : tuple | 'auto' | None, optional, default=`_UNSET`
         The size of blocks in terms of output array pixels that each block
         will handle reprojecting. Extending out from (0,0) coords positively,
         block sizes are clamped to output space edges when a block would extend
@@ -597,10 +597,10 @@ def _reproject_wcs(
         blocks with the block size automatically determined. If `block_size` is
         not specified or set to None, the reprojection will not be carried out
         in blocks. If `_UNSET`, uses `config.reproject_block_size`.
-    log_file : fits.Header or None, optional, default=None
+    log_file : fits.Header | None, optional, default=None
         If provided, reprojection details are logged to this header's
         HISTORY. Intended for internal use within VisualAstro.
-    description : str or None, optional, default=None
+    description : str | None, optional, default=None
         Description message for the progress bar. If None, a default message
         is used. Intended for internal use within VisualAstro.
 
@@ -713,12 +713,12 @@ def _copy_wcs(wcs):
 
     Parameters
     ----------
-    wcs : WCS or array-like of WCS
+    wcs : WCS | ArrayLike[WCS]
         WCS(s) to be copied.
 
     Returns
     -------
-    WCS or list of WCS
+    WCS | list[WCS]
     """
     if wcs is None:
         return None
@@ -753,7 +753,7 @@ def _normalize_reproject_input(
     -------
     normalized : tuple
         A `(ndarray, WCS)` tuple suitable for reprojection.
-    unit : astropy.units.Unit or None
+    unit : astropy.units.Unit | None
         The unit of the input data, if present.
 
     Raises
