@@ -60,7 +60,7 @@ all = [
     "scienceplots",
     "spectral_cube",
     "specutils",
-    "tol-colors"
+    "tol-colors",
     "tqdm",
 ]
 
