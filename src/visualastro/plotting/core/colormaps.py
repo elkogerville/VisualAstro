@@ -8,6 +8,10 @@ Description:
     the bottom of this file in `VISUALASTRO_CMAPS`.
 """
 
+from collections.abc import Sequence
+from typing import Literal
+import warnings
+
 import cmasher
 from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
@@ -90,40 +94,61 @@ def get_cmap(
 
 
 def create_cmap(
-    colors: list[ColorType] | int,
-    positions: list[float] | None = None,
-    name: str = 'continous_cmap'
+    colors: Sequence[ColorType] | str,
+    kind: Literal['continous', 'discrete'] = 'continous',
+    positions: Sequence[float] | None = None,
+    N: int = 256,
+    name: str = 'custom_cmap'
 ) -> mcolors.LinearSegmentedColormap | mcolors.ListedColormap:
     """
-    Creates a colormap from colors with optional position control.
+    Creates a colormap from a color sequence,
+    with continuous or discrete interpolation.
 
     Parameters
     ----------
-    colors : list[ColorType] | int
+    colors : Sequence[ColorType] | str
         Color specifications (hex, named colors, RGB tuples, etc.).
-        The cmap will be created from these colors. If `colors` is
-        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
-    positions : list[float] | None, optional
-        Positions in [0, 1] for each color. Must start with 0 and end with 1.
-        If None, colors are evenly spaced.
+        The cmap will be created from these colors.
+    kind : {'continuous', 'discrete'}, optional, default='continuous'
+        `'continuous'` returns a `LinearSegmentedColormap` (interpolated).
+        `'discrete'` returns a `ListedColormap` (stepwise, no interpolation).
+    positions : list[float] | None, optional, default=None
+        Positions in [0, 1] for each color, monotonically increasing,
+        and must start with 0 and end with 1. Only used when `kind='continuous'`.
+        If `None`, colors are evenly spaced. Ignored when `kind='discrete'`.
+    N : int, optional, default=256
+        The number of RGB quantization levels. Valid for `kind='continuous'`.
+        Ignored for `kind='discrete'`.
+    name : str, optional, default='custom_cmap'
+        Name assigned to the colormap.
 
     Returns
     -------
-    LinearSegmentedColormap
+    LinearSegmentedColormap | ListedColormap
+        Colormap object corresponding to `kind`.
+
+    Notes
+    -----
+    `N` has no effect for `ListedColormap`: its resolution is fixed to
+    `len(colors)` by construction. Passing `N` with `kind='discrete'`
+    triggers a warning, not an error.
     """
-    if isinstance(colors, int):
-        return tc.rainbow_discrete(colors)
+    rgba_list = [mcolors.to_rgba(color) for color in colors]
 
-    rgb_list = [mcolors.to_rgb(color) for color in colors]
+    if kind == 'continous':
+        if positions is None:
+            positions = list(np.linspace(0, 1, len(rgba_list)))
+        return mcolors.LinearSegmentedColormap.from_list(
+            name, list(zip(positions, rgba_list)), N=N
+        )
 
-    if positions is None:
-        positions = list(np.linspace(0, 1, len(rgb_list)))
+    elif kind == 'discrete':
+        if N != 256:
+            warnings.warn("N is ignored for kind='discrete'", stacklevel=2)
+        return mcolors.ListedColormap(rgba_list, name=name)
 
-    cdict = {channel: [[positions[i], rgb_list[i][idx], rgb_list[i][idx]]
-                       for i in range(len(positions))]
-             for idx, channel in enumerate(['red', 'green', 'blue'])}
-
-    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
+    else:
+        raise ValueError(f"Invalid kind: {kind!r}. Expected 'continuous' or 'discrete'.")
 
 
 def plot_cmap_lightness(
@@ -245,8 +270,8 @@ iridescent = plt.get_cmap('tol.iridescent').copy()
 iridescent.set_bad(color='white')
 BuWhRd = create_cmap(
     ['#191970', '#0000FF', '#FFFFFF', '#FF0000', '#8b0000'],
-    [0, 0.25, 0.5, 0.75, 1],
-    'BuWhRd'
+    positions=[0, 0.25, 0.5, 0.75, 1],
+    name='BuWhRd'
 )
 tol_rainbow = plt.get_cmap('tol.rainbow').copy()
 tol_rainbow.set_bad(color='white')
