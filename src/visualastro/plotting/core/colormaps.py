@@ -28,69 +28,61 @@ from visualastro.optional_dependencies._colorspacious import cspace_converter
 
 
 def get_cmap(
-    cmap: mcolors.Colormap | str | int,
+    cmap: mcolors.Colormap | str,
     cmap_range: tuple[float, float] = (0, 1),
+    N: int = 256,
     bad_color: ColorType | None = None,
-    N: int | None = None
+    under_color: ColorType | None = None,
+    over_color: ColorType | None = None
 ) -> mcolors.Colormap:
     """
-    Retrieve a colormap by name or return the input colormap.
+    Retrieve a colormap by name or object.
 
     Parameters
     ----------
-    cmap : mcolors.Colormap | str | int
-        Colormap object or string name. If a string, attempts lookup in VISUALASTRO_CMAPS
-        registry before falling back to Matplotlib's colormap registry.
-        If an `int`, returns `tol_colors.rainbow_discrete(colors)`.
+    cmap : mcolors.Colormap | str
+        Colormap object or string name, looked up via Matplotlib's
+        colormap registry.
     cmap_range : tuple[float, float], optional, default=(0, 1)
-        The normalized range of the colormap. By default, is `(0,1)`,
-        meaning the returned colormap has its entire range. Ignored
-        if `cmap` is an `int`.
+        Normalized sub-range to extract from `cmap`.
+    N : int, optional, default=256
+        Resolution of the resampled sub-range colormap. Ignored if
+        `cmap_range == (0, 1)`.
     bad_color : ColorType | None, optional, default=None
-        Bad data color (`bad_color`). If None, leaves the colormap unchanged.
-    N : int | None, optional, default=None
-        Number of discrete color segments to sample from the sub-range
-        defined by `cmap_range`. If None, retains all colors within that
-        range (continuous colormap). Ignored if `cmap_range` is `(0, 1)`
-        or if `cmap` is an `int`.
+        Color for masked/invalid (NaN) data. If `None`, leaves unchanged.
+    under_color : ColorType | None, optional, default=None
+        Color for values below the normalization range. If `None`, leaves
+        unchanged.
+    over_color : ColorType | None, optional, default=None
+        Color for values above the normalization range. If `None`, leaves
+        unchanged.
 
     Returns
     -------
-    mcolors.LinearSegmentedColormap
+    mcolors.Colormap
         The requested colormap.
-    """
-    def set_bad_color(
-        cmap: mcolors.Colormap,
-        color: ColorType | None
-    ) -> mcolors.Colormap:
-        """
-        Return a copy of the cmap with a new `bad_color`, or unchanged if
-        `color` is None.
-        """
-        if color is None:
-            return cmap
-        new_cmap = cmap.copy()
-        new_cmap.set_bad(color=color)
-        return new_cmap
 
+    Raises
+    ------
+    ValueError
+        If `cmap_range` does not have exactly 2 elements.
+    """
+    cm_range = tuple(cmap_range)
     if len(cmap_range) != 2:
         raise ValueError(
             'cmap_range must be a tuple[min, max]!'
         )
 
-    if isinstance(cmap, int):
-        return set_bad_color(tc.rainbow_discrete(cmap), bad_color)
+    out_cmap = plt.get_cmap(cmap)
+    if cm_range != (0, 1):
+        colors = out_cmap(np.linspace(cm_range[0], cm_range[1], N))
+        out_cmap = create_cmap(colors, N=N, name=out_cmap.name + '_sub')
 
-    out_cmap = set_bad_color(plt.get_cmap(cmap), bad_color)
-    if cmap_range[0] == 0 and cmap_range[1] == 1:
-        return out_cmap
-
-    return set_bad_color(
-        cmasher.get_sub_cmap(
-            out_cmap, cmap_range[0], cmap_range[1], N=N
-        ), bad_color
+    return out_cmap.with_extremes(
+        bad=bad_color,
+        under=under_color,
+        over=over_color,
     )
-
 
 def create_cmap(
     colors: Sequence[ColorType] | str,
