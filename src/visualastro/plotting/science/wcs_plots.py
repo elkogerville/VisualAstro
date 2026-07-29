@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-17
+Date Modified: 2026-07-29
 Description:
     Plotting functions for 2D and 3D astronomical images.
 """
@@ -145,36 +145,36 @@ def imshow(
     invert_xaxis, invert_yaxis : bool, optional, default=False
         Invert the x or y axis if True.
 
-    - `text_loc` : list of float, optional, default=`config.text_loc`
+    * `text_loc` : list[float], optional, default=`config.text_loc`
         Relative axes coordinates for text placement when
         plotting interactive ellipses.
-    - `text_color` : str, optional, default=`config.text_color`
+    * `text_color` : str, optional, default=`config.text_color`
         Color of the ellipse annotation text.
-    - `xlabel` : str, optional, default=None
+    * `xlabel` : str, optional, default=None
         X-axis label.
-    - `ylabel` : str, optional, default=None
+    * `ylabel` : str, optional, default=None
         Y-axis label.
-    - `colorbar` : bool, optional, default=`config.colorbar.enable`
+    * `colorbar` : bool, optional, default=`config.colorbar.enable`
         Add colorbar if True.
-    - `clabel` : str or bool, optional, default=`config.colorbar.label`
+    * `clabel` : str | bool, optional, default=`config.colorbar.label`
         Colorbar label. If True, use default label; if None or False, no label.
-    - `cbar_width` : float, optional, default=`config.colorbar.width`
+    * `cbar_width` : float, optional, default=`config.colorbar.width`
         Width of the colorbar.
-    - `cbar_pad` : float, optional, default=`config.colorbar.pad`
+    * `cbar_pad` : float, optional, default=`config.colorbar.pad`
         Padding between plot and colorbar.
-    - `mask_out_val` : float, optional, default=`config.mask_out_value`
+    * `mask_out_val` : float, optional, default=`config.mask_out_value`
         Value to use when masking out non-positive values.
         Ex: np.nan, 1e-6, np.inf
-    - `circles` : list, optional, default=None
+    * `circles` : list, optional, default=None
         List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.
-    - `ellipses` : list, optional, default=None
+    * `ellipses` : list, optional, default=None
         List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.
         Single Ellipse objects can also be passed directly.
-    - `points` : array-like, shape (2,) or (N, 2), optional, default=None
+    * `points` : ArrayLike, shape (2,) or (N, 2), optional, default=None
         Coordinates of points to overplot. Can be a single point `[x, y]`
         or a list/array of points `[[x1, y1], [x2, y2], ...]`.
         Points are plotted as red stars by default.
-    - `plot_ellipse` : bool, optional, default=False
+    * `plot_ellipse` : bool, optional, default=False
         If True, plot an interactive ellipse overlay. Requires an interactive backend.
 
     Returns
@@ -422,19 +422,19 @@ def plot_spectral_cube(
     text_color : ColorType, default=config.text_color
         Color of overlay text.
 
-    - `colorbar` : bool, default=`config.colorbar.enable`
+    * `colorbar` : bool, default=`config.colorbar.enable`
         Whether to add a colorbar.
-    - `cbar_width` : float, default=`config.colorbar.width`
+    * `cbar_width` : float, default=`config.colorbar.width`
         Width of the colorbar.
-    - `cbar_pad` : float, default=`config.colorbar.pad`
+    * `cbar_pad` : float, default=`config.colorbar.pad`
         Padding between axes and colorbar.
-    - `clabel` : str, bool, or None, default=`config.colorbar.label`
+    * `clabel` : str | bool | None, default=`config.colorbar.label`
         Label for colorbar. If True, automatically generate from cube unit.
-    - `xlabel` : str, default=`config.right_ascension_label`
+    * `xlabel` : str, default=`config.right_ascension_label`
         X axis label.
-    - `ylabel` : str, default=`config.declination_label`
+    * `ylabel` : str, default=`config.declination_label`
         Y axis label.
-    - `ellipses` : list or None, default=None
+    * `ellipses` : list | None, default=None
         Ellipse objects to overlay on the image.
 
 
@@ -446,7 +446,8 @@ def plot_spectral_cube(
 
     Notes
     -----
-    - If multiple cubes are provided, they are overplotted in sequence
+
+    * If multiple cubes are provided, they are overplotted in sequence
     on the wcs of `cubes[config.reference_idx]`.
     """
     _require_dependency('spectral-cube')
