@@ -12,7 +12,6 @@ from collections.abc import Sequence
 from typing import Literal
 import warnings
 
-import cmasher
 import matplotlib as mpl
 from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
@@ -24,7 +23,8 @@ import numpy as np
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
-from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies.register import _offer_dependency, _require_dependency
+from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
 from visualastro.optional_dependencies._colorspacious import cspace_converter
 
 
@@ -228,7 +228,8 @@ def plot_cmap_lightness(
         scatter = ax.scatter(x, L + y_offset, s=s, c=x, cmap=c, **kwargs)
         scatters.append(scatter)
 
-        if legend_label:
+        if _HAS_CMASHER and legend_label:
+            _offer_dependency('cmasher')
             cmasher.set_cmap_legend_entry(scatter, c.name)
 
         if inline_label:
