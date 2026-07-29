@@ -45,7 +45,7 @@ from visualastro.optional_dependencies._spectralcube import (
 from visualastro.optional_dependencies._specutils import (
     SpectralRegion, Spectrum
 )
-from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
+from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,

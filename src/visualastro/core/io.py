@@ -29,7 +29,7 @@ from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 from visualastro.optional_dependencies.register import _offer_dependency
-from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
+from visualastro.optional_dependencies._tqdm import tqdm
 
 
 def get_sci_from_hdul(

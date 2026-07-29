@@ -30,7 +30,7 @@ from visualastro.optional_dependencies.register import _offer_dependency
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
-from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
+from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.core.units import get_unit
 from visualastro.utils.fits_utils import _log_history
 

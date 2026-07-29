@@ -66,7 +66,7 @@ from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import (
     SpectralAxis, Spectrum
 )
-from visualastro.optional_dependencies._tqdm import tqdm, _HAS_TQDM
+from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
