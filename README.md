@@ -67,7 +67,7 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 
-astropy, cmasher, matplotlib, numpy, scipy, and tol_colors.
+astropy, cmasher, matplotlib, numpy, and scipy.
 
 ### Optional dependencies
 

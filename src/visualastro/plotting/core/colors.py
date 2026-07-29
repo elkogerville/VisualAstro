@@ -27,7 +27,6 @@ import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
-import tol_colors as tc
 
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET

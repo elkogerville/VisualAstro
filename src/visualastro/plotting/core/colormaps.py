@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
 import numpy as np
-import tol_colors as tc
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list

@@ -23,7 +23,6 @@ dependencies = [
     "matplotlib",
     "numpy",
     "scipy",
-    "tol-colors",
 ]
 
 [project.optional-dependencies]
