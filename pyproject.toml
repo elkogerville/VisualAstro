@@ -19,7 +19,6 @@ classifiers = [
 ]
 dependencies = [
     "astropy",
-    "cmasher",
     "matplotlib",
     "numpy",
     "scipy",
@@ -47,10 +46,13 @@ styles = [
     "scienceplots",
 ]
 utils = [
+    "cmasher",
     "colorspacious",
+    "tol-colors"
     "tqdm",
 ]
 all = [
+    "cmasher",
     "colorspacious",
     "dust_extinction",
     "regions",
@@ -58,6 +60,7 @@ all = [
     "scienceplots",
     "spectral_cube",
     "specutils",
+    "tol-colors"
     "tqdm",
 ]
 
