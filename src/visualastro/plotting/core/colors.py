@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-22
+Date Modified: 2026-07-28
 Description:
     Functions related to colors in plotting.
 """
@@ -222,7 +222,7 @@ def get_colors(
     colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
 
         * `UNSET`: Use default colorset
-        * `str`:  visualastro colorset name (with optional '_r' suffix) or single color
+        * `str`:  VisualAstro colorset name (with optional '_r' suffix) or single color
         * `ColorType`: Explicit color
         * `int`: Number of colors to sample from cmap
         * `Sequence[ColorType]`: Explicit list of colors
@@ -238,7 +238,7 @@ def get_colors(
         if `cmap` is an `int`.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float or int
+    factor : float | int
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -424,7 +424,7 @@ def simulate_colorblindness(
 
     Returns
     -------
-    list of ColorType
+    list[ColorType]
         List of ColorType as perceived by colorblind vision.
     """
     _require_dependency('colorspacious')
@@ -525,7 +525,7 @@ def get_complimentary_colors(
         Matplotlib named color, hex color, HTML color, or RGB tuple.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float or int
+    factor : float | int
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -601,7 +601,7 @@ def lighten_colors(
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
-    """Lightens the given matplotlib color by mixing it with white."""
+    """Lightens the given Matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
     mixed = (1 - mix) * rgb + mix * white
@@ -760,14 +760,14 @@ def plot_colors(
     ----------
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
-        If `None`, plots each colorset in visualastro.
+        If `None`, plots each colorset in VisualAstro.
     cvd_type : str | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
         If `'all'`, simulates all cvd types.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
-        If `True`, also plots the colorset name. Only applicable to visualastro
+        If `True`, also plots the colorset name. Only applicable to VisualAstro
         colorsets (as opposed to a sequence of colors).
 
     Examples
@@ -925,7 +925,7 @@ def plot_color_deltaE(
     ax : matplotlib.axes.Axes | None, optional, default=None
         Target axes. Ignored if `None`; axes are created via `gridspec` (when
         `cvd_type='all'`) or `plt.subplots` (otherwise). If `cvd_type='all'`,
-        `ax` should be an array-like of 4 `Axes`, ie `list[Axes, Axes, Axes, Axes]`.
+        `ax` should be an ArrayLike of 4 `Axes`, ie `list[Axes, Axes, Axes, Axes]`.
     cmap : str | matplotlib.colors.Colormap, optional, default='viridis'
         Colormap passed to `imshow` for the deltaE / ratio matrices.
         It is recommended to use perceptually uniform sequential colormaps
@@ -1308,7 +1308,7 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
 
     Parameters
     ----------
-    c_list : list of array-like | None
+    c_list : list[ArrayLike] | None
         List of color value arrays, one per population. If `None`, returns `None`.
     norm_method : {'log', 'global'} | None
         Normalization method.
