@@ -252,7 +252,7 @@ def crop2D(data, size, position=None, wcs=None, mode='trim', frame='icrs', origi
     wcs : astropy.wcs.WCS
         WCS corresponding to `data`. If `data` has an attribute
         `.wcs`, it will be used automatically.
-    mode : {'trim', 'partial', 'strict'}, optional,default='trim'
+    mode : {'trim', 'partial', 'strict'}, optional, default='trim'
         Defines how the function handles edges that fall outside the image:
 
         * 'trim': Trim the cutout to fit within the image bounds.
