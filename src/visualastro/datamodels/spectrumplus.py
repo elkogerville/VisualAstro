@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-03-11
+Date Modified: 2026-07-28
 Description:
     SpectrumPlus data structure for 1D spectrum objects.
     This is an extension of the specutils.Spectrum class
@@ -295,9 +295,10 @@ class SpectrumPlus:
             together into a single Spectrum object instead.
         continuum_region : SpectralRegion, array-like, or list thereof, optional
             Spectral region(s) to use when fitting the continuum.
-            - If ``return_single_spectrum=True`` :
+
+            * If ``return_single_spectrum=True`` :
                 single region specification
-            - If ``return_single_spectrum=False`` and multiple regions extracted :
+            * If ``return_single_spectrum=False`` and multiple regions extracted :
                 must be a list with one region per extracted subregion, or None
 
         Returns
@@ -423,7 +424,7 @@ class SpectrumPlus:
         self.fit_method = fit_method
 
     def remove_nonfinite(self, return_mask=False):
-        '''
+        """
         Return a new SpectrumPlus with all samples removed
         where the flux is not finite (NaN, +inf, -inf).
 
@@ -443,7 +444,7 @@ class SpectrumPlus:
         finite : bool
             Boolean mask used to mask the spectrum spectral axis
             and flux. Only returned if `return_mask` is True.
-        '''
+        """
         finite = np.isfinite(self.flux)
 
         finite_spec = SpectrumPlus(
@@ -457,7 +458,7 @@ class SpectrumPlus:
         return finite_spec
 
     def replace_flux_where(self, mask, values):
-        '''
+        """
         Replace flux values at selected locations and return a new spectrum.
 
         This method returns a new `SpectrumPlus` in which the flux values
@@ -490,7 +491,7 @@ class SpectrumPlus:
             spectrum flux.
         UnitsError :
             If `flux` and `values` don't have the same units.
-        '''
+        """
         spectrum = self.spectrum
         spectral_axis = spectrum.spectral_axis
         flux = spectrum.flux.copy()
@@ -502,7 +503,7 @@ class SpectrumPlus:
             )
 
         if not hasattr(values, 'unit'):
-            raise TypeError("`values` must be an astropy Quantity.")
+            raise TypeError("`values` must be an Astropy Quantity.")
 
         _check_unit_equality(flux.unit, values.unit, 'flux', 'values')
 
@@ -530,7 +531,7 @@ class SpectrumPlus:
     # helper functions
     # ----------------
     def __getattr__(self, name):
-        '''
+        """
         Delegate attribute/method access to underlying Spectrum object
         if it is not defined in SpectrumPlus.
 
@@ -538,7 +539,7 @@ class SpectrumPlus:
         ----------
         name : str
             Name of attribute, property, method, etc...
-        '''
+        """
         if name.startswith('_'):
             raise AttributeError(
                 f"'{type(self).__name__}' object has no attribute '{name}'"
@@ -695,9 +696,10 @@ class SpectrumPlus:
         or from spectral axis and flux arrays.
 
         Exactly one of the following input combinations must be provided:
-        - `spectrum`: a pre-existing `specutils.Spectrum` instance, or
-        - `spectral_axis` and `flux`: array-like objects used to construct a new
-            `Spectrum`.
+
+        * `spectrum`: a pre-existing `specutils.Spectrum` instance, or
+        * `spectral_axis` and `flux`: array-like objects used to construct a new
+          `Spectrum`.
 
         Parameters
         ----------
