@@ -10,6 +10,7 @@ Description:
 """
 import warnings
 
+from visualastro.optional_dependencies._cmasher import _CMASHER_DEP
 from visualastro.optional_dependencies._colorspacious import _COLORSPACIOUS_DEP
 from visualastro.optional_dependencies._dust_extinction import _DUST_EXTINCTION_DEP
 from visualastro.optional_dependencies._regions import _REGIONS_DEP
@@ -20,6 +21,7 @@ from visualastro.optional_dependencies._tqdm import _TQDM_DEP
 
 
 _OPTIONAL_DEPS = {
+    'cmasher': _CMASHER_DEP,
     'colorspacious': _COLORSPACIOUS_DEP,
     'dust_extinction': _DUST_EXTINCTION_DEP,
     'regions': _REGIONS_DEP,
