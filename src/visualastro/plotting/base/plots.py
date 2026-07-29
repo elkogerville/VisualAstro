@@ -80,9 +80,9 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
     Parameters
     ----------
-    X : array-like | list[array-like]
+    X : ArrayLike | list[ArrayLike]
         The x-axis data or list of data arrays.
-    Y : array-like | list[array-like]
+    Y : ArrayLike | list[ArrayLike]
         The y-axis data or list of data arrays.
     ax : matplotlib.axes.Axes
         Main axis for the 2D scatter plot.
@@ -718,9 +718,9 @@ def scatter(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
         uses `plt.gca()`.
-    xerr : array-like | list[array-like] | None, optional, default=None
+    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
-    yerr : array-like | list[array-like] | None, optional, default=None
+    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
@@ -972,9 +972,9 @@ def scatter_fit(
         uses `plt.gca()`.
     deg : int
         Degree of the polynomial fit.
-    xerr : array-like | list[array-like] | None, optional, default=None
+    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
-    yerr : array-like | list[array-like] | None, optional, default=None
+    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
@@ -1157,15 +1157,15 @@ def scatter3D(
     Supported inputs:
 
     * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D array-like: `(X, Y, Z)`.
-    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three 1D ArrayLike: `(X, Y, Z)`.
+    * Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
     * Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
     *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
         Input(s) to extract X, Y, Z values from.
-        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+        ndarray | Sequence[ndarray] | tuple[ArrayLike, ArrayLike, ArrayLike] | tuple[scalar, scalar, scalar]
 
         Supported calling conventions:
 
@@ -1174,13 +1174,13 @@ def scatter3D(
             * Each array should be 2D and have at least 3 axes. The extracted
             axes are set by `index_spec`.
 
-        * Three 1D array-like:
+        * Three 1D ArrayLike:
 
             * Three 1D arrays of the same shape.
 
-        * Three Sequences[1D array-like]
+        * Three Sequences[1D ArrayLike]
 
-            * Three Sequences each containing an array-like to plot.
+            * Three Sequences each containing an ArrayLike to plot.
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
@@ -1247,7 +1247,7 @@ def scatter3D(
     plot_contour_offset : float | Sequence[float], optional, default=None
         Manual positional offsets for the contour projection planes.
         If a single float is given, the same offset is used for all projections.
-        If a sequence is given (e.g., array-like), its length must match
+        If a sequence is given (e.g., ArrayLike), its length must match
         the number of entries in `plot_contours`, providing one offset per projection
         in the same order. If None, offsets are automatically chosen based
         on current axis limits.
@@ -1499,15 +1499,15 @@ def scatter_project(
     Each population can have an independent colormap.
 
     * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D array-like: `(X, Y, Z)`.
-    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three 1D ArrayLike: `(X, Y, Z)`.
+    * Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
     * Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
     *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
         Input(s) to extract X, Y, Z values from.
-        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+        ndarray | Sequence[ndarray] | tuple[ArrayLike, ArrayLike, ArrayLike] | tuple[scalar, scalar, scalar]
 
         Supported calling conventions:
 
@@ -1516,13 +1516,13 @@ def scatter_project(
             * Each array should be 2D and have at least 3 axes. The extracted
             axes are set by `index_spec`.
 
-        * Three 1D array-like:
+        * Three 1D ArrayLike:
 
             * Three 1D arrays of the same shape.
 
-        * Three Sequences[1D array-like]
+        * Three Sequences[1D ArrayLike]
 
-            * Three Sequences each containing an array-like to plot.
+            * Three Sequences each containing an ArrayLike to plot.
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
