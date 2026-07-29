@@ -84,6 +84,7 @@ def get_cmap(
         over=over_color,
     )
 
+
 def create_cmap(
     colors: Sequence[ColorType] | str,
     kind: Literal['continous', 'discrete'] = 'continous',
@@ -124,6 +125,9 @@ def create_cmap(
     `len(colors)` by construction. Passing `N` with `kind='discrete'`
     triggers a warning, not an error.
     """
+    if isinstance(colors, str) and colors in mpl.color_sequences:
+        colors = mpl.color_sequences[colors]
+
     rgba_list = [mcolors.to_rgba(color) for color in colors]
 
     if kind == 'continous':
