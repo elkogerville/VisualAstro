@@ -1,9 +1,10 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2026-06-26
+Date Modified: 2026-07-28
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 from typing import overload
 
@@ -11,9 +12,9 @@ from astropy.io.fits import Header
 from astropy.time import Time
 import astropy.units as u
 import numpy as np
-from specutils import SpectralRegion
 
 from visualastro.core.units import _require_spectral_region
+from visualastro.optional_dependencies._specutils import SpectralRegion
 
 
 @overload

@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-26-29
+Date Modified: 2026-07-28
 Description:
     General plotting functions.
 """
@@ -73,16 +73,16 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
                            xlog=None, ylog=None, xlog_hist=None,
                            ylog_hist=None, histtype=None,
                            normalize=None, colors=_UNSET, **kwargs):
-    '''
+    """
     Plot a 2D scatter distribution with normalized density histograms.
     This function creates a scatter plot of `X` vs. `Y` along
     with normalizable histograms of `X` and `Y`.
 
     Parameters
     ----------
-    X : array-like or list of arrays
+    X : ArrayLike | list[ArrayLike]
         The x-axis data or list of data arrays.
-    Y : array-like or list of arrays
+    Y : ArrayLike | list[ArrayLike]
         The y-axis data or list of data arrays.
     ax : matplotlib.axes.Axes
         Main axis for the 2D scatter plot.
@@ -90,24 +90,24 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
         Axis for the top histogram (x-axis).
     ax_histy : matplotlib.axes.Axes
         Axis for the right histogram (y-axis).
-    bins : int, sequence, str, or None, optional, default=None
+    bins : int | sequence | str | None, optional, default=None
         Histogram bin specification. Passed directly to
         `matplotlib.pyplot.hist`. If None, uses `config.bins`.
         If `bins` is a str, use one of the supported binning strategies
         'auto', 'fd', 'doane', 'scott', 'stone', 'rice', 'sturges', or 'sqrt'.
-    xlog : bool or None, optional, default=None
+    xlog : bool | None, optional, default=None
         Whether to use a logarithmic x-axis scale for the scatter plot.
         If None, uses `config.axes.xlog`.
-    ylog : bool or None, optional, default=None
+    ylog : bool | None, optional, default=None
         Whether to use a logarithmic y-axis scale for the scatter plot.
         If None, uses `config.axes.ylog`.
-    xlog_hist : bool or None, optional, default=None
+    xlog_hist : bool | None, optional, default=None
         Whether to use a logarithmic x-axis scale for the top histogram.
         If None, uses `config.axes.xlog_hist`.
-    ylog_hist : bool or None, optional, default=None
+    ylog_hist : bool | None, optional, default=None
         Whether to use a logarithmic y-axis scale for the right histogram.
         If None, uses `config.axes.ylog_hist`.
-    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} or None, optional, default=None
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | None, optional, default=None
         Type of histogram to draw. If None, uses `config.histtype`.
     normalize : bool, optional, default=None
         If True, normalize histograms to a probability density.
@@ -121,36 +121,36 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
         Supported keyword arguments include:
 
-        - `rasterized` : bool, default=`config.rasterized`
+        * `rasterized` : bool, default=`config.rasterized`
             Whether to rasterize plot artists. Rasterization
             converts the artist to a bitmap when saving to
             vector formats (e.g., PDF, SVG), which can
             significantly reduce file size for complex plots.
-        - `color`, `c` : list of colors, str, or None, optional, default=None
+        * `color`, `c` : list of colors, str, or None, optional, default=None
             aliases for `colors`.
-        - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
+        * `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
             Marker size(s) for scatter points.
-        - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
+        * `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
             Marker style(s) for scatter points.
-        - `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
+        * `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
             Transparency level(s).
-        - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
+        * `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
             Edge colors for scatter points.
-        - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
+        * `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
             Line style(s) for histogram edges.
-        - `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
+        * `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
             Line width(s) for histogram edges.
-        - `zorders`, `zorder` : int or list, optional, default=None
+        * `zorders`, `zorder` : int or list, optional, default=None
             Z-order(s) for drawing priority.
-        - `cmap` : str, optional, default=`config.cmap`
+        * `cmap` : str, optional, default=`config.cmap`
             Colormap name for automatic color assignment.
-        - `xlim`, `ylim` : tuple, optional, default=None
+        * `xlim`, `ylim` : tuple, optional, default=None
             Axis limits for the scatter plot.
-        - `labels`, `label`, `l` : list or str, optional, default=None
+        * `labels`, `label`, `l` : list or str, optional, default=None
             Labels for legend entries.
-        - `loc` : str, optional, default=`config.legend.loc`
+        * `loc` : str, optional, default=`config.legend.loc`
             Legend location.
-        - `xlabel`, `ylabel` : str, optional, default=None
+        * `xlabel`, `ylabel` : str, optional, default=None
             Axis labels for the scatter plot.
 
     Returns
@@ -158,18 +158,18 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     handles : DensityHistogram
         A named tuple containing the created Matplotlib objects:
 
-        - `scatters` : matplotlib.collections.PathCollection or list of PathCollection
+        * `scatters` : matplotlib.collections.PathCollection or list of PathCollection
             The scatter plot object(s) created on the main axis.
-        - `histx` : tuple or list of tuple
+        * `histx` : tuple or list of tuple
             The result(s) from the top histograms, where each tuple is
             `(n, bins, patches)` as returned by `Axes.hist`.
-        - `histy` : tuple or list of tuple
+        * `histy` : tuple or list of tuple
             The result(s) from the right-side histograms, with the same format
             as `histx`.
 
         If only a single dataset is provided, each field contains a single
         object or tuple instead of a list.
-    '''
+    """
     # ---- KWARGS ----
     rasterized = kwargs.get('rasterized', config.rasterized)
     colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
@@ -317,7 +317,7 @@ def hist(
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
-    color: ColorType | list[ColorType] | _Unset = _UNSET,
+    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
     zorder: float | list[float] | None = None,
@@ -356,7 +356,7 @@ def hist(
 
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Matplotlib histogram type. If `_UNSET`, uses `config.histtype`.
-    normalize : bool or None, optional, default=None
+    normalize : bool | None, optional, default=None
         Alias for `density`. If `True`, normalize histograms to a probability density.
         If `_UNSET`, uses `config.normalize_hist`.
     align : {'left', 'mid', 'right'}, optional, default: 'mid'
@@ -494,7 +494,7 @@ def hist(
 def plot(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
     ax: maxes.Axes | None = None,
-    color: ColorType | list[ColorType] | _Unset = _UNSET,
+    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
     linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
     linewidth: float | list[float] | _Unset = _UNSET,
     alpha: float | list[float] | _Unset = _UNSET,
@@ -629,10 +629,11 @@ def plot(
     ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
 
     lines = []
 
@@ -717,9 +718,9 @@ def scatter(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
         uses `plt.gca()`.
-    xerr : array-like | list[array-like] | None, optional, default=None
+    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
-    yerr : array-like | list[array-like] | None, optional, default=None
+    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
@@ -857,11 +858,11 @@ def scatter(
     c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
-
     scatters = []
 
     for i in range(len(ylist)):
@@ -971,9 +972,9 @@ def scatter_fit(
         uses `plt.gca()`.
     deg : int
         Degree of the polynomial fit.
-    xerr : array-like | list[array-like] | None, optional, default=None
+    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on x-axis data. Must match shape of x data.
-    yerr : array-like | list[array-like] | None, optional, default=None
+    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
         Errors on y-axis data. Must match shape of y data.
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
@@ -1156,15 +1157,15 @@ def scatter3D(
     Supported inputs:
 
     * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D array-like: `(X, Y, Z)`.
-    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three 1D ArrayLike: `(X, Y, Z)`.
+    * Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
     * Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
     *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
         Input(s) to extract X, Y, Z values from.
-        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+        ndarray | Sequence[ndarray] | tuple[ArrayLike, ArrayLike, ArrayLike] | tuple[scalar, scalar, scalar]
 
         Supported calling conventions:
 
@@ -1173,13 +1174,13 @@ def scatter3D(
             * Each array should be 2D and have at least 3 axes. The extracted
             axes are set by `index_spec`.
 
-        * Three 1D array-like:
+        * Three 1D ArrayLike:
 
             * Three 1D arrays of the same shape.
 
-        * Three Sequences[1D array-like]
+        * Three Sequences[1D ArrayLike]
 
-            * Three Sequences each containing an array-like to plot.
+            * Three Sequences each containing an ArrayLike to plot.
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
@@ -1246,7 +1247,7 @@ def scatter3D(
     plot_contour_offset : float | Sequence[float], optional, default=None
         Manual positional offsets for the contour projection planes.
         If a single float is given, the same offset is used for all projections.
-        If a sequence is given (e.g., array-like), its length must match
+        If a sequence is given (e.g., ArrayLike), its length must match
         the number of entries in `plot_contours`, providing one offset per projection
         in the same order. If None, offsets are automatically chosen based
         on current axis limits.
@@ -1498,15 +1499,15 @@ def scatter_project(
     Each population can have an independent colormap.
 
     * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D array-like: `(X, Y, Z)`.
-    * Three sequences of 1D array-like: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    * Three 1D ArrayLike: `(X, Y, Z)`.
+    * Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
     * Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
     *data : NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float
         Input(s) to extract X, Y, Z values from.
-        ndarray | Sequence[ndarray] | tuple[array-like, array-like, array-like] | tuple[scalar, scalar, scalar]
+        ndarray | Sequence[ndarray] | tuple[ArrayLike, ArrayLike, ArrayLike] | tuple[scalar, scalar, scalar]
 
         Supported calling conventions:
 
@@ -1515,13 +1516,13 @@ def scatter_project(
             * Each array should be 2D and have at least 3 axes. The extracted
             axes are set by `index_spec`.
 
-        * Three 1D array-like:
+        * Three 1D ArrayLike:
 
             * Three 1D arrays of the same shape.
 
-        * Three Sequences[1D array-like]
+        * Three Sequences[1D ArrayLike]
 
-            * Three Sequences each containing an array-like to plot.
+            * Three Sequences each containing an ArrayLike to plot.
             Corresponding elements across sequences must share the same shape,
             i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
@@ -1574,6 +1575,7 @@ def scatter_project(
     -----
     All populations are concatenated and rendered in a single `ax.scatter`
     call. Render order is controlled by `sort_by_c` and `reverse_sort`:
+
     * `sort_by_c=True, reverse_sort=False` -> low density rendered first,
         high density on top (recommended for density plots).
     * `sort_by_c=False` -> sort by projected axis coordinate (`zdir`).
@@ -1617,10 +1619,11 @@ def scatter_project(
     labels = to_list(params.label)
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
+        ax,
+        params.autoscale,
+        plot_params.compute_limits,
+        params.xlog, params.ylog
     )
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
 
     sort_axis = {
         'x': 0,

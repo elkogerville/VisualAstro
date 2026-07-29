@@ -369,15 +369,15 @@ class help:
             font_name = 'DejaVu Sans'
 
         with _style_context(fontstyle):
-            x = np.linspace(0, 0.9, 5000)
+            x = np.linspace(0, 0.89, 5000)
 
             fig, ax = plt.subplots(figsize=(9, 9))
             ax.plot(x, np.sin(80*x), lw=2, label=r'$\sin(80x)$', color='dsb')
             ax.plot(x, np.cos(80*x), '--', lw=2, label=r'$\cos(80x)$', color='mvr')
 
             ax.set_title(
-                f"VisualAstro Test for Font: '{font_name}'\n"
-                f"Stylesheet: {fontstyle}\n"
+                f"VisualAstro Test for Font: {font_name}\n"
+                f"Stylesheet: '{fontstyle}'\n"
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\n'
                 'abcdefghijklmnopqrstuvwxyz\n'
                 '0123456789',
@@ -409,25 +409,32 @@ class help:
             ax.set_ylim(-5.0, 1.3)
 
             samples = [
+                ('', dict()),
+                ('Italic', dict(style='italic')),
+                ('Bold Italic', dict(weight='bold', style='italic')),
+                ('0123456789', dict(family='monospace')),
                 ('Text Styles:', dict()),
                 ('Regular', dict(weight='normal')),
                 ('Bold', dict(weight='bold')),
-                ('Italic', dict(style='italic')),
-                ('Bold Italic', dict(weight='bold', style='italic')),
-                ('Monospace 0123456789', dict(family='monospace')),
+                ('Monospace', dict(family='monospace')),
             ]
 
-            y = 0.26
-            for text, kwargs in samples:
+            n_rows = (len(samples) + 1) // 2
+            col_x = [0.7, 0.87]
+            y0 = 0.2
+            dy = 0.023
+
+            for i, (text, kwargs) in enumerate(samples):
+                col = i // n_rows
+                row = i % n_rows
                 fig.text(
-                    0.87,
-                    y,
+                    col_x[col],
+                    y0 - row * dy,
                     text,
                     fontsize=12,
                     horizontalalignment='right',
                     **kwargs,
                 )
-                y -= 0.025
 
             weights = dict.fromkeys(sorted(
                 (f.name, f.weight) for f in font_manager.fontManager.ttflist
@@ -480,7 +487,7 @@ class help:
             mathname = plt.rcParams['mathtext.rm'] if mathfont == 'custom' else mathfont
             fig.text(
                 0.87,
-                0.45,
+                0.44,
                 (
                     f'MATHTEXT Font: {mathname}'
                     '\n'
@@ -492,7 +499,7 @@ class help:
                     '\n'
                     r'$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$'
                     '\n'
-                    r'$\infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
+                    r'$0 1 2 3 4 5 6 7 8 9 \; \infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$'
                     '\n'
                     r'$\frac{1}{\sqrt{2\pi\sigma^2}}'
                     r'e^{-\frac{(x-\mu)^2}{2\sigma^2}}$'
@@ -519,7 +526,7 @@ class help:
 
             fig.text(
                 0.87,
-                0.3,
+                0.25,
                 (
                     'UNICODE GREEK LETTERS:'
                     '\nΑα Ββ Γγ Δδ Εε Ζζ Ηη Θθ'

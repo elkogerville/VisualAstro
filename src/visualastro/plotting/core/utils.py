@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-07-03
+Date Modified: 2026-07-28
 Description:
     Plotting utility functions.
 """
@@ -24,7 +24,6 @@ from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import NDArray
-from regions import PixCoord, EllipsePixelRegion
 
 from visualastro.core.config import (
     config,
@@ -49,6 +48,10 @@ from visualastro.core.numerical_utils import (
     _is_scalar,
 )
 from visualastro.core.units import to_unit
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._regions import (
+    PixCoord, EllipsePixelRegion
+)
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
@@ -261,13 +264,13 @@ def contour_kde(
 
     Parameters
     ----------
-    x : array-like
+    x : ArrayLike
         1D array of x-values for the dataset.
-    y : array-like
+    y : ArrayLike
         1D array of y-values for the dataset.
     ax : matplotlib.axes.Axes | mpl_toolkits.mplot3d.axes3d.Axes3D
         Axis on which to draw the contours.
-    levels : int | array-like | _Unset, optional, default=_UNSET
+    levels : int | ArrayLike | _Unset, optional, default=_UNSET
         Number or list of contour levels to draw. If `_UNSET`,
         uses `config.contour.levels`.
     contour_method : {'contour', 'contourf'} | _Unset, optional, default=_UNSET
@@ -295,7 +298,7 @@ def contour_kde(
     zdir : {'x', 'y', 'z'} | None, default=None
         Direction normal to the plane where contours are drawn.
         If None, contours are plotted in 2D.
-    offset : float or None, default=None
+    offset : float | None, default=None
         Offset along the `zdir` direction for projecting contours in 3D space.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap used for plotting contours. If `_UNSET`,
@@ -542,7 +545,7 @@ def _normalize_plotting_input(data):
     Parameters
     ----------
     data : scalar | Sequence | None
-        Input data to normalize. Can be a scalar, 1D array-like, 2D array-like,
+        Input data to normalize. Can be a scalar, 1D ArrayLike, 2D ArrayLike,
         or `None`.
 
     Returns
@@ -606,32 +609,32 @@ def plot_circles(
     fill=None,
     cmap=None
 ):
-    '''
+    """
     Plot one or more circles on a Matplotlib axis with customizable style.
 
     Parameters
     ----------
-    circles : array-like or None
+    circles : ArrayLike | None
         Circle coordinates and radii. Can be a single circle `[x, y, r]`
         or a list/array of circles `[[x1, y1, r1], [x2, y2, r2], ...]`.
         If None, no circles are plotted.
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the circles.
-    colors : list of colors, str, or None, optional, default=None
+    colors : list[colors] | str | None, optional, default=None
         List of colors to cycle through for each circle. None defaults
         to ['r', 'mediumvioletred', 'magenta']. A single color can also
         be passed. If there are more circles than colors, colors are
         sampled from a colormap using sample_cmap(cmap=`cmap`).
-    linewidth : float or None, optional, default=None
+    linewidth : float | None, optional, default=None
         Width of the circle edge lines. If None,
         uses `config.linewidth`.
-    fill : bool or None, optional, default=None
+    fill : bool | None, optional, default=None
         Whether the circles are filled. If None,
         uses `config.circle_fill`.
-    cmap : str or None, optional, default=None
+    cmap : str | None, optional, default=None
         matplolib cmap used to sample default circle colors.
         If None, uses `config.cmap`.
-    '''
+    """
     # get default config values
     linewidth = get_config_value(linewidth, 'linewidth')
     fill = get_config_value(fill, 'circle_fill')
@@ -666,7 +669,7 @@ def plot_ellipses(ellipses: Ellipse | list[Ellipse], ax: maxes.Axes) -> None:
 
     Parameters
     ----------
-    ellipses : matplotlib.patches.Ellipse or list
+    ellipses : matplotlib.patches.Ellipse | list
         The Ellipse or list of Ellipses to plot.
     ax : matplotlib.axes.Axes
         Matplotlib axis on which to plot the ellipses(s).
@@ -732,12 +735,12 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
         Height of the ellipse.
     ax : matplotlib.axes.Axes
         The Axes on which to draw the ellipse selector.
-    text_loc : list of float or None, optional, default=None
+    text_loc : list[float] | None, optional, default=None
         Position of the text label in Axes coordinates, given as [x, y].
         If None, uses `config.text_loc`.
-    text_color : str or None, optional, default=None
+    text_color : str | None, optional, default=None
         Color of the annotation text. If None, uses `config.text_color`.
-    highlight : bool or None, optional, default=None
+    highlight : bool | None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses `config.highlight`.
 
@@ -746,6 +749,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     Ensure an interactive backend is active. This can be
     activated with use_interactive().
     """
+    _require_dependency('regions')
     text_loc = get_config_value(text_loc, 'ellipse_label_loc')
     text_color = get_config_value(text_color, 'text_color')
     highlight = get_config_value(highlight, 'highlight')
@@ -879,7 +883,7 @@ def ellipse_patch(
         sets `fill=True`.
     linestyle or ls : {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}, optional
         Linestyle of ellipse patch.
-    linewidth or lw : float or None, optional
+    linewidth or lw : float | None, optional
         Linewidth of ellipse patch.
     Any other kwargs accepted by matplotlib.patches.Ellipse
 
@@ -916,7 +920,7 @@ def plot_points(
         Input data. Supported forms:
 
         * Single argument:
-            * 1D array-like or Quantity: Y values, X = None
+            * 1D ArrayLike or Quantity: Y values, X = None
             * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
             * list/tuple of scalars: Y values, X = None
             * scalar or scalar Quantity: single Y value, X = None
@@ -980,11 +984,11 @@ def axvline(vlines, ax, unit=None, equivalencies=None) -> None:
         are drawn.
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the vertical line(s).
-    unit : astropy.units.UnitBase or str, optional, default=None
+    unit : astropy.units.UnitBase | str, optional, default=None
         Unit to which Quantity values in `vlines` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
-    equivalencies : astropy.units.equivalencies or None, optional, default=None
+    equivalencies : astropy.units.equivalencies | None, optional, default=None
         Equivalencies for converting units. If None, is ignored.
 
     """
@@ -1020,11 +1024,11 @@ def axhline(hlines, ax, unit=None, equivalencies=None):
         are drawn.
     ax : matplotlib.axes.Axes
         Matplotlib Axes object on which to draw the horizontal line(s).
-    unit : astropy.units.UnitBase or str, optional, default=None
+    unit : astropy.units.UnitBase | str, optional, default=None
         Unit to which Quantity values in `hlines` are converted before plotting.
         If None, Quantity inputs must already be in the axis unit system or must
         not require conversion.
-    equivalencies : astropy.units.equivalencies or None, optional, default=None
+    equivalencies : astropy.units.equivalencies | None, optional, default=None
         Equivalencies for converting units. If None, is ignored.
 
     Notes
@@ -1054,11 +1058,11 @@ def axhline(hlines, ax, unit=None, equivalencies=None):
 # Notebook Utils
 # --------------
 def inline():
-    '''
+    """
     Start an inline IPython backend session.
     Allows for inline plots in IPython sessions
     like Jupyter Notebook.
-    '''
+    """
     try:
         from IPython.core.getipython import get_ipython
     except ImportError:
@@ -1079,14 +1083,14 @@ def inline():
 
 
 def interactive():
-    '''
+    """
     Start an interactive IPython backend session.
     Allows for interactive plots in IPython sessions
     like Jupyter Notebook.
 
     Ensure ipympl is installed:
     >>> $ conda install -c conda-forge ipympl
-    '''
+    """
     try:
         from IPython.core.getipython import get_ipython
     except ImportError:
@@ -1109,7 +1113,7 @@ def interactive():
 
 
 def close():
-    '''
+    """
     Closes all interactive plots in session.
-    '''
+    """
     plt.close('all')

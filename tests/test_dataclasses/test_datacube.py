@@ -1,14 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-14
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for DataCube datastructure.
-Dependencies:
-    - astropy
-    - numpy
-    - spectral_cube
 """
+
+from __future__ import annotations
 
 from astropy.io.fits import Header
 import astropy.units as u
@@ -17,11 +15,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 from tests.conftest import generate_test_cube
-from visualastro.core.optional_deps import (
-    SpectralCube, 
-    _HAS_SPECTRAL_CUBE
-)
 from visualastro.datamodels.datacube import DataCube
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
+)
 
 
 class TestDataCubeInit:

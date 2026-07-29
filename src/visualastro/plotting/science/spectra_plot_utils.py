@@ -6,6 +6,7 @@ Description:
     Spectra plot utility functions.
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 from typing import Literal, cast
 
@@ -14,7 +15,6 @@ import matplotlib.axes as maxes
 from matplotlib.figure import Figure
 import matplotlib.transforms as mtransforms
 from matplotlib.typing import ColorType
-from specutils import SpectralAxis
 
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
@@ -29,7 +29,6 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.numerical_utils import get_value, _cycle
-from visualastro.core.optional_deps import SpectralCube
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
@@ -37,13 +36,16 @@ from visualastro.core.units import (
     unit_2_string,
 )
 from visualastro.datamodels.datacube import DataCube
+from visualastro.optional_dependencies._spectralcube import SpectralCube
+from visualastro.optional_dependencies._specutils import SpectralAxis
+from visualastro.plotting.core.axes import get_ax
 
 
 def spectral_line_marker(
     *x: float | u.Quantity,
     y: float | u.Quantity,
     h: float | u.Quantity,
-    ax: maxes.Axes,
+    ax: maxes.Axes | None = None,
     style: Literal['marker', 'vline'] = 'marker',
     label: str | None = None,
     direction: Literal['up', 'down'] | _Unset = _UNSET,
@@ -67,8 +69,9 @@ def spectral_line_marker(
         Y-coordinate of the base of the markers.
     h : float or astropy.units.Quantity
         Height of the vertical markers.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the markers.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        The Axes object on which to draw the markers. If `None`,
+        uses `plt.gca()`.
     style : {'marker', 'vline'}, optional, default='marker'
         If `'marker'`, plots a multi-prong marker delineating
         each spectral peak location. If `'vline'`, plots a
@@ -80,8 +83,7 @@ def spectral_line_marker(
         `config.spectral_line_marker.marker_direction`.
     label_offset_points : tuple[float, float], optional, default=_UNSET
         (dx, dy) offset of the label in points (display coordinates).
-        If `_UNSET`, uses
-        `config.spectral_line_marker.label_offset_points`.
+        If `_UNSET`, uses `config.spectral_line_marker.label_offset_points`.
     label_position : {'center', 'left', 'right'}, optional, default=_UNSET
         Position of label relative to markers. If `_UNSET`, uses the
         default value from `config.spectral_line_marker.label_position`.
@@ -91,12 +93,12 @@ def spectral_line_marker(
         the default value from `config.spectral_line_marker.label_anchor`.
     label_reference : {'marker', 'hline', 'auto'}, optional, default=_UNSET
         Reference point for label x-position:
-        - `'marker'`: Position relative to marker x-values (ignores hline extension)
-        - `'hline'`: Position relative to hline endpoints (includes extension)
-        - `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
-        If `_UNSET`, uses
-        `config.spectral_line_marker.label_reference`.
 
+        * `'marker'`: Position relative to marker x-values (ignores hline extension)
+        * `'hline'`: Position relative to hline endpoints (includes extension)
+        * `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
+
+        If `_UNSET`, uses `config.spectral_line_marker.label_reference`.
     rotation : float, optional, default=_UNSET
         Rotation angle of the label in degrees. If `_UNSET`, uses the
         default value from `config.spectral_line_marker.label_rotation`.
@@ -104,9 +106,10 @@ def spectral_line_marker(
         Horizontal line extension distance. If None (default), draws connector
         between all x values when len(x) > 1. If provided, draws horizontal
         line extending in direction specified by `label_position`:
-        - `'left'`: extends leftward from leftmost x
-        - `'right'`: extends rightward from rightmost x
-        - `'center'`: extends symmetrically from center
+
+        * `'left'`: extends leftward from leftmost x
+        * `'right'`: extends rightward from rightmost x
+        * `'center'`: extends symmetrically from center
 
     **kwargs
         Additional keyword arguments passed to vlines and hlines.
@@ -133,6 +136,7 @@ def spectral_line_marker(
     rotation = _resolve_default(
         rotation, config.spectral_line_marker.label_rotation
     )
+    ax = get_ax(ax)
 
     if str(style).lower() not in {'vline', 'marker'}:
         raise ValueError(
@@ -361,7 +365,7 @@ def spectral_axis_label(
     text_loc: tuple[float, float] | _Unset = _UNSET,
     text_color: ColorType | _Unset = _UNSET,
     highlight: bool | _Unset = _UNSET,
-    unit_fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+    unit_fmt: str | _Unset = _UNSET
 ) -> None:
     """
     Add a label indicating the spectral coordinate of a slice.
@@ -385,10 +389,10 @@ def spectral_axis_label(
     idx : int | tuple[int, int] | None
         Index or index range specifying the slice:
 
-        - `i` → label corresponding to spectral_axis[i]
-        - `[i]` → label corresponding to spectral_axis[i]
-        - `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
-        - `None` → label corresponding to midpoint of entire spectral axis
+        * `i` → label corresponding to spectral_axis[i]
+        * `[i]` → label corresponding to spectral_axis[i]
+        * `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
+        * `None` → label corresponding to midpoint of entire spectral axis
 
     ax : matplotlib.axes.Axes
         Target matplotlib Axes on which the label will be rendered.
@@ -414,6 +418,13 @@ def spectral_axis_label(
     highlight : bool, optional
         If True, draw a white background box behind the label text.
         Default is `config.highlight`.
+    unit_fmt : str | _Unset, optional, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
 
     Raises
     ------
@@ -459,7 +470,7 @@ def _format_spectral_label(
     spectral_unit: u.UnitBase | u.StructuredUnit,
     *,
     emission_line: str | None = None,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+    fmt: str | _Unset = _UNSET
 ) -> str:
     """
     Format a LaTeX label representing a spectral coordinate value.
@@ -475,14 +486,19 @@ def _format_spectral_label(
     ----------
     spectral_value : float
         Spectral axis value expressed in the specified `spectral_unit`.
-
-    spectral_unit : Unit
+    spectral_unit : Unit | StructuredUnit
         Unit associated with `value`. Must have a valid physical type such
         as `length`, `frequency`, or `speed`.
-
-    emission_line : str or None, optional, default=None
+    emission_line : str | None, optional, default=None
         Optional emission line identifier (e.g., `'H alpha'`, `'[O III]'`).
         If provided, this replaces the default spectral symbol prefix.
+    fmt : str | _Unset, optional, default=_UNSET
+        Format for unit rendering. Passed to `to_latex_unit`.
+
+        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
+        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+
+        If `_UNSET`, uses `config.unit_label_format`.
 
     Returns
     -------

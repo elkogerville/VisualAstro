@@ -6,6 +6,7 @@ Description:
     Numerical utility functions.
 """
 
+from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, Literal, TypeVar, overload
 
@@ -19,9 +20,8 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE
 )
 
 

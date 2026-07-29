@@ -1,10 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-29
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for numerical utils module.
 """
+
+from __future__ import annotations
 
 import astropy.units as u
 import numpy as np
@@ -20,13 +22,11 @@ from visualastro.core.numerical_utils import (
     _extract_xyz_from_ndarray,
     _unwrap_if_single
 )
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
-)
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
+)
 
 
 class TestInterpolate:

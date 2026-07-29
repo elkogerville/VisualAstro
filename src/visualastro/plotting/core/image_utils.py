@@ -1,11 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-07
-Date Modified: 2026-07-17
+Date Modified: 2026-07-28
 Description:
     Image utility functions for plotting.
 """
 
+from __future__ import annotations
 from typing import Literal
 from importlib.resources import files
 
@@ -31,9 +32,9 @@ from visualastro.core.config import (
 from visualastro.core.numerical_utils import (
     get_data, get_value, to_array
 )
-from visualastro.core.optional_deps import SpectralCube
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 
 
 def get_imshow_norm(
@@ -43,7 +44,7 @@ def get_imshow_norm(
     **kwargs
 ) -> ImageNormalize | AsinhNorm | LogNorm | PowerNorm | TwoSlopeNorm | None:
     """
-    Return a matplotlib or astropy normalization object for image display.
+    Return a Matplotlib or Astropy normalization object for image display.
 
     Returns `None` if `norm=None`.
 
@@ -188,23 +189,28 @@ def compute_imshow_scale(
     Modes
     -----
     1. Normalized scaling (`norm` is not None):
-    - `vmin`/`vmax` from `percentile` or explicit values (required)
-    - Returns `(norm_obj, vmin, vmax)`
+
+    * `vmin`/`vmax` from `percentile` or explicit values (required)
+    * Returns `(norm_obj, vmin, vmax)`
 
     2. Linear with percentile (`norm` is None, `percentile` provided):
-    - `vmin`/`vmax` from `percentile` (unless explicit)
-    - Returns `(None, vmin, vmax)`
+
+    * `vmin`/`vmax` from `percentile` (unless explicit)
+    * Returns `(None, vmin, vmax)`
 
     3. Linear with explicit limits (`norm` is None, `vmin` or `vmax` set):
-    - Missing bounds from `percentile` if available, else None
-    - Returns `(None, vmin, vmax)`
+
+    * Missing bounds from `percentile` if available, else None
+    * Returns `(None, vmin, vmax)`
 
     4. Matplotlib autoscaling (all None), or norm='linear':
-    - Returns `(None, None, None)`
+
+    * Returns `(None, None, None)`
 
     5. Boolean data (dtype is bool):
-    - Forces `vmin=0`, `vmax=1`
-    - Returns `(None, 0, 1)`
+
+    * Forces `vmin=0`, `vmax=1`
+    * Returns `(None, 0, 1)`
 
     Parameters
     ----------
@@ -279,7 +285,7 @@ def nanpercentile_limits(
 
     Parameters
     ----------
-    data : array-like, SpectralCube, or DataCube
+    data : ArrayLike | SpectralCube | DataCube
         Input image or cube.
     vmin, vmax : float
         Lower and upper percentiles (0–100).

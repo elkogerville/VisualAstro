@@ -1,19 +1,15 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-22
+Date Modified: 2026-07-28
 Description:
     Functions related to colors in plotting.
 """
 
 from collections.abc import Sequence
-from dataclasses import dataclass, fields
-import operator as op
-
-from colorspacious import cspace_convert
 import colorsys
+
 from typing import Literal, TypeAlias
-import colorspacious
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -38,6 +34,11 @@ from visualastro.core.config import (
 )
 from visualastro.core.numerical_utils import (
     as_list, to_list, _unwrap_if_single
+)
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._colorspacious import (
+    cspace_convert,
+    deltaE as cs_deltaE,
 )
 from visualastro.plotting.core.colormaps import get_cmap
 
@@ -189,12 +190,13 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'Holy Magenta': '#FF55FF',
     'Holy Yellow': '#FFFF55',
     'subway blue': '#005DAD',
-    'A train': '#0089D0',
+    'A train': '#0038A5',
+    'C train': '#0089D0',
     'F train': '#F48820',
     '4 train': '#00A66E',
     'J train': '#A67837',
     'Q train': '#FFD005',
-    'S train': '#929598',
+    'L train': '#929598',
     '3 train': '#E42031',
     'G train': '#72B444',
     '7 train': '#AD3F97',
@@ -220,7 +222,7 @@ def get_colors(
     colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
 
         * `UNSET`: Use default colorset
-        * `str`:  visualastro colorset name (with optional '_r' suffix) or single color
+        * `str`:  VisualAstro colorset name (with optional '_r' suffix) or single color
         * `ColorType`: Explicit color
         * `int`: Number of colors to sample from cmap
         * `Sequence[ColorType]`: Explicit list of colors
@@ -236,7 +238,7 @@ def get_colors(
         if `cmap` is an `int`.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float or int
+    factor : float | int
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -273,6 +275,7 @@ def get_colors(
     list[str | None]:
         If `colors` is either `None`, `'face'`, or `'none'`.
     """
+    colorname = colors
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
     else:
@@ -292,9 +295,11 @@ def get_colors(
             severity=severity,
             fmt=fmt
         )
+    if isinstance(colorname, str) and colorname.removesuffix('_r') in COLORSETS:
+        modulo_idx = config.color_cycle_idx % len(colors)
+        colors = colors[modulo_idx:] + colors[:modulo_idx]
 
-    modulo_idx = config.color_cycle_idx % len(colors)
-    return colors[modulo_idx:] + colors[:modulo_idx]
+    return colors
 
 
 def _get_colors(
@@ -419,9 +424,10 @@ def simulate_colorblindness(
 
     Returns
     -------
-    list of ColorType
+    list[ColorType]
         List of ColorType as perceived by colorblind vision.
     """
+    _require_dependency('colorspacious')
     if not 0 <= severity <= 100:
         raise ValueError(
             'severity must be >= 0 and <= 100!'
@@ -519,7 +525,7 @@ def get_complimentary_colors(
         Matplotlib named color, hex color, HTML color, or RGB tuple.
     transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float or int
+    factor : float | int
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -595,7 +601,7 @@ def lighten_colors(
 
 
 def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
-    """Lightens the given matplotlib color by mixing it with white."""
+    """Lightens the given Matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
     mixed = (1 - mix) * rgb + mix * white
@@ -754,14 +760,14 @@ def plot_colors(
     ----------
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
-        If `None`, plots each colorset in visualastro.
+        If `None`, plots each colorset in VisualAstro.
     cvd_type : str | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
         If `'all'`, simulates all cvd types.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
-        If `True`, also plots the colorset name. Only applicable to visualastro
+        If `True`, also plots the colorset name. Only applicable to VisualAstro
         colorsets (as opposed to a sequence of colors).
 
     Examples
@@ -790,13 +796,11 @@ def plot_colors(
         else:
             colorsets = [get_colors(color)]
             color_names = ['']*len(colorsets)
-
     pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))
     factor = 0.3 if n_rows > 10 else 1
     fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
     ax.axis('off')
-
     row = 0
     for i, colorset in enumerate(colorsets):
         for j, c in enumerate(colorset):
@@ -872,7 +876,7 @@ def plot_colorset(
     pl = plot(
         x_vals[:N], y_vals[:N],
         ax=ax,
-        label=labels, color=colorset, lw=1,
+        label=labels, color=colorset, lw=2,
         xlim=(-5, 3), ylim=(-4, 4),
         xlabel='X', ylabel='Y',
     )
@@ -921,7 +925,7 @@ def plot_color_deltaE(
     ax : matplotlib.axes.Axes | None, optional, default=None
         Target axes. Ignored if `None`; axes are created via `gridspec` (when
         `cvd_type='all'`) or `plt.subplots` (otherwise). If `cvd_type='all'`,
-        `ax` should be an array-like of 4 `Axes`, ie `list[Axes, Axes, Axes, Axes]`.
+        `ax` should be an ArrayLike of 4 `Axes`, ie `list[Axes, Axes, Axes, Axes]`.
     cmap : str | matplotlib.colors.Colormap, optional, default='viridis'
         Colormap passed to `imshow` for the deltaE / ratio matrices.
         It is recommended to use perceptually uniform sequential colormaps
@@ -978,7 +982,7 @@ def plot_color_deltaE(
 
     c1 = colors[:, np.newaxis, :]
     c2 = colors[np.newaxis, :, :]
-    deltaE = colorspacious.deltaE(c1, c2, uniform_space=uniform_space)
+    deltaE = cs_deltaE(c1, c2, uniform_space=uniform_space)
 
     label = r'$\Delta E^*$'
     imgs = []
@@ -1008,7 +1012,7 @@ def plot_color_deltaE(
 
         c1_cvd = colors_cvd[:, np.newaxis, :]
         c2_cvd = colors_cvd[np.newaxis, :, :]
-        deltaE_cvd = colorspacious.deltaE(c1_cvd, c2_cvd, uniform_space=uniform_space)
+        deltaE_cvd = cs_deltaE(c1_cvd, c2_cvd, uniform_space=uniform_space)
 
         with np.errstate(divide='ignore', invalid='ignore'):
             ratio = np.where(deltaE > 0, deltaE_cvd / deltaE, np.nan)
@@ -1304,7 +1308,7 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
 
     Parameters
     ----------
-    c_list : list of array-like | None
+    c_list : list[ArrayLike] | None
         List of color value arrays, one per population. If `None`, returns `None`.
     norm_method : {'log', 'global'} | None
         Normalization method.

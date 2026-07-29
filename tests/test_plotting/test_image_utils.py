@@ -1,10 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-10
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Tests for image utils plotting module.
 """
+
+from __future__ import annotations
 
 import astropy.units as u
 from astropy.visualization import ImageNormalize
@@ -12,17 +14,16 @@ from matplotlib.colors import AsinhNorm, LogNorm, PowerNorm
 import numpy as np
 import pytest
 
+from tests.conftest import generate_test_spectralcube
 from visualastro.core.numerical_utils import get_value
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
-)
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.plotting.core.image_utils import get_imshow_norm, get_vmin_vmax
-
-from tests.conftest import generate_test_spectralcube
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
+)
+from visualastro.plotting.core.image_utils import (
+    get_imshow_norm, get_vmin_vmax
+)
 
 
 class TestGetImshowNorm:
@@ -90,7 +91,7 @@ class TestVminVmax:
         self._validate_vmin_vmax(cube)
         self._validate_vmin_vmax(datacube)
 
-    def test_get_vmin_vmax_boolean(self, generate_test_spectralcube):
+    def test_get_vmin_vmax_boolean(self):
         """Tests for get_vmin_vmax with boolean array inputs."""
         boolarray = np.zeros((10, 10), dtype=bool)
         array = np.random.rand(10, 10)

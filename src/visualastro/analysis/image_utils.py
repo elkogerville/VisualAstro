@@ -1,11 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-07-17
+Date Modified: 2026-07-27
 Description:
     Utility functions for image manipulations.
 """
 
+from __future__ import annotations
 import glob
 from typing import Literal
 import warnings
@@ -18,23 +19,29 @@ from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import DTypeLike, NDArray
-from regions import PixCoord, EllipsePixelRegion, EllipseAnnulusPixelRegion
 from scipy.ndimage import convolve
-from tqdm import tqdm
 
 from visualastro.core.config import (
-    config, get_config_value, _resolve_default, _Unset, _UNSET
+    config, get_config_value, _resolve_default, _Unset, _UNSET,
 )
 from visualastro.core.io import get_errors, _get_dtype
 from visualastro.core.numerical_utils import get_data, get_value
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
-)
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
+from visualastro.optional_dependencies.register import (
+    _require_dependency, _offer_dependency,
+)
+from visualastro.optional_dependencies._regions import (
+    PixCoord,
+    EllipseAnnulusPixelRegion,
+    EllipsePixelRegion,
+    _HAS_REGIONS,
+)
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
+)
+from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.utils.wcs_utils import _reproject_wcs
 
 
@@ -88,16 +95,18 @@ def load_data_cube(
     -------
     cube : DataCube
         A DataCube object containing:
-        - `cube.data` : np.ndarray of shape (T, M, N)
-        - `cube.header` : list of astropy.io.fits.Header objects
-        - `cube.error` : np.ndarray of shape (T, M, N)
-        - `cube.wcs` : list of `astropy.wcs.wcs.WCS`
+
+        * `cube.data` : np.ndarray of shape (T, M, N)
+        * `cube.header` : list of astropy.io.fits.Header objects
+        * `cube.error` : np.ndarray of shape (T, M, N)
+        * `cube.wcs` : list of `astropy.wcs.wcs.WCS`
 
     Examples
     --------
     Search for all fits files starting with 'HARPS' with .fits extention and load them:
         >>> filepath = 'Spectro-Module/raw/HARPS.*.fits'
     """
+    _offer_dependency('tqdm')
     hdu = _resolve_default(hdu, config.hdu_idx)
     dtype = _resolve_default(dtype, config.default_dtype)
     print_info = _resolve_default(print_info, config.print_info)
@@ -226,20 +235,22 @@ def load_fits(filepath, header=True, error=True,
 
         Supported keywords:
 
-        - `reproject_method` : {'interp', 'exact'} or None, default=`config.reproject_method`
+        * `reproject_method` : {'interp', 'exact'} or None, default=`config.reproject_method`
             Reprojection method:
-            - 'interp' : use `reproject_interp`
-            - 'exact' : use `reproject_exact`
-        - `return_footprint` : bool or None, optional, default=`config.return_footprint`
+
+            * 'interp' : use `reproject_interp`
+            *  'exact' : use `reproject_exact`
+
+        * `return_footprint` : bool or None, optional, default=`config.return_footprint`
             If True, return both reprojected data and reprojection
             footprints. If False, return only the reprojected data.
-        - `parallel` : bool, int, str, or None, optional, default=`config.reproject_parallel`
+        * `parallel` : bool, int, str, or None, optional, default=`config.reproject_parallel`
             If True, the reprojection is carried out in parallel,
             and if a positive integer, this specifies the number
             of threads to use. The reprojection will be parallelized
             over output array blocks specified by `block_size` (if the
             block size is not set, it will be determined automatically).
-        - `block_size` : tuple, ‘auto’, or None, optional, default=`config.reproject_block_size`
+        * `block_size` : tuple, 'auto', or None, optional, default=`config.reproject_block_size`
             The size of blocks in terms of output array pixels that each block
             will handle reprojecting. Extending out from (0,0) coords positively,
             block sizes are clamped to output space edges when a block would extend
@@ -251,12 +262,14 @@ def load_fits(filepath, header=True, error=True,
     -------
     FitsFile
         If header or error is True, returns an object containing:
-        - data: `np.ndarray` of the FITS data
-        - header: `astropy.io.fits.Header` if `header=True` else None
-        - error: `np.ndarray` of the FITS error if `error=True` else None
-        - wcs: `astropy.wcs.wcs.WCS` if `header=True` else None
+
+        * data: `np.ndarray` of the FITS data
+        * header: `astropy.io.fits.Header` if `header=True` else None
+        * error: `np.ndarray` of the FITS error if `error=True` else None
+        * wcs: `astropy.wcs.wcs.WCS` if `header=True` else None
             By default, is extracted from the header.
             If a `target_wcs` is passed in, will override the default header.
+
     data : np.ndarray
         If header is False, returns just the data component.
     '''
@@ -311,6 +324,7 @@ def load_fits(filepath, header=True, error=True,
         # reproject wcs if user inputs a reference wcs or header
         # otherwise try to extract wcs from fits header
         if target_wcs is not None:
+            _require_dependency('reproject')
             # ensure target_wcs has wcs information
             if isinstance(target_wcs, Header):
                 wcs = WCS(target_wcs)
@@ -382,14 +396,16 @@ def load_spectral_cube(
     -------
     DataCube
         A `DataCube` object containing:
-        - data : SpectralCube
+
+        * data : SpectralCube
             Fits file data loaded as SpectralCube object.
-        - header : astropy.io.fits.Header
+        * header : astropy.io.fits.Header
             Fits file header.
-        - error : np.ndarray
+        * error : np.ndarray
             Fits file error array.
-        - value : np.ndarray
+        * value : np.ndarray
             Fits file data as np.ndarray.
+
         Ex:
         data = cube.data
     """
@@ -492,7 +508,7 @@ def mask_image(
     line_points=None, invert_region=False,
     above_line=True, preserve_shape=True,
     existing_mask=None, combine_method='union', **kwargs):
-    '''
+    """
     Mask an image with modular filters.
     Supports applying an elliptical or annular region mask, an optional
     line cut (upper or lower half-plane), and combining with an existing mask.
@@ -526,15 +542,15 @@ def mask_image(
 
         Supported keywords:
 
-        - center : tuple of float, optional, default=None
+        * center : tuple of float, optional, default=None
             Center coordinates (x, y).
-        - w : float, optional, default=None
+        * w : float, optional, default=None
             Width of ellipse.
-        - h : float, optional, default=None
+        * h : float, optional, default=None
             Height of ellipse.
-        - angle : float, optional, default=0
+        * angle : float, optional, default=0
             Rotation angle in degrees.
-        - tolerance : float, list, or tuple, optional, default=2
+        * tolerance : float, list, or tuple, optional, default=2
             ±Tolerance (distance from radius) for annulus inner/outer radii.
             If array-like, uses the first element as the minus bound,
             and the second element as the positive.
@@ -546,7 +562,7 @@ def mask_image(
     masks : ndarray of bool or list
         If multiple masks are combined, returns a list containing the
         master mask followed by individual masks. Otherwise returns a single mask.
-    '''
+    """
     # ---- Kwargs ----
     center = kwargs.get('center', None)
     w = kwargs.get('w', None)
@@ -613,7 +629,7 @@ def mask_image(
         raise ValueError("Either 'ellipse_region' or 'center', 'w', 'h' must be provided.")
 
     # construct region
-    if region is not None:
+    if _HAS_REGIONS and region is not None:
         if region.lower() == 'annulus':
             region_obj = EllipseAnnulusPixelRegion(
                 center=PixCoord(center[0], center[1]), # type: ignore
@@ -711,8 +727,10 @@ def compute_line(points):
         Intercept of the line (y = m*x + b).
     Notes
     -----
-    - The function assumes the two points have different x-coordinates.
-    - If the x-coordinates are equal, a ZeroDivisionError will be raised.
+
+    * The function assumes the two points have different x-coordinates.
+    * If the x-coordinates are equal, a ZeroDivisionError will be raised.
+
     '''
     m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])
     b = points[0][1] - m*points[0][0]
@@ -740,8 +758,8 @@ def detect_edges(
     mode : {'rgb', 'sum'}, optional, default='rgb'
         Method to convert to grayscale if ndim > 2.
 
-            * `'rgb'` : Only take into account `image[:,:,0:3]`.
-            * `'sum'` : Sum the entire second axis.
+        * `'rgb'` : Only take into account `image[:,:,0:3]`.
+        * `'sum'` : Sum the entire second axis.
 
     show_plot : bool | _Unset, optional, default=_UNSET
         If `True`, plot the output image. If `_UNSET`, uses

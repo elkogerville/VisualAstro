@@ -20,17 +20,10 @@ classifiers = [
 dependencies = [
     "astropy",
     "cmasher",
-    "colorspacious",
-    "dust_extinction",
     "matplotlib",
     "numpy",
-    "regions",
-    "reproject",
-    "scienceplots",
     "scipy",
-    "specutils",
     "tol-colors",
-    "tqdm",
 ]
 
 [project.optional-dependencies]
@@ -38,8 +31,35 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
 ]
+images = [
+    "regions",
+    "reproject",
+]
 spectralcube = [
     "spectral_cube",
+    "regions",
+    "reproject",
+]
+spectra = [
+    "specutils",
+    "dust_extinction",
+]
+styles = [
+    "scienceplots",
+]
+utils = [
+    "colorspacious",
+    "tqdm",
+]
+all = [
+    "colorspacious",
+    "dust_extinction",
+    "regions",
+    "reproject",
+    "scienceplots",
+    "spectral_cube",
+    "specutils",
+    "tqdm",
 ]
 
 [project.urls]

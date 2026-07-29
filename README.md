@@ -27,11 +27,11 @@ $ conda activate visualastro
 Then install the dependencies with:
 ```
 $ conda install -c conda-forge \
-    astropy cmasher colorspacious dust_extinction matplotlib numpy regions reproject scienceplots scipy specutils tqdm
+    astropy cmasher matplotlib numpy scipy
 ```
 Optionally, you can install optional dependencies as well if you plan to use related functionalities:
 ```
-$ conda install -c conda-forge spectral-cube
+$ conda install -c conda-forge colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
 ```
 And finally run:
 ```
@@ -51,13 +51,13 @@ NOTE: To ensure that interactive mode works in notebooks, first activate your co
 
 ## Features
 
-- Unified interface for matplotlib, astropy, numpy, spectral-cube, specutils, and other astronomy packages
+- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
 - High-level wrappers of common functions and algorithms used in astrophysical research
 - Custom matplotlib style sheets optimized for publication-quality figures
 - Full compatibility with WCS, FITS, and astropy units
 
 ## Documentation
-Visualastro is still under development! A full documentation of the package's features is coming soon.
+VisualAstro is still under development! A full documentation of the package's features is coming soon.
 
 Check the `examples/` folder for notebook tutorials!
 
@@ -67,13 +67,18 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 
-astropy, cmasher, colorspacious, dust_extinction, matplotlib, numpy, regions, reproject, scienceplots, scipy, specutils, tol_colors, and tqdm.
+astropy, cmasher, matplotlib, numpy, scipy, and tol_colors.
 
 ### Optional dependencies
 
 Optionally, some functionalities of VisualAstro requires:
 
-* Cube data: `spectral-cube`
+* Image Data: `regions`, `reproject`
+* Cube Data: `spectral-cube`
+* Spectra: `specutils`, `dust_extinction`
+* Extra Stylesheets: `scienceplots`
+* Color Utilities: `colorspacious`
+* Progress Bar: `tqdm`
 
 If you try to use functionalities that require an optionally dependent package but do not have that package installed, VisualAstro will raise an ImportError and prompt you to install that package.
 

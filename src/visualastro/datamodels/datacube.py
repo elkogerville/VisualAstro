@@ -1,11 +1,12 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-07-18
+Date Modified: 2026-07-27
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
 """
+from __future__ import annotations
 from typing import Literal, cast
 
 from astropy.io.fits import Header
@@ -17,18 +18,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
-from specutils import SpectralRegion, Spectrum
-from tqdm import tqdm
 
 from visualastro.core.config import (
     config, get_config_value, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.kwargs import _pop_kwargs
-from visualastro.core.optional_deps import (
-    SpectralCube,
-    _HAS_SPECTRAL_CUBE,
-    _require_dependency
-)
 from visualastro.core.units import (
     ensure_common_unit,
     get_unit,
@@ -42,6 +36,16 @@ from visualastro.core.validation import (
     _validate_iterable_type,
     _validate_type
 )
+from visualastro.optional_dependencies.register import (
+    _require_dependency, _offer_dependency,
+)
+from visualastro.optional_dependencies._spectralcube import (
+    SpectralCube, _HAS_SPECTRAL_CUBE,
+)
+from visualastro.optional_dependencies._specutils import (
+    SpectralRegion, Spectrum
+)
+from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
@@ -105,7 +109,7 @@ class DataCube:
     Properties
     ----------
     value : np.ndarray
-        Raw numpy array of the cube values.
+        Raw NumPy array of the cube values.
     quantity : Quantity
         Quantity array of data values (values + astropy units).
     unit : astropy.units.Unit or None
@@ -168,7 +172,7 @@ class DataCube:
     Array Interface
     ---------------
     __array__
-        Return the underlying data as a Numpy array.
+        Return the underlying data as a NumPy array.
     __getitem__
         Return a slice of the data.
     __len__()
@@ -248,8 +252,12 @@ class DataCube:
 
         Normalizes headers and WCS to lists if they are sequences.
         """
+        _valid_types = (
+            (np.ndarray, Quantity, SpectralCube) if
+            _HAS_SPECTRAL_CUBE else (np.ndarray, Quantity,)
+        )
         data = _validate_type(
-            data, (np.ndarray, Quantity, SpectralCube),
+            data, _valid_types,
             allow_none=False, name='data'
         )
         header = _validate_type(
@@ -416,7 +424,7 @@ class DataCube:
         """
         Returns
         -------
-        np.ndarray : View of the underlying numpy array.
+        np.ndarray : View of the underlying NumPy array.
         """
         value, unit = self._get_value(self.data)
         return value
@@ -768,8 +776,10 @@ class DataCube:
             Target WCS or FITS header to reproject onto.
         method : {'interp', 'exact'} or None
             Reprojection method:
-                - 'interp' : use `reproject_interp`
-                - 'exact' : use `reproject_exact`
+
+            * 'interp' : use `reproject_interp`
+            * 'exact' : use `reproject_exact`
+
             If None, uses `config.reproject_method`.
         return_footprint : bool or None, optional
             If True, return both reprojected data and reprojection
@@ -798,15 +808,17 @@ class DataCube:
 
         Notes
         -----
-        - A cube-level WCS is only attached when the dimensionality of the
+        * A cube-level WCS is only attached when the dimensionality of the
           reprojected data matches the dimensionality of the reference WCS.
-        - For slice-by-slice reprojection (e.g., 3D → 2D targets), the output
+        * For slice-by-slice reprojection (e.g., 3D → 2D targets), the output
           DataCube will not carry a cube-level WCS.
-        - In time-series mode, per-slice headers are updated consistently
+        * In time-series mode, per-slice headers are updated consistently
           when applicable.
-        - If `return_footprint=True`, the reprojection footprint is attached
+        * If `return_footprint=True`, the reprojection footprint is attached
           to the returned DataCube as the `.footprint` attribute.
         """
+        _require_dependency('reproject')
+        _offer_dependency('tqdm')
         return_footprint = get_config_value(return_footprint, 'return_footprint')
 
         if self.wcs is None and self.header is None:
@@ -1044,9 +1056,9 @@ class DataCube:
     def subtract_continuum(
         self,
         region=None,
-        fit_method=None,
+        fit_method=_UNSET,
         min_valid_pixels='auto',
-        print_info=None,
+        print_info=_UNSET,
         auto_percentile=10,
         minimum_floor=3
     ):
@@ -1069,7 +1081,7 @@ class DataCube:
 
         Parameters
         ----------
-        region : SpectralRegion, region input, or None
+        region : SpectralRegion | region input | None
             Spectral region(s) to use for continuum fitting. Can be:
 
             * SpectralRegion object
@@ -1079,13 +1091,13 @@ class DataCube:
             * None (uses the entire spectral_axis range)
 
             Regions outside emission/absorption features are typically chosen.
-        fit_method : {'fit_continuum', 'generic'} or None, optional, default=None
+        fit_method : {'fit_continuum', 'generic'} | _Unset, optional, default=_UNSET
             Method used for fitting the continuum.
 
             * 'fit_continuum': uses `fit_continuum` with a specified window
             * 'generic' : uses `fit_generic_continuum`
 
-            If None, uses `config.spectrum_continuum_fit_method`.
+            If `_UNSET`, uses `config.spectrum_continuum_fit_method`.
         min_valid_pixels : int or 'auto', optional, default='auto'
             Minimum valid flux data points needed in order to attempt a continuum fit.
             If `'auto'`, will compute a percentile-based threshold for valid pixels
@@ -1099,7 +1111,7 @@ class DataCube:
             or user-provided `min_valid_pixels` falls below this value, a `ValueError`
             is raised. This prevents continuum fitting attempts on pixels with
             insufficient spectral data.
-        print_info : bool or None, optional, default=None
+        print_info : bool | _Unset, optional, default=_UNSET
             If True, will print the value of `min_valid_pixels`.
             If None, uses `config.print_info`.
 
@@ -1126,11 +1138,12 @@ class DataCube:
         >>> region = [(6.5, 6.7), (7.2, 7.5)] * u.um
         >>> cube_sub = datacube.subtract_continuum(region)
         """
-        _require_dependency('spectral-cube')
+        _require_dependency('spectral-cube', 'specutils')
+        _offer_dependency('tqdm')
         from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
 
-        fit_method = get_config_value(fit_method, 'spectrum_continuum_fit_method')
-        print_info = get_config_value(print_info, 'print_info')
+        fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
+        print_info = _resolve_default(print_info, config.print_info)
 
         cube = self.data
         if not isinstance(cube, SpectralCube):

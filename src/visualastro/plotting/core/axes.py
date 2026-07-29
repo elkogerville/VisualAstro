@@ -1,9 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-06-09
+Date Modified: 2026-07-28
 Description:
-    Functions related to matplotlib axes.
+    Functions related to Matplotlib axes.
 """
 
 from collections.abc import Sequence
@@ -255,7 +255,7 @@ def add_subplot(
         Axes instance. Either `ax` or `fig` should be provided.
     fig : Figure | SubFigure | None, optional, default=None
         Figure instance.  Either `ax` or `fig` should be provided.
-    projection : str or None, optional, default=None
+    projection : str | None, optional, default=None
         Projection type for the subplot. Examples include WCSAxes or
         {None, '3d', 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar',
         'rectilinear', str}. If None, defaults to 'rectilinear'.
@@ -402,7 +402,7 @@ def wcsax(
         * A 3-digit integer. The digits are interpreted as if given separately as
         three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
         Note that this can only be used if there are no more than 9 subplots.
-    
+
     wcs : WCS | Header
         Object from which to extract WCS. See docstring for
         ``get_wcs_celestial`` for full list of acceptable types.
@@ -489,7 +489,7 @@ def gridspec(
 
     Nticks : int | None | _Unset, optional, default=`_UNSET`
         Maximum number of major ticks per axis. If `None`,
-        uses the default matplotlib settings. If `_UNSET`,
+        uses the default Matplotlib settings. If `_UNSET`,
         uses `config.axes.Nticks`.
     aspect : float | None, optional, default=None
         Changes the physical dimensions of the Axes,
@@ -663,7 +663,7 @@ def set_axis_limits(
     Set axis limits on a Matplotlib Axes based on data range
     and optional user-specified limits.
 
-    To disable visualastro limit computation, set `compute_limits=False`
+    To disable VisualAstro limit computation, set `compute_limits=False`
     or `config.axes.compute_limits=False`. This is recommended for heavy
     plotting calls.
 
@@ -672,14 +672,14 @@ def set_axis_limits(
     xdata : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
         X-axis data. Can be a single array, a sequence of arrays, or None.
         If `None`, the X-axis will be autoscaled unless `xlim` is provided.
-    ydata : array-like, list of array-like, or None, optional
-        Y-axis data. Can be a single array, a list of arrays, or None.
+    ydata : ArrayLike | Sequence[ArrayLike] | None, optional
+        Y-axis data. Can be a single array, a sequence of arrays, or None.
         If `None`, the Y-axis will be autoscaled unless `ylim` is provided.
     ax : matplotlib.axes.Axes
         The Axes object on which to set the limits. Required.
     compute_limits : bool | _Unset, optional, default=_UNSET
         If `False`, does not compute any limits based on data,
-        and lets matplotlib decide axes limits. If `_UNSET`,
+        and lets Matplotlib decide axes limits. If `_UNSET`,
         uses `config.axes.compute_limits`.
     limits : float | tuple[float, float] | None, optional, default=None
         Set symmetric axis limits. Overrides `xlim` and `ylim`.
@@ -946,7 +946,7 @@ def set_axis_labels(
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
     show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] | _Unset = _UNSET
+    fmt: str | _Unset = _UNSET
 ) -> None:
     """
     Automatically generate and set axis labels from objects with physical
@@ -962,7 +962,7 @@ def set_axis_labels(
     X : u.Quantity | ArrayLike | None
         Object with a unit exposable with `get_data`. If `None`,
         does not set any labels unless `xlabel` is set.
-    Y : '~astropy.units.Quantity' or object with a unit
+    Y : '~astropy.units.Quantity' | object with a unit
         Object with a unit exposable with `get_data`. If `None`,
         does not set any labels unless `ylabel` is set.
     ax : matplotlib.axes.Axes
@@ -1007,9 +1007,10 @@ def set_axis_labels(
 
     Notes
     -----
-    - Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
+
+    * Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
       representations.
-    - If both `show_physical_type` and `show_unit` are False, the resulting
+    * If both `show_physical_type` and `show_unit` are False, the resulting
       axis label is an empty string.
     """
     unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
@@ -1034,7 +1035,7 @@ def _format_axis_label(
     bracket_style: Literal['round', 'square'],
     show_physical_type: bool,
     show_unit: bool,
-    fmt: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip']
+    fmt: str
 ) -> str:
     r"""
     Create a scientific axis label with physical type and unit information.
@@ -1074,16 +1075,18 @@ def _format_axis_label(
     -------
     str
         A formatted axis label string. The format depends on the parameters:
-        - Label only: 'Wavelength'
-        - Unit only: '[$\\mu$m]'
-        - Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
-        - Neither: '' (empty string)
+
+        * Label only: 'Wavelength'
+        * Unit only: '[$\\mu$m]'
+        * Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
+        * Neither: '' (empty string)
 
     Notes
     -----
-    - If the object has no unit or the unit cannot be formatted, the unit
+
+    * If the object has no unit or the unit cannot be formatted, the unit
       portion is omitted regardless of `show_unit`.
-    - The output is stripped of leading/trailing whitespace.
+    * The output is stripped of leading/trailing whitespace.
     """
     physical_type = get_physical_type(obj)
 
@@ -1116,12 +1119,12 @@ def ax3d_axis_style(
     style: str | None = 'cube'
 ) -> None:
     """
-    Set the spine style of a 3D matplotlib axes by drawing explicit edge lines.
+    Set the spine style of a 3D Matplotlib axes by drawing explicit edge lines.
 
-    Overrides matplotlib axes rendering while keeping the ticks and tick labels.
+    Overrides Matplotlib axes rendering while keeping the ticks and tick labels.
     For this reason these styles are experimental and may break in interactive mode.
 
-    The styles are defined with respect to the default matplotlib viewing angles of
+    The styles are defined with respect to the default Matplotlib viewing angles of
     `elev=30`, `azim=-60`, and `roll=0`.
 
     Parameters
@@ -1131,7 +1134,7 @@ def ax3d_axis_style(
     style : str | None, optional, default='cube'
         Spine layout to apply.
 
-        * `'triad'`        : 3 edges from the front-right-bottom corner (matplotlib default-like).
+        * `'triad'`        : 3 edges from the front-right-bottom corner (Matplotlib default-like).
         * `'floor'`        : 4 bottom edges of the bounding box.
         * `'ceiling'`      : 4 top edges of the bounding box.
         * `'cube'`         : all 12 edges of the bounding box.
@@ -1142,7 +1145,7 @@ def ax3d_axis_style(
         * `'y_panel'`      : floor + back y-aligned top edge + left vertical edges.
         * `'y_panel_front'`: floor + front y-aligned top edge + right vertical edges (alias `'y_panel_r'`).
 
-    If `None`, uses matplotlib rendering engine.
+    If `None`, uses Matplotlib rendering engine.
     """
     if style is None: return
 
@@ -1249,7 +1252,13 @@ def ax3d_pane_color(
     ax.zaxis.set_pane_color(colors[2])
 
 
-def _set_axis_limits_scaling_mode(ax, autoscale, compute_limits):
+def _set_axis_limits_scaling_mode(
+    ax: maxes.Axes,
+    autoscale: bool,
+    compute_limits: bool,
+    xlog: bool = False,
+    ylog: bool = False
+):
     """
     Set axes limit scaling mode. Must be called before
     the main plotting call/loop in a plotting function.
@@ -1259,14 +1268,16 @@ def _set_axis_limits_scaling_mode(ax, autoscale, compute_limits):
     ax : maxes.Axes
         Axes instance.
     autoscale : bool
-        If `True`, uses native matplotlib autoscaling,
+        If `True`, uses native Matplotlib autoscaling,
         ie. `ax.set_autoscale_on(True)`, and disables
         VisualAstro's manual limits computation
         (`compute_limits=False`).
     compute_limits : bool
-        Flag to be passed on to one of the visualastro
+        Flag to be passed on to one of the VisualAstro
         plotting interface functions. If `True`, will
         invoke `visualastro.plotting.core.axes.set_axis_limits`.
+    xlog, ylog : bool, optional, default=False
+        If either is `True`, set `autoscale=True`.
 
     Returns
     -------
@@ -1274,10 +1285,15 @@ def _set_axis_limits_scaling_mode(ax, autoscale, compute_limits):
         Set to `False` if `autoscale=True`. Otherwise is left
         unchanged.
     """
+    if xlog or ylog:
+        autoscale = True
     if autoscale:
         ax.set_autoscale_on(True)
         compute_limits = False
     else:
         ax.set_autoscale_on(False)
+
+    if xlog: ax.set_xscale('log')
+    if ylog: ax.set_yscale('log')
 
     return compute_limits
