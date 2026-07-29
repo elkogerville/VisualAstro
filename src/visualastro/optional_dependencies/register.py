@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Audrey Whitmer
 Date Created: 2026-07-17
-Date Modified: 2026-07-27
+Date Modified: 2026-07-29
 Description:
     All optional dependencies are registered here.
     To register an optional dependency in VisualAstro,
