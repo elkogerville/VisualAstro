@@ -776,8 +776,10 @@ class DataCube:
             Target WCS or FITS header to reproject onto.
         method : {'interp', 'exact'} or None
             Reprojection method:
-                - 'interp' : use `reproject_interp`
-                - 'exact' : use `reproject_exact`
+
+            * 'interp' : use `reproject_interp`
+            * 'exact' : use `reproject_exact`
+
             If None, uses `config.reproject_method`.
         return_footprint : bool or None, optional
             If True, return both reprojected data and reprojection
