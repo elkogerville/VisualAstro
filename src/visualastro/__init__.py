@@ -280,6 +280,20 @@ from visualastro.optional_dependencies import _scienceplots
 styles = _register_styles()
 
 
+# REGISTER COLORSETS
+# ------------------
+def _register_colorsets() -> None:
+    import matplotlib as mpl
+    from visualastro.plotting.core.colors import COLORSETS
+
+    registry = mpl.color_sequences
+    for name, colors in COLORSETS.items():
+        if name not in registry:
+            registry.register(name, colors)
+
+_register_colorsets()
+
+
 # REGISTER NAMED COLORS
 # ---------------------
 def _register_colors() -> None:
@@ -309,22 +323,26 @@ _register_colors()
 # ------------------
 def _register_cmaps() -> None:
     """Register additional colormaps with Matplotlib."""
-    import cmasher
     import matplotlib as mpl
     from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
+    from visualastro.optional_dependencies._cmasher import (
+        cmasher, _HAS_CMASHER
+    )
+    # register tol-colors cmaps
+    from visualastro.optional_dependencies._tol_colors import tol_colors
 
-    mpl_cmaps = {name for name in mpl.colormaps.keys()}
+    mpl_cmaps = set(mpl.colormaps.keys())
 
-    cmasher_cmaps_names = cmasher.get_cmap_list()
-    for name in cmasher_cmaps_names:
-        cmap = getattr(cmasher, name, None)
-        if cmap is not None and name not in mpl_cmaps:
-            mpl.colormaps.register(cmap, name=name)
+    if _HAS_CMASHER:
+        cmasher_cmaps_names = cmasher.get_cmap_list()
+        for name in cmasher_cmaps_names:
+            cmap = getattr(cmasher, name, None)
+            if cmap is not None and name not in mpl_cmaps:
+                mpl.colormaps.register(cmap, name=name)
 
     for name, cmap in VISUALASTRO_CMAPS.items():
         mpl.colormaps.register(cmap, name=name)
         mpl.colormaps.register(cmap.reversed(), name=name+'_r')
-
 
 _register_cmaps()
 
