@@ -22,7 +22,6 @@ dependencies = [
     "cmasher",
     "matplotlib",
     "numpy",
-    "reproject",
     "scipy",
     "tol-colors",
 ]
@@ -34,10 +33,12 @@ dev = [
 ]
 images = [
     "regions",
+    "reproject",
 ]
 spectralcube = [
     "spectral_cube",
     "regions",
+    "reproject",
 ]
 spectra = [
     "specutils",
@@ -54,6 +55,7 @@ all = [
     "colorspacious",
     "dust_extinction",
     "regions",
+    "reproject",
     "scienceplots",
     "spectral_cube",
     "specutils",

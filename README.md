@@ -27,11 +27,11 @@ $ conda activate visualastro
 Then install the dependencies with:
 ```
 $ conda install -c conda-forge \
-    astropy cmasher matplotlib numpy reproject scipy
+    astropy cmasher matplotlib numpy scipy
 ```
 Optionally, you can install optional dependencies as well if you plan to use related functionalities:
 ```
-$ conda install -c conda-forge colorspacious dust_extinction regions spectral-cube scienceplots specutils tqdm
+$ conda install -c conda-forge colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
 ```
 And finally run:
 ```
@@ -67,13 +67,13 @@ The full documentation can be found on github at https://github.com/elkogerville
 
 VisualAstro requires:
 
-astropy, cmasher, matplotlib, numpy, reproject, scipy, and tol_colors.
+astropy, cmasher, matplotlib, numpy, scipy, and tol_colors.
 
 ### Optional dependencies
 
 Optionally, some functionalities of VisualAstro requires:
 
-* Image Data: `regions`
+* Image Data: `regions`, `reproject`
 * Cube Data: `spectral-cube`
 * Spectra: `specutils`, `dust_extinction`
 * Extra Stylesheets: `scienceplots`
