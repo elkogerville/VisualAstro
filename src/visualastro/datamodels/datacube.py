@@ -806,15 +806,16 @@ class DataCube:
 
         Notes
         -----
-        - A cube-level WCS is only attached when the dimensionality of the
+        * A cube-level WCS is only attached when the dimensionality of the
           reprojected data matches the dimensionality of the reference WCS.
-        - For slice-by-slice reprojection (e.g., 3D → 2D targets), the output
+        * For slice-by-slice reprojection (e.g., 3D → 2D targets), the output
           DataCube will not carry a cube-level WCS.
-        - In time-series mode, per-slice headers are updated consistently
+        * In time-series mode, per-slice headers are updated consistently
           when applicable.
-        - If `return_footprint=True`, the reprojection footprint is attached
+        * If `return_footprint=True`, the reprojection footprint is attached
           to the returned DataCube as the `.footprint` attribute.
         """
+        _require_dependency('reproject')
         _offer_dependency('tqdm')
         return_footprint = get_config_value(return_footprint, 'return_footprint')
 

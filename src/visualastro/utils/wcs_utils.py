@@ -20,13 +20,17 @@ from astropy.units import Quantity, UnitBase
 from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
-from reproject import reproject_interp, reproject_exact
 
 from visualastro.core.config import (
     get_config_value, config, _UNSET,
 )
 from visualastro.core.numerical_utils import to_list, _unwrap_if_single
-from visualastro.optional_dependencies.register import _offer_dependency
+from visualastro.optional_dependencies.register import (
+    _offer_dependency, _require_dependency
+)
+from visualastro.optional_dependencies._reproject import (
+    reproject_exact, reproject_interp
+)
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE,
 )
@@ -433,6 +437,8 @@ def reproject_wcs(
     ValueError
         If the inputs are not able to be reprojected.
     """
+    _require_dependency('reproject')
+    _offer_dependency('tqdm')
     input_data_list = to_list(input_data_list)
 
     if log_file is not None and not isinstance(log_file, Header):
@@ -610,7 +616,6 @@ def _reproject_wcs(
     ValueError
         If the inputs are not able to be reprojected.
     """
-    _offer_dependency('tqdm')
     description = kwargs.get('description', None)
 
     method = get_config_value(method, 'reproject_method')

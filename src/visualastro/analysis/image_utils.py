@@ -324,6 +324,7 @@ def load_fits(filepath, header=True, error=True,
         # reproject wcs if user inputs a reference wcs or header
         # otherwise try to extract wcs from fits header
         if target_wcs is not None:
+            _require_dependency('reproject')
             # ensure target_wcs has wcs information
             if isinstance(target_wcs, Header):
                 wcs = WCS(target_wcs)

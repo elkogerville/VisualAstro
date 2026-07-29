@@ -56,6 +56,7 @@ def _require_dependency(*dependency: str) -> None:
             msg: str = dep_info['msg']
             raise ImportError(msg)
 
+
 def _offer_dependency(*dependency: str) -> None:
     """
     Raise `ImportWarning` if `dependency` is not installed.
