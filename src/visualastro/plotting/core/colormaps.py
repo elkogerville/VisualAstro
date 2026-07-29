@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-04
-Date Modified: 2026-07-19
+Date Modified: 2026-07-28
 Description:
     Functions related to colormaps in plotting.
     To define custom colormaps, define them at
@@ -37,7 +37,7 @@ def get_cmap(
     ----------
     cmap : mcolors.Colormap | str | int
         Colormap object or string name. If a string, attempts lookup in VISUALASTRO_CMAPS
-        registry before falling back to matplotlib's colormap registry.
+        registry before falling back to Matplotlib's colormap registry.
         If an `int`, returns `tol_colors.rainbow_discrete(colors)`.
     cmap_range : tuple[float, float], optional, default=(0, 1)
         The normalized range of the colormap. By default, is `(0,1)`,
@@ -143,7 +143,7 @@ def plot_cmap_lightness(
     Plot L* (CAM02-UCS lightness) as a function of colormap index.
 
     Parameters
-    ---------------
+    ----------
     cmap : str | mcolors.Colormap | list[str | mcolors.Colormap]
         Colormap name(s) or instance(s).
     ax : matplotlib.axes.Axes, optional, default=None
@@ -172,7 +172,7 @@ def plot_cmap_lightness(
         Additional keyword arguments passed to `ax.scatter`.
 
     Returns
-    ---------------
+    -------
     scatters : list[matplotlib.collections.PathCollection]
         Scatter artists, one per colormap.
     """
