@@ -1,27 +1,23 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-07-28
+Date Modified: 2026-07-30
 Description:
     Plotting utility functions.
 """
 
 from collections.abc import Sequence
-from typing import Callable, Literal
+from typing import Literal
 from functools import partial
 
 import astropy.units as u
 from astropy.units import Quantity
-from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Colormap
-from matplotlib.contour import QuadContourSet
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import NDArray
 
@@ -32,11 +28,8 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.kwargs import (
-    _extract_kwargs,
-    _kwarg, _param,
-    _resolve_kwargs
+    _extract_kwargs, _kwarg
 )
-from visualastro.core.numerical import kde2d
 from visualastro.core.numerical_utils import (
     get_value,
     to_list,
@@ -53,7 +46,6 @@ from visualastro.optional_dependencies._regions import (
     PixCoord, EllipsePixelRegion
 )
 from visualastro.plotting.core.axes import get_ax
-from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
