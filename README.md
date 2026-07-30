@@ -31,7 +31,8 @@ $ conda install -c conda-forge \
 ```
 Optionally, you can install optional dependencies as well if you plan to use related functionalities:
 ```
-$ conda install -c conda-forge colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
+$ conda install -c conda-forge \
+    colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
 ```
 And finally run:
 ```
