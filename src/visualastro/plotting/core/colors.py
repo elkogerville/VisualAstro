@@ -761,8 +761,8 @@ def plot_colors(
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
     cvd_type : str | None, optional, default=None
-        Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
-        If `'all'`, simulates all cvd types.
+        Type of colorblindness to simulate. Can be shorthanded to
+        `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
