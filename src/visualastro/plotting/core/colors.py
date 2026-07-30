@@ -218,7 +218,7 @@ def get_colors(
 
     Parameters
     ----------
-    colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
+    colors : ColorType | int | Sequence[ColorType] | _Unset, optional, default=_UNSET
 
         * `UNSET`: Use default colorset
         * `str`:  VisualAstro colorset name (with optional '_r' suffix) or single color
@@ -918,7 +918,7 @@ def plot_color_deltaE(
     below 1 indicate a loss of distinguishability under the simulated CVD.
 
     Parameters
-    ---------------
+    ----------
     colorset : ColorType | int | Sequence[ColorType]
         Colors to compare, or colormap/count reference resolvable via `get_colors`.
     ax : matplotlib.axes.Axes | None, optional, default=None
@@ -952,7 +952,7 @@ def plot_color_deltaE(
         when `cvd_type='all'`.
 
     Returns
-    ---------------
+    -------
     imgs : list[matplotlib.image.AxesImage]
         Image artists, one per plotted matrix.
     """
@@ -1314,7 +1314,7 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
 
         * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
         * `'global'` -> linear scaling using `Normalize` with global min/max.
-        * `None` -> per-population normalization (matplotlib default).
+        * `None` -> per-population normalization (Matplotlib default).
 
     log_floor : float, optional, default=1e-10
         Minimum value clamp for `vmin` when `norm_method='log'`, to avoid
