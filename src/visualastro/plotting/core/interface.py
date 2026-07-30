@@ -40,10 +40,10 @@ from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
 from visualastro.plotting.core.colors import _has_color_mapping
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.utils import (
     add_colorbar,
     axhline,
-    legend,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,

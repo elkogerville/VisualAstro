@@ -133,6 +133,7 @@ from visualastro.plotting.core.image_utils import (
     nanpercentile_limits,
     thorlabs_logo,
 )
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
@@ -144,7 +145,6 @@ from visualastro.plotting.core.utils import (
     ellipse_patch,
     inline,
     interactive,
-    legend,
     plot_circles,
     plot_ellipses,
     plot_interactive_ellipse,
