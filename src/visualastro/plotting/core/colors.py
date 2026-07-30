@@ -27,7 +27,6 @@ import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
-import tol_colors as tc
 
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
@@ -219,7 +218,7 @@ def get_colors(
 
     Parameters
     ----------
-    colors : ColorType | int | Sequence[ColorType] | _Unset, default=_UNSET
+    colors : ColorType | int | Sequence[ColorType] | _Unset, optional, default=_UNSET
 
         * `UNSET`: Use default colorset
         * `str`:  VisualAstro colorset name (with optional '_r' suffix) or single color
@@ -762,8 +761,8 @@ def plot_colors(
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
     cvd_type : str | None, optional, default=None
-        Type of colorblindness to simulate. Can be shorthanded to {'d', 'p', 't'}.
-        If `'all'`, simulates all cvd types.
+        Type of colorblindness to simulate. Can be shorthanded to
+        `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
@@ -919,7 +918,7 @@ def plot_color_deltaE(
     below 1 indicate a loss of distinguishability under the simulated CVD.
 
     Parameters
-    ---------------
+    ----------
     colorset : ColorType | int | Sequence[ColorType]
         Colors to compare, or colormap/count reference resolvable via `get_colors`.
     ax : matplotlib.axes.Axes | None, optional, default=None
@@ -953,7 +952,7 @@ def plot_color_deltaE(
         when `cvd_type='all'`.
 
     Returns
-    ---------------
+    -------
     imgs : list[matplotlib.image.AxesImage]
         Image artists, one per plotted matrix.
     """
@@ -1315,7 +1314,7 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
 
         * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
         * `'global'` -> linear scaling using `Normalize` with global min/max.
-        * `None` -> per-population normalization (matplotlib default).
+        * `None` -> per-population normalization (Matplotlib default).
 
     log_floor : float, optional, default=1e-10
         Minimum value clamp for `vmin` when `norm_method='log'`, to avoid

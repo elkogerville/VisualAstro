@@ -1,14 +1,18 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-04
-Date Modified: 2026-07-28
+Date Modified: 2026-07-29
 Description:
     Functions related to colormaps in plotting.
     To define custom colormaps, define them at
     the bottom of this file in `VISUALASTRO_CMAPS`.
 """
 
-import cmasher
+from collections.abc import Sequence
+from typing import Literal
+import warnings
+
+import matplotlib as mpl
 from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
 import matplotlib.colors as mcolors
@@ -16,114 +20,132 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
 import numpy as np
-import tol_colors as tc
 
 from visualastro.core.config import config
 from visualastro.core.numerical_utils import to_list
-from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies.register import _offer_dependency, _require_dependency
+from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
 from visualastro.optional_dependencies._colorspacious import cspace_converter
+from visualastro.optional_dependencies._tol_colors import _HAS_TOLCOLORS
 
 
 def get_cmap(
-    cmap: mcolors.Colormap | str | int,
+    cmap: mcolors.Colormap | str,
     cmap_range: tuple[float, float] = (0, 1),
+    N: int = 256,
     bad_color: ColorType | None = None,
-    N: int | None = None
+    under_color: ColorType | None = None,
+    over_color: ColorType | None = None
 ) -> mcolors.Colormap:
     """
-    Retrieve a colormap by name or return the input colormap.
+    Retrieve a colormap by name or object.
 
     Parameters
     ----------
-    cmap : mcolors.Colormap | str | int
-        Colormap object or string name. If a string, attempts lookup in VISUALASTRO_CMAPS
-        registry before falling back to Matplotlib's colormap registry.
-        If an `int`, returns `tol_colors.rainbow_discrete(colors)`.
+    cmap : mcolors.Colormap | str
+        Colormap object or string name, looked up via Matplotlib's
+        colormap registry.
     cmap_range : tuple[float, float], optional, default=(0, 1)
-        The normalized range of the colormap. By default, is `(0,1)`,
-        meaning the returned colormap has its entire range. Ignored
-        if `cmap` is an `int`.
+        Normalized sub-range to extract from `cmap`.
+    N : int, optional, default=256
+        Resolution of the resampled sub-range colormap. Ignored if
+        `cmap_range == (0, 1)`.
     bad_color : ColorType | None, optional, default=None
-        Bad data color (`bad_color`). If None, leaves the colormap unchanged.
-    N : int | None, optional, default=None
-        Number of discrete color segments to sample from the sub-range
-        defined by `cmap_range`. If None, retains all colors within that
-        range (continuous colormap). Ignored if `cmap_range` is `(0, 1)`
-        or if `cmap` is an `int`.
+        Color for masked/invalid (NaN) data. If `None`, leaves unchanged.
+    under_color : ColorType | None, optional, default=None
+        Color for values below the normalization range. If `None`, leaves
+        unchanged.
+    over_color : ColorType | None, optional, default=None
+        Color for values above the normalization range. If `None`, leaves
+        unchanged.
 
     Returns
     -------
-    mcolors.LinearSegmentedColormap
+    mcolors.Colormap
         The requested colormap.
-    """
-    def set_bad_color(
-        cmap: mcolors.Colormap,
-        color: ColorType | None
-    ) -> mcolors.Colormap:
-        """
-        Return a copy of the cmap with a new `bad_color`, or unchanged if
-        `color` is None.
-        """
-        if color is None:
-            return cmap
-        new_cmap = cmap.copy()
-        new_cmap.set_bad(color=color)
-        return new_cmap
 
+    Raises
+    ------
+    ValueError
+        If `cmap_range` does not have exactly 2 elements.
+    """
+    cm_range = tuple(cmap_range)
     if len(cmap_range) != 2:
         raise ValueError(
             'cmap_range must be a tuple[min, max]!'
         )
 
-    if isinstance(cmap, int):
-        return set_bad_color(tc.rainbow_discrete(cmap), bad_color)
+    out_cmap = plt.get_cmap(cmap)
+    if cm_range != (0, 1):
+        colors = out_cmap(np.linspace(cm_range[0], cm_range[1], N))
+        out_cmap = create_cmap(colors, N=N, name=out_cmap.name + '_sub')
 
-    out_cmap = set_bad_color(plt.get_cmap(cmap), bad_color)
-    if cmap_range[0] == 0 and cmap_range[1] == 1:
-        return out_cmap
-
-    return set_bad_color(
-        cmasher.get_sub_cmap(
-            out_cmap, cmap_range[0], cmap_range[1], N=N
-        ), bad_color
+    return out_cmap.with_extremes(
+        bad=bad_color,
+        under=under_color,
+        over=over_color,
     )
 
 
 def create_cmap(
-    colors: list[ColorType] | int,
-    positions: list[float] | None = None,
-    name: str = 'continous_cmap'
+    colors: Sequence[ColorType] | str,
+    kind: Literal['continuous', 'discrete'] = 'continuous',
+    positions: Sequence[float] | None = None,
+    N: int = 256,
+    name: str = 'custom_cmap'
 ) -> mcolors.LinearSegmentedColormap | mcolors.ListedColormap:
     """
-    Creates a colormap from colors with optional position control.
+    Creates a colormap from a color sequence,
+    with continuous or discrete interpolation.
 
     Parameters
     ----------
-    colors : list[ColorType] | int
+    colors : Sequence[ColorType] | str
         Color specifications (hex, named colors, RGB tuples, etc.).
-        The cmap will be created from these colors. If `colors` is
-        an `int`, the function returns `tol_colors.rainbow_discrete(colors)`.
-    positions : list[float] | None, optional
-        Positions in [0, 1] for each color. Must start with 0 and end with 1.
-        If None, colors are evenly spaced.
+        The cmap will be created from these colors.
+    kind : {'continuous', 'discrete'}, optional, default='continuous'
+        `'continuous'` returns a `LinearSegmentedColormap` (interpolated).
+        `'discrete'` returns a `ListedColormap` (stepwise, no interpolation).
+    positions : list[float] | None, optional, default=None
+        Positions in [0, 1] for each color, monotonically increasing,
+        and must start with 0 and end with 1. Only used when `kind='continuous'`.
+        If `None`, colors are evenly spaced. Ignored when `kind='discrete'`.
+    N : int, optional, default=256
+        The number of RGB quantization levels. Valid for `kind='continuous'`.
+        Ignored for `kind='discrete'`.
+    name : str, optional, default='custom_cmap'
+        Name assigned to the colormap.
 
     Returns
     -------
-    LinearSegmentedColormap
+    LinearSegmentedColormap | ListedColormap
+        Colormap object corresponding to `kind`.
+
+    Notes
+    -----
+    `N` has no effect for `ListedColormap`: its resolution is fixed to
+    `len(colors)` by construction. Passing `N` with `kind='discrete'`
+    triggers a warning, not an error.
     """
-    if isinstance(colors, int):
-        return tc.rainbow_discrete(colors)
+    if isinstance(colors, str) and colors in mpl.color_sequences:
+        colors = mpl.color_sequences[colors]
 
-    rgb_list = [mcolors.to_rgb(color) for color in colors]
+    rgba_list = [mcolors.to_rgba(color) for color in colors]
 
-    if positions is None:
-        positions = list(np.linspace(0, 1, len(rgb_list)))
+    if kind == 'continuous':
+        if positions is None:
+            positions = list(np.linspace(0, 1, len(rgba_list)))
+        return mcolors.LinearSegmentedColormap.from_list(
+            name, list(zip(positions, rgba_list)), N=N
+        )
 
-    cdict = {channel: [[positions[i], rgb_list[i][idx], rgb_list[i][idx]]
-                       for i in range(len(positions))]
-             for idx, channel in enumerate(['red', 'green', 'blue'])}
+    elif kind == 'discrete':
+        if N != 256:
+            warnings.warn("N is ignored for kind='discrete'", stacklevel=2)
+        return mcolors.ListedColormap(rgba_list, name=name)
 
-    return mcolors.LinearSegmentedColormap(name, segmentdata=cdict, N=256)
+    else:
+        raise ValueError(f"Invalid kind: {kind!r}. Expected 'continuous' or 'discrete'.")
 
 
 def plot_cmap_lightness(
@@ -207,7 +229,8 @@ def plot_cmap_lightness(
         scatter = ax.scatter(x, L + y_offset, s=s, c=x, cmap=c, **kwargs)
         scatters.append(scatter)
 
-        if legend_label:
+        if _HAS_CMASHER and legend_label:
+            _offer_dependency('cmasher')
             cmasher.set_cmap_legend_entry(scatter, c.name)
 
         if inline_label:
@@ -241,20 +264,14 @@ def plot_cmap_lightness(
 
 # VISUALASTRO COLOR MAPS
 # ----------------------
-iridescent = plt.get_cmap('tol.iridescent').copy()
-iridescent.set_bad(color='white')
 BuWhRd = create_cmap(
     ['#191970', '#0000FF', '#FFFFFF', '#FF0000', '#8b0000'],
-    [0, 0.25, 0.5, 0.75, 1],
-    'BuWhRd'
+    positions=[0, 0.25, 0.5, 0.75, 1],
+    name='BuWhRd'
 )
-tol_rainbow = plt.get_cmap('tol.rainbow').copy()
-tol_rainbow.set_bad(color='white')
 
 VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
-    'iridescent': iridescent,
     'BuWhRd': BuWhRd,
-    'tol_rainbow': tol_rainbow,
     'nuclear_waste': create_cmap(
         ['#1CFF00', '#A7FF63', '#D1E61C', '#A2A838', '#6CA838'],
         name='nuclear_waste'
@@ -267,5 +284,19 @@ VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
         ['#FF1DCE', '#CCFF00', '#00B9FB'],
         name='crayons_neon'
     ),
+    'debos': create_cmap(
+        ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
+        name='debos'
+    ),
 }
+
+if _HAS_TOLCOLORS:
+    iridescent = plt.get_cmap('tol.iridescent').copy()
+    iridescent.set_bad(color='white')
+    tol_rainbow = plt.get_cmap('tol.rainbow').copy()
+    tol_rainbow.set_bad(color='white')
+
+    VISUALASTRO_CMAPS['iridescent'] = iridescent
+    VISUALASTRO_CMAPS['tol_rainbow'] = tol_rainbow
+
 CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]

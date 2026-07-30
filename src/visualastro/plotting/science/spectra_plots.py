@@ -70,9 +70,7 @@ from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import (
-    get_colors,
-    sample_cmap,
-    _lighten_color
+    get_colors, sample_cmap, _lighten_color
 )
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
