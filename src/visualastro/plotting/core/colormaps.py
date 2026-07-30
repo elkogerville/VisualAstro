@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-04
-Date Modified: 2026-07-28
+Date Modified: 2026-07-29
 Description:
     Functions related to colormaps in plotting.
     To define custom colormaps, define them at
@@ -26,6 +26,7 @@ from visualastro.core.numerical_utils import to_list
 from visualastro.optional_dependencies.register import _offer_dependency, _require_dependency
 from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
 from visualastro.optional_dependencies._colorspacious import cspace_converter
+from visualastro.optional_dependencies._tol_colors import _HAS_TOLCOLORS
 
 
 def get_cmap(
@@ -284,4 +285,14 @@ VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
         name='crayons_neon'
     ),
 }
+
+if _HAS_TOLCOLORS:
+    iridescent = plt.get_cmap('tol.iridescent').copy()
+    iridescent.set_bad(color='white')
+    tol_rainbow = plt.get_cmap('tol.rainbow').copy()
+    tol_rainbow.set_bad(color='white')
+
+    VISUALASTRO_CMAPS['iridescent'] = iridescent
+    VISUALASTRO_CMAPS['tol_rainbow'] = tol_rainbow
+
 CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
