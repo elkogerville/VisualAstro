@@ -89,7 +89,7 @@ def get_cmap(
 
 def create_cmap(
     colors: Sequence[ColorType] | str,
-    kind: Literal['continous', 'discrete'] = 'continous',
+    kind: Literal['continuous', 'discrete'] = 'continuous',
     positions: Sequence[float] | None = None,
     N: int = 256,
     name: str = 'custom_cmap'
@@ -132,7 +132,7 @@ def create_cmap(
 
     rgba_list = [mcolors.to_rgba(color) for color in colors]
 
-    if kind == 'continous':
+    if kind == 'continuous':
         if positions is None:
             positions = list(np.linspace(0, 1, len(rgba_list)))
         return mcolors.LinearSegmentedColormap.from_list(
@@ -283,6 +283,10 @@ VISUALASTRO_CMAPS: dict[str, mcolors.Colormap] = {
     'crayons_neon': create_cmap(
         ['#FF1DCE', '#CCFF00', '#00B9FB'],
         name='crayons_neon'
+    ),
+    'debos': create_cmap(
+        ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
+        name='debos'
     ),
 }
 
