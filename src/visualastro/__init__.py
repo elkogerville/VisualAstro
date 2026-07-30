@@ -6,9 +6,7 @@ from visualastro.datamodels.spectrumplus import SpectrumPlus
 
 # submodules
 # ----------
-from visualastro.analysis.ic import (
-    blob,
-)
+from visualastro.analysis.ic import blob
 from visualastro.analysis.image_utils import (
     compute_sobel_filter,
     detect_edges,

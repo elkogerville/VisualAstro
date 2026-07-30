@@ -27,9 +27,6 @@ from visualastro.core.config import (
     _Unset, _UNSET,
     _resolve_default
 )
-from visualastro.core.kwargs import (
-    _extract_kwargs, _kwarg
-)
 from visualastro.core.numerical_utils import (
     get_value,
     to_list,
@@ -45,7 +42,6 @@ from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (
     PixCoord, EllipsePixelRegion
 )
-from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
