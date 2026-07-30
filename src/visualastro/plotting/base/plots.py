@@ -58,11 +58,11 @@ from visualastro.plotting.core.axes import (
     _set_axis_limits_scaling_mode,
     get_ax3d
 )
+from visualastro.plotting.core.contour import contour_kde
 from visualastro.plotting.core.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
 from visualastro.plotting.core.utils import (
-    contour_kde,
     _get_zorder,
     _normalize_plotting_input,
     _normalize_plotting_inputs,

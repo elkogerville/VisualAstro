@@ -123,6 +123,10 @@ from visualastro.plotting.core.colors import (
     saturate_colors,
     simulate_colorblindness,
 )
+from visualastro.plotting.core.contour import (
+    contour_kde,
+    contourf_kde,
+)
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
     get_vmin_vmax,
@@ -137,8 +141,6 @@ from visualastro.plotting.core.utils import (
     add_colorbar,
     axhline,
     close,
-    contour_kde,
-    contourf_kde,
     ellipse_patch,
     inline,
     interactive,
