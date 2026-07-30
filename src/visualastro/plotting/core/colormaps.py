@@ -199,7 +199,7 @@ def plot_cmap_lightness(
         Scatter artists, one per colormap.
     """
     _require_dependency('colorspacious')
-    from visualastro.plotting.core.utils import legend as _legend
+    from visualastro.plotting.core.legend import legend as _legend
 
     if ax is None:
         fig, ax = plt.subplots(figsize=config.figsize)

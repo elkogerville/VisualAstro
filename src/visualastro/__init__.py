@@ -6,9 +6,7 @@ from visualastro.datamodels.spectrumplus import SpectrumPlus
 
 # submodules
 # ----------
-from visualastro.analysis.ic import (
-    blob,
-)
+from visualastro.analysis.ic import blob
 from visualastro.analysis.image_utils import (
     compute_sobel_filter,
     detect_edges,
@@ -123,12 +121,17 @@ from visualastro.plotting.core.colors import (
     saturate_colors,
     simulate_colorblindness,
 )
+from visualastro.plotting.core.contour import (
+    contour_kde,
+    contourf_kde,
+)
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm,
     get_vmin_vmax,
     nanpercentile_limits,
     thorlabs_logo,
 )
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
@@ -137,12 +140,9 @@ from visualastro.plotting.core.utils import (
     add_colorbar,
     axhline,
     close,
-    contour_kde,
-    contourf_kde,
     ellipse_patch,
     inline,
     interactive,
-    legend,
     plot_circles,
     plot_ellipses,
     plot_interactive_ellipse,

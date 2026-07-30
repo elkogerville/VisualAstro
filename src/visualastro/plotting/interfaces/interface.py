@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-07-09
+Date Modified: 2026-07-30
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,
@@ -40,10 +40,10 @@ from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
 from visualastro.plotting.core.colors import _has_color_mapping
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.utils import (
     add_colorbar,
     axhline,
-    legend,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
@@ -142,7 +142,7 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     from visualastro specific keyword arguments.
 
     Any kwarg defined here should also be defined in
-    `visualastro.plotting.core.interface.PlotUtilParams`.
+    `visualastro.plotting.interfaces.interface.PlotUtilParams`.
 
     Notes
     -----
@@ -180,9 +180,9 @@ def _apply_plot_utils(
     Plotting interface for adding figure annotations and artists to a figure.
 
     To add the interface to a plotting function, first call
-    `visualastro.plotting.core.interface_extract_plot_util_kwargs`,
+    `visualastro.plotting.interfaces.interface_extract_plot_util_kwargs`,
     which will return a `PlotUtilParams` instance. Then call
-    `visualastro.plotting.core.interface_apply_plot_utils`
+    `visualastro.plotting.interfaces.interface_apply_plot_utils`
     after the core plotting has been completed.
 
     Parameters

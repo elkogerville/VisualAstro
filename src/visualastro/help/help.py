@@ -35,8 +35,8 @@ from visualastro.plotting.core.colors import (
     plot_colors,
     plot_colortable,
 )
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.style import _style_context, reset_rcParams
-from visualastro.plotting.core.utils import legend
 from visualastro.utils.text_utils import check_font
 
 
