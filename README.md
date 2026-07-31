@@ -65,15 +65,13 @@ NOTE: To ensure that interactive mode works in notebooks, first activate your co
 ## Documentation
 VisualAstro is still under development! A full documentation of the package's features is coming soon.
 
-Check the `examples/` folder for notebook tutorials!
-
-The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
+Check the [examples](examples/) folder for notebook tutorials!
 
 ## Dependencies
 
 VisualAstro requires:
 
-astropy, matplotlib, numpy, and scipy.
+`astropy`, `matplotlib`, `numpy`, and `scipy`.
 
 ### Optional dependencies
 
