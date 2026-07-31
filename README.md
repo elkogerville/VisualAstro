@@ -21,6 +21,13 @@
   <img src="example_figures/MIRI_spectrum_bkg_subtracted.png" width="60%">
 </p>
 
+## Features
+
+- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
+- Custom mathtext stylesheets without `LaTeX` installation as well as many other styles for publication-quality figures
+- Colorblind safe alternative colorsets, and colormaps
+- User-friendly interface with many convenience methods that integrate with matplotlib and other packages
+
 ## Installation
 
 Currently, the most stable version of python for VisualAstro is version >=3.10.
@@ -54,13 +61,6 @@ $ conda install -c conda-forge ipympl ipywidgets notebook jupyter_server noteboo
 
 NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then run jupyter notebook!
 
-
-## Features
-
-- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
-- High-level wrappers of common functions and algorithms used in astrophysical research
-- Custom matplotlib style sheets optimized for publication-quality figures
-- Full compatibility with WCS, FITS, and astropy units
 
 ## Documentation
 VisualAstro is still under development! A full documentation of the package's features is coming soon.
