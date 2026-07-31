@@ -47,15 +47,17 @@ def add_colorbar(
     label : str, optional, default=None
         Label for the colorbar. If `None`, no label is set.
     fontsize : float | _Unset, optional, default=_UNSET
-        Fontsize for colorbar label. If `_UNSET`, uses
-        `config.fontsizes.colorbar_label`.
+        Fontsize of colorbar label in points. If `_UNSET`, uses
+        `config.fontsizes.colorbar_label`, expressed as a scaling
+        factor relative to `config.fontsizes.size`.
     tick_which :  {'major', 'minor', 'both'} | _Unset, optional, default=_UNSET
         The group of ticks to which the parameters are applied.
     tick_dir : {'in', 'out', 'inout'} | _Unset, optional, default=_UNSET
         Puts ticks inside the Axes, outside the Axes, or both.
     tick_fontsize : float | _Unset, optional, default=_UNSET
         Fontsize for colorbar tick labels. If `_UNSET`, uses
-        `config.fontsizes.colorbar_tick_labels`.
+        `config.fontsizes.colorbar_tick_labels`, expressed as a
+        scaling factor relative to `config.fontsizes.size`.
     rasterized : bool | _Unset, default=_UNSET
         Whether to rasterize colorbar. Rasterization
         converts the artist to a bitmap when saving to

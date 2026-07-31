@@ -92,7 +92,9 @@ def contour_kde(
         Colormap used for plotting contours. If `_UNSET`,
         uses `config.cmap`.
     fontsize : float, optional, default=config.fontsize
-        Fontsize of contour labels.
+        Fontsize of contour labels in points. By default, uses
+        `config.fontsizes.text`, expressed as a scaling factor
+        relative to `config.fontsizes.size`.
 
     Returns
     -------
