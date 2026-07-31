@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "VisualAstro"
+version: 0.3.0
+license: "MIT"
+type: software
+abstract: "Astrophysical plotting library."
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: Elko
+    family-names: Gerville-Reache
+    affiliation: "Leiden University, Observatoire de Genève"
+    orcid: "https://orcid.org/0009-0005-9187-1593"
+
+  - given-names: Qiushi Chris
+    family-names: Tian
+    affiliation: Leiden University
+    orcid: "https://orcid.ord/0009-0009-9148-2159"
+
+  - given-names: Audrey
+    family-names: Whitmer
+    affiliation: Leiden University
+    orcid: "https://orcid.org/0000-0001-7509-7247
+keywords:
+  - astronomy and astrophysics
+  - data visualization

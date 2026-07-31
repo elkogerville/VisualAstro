@@ -39,10 +39,10 @@ from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
+from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors import _has_color_mapping
 from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.utils import (
-    add_colorbar,
     axhline,
     plot_ellipses,
     plot_interactive_ellipse,
@@ -67,6 +67,12 @@ _PLOT_UTILS_KWARGS = [
 
     _kwarg('vlines', lambda: None),
     _kwarg('hlines', lambda: None),
+
+    _kwarg('title', lambda: None),
+    _kwarg('title_loc', lambda: None),
+    _kwarg('title_pad', lambda: None),
+    _kwarg('title_fontsize', lambda: config.fontsizes.resolve('title')),
+    _kwarg('ticklabel_fontsize', lambda: config.fontsizes.resolve('tick_labels')),
 
     _kwarg('legend_handles', lambda: config.legend.handles),
     _kwarg('legend_labels', lambda: config.legend.labels),
@@ -94,6 +100,7 @@ _PLOT_UTILS_KWARGS = [
 
     _kwarg('xlabel', lambda: None),
     _kwarg('ylabel', lambda: None),
+    _kwarg('label_fontsize', lambda: config.fontsizes.resolve('axes_labels')),
     _kwarg('unit_bracket_style', lambda: config.unit_bracket_style),
     _kwarg('show_physical_type', lambda: config.show_type_label),
     _kwarg('show_unit', lambda: config.show_unit_label),
@@ -123,8 +130,10 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('cbar_width', lambda: config.colorbar.width),
     _kwarg('cbar_pad', lambda: config.colorbar.pad),
     _kwarg('cbar_label', lambda: config.colorbar.label),
+    _kwarg('cbar_fontsize', lambda: config.fontsizes.resolve('colorbar_label')),
     _kwarg('cbar_tick_which', lambda: config.colorbar.tick_which),
     _kwarg('cbar_tick_dir', lambda: config.colorbar.tick_dir),
+    _kwarg('cbar_tick_labelsize', lambda: config.fontsizes.resolve('colorbar_tick_labels')),
 ]
 
 PlotUtilParams = make_dataclass(
@@ -263,13 +272,27 @@ def _apply_plot_utils(
             xpad=params.xpad, ypad=params.ypad
         )
 
+    ax.tick_params(
+        axis='both',
+        which='major',
+        labelsize=params.ticklabel_fontsize,
+    )
+
     # POST SETTING AXIS LIMITS
     # ------------------------
+    if params.title:
+        ax.set_title(
+            params.title,
+            loc=params.title_loc,
+            pad=params.title_pad,
+            fontsize=params.title_fontsize,
+        )
+
     if isinstance(ax, WCSAxes):
         xlabel = params.xlabel if params.xlabel is not None else config.right_ascension_label
         ylabel = params.ylabel if params.ylabel is not None else config.declination_label
-        ax.coords['ra'].set_axislabel(xlabel)
-        ax.coords['dec'].set_axislabel(ylabel)
+        ax.coords['ra'].set_axislabel(xlabel, fontsize=params.label_fontsize)
+        ax.coords['dec'].set_axislabel(ylabel, fontsize=params.label_fontsize)
         ax.coords['dec'].set_ticklabel(rotation=90)
 
     else:
@@ -279,6 +302,7 @@ def _apply_plot_utils(
             ax=ax,
             xlabel=params.xlabel,
             ylabel=params.ylabel,
+            fontsize=params.label_fontsize,
             unit_bracket_style=params.unit_bracket_style,
             show_physical_type=params.show_physical_type,
             show_unit=params.show_unit,
@@ -319,8 +343,10 @@ def _apply_plot_utils(
                 cbar_width=params.cbar_width,
                 cbar_pad=params.cbar_pad,
                 label=clabel,
+                fontsize=params.cbar_fontsize,
                 tick_which=params.cbar_tick_which,
                 tick_dir=params.cbar_tick_dir,
+                tick_fontsize=params.cbar_tick_labelsize,
                 rasterized=kwargs.get('rasterized', None)
             )
 

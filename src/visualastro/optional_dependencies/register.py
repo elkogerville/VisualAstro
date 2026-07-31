@@ -1,12 +1,17 @@
 """
 Author: Elko Gerville-Reache, Audrey Whitmer
 Date Created: 2026-07-17
-Date Modified: 2026-07-29
+Date Modified: 2026-07-31
 Description:
     All optional dependencies are registered here.
     To register an optional dependency in VisualAstro,
     add it to `_OPTIONAL_DEPS`. Each optional dependency
     should have its own file.
+
+    To avoid type annotation collisions with types imported
+    from optional dependencies, place the following line at
+    the top of each file that imports a type:
+        `from __future__ import annotations`
 """
 import warnings
 

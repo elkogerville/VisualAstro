@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-06-29
+Date Modified: 2026-07-31
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -18,6 +18,7 @@ from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
 from matplotlib.colors import Colormap
+import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib.typing import ColorType
 import numpy as np
@@ -29,7 +30,7 @@ T = TypeVar('T')
 class _Unset(Enum):
     """
     Default placeholder sentinel value for
-    visualastro functions.
+    VisualAstro functions.
     """
     UNSET = 'UNSET'
 
@@ -65,6 +66,92 @@ class AxesConfig(PrettyRepr):
     aspect = None
 
 @dataclass(slots=True, repr=False)
+class FontSizeConfig:
+    """
+    Fontsize Config for VisualAstro.
+
+    Paramaters
+    ----------
+    size : float
+        Global text size in points. Affects
+        the fontsize of all parameters.
+    title : float
+        Title fontsize relative to `size`.
+    axes_labels : float
+        Axes labels fontsize relative to `size`.
+    legend_title : float
+        Legend title fontsize relative to `size`.
+    legend : float
+        Legend fontsize relative to `size`.
+    text : float
+        Text fontsize relative to `size`.
+    tick_labels : float
+        Axes tick label fontsize relative to `size`.
+    colorbar_label : float, optional, default=1.0
+        Colorbar label fontsize relative to `size`.
+    colorbar_tick_labels : float, optional, default=0.85
+        Colorbar tick label fontsize relative to `size`.
+    """
+    size: float = 13
+    title: float = 1.2
+    axes_labels: float = 1.0
+    legend_title: float = 1.0
+    legend: float = 0.9
+    text: float = 0.9
+    tick_labels: float = 0.8
+    colorbar_label: float = 1.0
+    colorbar_tick_labels: float = 0.8
+
+    def resolve(self, param):
+        """
+        Method to convert a fontsize parameter from scaling factor to points.
+        Returns `self.size` * `self.param`.
+        """
+        if param == 'size':
+            raise ValueError(
+                'size is not settable via resolve!'
+            )
+        return getattr(self, param) * self.size
+
+    def update_rcparams(self) -> None:
+        """Mutate global rcParams permanently with this config's values."""
+        plt.rcParams.update(self._to_rcparams_dict())
+
+    def _to_rcparams_dict(self) -> dict[str, float]:
+        """
+        Map fontsize fields onto Matplotlib rcParams keys.
+
+        Returns
+        -------
+        dict[str, float] :
+            rcParams dict. `colorbar_label` and `colorbar_tick_labels`
+            have no dedicated rcParams key and are excluded — apply them
+            per-artist via `cbar.set_label` / `cbar.ax.tick_params` instead.
+        """
+        tick = self.resolve('tick_labels')
+        return {
+            'font.size': self.resolve('text'),
+            'axes.titlesize': self.resolve('title'),
+            'axes.labelsize': self.resolve('axes_labels'),
+            'legend.fontsize': self.resolve('legend'),
+            'legend.title_fontsize': self.resolve('legend_title'),
+            'xtick.labelsize': tick,
+            'ytick.labelsize': tick,
+        }
+
+    def __repr__(self) -> str:
+        """Return both scale factor and size in points of each field."""
+        lines = [f'size: {self.size:.2f}pt (base)']
+        for name in self.__dataclass_fields__:
+            if name == 'size':
+                continue
+            scale = getattr(self, name)
+            pt = self.resolve(name)
+            lines.append(f'{name}: scale={scale:.2f}, pt={pt:.2f}')
+        body = ',\n  '.join(lines)
+        return f'{type(self).__name__}(\n  {body}\n)'
+
+@dataclass(slots=True, repr=False)
 class ZorderLayers(PrettyRepr):
     axes: float = 0
     gridlines: float = 10
@@ -94,7 +181,7 @@ class LegendConfig(PrettyRepr):
     labels: Sequence[str] | None = None
     loc: str = 'best'
     ncols: int = 1
-    fontsize: int | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] = 10
+    fontsize: float | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] | _Unset = _UNSET
     labelcolor: str | list[str] | Literal['none', 'linecolor', 'mec', 'mfc'] = 'none'
     numpoints: int = 1
     scatterpoints: int = 1
@@ -152,8 +239,8 @@ class ColorbarConfig(PrettyRepr):
     width: float = 0.03
     pad: float = 0.015
     label: bool = True
-    tick_which: str = 'both'
-    tick_dir: str = 'out'
+    tick_which: Literal['major', 'minor', 'both'] = 'both'
+    tick_dir: Literal['in', 'out', 'inout'] = 'out'
 
 @dataclass(slots=True, repr=False)
 class ContourConfig(PrettyRepr):
@@ -207,9 +294,9 @@ class HDUConfig(PrettyRepr):
 class VisualAstroConfig(PrettyRepr):
     """
     Global configuration object for controlling default behavior
-    across the visualastro package.
+    across the VisualAstro package.
 
-    visualastro function parameters are often set to `_UNSET`,
+    VisualAstro function parameters are often set to `_UNSET`,
     which at runtime gets resolved to the default hardcoded value
     set in `VisualAstroConfig`. Modifying this file will update
     the default values.
@@ -314,6 +401,7 @@ class VisualAstroConfig(PrettyRepr):
     aspect: Literal['auto', 'equal'] | float | None = None
 
     axes: AxesConfig = field(default_factory=AxesConfig)
+    fontsizes: FontSizeConfig = field(default_factory=FontSizeConfig)
     zorder: ZorderLayers = field(default_factory=ZorderLayers)
     legend: LegendConfig = field(default_factory=LegendConfig)
     savefig: SavefigConfig = field(default_factory=SavefigConfig)
@@ -409,7 +497,6 @@ class VisualAstroConfig(PrettyRepr):
 
     # Utils Params
     # ------------
-
     # pretty table params
     table_precision: int = 7
     table_sci_notation: bool = True

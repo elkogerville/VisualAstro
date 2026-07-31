@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-08
-Date Modified: 2026-07-17
+Date Modified: 2026-07-31
 Description:
     Spectra plot utility functions.
 """
@@ -365,7 +365,8 @@ def spectral_axis_label(
     text_loc: tuple[float, float] | _Unset = _UNSET,
     text_color: ColorType | _Unset = _UNSET,
     highlight: bool | _Unset = _UNSET,
-    unit_fmt: str | _Unset = _UNSET
+    unit_fmt: str | _Unset = _UNSET,
+    fontsize: float | _Unset = _UNSET
 ) -> None:
     """
     Add a label indicating the spectral coordinate of a slice.
@@ -425,6 +426,10 @@ def spectral_axis_label(
         `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
 
         If `_UNSET`, uses `config.unit_label_format`.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize of spectral label. If `_UNSET`, uses
+        `config.fontsizes.text`, expressed as a scaling
+        factor relative to `config.fontsizes.size`.
 
     Raises
     ------
@@ -434,6 +439,7 @@ def spectral_axis_label(
     text_loc = _resolve_default(text_loc, config.text_loc)
     text_color = _resolve_default(text_color, config.text_color)
     highlight = _resolve_default(highlight, config.highlight)
+    fontsize = _resolve_default(fontsize, config.fontsizes.resolve('text'))
 
     spectral_axis = _get_spectral_axis(spectral_axis)
     if spectral_axis is None:
@@ -461,7 +467,10 @@ def spectral_axis_label(
         bbox = dict(facecolor='white', edgecolor='w') if highlight else None
         ax.text(
             text_loc[0], text_loc[1], slice_label,
-            transform=ax.transAxes, color=text_color, bbox=bbox
+            transform=ax.transAxes,
+            color=text_color,
+            bbox=bbox,
+            fontsize=fontsize,
         )
 
 

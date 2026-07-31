@@ -14,7 +14,19 @@
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro)](https://pypi.org/project/visualastro)
 [![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml)
 
-**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of common astronomical data. The package is developed with ease of use in mind, modularity, and making publication-ready plots with minimal commands.
+**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands.
+
+<p align="center">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/SN1987A.png" width="30%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/MIRI_spectrum_bkg_subtracted.png" width="60%">
+</p>
+
+## Features
+
+- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
+- Custom mathtext stylesheets without `LaTeX` installation as well as many other styles for publication-quality figures
+- Colorblind safe alternative colorsets, and colormaps
+- User-friendly interface with many convenience methods that integrate with Matplotlib and other packages
 
 ## Installation
 
@@ -29,7 +41,7 @@ Then install the dependencies with:
 $ conda install -c conda-forge \
     astropy matplotlib numpy scipy
 ```
-Optionally, you can install optional dependencies as well if you plan to use related functionalities:
+Optional dependencies can also be installed if you plan to use related functionalities:
 ```
 $ conda install -c conda-forge \
     colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
@@ -50,29 +62,20 @@ $ conda install -c conda-forge ipympl ipywidgets notebook jupyter_server noteboo
 NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then run jupyter notebook!
 
 
-## Features
-
-- Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
-- High-level wrappers of common functions and algorithms used in astrophysical research
-- Custom matplotlib style sheets optimized for publication-quality figures
-- Full compatibility with WCS, FITS, and astropy units
-
 ## Documentation
 VisualAstro is still under development! A full documentation of the package's features is coming soon.
 
-Check the `examples/` folder for notebook tutorials!
-
-The full documentation can be found on github at https://github.com/elkogerville/VisualAstro
+Check the [examples](examples/) folder for notebook tutorials!
 
 ## Dependencies
 
 VisualAstro requires:
 
-astropy, matplotlib, numpy, and scipy.
+`astropy`, `matplotlib`, `numpy`, and `scipy`.
 
 ### Optional dependencies
 
-Optionally, some functionalities of VisualAstro requires:
+Optionally, some functionalities of VisualAstro require:
 
 * Image Data: `regions`, `reproject`
 * Cube Data: `spectral-cube`
@@ -83,12 +86,49 @@ Optionally, some functionalities of VisualAstro requires:
 
 If you try to use functionalities that require an optionally dependent package but do not have that package installed, VisualAstro will raise an ImportError and prompt you to install that package.
 
+## Examples
+
+Example colorsets:
+<p align="center">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/astro_seq.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/debos.png" width="45%">
+</p>
+
+Example fontstyles:
+<p align="center">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/cm_fontstyle.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/libertinus_fontstyle.png" width="45%">
+</p>
+
 ## Credits
 
 ### Fonts
+VisualAstro includes multiple mathtext fonts:
+
+Concrete Math, distributed under the SIL OPEN FONT LICENSE from a release by:
+```
+author = Daniel Flipo
+year = 2022-2026
+url = https://ctan.org/tex-archive/fonts/concmath-otf?lang=en
+```
+
+Libertinus Math, distributed under the SIL OPEN FONT LICENSE from a release by:
+```
+authors = Caleb Maclennan, Libertinus Project Authors
+year = 2012-2024
+url = https://github.com/alerque/libertinus V7.051
+```
+
+New Computer Modern, distributed under GNU GENERAL PUBLIC LICENSE from a release by:
+```
+author = Antonis Tsolomitis
+location = Samos, Greece
+year = 2019--2026
+url = https://ctan.org/texarchive/fonts/newcomputermodern?lang=en
+```
+
 VisualAstro includes Hershey-style TrueType fonts from the smplotlib project
 by Jiaxuan Li, used under the MIT License. Citation:
-
 ```
 @software{jiaxuan_li_2023_8126529,
   author       = {Jiaxuan Li},

@@ -8,7 +8,7 @@ Description:
 
 import matplotlib.axes as maxes
 
-from visualastro.core.config import config
+from visualastro.core.config import config, _resolve_default
 from visualastro.core.kwargs import _extract_kwargs, _kwarg
 from visualastro.core.numerical_utils import to_list
 from visualastro.plotting.core.axes import get_ax
@@ -38,7 +38,10 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
     ncols : int, optional, default=config.legend.ncols
         Number of columns.
     fontsize : int | str, optional, default=config.legend.fontsize
-        Font size for legend text.
+        Fontsize for legend text in points. By default, uses
+        `config.legend.fontsize`. If `_UNSET`, uses
+        `config.fontsizes.legend`, expressed as a scaling factor
+        relative to `config.fontsizes.size`.
     fancybox : bool, optional, default=config.legend.fancybox
         Enable rounded box frame.
     framealpha : float, optional, default=config.legend.framealpha
@@ -94,6 +97,9 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
             _kwarg('columnspacing', config.legend.columnspacing),
             _kwarg('draggable', config.legend.draggable),
         ]
+    )
+    legend_kwargs['fontsize'] = _resolve_default(
+        legend_kwargs['fontsize'], config.fontsizes.resolve('legend')
     )
     ax = get_ax(ax)
     handles = None

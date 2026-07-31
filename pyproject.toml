@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visualastro"
-version = "0.2.1"
+version = "0.3.0"
 description = "Astro data analysis and plotting package"
 authors = [
     {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
@@ -72,16 +72,23 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = [
+    "tests*",
+    "build*",
+    "dist*",
+]
 
 [tool.setuptools.package-data]
 "visualastro" = [
     "stylelib/*.mplstyle",
+    "stylelib/**/LICENSE",
     "stylelib/fontlib/**/*.ttf",
+    "stylelib/fontlib/**/*.otf",
     "stylelib/fontlib/**/LICENSE",
-    "data/*.png",
-    "data/*.jpg",
+    "data/**/*.png",
+    "data/**/*.jpg",
     "*.md",
-    "LICENSE"
+    "LICENSE",
 ]
 
 [tool.setuptools.exclude-package-data]
@@ -89,14 +96,4 @@ where = ["src"]
     "*.egg-info/*",
     "*.egg-info",
     "EGG-INFO/*",
-]
-
-exclude = [
-    "Tests*",
-    "build*",
-    "dist*",
-    "*egg-info*",
-    "*.egg-info",
-    "EGG-INFO*",
-    "src/visualastro/dev/*"
 ]

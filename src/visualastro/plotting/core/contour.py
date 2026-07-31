@@ -7,6 +7,7 @@ Description:
 """
 
 from typing import Callable, Literal
+from numpy.typing import ArrayLike
 
 import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
@@ -25,8 +26,8 @@ from visualastro.plotting.core.colormaps import get_cmap
 
 
 def contour_kde(
-    x,
-    y,
+    x: ArrayLike,
+    y: ArrayLike,
     ax: maxes.Axes | Axes3D,
     levels: int | _Unset = _UNSET,
     contour_method: Literal['contour', 'contourf'] | _Unset = _UNSET,
@@ -34,10 +35,11 @@ def contour_kde(
     gridsize: int | _Unset = _UNSET,
     padding: float | _Unset = _UNSET,
     cslabel: bool | _Unset = _UNSET,
-    zdir=None,
-    offset=None,
+    zdir: Literal['x', 'y', 'z'] | None = None,
+    offset: float | None = None,
     cmap: Colormap | str | _Unset = _UNSET,
-    zorder=None,
+    fontsize: float | _Unset = _UNSET,
+    zorder: int | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
     **kwargs
@@ -65,7 +67,7 @@ def contour_kde(
         Method used to draw contours. `'contour'` draws lines, while
         `'contourf'` draws filled contours. If `_UNSET`, uses
         `config.contour.method`.
-    bw_method : str | float | Callable | _Unset, optional, default=_UNSET
+    bw_method : {'scott', 'silverman'} | float | Callable | _Unset, optional, default=_UNSET
         The method used to calculate the bandwidth factor for the Gaussian KDE.
         Can be one of:
 
@@ -86,13 +88,21 @@ def contour_kde(
     zdir : {'x', 'y', 'z'} | None, default=None
         Direction normal to the plane where contours are drawn.
         If None, contours are plotted in 2D.
-    offset : float | None, default=None
+    offset : float | None, optional, default=None
         Offset along the `zdir` direction for projecting contours in 3D space.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap used for plotting contours. If `_UNSET`,
         uses `config.cmap`.
-    fontsize : float, optional, default=config.fontsize
-        Fontsize of contour labels.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize of contour labels in points. If `_UNSET`, uses
+        `config.fontsizes.text`, expressed as a scaling factor
+        relative to `config.fontsizes.size`
+    zorder : int | None, optional, default=None
+        Z-order of the contour plot.
+    xlim : tuple[float, float] | None, optional, default=None
+        Limits of the x-axis.
+    ylim : tuple[float, float] | None, optional, default=None
+        Limits of the y-axis.
 
     Returns
     -------
@@ -111,7 +121,7 @@ def contour_kde(
             _param('cmap', cmap, config.cmap),
         ],
         additional_kwargs=[
-            _kwarg('fontsize', config.fontsize),
+            _kwarg('fontsize', config.fontsizes.resolve('text')),
             _kwarg('bad_color', None),
         ]
 
@@ -174,18 +184,18 @@ def contour_kde(
 
 
 def contourf_kde(
-    x,
-    y,
+    x: ArrayLike,
+    y: ArrayLike,
     ax: maxes.Axes | Axes3D,
     levels: int | _Unset = _UNSET,
     bw_method: Literal['scott', 'silverman'] | float | Callable | _Unset = _UNSET,
     gridsize: int | _Unset = _UNSET,
     padding: float | _Unset = _UNSET,
     cslabel: bool | _Unset = _UNSET,
-    zdir=None,
-    offset=None,
+    zdir: Literal['x', 'y', 'z'] | None = None,
+    offset: float | None = None,
     cmap: Colormap | str | _Unset = _UNSET,
-    zorder=None,
+    zorder: int | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
     **kwargs
