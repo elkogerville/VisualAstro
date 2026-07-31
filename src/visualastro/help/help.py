@@ -321,7 +321,7 @@ class help:
         ecs = get_colors('astro')
         print(
             'Here are sample plots made with the available VisualAstro plot styles. '
-            '\nEach style sets the axes, fonts and font sizes, but leaves the color up to the user.\n'
+            '\nEach style sets the axes, fonts and fontsizes, but leaves the color up to the user.\n'
         )
         for i, style_name in enumerate(style_names):
             reset_rcParams()
