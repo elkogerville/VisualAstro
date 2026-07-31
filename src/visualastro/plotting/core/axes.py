@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-07-28
+Date Modified: 2026-07-31
 Description:
     Functions related to Matplotlib axes.
 """
@@ -1043,7 +1043,7 @@ def _format_axis_label(
     bracket_style: Literal['round', 'square'],
     show_physical_type: bool,
     show_unit: bool,
-    fmt: str
+    fmt: str | _Unset=_UNSET
 ) -> str:
     r"""
     Create a scientific axis label with physical type and unit information.
@@ -1071,7 +1071,7 @@ def _format_axis_label(
     show_unit : bool
         If `True`, include the unit in the output. If `False`, omit the unit
         (useful for creating label-only outputs).
-    fmt : str, default=_UNSET
+    fmt : str, optional, default=_UNSET
         Format for unit rendering. Passed to `to_latex_unit`.
 
         Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
