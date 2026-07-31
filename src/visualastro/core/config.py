@@ -236,8 +236,8 @@ class ColorbarConfig(PrettyRepr):
     width: float = 0.03
     pad: float = 0.015
     label: bool = True
-    tick_which: str = 'both'
-    tick_dir: str = 'out'
+    tick_which: Literal['major', 'minor', 'both'] = 'both'
+    tick_dir: Literal['in', 'out', 'inout'] = 'out'
 
 @dataclass(slots=True, repr=False)
 class ContourConfig(PrettyRepr):

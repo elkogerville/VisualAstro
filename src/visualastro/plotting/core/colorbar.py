@@ -6,6 +6,8 @@ Description:
     Colorbar plotting functions.
 """
 
+from typing import Literal
+
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
 
@@ -21,8 +23,9 @@ def add_colorbar(
     cbar_pad: float | _Unset = _UNSET,
     label: str | None = None,
     fontsize: float | _Unset = _UNSET,
-    tick_which=_UNSET,
-    tick_dir=_UNSET,
+    tick_which: Literal['major', 'minor', 'both'] | _Unset = _UNSET,
+    tick_dir: Literal['in', 'out', 'inout'] | _Unset = _UNSET,
+    tick_fontsize: float | _Unset = _UNSET,
     rasterized=_UNSET
 ) -> None:
     """
@@ -50,6 +53,9 @@ def add_colorbar(
         The group of ticks to which the parameters are applied.
     tick_dir : {'in', 'out', 'inout'} | _Unset, optional, default=_UNSET
         Puts ticks inside the Axes, outside the Axes, or both.
+    tick_fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize for colorbar tick labels. If `_UNSET`, uses
+        `config.fontsizes.colorbar_tick_labels`.
     rasterized : bool | _Unset, default=_UNSET
         Whether to rasterize colorbar. Rasterization
         converts the artist to a bitmap when saving to
@@ -64,6 +70,9 @@ def add_colorbar(
     )
     tick_which = _resolve_default(tick_which, config.colorbar.tick_which)
     tick_dir = _resolve_default(tick_dir, config.colorbar.tick_dir)
+    tick_fontsize = _resolve_default(
+        tick_fontsize, config.fontsizes.resolve('colorbar_tick_labels')
+    )
     rasterized = _resolve_default(rasterized, config.rasterized)
 
     fig = ax.figure
@@ -75,7 +84,11 @@ def add_colorbar(
     )
 
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
-    cbar.ax.tick_params(which=tick_which, direction=tick_dir)
+    cbar.ax.tick_params(
+        which=tick_which,
+        direction=tick_dir,
+        labelsize=tick_fontsize,
+    )
     if label:
         cbar.set_label(fr'{label}', fontsize=fontsize)
 
