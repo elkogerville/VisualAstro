@@ -17,8 +17,8 @@
 **VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands.
 
 <p align="center">
-  <img src="example_figures/SN1987A.png" width="30%">
-  <img src="example_figures/MIRI_spectrum_bkg_subtracted.png" width="60%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/SN1987A.png" width="30%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/MIRI_spectrum_bkg_subtracted.png" width="60%">
 </p>
 
 ## Features
@@ -90,14 +90,14 @@ If you try to use functionalities that require an optionally dependent package b
 
 Example colorsets:
 <p align="center">
-  <img src="example_figures/astro_seq.png" width="45%">
-  <img src="example_figures/debos.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/astro_seq.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/debos.png" width="45%">
 </p>
 
 Example fontstyles:
 <p align="center">
-  <img src="example_figures/cm_fontstyle.png" width="45%">
-  <img src="example_figures/libertinus_fontstyle.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/cm_fontstyle.png" width="45%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/fontsize/example_figures/libertinus_fontstyle.png" width="45%">
 </p>
 
 ## Credits
