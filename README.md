@@ -86,12 +86,49 @@ Optionally, some functionalities of VisualAstro requires:
 
 If you try to use functionalities that require an optionally dependent package but do not have that package installed, VisualAstro will raise an ImportError and prompt you to install that package.
 
+## Examples
+
+Example colorsets:
+<p align="center">
+  <img src="example_figures/astro_seq.png" width="45%">
+  <img src="example_figures/debos.png" width="45%">
+</p>
+
+Example fontstyles:
+<p align="center">
+  <img src="example_figures/cm_fontstyle.png" width="45%">
+  <img src="example_figures/libertinus_fontstyle.png" width="45%">
+</p>
+
 ## Credits
 
 ### Fonts
+VisualAstro includes multiple mathtext fonts:
+
+Concrete Math, distributed under the SIL OPEN FONT LICENSE from a release by: 
+```
+author = Daniel Flipo
+year = 2022-2026
+url = https://ctan.org/tex-archive/fonts/concmath-otf?lang=en
+```
+
+Libertinus Math, distributed under the SIL OPEN FONT LICENSE from a release by:
+```
+authors = Caleb Maclennan, Libertinus Project Authors
+year = 2012-2024
+url = https://github.com/alerque/libertinus V7.051
+```
+
+New Computer Modern, distributed under GNU GENERAL PUBLIC LICENSE from a release by:
+```
+author = Antonis Tsolomitis
+location = Samos, Greece
+year = 2019--2026
+url = https://ctan.org/texarchive/fonts/newcomputermodern?lang=en
+```
+
 VisualAstro includes Hershey-style TrueType fonts from the smplotlib project
 by Jiaxuan Li, used under the MIT License. Citation:
-
 ```
 @software{jiaxuan_li_2023_8126529,
   author       = {Jiaxuan Li},
