@@ -1046,7 +1046,7 @@ def _format_axis_label(
     bracket_style: Literal['round', 'square'],
     show_physical_type: bool,
     show_unit: bool,
-    fmt: str | _Unset=_UNSET
+    fmt: str | _Unset = _UNSET
 ) -> str:
     r"""
     Create a scientific axis label with physical type and unit information.
@@ -1074,7 +1074,7 @@ def _format_axis_label(
     show_unit : bool
         If `True`, include the unit in the output. If `False`, omit the unit
         (useful for creating label-only outputs).
-    fmt : str, optional, default=_UNSET
+    fmt : str | _Unset, optional, default=_UNSET
         Format for unit rendering. Passed to `to_latex_unit`.
 
         Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
