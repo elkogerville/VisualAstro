@@ -53,6 +53,7 @@ def add_colorbar(
     cbar_width: float | _Unset = _UNSET,
     cbar_pad: float | _Unset = _UNSET,
     label: str | None = None,
+    fontsize: float | _Unset = _UNSET,
     tick_which=_UNSET,
     tick_dir=_UNSET,
     rasterized=_UNSET
@@ -75,6 +76,9 @@ def add_colorbar(
         in figure coordinates. If `_UNSET`, uses `config.colorbar.pad`.
     label : str, optional, default=None
         Label for the colorbar. If `None`, no label is set.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize for colorbar label. If `_UNSET`, uses
+        `config.fontsizes.colorbar_label`.
     tick_which :  {'major', 'minor', 'both'} | _Unset, optional, default=_UNSET
         The group of ticks to which the parameters are applied.
     tick_dir : {'in', 'out', 'inout'} | _Unset, optional, default=_UNSET
@@ -88,6 +92,9 @@ def add_colorbar(
     """
     cbar_width = _resolve_default(cbar_width, config.colorbar.width)
     cbar_pad = _resolve_default(cbar_pad, config.colorbar.pad)
+    fontsize = _resolve_default(
+        fontsize, config.fontsizes.resolve('colorbar_label')
+    )
     tick_which = _resolve_default(tick_which, config.colorbar.tick_which)
     tick_dir = _resolve_default(tick_dir, config.colorbar.tick_dir)
     rasterized = _resolve_default(rasterized, config.rasterized)
@@ -103,7 +110,7 @@ def add_colorbar(
     cbar = fig.colorbar(im, cax=cax, pad=0.04)
     cbar.ax.tick_params(which=tick_which, direction=tick_dir)
     if label:
-        cbar.set_label(fr'{label}')
+        cbar.set_label(fr'{label}', fontsize=fontsize)
 
     if rasterized:
         cbar.solids.set_rasterized(True)
