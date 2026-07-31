@@ -16,6 +16,11 @@
 
 **VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package is aims to make publication-ready plots with minimal commands.
 
+<p align="center">
+  <img src="example_figures/SN1987A.png" width="30%">
+  <img src="example_figures/MIRI_spectrum_bkg_subtracted.png" width="60%">
+</p>
+
 ## Installation
 
 Currently, the most stable version of python for VisualAstro is version >=3.10.
