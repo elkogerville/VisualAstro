@@ -74,7 +74,6 @@ include-package-data = true
 where = ["src"]
 exclude = [
     "tests*",
-    "tests*",
     "build*",
     "dist*",
 ]
