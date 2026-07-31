@@ -13,7 +13,6 @@ from functools import partial
 import astropy.units as u
 from astropy.units import Quantity
 import matplotlib.axes as maxes
-from matplotlib.cm import ScalarMappable
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
@@ -25,7 +24,6 @@ from visualastro.core.config import (
     config,
     get_config_value,
     _Unset, _UNSET,
-    _resolve_default
 )
 from visualastro.core.numerical_utils import (
     get_value,
