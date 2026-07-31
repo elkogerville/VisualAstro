@@ -969,10 +969,13 @@ def set_axis_labels(
         does not set any labels unless `ylabel` is set.
     ax : matplotlib.axes.Axes
         Matplotlib axes object on which to set the labels.
-    xlabel : str | None, optional, default=None
-        Custom label for the x-axis. If None, the label is inferred from `X`.
-    ylabel : str | None, optional, default=None
-        Custom label for the y-axis. If None, the label is inferred from `Y`.
+    xlabel, ylabel : str | None, optional, default=None
+        Custom label for the x-axis and y-axis. If `None`,
+        the label is inferred from `X` / `Y`.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize of both axes labels in points. If `_UNSET`, uses
+        `config.fontsizes.axes_labels`, expressed as a scaling
+        factor relative to `config.fontsizes.size`.
     unit_bracket_style : Literal['round', 'square'] | _Unset, optional, default=_UNSET
         If `'round`' displays the unit of `X` and `Y` as (unit). If `'square`' as [unit].
     show_physical_type : bool | _Unset, optional, default=_UNSET
