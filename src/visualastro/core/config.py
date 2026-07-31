@@ -100,7 +100,7 @@ class FontSizeConfig:
     text: float = 0.9
     tick_labels: float = 0.8
     colorbar_label: float = 1.0
-    colorbar_tick_labels: float = 0.85
+    colorbar_tick_labels: float = 0.8
 
     def resolve(self, param):
         """Method to convert the """

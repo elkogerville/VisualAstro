@@ -72,6 +72,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('title_loc', lambda: None),
     _kwarg('title_pad', lambda: None),
     _kwarg('title_fontsize', lambda: config.fontsizes.resolve('title')),
+    _kwarg('ticklabel_fontsize', lambda: config.fontsizes.resolve('tick_labels')),
 
     _kwarg('legend_handles', lambda: config.legend.handles),
     _kwarg('legend_labels', lambda: config.legend.labels),
@@ -132,6 +133,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('cbar_fontsize', lambda: config.fontsizes.resolve('colorbar_label')),
     _kwarg('cbar_tick_which', lambda: config.colorbar.tick_which),
     _kwarg('cbar_tick_dir', lambda: config.colorbar.tick_dir),
+    _kwarg('cbar_tick_labelsize', lambda: config.fontsizes.resolve('colorbar_tick_labels')),
 ]
 
 PlotUtilParams = make_dataclass(
@@ -270,6 +272,12 @@ def _apply_plot_utils(
             xpad=params.xpad, ypad=params.ypad
         )
 
+    ax.tick_params(
+        axis='both',
+        which='major',
+        labelsize=params.ticklabel_fontsize,
+    )
+
     # POST SETTING AXIS LIMITS
     # ------------------------
     if params.title:
@@ -338,6 +346,7 @@ def _apply_plot_utils(
                 fontsize=params.cbar_fontsize,
                 tick_which=params.cbar_tick_which,
                 tick_dir=params.cbar_tick_dir,
+                tick_fontsize=params.cbar_tick_labelsize,
                 rasterized=kwargs.get('rasterized', None)
             )
 
