@@ -72,25 +72,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-"visualastro" = [
-    "stylelib/*.mplstyle",
-    "stylelib/fontlib/**/*.ttf",
-    "stylelib/fontlib/**/LICENSE",
-    "data/*.png",
-    "data/*.jpg",
-    "*.md",
-    "LICENSE"
-]
-
-[tool.setuptools.exclude-package-data]
-"*" = [
-    "*.egg-info/*",
-    "*.egg-info",
-    "EGG-INFO/*",
-]
-
 exclude = [
     "Tests*",
     "build*",
@@ -99,4 +80,24 @@ exclude = [
     "*.egg-info",
     "EGG-INFO*",
     "src/visualastro/dev/*"
+]
+
+[tool.setuptools.package-data]
+"visualastro" = [
+    "stylelib/*.mplstyle",
+    "stylelib/**/LICENSE",
+    "stylelib/fontlib/**/*.ttf",
+    "stylelib/fontlib/**/*.otf",
+    "stylelib/fontlib/**/LICENSE",
+    "data/**/*.png",
+    "data/**/*.jpg",
+    "*.md",
+    "LICENSE",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.egg-info/*",
+    "*.egg-info",
+    "EGG-INFO/*",
 ]
