@@ -8,7 +8,7 @@ Description:
 
 import matplotlib.axes as maxes
 
-from visualastro.core.config import config
+from visualastro.core.config import config, _resolve_default
 from visualastro.core.kwargs import _extract_kwargs, _kwarg
 from visualastro.core.numerical_utils import to_list
 from visualastro.plotting.core.axes import get_ax
@@ -94,6 +94,9 @@ def legend(*args, ax: maxes.Axes | None = None, **kwargs) -> None:
             _kwarg('columnspacing', config.legend.columnspacing),
             _kwarg('draggable', config.legend.draggable),
         ]
+    )
+    legend_kwargs['fontsize'] = _resolve_default(
+        legend_kwargs['fontsize'], config.fontsizes.resolve('legend')
     )
     ax = get_ax(ax)
     handles = None
