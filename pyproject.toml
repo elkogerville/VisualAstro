@@ -98,12 +98,3 @@ exclude = [
     "*.egg-info",
     "EGG-INFO/*",
 ]
-<<<<<<< Updated upstream
-=======
-
-exclude = [
-    "tests*",
-    "build*",
-    "dist*",
-]
->>>>>>> Stashed changes
