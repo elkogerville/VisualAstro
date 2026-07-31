@@ -14,7 +14,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro)](https://pypi.org/project/visualastro)
 [![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml)
 
-**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package is aims to make publication-ready plots with minimal commands.
+**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands.
 
 <p align="center">
   <img src="example_figures/SN1987A.png" width="30%">
