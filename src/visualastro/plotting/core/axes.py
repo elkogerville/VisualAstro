@@ -943,10 +943,12 @@ def set_axis_labels(
     ax: maxes.Axes,
     xlabel: str | None = None,
     ylabel: str | None = None,
+    fontsize: float | _Unset = _UNSET,
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
     show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
-    fmt: str | _Unset = _UNSET
+    fmt: str | _Unset = _UNSET,
+    **kwargs
 ) -> None:
     """
     Automatically generate and set axis labels from objects with physical
@@ -962,7 +964,7 @@ def set_axis_labels(
     X : u.Quantity | ArrayLike | None
         Object with a unit exposable with `get_data`. If `None`,
         does not set any labels unless `xlabel` is set.
-    Y : '~astropy.units.Quantity' | object with a unit
+    Y : ~astropy.units.Quantity | object with a unit
         Object with a unit exposable with `get_data`. If `None`,
         does not set any labels unless `ylabel` is set.
     ax : matplotlib.axes.Axes
@@ -986,6 +988,9 @@ def set_axis_labels(
         `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
 
         If `_UNSET`, uses `config.unit_label_format`.
+    **kwargs : dict, optional
+        Additional parameters passed on to `ax.set_xlabel`
+        and `ax.set_ylabel`.
 
     Examples
     --------
@@ -1013,6 +1018,9 @@ def set_axis_labels(
     * If both `show_physical_type` and `show_unit` are False, the resulting
       axis label is an empty string.
     """
+    fontsize = _resolve_default(
+        fontsize, config.fontsizes.resolve('axes_labels')
+    )
     unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
     show_physical_type = _resolve_default(show_physical_type, config.show_type_label)
     show_unit = _resolve_default(show_unit, config.show_unit_label)
@@ -1025,8 +1033,8 @@ def set_axis_labels(
         Y, ylabel, unit_bracket_style, show_physical_type, show_unit, fmt
     )
 
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel, fontsize=fontsize, **kwargs)
+    ax.set_ylabel(ylabel, fontsize=fontsize, **kwargs)
 
 
 def _format_axis_label(
