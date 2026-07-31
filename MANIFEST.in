@@ -13,4 +13,3 @@ global-exclude *.DS_Store
 prune build
 prune dist
 prune tests
-prune src/visualastro/dev
