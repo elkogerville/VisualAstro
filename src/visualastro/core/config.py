@@ -66,7 +66,7 @@ class AxesConfig(PrettyRepr):
     aspect = None
 
 @dataclass(slots=True, repr=False)
-class FontSizeConfig(PrettyRepr):
+class FontSizeConfig:
     """
     Fontsize Config for VisualAstro.
 
@@ -135,6 +135,18 @@ class FontSizeConfig(PrettyRepr):
             'xtick.labelsize': tick,
             'ytick.labelsize': tick,
         }
+
+    def __repr__(self) -> str:
+        """Return both scale factor and size in points of each field."""
+        lines = [f'size: {self.size:.2f}pt (base)']
+        for name in self.__dataclass_fields__:
+            if name == 'size':
+                continue
+            scale = getattr(self, name)
+            pt = self.resolve(name)
+            lines.append(f'{name}: scale={scale:.2f}, pt={pt:.2f}')
+        body = ',\n  '.join(lines)
+        return f'{type(self).__name__}(\n  {body}\n)'
 
 @dataclass(slots=True, repr=False)
 class ZorderLayers(PrettyRepr):
