@@ -103,7 +103,10 @@ class FontSizeConfig:
     colorbar_tick_labels: float = 0.8
 
     def resolve(self, param):
-        """Method to convert the """
+        """
+        Method to convert a fontsize parameter from scaling factor to points.
+        Returns `self.size` * `self.param`.
+        """
         if param == 'size':
             raise ValueError(
                 'size is not settable via resolve!'
