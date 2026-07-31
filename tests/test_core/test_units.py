@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-30
-Date Modified: 2026-07-27
+Date Modified: 2026-07-31
 Description:
     Tests for numerical utils module.
 """
@@ -11,7 +11,11 @@ from __future__ import annotations
 import astropy.units as u
 import numpy as np
 
-from tests.conftest import generate_test_cube, generate_test_spectralcube
+from tests.conftest import (
+    generate_test_cube,
+    generate_test_datacube,
+    generate_test_spectralcube
+)
 from visualastro.core.units import get_unit, get_units, to_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import (
@@ -24,29 +28,44 @@ class TestGetUnits:
         hdu = generate_test_cube
         data = hdu.data
         header = hdu.header
-        cube = SpectralCube.read(hdu)
+        cube = DataCube(data=data, header=header)
+        assert data is not cube.data
         unit = cube.unit
         structured_unit = u.Unit('AU,AU/day')
-        quantity = data * u.m
-        dc = DataCube(data=cube)
+        quantity = data * cube.unit
 
         assert get_unit(data) is None
         assert get_unit(header) == unit
-        assert get_unit(cube) == unit
         assert get_unit(unit) is unit
+        assert get_unit(cube) == unit
         assert get_unit(structured_unit) is structured_unit
-        assert get_unit(quantity) == u.m
-        assert get_unit(dc) == unit
+        assert get_unit(quantity) == unit
 
-    def test_get_units(self, generate_test_cube):
-        hdu = generate_test_cube
-        cube = SpectralCube.read(hdu)
-        cube2 = cube * u.sr
+    def test_get_unit_spectralcube(self, generate_test_spectralcube):
+        cube = generate_test_spectralcube
+        unit = cube.unit
+        assert get_unit(cube) == unit
+        assert get_unit(cube) is unit
+
+    def test_get_units(self, generate_test_datacube):
+        cube = generate_test_datacube
+        cube1 = cube.data
+        cube2 = cube1 * u.sr
         cube3 = np.random.rand(10,10) * u.AA
         units = get_units([cube, cube2, cube3])
         assert all(units) == all([u.MJy/u.sr, u.MJy, u.AA])
 
         assert get_units(cube) == u.MJy/u.sr
+
+    def test_get_units_spectralcube(
+        self,
+        generate_test_datacube,
+        generate_test_spectralcube
+    ):
+        cube1 = generate_test_spectralcube
+        cube2 = generate_test_datacube
+        units = get_units([cube1, cube2])
+        assert all(units) == all([u.MJy/u.sr])
 
     def test_to_unit(self):
         unit = u.AA
