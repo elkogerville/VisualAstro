@@ -99,6 +99,7 @@ _PLOT_UTILS_KWARGS = [
 
     _kwarg('xlabel', lambda: None),
     _kwarg('ylabel', lambda: None),
+    _kwarg('label_fontsize', lambda: config.fontsizes.resolve('axes_labels')),
     _kwarg('unit_bracket_style', lambda: config.unit_bracket_style),
     _kwarg('show_physical_type', lambda: config.show_type_label),
     _kwarg('show_unit', lambda: config.show_unit_label),
@@ -292,6 +293,7 @@ def _apply_plot_utils(
             ax=ax,
             xlabel=params.xlabel,
             ylabel=params.ylabel,
+            fontsize=params.label_fontsize,
             unit_bracket_style=params.unit_bracket_style,
             show_physical_type=params.show_physical_type,
             show_unit=params.show_unit,
