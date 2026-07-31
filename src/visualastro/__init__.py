@@ -101,6 +101,7 @@ from visualastro.plotting.core.axes import (
     subplot,
     tripanel_figure,
 )
+from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colormaps import (
     create_cmap,
     get_cmap,
@@ -137,7 +138,6 @@ from visualastro.plotting.core.style import (
     reset_rcParams,
 )
 from visualastro.plotting.core.utils import (
-    add_colorbar,
     axhline,
     close,
     ellipse_patch,
