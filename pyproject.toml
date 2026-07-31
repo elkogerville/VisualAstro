@@ -74,12 +74,9 @@ include-package-data = true
 where = ["src"]
 exclude = [
     "Tests*",
+    "tests*",
     "build*",
     "dist*",
-    "*egg-info*",
-    "*.egg-info",
-    "EGG-INFO*",
-    "src/visualastro/dev/*"
 ]
 
 [tool.setuptools.package-data]
