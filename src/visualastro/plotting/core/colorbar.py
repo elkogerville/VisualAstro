@@ -26,7 +26,7 @@ def add_colorbar(
     tick_which: Literal['major', 'minor', 'both'] | _Unset = _UNSET,
     tick_dir: Literal['in', 'out', 'inout'] | _Unset = _UNSET,
     tick_fontsize: float | _Unset = _UNSET,
-    rasterized=_UNSET
+    rasterized: bool | _Unset = _UNSET
 ) -> None:
     """
     Add a colorbar next to an Axes.
@@ -58,7 +58,7 @@ def add_colorbar(
         Fontsize for colorbar tick labels. If `_UNSET`, uses
         `config.fontsizes.colorbar_tick_labels`, expressed as a
         scaling factor relative to `config.fontsizes.size`.
-    rasterized : bool | _Unset, default=_UNSET
+    rasterized : bool | _Unset, optional, default=_UNSET
         Whether to rasterize colorbar. Rasterization
         converts the artist to a bitmap when saving to
         vector formats (e.g., PDF, SVG), which can
