@@ -7,6 +7,7 @@ Description:
 """
 
 from typing import Callable, Literal
+from numpy.typing import ArrayLike
 
 import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
@@ -25,8 +26,8 @@ from visualastro.plotting.core.colormaps import get_cmap
 
 
 def contour_kde(
-    x,
-    y,
+    x: ArrayLike,
+    y: ArrayLike,
     ax: maxes.Axes | Axes3D,
     levels: int | _Unset = _UNSET,
     contour_method: Literal['contour', 'contourf'] | _Unset = _UNSET,
@@ -183,8 +184,8 @@ def contour_kde(
 
 
 def contourf_kde(
-    x,
-    y,
+    x: ArrayLike,
+    y: ArrayLike,
     ax: maxes.Axes | Axes3D,
     levels: int | _Unset = _UNSET,
     bw_method: Literal['scott', 'silverman'] | float | Callable | _Unset = _UNSET,
