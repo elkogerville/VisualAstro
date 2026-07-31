@@ -403,7 +403,7 @@ def extract_cube_pixel_spectra(
     figsize : tuple, optional, default=(12,6)
         Plot figsize.
     fontsize : float, optional, default=8
-        Font size of the spatial map index legend in points.
+        Fontsize of the spatial map index legend in points.
     ncols : int, optional, default=8
         Number of columns for the legend.
     savefig : bool, optional, default=False
