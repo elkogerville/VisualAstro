@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-06-29
+Date Modified: 2026-07-31
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -30,7 +30,7 @@ T = TypeVar('T')
 class _Unset(Enum):
     """
     Default placeholder sentinel value for
-    visualastro functions.
+    VisualAstro functions.
     """
     UNSET = 'UNSET'
 
@@ -119,7 +119,7 @@ class FontSizeConfig:
 
     def _to_rcparams_dict(self) -> dict[str, float]:
         """
-        Map fontsize fields onto matplotlib rcParams keys.
+        Map fontsize fields onto Matplotlib rcParams keys.
 
         Returns
         -------
@@ -294,9 +294,9 @@ class HDUConfig(PrettyRepr):
 class VisualAstroConfig(PrettyRepr):
     """
     Global configuration object for controlling default behavior
-    across the visualastro package.
+    across the VisualAstro package.
 
-    visualastro function parameters are often set to `_UNSET`,
+    VisualAstro function parameters are often set to `_UNSET`,
     which at runtime gets resolved to the default hardcoded value
     set in `VisualAstroConfig`. Modifying this file will update
     the default values.
