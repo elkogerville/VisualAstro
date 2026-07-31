@@ -26,7 +26,7 @@
 - Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
 - Custom mathtext stylesheets without `LaTeX` installation as well as many other styles for publication-quality figures
 - Colorblind safe alternative colorsets, and colormaps
-- User-friendly interface with many convenience methods that integrate with matplotlib and other packages
+- User-friendly interface with many convenience methods that integrate with Matplotlib and other packages
 
 ## Installation
 
@@ -41,7 +41,7 @@ Then install the dependencies with:
 $ conda install -c conda-forge \
     astropy matplotlib numpy scipy
 ```
-Optionally, you can install optional dependencies as well if you plan to use related functionalities:
+Optional dependencies can also be installed if you plan to use related functionalities:
 ```
 $ conda install -c conda-forge \
     colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
@@ -75,7 +75,7 @@ VisualAstro requires:
 
 ### Optional dependencies
 
-Optionally, some functionalities of VisualAstro requires:
+Optionally, some functionalities of VisualAstro require:
 
 * Image Data: `regions`, `reproject`
 * Cube Data: `spectral-cube`
@@ -105,7 +105,7 @@ Example fontstyles:
 ### Fonts
 VisualAstro includes multiple mathtext fonts:
 
-Concrete Math, distributed under the SIL OPEN FONT LICENSE from a release by: 
+Concrete Math, distributed under the SIL OPEN FONT LICENSE from a release by:
 ```
 author = Daniel Flipo
 year = 2022-2026
