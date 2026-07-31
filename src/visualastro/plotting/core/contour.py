@@ -111,7 +111,7 @@ def contour_kde(
             _param('cmap', cmap, config.cmap),
         ],
         additional_kwargs=[
-            _kwarg('fontsize', config.fontsize),
+            _kwarg('fontsize', config.fontsizes.resolve('text')),
             _kwarg('bad_color', None),
         ]
 
