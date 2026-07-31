@@ -68,6 +68,11 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('vlines', lambda: None),
     _kwarg('hlines', lambda: None),
 
+    _kwarg('title', lambda: None),
+    _kwarg('title_loc', lambda: None),
+    _kwarg('title_pad', lambda: None),
+    _kwarg('title_fontsize', lambda: config.fontsizes.resolve('title')),
+
     _kwarg('legend_handles', lambda: config.legend.handles),
     _kwarg('legend_labels', lambda: config.legend.labels),
     _kwarg('legend_loc', lambda: config.legend.loc),
@@ -265,6 +270,14 @@ def _apply_plot_utils(
 
     # POST SETTING AXIS LIMITS
     # ------------------------
+    if params.title:
+        ax.set_title(
+            params.title,
+            loc=params.title_loc,
+            pad=params.title_pad,
+            fontsize=params.title_fontsize,
+        )
+
     if isinstance(ax, WCSAxes):
         xlabel = params.xlabel if params.xlabel is not None else config.right_ascension_label
         ylabel = params.ylabel if params.ylabel is not None else config.declination_label
