@@ -426,6 +426,10 @@ def spectral_axis_label(
         `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
 
         If `_UNSET`, uses `config.unit_label_format`.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Fontsize of spectral label. If `_UNSET`, uses
+        `config.fontsizes.text`, expressed as a scaling
+        factor relative to `config.fontsizes.size`.
 
     Raises
     ------
