@@ -129,6 +129,7 @@ _PLOT_UTILS_KWARGS = [
     _kwarg('cbar_width', lambda: config.colorbar.width),
     _kwarg('cbar_pad', lambda: config.colorbar.pad),
     _kwarg('cbar_label', lambda: config.colorbar.label),
+    _kwarg('cbar_fontsize', lambda: config.fontsizes.resolve('colorbar_label')),
     _kwarg('cbar_tick_which', lambda: config.colorbar.tick_which),
     _kwarg('cbar_tick_dir', lambda: config.colorbar.tick_dir),
 ]
@@ -334,6 +335,7 @@ def _apply_plot_utils(
                 cbar_width=params.cbar_width,
                 cbar_pad=params.cbar_pad,
                 label=clabel,
+                fontsize=params.cbar_fontsize,
                 tick_which=params.cbar_tick_which,
                 tick_dir=params.cbar_tick_dir,
                 rasterized=kwargs.get('rasterized', None)
