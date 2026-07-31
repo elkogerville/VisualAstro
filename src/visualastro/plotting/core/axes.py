@@ -930,7 +930,8 @@ def _get_xydata_from_ax(ax: maxes.Axes) -> NDArray | None:
         if len(offsets) > 0:
             segments.append(offsets)
     for patch in ax.patches:
-        segments.append(patch.get_xy())
+        if hasattr(patch, 'get_xy'):
+            segments.append(patch.get_xy())
 
     xy = np.vstack(segments) if segments else None
 
