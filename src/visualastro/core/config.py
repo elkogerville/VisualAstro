@@ -123,7 +123,7 @@ class FontSizeConfig:
 
         Returns
         -------
-        dict[str, float]
+        dict[str, float] :
             rcParams dict. `colorbar_label` and `colorbar_tick_labels`
             have no dedicated rcParams key and are excluded — apply them
             per-artist via `cbar.set_label` / `cbar.ax.tick_params` instead.
