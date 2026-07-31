@@ -1,16 +1,16 @@
-include README_MSG.md
+include README.md
 include LICENSE
-recursive-include MSG_Nbody *.py
+include CITATION.cff
+include THIRD_PARTY_LICENSES.txt
 
-global-exclude *.egg-info*
-global-exclude EGG-INFO*
-prune *egg-info*
+recursive-include src/visualastro/stylelib *LICENSE*
+recursive-include src/visualastro/stylelib/fontlib *LICENSE* *.ttf *.otf
+
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude *.DS_Store
+
 prune build
 prune dist
-
-prune ANIMATIONS
-prune DOCUMENTATION
-prune Initial_Conditions
-prune Tests
-
-
+prune tests
+prune src/visualastro/dev
