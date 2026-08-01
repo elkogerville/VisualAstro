@@ -207,8 +207,8 @@ def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     cmap_range: tuple[float, float] = (0, 1),
-    transform: Literal['lighten', 'saturate', 'desaturate'] | None = None,
-    factor: float = 0.5,
+    transform: Literal['lighten', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
     severity: int = 100
@@ -274,6 +274,8 @@ def get_colors(
     list[str | None]:
         If `colors` is either `None`, `'face'`, or `'none'`.
     """
+    transform = _resolve_default(transform, config.color_transform)
+    factor = _resolve_default(factor, config.color_transform_factor)
     colorname = colors
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
