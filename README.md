@@ -15,7 +15,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21729934.svg)](https://doi.org/10.5281/zenodo.21729934)
 [![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml)
 
-**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands.
+**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands and no LaTeX installation.
 
 <p align="center">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/SN1987A.png" width="30%">
