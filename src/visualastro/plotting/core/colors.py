@@ -50,14 +50,11 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 # --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
     'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
+    'vb': ['#483D8B', '#CC2B77', '#6A7DE0', '#22C9B6', '#ADCF00', '#FF663C', '#F6A3FF'],
     'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'astro_seq': [
         '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
         '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
-    ],
-    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-    'ibm_contrast': [
-        '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
@@ -88,6 +85,10 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#929598', '#E42031', '#72B444', '#AD3F97', '#00ABCD'
     ],
     'default': list(TABLEAU_COLORS.values()),
+    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+    'ibm_contrast': [
+        '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
+    ],
     'temple_os': [
         '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
     ],
