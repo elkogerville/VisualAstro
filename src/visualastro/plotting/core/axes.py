@@ -17,6 +17,7 @@ import matplotlib.axes as maxes
 from matplotlib.figure import Figure, SubFigure
 import matplotlib.gridspec as _gridspec
 import matplotlib.pyplot as plt
+from matplotlib.text import Text
 import matplotlib.ticker as ticker
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
@@ -937,6 +938,44 @@ def _get_xydata_from_ax(ax: maxes.Axes) -> NDArray | None:
 
     return xy
 
+
+def set_title(
+    title: str,
+    loc: Literal['center', 'left', 'right'] = 'center',
+    pad: float = 0.6,
+    fontsize: float | _Unset = _UNSET,
+    ax: maxes.Axes | WCSAxes | None = None,
+    **kwargs
+) -> Text:
+    """
+    Set the title for an `Axes` instance.
+
+    Parameters
+    ----------
+    title : str
+        Figure title.
+    loc : {'center', 'left', 'right'} | optional, default='center'
+        Title location.
+    pad : float, optional, default=0.6
+        Title offset from the top of the `Axes`, in points.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Title fontsize in points. If `_UNSET`, uses
+        `config.fontsizes.title`, expressed as a scaling
+        factor relative to `config.fontsizes.size`.
+    ax : Axes | WCSAxes | None, optional, default=None
+        Sets title to either `plt.gca` if `ax=None`, or
+        the instance passed in.
+    **kwargs : dict, optional
+        Additional keyword arguments passed on to `ax.set_title`.
+
+    Returns
+    -------
+    Text :
+        `Text` object returned by `ax.set_title`.
+    """
+    ax = get_ax(ax)
+    fontsize = _resolve_default(fontsize, config.fontsizes.resolve('title'))
+    return ax.set_title(title, loc=loc, pad=pad, fontsize=fontsize, **kwargs)
 
 def set_axis_labels(
     X: u.Quantity | ArrayLike | None,

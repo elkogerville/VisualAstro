@@ -98,6 +98,7 @@ from visualastro.plotting.core.axes import (
     gridspec,
     set_axis_labels,
     set_axis_limits,
+    set_title,
     subplot,
     tripanel_figure,
     wcsax,
