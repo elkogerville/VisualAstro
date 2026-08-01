@@ -51,13 +51,20 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 COLORSETS: dict[str, list[ColorType]] = {
     'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
     'ditto': ['#483D8B', '#CC2B77', '#6A7DE0', '#22C9B6', '#ADCF00', '#FF663C', '#F6A3FF'],
+    'supernatural': [
+        '#B83C82', '#FF6CBC', '#D91D30', '#A4BF00', '#569187',
+        '#06D49C', '#00A9E8', '#6565B5', '#3434A1', '#1F2861'
+    ],
+    'supersequential': [
+        '#DC469F', '#FF4E9E', '#FE5325', '#FE901D', '#FFCA02', '#7AD12C',
+        '#00AD54', '#02ACAC', '#00B1F5', '#0081CC', '#533DA1'
+    ],
+    'celestial': [
+        '#569187', '#06D49C', '#00A9E8', '#6565B5', '#3137A1', '#B83C82', '#FF6CBC', '#C70F40'
+    ],
     'astro_seq': [
         '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
         '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
-    ],
-    'supernatural': [
-        '#B83C82', '#FC74C9', '#E32D36', '#DEDE00', '#8CBD00',
-        '#5A9158', '#06D49C', '#00A9E8', '#6565B5', '#3434A1'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
