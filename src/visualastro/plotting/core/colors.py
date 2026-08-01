@@ -236,9 +236,11 @@ def get_colors(
         The normalized range of the colormap. By default, is `(0,1)`,
         meaning the returned colormap has its entire range. Ignored
         if `cmap` is an `int`.
-    transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
-        Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float | int
+    transform : str | None | _Unset, optional, default=_UNSET
+        Method to modify the color. Can be one of `lighten`, `darken`,
+        `saturate`, or `desaturate`. If `None`, returns `color` unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -256,6 +258,7 @@ def get_colors(
             * `factor=0`: Original color
             * `factor=1`: Grayscale
 
+        If `_UNSET`, uses `config.color_transform_factor`.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
