@@ -955,11 +955,11 @@ def plot_colorset(
         Artists returned by the plotting functions, grouped by plot element.
     """
     from visualastro.plotting.base.plots import plot, scatter
-    from visualastro.plotting.core.axes import get_ax
+    from visualastro.plotting.core.axes import get_ax, set_title
 
     ax = get_ax(ax)
     if colors in mpl.color_sequences:
-        ax.set_title(f'colorset: {colors}')
+        set_title(f'colorset: {colors}', ax=ax)
     colorset = get_colors(colors)
     N = len(colorset)
 
