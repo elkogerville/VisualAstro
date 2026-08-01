@@ -608,6 +608,46 @@ def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
     return mcolors.to_hex(tuple(mixed))
 
 
+def darken_colors(
+    color: ColorType | Sequence[ColorType],
+    mix: float = 0.5,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
+) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
+    """
+    Darken a set of color(s) by mixing the each color with black.
+
+    Parameters
+    ----------
+    color : ColorType | Sequence[ColorType]
+        Color(s) to darken.
+    mix : float, optional, default=0.5
+        Mixing factor. `1` results in all black, while `0`
+        leaves `color` unchanged.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+
+    Returns
+    -------
+    str | list[str] :
+        If `fmt='hex'`.
+    tuple[float, float, float] | list[tuple[float, float, float]] :
+        If `fmt='rgb'`.
+    tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
+        If `fmt='rgba'`.
+    """
+    colors = to_list(color)
+    return as_color([_darken_color(c, mix=mix) for c in colors], fmt=fmt)
+
+
+def _darken_color(color: ColorType, mix: float = 0.5) -> 'str':
+    """Darkens the given Matplotlib color by mixing it with black."""
+    rgb = np.array(mcolors.to_rgb(color))
+    black = np.array([0, 0, 0])
+    mixed = (1 - mix) * rgb + mix * black
+
+    return mcolors.to_hex(tuple(mixed))
+
+
 def saturate_colors(
     color: ColorType | Sequence[ColorType],
     factor: float = 1,
