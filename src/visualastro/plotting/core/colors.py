@@ -564,13 +564,17 @@ def _transform_colors(
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
-    if transform is None:
+    if transform:
+        method = {
+            'lighten': _lighten_color,
+            'saturate': _saturate_color,
+            'desaturate': _desaturate_color,
+        }.get(transform, None)
+    else:
+        method = None
+
+    if transform is None or method is None:
         return as_color(color, fmt=fmt)
-    method = {
-        'lighten': _lighten_color,
-        'saturate': _saturate_color,
-        'desaturate': _desaturate_color,
-    }.get(transform, _lighten_color)
 
     colors = to_list(color)
     colors = [method(c, factor) for c in colors]
