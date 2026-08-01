@@ -110,11 +110,11 @@ from visualastro.plotting.core.colormaps import (
 )
 from visualastro.plotting.core.colors import (
     as_color,
+    darken_colors,
     desaturate_colors,
     get_colors,
     get_complimentary_colors,
     lighten_colors,
-    darken_colors,
     plot_color_deltaE,
     plot_colors,
     plot_colorset,
