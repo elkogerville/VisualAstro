@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-28
+Date Modified: 2026-08-01
 Description:
     Functions related to colors in plotting.
 """
@@ -67,8 +67,7 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f', '#6c7a0e', '#cfe23c', '#26dcba'
     ],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
-    'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
-    'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
+    'MSGII': ['#DC267F', '#7D7FF3', '#483D8B', '#26DCBA', '#DBB0FF', '#CFE23C'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
     'crayons': [
@@ -144,9 +143,10 @@ COLORSETS: dict[str, list[ColorType]] = {
     'oit': ['#E69F00', '#56B4E9', '#D55E00', '#009E73', '#CC79A7'],
     'tab20b': mpl.color_sequences['tab20b'],
 }
-# COLORSETS ALIASES
-# -----------------
-COLORSETS['va'] = COLORSETS['visualastro']
+
+COLORSET_ALIASES = {
+    'va': 'visualastro'
+}
 
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
@@ -325,9 +325,13 @@ def _get_colors(
         # if colorset in visualastro colorsets
         # return a reversed colorset if colorset
         # ends with '_r'
-        if colors.removesuffix('_r') in COLORSETS:
-            base_name = colors.removesuffix('_r')
-            colorset = COLORSETS[base_name]
+        base_name = colors.removesuffix('_r')
+        if (
+            base_name in mpl.color_sequences or
+            base_name in COLORSET_ALIASES
+        ):
+            colorset_name = COLORSET_ALIASES.get(base_name, base_name)
+            colorset = mpl.color_sequences[colorset_name]
             # if '_r', reverse colorset
             if colors.endswith('_r'):
                 colorset = colorset[::-1]
