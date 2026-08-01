@@ -941,6 +941,7 @@ def plot_colors(
 def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
+    lw: float = 2,
     legend: bool = True
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
@@ -953,6 +954,8 @@ def plot_colorset(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
         uses `plt.gca()`.
+    lw : float, optional, default=2
+        Linewidth of each line.
     legend : bool, optional, default=True
         If `True`, plots the legend.
 
@@ -965,7 +968,7 @@ def plot_colorset(
     from visualastro.plotting.core.axes import get_ax, set_title
 
     ax = get_ax(ax)
-    if colors in mpl.color_sequences:
+    if isinstance(colors, str) and colors in mpl.color_sequences:
         set_title(f'colorset: {colors}', ax=ax)
     colorset = get_colors(colors)
     N = len(colorset)
@@ -988,7 +991,7 @@ def plot_colorset(
     pl = plot(
         x_vals[:N], y_vals[:N],
         ax=ax,
-        label=labels, color=colorset, lw=2,
+        label=labels, color=colorset, lw=lw,
         xlim=(-5, 3), ylim=(-4, 4),
         xlabel='X', ylabel='Y',
     )
