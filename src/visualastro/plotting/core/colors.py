@@ -865,6 +865,8 @@ def plot_colorset(
     from visualastro.plotting.core.axes import get_ax
 
     ax = get_ax(ax)
+    if colors in mpl.color_sequences:
+        ax.set_title(f'colorset: {colors}')
     colorset = get_colors(colors)
     N = len(colorset)
 
