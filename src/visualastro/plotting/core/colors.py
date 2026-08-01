@@ -282,7 +282,7 @@ def get_colors(
     else:
         colors = _get_colors(colors, cmap, fmt=fmt, cmap_range=cmap_range)
         colors = as_list(
-            get_complimentary_colors(
+            _transform_colors(
                 colors,
                 transform=transform,
                 factor=factor,
@@ -506,7 +506,7 @@ def _convert_color(
     return getattr(mcolors, f'to_{fmt}')(c)
 
 
-def get_complimentary_colors(
+def _transform_colors(
     color: ColorType | Sequence[ColorType],
     transform: Literal['lighten', 'saturate', 'desaturate'] | None = 'lighten',
     factor: float = 0.5,
