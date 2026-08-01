@@ -207,8 +207,8 @@ def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     cmap_range: tuple[float, float] = (0, 1),
-    transform: Literal['lighten', 'saturate', 'desaturate'] | None = None,
-    factor: float = 0.5,
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None,
+    factor: int | float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
     severity: int = 100
@@ -235,15 +235,20 @@ def get_colors(
         The normalized range of the colormap. By default, is `(0,1)`,
         meaning the returned colormap has its entire range. Ignored
         if `cmap` is an `int`.
-    transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float | int
+    factor : float | int, optional, default=0.5
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
 
             * `factor=0`: Original color
             * `factor=1`: Pure white
+
+        * If `transform='darken'`: Blending ratio with black.
+
+            * `factor=0`: Original color
+            * `factor=1`: Pure black
 
         * If `transform='saturate'`: Saturation level in hsl space.
 
@@ -502,8 +507,8 @@ def _convert_color(
 
 def get_complimentary_colors(
     color: ColorType | Sequence[ColorType],
-    transform: Literal['lighten', 'saturate', 'desaturate'] | None = 'lighten',
-    factor: float = 0.5,
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = 'lighten',
+    factor: int | float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> (
     str
@@ -512,9 +517,9 @@ def get_complimentary_colors(
     | list[str | RGBTuple | RGBATuple]
 ):
     """
-    Lightens, saturates, or desaturates a color or list of colors.
-    Mixes colors with white to lighten, and moves colors
-    towards grey to desaturate.
+    Lightens, darkens, saturates, or desaturates a color or list of
+    colors. Mixes colors with white to lighten, mixes colors with
+    black to darken, and moves colors towards grey to desaturate.
 
     `transform=None` returns color unchanged.
 
@@ -522,10 +527,10 @@ def get_complimentary_colors(
     ----------
     color : ColorType
         Matplotlib named color, hex color, HTML color, or RGB tuple.
-    transform : {'lighten', 'desaturate'} | None, optional, default='lighten'
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default='lighten'
         Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float | int
-        Modification strength.
+    factor : float | int, optional, default=0.5
+        Modification strength. Must be between 0 and 1.
 
         * If `transform='lighten'`: Blending ratio with white.
 
@@ -553,11 +558,19 @@ def get_complimentary_colors(
         If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+
+    Raises
+    ------
+    ValueError
+        If `factor` is not between 0 and 1.
     """
     if transform is None:
         return as_color(color, fmt=fmt)
+    if factor < 0 or factor > 1:
+        raise ValueError('transformation factor must be between 0 and 1')
     method = {
         'lighten': _lighten_color,
+        'darken': _darken_color,
         'saturate': _saturate_color,
         'desaturate': _desaturate_color,
     }.get(transform, _lighten_color)
@@ -570,7 +583,7 @@ def get_complimentary_colors(
 
 def lighten_colors(
     color: ColorType | Sequence[ColorType],
-    mix: float = 0.5,
+    factor: int | float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
     """
@@ -580,9 +593,9 @@ def lighten_colors(
     ----------
     color : ColorType | Sequence[ColorType]
         Color(s) to lighten.
-    mix : float, optional, default=0.5
+    factor : int | float, optional, default=0.5
         Mixing factor. `1` results in all white, while `0`
-        leaves `color` unchanged.
+        leaves `color` unchanged. Must be between 0 and 1.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
@@ -594,23 +607,31 @@ def lighten_colors(
         If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+
+    Raises
+    ------
+    ValueError
+        If `factor` is not between 0 and 1.
     """
+    if factor < 0 or factor > 1:
+        raise ValueError('mixing factor with white must be between 0 and 1')
+
     colors = to_list(color)
-    return as_color([_lighten_color(c, mix=mix) for c in colors], fmt=fmt)
+    return as_color([_lighten_color(c, factor=factor) for c in colors], fmt=fmt)
 
 
-def _lighten_color(color: ColorType, mix: float = 0.5) -> 'str':
+def _lighten_color(color: ColorType, factor: int | float = 0.5) -> 'str':
     """Lightens the given Matplotlib color by mixing it with white."""
     rgb = np.array(mcolors.to_rgb(color))
     white = np.array([1, 1, 1])
-    mixed = (1 - mix) * rgb + mix * white
+    mixed = (1 - factor) * rgb + factor * white
 
     return mcolors.to_hex(tuple(mixed))
 
 
 def darken_colors(
     color: ColorType | Sequence[ColorType],
-    mix: float = 0.5,
+    factor: int | float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
     """
@@ -620,9 +641,9 @@ def darken_colors(
     ----------
     color : ColorType | Sequence[ColorType]
         Color(s) to darken.
-    mix : float, optional, default=0.5
+    factor : int | float, optional, default=0.5
         Mixing factor. `1` results in all black, while `0`
-        leaves `color` unchanged.
+        leaves `color` unchanged. Must be between 0 and 1.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
@@ -634,23 +655,31 @@ def darken_colors(
         If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+
+    Raises
+    ------
+    ValueError
+        If `factor` is not between 0 and 1.
     """
+    if factor < 0 or factor > 1:
+        raise ValueError('mixing factor with black must be between 0 and 1')
+
     colors = to_list(color)
-    return as_color([_darken_color(c, mix=mix) for c in colors], fmt=fmt)
+    return as_color([_darken_color(c, factor=factor) for c in colors], fmt=fmt)
 
 
-def _darken_color(color: ColorType, mix: float = 0.5) -> 'str':
+def _darken_color(color: ColorType, factor: int | float = 0.5) -> 'str':
     """Darkens the given Matplotlib color by mixing it with black."""
     rgb = np.array(mcolors.to_rgb(color))
     black = np.array([0, 0, 0])
-    mixed = (1 - mix) * rgb + mix * black
+    mixed = (1 - factor) * rgb + factor * black
 
     return mcolors.to_hex(tuple(mixed))
 
 
 def saturate_colors(
     color: ColorType | Sequence[ColorType],
-    factor: float = 1,
+    factor: int | float = 1,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
     """
@@ -661,9 +690,9 @@ def saturate_colors(
     ----------
     color : ColorType | Sequence[ColorType]
         Color(s) to saturate.
-    factor : float, optional, default=1
+    factor : int | float, optional, default=1
         Saturation level. `1` results in maximum saturation, while `0`
-        returns `color` in grayscale.
+        returns `color` in grayscale. Must be between 0 and 1.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
@@ -675,14 +704,22 @@ def saturate_colors(
         If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+
+    Raises
+    ------
+    ValueError
+        If `factor` is not between 0 and 1.
     """
+    if factor < 0 or factor > 1:
+        raise ValueError('saturation factor must be between 0 and 1')
+
     colors = to_list(color)
     return as_color(
         [_saturate_color(c, factor=factor) for c in colors], fmt=fmt
     )
 
 
-def _saturate_color(color: ColorType, factor: float = 1) -> str:
+def _saturate_color(color: ColorType, factor: int | float = 1) -> str:
     """Saturate a color by shifting the saturation in hls space."""
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
@@ -693,7 +730,7 @@ def _saturate_color(color: ColorType, factor: float = 1) -> str:
 
 def desaturate_colors(
     color: ColorType | Sequence[ColorType],
-    factor: float = 0.5,
+    factor: int | float = 0.5,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> str | RGBTuple | RGBATuple | list[str | RGBTuple | RGBATuple]:
     """
@@ -704,9 +741,9 @@ def desaturate_colors(
     ----------
     color : ColorType | Sequence[ColorType]
         Color(s) to desaturate.
-    factor : float, optional, default=0.5
+    factor : int | float, optional, default=0.5
         Desaturation level. `1` returns `color` in grayscale while
-        `0` returns the colors unchanged.
+        `0` returns the colors unchanged. Must be between 0 and 1.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
@@ -718,14 +755,22 @@ def desaturate_colors(
         If `fmt='rgb'`.
     tuple[float, float, float, float] | list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
+
+    Raises
+    ------
+    ValueError
+        If `factor` is not between 0 and 1.
     """
+    if factor < 0 or factor > 1:
+        raise ValueError('desaturation factor must be between 0 and 1')
+
     colors = to_list(color)
     return as_color(
         [_desaturate_color(c, factor=factor) for c in colors], fmt=fmt
     )
 
 
-def _desaturate_color(color: ColorType, factor: float = 0.5) -> str:
+def _desaturate_color(color: ColorType, factor: int | float = 0.5) -> str:
     """Desaturate a color by moving it toward gray."""
     rgb = mcolors.to_rgb(color)
     h, l, s = colorsys.rgb_to_hls(*rgb)
