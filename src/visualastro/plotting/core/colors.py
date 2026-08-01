@@ -941,10 +941,7 @@ def plot_colorset(
 
     r_p = 1.0
     theta = np.linspace(0, 2 * np.pi, 500)
-    if N < 6:
-        e_vals = np.logspace(-.9, -0.1, N)
-    else:
-        e_vals = np.logspace(-.9, 0.2, N)
+    e_vals = np.linspace(0.1, 0.99, N)
 
     with np.errstate(invalid='ignore', divide='ignore'):
         a_vals = [r_p / (1 - e) for e in e_vals]
