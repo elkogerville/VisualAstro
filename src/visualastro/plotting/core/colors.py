@@ -50,11 +50,14 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 # --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
     'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-    'vb': ['#483D8B', '#CC2B77', '#6A7DE0', '#22C9B6', '#ADCF00', '#FF663C', '#F6A3FF'],
-    'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
+    'ditto': ['#483D8B', '#CC2B77', '#6A7DE0', '#22C9B6', '#ADCF00', '#FF663C', '#F6A3FF'],
     'astro_seq': [
         '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
         '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
+    ],
+    'supernatural': [
+        '#B83C82', '#FC74C9', '#E32D36', '#DEDE00', '#8CBD00',
+        '#5A9158', '#06D49C', '#00A9E8', '#6565B5', '#3434A1'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
@@ -63,6 +66,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'astro_contrast': [
         '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f', '#6c7a0e', '#cfe23c', '#26dcba'
     ],
+    'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#DC267F', '#7D7FF3', '#483D8B', '#26DCBA', '#DBB0FF', '#CFE23C'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
@@ -146,7 +150,8 @@ COLORSETS: dict[str, list[ColorType]] = {
 }
 
 COLORSET_ALIASES = {
-    'va': 'visualastro'
+    'va': 'visualastro',
+    'vb': 'ditto',
 }
 
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
