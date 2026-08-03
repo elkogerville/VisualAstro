@@ -55,6 +55,10 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#B83C82', '#FF6CBC', '#D91D30', '#A4BF00', '#569187',
         '#06D49C', '#00A9E8', '#6565B5', '#3434A1', '#1F2861'
     ],
+    'supernova': [
+        '#B83C82', '#FF6CBC', '#D91D30', '#EDEB00', '#A4BF00', '#569187',
+        '#06D49C', '#00A9E8', '#6565B5', '#3434A1', '#1F2861'
+    ],
     'supersequential': [
         '#DC469F', '#FF4E9E', '#FE5325', '#FE901D', '#FFCA02', '#7AD12C',
         '#00AD54', '#02ACAC', '#00B1F5', '#0081CC', '#533DA1'
