@@ -131,7 +131,7 @@ year = 2019--2026
 url = https://ctan.org/texarchive/fonts/newcomputermodern?lang=en
 ```
 
-AVHershey TrueType distributed under the MIT License from a release by:
+AVHershey TrueType, distributed under the MIT License from a release by:
 ```
 @software{jiaxuan_li_2023_8126529,
   author       = {Jiaxuan Li},
