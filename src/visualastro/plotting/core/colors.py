@@ -80,6 +80,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#DC267F', '#7D7FF3', '#483D8B', '#26DCBA', '#DBB0FF', '#CFE23C'],
+    'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
     'crayons': [
