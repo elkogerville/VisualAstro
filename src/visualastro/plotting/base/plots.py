@@ -64,7 +64,7 @@ from visualastro.plotting.core.utils import (
     _normalize_plotting_input,
     _normalize_plotting_inputs,
 )
-from visualastro.plotting.interfaces.interface import (
+from visualastro.interfaces.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
 

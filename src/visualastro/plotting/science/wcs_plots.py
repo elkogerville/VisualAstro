@@ -43,7 +43,7 @@ from visualastro.optional_dependencies._spectralcube import (
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.image_utils import compute_imshow_scale
-from visualastro.plotting.interfaces.interface import (
+from visualastro.interfaces.interface import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
 from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label

@@ -151,7 +151,7 @@ def _extract_plot_util_kwargs(kwargs) -> PlotUtilParams:
     from visualastro specific keyword arguments.
 
     Any kwarg defined here should also be defined in
-    `visualastro.plotting.interfaces.interface.PlotUtilParams`.
+    `visualastro.interfaces.interface.PlotUtilParams`.
 
     Notes
     -----
@@ -189,9 +189,9 @@ def _apply_plot_utils(
     Plotting interface for adding figure annotations and artists to a figure.
 
     To add the interface to a plotting function, first call
-    `visualastro.plotting.interfaces.interface_extract_plot_util_kwargs`,
+    `visualastro.interfaces.interface.extract_plot_util_kwargs`,
     which will return a `PlotUtilParams` instance. Then call
-    `visualastro.plotting.interfaces.interface_apply_plot_utils`
+    `visualastro.interfaces.interface.apply_plot_utils`
     after the core plotting has been completed.
 
     Parameters
