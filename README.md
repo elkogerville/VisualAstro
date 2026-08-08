@@ -12,10 +12,10 @@
 
 # VisualAstro
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro?cachebust=1)](https://pypi.org/project/visualastro)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21729934.svg)](https://doi.org/10.5281/zenodo.21729934)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21729933.svg)](https://doi.org/10.5281/zenodo.21729933)
 [![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test.yml)
 
-**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands.
+**VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands and no LaTeX installation.
 
 <p align="center">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/SN1987A.png" width="30%">
@@ -91,15 +91,39 @@ If you try to use functionalities that require an optionally dependent package b
 
 Example colorsets:
 <p align="center">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/colors/example_figures/colorsets.png" width="90%">
+</p>
+<!-- <p align="center">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/astro_seq.png" width="45%">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/debos.png" width="45%">
-</p>
+</p> -->
 
 Example fontstyles:
 <p align="center">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/cm_fontstyle.png" width="45%">
   <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/libertinus_fontstyle.png" width="45%">
 </p>
+
+## Citing VisualAstro
+If you use VisualAstro for your research, we ask that you please cite the Zenodo record below. The developers of VisualAstro would like to thank you for acknowledging our work!
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21729933.svg)](https://doi.org/10.5281/zenodo.21729933)
+
+BibTeX:
+```
+@software{visualastro,
+  author       = {{Gerville-Reache}, Elko and
+                  {Tian}, Qiushi Chris and
+                  {Whitmer}, Audrey},
+  title        = {VisualAstro},
+  month        = aug,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {v0.3.1},
+  doi          = {10.5281/zenodo.21729933},
+  url          = {https://doi.org/10.5281/zenodo.21729933},
+}
+```
 
 ## Credits
 
@@ -128,8 +152,7 @@ year = 2019--2026
 url = https://ctan.org/texarchive/fonts/newcomputermodern?lang=en
 ```
 
-VisualAstro includes Hershey-style TrueType fonts from the smplotlib project
-by Jiaxuan Li, used under the MIT License. Citation:
+AVHershey TrueType, distributed under the MIT License from a release by:
 ```
 @software{jiaxuan_li_2023_8126529,
   author       = {Jiaxuan Li},

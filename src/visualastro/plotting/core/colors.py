@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-07-31
+Date Modified: 2026-08-01
 Description:
     Functions related to colors in plotting.
 """
@@ -50,14 +50,25 @@ RGBATuple: TypeAlias = tuple[float, float, float, float]
 # --------------------------
 COLORSETS: dict[str, list[ColorType]] = {
     'visualastro': ['#483D8B', '#DC267F', '#648FFF', '#FFB000', '#26DCBA'],
-    'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
+    'ditto': ['#483D8B', '#CC2B77', '#6A7DE0', '#22C9B6', '#ADCF00', '#F6A3FF', '#FF663C'],
+    'supernatural': [
+        '#CC436C', '#FF6CBC', '#D91D30', '#A4BF00', '#438B94',
+        '#06D49C', '#00A9E8', '#6565B5', '#3434A1', '#1F2861'
+    ],
+    'supernova': [
+        '#A10E4F', '#CF3C4F', '#C76AAE', '#EDEB00', '#A4BF00', '#08E3B2',
+        '#0DB1FF', '#2E7F91', '#6768B5', '#3137A1', '#1F2861'
+    ],
+    'supersequential': [
+        '#DC469F', '#FF4E9E', '#FE5325', '#FE901D', '#FFCA02', '#7AD12C',
+        '#00AD54', '#02ACAC', '#00B1F5', '#0081CC', '#533DA1'
+    ],
+    'celestial': [
+        '#08E3B2', '#0DB1FF', '#2E7F91', '#6565B5', '#3137A1', '#1F2861', '#A10E4F', '#CF3C4F', '#C76AAE'
+    ],
     'astro_seq': [
         '#9FB7FF', '#648FFF', '#785EF0', '#DC267F',
         '#FE6100', '#FFB000', '#CFE23C', '#26DCBA'
-    ],
-    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
-    'ibm_contrast': [
-        '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
     ],
     'astro': [
         '#785EF0', '#26DCBA', '#DC267F', '#648FFF',
@@ -66,8 +77,9 @@ COLORSETS: dict[str, list[ColorType]] = {
     'astro_contrast': [
         '#aed1ff', '#8f8ce7', '#5a06ef', '#dc267f', '#6c7a0e', '#cfe23c', '#26dcba'
     ],
+    'turbo6': ['#35359A', '#4F65FF', '#5BFFD9', '#C4FF05', '#FF7D3C', '#AB0449'],
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
-    'MSGII': ['#483D8B', '#DC267F', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
+    'MSGII': ['#DC267F', '#7D7FF3', '#483D8B', '#26DCBA', '#DBB0FF', '#CFE23C'],
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
@@ -89,6 +101,10 @@ COLORSETS: dict[str, list[ColorType]] = {
         '#929598', '#E42031', '#72B444', '#AD3F97', '#00ABCD'
     ],
     'default': list(TABLEAU_COLORS.values()),
+    'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+    'ibm_contrast': [
+        '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
+    ],
     'temple_os': [
         '#555555', '#5555FF', '#55FF55', '#55FFFF', '#FF5555', '#FF55FF', '#FFFF55'
     ],
@@ -144,9 +160,11 @@ COLORSETS: dict[str, list[ColorType]] = {
     'oit': ['#E69F00', '#56B4E9', '#D55E00', '#009E73', '#CC79A7'],
     'tab20b': mpl.color_sequences['tab20b'],
 }
-# COLORSETS ALIASES
-# -----------------
-COLORSETS['va'] = COLORSETS['visualastro']
+
+COLORSET_ALIASES = {
+    'va': 'visualastro',
+    'vb': 'ditto',
+}
 
 COLORSET_NAMES = [key for key in COLORSETS.keys()]
 
@@ -207,8 +225,8 @@ def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     cmap_range: tuple[float, float] = (0, 1),
-    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None,
-    factor: int | float = 0.5,
+    transform: str | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
     severity: int = 100
@@ -235,9 +253,11 @@ def get_colors(
         The normalized range of the colormap. By default, is `(0,1)`,
         meaning the returned colormap has its entire range. Ignored
         if `cmap` is an `int`.
-    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default='lighten'
-        Method to modify the color. If `None`, returns `color` unchanged.
-    factor : float | int, optional, default=0.5
+    transform : str | None | _Unset, optional, default=_UNSET
+        Method to modify the color. Can be one of `'lighten'`, `'darken'`,
+        `'saturate'`, or `'desaturate'`. If `None`, returns `color` unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
         Modification strength.
 
         * If `transform='lighten'`: Blending ratio with white.
@@ -260,6 +280,7 @@ def get_colors(
             * `factor=0`: Original color
             * `factor=1`: Grayscale
 
+        If `_UNSET`, uses `config.color_transform_factor`.
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output format.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
@@ -279,13 +300,15 @@ def get_colors(
     list[str | None]:
         If `colors` is either `None`, `'face'`, or `'none'`.
     """
+    transform = _resolve_default(transform, config.color_transform)
+    factor = _resolve_default(factor, config.color_transform_factor)
     colorname = colors
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
     else:
         colors = _get_colors(colors, cmap, fmt=fmt, cmap_range=cmap_range)
         colors = as_list(
-            get_complimentary_colors(
+            _transform_colors(
                 colors,
                 transform=transform,
                 factor=factor,
@@ -330,9 +353,13 @@ def _get_colors(
         # if colorset in visualastro colorsets
         # return a reversed colorset if colorset
         # ends with '_r'
-        if colors.removesuffix('_r') in COLORSETS:
-            base_name = colors.removesuffix('_r')
-            colorset = COLORSETS[base_name]
+        base_name = colors.removesuffix('_r')
+        if (
+            base_name in mpl.color_sequences or
+            base_name in COLORSET_ALIASES
+        ):
+            colorset_name = COLORSET_ALIASES.get(base_name, base_name)
+            colorset = mpl.color_sequences[colorset_name]
             # if '_r', reverse colorset
             if colors.endswith('_r'):
                 colorset = colorset[::-1]
@@ -505,7 +532,7 @@ def _convert_color(
     return getattr(mcolors, f'to_{fmt}')(c)
 
 
-def get_complimentary_colors(
+def _transform_colors(
     color: ColorType | Sequence[ColorType],
     transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = 'lighten',
     factor: int | float = 0.5,
@@ -537,6 +564,11 @@ def get_complimentary_colors(
             * `factor=0`: Original color
             * `factor=1`: Pure white
 
+        * If `transform='darken'`: Blending ratio with black.
+
+            * `factor=0`: Original color
+            * `factor=1`: Pure black
+
         * If `transform='saturate'`: Saturation level in hsl space.
 
             * `factor=1`: Maximum saturation for each given color
@@ -564,16 +596,18 @@ def get_complimentary_colors(
     ValueError
         If `factor` is not between 0 and 1.
     """
-    if transform is None:
+    if transform:
+        method = {
+            'lighten': _lighten_color,
+            'darken': _darken_color,
+            'saturate': _saturate_color,
+            'desaturate': _desaturate_color,
+        }.get(transform, None)
+    else:
+        method = None
+
+    if transform is None or method is None:
         return as_color(color, fmt=fmt)
-    if factor < 0 or factor > 1:
-        raise ValueError('transformation factor must be between 0 and 1')
-    method = {
-        'lighten': _lighten_color,
-        'darken': _darken_color,
-        'saturate': _saturate_color,
-        'desaturate': _desaturate_color,
-    }.get(transform, _lighten_color)
 
     colors = to_list(color)
     colors = [method(c, factor) for c in colors]
@@ -912,6 +946,7 @@ def plot_colors(
 def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
+    lw: float = 2,
     legend: bool = True
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
@@ -924,6 +959,8 @@ def plot_colorset(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
         uses `plt.gca()`.
+    lw : float, optional, default=2
+        Linewidth of each line.
     legend : bool, optional, default=True
         If `True`, plots the legend.
 
@@ -933,18 +970,17 @@ def plot_colorset(
         Artists returned by the plotting functions, grouped by plot element.
     """
     from visualastro.plotting.base.plots import plot, scatter
-    from visualastro.plotting.core.axes import get_ax
+    from visualastro.plotting.core.axes import get_ax, set_title
 
     ax = get_ax(ax)
+    if isinstance(colors, str) and colors in mpl.color_sequences:
+        set_title(f'colorset: {colors}', ax=ax)
     colorset = get_colors(colors)
     N = len(colorset)
 
     r_p = 1.0
     theta = np.linspace(0, 2 * np.pi, 500)
-    if N < 6:
-        e_vals = np.logspace(-.9, -0.1, N)
-    else:
-        e_vals = np.logspace(-.9, 0.2, N)
+    e_vals = np.linspace(0.1, 0.99, N)
 
     with np.errstate(invalid='ignore', divide='ignore'):
         a_vals = [r_p / (1 - e) for e in e_vals]
@@ -960,7 +996,7 @@ def plot_colorset(
     pl = plot(
         x_vals[:N], y_vals[:N],
         ax=ax,
-        label=labels, color=colorset, lw=2,
+        label=labels, color=colorset, lw=lw,
         xlim=(-5, 3), ylim=(-4, 4),
         xlabel='X', ylabel='Y',
     )

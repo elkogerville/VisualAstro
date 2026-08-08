@@ -336,6 +336,8 @@ class VisualAstroConfig(PrettyRepr):
     color: ColorType | int | Sequence[ColorType] | None | _Unset = _UNSET
     default_colorset: str = 'astro_seq' # see `get_colors` in plot_utils.py
     color_cycle_idx: int = 0
+    color_transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None
+    color_transform_factor: float = 0.5
     random_colors_max_N: int = 20
     alpha: int = 1
     nrows: int = 1 # make_grid_plot() nrows
