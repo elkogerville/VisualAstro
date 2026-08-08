@@ -91,12 +91,8 @@ If you try to use functionalities that require an optionally dependent package b
 
 Example colorsets:
 <p align="center">
-  <img src="https://github.com/elkogerville/VisualAstro/blob/colors/example_figures/colorsets.png" width="90%">
+  <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/colorsets.png" width="90%">
 </p>
-<!-- <p align="center">
-  <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/astro_seq.png" width="45%">
-  <img src="https://github.com/elkogerville/VisualAstro/blob/main/example_figures/debos.png" width="45%">
-</p> -->
 
 Example fontstyles:
 <p align="center">
