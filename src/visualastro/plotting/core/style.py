@@ -6,21 +6,25 @@ Description:
     Functions related to setting the plotting style.
 """
 
+from collections.abc import Sequence
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from importlib.resources import files
 from pprint import pprint
+from typing import Literal
 import warnings
 
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
+from matplotlib.typing import ColorType, LineStyleType, MarkerType
 
 from visualastro.core.config import (
     config,
     _Unset, _UNSET,
     _resolve_default
 )
+from visualastro.core.numerical_utils import as_list, match_length
 
 
 class VisualAstroStyles:
@@ -225,6 +229,59 @@ def print_rcParams(print_nondefault: bool = True) -> None:
         pprint(diffs)
     else:
         print(mpl.rcParams)
+
+
+def set_plot_cycle(
+    colors: ColorType | Sequence[ColorType] | None = None,
+    linestyles: LineStyleType | Sequence[LineStyleType] | None = None,
+    markers: MarkerType | Sequence[MarkerType] | None = None,
+    mode: Literal['broadcast', 'zip', 'product'] = 'broadcast'
+) -> None:
+    """
+    Set the matplotlib axes property cycle for color, linestyle, and/or marker.
+
+    Only sets properties for the arguments passed in. Calling this function
+    with no inputs does nothing.
+
+    Parameters
+    ----------
+    colors : list[str] | None, optional, default=None
+        Color sequence, resolved via `get_colors` if provided.
+    linestyles : LineStyleType | Sequence[LineStyleType] | None, optional, default=None
+        Linestyle sequence (e.g. '-', '--', '-.', ':').
+    markers : MarkerType | Sequence[MarkerType] | None, optional, default=None
+        Marker sequence (e.g. 'o', 's', '^', 'x').
+    mode : {'broadcast', 'zip', 'product'}, optional, default='broadcast'
+
+        * `'broadcast'` cycles shorter sequences to match the running combined length.
+        * `'zip'` pairs sequences element-wise (requires equal length).
+        * `'product'` generates the Cartesian product of all sequences.
+    """
+    from visualastro.plotting.core.colors import get_colors
+
+    cyclers = []
+    if colors is not None:
+        cyclers.append(mpl.cycler(color=get_colors(colors)))
+    if linestyles is not None:
+        cyclers.append(mpl.cycler(linestyle=as_list(linestyles)))
+    if markers is not None:
+        cyclers.append(mpl.cycler(marker=as_list(markers)))
+
+    if not cyclers:
+        return
+
+    combined = cyclers[0]
+    for c in cyclers[1:]:
+        if mode == 'zip':
+            combined = combined + c
+        elif mode == 'broadcast':
+            key = next(iter(c.keys))
+            matched = match_length(c.by_key()[key], combined)
+            combined = combined + mpl.cycler(**{key: matched})
+        else:
+            combined = combined * c
+
+    mpl.rcParams['axes.prop_cycle'] = combined
 
 
 @contextmanager

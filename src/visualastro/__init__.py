@@ -56,6 +56,7 @@ from visualastro.core.numerical_utils import (
     flatten,
     mask_finite,
     mask_within_range,
+    match_length,
 )
 from visualastro.core.stats import (
     normalize,
@@ -138,6 +139,7 @@ from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
+    set_plot_cycle,
 )
 from visualastro.plotting.core.utils import (
     axhline,
