@@ -24,6 +24,10 @@ from visualastro.core.config import (
     _Unset, _UNSET,
     _resolve_default
 )
+from visualastro.core.kwargs import (
+    _kwarg, _param,
+    _resolve_kwargs
+)
 from visualastro.core.numerical_utils import as_list, match_length
 
 
@@ -235,7 +239,8 @@ def set_plot_cycle(
     colors: ColorType | Sequence[ColorType] | None = None,
     linestyles: LineStyleType | Sequence[LineStyleType] | None = None,
     markers: MarkerType | Sequence[MarkerType] | None = None,
-    mode: Literal['broadcast', 'zip', 'product'] = 'broadcast'
+    mode: Literal['broadcast', 'zip', 'product'] = 'broadcast',
+    **kwargs
 ) -> None:
     """
     Set the matplotlib axes property cycle for color, linestyle, and/or marker.
@@ -259,13 +264,22 @@ def set_plot_cycle(
     """
     from visualastro.plotting.core.colors import get_colors
 
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('color', colors, config.color),
+            _param('linestyle', linestyles, config.linestyle),
+            _param('marker', markers, config.marker),
+        ]
+    )
+
     cyclers = []
-    if colors is not None:
-        cyclers.append(mpl.cycler(color=get_colors(colors)))
-    if linestyles is not None:
-        cyclers.append(mpl.cycler(linestyle=as_list(linestyles)))
-    if markers is not None:
-        cyclers.append(mpl.cycler(marker=as_list(markers)))
+    if params.color is not None:
+        cyclers.append(mpl.cycler(color=get_colors(params.color)))
+    if params.linestyle is not None:
+        cyclers.append(mpl.cycler(linestyle=as_list(params.linestyle)))
+    if params.marker is not None:
+        cyclers.append(mpl.cycler(marker=as_list(params.marker)))
 
     if not cyclers:
         return
