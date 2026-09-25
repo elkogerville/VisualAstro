@@ -70,6 +70,21 @@ def legend(
         `get_ax(ax)` to resolve the current axes.
     loc : str | int | _Unset, optional, default=_UNSET
         Legend location. If `_UNSET`, uses `config.legend.loc`.
+
+        Accepts standard matplotlib `loc` strings/codes (e.g. `'upper
+        right'`, `'lower left'`, `'center'`, `0`–`10`) as well as well
+        as two new positions `'top'` and `'bottom'`. These place the
+        legend above and below the axes.
+        token (`'left'`, `'center'`, `'right'`), e.g. `'bottom left'`,
+        `'top center'`, `'bottom right'`.
+
+        `'top'`/`'bottom'` must be combined with exactly one horizontal
+        position (`'left'`, `'center'`, `'right'`), e.g. `'bottom left'`,
+        `'top center'`, `'bottom right'`.
+
+        If `loc` contains `'bottom'`/`'top'`, `bbox_to_anchor` is
+        computed automatically from the token combination and any
+        explicitly passed `bbox_to_anchor` is discarded.
     bbox_to_anchor : tuple | matplotlib.transforms.Bbox | _Unset, optional, default=_UNSET
         Bbox that the legend will be anchored to. If `_UNSET`, uses `loc`
         relative to the axes.
