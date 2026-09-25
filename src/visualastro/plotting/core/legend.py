@@ -226,3 +226,52 @@ def legend(
         leg.get_frame().set_linewidth(linewidth)
 
     leg.set_zorder(zorder)
+
+
+def _resolve_vertical_loc(legend_kwargs: dict) -> None:
+    """
+    Resolve a `loc` string containing `'bottom'`/`'top'` into an
+    explicit `bbox_to_anchor` and mpl-native `loc`, mutating
+    `legend_kwargs` in place.
+
+    Parameters
+    ----------
+    legend_kwargs : dict
+        Kwargs dict being built for `ax.legend`. Mutated in place.
+    loc : str
+        Space-separated loc string, e.g. `'bottom left'`.
+
+    Raises
+    ------
+    ValueError
+        If `loc` contains `'bottom'`/`'top'` without exactly one
+        horizontal companion token (`'left'`, `'center'`, `'right'`).
+
+    Returns
+    -------
+    None
+    """
+    _LOC_X = {'left': 0, 'center': 0.5, 'right': 1}
+    _LOC_Y = {'bottom': -0.05, 'top': 1.05}
+    _MPL_VERTICAL = {'bottom': 'upper', 'top': 'lower'}
+
+    loc = legend_kwargs['loc']
+    locations = loc.split(' ')
+    vertical = set(locations) & {'bottom', 'top'}
+
+    if not vertical:
+        return
+
+    horizontal = set(locations) & set(_LOC_X)
+    if len(horizontal) != 1:
+        raise ValueError(
+            f"loc={loc!r} must combine 'bottom'/'top' with exactly one "
+            f"of {set(_LOC_X)}"
+        )
+
+    y = vertical.pop()
+    x = horizontal.pop()
+
+    legend_kwargs.pop('bbox_to_anchor', None)
+    legend_kwargs['bbox_to_anchor'] = (_LOC_X[x], _LOC_Y[y])
+    legend_kwargs['loc'] = f'{_MPL_VERTICAL[y]} {x}'
