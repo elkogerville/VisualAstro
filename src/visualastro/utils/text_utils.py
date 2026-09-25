@@ -6,8 +6,9 @@ Description:
     Text utility functions.
 """
 
-from pprint import pprint as _pprint
+from pprint import pprint as _pp
 from textwrap import dedent
+from typing import IO, Any
 
 from matplotlib import font_manager, ft2font
 
@@ -230,7 +231,59 @@ def check_font(font_name: str, glyph: str = 'D') -> bool:
         return False
 
 
-def pprint(obj, header=None, footer='\n'):
+def pprint(
+    obj: Any,
+    header: str | None = None,
+    footer: str | None = '\n',
+    *,
+    stream: IO[str] | None = None,
+    indent: int = 1,
+    width: int = 80,
+    depth: int | None = None,
+    compact: bool = False,
+    sort_dicts: bool = True,
+    underscore_numbers: bool = False,
+) -> None:
+    """
+    Pretty-print an object using `pprint.pprint`, optionally wrapped with
+    a header and footer.
+
+    Parameters
+    ----------
+    obj : Any
+        Object to pretty-print.
+    header : str, optional, default=None
+        Line printed before `obj`. If falsy, omitted.
+    footer : str, optional, default='\\n'
+        Line printed after `obj`. If falsy, omitted.
+    stream : IO, optional, default=None
+        Output stream. If `None`, uses `sys.stdout`.
+    indent : int, optional, default=1
+        Spaces added per nesting level.
+    width : int, optional, default=80
+        Max line width before wrapping.
+    depth : int, optional, default=None
+        Max nesting depth shown. If `None`, unlimited.
+    compact : bool, optional, default=False
+        If `True`, packs sequences onto fewer lines when they fit `width`.
+    sort_dicts : bool, optional, default=True
+        If `False`, preserves dict insertion order instead of sorting keys.
+    underscore_numbers : bool, optional, default=False
+        If `True`, inserts `_` separators in large integers.
+
+    Returns
+    -------
+    None
+    """
     if header: print(header)
-    _pprint(obj)
+    _pp(
+        obj,
+        stream=stream,
+        indent=indent,
+        width=width,
+        depth=depth,
+        compact=compact,
+        sort_dicts=sort_dicts,
+        underscore_numbers=underscore_numbers,
+    )
     if footer: print(footer)
