@@ -6,6 +6,7 @@ Description:
     Text utility functions.
 """
 
+from pprint import pprint as _pprint
 from textwrap import dedent
 
 from matplotlib import font_manager, ft2font
@@ -227,3 +228,9 @@ def check_font(font_name: str, glyph: str = 'D') -> bool:
         return font.get_char_index(ord(glyph)) != 0 # glyph not found returns 0
     except:
         return False
+
+
+def pprint(obj, header=None, footer='\n'):
+    if header: print(header)
+    _pprint(obj)
+    if footer: print(footer)

@@ -173,6 +173,7 @@ from visualastro.plotting.science.wcs_plots import (
 from visualastro.utils.text_utils import (
     check_font,
     find_font,
+    pprint,
     pretty_table,
     print_font_info,
     print_pretty_table
