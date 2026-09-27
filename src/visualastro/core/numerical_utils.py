@@ -8,6 +8,7 @@ Description:
 
 from __future__ import annotations
 from collections.abc import Sequence
+from itertools import cycle, islice
 from typing import Any, Literal, TypeVar, overload
 
 from astropy import units as u
@@ -786,6 +787,25 @@ def _cycle(data, i):
             f'got {type(data).__name__}'
         )
     return data[int(i) % len(data)]
+
+
+def match_length(lst: list, reference_list: list) -> list:
+    """
+    Cycle or crop a list to match the length of a reference sequence.
+
+    Parameters
+    ----------
+    lst : list
+        Sequence to extend or crop.
+    ref : list
+        Reference sequence whose length `lst` is matched to.
+
+    Returns
+    -------
+    list :
+        `lst` cycled (if shorter) or cropped (if longer) to len(ref).
+    """
+    return list(islice(cycle(lst), len(reference_list)))
 
 
 @overload
