@@ -58,6 +58,76 @@ from visualastro.plotting.core.utils import (
 
 @dataclass(slots=True)
 class PlotUtilParams:
+    """
+    Plotting kwargs sent to `_apply_plot_utils`.
+
+    Attributes
+    ----------
+    reference_idx : int
+        Index of the artist/data/label used for the legend check, axis
+        labels, colorbar, and interactive ellipse. Applied via `_cycle`.
+    array_order : {'C', 'c', 'F', 'f', 'fortran'}
+        Memory order forwarded to `plot_points`.
+    index_spec : tuple[int, int] | {'implicit', 'explicit'}
+        Index convention forwarded to `plot_points`.
+    vlines : Sequence[float] | None
+        Vertical line positions. Forwarded to `axvline` with `ref_unit`.
+    hlines : Sequence[float] | None
+        Horizontal line positions. Forwarded to `axhline` with `ref_unit`.
+    ticklabel_fontsize : float
+        Major tick label size for both axes.
+    compute_limits : bool
+        If False, `set_axis_limits` is skipped.
+    legend : dict[str, Any]
+        - `legend` : bool | None
+            Draw the legend if truthy and `kwargs['labels']` is given.
+        - remaining keys : forwarded to `legend`.
+
+    title : dict[str, Any]
+        - `title` : str | bool | None
+            Title text. Falsy skips the title.
+        - remaining keys : forwarded to `set_title`.
+
+    limits : dict[str, Any]
+        Forwarded to `set_axis_limits`. Used only if `compute_limits`.
+    labels : dict[str, Any]
+        - `label_fontsize` : float
+            Axis label size.
+        - `xlabel`, `ylabel` : str | None
+            Override labels. For `WCSAxes`, None falls back to
+            `config.right_ascension_label` / `config.declination_label`.
+        - remaining keys : forwarded to `set_axis_labels` (non-WCS only).
+
+    gridlines : dict[str, Any]
+        - `gridlines` : bool
+            Enable `ax.grid`.
+        - remaining keys : forwarded to `ax.grid`.
+
+    wcs_grid : dict[str, Any]
+        - `wcs_grid` : bool
+            Enable `ax.coords.grid`. Applied for `WCSAxes` only.
+        - remaining keys : forwarded to `ax.coords.grid`.
+
+    colorbar : dict[str, Any]
+        - `colorbar` : bool
+            Add a colorbar.
+        - `cbar_label` : str | bool | None
+            `str`: used verbatim. `bool`: formatted `ref_unit`.
+            Falsy: no label. Required when the colorbar is drawn.
+        - remaining keys : forwarded to `add_colorbar`.
+
+    text : dict[str, Any]
+        Matplotlib `Text` attrbitures.
+    ellipses : dict[str, Any]
+        - `ellipses` : Any | None
+            Ellipse specification forwarded to `plot_ellipses`.
+        - `plot_ellipse` : bool
+            Draw the interactive ellipse.
+
+    points : dict[str, Any]
+        - `points` : Any | None
+            Point specification forwarded to `plot_points`.
+    """
     reference_idx: int
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
     index_spec: tuple[int, int] | Literal['implicit', 'explicit']
@@ -79,7 +149,12 @@ class PlotUtilParams:
 
 
 def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
-
+    """
+    Extracts any keyword argument from a function related to
+    visualastro plotting utilities. This way, kwargs can then
+    be passed into a matplotlib function without any contamination
+    from visualastro specific keyword arguments.
+    """
     return PlotUtilParams(
         reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
@@ -133,6 +208,39 @@ def _apply_plot_utils(
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
 ) -> None:
+    """
+    Apply plot utility functions to an `Axes`.
+
+    Parameters
+    ----------
+    params : PlotUtilParams
+        Container of grouped plotting options,
+        returned by `_extract_plot_util_kwargs`.
+    ax : matplotlib.axes.Axes | astropy.visualization.wcsaxes.WCSAxes
+        Axes to decorate. `WCSAxes` triggers WCS-specific label, tick, and
+        grid handling.
+    xlist, ylist : list | None, optional, default=None
+        Plotted x and y data. Used for axis limits and for
+        deriving the x and y-axis label (unit).
+    im_list : list | None, optional, default=None
+        Plotted artists (e.g. `AxesImage`, `PathCollection`). Required for
+        the colorbar and the interactive ellipse. The element at
+        `params.reference_idx` is used.
+    ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
+        Reference unit for the colorbar label and for `axvline`/`axhline`.
+    labels : sequence | None
+        Plot labels. The legend is drawn only if this key is present,
+        `params.legend['legend']` is truthy, and the label at
+        `params.reference_idx` is not None.
+    rasterized : bool, optional
+        Forwarded to `add_colorbar`. Popped from `kwargs`.
+    rotation_step : int | float, optional, default=5
+        Rotation step of the interactive ellipse.
+
+    Returns
+    -------
+    None
+    """
     # PRE SETTING AXIS LIMITS
     # -----------------------
     if 'labels' in kwargs and params.legend.pop('legend'):
