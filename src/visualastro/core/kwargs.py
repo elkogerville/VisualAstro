@@ -9,7 +9,7 @@ Description:
 from types import SimpleNamespace
 from typing import Any
 
-from visualastro.core.config import _resolve_default, _UNSET
+from visualastro.core.config import _Unset, _UNSET, _resolve_default
 
 
 # KWARGS
@@ -28,6 +28,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'markeredgecolor': ('markeredgecolors', 'mec'),
     'limits': ('limit', 'lims', 'lim'),
     'label': ('labels', 'l'),
+    'bbox_to_anchor': ('bbox',),
     'legend_handles': ('legend_handle',),
     'legend_labels': ('legend_label',),
     'linecolor': ('linecolors', 'lc'),
@@ -46,7 +47,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
         'colorbar_tick_fontsize',
         'cbar_tick_fontsize'
     ),
-    'gridlines': ('gridline', 'grid_line', 'grid_lines'),
+    'gridlines': ('gridline', 'grid_line', 'grid_lines', 'grid'),
     'ellipses': ('ellipse',),
     'points': ('point',),
     'text_color': ('textcolor',),
@@ -58,6 +59,13 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'zorder': ('zorders', 'z'),
     'vlines': ('vline',),
     'hlines': ('hline',),
+}
+
+# reverse mapping of aliases to canonical key
+_ALIAS_TO_CANONICAL: dict[str, str] = {
+    alias: canonical
+    for canonical, aliases in KWARG_ALIASES.items()
+    for alias in aliases
 }
 
 
@@ -220,6 +228,7 @@ def _get_kwargs(
     for key in (name, *KWARG_ALIASES.get(name, ())):
         if (value := kwargs.get(key, _UNSET)) is not _UNSET:
             return value
+
     return default
 
 
@@ -257,17 +266,6 @@ def _pop_kwargs(
     -----
     Mutates `kwargs` by removing the matched key. Search order is:
     canonical name first, then aliases in order defined in `KWARG_ALIASES`.
-
-    Examples
-    --------
-    >>> from visualastro.core.io import KWARG_ALIASES
-    >>> KWARG_ALIASES['edgecolor'] = ('edgecolors', 'ec')
-    >>> kwargs = {'ec': 'red', 'lw': 2}
-    >>> value = _pop_kwargs(kwargs, 'edgecolor', default='black')
-    >>> value
-    'red'
-    >>> kwargs
-    {'lw': 2}
     """
     for key in (name, *KWARG_ALIASES.get(name, ())):
         if (value := kwargs.get(key, _UNSET)) is not _UNSET:
