@@ -68,6 +68,10 @@ def legend(
     ax : matplotlib.axes.Axes | None, optional, default=None
         The axes object on which to place the legend. If `None`, uses
         `get_ax(ax)` to resolve the current axes.
+    handles : Sequence, optional, default=None
+        Artists (lines, patches) to display in legend.
+    labels : Sequence, optional, default=None
+        Text labels corresponding to artists.
     loc : str | int | _Unset, optional, default=_UNSET
         Legend location. If `_UNSET`, uses `config.legend.loc`.
 

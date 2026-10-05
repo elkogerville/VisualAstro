@@ -9,7 +9,7 @@ Description:
 from types import SimpleNamespace
 from typing import Any
 
-from visualastro.core.config import _resolve_default, _UNSET
+from visualastro.core.config import _Unset, _UNSET, _resolve_default
 
 
 # KWARGS
@@ -28,6 +28,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'markeredgecolor': ('markeredgecolors', 'mec'),
     'limits': ('limit', 'lims', 'lim'),
     'label': ('labels', 'l'),
+    'bbox_to_anchor': ('bbox',),
     'legend_handles': ('legend_handle',),
     'legend_labels': ('legend_label',),
     'linecolor': ('linecolors', 'lc'),
@@ -46,7 +47,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
         'colorbar_tick_fontsize',
         'cbar_tick_fontsize'
     ),
-    'gridlines': ('gridline', 'grid_line', 'grid_lines'),
+    'gridlines': ('gridline', 'grid_line', 'grid_lines', 'grid'),
     'ellipses': ('ellipse',),
     'points': ('point',),
     'text_color': ('textcolor',),
@@ -58,6 +59,13 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'zorder': ('zorders', 'z'),
     'vlines': ('vline',),
     'hlines': ('hline',),
+}
+
+# reverse mapping of aliases to canonical key
+_ALIAS_TO_CANONICAL: dict[str, str] = {
+    alias: canonical
+    for canonical, aliases in KWARG_ALIASES.items()
+    for alias in aliases
 }
 
 
@@ -220,6 +228,7 @@ def _get_kwargs(
     for key in (name, *KWARG_ALIASES.get(name, ())):
         if (value := kwargs.get(key, _UNSET)) is not _UNSET:
             return value
+
     return default
 
 
@@ -257,17 +266,6 @@ def _pop_kwargs(
     -----
     Mutates `kwargs` by removing the matched key. Search order is:
     canonical name first, then aliases in order defined in `KWARG_ALIASES`.
-
-    Examples
-    --------
-    >>> from visualastro.core.io import KWARG_ALIASES
-    >>> KWARG_ALIASES['edgecolor'] = ('edgecolors', 'ec')
-    >>> kwargs = {'ec': 'red', 'lw': 2}
-    >>> value = _pop_kwargs(kwargs, 'edgecolor', default='black')
-    >>> value
-    'red'
-    >>> kwargs
-    {'lw': 2}
     """
     for key in (name, *KWARG_ALIASES.get(name, ())):
         if (value := kwargs.get(key, _UNSET)) is not _UNSET:
@@ -275,6 +273,148 @@ def _pop_kwargs(
             return value
 
     return default
+
+
+def _pop_prefixed(
+    kwargs: dict,
+    prefix: str,
+    *,
+    base: str | None = None,
+    default: Any | _Unset = _UNSET
+) -> dict:
+    """
+    Pop all keys starting with `prefix` and strip the prefix.
+
+    Each matched key is stripped of `prefix`, and the remainder is mapped to
+    its canonical name via `_ALIAS_TO_CANONICAL` (built from `KWARG_ALIASES`).
+    Stripped names that are not registered aliases are kept unchanged.
+
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments. Mutated in place: all keys starting
+        with `prefix`, and `base` (including its aliases) if given, are
+        removed.
+    prefix : str
+        Prefix to match, including the trailing underscore (e.g. `'legend_'`).
+    base : str | None, optional, default=None
+        Canonical name of an unprefixed kwarg to pop alongside the prefixed
+        ones (e.g. `'legend'` for `legend=True` next to `legend_loc=...`).
+        Alias resolution is delegated to `_pop_kwargs`.
+    default : Any | _Unset, optional, default=_UNSET
+        Value used for `base` when it is absent from `kwargs`. If `_UNSET`,
+        `base` is omitted from the output when absent. Ignored if `base` is
+        None.
+
+
+    Returns
+    -------
+    dict[str, Any]
+        Mapping of canonical (unprefixed) name to value.
+
+    Notes
+    -----
+    If several matched keys resolve to the same canonical name (e.g.
+    `legend_bbox` and `legend_bbox_to_anchor`), the first one encountered in
+    `kwargs` iteration order is kept. All matched keys are removed from
+    `kwargs` regardless.
+
+    Examples
+    --------
+    >>> kwargs = {'legend_bbox': (0.5, 1), 'legend_loc': 'best', 'lw': 2}
+    >>> _pop_prefixed(kwargs, 'legend_')
+    {'bbox_to_anchor': (0.5, 1), 'loc': 'best'}
+    >>> kwargs
+    {'lw': 2}
+
+    With `base`:
+
+    >>> kwargs = {'legend': True, 'legend_loc': 'best'}
+    >>> _pop_prefixed(kwargs, 'legend_', base='legend')
+    {'loc': 'best', 'legend': True}
+    >>> kwargs
+    {}
+    """
+    out = {}
+    for key in [k for k in kwargs if k.startswith(prefix)]:
+        stripped = key[len(prefix):]
+        canonical = _ALIAS_TO_CANONICAL.get(stripped, stripped)
+        out.setdefault(canonical, kwargs.pop(key))
+
+    if isinstance(base, str):
+        value = _pop_kwargs(kwargs, base, default)
+        if value is not _UNSET:
+            out[base] = value
+
+    return out
+
+
+def _pop_mapped(
+    kwargs: dict,
+    keys: tuple[str, ...],
+    *,
+    prefix: str | None = None,
+    base: str | None = None,
+    default: Any | _Unset = _UNSET
+) -> dict:
+    """
+    Pop a set of kwargs, including prefixed and aliases.
+    Absent keys are omitted from the returned dict.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of keyword arguments. Mutated in place.
+    keys : tuple[str, ...]
+        Canonical unprefixed names to pop. Aliases resolved via `_pop_kwargs`.
+    prefix : str | None, optional, default=None
+        If given, additionally pop all keys starting with `prefix` via
+        `_pop_prefixed` (e.g. `'legend_'`).
+    base : str | None, optional, default=None
+        Canonical name of an unprefixed kwarg to pop with the prefixed group.
+        Requires `prefix`.
+    default : Any | _Unset, optional, default=_UNSET
+        Value for `base` when absent. Applies to `base` only, never to
+        `keys`. Requires `prefix`.
+
+    Returns
+    -------
+    dict[str, Any]
+        Only user-supplied entries, keyed by canonical name.
+
+    Examples
+    --------
+    >>> kwargs = {'xlim': (0, 1), 'ypad': 0.1, 'color': 'red'}
+    >>> _pop_mapped(kwargs, ('limits', 'xlim', 'ylim', 'xpad', 'ypad'))
+    {'xlim': (0, 1), 'ypad': 0.1}
+    >>> kwargs
+    {'color': 'red'}
+
+    Absent keys are omitted and not filled with a default:
+
+    >>> kwargs = {'highlight': True}
+    >>> _pop_mapped(kwargs, ('ellipses', 'plot_ellipse', 'highlight', 'text_loc'))
+    {'highlight': True}
+
+    With a prefix group:
+
+    >>> kwargs = {'xlim': (0, 1), 'legend_loc': 'best', 'lw': 2}
+    >>> _pop_mapped(kwargs, ('xlim',), prefix='legend_')
+    {'xlim': (0, 1), 'loc': 'best'}
+    >>> kwargs
+    {'lw': 2}
+    """
+    out = {}
+    for key in keys:
+        value = _pop_kwargs(kwargs, key, _UNSET)
+        if value is not _UNSET:
+            out[key] = value
+
+    if isinstance(prefix, str):
+        out |= _pop_prefixed(kwargs, prefix, base=base, default=default)
+
+    return out
 
 
 def _extract_kwargs(
