@@ -40,6 +40,7 @@ from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (
     PixCoord, EllipsePixelRegion
 )
+from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 
 
@@ -275,7 +276,9 @@ def plot_circles(
             ax.add_patch(circle_patch)
 
 
-def plot_ellipses(ellipses: Ellipse | list[Ellipse], ax: maxes.Axes) -> None:
+def plot_ellipses(
+    ellipses: Ellipse | list[Ellipse], ax: maxes.Axes | None = None
+) -> None:
     """
     Plots an ellipse or list of ellipses to an axes.
 
@@ -283,9 +286,11 @@ def plot_ellipses(ellipses: Ellipse | list[Ellipse], ax: maxes.Axes) -> None:
     ----------
     ellipses : matplotlib.patches.Ellipse | list
         The Ellipse or list of Ellipses to plot.
-    ax : matplotlib.axes.Axes
+    ax : matplotlib.axes.Axes | None, optional, default=None
         Matplotlib axis on which to plot the ellipses(s).
+        If `None`, uses `plt.gca()`.
     """
+    ax = get_ax(ax)
     if ellipses is not None:
         ellipses = to_list(ellipses)
 
@@ -520,7 +525,7 @@ def plot_points(
     color: ColorType | list[ColorType] | int = 'astro',
     size: float | list[float] = 20,
     marker: MarkerStyle | list[MarkerStyle] = '*',
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    order: Literal['C', 'c', 'F', 'f', 'fortran'] | _Unset = _UNSET,
     index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
 ) -> None:
     """
