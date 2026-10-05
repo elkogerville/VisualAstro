@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.contour &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.contour</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.contour</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2026-07-30</span>
+<span class="sd">Date Modified: 2026-07-30</span>
+<span class="sd">Description:</span>
+<span class="sd">    Contour plotting functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colormap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.contour</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuadContourSet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.kwargs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_kwarg</span><span class="p">,</span> <span class="n">_param</span><span class="p">,</span>
+    <span class="n">_resolve_kwargs</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical</span><span class="w"> </span><span class="kn">import</span> <span class="n">kde2d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colormaps</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmap</span>
+
+
+<div class="viewcode-block" id="contour_kde">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.contour_kde">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contour_kde</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="n">Axes3D</span><span class="p">,</span>
+    <span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">contour_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="s1">&#39;contourf&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">bw_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;scott&#39;</span><span class="p">,</span> <span class="s1">&#39;silverman&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Callable</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">gridsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">cslabel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zdir</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">fontsize</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">xlim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ylim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuadContourSet</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add 2D Gaussian KDE density contours to an axis.</span>
+<span class="sd">    This function computes a 2D Gaussian kernel density estimate (KDE)</span>
+<span class="sd">    from input data (`x`, `y`) using `kde2d` and plots</span>
+<span class="sd">    contour lines or filled contours using either `ax.contour` or</span>
+<span class="sd">    `ax.contourf`. If `zdir` and `offset` are provided, the contours</span>
+<span class="sd">    are projected onto a plane in 3D space.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : ArrayLike</span>
+<span class="sd">        1D array of x-values for the dataset.</span>
+<span class="sd">    y : ArrayLike</span>
+<span class="sd">        1D array of y-values for the dataset.</span>
+<span class="sd">    ax : matplotlib.axes.Axes | mpl_toolkits.mplot3d.axes3d.Axes3D</span>
+<span class="sd">        Axis on which to draw the contours.</span>
+<span class="sd">    levels : int | ArrayLike | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number or list of contour levels to draw. If `_UNSET`,</span>
+<span class="sd">        uses `config.contour.levels`.</span>
+<span class="sd">    contour_method : {&#39;contour&#39;, &#39;contourf&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Method used to draw contours. `&#39;contour&#39;` draws lines, while</span>
+<span class="sd">        `&#39;contourf&#39;` draws filled contours. If `_UNSET`, uses</span>
+<span class="sd">        `config.contour.method`.</span>
+<span class="sd">    bw_method : {&#39;scott&#39;, &#39;silverman&#39;} | float | Callable | _Unset, optional, default=_UNSET</span>
+<span class="sd">        The method used to calculate the bandwidth factor for the Gaussian KDE.</span>
+<span class="sd">        Can be one of:</span>
+
+<span class="sd">        * `&#39;scott&#39;` or `&#39;silverman&#39;`: use standard rules of thumb.</span>
+<span class="sd">        * a scalar constant: directly used as the bandwidth factor.</span>
+<span class="sd">        * a callable: should take a `scipy.stats.gaussian_kde` instance as its</span>
+<span class="sd">            sole argument and return a scalar bandwidth factor.</span>
+
+<span class="sd">    gridsize : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of grid points used per axis for density estimation.</span>
+<span class="sd">        If `_UNSET`, uses `config.contour.gridsize`.</span>
+<span class="sd">    padding : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Fractional padding applied to the data range when generating</span>
+<span class="sd">        the KDE grid. If `_UNSET`, uses `config.contour.padding`.</span>
+<span class="sd">    cslabel : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, label contour levels with their corresponding values.</span>
+<span class="sd">        Only works in 2D plots. If `_UNSET`, uses `config.contour.clabel`.</span>
+<span class="sd">    zdir : {&#39;x&#39;, &#39;y&#39;, &#39;z&#39;} | None, default=None</span>
+<span class="sd">        Direction normal to the plane where contours are drawn.</span>
+<span class="sd">        If None, contours are plotted in 2D.</span>
+<span class="sd">    offset : float | None, optional, default=None</span>
+<span class="sd">        Offset along the `zdir` direction for projecting contours in 3D space.</span>
+<span class="sd">    cmap : Colormap | str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Colormap used for plotting contours. If `_UNSET`,</span>
+<span class="sd">        uses `config.cmap`.</span>
+<span class="sd">    fontsize : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Fontsize of contour labels in points. If `_UNSET`, uses</span>
+<span class="sd">        `config.fontsizes.text`, expressed as a scaling factor</span>
+<span class="sd">        relative to `config.fontsizes.size`</span>
+<span class="sd">    zorder : int | None, optional, default=None</span>
+<span class="sd">        Z-order of the contour plot.</span>
+<span class="sd">    xlim : tuple[float, float] | None, optional, default=None</span>
+<span class="sd">        Limits of the x-axis.</span>
+<span class="sd">    ylim : tuple[float, float] | None, optional, default=None</span>
+<span class="sd">        Limits of the y-axis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cs : matplotlib.contour.QuadContourSet | mpl_toolkits.mplot3d.art3d.QuadContourSet3D</span>
+<span class="sd">        The contour set object created by Matplotlib.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_resolve_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;levels&#39;</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">levels</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;contour_method&#39;</span><span class="p">,</span> <span class="n">contour_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">method</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;bw_method&#39;</span><span class="p">,</span> <span class="n">bw_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">bw_method</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;gridsize&#39;</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">gridsize</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;padding&#39;</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">padding</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;cslabel&#39;</span><span class="p">,</span> <span class="n">cslabel</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">contour</span><span class="o">.</span><span class="n">clabel</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;cmap&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">cmap</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">additional_kwargs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">fontsizes</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;bad_color&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">]</span>
+
+    <span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">cmap</span><span class="p">,</span> <span class="n">bad_color</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">bad_color</span><span class="p">)</span>
+
+    <span class="n">c_method</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">contour_method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">contour_methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;contour&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">,</span>
+        <span class="s1">&#39;contourf&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">contourf</span>
+    <span class="p">}</span>
+    <span class="n">contour_func</span> <span class="o">=</span> <span class="n">contour_methods</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c_method</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">)</span>
+    <span class="n">c_method_name</span> <span class="o">=</span> <span class="n">c_method</span> <span class="k">if</span> <span class="n">c_method</span> <span class="ow">in</span> <span class="n">contour_methods</span> <span class="k">else</span> <span class="s1">&#39;contour&#39;</span>
+
+    <span class="c1"># compute kde density</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span> <span class="o">=</span> <span class="n">kde2d</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+        <span class="n">bw_method</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">bw_method</span><span class="p">,</span>
+        <span class="n">gridsize</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">gridsize</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+        <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">zorder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">zorder</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">contour</span> <span class="k">if</span> <span class="n">c_method_name</span> <span class="o">==</span> <span class="s1">&#39;contour&#39;</span> <span class="k">else</span> <span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">contourf</span>
+
+    <span class="c1"># plot contours as either 3D projections or a simple 2D plot</span>
+    <span class="n">valid_zdirs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">}</span>
+    <span class="n">zdir</span> <span class="o">=</span> <span class="n">zdir</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">zdir</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">zdir</span> <span class="ow">in</span> <span class="n">valid_zdirs</span> <span class="ow">and</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">input_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">),</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">Y</span><span class="p">),</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">X</span><span class="p">),</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">zdir</span><span class="p">,</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">))</span>
+
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">contour_func</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">input_data</span><span class="p">,</span>
+            <span class="n">levels</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">levels</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">zdir</span><span class="o">=</span><span class="n">zdir</span><span class="p">,</span>
+            <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">contour_func</span><span class="p">(</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span>
+            <span class="n">levels</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">levels</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">cslabel</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">clabel</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">fontsize</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cs</span></div>
+
+
+
+<div class="viewcode-block" id="contourf_kde">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.contourf_kde">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contourf_kde</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="n">Axes3D</span><span class="p">,</span>
+    <span class="n">levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">bw_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;scott&#39;</span><span class="p">,</span> <span class="s1">&#39;silverman&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Callable</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">gridsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">cslabel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zdir</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">xlim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ylim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filled contour wrapper around `contour`.</span>
+
+<span class="sd">    Equivalent to calling `contour_kde(..., contour_method=&#39;contourf&#39;)`.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    contour : Full parameter documentation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">contour_kde</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">,</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
+        <span class="n">contour_method</span><span class="o">=</span><span class="s1">&#39;contourf&#39;</span><span class="p">,</span>
+        <span class="n">bw_method</span><span class="o">=</span><span class="n">bw_method</span><span class="p">,</span>
+        <span class="n">gridsize</span><span class="o">=</span><span class="n">gridsize</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+        <span class="n">cslabel</span><span class="o">=</span><span class="n">cslabel</span><span class="p">,</span>
+        <span class="n">zdir</span><span class="o">=</span><span class="n">zdir</span><span class="p">,</span>
+        <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+        <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+        <span class="n">xlim</span><span class="o">=</span><span class="n">xlim</span><span class="p">,</span>
+        <span class="n">ylim</span><span class="o">=</span><span class="n">ylim</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

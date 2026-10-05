@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.datamodels.fitsfile &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.datamodels.fitsfile</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.datamodels.fitsfile</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache, Qiushi Chris Tian</span>
+<span class="sd">Date Created: 2025-09-22</span>
+<span class="sd">Date Modified: 2026-07-18</span>
+<span class="sd">Description:</span>
+<span class="sd">    FitsFile data structure for 2D Fits data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Quantity</span><span class="p">,</span> <span class="n">UnitBase</span><span class="p">,</span> <span class="n">UnitsError</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_unit</span><span class="p">,</span>
+    <span class="n">to_fits_unit</span><span class="p">,</span>
+    <span class="n">to_unit</span><span class="p">,</span>
+    <span class="n">_check_unit_equality</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.validation</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_check_shapes_match</span><span class="p">,</span>
+    <span class="n">_validate_type</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.fits_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_copy_headers</span><span class="p">,</span>
+    <span class="n">_get_history</span><span class="p">,</span>
+    <span class="n">_log_history</span><span class="p">,</span>
+    <span class="n">_remove_history</span><span class="p">,</span>
+    <span class="n">_transfer_history</span><span class="p">,</span>
+    <span class="n">_update_header_key</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.wcs_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_header_wcs</span><span class="p">,</span>
+    <span class="n">strip_wcs_from_header</span><span class="p">,</span>
+    <span class="n">update_header_from_wcs</span><span class="p">,</span>
+    <span class="n">_is_valid_wcs_slice</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="FitsFile">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FitsFile</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lightweight container for FITS image data and metadata.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array-like or `~astropy.units.Quantity`</span>
+<span class="sd">        The primary image data. Can be a NumPy array or an</span>
+<span class="sd">        `astropy.units.Quantity` object.</span>
+<span class="sd">    header : `~astropy.io.fits.Header`, optional</span>
+<span class="sd">        FITS header associated with the data. Used to extract</span>
+<span class="sd">        WCS information and physical units if available.</span>
+<span class="sd">    error : array-like, optional</span>
+<span class="sd">        Optional uncertainty or error map associated with the data.</span>
+<span class="sd">    wcs : astropy.wcs.wcs.WCS or None, optional, default=None</span>
+<span class="sd">        WCS information associated with the data extension.</span>
+<span class="sd">        If None, FitsFile will attempt to extract the WCS</span>
+<span class="sd">        from the header attribute.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray or Quantity</span>
+<span class="sd">        The Numpy or Quantity array of data.</span>
+<span class="sd">    header : `~astropy.io.fits.Header` or None</span>
+<span class="sd">        The FITS header provided at initialization.</span>
+<span class="sd">    error : ndarray, Quantity, or None</span>
+<span class="sd">        Associated error data, if provided.</span>
+<span class="sd">    wcs : astropy.wcs.WCS or None</span>
+<span class="sd">        The WCS transformation extracted from the header, if valid.</span>
+<span class="sd">    footprint : ndarray or None</span>
+
+<span class="sd">    Properties</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value : np.ndarray</span>
+<span class="sd">        Raw numpy array of the data values.</span>
+<span class="sd">    quantity : Quantity</span>
+<span class="sd">        Quantity array of data values (values + astropy units).</span>
+<span class="sd">    unit : astropy.units.Unit or None</span>
+<span class="sd">        The physical unit of the data. Inferred from the input</span>
+<span class="sd">        `Quantity` or from the FITS header keyword `BUNIT`.</span>
+<span class="sd">    min : float</span>
+<span class="sd">        Minimum value in the data, ignoring NaNs.</span>
+<span class="sd">    max : float</span>
+<span class="sd">        Maximum value in the data, ignoring NaNs.</span>
+<span class="sd">    mean : float</span>
+<span class="sd">        Mean of all values in the data, ignoring NaNs.</span>
+<span class="sd">    median : float</span>
+<span class="sd">        Median of all values in the data, ignoring NaNs.</span>
+<span class="sd">    sum : float</span>
+<span class="sd">        Sum of all values in the data, ignoring NaNs.</span>
+<span class="sd">    std : float</span>
+<span class="sd">        Standard deviation of all values in the data, ignoring NaNs.</span>
+<span class="sd">    shape : tuple</span>
+<span class="sd">        Shape of the data array.</span>
+<span class="sd">    size : int</span>
+<span class="sd">        Total number of elements in the data array.</span>
+<span class="sd">    ndim : int</span>
+<span class="sd">        Number of dimensions.</span>
+<span class="sd">    dtype : numpy.dtype</span>
+<span class="sd">        Data type of the array elements.</span>
+<span class="sd">    len : int</span>
+<span class="sd">        Length of the first axis.</span>
+<span class="sd">    has_nan : bool</span>
+<span class="sd">        True if the data contains any NaN values.</span>
+<span class="sd">    itemsize : int</span>
+<span class="sd">        Size in bytes of each array element.</span>
+<span class="sd">    nbytes : int</span>
+<span class="sd">        Total memory footprint of the array in bytes.</span>
+<span class="sd">    log: list of str</span>
+<span class="sd">        List of each log output in primary_header[&#39;HISTORY&#39;]</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    header_get(key)</span>
+<span class="sd">        Retrieve a value from the fits Header.</span>
+<span class="sd">    to(unit, equivalencies=None)</span>
+<span class="sd">        Convert the data unit. This method works for</span>
+<span class="sd">        `Quantities`, and returns a new FitsFile.</span>
+<span class="sd">    update(data=None, header=None, error=None, wcs=None)</span>
+<span class="sd">        Update any of the FitsFile attributes in place. All internally</span>
+<span class="sd">        stored values are recomputed. If data has units and header has</span>
+<span class="sd">        BUNIT, BUNIT will be automatically updated to match the data units.</span>
+
+<span class="sd">    Array Interface</span>
+<span class="sd">    ---------------</span>
+<span class="sd">    __array__</span>
+<span class="sd">        Return the underlying data as a Numpy array.</span>
+<span class="sd">    __get_item__</span>
+<span class="sd">        Return a slice of the data.</span>
+<span class="sd">    __len__()</span>
+<span class="sd">        Return the length of the first axis.</span>
+<span class="sd">    reshape(*shape)</span>
+<span class="sd">        Return a reshaped view of the data.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        - If `data` or `header` are not of an expected type.</span>
+<span class="sd">    UnitsError</span>
+<span class="sd">        - If `BUNIT` in `header` does not match the unit of `data`.</span>
+<span class="sd">        - If `error` units do not match `data` units.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        - If `error` shape does not match `data` shape.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span>
+        <span class="n">header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">error</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">wcs</span><span class="p">:</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_validate_type</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;data&#39;</span>
+        <span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">_validate_type</span><span class="p">(</span>
+            <span class="n">header</span><span class="p">,</span> <span class="n">Header</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">Header</span><span class="p">(),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;header&#39;</span>
+        <span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">_validate_type</span><span class="p">(</span>
+            <span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;error&#39;</span>
+        <span class="p">)</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">_validate_type</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;wcs&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">Header</span><span class="p">()</span>
+
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">hdr_unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+        <span class="n">_check_unit_equality</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">hdr_unit</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;header&#39;</span><span class="p">)</span>
+
+        <span class="c1"># use BUNIT if unit is None</span>
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">hdr_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">hdr_unit</span>
+            <span class="n">_log_history</span><span class="p">(</span>
+                <span class="n">header</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Using header BUNIT: </span><span class="si">{</span><span class="n">to_fits_unit</span><span class="p">(</span><span class="n">hdr_unit</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># add BUNIT to header if missing</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+            <span class="s1">&#39;BUNIT&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header</span>
+        <span class="p">):</span>
+            <span class="n">unit_str</span> <span class="o">=</span> <span class="n">to_fits_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;BUNIT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_str</span>
+            <span class="n">_log_history</span><span class="p">(</span>
+                <span class="n">header</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Added missing BUNIT=</span><span class="si">{</span><span class="n">unit_str</span><span class="si">}</span><span class="s1"> to header&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># attatch units to data if bare numpy array</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">array</span> <span class="o">*</span> <span class="n">unit</span>
+            <span class="n">_log_history</span><span class="p">(</span>
+                <span class="n">header</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Attached unit to data: unit=</span><span class="si">{</span><span class="n">to_fits_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># error validation</span>
+        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_check_shapes_match</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_check_unit_equality</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;error unit&#39;</span><span class="p">,</span> <span class="s1">&#39;data unit&#39;</span><span class="p">)</span>
+
+        <span class="c1"># try extracting WCS</span>
+        <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wcs</span> <span class="o">=</span> <span class="n">get_header_wcs</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;wcs must be a WCS instance! &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;got: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">wcs</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+            <span class="n">update_header_from_wcs</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">wcs</span><span class="p">)</span>
+
+        <span class="c1"># extract non WCS info from header</span>
+        <span class="n">nowcs_header</span> <span class="o">=</span> <span class="n">strip_wcs_from_header</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nowcs_header</span><span class="p">,</span> <span class="n">Header</span><span class="p">)</span>
+        <span class="n">_remove_history</span><span class="p">(</span><span class="n">nowcs_header</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">primary_header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">=</span> <span class="n">header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">=</span> <span class="n">header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nowcs_header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">=</span> <span class="n">nowcs_header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wcs</span><span class="p">:</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">wcs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">footprint</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Properties</span>
+    <span class="c1"># ----------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray : View of the underlying numpy array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Quantity or None :</span>
+<span class="sd">            Quantity array of data values (values + astropy units),</span>
+<span class="sd">            of None if no units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Unit, StructuredUnit, or None :</span>
+<span class="sd">            Astropy.Unit of the data or None if no units found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># statistical properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or Quantity : Minimum value in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or Quantity : Maximum value in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or Quantity : Mean of all values in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or Quantity : Median of all values in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or Quantity : sum of all values in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float : Standard deviation of all values in the data, ignoring NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="c1"># array properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple : Shape of data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int : Size of data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int : Number of dimensions of data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">ndim</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.dtype : Datatype of the data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_nan</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool : Returns True if there are NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">itemsize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int : Length of 1 array element in bytes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">itemsize</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nbytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int : Total number of bytes used by the data array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">nbytes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the processing history from the FITS HISTORY cards.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str or None</span>
+<span class="sd">            List of HISTORY entries, or None if no header exists.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_get_history</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_header</span><span class="p">)</span>
+
+    <span class="c1"># Methods</span>
+    <span class="c1"># -------</span>
+<div class="viewcode-block" id="FitsFile.header_get">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.header_get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">header_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve a header value by key from a header.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            FITS header keyword to retrieve.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        value : list or str</span>
+<span class="sd">            Header values corresponding to `key`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If headers are of an unsupported type or `key` is not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported header type or key &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FitsFile.to">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.to">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the FitsFile data to a new physical unit.</span>
+<span class="sd">        The `data` attribute must be a Quantity object.</span>
+<span class="sd">        This returns a new FitsFile object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        unit : str or astropy.units.Unit</span>
+<span class="sd">            Target unit.</span>
+<span class="sd">        equivalencies : list, optional</span>
+<span class="sd">            Astropy equivalencies for unit conversion (e.g. spectral).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        FitsFile</span>
+<span class="sd">            New cube with converted units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;unit cannot be None!&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;data must be a Quantity to convert units!&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">equivalencies</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Unit conversion failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+                <span class="n">new_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">equivalencies</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s1">&#39;FitsFile.error must be a Quantity to convert units safely.&#39;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_error</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># update header BUNIT</span>
+        <span class="n">new_hdr</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">_update_header_key</span><span class="p">(</span><span class="s1">&#39;BUNIT&#39;</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">new_hdr</span><span class="p">)</span>
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Converted unit to </span><span class="si">{</span><span class="n">unit</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">FitsFile</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">new_hdr</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">new_error</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># Array Interface</span>
+    <span class="c1"># ---------------</span>
+<div class="viewcode-block" id="FitsFile.__array__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.__array__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the underlying data as a NumPy array.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            The underlying 2D array representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a slice of the data.</span>
+
+<span class="sd">        The method attempts to slice the WCS. The Header</span>
+<span class="sd">        keywords affected by the slicing is then updated</span>
+<span class="sd">        using the new WCS.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : slice or tuple</span>
+<span class="sd">            Index or slice to apply to the data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        slice : FitsFile</span>
+<span class="sd">            The corresponding subset of the data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">new_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">new_hdr</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_header</span><span class="p">)</span>
+        <span class="n">new_wcs</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Sliced data with key : </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_valid_wcs_slice</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="c1"># create new header if invalid slice</span>
+            <span class="n">new_hdr</span> <span class="o">=</span> <span class="n">_transfer_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="n">Header</span><span class="p">())</span>
+            <span class="n">_log_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Header and WCS dropped due to invalid slice&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_wcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="n">update_header_from_wcs</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="n">new_wcs</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">new_wcs</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">new_hdr</span> <span class="o">=</span> <span class="n">_transfer_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="n">Header</span><span class="p">())</span>
+                    <span class="n">_log_history</span><span class="p">(</span><span class="n">new_hdr</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Header and WCS dropped due to </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">FitsFile</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">new_hdr</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">new_error</span><span class="p">,</span>
+            <span class="n">wcs</span><span class="o">=</span><span class="n">new_wcs</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="FitsFile.__len__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.__len__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of spectral slices along the first axis.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Length of the first dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FitsFile.reshape">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.reshape">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reshape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">shape</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a reshaped view of the data.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *shape : int</span>
+<span class="sd">            New shape for the data array.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Reshaped data array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FitsFile.add_history">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.FitsFile.add_history">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">history</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add to the ``HISTORY`` cards of the cube</span>
+<span class="sd">        for logging purposes. This returns nothing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        history : str</span>
+<span class="sd">            Logging message to add.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_log_history</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_header</span><span class="p">,</span> <span class="n">history</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str :</span>
+<span class="sd">            String representation of ``FitsFile``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;&lt;FitsFile[Quantity]: unit=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s1">, &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;shape=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">, dtype=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;&lt;FitsFile[NDArray]: shape=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">, dtype=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

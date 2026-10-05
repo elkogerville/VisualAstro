@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.utils.text_utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.utils.text_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.utils.text_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-12-23</span>
+<span class="sd">Date Modified: 2026-06-16</span>
+<span class="sd">Description:</span>
+<span class="sd">    Text utility functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span> <span class="k">as</span> <span class="n">_pp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">textwrap</span><span class="w"> </span><span class="kn">import</span> <span class="n">dedent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_manager</span><span class="p">,</span> <span class="n">ft2font</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">_resolve_default</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span>
+
+
+<div class="viewcode-block" id="pretty_table">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.pretty_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pretty_table</span><span class="p">(</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">],</span>
+    <span class="n">precision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">sci_notation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Format a pretty table given a 2D list of table cells. Each cell</span>
+<span class="sd">    can be either a numerical value with or without units, a string, or None.</span>
+
+<span class="sd">    Use print_pretty_table to print the output directly.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    headers : list[str] | None</span>
+<span class="sd">        Names of each column. If None, skips rendering the header row</span>
+<span class="sd">        and starts directly with the separator line.</span>
+<span class="sd">    data : list[list]</span>
+<span class="sd">        2D list containing each table cell. Should have shape</span>
+<span class="sd">        (Nrows, Ncols). Each cell can be:</span>
+
+<span class="sd">        * Numerical value (int, float)</span>
+<span class="sd">        * Quantity object with units (e.g., astropy.units.Quantity)</span>
+<span class="sd">        * String</span>
+<span class="sd">        * None(renders as empty string)</span>
+
+<span class="sd">    precision : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of decimal places for numerical formatting.</span>
+<span class="sd">        If `_UNSET`, uses `config.table_precision`.</span>
+<span class="sd">    sci_notation : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, formats numbers in scientific notation (e.g., 1.23e-04).</span>
+<span class="sd">        If `False`, formats as fixed-point decimals (e.g., 0.000123).</span>
+<span class="sd">        If `_UNSET`, uses `config.table_sci_notation`.</span>
+<span class="sd">    pad : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of spaces between columns for visual separation.</span>
+<span class="sd">        If `_UNSET`, uses `config.table_column_pad`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    table : str</span>
+<span class="sd">        Formatted table string with aligned columns, ready to print.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">precision</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_precision</span><span class="p">)</span>
+    <span class="n">sci_notation</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">sci_notation</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_sci_notation</span><span class="p">)</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_column_pad</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pad</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;`pad` must be an integer &gt; 0!&quot;</span>
+        <span class="p">)</span>
+    <span class="n">col_pad</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="n">pad</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_table_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format each table cell for consistent styling.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cell : float | int | Quantity | str | None</span>
+<span class="sd">            Table cell to format</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        formatted_cell : str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cell</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">cell</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">cell</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="kc">True</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">cell</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">sci_notation</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.</span><span class="si">{</span><span class="n">precision</span><span class="si">}</span><span class="s1">e</span><span class="si">}{</span><span class="n">unit</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s1">.</span><span class="si">{</span><span class="n">precision</span><span class="si">}</span><span class="s1">f</span><span class="si">}{</span><span class="n">unit</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="c1"># format all cells</span>
+    <span class="n">formatted_data</span> <span class="o">=</span> <span class="p">[[</span><span class="n">_format_table_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+
+    <span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">formatted_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># compute column widths</span>
+    <span class="n">col_widths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_header</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_header</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_data</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">formatted_data</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">col_widths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">max_header</span><span class="p">,</span> <span class="n">max_data</span><span class="p">))</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># left align headers and pad to column width</span>
+        <span class="n">header_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">headers</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s1">&lt;</span><span class="si">{</span><span class="n">col_widths</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">))]</span>
+        <span class="c1"># add padding between each column</span>
+        <span class="n">header_row</span> <span class="o">=</span> <span class="n">col_pad</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">header_names</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header_row</span><span class="p">)</span>
+        <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39;─&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header_row</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">row_len</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">col_widths</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_pad</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ncols</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39;─&#39;</span> <span class="o">*</span> <span class="n">row_len</span>
+
+    <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">separator</span><span class="p">)</span>
+
+    <span class="c1"># fill table rows</span>
+    <span class="k">for</span> <span class="n">row_data</span> <span class="ow">in</span> <span class="n">formatted_data</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">row_data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s1">&lt;</span><span class="si">{</span><span class="n">col_widths</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">)]</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_pad</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">table</span></div>
+
+
+
+<div class="viewcode-block" id="print_pretty_table">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.print_pretty_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_pretty_table</span><span class="p">(</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">],</span>
+    <span class="n">precision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">sci_notation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">pad</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Format a pretty table given a 2D list of table cells and print it. Each cell</span>
+<span class="sd">    can be either a numerical value with or without units, a string, or None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    headers : list[str] | None</span>
+<span class="sd">        Names of each column. If None, skips rendering the header row</span>
+<span class="sd">        and starts directly with the separator line.</span>
+<span class="sd">    data : list[list]</span>
+<span class="sd">        2D list containing each table cell. Should have shape</span>
+<span class="sd">        (Nrows, Ncols). Each cell can be:</span>
+
+<span class="sd">        * Numerical value (int, float)</span>
+<span class="sd">        * Quantity object with units (e.g., astropy.units.Quantity)</span>
+<span class="sd">        * String</span>
+<span class="sd">        * None(renders as empty string)</span>
+
+<span class="sd">    precision : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of decimal places for numerical formatting.</span>
+<span class="sd">        If `_UNSET`, uses `config.table_precision`.</span>
+<span class="sd">    sci_notation : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, formats numbers in scientific notation (e.g., 1.23e-04).</span>
+<span class="sd">        If `False`, formats as fixed-point decimals (e.g., 0.000123).</span>
+<span class="sd">        If `_UNSET`, uses `config.table_sci_notation`.</span>
+<span class="sd">    pad : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of spaces between columns for visual separation.</span>
+<span class="sd">        If `_UNSET`, uses `config.table_column_pad`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pretty_table</span><span class="p">(</span>
+        <span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">sci_notation</span><span class="o">=</span><span class="n">sci_notation</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="find_font">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.find_font">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_font</span><span class="p">(</span><span class="n">fontname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find and print the path of a registered matplotlib font.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fontname : str</span>
+<span class="sd">        Name of font. Is case sensitive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fontname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fontname</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">font</span> <span class="ow">in</span> <span class="n">font_manager</span><span class="o">.</span><span class="n">fontManager</span><span class="o">.</span><span class="n">ttflist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fontname</span> <span class="ow">in</span> <span class="n">font</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">font</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">.</span><span class="n">fname</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="print_font_info">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.print_font_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_font_info</span><span class="p">(</span><span class="n">fontname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print a matplotlib registered font&#39;s attributes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fontname : str</span>
+<span class="sd">        Name of font. Is case sensitive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">font_manager</span><span class="o">.</span><span class="n">fontManager</span><span class="o">.</span><span class="n">ttflist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">fontname</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">                Family : </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span>
+<span class="s2">                Style  : </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">style</span><span class="si">}</span>
+<span class="s2">                Weight : </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">weight</span><span class="si">}</span>
+<span class="s2">                Stretch: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">stretch</span><span class="si">}</span>
+<span class="s2">                Variant: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">variant</span><span class="si">}</span>
+<span class="s2">                Size   : </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">size</span><span class="si">}</span>
+<span class="s2">                File   : </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">fname</span><span class="si">}</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="check_font">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.check_font">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_font</span><span class="p">(</span><span class="n">font_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">glyph</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if font `font_name` is available on the system and isn&#39;t</span>
+<span class="sd">    missing glyphs. Default `glyph` checked is `&#39;D&#39;`, for `DejaVu Sans`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">font_path</span> <span class="o">=</span> <span class="n">font_manager</span><span class="o">.</span><span class="n">findfont</span><span class="p">(</span><span class="n">font_name</span><span class="p">,</span> <span class="n">fallback_to_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">ft2font</span><span class="o">.</span><span class="n">FT2Font</span><span class="p">(</span><span class="n">font_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">font</span><span class="o">.</span><span class="n">get_char_index</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="n">glyph</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span> <span class="c1"># glyph not found returns 0</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="pprint">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.pprint">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pprint</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">header</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">footer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">stream</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span><span class="p">,</span>
+    <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">compact</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">sort_dicts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">underscore_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pretty-print an object using `pprint.pprint`, optionally wrapped with</span>
+<span class="sd">    a header and footer.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object to pretty-print.</span>
+<span class="sd">    header : str, optional, default=None</span>
+<span class="sd">        Line printed before `obj`. If falsy, omitted.</span>
+<span class="sd">    footer : str, optional, default=&#39;\\n&#39;</span>
+<span class="sd">        Line printed after `obj`. If falsy, omitted.</span>
+<span class="sd">    stream : IO, optional, default=None</span>
+<span class="sd">        Output stream. If `None`, uses `sys.stdout`.</span>
+<span class="sd">    indent : int, optional, default=1</span>
+<span class="sd">        Spaces added per nesting level.</span>
+<span class="sd">    width : int, optional, default=80</span>
+<span class="sd">        Max line width before wrapping.</span>
+<span class="sd">    depth : int, optional, default=None</span>
+<span class="sd">        Max nesting depth shown. If `None`, unlimited.</span>
+<span class="sd">    compact : bool, optional, default=False</span>
+<span class="sd">        If `True`, packs sequences onto fewer lines when they fit `width`.</span>
+<span class="sd">    sort_dicts : bool, optional, default=True</span>
+<span class="sd">        If `False`, preserves dict insertion order instead of sorting keys.</span>
+<span class="sd">    underscore_numbers : bool, optional, default=False</span>
+<span class="sd">        If `True`, inserts `_` separators in large integers.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">_pp</span><span class="p">(</span>
+        <span class="n">obj</span><span class="p">,</span>
+        <span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span>
+        <span class="n">indent</span><span class="o">=</span><span class="n">indent</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span>
+        <span class="n">compact</span><span class="o">=</span><span class="n">compact</span><span class="p">,</span>
+        <span class="n">sort_dicts</span><span class="o">=</span><span class="n">sort_dicts</span><span class="p">,</span>
+        <span class="n">underscore_numbers</span><span class="o">=</span><span class="n">underscore_numbers</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">footer</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">footer</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,987 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.analysis.image_utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.analysis.image_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.analysis.image_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-09-22</span>
+<span class="sd">Date Modified: 2026-07-27</span>
+<span class="sd">Description:</span>
+<span class="sd">    Utility functions for image manipulations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">DTypeLike</span><span class="p">,</span> <span class="n">NDArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">convolve</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">get_config_value</span><span class="p">,</span> <span class="n">_resolve_default</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_errors</span><span class="p">,</span> <span class="n">_get_dtype</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_data</span><span class="p">,</span> <span class="n">get_value</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_unit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.datacube</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataCube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.fitsfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitsFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_require_dependency</span><span class="p">,</span> <span class="n">_offer_dependency</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._regions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PixCoord</span><span class="p">,</span>
+    <span class="n">EllipseAnnulusPixelRegion</span><span class="p">,</span>
+    <span class="n">EllipsePixelRegion</span><span class="p">,</span>
+    <span class="n">_HAS_REGIONS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._spectralcube</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SpectralCube</span><span class="p">,</span> <span class="n">_HAS_SPECTRAL_CUBE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.wcs_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_reproject_wcs</span>
+
+
+<span class="c1"># I/O Functions</span>
+<span class="c1"># -------------</span>
+<div class="viewcode-block" id="load_data_cube">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.load_data_cube">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_data_cube</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">hdu</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">DTypeLike</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">print_info</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">transpose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">invert_wcs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataCube</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a sequence of FITS files into a 3D data cube.</span>
+
+<span class="sd">    This function searches for all FITS files matching a</span>
+<span class="sd">    given path pattern, loads them into a NumPy array of shape</span>
+<span class="sd">    (T, M, N), and bundles the data, headers, errors, and WCS</span>
+<span class="sd">    into a `DataCube` object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Path pattern to FITS files. Wildcards are supported.</span>
+<span class="sd">        ie. `&#39;Spectro-Module/raw/HARPS*.fits&#39;`</span>
+<span class="sd">    error : bool, optional, default=True</span>
+<span class="sd">        If `True`, try to extract the error extension.</span>
+<span class="sd">        Converts variance to errors using `get_errors`.</span>
+<span class="sd">    hdu : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Hdu extension to use. If `_UNSET`, uses `config.hdu_idx`.</span>
+<span class="sd">    dtype : np.dtype | str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Data type for the loaded FITS data. If `_UNSET`, will use</span>
+<span class="sd">        the dtype of the provided data, promoting integer or</span>
+<span class="sd">        unsigned to `config.default_dtype`.</span>
+<span class="sd">    print_info : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If True, print summary information about the loaded cube.</span>
+<span class="sd">        If `_UNSET`, uses `config.print_info`.</span>
+<span class="sd">    transpose : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If True, transpose each 2D image before stacking into the cube.</span>
+<span class="sd">        This will also transpose each error array if available and</span>
+<span class="sd">        swap the WCS axes for consistency. The swapping of the WCS</span>
+<span class="sd">        can be disabled by `config.invert_wcs_if_transpose`.</span>
+<span class="sd">        If `_UNSET`, uses `config.transpose`.</span>
+<span class="sd">    invert_wcs : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.</span>
+<span class="sd">        If `_UNSET`, uses `config.invert_wcs_if_transpose`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cube : DataCube</span>
+<span class="sd">        A DataCube object containing:</span>
+
+<span class="sd">        * `cube.data` : np.ndarray of shape (T, M, N)</span>
+<span class="sd">        * `cube.header` : list of astropy.io.fits.Header objects</span>
+<span class="sd">        * `cube.error` : np.ndarray of shape (T, M, N)</span>
+<span class="sd">        * `cube.wcs` : list of `astropy.wcs.wcs.WCS`</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Search for all fits files starting with &#39;HARPS&#39; with .fits extention and load them:</span>
+<span class="sd">        &gt;&gt;&gt; filepath = &#39;Spectro-Module/raw/HARPS.*.fits&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_offer_dependency</span><span class="p">(</span><span class="s1">&#39;tqdm&#39;</span><span class="p">)</span>
+    <span class="n">hdu</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">hdu</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">hdu_idx</span><span class="p">)</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">default_dtype</span><span class="p">)</span>
+    <span class="n">print_info</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">print_info</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">print_info</span><span class="p">)</span>
+    <span class="n">transpose</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">transpose</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">transpose</span><span class="p">)</span>
+    <span class="n">invert_wcs</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">invert_wcs</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">invert_wcs_if_transpose</span><span class="p">)</span>
+
+    <span class="c1"># searches for all files within a directory</span>
+    <span class="n">fits_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fits_files</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No FITS files found for pattern: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># allocate ixMxN data cube array and header array</span>
+    <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fits_files</span><span class="p">)</span>
+
+    <span class="c1"># load first file to determine shape, dtype, and check for errors</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fits_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+            <span class="n">hdul</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="n">hdu</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="n">hdu</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">get_errors</span><span class="p">(</span><span class="n">hdul</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">_get_dtype</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">invert_wcs</span><span class="p">:</span>
+            <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">err</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c1"># preallocate data cube and headers</span>
+    <span class="n">datacube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_files</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">datacube</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">wcs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">wcs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wcs</span><span class="p">)</span>
+    <span class="c1"># preallocate error array if needed and error exists</span>
+    <span class="n">error_array</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">error</span> <span class="ow">and</span> <span class="n">err</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">error_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">datacube</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">error_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">err</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+
+    <span class="c1"># loop through remaining files</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">fits_files</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Loading FITS&#39;</span><span class="p">)):</span>
+        <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="n">hdu</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">headers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hdul</span><span class="p">[</span><span class="n">hdu</span><span class="p">]</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">get_errors</span><span class="p">(</span><span class="n">hdul</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">headers</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">invert_wcs</span><span class="p">:</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">err</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="n">err</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">datacube</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error_array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">err</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">error_array</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">err</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">wcs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wcs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs_list</span><span class="p">):</span>
+        <span class="n">wcs_list</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs_list</span><span class="p">):</span>
+        <span class="n">missing_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wcs_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Inconsistent WCS: files at indices </span><span class="si">{</span><span class="n">missing_indices</span><span class="si">}</span><span class="s1"> have no WCS, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;but other files do. Either all files must have WCS or none should.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">DataCube</span><span class="p">(</span><span class="n">datacube</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">error_array</span><span class="p">,</span> <span class="n">wcs_list</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_fits">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.load_fits">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_fits</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">print_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transpose</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_wcs</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+              <span class="n">invert_wcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Load a FITS file and return its data, header, and errors.</span>
+<span class="sd">    The WCS is also extracted if possible. Optionally, the</span>
+<span class="sd">    data and errors can be reprojected onto a target wcs.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Path to the FITS file to load.</span>
+<span class="sd">    header : bool, default=True</span>
+<span class="sd">        If True, return the FITS header along with the data</span>
+<span class="sd">        as a FitsFile object.</span>
+<span class="sd">        If False, only the data is returned.</span>
+<span class="sd">    error : bool, default=True</span>
+<span class="sd">        If True, return the &#39;ERR&#39; extention of the fits file.</span>
+<span class="sd">    print_info : bool or None, default=None</span>
+<span class="sd">        If True, print HDU information using &#39;hdul.info()&#39;.</span>
+<span class="sd">        If None, uses `config.print_info`.</span>
+<span class="sd">    transpose : bool or None, default=None</span>
+<span class="sd">        If True, transpose the data array before returning.</span>
+<span class="sd">        This will also transpose the error array and swap</span>
+<span class="sd">        the WCS axes for consistency. The swapping of the WCS</span>
+<span class="sd">        can be disabled by `config.invert_wcs_if_transpose`.</span>
+<span class="sd">        If None, uses `config.transpose`.</span>
+<span class="sd">    dtype : np.dtype, default=None</span>
+<span class="sd">        Data type to convert the FITS data to. If None,</span>
+<span class="sd">        determines the dtype from the data. Will convert to</span>
+<span class="sd">        np.float64 if not floating.</span>
+<span class="sd">    target_wcs : Header, WCS or None, optional, default=`_UNSET`</span>
+<span class="sd">        Reproject the input data onto the WCS of another</span>
+<span class="sd">        data set. Input data must have a valid header</span>
+<span class="sd">        to extract WCS from. If None, will not reproject</span>
+<span class="sd">        the input data. If `_UNSET`, uses `config.target_wcs`.</span>
+<span class="sd">    invert_wcs : bool or None, optional, default=None</span>
+<span class="sd">        If True, will perform a swapaxes(0,1) on the wcs if `transpose=True`.</span>
+<span class="sd">        If None, uses `config.invert_wcs_if_transpose`.</span>
+
+<span class="sd">    **kwargs : dict, optional</span>
+<span class="sd">        Additional parameters.</span>
+
+<span class="sd">        Supported keywords:</span>
+
+<span class="sd">        * `reproject_method` : {&#39;interp&#39;, &#39;exact&#39;} or None, default=`config.reproject_method`</span>
+<span class="sd">            Reprojection method:</span>
+
+<span class="sd">            * &#39;interp&#39; : use `reproject_interp`</span>
+<span class="sd">            *  &#39;exact&#39; : use `reproject_exact`</span>
+
+<span class="sd">        * `return_footprint` : bool or None, optional, default=`config.return_footprint`</span>
+<span class="sd">            If True, return both reprojected data and reprojection</span>
+<span class="sd">            footprints. If False, return only the reprojected data.</span>
+<span class="sd">        * `parallel` : bool, int, str, or None, optional, default=`config.reproject_parallel`</span>
+<span class="sd">            If True, the reprojection is carried out in parallel,</span>
+<span class="sd">            and if a positive integer, this specifies the number</span>
+<span class="sd">            of threads to use. The reprojection will be parallelized</span>
+<span class="sd">            over output array blocks specified by `block_size` (if the</span>
+<span class="sd">            block size is not set, it will be determined automatically).</span>
+<span class="sd">        * `block_size` : tuple, &#39;auto&#39;, or None, optional, default=`config.reproject_block_size`</span>
+<span class="sd">            The size of blocks in terms of output array pixels that each block</span>
+<span class="sd">            will handle reprojecting. Extending out from (0,0) coords positively,</span>
+<span class="sd">            block sizes are clamped to output space edges when a block would extend</span>
+<span class="sd">            past edge. Specifying &#39;auto&#39; means that reprojection will be done in</span>
+<span class="sd">            blocks with the block size automatically determined. If `block_size` is</span>
+<span class="sd">            not specified or set to None, the reprojection will not be carried out in blocks.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    FitsFile</span>
+<span class="sd">        If header or error is True, returns an object containing:</span>
+
+<span class="sd">        * data: `np.ndarray` of the FITS data</span>
+<span class="sd">        * header: `astropy.io.fits.Header` if `header=True` else None</span>
+<span class="sd">        * error: `np.ndarray` of the FITS error if `error=True` else None</span>
+<span class="sd">        * wcs: `astropy.wcs.wcs.WCS` if `header=True` else None</span>
+<span class="sd">            By default, is extracted from the header.</span>
+<span class="sd">            If a `target_wcs` is passed in, will override the default header.</span>
+
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        If header is False, returns just the data component.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># ---- KWARGS ----</span>
+    <span class="n">reproject_method</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reproject_method&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reproject_method</span><span class="p">)</span>
+    <span class="n">return_footprint</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;return_footprint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">return_footprint</span><span class="p">)</span>
+    <span class="n">parallel</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parallel&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reproject_parallel</span><span class="p">)</span>
+    <span class="n">block_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;block_size&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reproject_block_size</span><span class="p">)</span>
+
+    <span class="c1"># get default config values</span>
+    <span class="n">print_info</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">print_info</span><span class="p">,</span> <span class="s1">&#39;print_info&#39;</span><span class="p">)</span>
+    <span class="n">transpose</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">transpose</span><span class="p">,</span> <span class="s1">&#39;transpose&#39;</span><span class="p">)</span>
+    <span class="n">target_wcs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">target_wcs</span> <span class="k">if</span> <span class="n">target_wcs</span> <span class="ow">is</span> <span class="n">_UNSET</span> <span class="k">else</span> <span class="n">target_wcs</span>
+    <span class="n">invert_wcs</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">invert_wcs</span><span class="p">,</span> <span class="s1">&#39;invert_wcs_if_transpose&#39;</span><span class="p">)</span>
+
+    <span class="c1"># disable transpose if reprojecting</span>
+    <span class="k">if</span> <span class="n">target_wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">transpose</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s1">&#39;`transpose=True` ignored because `target_wcs` was provided.&#39;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">transpose</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fits_header</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">wcs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">footprint</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># print fits file info</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+            <span class="n">hdul</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+
+        <span class="c1"># extract data and optionally the header from the file</span>
+        <span class="c1"># if header is not requested, return None</span>
+        <span class="k">for</span> <span class="n">hdu</span> <span class="ow">in</span> <span class="n">hdul</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># type: ignore</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span> <span class="c1"># type: ignore</span>
+                <span class="n">fits_header</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span> <span class="k">if</span> <span class="n">header</span> <span class="k">else</span> <span class="kc">None</span> <span class="c1"># type: ignore</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;No image HDU with data found in file: </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s1">!&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">_get_dtype</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">get_errors</span><span class="p">(</span><span class="n">hdul</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">transpose</span><span class="p">)</span>
+
+        <span class="c1"># reproject wcs if user inputs a reference wcs or header</span>
+        <span class="c1"># otherwise try to extract wcs from fits header</span>
+        <span class="k">if</span> <span class="n">target_wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;reproject&#39;</span><span class="p">)</span>
+            <span class="c1"># ensure target_wcs has wcs information</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_wcs</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">target_wcs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">target_wcs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;target_wcs must be Header or WCS, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">target_wcs</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+            <span class="n">input_wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">fits_header</span><span class="p">)</span><span class="o">.</span><span class="n">celestial</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">footprint</span> <span class="o">=</span> <span class="n">_reproject_wcs</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">input_wcs</span><span class="p">),</span> <span class="n">wcs</span><span class="p">,</span>
+                                             <span class="n">method</span><span class="o">=</span><span class="n">reproject_method</span><span class="p">,</span>
+                                             <span class="n">return_footprint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                             <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                                             <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">errors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">errors</span> <span class="o">=</span> <span class="n">_reproject_wcs</span><span class="p">((</span><span class="n">errors</span><span class="p">,</span> <span class="n">input_wcs</span><span class="p">),</span> <span class="n">wcs</span><span class="p">,</span>
+                                        <span class="n">method</span><span class="o">=</span><span class="n">reproject_method</span><span class="p">,</span>
+                                        <span class="n">return_footprint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                        <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                                        <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># try extracting wcs from header</span>
+            <span class="k">if</span> <span class="n">fits_header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">fits_header</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">wcs</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">invert_wcs</span><span class="p">:</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">header</span> <span class="ow">or</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">fitsfile</span> <span class="o">=</span> <span class="n">FitsFile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fits_header</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">wcs</span><span class="p">)</span>
+        <span class="n">fitsfile</span><span class="o">.</span><span class="n">footprint</span> <span class="o">=</span> <span class="n">footprint</span> <span class="k">if</span> <span class="n">return_footprint</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">fitsfile</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="load_spectral_cube">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.load_spectral_cube">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_spectral_cube</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">,</span> <span class="n">hdu</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_info</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a spectral cube from a FITS file,</span>
+<span class="sd">    optionally including errors and header.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Path to the FITS file to read.</span>
+<span class="sd">    hdu : int or str</span>
+<span class="sd">        HDU index or name to read from the FITS file.</span>
+<span class="sd">    error : bool, optional, default=True</span>
+<span class="sd">        If True, load the associated error array using `get_errors`.</span>
+<span class="sd">    header : bool, optional, default=True</span>
+<span class="sd">        If True, load the HDU header.</span>
+<span class="sd">    dtype : data-type, optional, default=None</span>
+<span class="sd">        Desired NumPy dtype for the error array. If None, inferred</span>
+<span class="sd">        from FITS data, promoting integer and unsigned to `np.float64`.</span>
+<span class="sd">    print_info : bool or None, optional, default=None</span>
+<span class="sd">        If True, print FITS file info to the console.</span>
+<span class="sd">        If None, uses `config.print_info`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DataCube</span>
+<span class="sd">        A `DataCube` object containing:</span>
+
+<span class="sd">        * data : SpectralCube</span>
+<span class="sd">            Fits file data loaded as SpectralCube object.</span>
+<span class="sd">        * header : astropy.io.fits.Header</span>
+<span class="sd">            Fits file header.</span>
+<span class="sd">        * error : np.ndarray</span>
+<span class="sd">            Fits file error array.</span>
+<span class="sd">        * value : np.ndarray</span>
+<span class="sd">            Fits file data as np.ndarray.</span>
+
+<span class="sd">        Ex:</span>
+<span class="sd">        data = cube.data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;spectral-cube&#39;</span><span class="p">)</span>
+    <span class="n">print_info</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">print_info</span><span class="p">,</span> <span class="s1">&#39;print_info&#39;</span><span class="p">)</span>
+
+    <span class="n">spectral_cube</span> <span class="o">=</span> <span class="n">SpectralCube</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">hdu</span><span class="o">=</span><span class="n">hdu</span><span class="p">)</span>
+    <span class="c1"># initialize error and header objects</span>
+    <span class="n">error_array</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">hdr</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># open fits file</span>
+    <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdul</span><span class="p">:</span>
+        <span class="c1"># print fits info</span>
+        <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+            <span class="n">hdul</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+        <span class="c1"># load error array</span>
+        <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">error_array</span> <span class="o">=</span> <span class="n">get_errors</span><span class="p">(</span><span class="n">hdul</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+        <span class="c1"># load header</span>
+        <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
+            <span class="n">hdr</span> <span class="o">=</span> <span class="n">hdul</span><span class="p">[</span><span class="n">hdu</span><span class="p">]</span><span class="o">.</span><span class="n">header</span> <span class="c1"># type: ignore</span>
+
+    <span class="k">return</span> <span class="n">DataCube</span><span class="p">(</span><span class="n">spectral_cube</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">hdr</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error_array</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Cube Manipulation Functions</span>
+<span class="c1"># ---------------------------</span>
+<div class="viewcode-block" id="stack_cube">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.stack_cube">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stack_cube</span><span class="p">(</span>
+    <span class="n">cube</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stack or extract slices from a data cube. This operation</span>
+<span class="sd">    converts a 3D cube into a 2D cube. 2D data is left untouched.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cube : ndarray, Quantity, SpectralCube, or DataCube</span>
+<span class="sd">        3D data cube to stack.</span>
+<span class="sd">    idx : int | tuple[int, int] | None, optional, default=None</span>
+<span class="sd">        Index specification:</span>
+
+<span class="sd">        * int: extract single slice</span>
+<span class="sd">        * tuple[start, end]: extract range (inclusive)</span>
+<span class="sd">        * None: use entire cube</span>
+
+<span class="sd">    method : {&#39;mean&#39;, &#39;median&#39;, &#39;sum&#39;, &#39;max&#39;, &#39;min&#39;, &#39;std&#39;} | _Unset, default=_UNSET</span>
+<span class="sd">        Stacking method. If `_UNSET`, uses `config.stack_cube_method`.</span>
+<span class="sd">    axis : int, optional, default=0</span>
+<span class="sd">        Axis along which to stack.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray, Quantity, or SpectralCube</span>
+<span class="sd">        Stacked result (2D if axis=0) or extracted slice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stack_method</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">stack_cube_method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stack_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">_STACK_METHODS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown method &#39;</span><span class="si">{</span><span class="n">stack_method</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Options: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">_STACK_METHODS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">is_rgb</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="s1">&#39;is_rgb&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">cube</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">cube</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cube</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">is_rgb</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cube</span>
+
+    <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">cube</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">cube</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;idx must be an int, [start, end], or None&#39;</span><span class="p">)</span>
+
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="n">cube</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;idx must be int, list, or None; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_HAS_SPECTRAL_CUBE</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">SpectralCube</span><span class="p">):</span>
+        <span class="n">stack_func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">stack_method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stack_func</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">_STACK_METHODS</span><span class="p">[</span><span class="n">stack_method</span><span class="p">](</span><span class="n">cube</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Cube/Image Masking Functions</span>
+<span class="c1"># ----------------------------</span>
+<div class="viewcode-block" id="mask_image">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.mask_image">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_image</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">,</span> <span class="n">ellipse_region</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">line_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invert_region</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">above_line</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">preserve_shape</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">existing_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">combine_method</span><span class="o">=</span><span class="s1">&#39;union&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask an image with modular filters.</span>
+<span class="sd">    Supports applying an elliptical or annular region mask, an optional</span>
+<span class="sd">    line cut (upper or lower half-plane), and combining with an existing mask.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : array-like, DataCube, FitsFile, or SpectralCube</span>
+<span class="sd">        Input image or cube. If higher-dimensional, the mask is applied</span>
+<span class="sd">        to the last two axes.</span>
+<span class="sd">    ellipse_region : `EllipsePixelRegion` or `EllipseAnnulusPixelRegion`, optional, default=None</span>
+<span class="sd">        Region object specifying an ellipse or annulus.</span>
+<span class="sd">    region : str {&#39;annulus&#39;, &#39;ellipse&#39;}, optional, default=None</span>
+<span class="sd">        Type of region to apply. Ignored if `ellipse_region` is provided.</span>
+<span class="sd">    line_points : array-like, shape (2, 2), optional, default=None</span>
+<span class="sd">        Two (x, y) points defining a line for masking above/below.</span>
+<span class="sd">        Ex: [[0,2], [20,10]]</span>
+<span class="sd">    invert_region : bool, default=False</span>
+<span class="sd">        If True, invert the region mask.</span>
+<span class="sd">    above_line : bool, default=True</span>
+<span class="sd">        If True, keep the region above the line. If False, keep below.</span>
+<span class="sd">    preserve_shape : bool, default=True</span>
+<span class="sd">        If True, return an array of the same shape with masked values set to NaN.</span>
+<span class="sd">        If False, return only the unmasked pixels.</span>
+<span class="sd">    existing_mask : ndarray of bool, optional, default=None</span>
+<span class="sd">        An existing mask to combine (union) with the new mask.</span>
+<span class="sd">    combine_method : {&#39;union&#39;, &#39;intersect&#39;}, optional, default=None</span>
+<span class="sd">        If &#39;union&#39;, combine masks with `|`. If &#39;intersect&#39;, use `&amp;`.</span>
+
+<span class="sd">    **kwargs : dict, optional</span>
+<span class="sd">        Additional parameters.</span>
+
+<span class="sd">        Supported keywords:</span>
+
+<span class="sd">        * center : tuple of float, optional, default=None</span>
+<span class="sd">            Center coordinates (x, y).</span>
+<span class="sd">        * w : float, optional, default=None</span>
+<span class="sd">            Width of ellipse.</span>
+<span class="sd">        * h : float, optional, default=None</span>
+<span class="sd">            Height of ellipse.</span>
+<span class="sd">        * angle : float, optional, default=0</span>
+<span class="sd">            Rotation angle in degrees.</span>
+<span class="sd">        * tolerance : float, list, or tuple, optional, default=2</span>
+<span class="sd">            ±Tolerance (distance from radius) for annulus inner/outer radii.</span>
+<span class="sd">            If array-like, uses the first element as the minus bound,</span>
+<span class="sd">            and the second element as the positive.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    masked_image : ndarray or SpectralCube</span>
+<span class="sd">        Image with mask applied. Type matches input.</span>
+<span class="sd">    masks : ndarray of bool or list</span>
+<span class="sd">        If multiple masks are combined, returns a list containing the</span>
+<span class="sd">        master mask followed by individual masks. Otherwise returns a single mask.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ---- Kwargs ----</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tolerance&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tolerance</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">mtol</span> <span class="o">=</span> <span class="n">tolerance</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ptol</span> <span class="o">=</span> <span class="n">tolerance</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mtol</span> <span class="o">=</span> <span class="n">tolerance</span>
+        <span class="n">ptol</span> <span class="o">=</span> <span class="n">tolerance</span>
+
+    <span class="c1"># extract units</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="c1"># ensure working with array</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">DataCube</span><span class="p">,</span> <span class="n">FitsFile</span><span class="p">)):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="c1"># determine image shape</span>
+    <span class="n">N</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">))</span>
+    <span class="c1"># empty list to hold all masks</span>
+    <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># early return if just applying an existing mask</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ellipse_region</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">line_points</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">existing_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">existing_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;existing_mask must have same shape as image&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">preserve_shape</span><span class="p">:</span>
+                <span class="n">masked_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">masked_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">existing_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">existing_mask</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">masked_image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">existing_mask</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">UnitBase</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+                <span class="n">masked_image</span> <span class="o">*=</span> <span class="n">unit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if spectral cube or similar object</span>
+            <span class="n">masked_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">with_mask</span><span class="p">(</span><span class="n">existing_mask</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">masked_image</span>
+
+    <span class="c1"># ---- Region Mask ----</span>
+    <span class="c1"># if ellipse region is passed in use those values</span>
+    <span class="k">if</span> <span class="n">ellipse_region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">ellipse_region</span><span class="o">.</span><span class="n">center</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">ellipse_region</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">ellipse_region</span><span class="o">.</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">ellipse_region</span><span class="o">.</span><span class="n">angle</span> <span class="k">if</span> <span class="n">ellipse_region</span><span class="o">.</span><span class="n">angle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="c1"># accept user defined center, w, and h values if used</span>
+    <span class="k">elif</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">h</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="c1"># stop program if attempting to plot a region without necessary data</span>
+    <span class="k">elif</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either &#39;ellipse_region&#39; or &#39;center&#39;, &#39;w&#39;, &#39;h&#39; must be provided.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># construct region</span>
+    <span class="k">if</span> <span class="n">_HAS_REGIONS</span> <span class="ow">and</span> <span class="n">region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">region</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;annulus&#39;</span><span class="p">:</span>
+            <span class="n">region_obj</span> <span class="o">=</span> <span class="n">EllipseAnnulusPixelRegion</span><span class="p">(</span>
+                <span class="n">center</span><span class="o">=</span><span class="n">PixCoord</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="c1"># type: ignore</span>
+                <span class="n">inner_width</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">mtol</span><span class="p">),</span>
+                <span class="n">inner_height</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">mtol</span><span class="p">),</span>
+                <span class="n">outer_width</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">ptol</span><span class="p">),</span>
+                <span class="n">outer_height</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="n">ptol</span><span class="p">),</span>
+                <span class="n">angle</span><span class="o">=</span><span class="n">angle</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">region</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ellipse&#39;</span><span class="p">:</span>
+            <span class="n">region_obj</span> <span class="o">=</span> <span class="n">EllipsePixelRegion</span><span class="p">(</span>
+                <span class="n">center</span><span class="o">=</span><span class="n">PixCoord</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="c1"># type: ignore</span>
+                <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">a</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">b</span><span class="p">,</span>
+                <span class="n">angle</span><span class="o">=</span><span class="n">angle</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;region must be &#39;annulus&#39; or &#39;ellipse&#39;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># filter by region mask</span>
+        <span class="n">region_mask</span> <span class="o">=</span> <span class="n">region_obj</span><span class="o">.</span><span class="n">to_mask</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_image</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">invert_region</span><span class="p">:</span>
+            <span class="n">region_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">region_mask</span>
+        <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">region_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># empty mask if no region</span>
+        <span class="n">region_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="c1"># ---- Line Mask ----</span>
+    <span class="k">if</span> <span class="n">line_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># start from previous mask</span>
+        <span class="n">line_mask</span> <span class="o">=</span> <span class="n">region_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># compute slope and intercept of line</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">b_line</span> <span class="o">=</span> <span class="n">compute_line</span><span class="p">(</span><span class="n">line_points</span><span class="p">)</span>
+        <span class="c1"># filter out points above/below line</span>
+        <span class="n">line_mask</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="n">m</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">b_line</span><span class="p">)</span> <span class="k">if</span> <span class="n">above_line</span> <span class="k">else</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;=</span> <span class="n">m</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">b_line</span><span class="p">)</span>
+        <span class="c1"># add line region to mask array</span>
+        <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># empty mask if no region</span>
+        <span class="n">line_mask</span> <span class="o">=</span> <span class="n">region_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># ---- Combine Masks ----</span>
+    <span class="c1"># start master mask with line_mask (or region if no line)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">line_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># union with existing mask if provided</span>
+    <span class="k">if</span> <span class="n">existing_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">existing_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;existing_mask must have the same shape as the image&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">combine_method</span> <span class="o">==</span> <span class="s1">&#39;union&#39;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">|=</span> <span class="n">existing_mask</span>
+        <span class="k">elif</span> <span class="n">combine_method</span> <span class="o">==</span> <span class="s1">&#39;intersect&#39;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">existing_mask</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;`combine_method` has to be &#39;union&#39; or &#39;intersect&#39;! &quot;</span>
+                <span class="sa">f</span><span class="s1">&#39;Got </span><span class="si">{</span><span class="n">combine_method</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># ---- Apply Mask ----</span>
+    <span class="c1"># if numpy array:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">preserve_shape</span><span class="p">:</span>
+            <span class="n">masked_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">masked_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">masked_image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">UnitBase</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+            <span class="n">masked_image</span> <span class="o">*=</span> <span class="n">unit</span>
+    <span class="c1"># if spectral cube object</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masked_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">with_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># ---- Final Mask List ----</span>
+    <span class="c1"># Return master mask as first element</span>
+    <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+</span> <span class="n">masks</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">mask</span>
+
+    <span class="k">return</span> <span class="n">masked_image</span><span class="p">,</span> <span class="n">masks</span></div>
+
+
+
+<div class="viewcode-block" id="compute_line">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.compute_line">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_line</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Compute the slope and intercept of a line passing through two points.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : list or tuple of tuples</span>
+<span class="sd">        A sequence containing exactly two points, each as (x, y), e.g.,</span>
+<span class="sd">        [(x0, y0), (x1, y1)].</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    m : float</span>
+<span class="sd">        Slope of the line.</span>
+<span class="sd">    b : float</span>
+<span class="sd">        Intercept of the line (y = m*x + b).</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    * The function assumes the two points have different x-coordinates.</span>
+<span class="sd">    * If the x-coordinates are equal, a ZeroDivisionError will be raised.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="o">*</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span></div>
+
+
+
+<div class="viewcode-block" id="detect_edges">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.detect_edges">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_edges</span><span class="p">(</span>
+    <span class="n">input_data</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;rgb&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rgb&#39;</span><span class="p">,</span>
+    <span class="n">show_plot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;upper&#39;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detect edges on an image using a sobel filter.</span>
+<span class="sd">    Works on images with `ndim ∈ [2,3]`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_data : np.ndarray | str</span>
+<span class="sd">        Input data to run sobel filter on. Can either be</span>
+<span class="sd">        an array-like or a path to an image readable by</span>
+<span class="sd">        `plt.imread`. RGB and RGBA images are supported.</span>
+<span class="sd">    mode : {&#39;rgb&#39;, &#39;sum&#39;}, optional, default=&#39;rgb&#39;</span>
+<span class="sd">        Method to convert to grayscale if ndim &gt; 2.</span>
+
+<span class="sd">        * `&#39;rgb&#39;` : Only take into account `image[:,:,0:3]`.</span>
+<span class="sd">        * `&#39;sum&#39;` : Sum the entire second axis.</span>
+
+<span class="sd">    show_plot : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, plot the output image. If `_UNSET`, uses</span>
+<span class="sd">        `config.show_plot`.</span>
+<span class="sd">    origin : {&#39;lower&#39;, &#39;upper&#39;}, optional, default= &#39;upper&#39;</span>
+<span class="sd">        Pixel origin convention for `ax.imshow`.</span>
+<span class="sd">    kwargs :</span>
+<span class="sd">        Any keyword argument valid for `visualastro.plotting.ax.imshow`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sobel_img : np.ndarray</span>
+<span class="sd">        Output edge detected image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">show_plot</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">show_plot</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">show_plot</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">input_data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">get_value</span><span class="p">(</span><span class="n">input_data</span><span class="p">))</span>
+
+    <span class="n">grayscale</span> <span class="o">=</span> <span class="n">image_2_grayscale</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">sobel_img</span> <span class="o">=</span> <span class="n">compute_sobel_filter</span><span class="p">(</span><span class="n">grayscale</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">show_plot</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.ax</span><span class="w"> </span><span class="kn">import</span> <span class="n">ax</span> <span class="k">as</span> <span class="n">_ax</span>
+        <span class="n">_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">sobel_img</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sobel_img</span></div>
+
+
+
+<div class="viewcode-block" id="compute_sobel_filter">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.compute_sobel_filter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_sobel_filter</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convolve an image with the sobel operator.</span>
+<span class="sd">    Brings out the edges of an image.</span>
+
+<span class="sd">    Users should use `detect_edges` for a more stable api,</span>
+<span class="sd">    which supports images with more than 2 dimensions (ie. RGB / RGBA).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : np.ndarray</span>
+<span class="sd">        2D numpy array.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray :</span>
+<span class="sd">        Edge detected image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Kx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">]])</span>
+    <span class="n">Ky</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">]])</span>
+
+    <span class="n">Gx</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Kx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
+    <span class="n">Gy</span> <span class="o">=</span> <span class="n">convolve</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Ky</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Gx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Gy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="image_2_grayscale">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.image_2_grayscale">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">image_2_grayscale</span><span class="p">(</span>
+    <span class="n">image</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;rgb&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rgb&#39;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an image to grayscale. RGBA and RGB images are</span>
+<span class="sd">    flattened into a NxM image.</span>
+
+<span class="sd">    2D images are left untouched.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : np.ndarray</span>
+<span class="sd">        Image to convert to grayscale.</span>
+<span class="sd">    mode : {&#39;rgb&#39;, &#39;sum&#39;}, optional, default=&#39;rgb&#39;</span>
+<span class="sd">        Method to convert to grayscale if ndim &gt; 2.</span>
+
+<span class="sd">            * `&#39;rgb&#39;` : Only take into account `image[:,:,0:3]`.</span>
+<span class="sd">            * `&#39;sum&#39;` : Sum the entire second axis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    grayscale : np.ndarray</span>
+<span class="sd">        Grayscale version of the image, now with ndim=2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">get_value</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">image</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Incorrect image shape! Should have ndim ∈ [2,3], got </span><span class="si">{</span><span class="n">image</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s1">.&#39;</span>
+        <span class="p">)</span>
+    <span class="n">stack_mode</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image</span>
+
+    <span class="k">if</span> <span class="n">stack_mode</span> <span class="o">==</span> <span class="s1">&#39;rgb&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">@</span> <span class="p">[</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.587</span><span class="p">,</span> <span class="mf">0.114</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

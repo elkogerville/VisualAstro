@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.colormaps &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.colormaps</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.colormaps</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2026-07-04</span>
+<span class="sd">Date Modified: 2026-07-29</span>
+<span class="sd">Description:</span>
+<span class="sd">    Functions related to colormaps in plotting.</span>
+<span class="sd">    To define custom colormaps, define them at</span>
+<span class="sd">    the bottom of this file in `VISUALASTRO_CMAPS`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathCollection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mcolors</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FuncFormatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorType</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_offer_dependency</span><span class="p">,</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._cmasher</span><span class="w"> </span><span class="kn">import</span> <span class="n">cmasher</span><span class="p">,</span> <span class="n">_HAS_CMASHER</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._colorspacious</span><span class="w"> </span><span class="kn">import</span> <span class="n">cspace_converter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._tol_colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">_HAS_TOLCOLORS</span>
+
+
+<div class="viewcode-block" id="get_cmap">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.get_cmap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cmap</span><span class="p">(</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">cmap_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">N</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="n">bad_color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">under_color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">over_color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve a colormap by name or object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmap : mcolors.Colormap | str</span>
+<span class="sd">        Colormap object or string name, looked up via Matplotlib&#39;s</span>
+<span class="sd">        colormap registry.</span>
+<span class="sd">    cmap_range : tuple[float, float], optional, default=(0, 1)</span>
+<span class="sd">        Normalized sub-range to extract from `cmap`.</span>
+<span class="sd">    N : int, optional, default=256</span>
+<span class="sd">        Resolution of the resampled sub-range colormap. Ignored if</span>
+<span class="sd">        `cmap_range == (0, 1)`.</span>
+<span class="sd">    bad_color : ColorType | None, optional, default=None</span>
+<span class="sd">        Color for masked/invalid (NaN) data. If `None`, leaves unchanged.</span>
+<span class="sd">    under_color : ColorType | None, optional, default=None</span>
+<span class="sd">        Color for values below the normalization range. If `None`, leaves</span>
+<span class="sd">        unchanged.</span>
+<span class="sd">    over_color : ColorType | None, optional, default=None</span>
+<span class="sd">        Color for values above the normalization range. If `None`, leaves</span>
+<span class="sd">        unchanged.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mcolors.Colormap</span>
+<span class="sd">        The requested colormap.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `cmap_range` does not have exactly 2 elements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cm_range</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cmap_range</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmap_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;cmap_range must be a tuple[min, max]!&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">out_cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cm_range</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">out_cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">cm_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cm_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">N</span><span class="p">))</span>
+        <span class="n">out_cmap</span> <span class="o">=</span> <span class="n">create_cmap</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">out_cmap</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_sub&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out_cmap</span><span class="o">.</span><span class="n">with_extremes</span><span class="p">(</span>
+        <span class="n">bad</span><span class="o">=</span><span class="n">bad_color</span><span class="p">,</span>
+        <span class="n">under</span><span class="o">=</span><span class="n">under_color</span><span class="p">,</span>
+        <span class="n">over</span><span class="o">=</span><span class="n">over_color</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_cmap">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.create_cmap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_cmap</span><span class="p">(</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span> <span class="s1">&#39;discrete&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+    <span class="n">positions</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">N</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;custom_cmap&#39;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a colormap from a color sequence,</span>
+<span class="sd">    with continuous or discrete interpolation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    colors : Sequence[ColorType] | str</span>
+<span class="sd">        Color specifications (hex, named colors, RGB tuples, etc.).</span>
+<span class="sd">        The cmap will be created from these colors.</span>
+<span class="sd">    kind : {&#39;continuous&#39;, &#39;discrete&#39;}, optional, default=&#39;continuous&#39;</span>
+<span class="sd">        `&#39;continuous&#39;` returns a `LinearSegmentedColormap` (interpolated).</span>
+<span class="sd">        `&#39;discrete&#39;` returns a `ListedColormap` (stepwise, no interpolation).</span>
+<span class="sd">    positions : list[float] | None, optional, default=None</span>
+<span class="sd">        Positions in [0, 1] for each color, monotonically increasing,</span>
+<span class="sd">        and must start with 0 and end with 1. Only used when `kind=&#39;continuous&#39;`.</span>
+<span class="sd">        If `None`, colors are evenly spaced. Ignored when `kind=&#39;discrete&#39;`.</span>
+<span class="sd">    N : int, optional, default=256</span>
+<span class="sd">        The number of RGB quantization levels. Valid for `kind=&#39;continuous&#39;`.</span>
+<span class="sd">        Ignored for `kind=&#39;discrete&#39;`.</span>
+<span class="sd">    name : str, optional, default=&#39;custom_cmap&#39;</span>
+<span class="sd">        Name assigned to the colormap.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LinearSegmentedColormap | ListedColormap</span>
+<span class="sd">        Colormap object corresponding to `kind`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    `N` has no effect for `ListedColormap`: its resolution is fixed to</span>
+<span class="sd">    `len(colors)` by construction. Passing `N` with `kind=&#39;discrete&#39;`</span>
+<span class="sd">    triggers a warning, not an error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">colors</span> <span class="ow">in</span> <span class="n">mpl</span><span class="o">.</span><span class="n">color_sequences</span><span class="p">:</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">color_sequences</span><span class="p">[</span><span class="n">colors</span><span class="p">]</span>
+
+    <span class="n">rgba_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">mcolors</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">positions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rgba_list</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">rgba_list</span><span class="p">)),</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">!=</span> <span class="mi">256</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;N is ignored for kind=&#39;discrete&#39;&quot;</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">rgba_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid kind: </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">. Expected &#39;continuous&#39; or &#39;discrete&#39;.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_cmap_lightness">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_cmap_lightness">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_cmap_lightness</span><span class="p">(</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">],</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">legend_label</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">inline_label</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">inline_label_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">xticks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">xtick_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">PathCollection</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot L* (CAM02-UCS lightness) as a function of colormap index.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmap : str | mcolors.Colormap | list[str | mcolors.Colormap]</span>
+<span class="sd">        Colormap name(s) or instance(s).</span>
+<span class="sd">    ax : matplotlib.axes.Axes, optional, default=None</span>
+<span class="sd">        Target axes. Created via `plt.subplots` if None.</span>
+<span class="sd">    s : float, optional, default=300</span>
+<span class="sd">        Marker size passed to `ax.scatter`.</span>
+<span class="sd">    offset : float, optional, default=0</span>
+<span class="sd">        Gap inserted between adjacent columns along x. Column `col` spans</span>
+<span class="sd">        `[col*(1+offset), col*(1+offset)+1]`.</span>
+<span class="sd">    ncols : int, optional, default=1</span>
+<span class="sd">        Number of columns before wrapping to a new row.</span>
+<span class="sd">    legend_label : bool, optional, default=True</span>
+<span class="sd">        If `True`, add each colormap to the axes legend.</span>
+<span class="sd">    inline_label : bool, optional, default=False</span>
+<span class="sd">        If `True`, annotate the colormap name directly above its column</span>
+<span class="sd">        instead of relying on the legend. Recommended when `ncols &gt; 1`.</span>
+<span class="sd">    inline_label_offset : float, optional, default=0</span>
+<span class="sd">        Additional vertical stagger applied to inline labels on odd-indexed</span>
+<span class="sd">        columns (`col % 2 == 1`) to reduce label collisions when adjacent</span>
+<span class="sd">        columns are closely spaced. Has no effect if `inline_label=False`.</span>
+<span class="sd">    xticks : bool, optional, default=True</span>
+<span class="sd">        If `True`, plot xticks.</span>
+<span class="sd">    xtick_labels : bool, optional, default=True</span>
+<span class="sd">        If `True`, plot xtick labels.</span>
+<span class="sd">    **kwargs : dict, optional</span>
+<span class="sd">        Additional keyword arguments passed to `ax.scatter`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scatters : list[matplotlib.collections.PathCollection]</span>
+<span class="sd">        Scatter artists, one per colormap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;colorspacious&#39;</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.legend</span><span class="w"> </span><span class="kn">import</span> <span class="n">legend</span> <span class="k">as</span> <span class="n">_legend</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+
+    <span class="n">ncols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ncols</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ncols</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ncols must be &gt;= 1!&#39;</span><span class="p">)</span>
+
+    <span class="n">cmaps</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">row_spacing</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">col_stride</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">offset</span>
+    <span class="n">label_pad</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">scatters</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cmaps</span><span class="p">):</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="n">x_start</span> <span class="o">=</span> <span class="n">col</span> <span class="o">*</span> <span class="n">col_stride</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_start</span><span class="p">,</span> <span class="n">x_start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="n">y_offset</span> <span class="o">=</span> <span class="o">-</span><span class="n">row</span> <span class="o">*</span> <span class="n">row_spacing</span> <span class="k">if</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">c</span><span class="p">(</span><span class="n">samples</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">lab</span> <span class="o">=</span> <span class="n">cspace_converter</span><span class="p">(</span><span class="s1">&#39;sRGB1&#39;</span><span class="p">,</span> <span class="s1">&#39;CAM02-UCS&#39;</span><span class="p">)(</span><span class="n">rgb</span><span class="p">)</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">lab</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">scatter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">L</span> <span class="o">+</span> <span class="n">y_offset</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">scatters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scatter</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">_HAS_CMASHER</span> <span class="ow">and</span> <span class="n">legend_label</span><span class="p">:</span>
+            <span class="n">_offer_dependency</span><span class="p">(</span><span class="s1">&#39;cmasher&#39;</span><span class="p">)</span>
+            <span class="n">cmasher</span><span class="o">.</span><span class="n">set_cmap_legend_entry</span><span class="p">(</span><span class="n">scatter</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inline_label</span><span class="p">:</span>
+            <span class="n">stagger</span> <span class="o">=</span> <span class="n">inline_label_offset</span> <span class="k">if</span> <span class="n">col</span> <span class="o">%</span> <span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="n">x_start</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y_offset</span> <span class="o">+</span> <span class="mi">100</span> <span class="o">+</span> <span class="n">label_pad</span> <span class="o">+</span> <span class="n">stagger</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">fontsize</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">legend_label</span><span class="p">:</span>
+        <span class="n">_legend</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;L$^*$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">label_fontsize</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ncols</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">n_rows</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">cmaps</span><span class="p">)</span> <span class="o">//</span> <span class="n">ncols</span><span class="p">)</span>
+        <span class="n">yticks</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="o">*</span> <span class="o">-</span><span class="n">row_spacing</span> <span class="o">+</span> <span class="n">v</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_rows</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">)]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">yticks</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span>
+            <span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">y</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">row_spacing</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">xtick_labels</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">xticks</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+
+    <span class="k">return</span> <span class="n">scatters</span></div>
+
+
+
+<span class="c1"># VISUALASTRO COLOR MAPS</span>
+<span class="c1"># ----------------------</span>
+<span class="n">BuWhRd</span> <span class="o">=</span> <span class="n">create_cmap</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">&#39;#191970&#39;</span><span class="p">,</span> <span class="s1">&#39;#0000FF&#39;</span><span class="p">,</span> <span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="s1">&#39;#FF0000&#39;</span><span class="p">,</span> <span class="s1">&#39;#8b0000&#39;</span><span class="p">],</span>
+    <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;BuWhRd&#39;</span>
+<span class="p">)</span>
+
+<span class="n">VISUALASTRO_CMAPS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;BuWhRd&#39;</span><span class="p">:</span> <span class="n">BuWhRd</span><span class="p">,</span>
+    <span class="s1">&#39;nuclear_waste&#39;</span><span class="p">:</span> <span class="n">create_cmap</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">&#39;#1CFF00&#39;</span><span class="p">,</span> <span class="s1">&#39;#A7FF63&#39;</span><span class="p">,</span> <span class="s1">&#39;#D1E61C&#39;</span><span class="p">,</span> <span class="s1">&#39;#A2A838&#39;</span><span class="p">,</span> <span class="s1">&#39;#6CA838&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;nuclear_waste&#39;</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;shrek&#39;</span><span class="p">:</span> <span class="n">create_cmap</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">&#39;#6CA838&#39;</span><span class="p">,</span> <span class="s1">&#39;#1CFF00&#39;</span><span class="p">,</span> <span class="s1">&#39;#A7FF63&#39;</span><span class="p">,</span> <span class="s1">&#39;#D1E61C&#39;</span><span class="p">,</span> <span class="s1">&#39;#A2A838&#39;</span><span class="p">,</span> <span class="s1">&#39;#7E8140&#39;</span><span class="p">,</span> <span class="s1">&#39;#575931&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;shrek&#39;</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;crayons_neon&#39;</span><span class="p">:</span> <span class="n">create_cmap</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">&#39;#FF1DCE&#39;</span><span class="p">,</span> <span class="s1">&#39;#CCFF00&#39;</span><span class="p">,</span> <span class="s1">&#39;#00B9FB&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;crayons_neon&#39;</span>
+    <span class="p">),</span>
+    <span class="s1">&#39;debos&#39;</span><span class="p">:</span> <span class="n">create_cmap</span><span class="p">(</span>
+        <span class="p">[</span><span class="s1">&#39;#3464F5&#39;</span><span class="p">,</span> <span class="s1">&#39;#93BFE6&#39;</span><span class="p">,</span> <span class="s1">&#39;#8FE3BC&#39;</span><span class="p">,</span> <span class="s1">&#39;#F4C572&#39;</span><span class="p">,</span> <span class="s1">&#39;#F56D53&#39;</span><span class="p">,</span> <span class="s1">&#39;#D3153A&#39;</span><span class="p">,</span> <span class="s1">&#39;#9C0569&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;debos&#39;</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="n">_HAS_TOLCOLORS</span><span class="p">:</span>
+    <span class="n">iridescent</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;tol.iridescent&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">iridescent</span><span class="o">.</span><span class="n">set_bad</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="n">tol_rainbow</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;tol.rainbow&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">tol_rainbow</span><span class="o">.</span><span class="n">set_bad</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+
+    <span class="n">VISUALASTRO_CMAPS</span><span class="p">[</span><span class="s1">&#39;iridescent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iridescent</span>
+    <span class="n">VISUALASTRO_CMAPS</span><span class="p">[</span><span class="s1">&#39;tol_rainbow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tol_rainbow</span>
+
+<span class="n">CMAPNAMES</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">VISUALASTRO_CMAPS</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

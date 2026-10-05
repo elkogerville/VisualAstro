@@ -1,0 +1,1016 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.ax &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.ax</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.ax</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-07-13</span>
+<span class="sd">Date Modified: 2026-03-14</span>
+<span class="sd">Description:</span>
+<span class="sd">    Visualastro user interface for publication ready plots.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colormap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.markers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MarkerStyle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorType</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span>
+    <span class="n">_UNSET</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">savefig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span><span class="p">,</span> <span class="n">_cycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.science.wcs_plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">imshow</span><span class="p">,</span> <span class="n">plot_spectral_cube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.base.plots</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">hist</span><span class="p">,</span>
+    <span class="n">plot_density_histogram</span><span class="p">,</span>
+    <span class="n">plot</span><span class="p">,</span>
+    <span class="n">scatter</span><span class="p">,</span>
+    <span class="n">scatter3D</span><span class="p">,</span>
+    <span class="n">scatter_fit</span><span class="p">,</span>
+    <span class="n">scatter_project</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.style</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_style_modifiers</span><span class="p">,</span> <span class="n">_style_context</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.science.spectra_plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_combine_spectrum</span><span class="p">,</span> <span class="n">plot_spectra</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.wcs_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_wcs_celestial</span>
+
+
+<div class="viewcode-block" id="ax">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ax</span><span class="p">:</span>
+<div class="viewcode-block" id="ax.imshow">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.imshow">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">imshow</span><span class="p">(</span>
+        <span class="n">datas</span><span class="p">,</span>
+        <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">stack_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">origin</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">wcs_input</span><span class="p">:</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">invert_wcs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">aspect</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;equal&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">mask_non_pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `imshow` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.science.wcs_plots.imshow` for full documentation.</span>
+
+<span class="sd">        Additional Parameters</span>
+<span class="sd">        ---------------------</span>
+<span class="sd">        wcs_input : WCS | Header | None, optional, default=None</span>
+<span class="sd">            If provided, will be used to create a `WCSAxes` plot.</span>
+<span class="sd">        invert_wcs : bool, optional, default=False</span>
+<span class="sd">            If `True`, will swap WCS axes using `wcs.swapaxes(0, 1)`.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; ax = va.add_subplot()</span>
+<span class="sd">            &gt;&gt;&gt; va.imshow(data, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="c1"># by default plot WCS if available</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">wcs_input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">wcs_input</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># if wcs or header is available, use that</span>
+                <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;wcs&#39;</span><span class="p">,</span> <span class="s1">&#39;header&#39;</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">datas</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">wcs_input</span> <span class="o">=</span> <span class="n">value</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># no wcs data; fall back to default axes</span>
+                    <span class="n">wcs_input</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># create wcs object if provided</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Failed to create WCS from Header: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+                    <span class="p">)</span>
+                    <span class="n">wcs_input</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Failed to create WCS from array-like: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+                    <span class="p">)</span>
+                    <span class="n">wcs_input</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs_input</span>
+
+            <span class="k">elif</span> <span class="n">wcs_input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported wcs_input type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">wcs_input</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">celestial</span>
+                <span class="k">if</span> <span class="n">invert_wcs</span><span class="p">:</span>
+                    <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="k">if</span> <span class="n">wcs_input</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs</span><span class="p">)</span>
+            <span class="n">apply_style_modifiers</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+            <span class="n">imshow</span><span class="p">(</span>
+                <span class="n">datas</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+                <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+                <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span>
+                <span class="n">percentile</span><span class="o">=</span><span class="n">percentile</span><span class="p">,</span>
+                <span class="n">stack_method</span><span class="o">=</span><span class="n">stack_method</span><span class="p">,</span>
+                <span class="n">origin</span><span class="o">=</span><span class="n">origin</span><span class="p">,</span>
+                <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+                <span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">,</span>
+                <span class="n">mask_non_pos</span><span class="o">=</span><span class="n">mask_non_pos</span><span class="p">,</span>
+                <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.plot_spectral_cube">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.plot_spectral_cube">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_spectral_cube</span><span class="p">(</span>
+        <span class="n">cubes</span><span class="p">,</span>
+        <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">stack_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">radial_vel</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">spectral_unit</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">mask_non_pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `plot_spectral_cube` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.science.wcs_plots.plot_spectral_cube` for full</span>
+<span class="sd">        documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots(projection=data.wcs)</span>
+<span class="sd">            &gt;&gt;&gt; va.plot_spectral_cube(data, idx, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="n">cubes</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">cubes</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="n">wcs2d</span> <span class="o">=</span> <span class="n">get_wcs_celestial</span><span class="p">(</span><span class="n">_cycle</span><span class="p">(</span><span class="n">cubes</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reference_idx</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs2d</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">wcs2d</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">apply_style_modifiers</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">plot_spectral_cube</span><span class="p">(</span>
+                <span class="n">cubes</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+                <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+                <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span>
+                <span class="n">percentile</span><span class="o">=</span><span class="n">percentile</span><span class="p">,</span>
+                <span class="n">stack_method</span><span class="o">=</span><span class="n">stack_method</span><span class="p">,</span>
+                <span class="n">radial_vel</span><span class="o">=</span><span class="n">radial_vel</span><span class="p">,</span>
+                <span class="n">spectral_unit</span><span class="o">=</span><span class="n">spectral_unit</span><span class="p">,</span>
+                <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+                <span class="n">mask_non_pos</span><span class="o">=</span><span class="n">mask_non_pos</span><span class="p">,</span>
+                <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.plot_spectra">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.plot_spectra">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_spectra</span><span class="p">(</span>
+        <span class="n">extracted_spectra</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot_continuum</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">plot_norm_continuum</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">emission_line</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">flux</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">continuum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">vline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `plot_spectra` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.science.spectra_plots.plot_spectra` for full</span>
+<span class="sd">        documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; spectrum = Spectrum(spectral_axis, flux)</span>
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.plot_spectra(spectrum, idx, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">plot_spectra</span><span class="p">(</span>
+                <span class="n">extracted_spectra</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">plot_continuum</span><span class="o">=</span><span class="n">plot_continuum</span><span class="p">,</span>
+                <span class="n">plot_norm_continuum</span><span class="o">=</span><span class="n">plot_norm_continuum</span><span class="p">,</span>
+                <span class="n">emission_line</span><span class="o">=</span><span class="n">emission_line</span><span class="p">,</span>
+                <span class="n">wavelength</span><span class="o">=</span><span class="n">wavelength</span><span class="p">,</span>
+                <span class="n">flux</span><span class="o">=</span><span class="n">flux</span><span class="p">,</span>
+                <span class="n">continuum</span><span class="o">=</span><span class="n">continuum</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">vline</span><span class="o">=</span><span class="n">vline</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.plot_combine_spectrum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.plot_combine_spectrum">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_combine_spectrum</span><span class="p">(</span><span class="n">extracted_spectra</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">wave_cuttofs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">concatenate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_spectra</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">plot_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_samecolor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Convenience wrapper for `plot_combine_spectrum`, to facilitate stiching</span>
+<span class="sd">        spectra together.</span>
+
+<span class="sd">        Initializes a Matplotlib figure and axis using the specified plotting</span>
+<span class="sd">        style, then calls the core `plot_combine_spectrum` routine with the provided</span>
+<span class="sd">        parameters. This method is intended for rapid visualization and consistent</span>
+<span class="sd">        figure formatting, while preserving full configurability through **kwargs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        extracted_spectra : list of `SpectrumPlus`/`Spectrum`, or list of list of `SpectrumPlus`/`Spectrum`</span>
+<span class="sd">            List of spectra to plot. Each element should contain wavelength and flux attributes,</span>
+<span class="sd">            and optionally the normalize attribute.</span>
+<span class="sd">        idx : int, optional, default=0</span>
+<span class="sd">            Index to select a specific spectrum if elements of `extracted_spectra` are lists.</span>
+<span class="sd">            This is useful when extracting spectra from multiple regions at once.</span>
+<span class="sd">            Ex:</span>
+<span class="sd">                spec_1 = [spectrum1, spectrum2]</span>
+<span class="sd">                spec_2 = [spectrum3, spectrum4]</span>
+<span class="sd">                extracted_spectra = [spec_1[idx], spec_2[idx]]</span>
+<span class="sd">        wave_cuttofs : list of float, optional, default=None</span>
+<span class="sd">            Wavelength limits of each spectra used to mask spectra when stiching together.</span>
+<span class="sd">            If provided, should contain the boundary wavelengths in sequence (e.g., [λ₀, λ₁, λ₂, ...λₙ]).</span>
+<span class="sd">            Note:</span>
+<span class="sd">                If N spectra are provided, ensure there are N+1 limits. For each i spectra, the</span>
+<span class="sd">                program will define the limits as `wave_cuttofs[i]` &lt; `spectra[i]` &lt; `wave_cuttofs[i+1]`.</span>
+<span class="sd">        concatenate : bool, optional, default=False</span>
+<span class="sd">            If True, concatenate all spectra and plot as a single continuous curve.</span>
+<span class="sd">        return_spectra : bool, optional, default=False</span>
+<span class="sd">            If True, return the concatenated `SpectrumPlus` object instead of only plotting.</span>
+<span class="sd">            If True, `concatenate` is set to True.</span>
+<span class="sd">        plot_normalize : bool, optional, default=False</span>
+<span class="sd">            If True, plot the normalized flux instead of the raw flux.</span>
+<span class="sd">        use_samecolor : bool, optional, default=True</span>
+<span class="sd">            If True, use the same color for all spectra. If `concatenate` is True,</span>
+<span class="sd">            `use_samecolor` is also set to True.</span>
+<span class="sd">        colors : list of colors, str, or None, optional, default=None</span>
+<span class="sd">            Colors to use for each scatter group or dataset.</span>
+<span class="sd">            If None, `config.default_colorset`.</span>
+
+<span class="sd">        **kwargs : dict, optional</span>
+<span class="sd">            Additional parameters.</span>
+
+<span class="sd">            Supported keywords:</span>
+
+<span class="sd">            - `rasterized` : bool, default=`config.rasterized`</span>
+<span class="sd">                Whether to rasterize plot artists. Rasterization</span>
+<span class="sd">                converts the artist to a bitmap when saving to</span>
+<span class="sd">                vector formats (e.g., PDF, SVG), which can</span>
+<span class="sd">                significantly reduce file size for complex plots.</span>
+<span class="sd">            - ylim : tuple, optional, default=None</span>
+<span class="sd">                y-axis limits as (ymin, ymax).</span>
+<span class="sd">            - `color` or `c` : list of colors or None, optional, default=None</span>
+<span class="sd">                Aliases for `colors`.</span>
+<span class="sd">            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`</span>
+<span class="sd">                Line style of plotted lines. Accepted styles: {&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;, &#39;&#39;}.</span>
+<span class="sd">            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`</span>
+<span class="sd">                Line width for the plotted lines.</span>
+<span class="sd">            - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`</span>
+<span class="sd">                The alpha blending value, between 0 (transparent) and 1 (opaque).</span>
+<span class="sd">            - cmap : str, optional, default=`config.cmap`</span>
+<span class="sd">                Colormap name for generating colors.</span>
+<span class="sd">            - label : str, optional, default=None.</span>
+<span class="sd">                Label for the plotted spectrum.</span>
+<span class="sd">            - loc : str, optional, default=`config.legend.loc`</span>
+<span class="sd">                Legend location (e.g., &#39;best&#39;, &#39;upper right&#39;).</span>
+<span class="sd">            - xlabel, ylabel : str, optional, default=None</span>
+<span class="sd">                Axis labels.</span>
+<span class="sd">            - unit_bracket_style : Literal[&#39;round&#39;, &#39;square&#39;], optional, default=`config.unit_bracket_style`</span>
+<span class="sd">                If `&#39;round`&#39; displays `extracted_spectra` unit as (unit). If `&#39;square`&#39; as [unit].</span>
+<span class="sd">            - `figsize` : tuple of float, default=`config.figsize`</span>
+<span class="sd">                Figure size in inches.</span>
+<span class="sd">            - `style` : str, default=`config.style`</span>
+<span class="sd">                Matplotlib or visualastro style name to apply during plotting.</span>
+<span class="sd">                Ex: &#39;astro&#39;, &#39;classic&#39;, etc...</span>
+<span class="sd">            - `savefig` : bool, default=`config.savefig.enable`</span>
+<span class="sd">                If True, saves the figure to disk using `savefig`.</span>
+<span class="sd">            - `dpi` : int, default=`config.savefig.dpi`</span>
+<span class="sd">                Resolution (dots per inch) for saved figure.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectrumPlus or None</span>
+<span class="sd">            If `return_spectra` is True, returns the concatenated spectrum.</span>
+<span class="sd">            Otherwise, returns None.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - If `concatenate` is True, all spectra are merged and plotted as one line.</span>
+<span class="sd">        - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding</span>
+<span class="sd">        wavelength interval before plotting.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># figure params</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="c1"># savefig</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">return_spectra</span><span class="p">:</span>
+                <span class="n">combined_spectra</span> <span class="o">=</span> <span class="n">plot_combine_spectrum</span><span class="p">(</span><span class="n">extracted_spectra</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span>
+                                                         <span class="n">wave_cuttofs</span><span class="p">,</span> <span class="n">concatenate</span><span class="p">,</span>
+                                                         <span class="n">return_spectra</span><span class="p">,</span> <span class="n">plot_normalize</span><span class="p">,</span>
+                                                         <span class="n">use_samecolor</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">combined_spectra</span> <span class="o">=</span> <span class="n">plot_combine_spectrum</span><span class="p">(</span><span class="n">extracted_spectra</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span>
+                                      <span class="n">wave_cuttofs</span><span class="p">,</span> <span class="n">concatenate</span><span class="p">,</span>
+                                      <span class="n">return_spectra</span><span class="p">,</span> <span class="n">plot_normalize</span><span class="p">,</span>
+                                      <span class="n">use_samecolor</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">return_spectra</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">combined_spectra</span></div>
+
+
+
+<div class="viewcode-block" id="ax.plot_density_histogram">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.plot_density_histogram">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_density_histogram</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlog</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylog</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">xlog_hist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylog_hist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Convenience wrapper for `plot_density_histogram`, to plot 2D scatter</span>
+<span class="sd">        distributions with normalizable histograms of the distributions.</span>
+
+<span class="sd">        Initializes a Matplotlib figure and axis using the specified plotting</span>
+<span class="sd">        style, then calls the core `plot_density_histogram` routine with the provided</span>
+<span class="sd">        parameters. This method is intended for rapid visualization and consistent</span>
+<span class="sd">        figure formatting, while preserving full configurability through **kwargs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array-like or list of arrays</span>
+<span class="sd">            The x-axis data or list of data arrays.</span>
+<span class="sd">        Y : array-like or list of arrays</span>
+<span class="sd">            The y-axis data or list of data arrays.</span>
+<span class="sd">        bins : int, sequence, str, or None, optional, default=None</span>
+<span class="sd">            Histogram bin specification. Passed directly to</span>
+<span class="sd">            `matplotlib.pyplot.hist`. If None, uses `config.bins`.</span>
+<span class="sd">            If `bins` is a str, use one of the supported binning strategies</span>
+<span class="sd">            &#39;auto&#39;, &#39;fd&#39;, &#39;doane&#39;, &#39;scott&#39;, &#39;stone&#39;, &#39;rice&#39;, &#39;sturges&#39;, or &#39;sqrt&#39;.</span>
+<span class="sd">        xlog : bool or None, optional, default=None</span>
+<span class="sd">            Whether to use a logarithmic x-axis scale for the scatter plot.</span>
+<span class="sd">            If None, uses `config.axes.xlog`.</span>
+<span class="sd">        ylog : bool or None, optional, default=None</span>
+<span class="sd">            Whether to use a logarithmic y-axis scale for the scatter plot.</span>
+<span class="sd">            If None, uses `config.axes.ylog`.</span>
+<span class="sd">        xlog_hist : bool or None, optional, default=None</span>
+<span class="sd">            Whether to use a logarithmic x-axis scale for the top histogram.</span>
+<span class="sd">            If None, uses `config.axes.xlog_hist`.</span>
+<span class="sd">        ylog_hist : bool or None, optional, default=None</span>
+<span class="sd">            Whether to use a logarithmic y-axis scale for the right histogram.</span>
+<span class="sd">            If None, uses `config.axes.ylog_hist`.</span>
+<span class="sd">        histtype : {&#39;bar&#39;, &#39;barstacked&#39;, &#39;step&#39;, &#39;stepfilled&#39;} or None, optional, default=None</span>
+<span class="sd">            Type of histogram to draw. If None, uses `config.histtype`.</span>
+<span class="sd">        normalize : bool, optional, default=None</span>
+<span class="sd">            If True, normalize histograms to a probability density.</span>
+<span class="sd">            If None, uses `config.normalize_hist`.</span>
+<span class="sd">        colors : list of colors, str, or None, optional, default=None</span>
+<span class="sd">            Colors for each dataset. If None, uses the</span>
+<span class="sd">            default color colorset from `config.default_colorset`.</span>
+
+<span class="sd">        **kwargs : dict, optional</span>
+<span class="sd">            Additional parameters.</span>
+
+<span class="sd">            Supported keyword arguments include:</span>
+
+<span class="sd">            - `rasterized` : bool, default=`config.rasterized`</span>
+<span class="sd">                Whether to rasterize plot artists. Rasterization</span>
+<span class="sd">                converts the artist to a bitmap when saving to</span>
+<span class="sd">                vector formats (e.g., PDF, SVG), which can</span>
+<span class="sd">                significantly reduce file size for complex plots.</span>
+<span class="sd">            - `color`, `c` : list of colors, str, or None, optional, default=None</span>
+<span class="sd">                aliases for `colors`.</span>
+<span class="sd">            - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`</span>
+<span class="sd">                Marker size(s) for scatter points.</span>
+<span class="sd">            - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`</span>
+<span class="sd">                Marker style(s) for scatter points.</span>
+<span class="sd">            - `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`</span>
+<span class="sd">                Transparency level(s).</span>
+<span class="sd">            - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`</span>
+<span class="sd">                Edge colors for scatter points.</span>
+<span class="sd">            - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`</span>
+<span class="sd">                Line style(s) for histogram edges.</span>
+<span class="sd">            - `linewidth`, `lw` : float or list, optional, default=`config.linewidth`</span>
+<span class="sd">                Line width(s) for histogram edges.</span>
+<span class="sd">            - `zorders`, `zorder` : int or list, optional, default=None</span>
+<span class="sd">                Z-order(s) for drawing priority.</span>
+<span class="sd">            - `cmap` : str, optional, default=`config.cmap`</span>
+<span class="sd">                Colormap name for automatic color assignment.</span>
+<span class="sd">            - `xlim`, `ylim` : tuple, optional, default=None</span>
+<span class="sd">                Axis limits for the scatter plot.</span>
+<span class="sd">            - `labels`, `label`, `l` : list or str, optional, default=None</span>
+<span class="sd">                Labels for legend entries.</span>
+<span class="sd">            - `loc` : str, optional, default=`config.legend.loc`</span>
+<span class="sd">                Legend location.</span>
+<span class="sd">            - `xlabel`, `ylabel` : str, optional, default=None</span>
+<span class="sd">                Axis labels for the scatter plot.</span>
+<span class="sd">            - `figsize` : tuple of float, default=`config.figsize`</span>
+<span class="sd">                Figure size in inches.</span>
+<span class="sd">            - `style` : str, default=`config.style`</span>
+<span class="sd">                Matplotlib or visualastro style name to apply during plotting.</span>
+<span class="sd">                Ex: &#39;astro&#39;, &#39;classic&#39;, etc...</span>
+<span class="sd">            - `savefig` : bool, default=`config.savefig.enable`</span>
+<span class="sd">                If True, saves the figure to disk using `savefig`.</span>
+<span class="sd">            - `dpi` : int, default=`config.savefig.dpi`</span>
+<span class="sd">                Resolution (dots per inch) for saved figure.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># figure params</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="c1"># savefig</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="c1"># adjust grid layout to prevent overlap</span>
+            <span class="n">gs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">),</span>
+                                    <span class="n">height_ratios</span><span class="o">=</span><span class="p">(</span><span class="mf">1.6</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                                    <span class="n">left</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
+                                    <span class="n">top</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.09</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.09</span><span class="p">)</span>
+            <span class="c1"># create subplots</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">ax_histx</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">ax_histy</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">plot_density_histogram</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">ax_histx</span><span class="p">,</span> <span class="n">ax_histy</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span>
+                                       <span class="n">xlog</span><span class="p">,</span> <span class="n">ylog</span><span class="p">,</span> <span class="n">xlog_hist</span><span class="p">,</span> <span class="n">ylog_hist</span><span class="p">,</span>
+                                       <span class="n">histtype</span><span class="p">,</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.hist">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.hist">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hist</span><span class="p">(</span>
+        <span class="n">datas</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">histtype</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="s1">&#39;barstacked&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;stepfilled&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">align</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;mid&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;mid&#39;</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">xlog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">ylog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">vlines</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `hist` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.hist` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.hist(X, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">hist</span><span class="p">(</span>
+                <span class="n">datas</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
+                <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span>
+                <span class="n">histtype</span><span class="o">=</span><span class="n">histtype</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">align</span><span class="o">=</span><span class="n">align</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">xlog</span><span class="o">=</span><span class="n">xlog</span><span class="p">,</span>
+                <span class="n">ylog</span><span class="o">=</span><span class="n">ylog</span><span class="p">,</span>
+                <span class="n">vlines</span><span class="o">=</span><span class="n">vlines</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.plot">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.plot">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">linestyle</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">]]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">linewidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">xlog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">ylog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">zorder</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">array_order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `plot` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.plot` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.plot(X, Y, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">plot</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">xlog</span><span class="o">=</span><span class="n">xlog</span><span class="p">,</span>
+                <span class="n">ylog</span><span class="o">=</span><span class="n">ylog</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span><span class="p">,</span>
+                <span class="n">array_order</span><span class="o">=</span><span class="n">array_order</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.scatter">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.scatter">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">xerr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">yerr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">xlog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">ylog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">marker</span><span class="p">:</span> <span class="n">MarkerStyle</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">MarkerStyle</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;face&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">array_order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span>  <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `scatter` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.scatter` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.scatter(X, Y, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">scatter</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">xerr</span><span class="o">=</span><span class="n">xerr</span><span class="p">,</span>
+                <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">xlog</span><span class="o">=</span><span class="n">xlog</span><span class="p">,</span>
+                <span class="n">ylog</span><span class="o">=</span><span class="n">ylog</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span>
+                <span class="n">array_order</span><span class="o">=</span><span class="n">array_order</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.scatter_fit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.scatter_fit">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter_fit</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">xerr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">yerr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">marker</span><span class="p">:</span> <span class="n">MarkerStyle</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">MarkerStyle</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;face&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">xlog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">ylog</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">array_order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `scatter_fit` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.scatter_fit` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.scatter_fit(X, Y, deg=3, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">scatter_fit</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">xerr</span><span class="o">=</span><span class="n">xerr</span><span class="p">,</span>
+                <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                <span class="n">xlog</span><span class="o">=</span><span class="n">xlog</span><span class="p">,</span>
+                <span class="n">ylog</span><span class="o">=</span><span class="n">ylog</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span>
+                <span class="n">array_order</span><span class="o">=</span><span class="n">array_order</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ax.scatter3D">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.scatter3D">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter3D</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">elev</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">azim</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">roll</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">limits</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axes_off</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">grid_lines</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">marker</span><span class="p">:</span> <span class="n">MarkerStyle</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">MarkerStyle</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;face&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">plot_contours</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">array_order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `scatter3D` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.scatter3D` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig = plt.figure(figsize=figsize)</span>
+<span class="sd">            &gt;&gt;&gt; ax = fig.add_subplot(111, projection=&#39;3d&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; va.scatter3D(X, Y, Z, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize3D</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">tight_layout</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tight_layout&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+            <span class="n">_</span> <span class="o">=</span> <span class="n">scatter3D</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">elev</span><span class="o">=</span><span class="n">elev</span><span class="p">,</span>
+                <span class="n">azim</span><span class="o">=</span><span class="n">azim</span><span class="p">,</span>
+                <span class="n">roll</span><span class="o">=</span><span class="n">roll</span><span class="p">,</span>
+                <span class="n">limits</span><span class="o">=</span><span class="n">limits</span><span class="p">,</span>
+                <span class="n">axes_off</span><span class="o">=</span><span class="n">axes_off</span><span class="p">,</span>
+                <span class="n">grid_lines</span><span class="o">=</span><span class="n">grid_lines</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span>
+                <span class="n">plot_contours</span><span class="o">=</span><span class="n">plot_contours</span><span class="p">,</span>
+                <span class="n">array_order</span><span class="o">=</span><span class="n">array_order</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">tight_layout</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ax.scatter_project">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ax.scatter_project">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter_project</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+        <span class="n">limits</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">zdir</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">marker</span><span class="p">:</span> <span class="n">MarkerStyle</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;face&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;global&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s1">&#39;global&#39;</span><span class="p">,</span>
+        <span class="n">array_order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="n">index_spec</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper for `scatter_project` with automatic figure creation.</span>
+
+<span class="sd">        See `visualastro.plotting.base.plots.scatter_project` for full documentation.</span>
+
+<span class="sd">        Equivalent to:</span>
+
+<span class="sd">            &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">            &gt;&gt;&gt; va.scatter_project(X, Y, Z, ax=ax, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; plt.show()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">figsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;figsize&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">savefigure</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;savefig&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">enable</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">):</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+
+            <span class="n">scatter</span> <span class="o">=</span> <span class="n">scatter_project</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                <span class="n">limits</span><span class="o">=</span><span class="n">limits</span><span class="p">,</span>
+                <span class="n">zdir</span><span class="o">=</span><span class="n">zdir</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span>
+                <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span>
+                <span class="n">array_order</span><span class="o">=</span><span class="n">array_order</span><span class="p">,</span>
+                <span class="n">index_spec</span><span class="o">=</span><span class="n">index_spec</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">savefigure</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">savefigure</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">savefigure</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

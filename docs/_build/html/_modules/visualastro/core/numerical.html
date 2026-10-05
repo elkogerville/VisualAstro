@@ -1,0 +1,437 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.core.numerical &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.core.numerical</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.core.numerical</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2026-06-11</span>
+<span class="sd">Date Modified: 2026-06-11</span>
+<span class="sd">Description:</span>
+<span class="sd">    Numerical and computational functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">overload</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">CubicSpline</span><span class="p">,</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">gamma</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate</span><span class="p">(</span>
+    <span class="n">xp</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">yp</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">N_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic_spline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">]:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate</span><span class="p">(</span>
+    <span class="n">xp</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">yp</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">N_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic_spline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">]:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="interpolate">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.interpolate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate</span><span class="p">(</span>
+    <span class="n">xp</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">yp</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">N_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic_spline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpolate a 1D array over a specified range.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xp : ArrayLike</span>
+<span class="sd">        The x-coordinates of the data points. Must be 1D.</span>
+<span class="sd">        Must be convertable to an array with `np.asarray`.</span>
+<span class="sd">    yp : ArrayLike</span>
+<span class="sd">        The y-coordinates of the data points. Must be 1D.</span>
+<span class="sd">        Must be convertable to an array with `np.asarray`.</span>
+<span class="sd">    x_range : tuple of float</span>
+<span class="sd">        The (min, max) range over which to interpolate.</span>
+<span class="sd">    N_samples : int</span>
+<span class="sd">        Number of points in the interpolated output.</span>
+<span class="sd">    method : {&#39;linear&#39;, &#39;cubic&#39;, &#39;cubic_spline&#39;}, default=&#39;linear&#39;</span>
+<span class="sd">        Interpolation method. Options:</span>
+
+<span class="sd">        - `&#39;linear&#39;` : linear interpolation</span>
+<span class="sd">        - `&#39;cubic&#39;` : cubic interpolation using `interp1d`</span>
+<span class="sd">        - `&#39;cubic_spline&#39;` : cubic spline interpolation using `CubicSpline`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x_interp : np.ndarray</span>
+<span class="sd">        The evenly spaced x-coordinates over the specified range.</span>
+<span class="sd">    y_interp : np.ndarray</span>
+<span class="sd">        The interpolated y-values corresponding to `x_interp`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x_unit</span> <span class="o">=</span> <span class="n">xp</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">y_unit</span> <span class="o">=</span> <span class="n">yp</span><span class="o">.</span><span class="n">unit</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">yp</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+    <span class="n">yp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">yp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xp</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">yp</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;xp&#39; and &#39;yp&#39; must be 1D arrays&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">yp</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;xp&#39; and &#39;yp&#39; must have the same length. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Got xp: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span><span class="si">}</span><span class="s2">, yp: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">yp</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;need at least 2 points for interpolation, got</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">N_samples</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span> <span class="ow">or</span> <span class="n">N_samples</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;N_samples&#39; must be an integer &gt;= 2, got </span><span class="si">{</span><span class="n">N_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_range</span><span class="p">,</span> <span class="p">(</span><span class="n">Sequence</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;x_range&#39; must be a tuple of (min, max), got </span><span class="si">{</span><span class="n">x_range</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;x_range&#39; must be (min, max) with min &lt; max, &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;got (</span><span class="si">{</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">valid_methods</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic_spline&#39;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_methods</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&#39;method&#39; must be one of </span><span class="si">{</span><span class="n">valid_methods</span><span class="si">}</span><span class="s2">, got &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># generate new interpolation samples</span>
+    <span class="n">x_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">N_samples</span><span class="p">)</span>
+
+    <span class="c1"># get interpolation method</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;cubic_spline&#39;</span><span class="p">:</span>
+        <span class="n">f_interp</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">yp</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">method</span> <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;linear&#39;</span>
+        <span class="n">f_interp</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">xp</span><span class="p">,</span> <span class="n">yp</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
+
+    <span class="c1"># interpolate over new samples</span>
+    <span class="n">y_interp</span> <span class="o">=</span> <span class="n">f_interp</span><span class="p">(</span><span class="n">x_interp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">x_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_interp</span> <span class="o">*=</span> <span class="n">x_unit</span>
+    <span class="k">if</span> <span class="n">y_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">y_interp</span> <span class="o">*=</span> <span class="n">y_unit</span>
+
+    <span class="k">return</span> <span class="n">x_interp</span><span class="p">,</span> <span class="n">y_interp</span></div>
+
+
+
+<div class="viewcode-block" id="kde1d">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.kde1d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">kde1d</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">bw_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;scott&#39;</span><span class="p">,</span> <span class="s1">&#39;silverman&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Callable</span> <span class="o">=</span> <span class="s1">&#39;scott&#39;</span><span class="p">,</span>
+    <span class="n">gridsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">xlim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the 1D density of a sample using a Gaussian KDE.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : np.ndarray</span>
+<span class="sd">        1D sample values.</span>
+<span class="sd">    bw_method : {&#39;scott&#39;, &#39;silverman&#39;} | scalar | callable, optional</span>
+<span class="sd">        Bandwidth selection method passed to scipy.stats.gaussian_kde.</span>
+<span class="sd">    gridsize : int, optional</span>
+<span class="sd">        Number of evaluation points.</span>
+<span class="sd">    padding : float, optional</span>
+<span class="sd">        Fractional padding added to the data range.</span>
+<span class="sd">    xlim : tuple of float, optional</span>
+<span class="sd">        Explicit evaluation limits.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xgrid : np.ndarray</span>
+<span class="sd">        Evaluation coordinates.</span>
+<span class="sd">    density : np.ndarray</span>
+<span class="sd">        KDE evaluated on `xgrid`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">gridsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gridsize</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xlim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="n">padding</span>
+        <span class="n">xmin</span> <span class="o">-=</span> <span class="n">dx</span>
+        <span class="n">xmax</span> <span class="o">+=</span> <span class="n">dx</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">xlim</span>
+
+    <span class="n">xgrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">gridsize</span><span class="p">)</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bw_method</span><span class="o">=</span><span class="n">bw_method</span><span class="p">)</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">(</span><span class="n">xgrid</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xgrid</span><span class="p">,</span> <span class="n">density</span></div>
+
+
+
+<div class="viewcode-block" id="kde2d">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.kde2d">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">kde2d</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">bw_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;scott&#39;</span><span class="p">,</span> <span class="s1">&#39;silverman&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Callable</span> <span class="o">=</span> <span class="s1">&#39;scott&#39;</span><span class="p">,</span>
+    <span class="n">gridsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">xlim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ylim</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the 2D density of a set of particles using a Gaussian KDE.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : np.ndarray</span>
+<span class="sd">        1D array of x-coordinates of shape (N,).</span>
+<span class="sd">    y : np.ndarray</span>
+<span class="sd">        1D array of y-coordinates of shape (N,).</span>
+<span class="sd">    bw_method : {&#39;scott&#39;, &#39;silverman&#39;} | scalar | callable, optional, default=&#39;scott&#39;</span>
+<span class="sd">        The method used to calculate the bandwidth factor for the Gaussian KDE.</span>
+<span class="sd">        Can be one of:</span>
+<span class="sd">        - `&#39;scott&#39;` or `&#39;silverman&#39;`: use standard rules of thumb.</span>
+<span class="sd">        - a scalar constant: directly used as the bandwidth factor.</span>
+<span class="sd">        - a callable: should take a `scipy.stats.gaussian_kde` instance as its</span>
+<span class="sd">            sole argument and return a scalar bandwidth factor.</span>
+
+<span class="sd">    gridsize : int, optional, default=200</span>
+<span class="sd">        Grid resolution for the KDE.</span>
+<span class="sd">    padding : float, optional, default=0.2</span>
+<span class="sd">        Fractional padding applied to the data range when generating</span>
+<span class="sd">        the evaluation grid, expressed as a fraction of the total span</span>
+<span class="sd">        along each axis. For example, a value of 0.2 expands the grid</span>
+<span class="sd">        limits by 20% beyond the minimum and maximum of the data in both</span>
+<span class="sd">        `x` and `y` directions. This helps capture the tails of the</span>
+<span class="sd">        Gaussian kernel near the plot boundaries.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xgrid : np.ndarray</span>
+<span class="sd">        2D array of x-coordinates for the evaluation grid (shape res×res).</span>
+<span class="sd">    ygrid : np.ndarray</span>
+<span class="sd">        2D array of y-coordinates for the evaluation grid (shape res×res).</span>
+<span class="sd">    Z : np.ndarray</span>
+<span class="sd">        2D array of estimated density values on the grid (shape res×res).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">gridsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gridsize</span><span class="p">)</span>
+
+    <span class="c1"># compute bounds with % padding</span>
+    <span class="k">if</span> <span class="n">xlim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">padding_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="n">padding</span>
+        <span class="n">xmin</span> <span class="o">-=</span> <span class="n">padding_x</span>
+        <span class="n">xmax</span> <span class="o">+=</span> <span class="n">padding_x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">xlim</span>
+
+    <span class="k">if</span> <span class="n">ylim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">padding_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span> <span class="o">*</span> <span class="n">padding</span>
+        <span class="n">ymin</span> <span class="o">-=</span> <span class="n">padding_y</span>
+        <span class="n">ymax</span> <span class="o">+=</span> <span class="n">padding_y</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ylim</span>
+
+    <span class="n">xgrid</span><span class="p">,</span> <span class="n">ygrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span>
+        <span class="n">xmin</span><span class="p">:</span><span class="n">xmax</span><span class="p">:</span><span class="nb">complex</span><span class="p">(</span><span class="n">gridsize</span><span class="p">),</span>
+        <span class="n">ymin</span><span class="p">:</span><span class="n">ymax</span><span class="p">:</span><span class="nb">complex</span><span class="p">(</span><span class="n">gridsize</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">xgrid</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">ygrid</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">gaussian_kde</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">bw_method</span><span class="o">=</span><span class="n">bw_method</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">kernel</span><span class="p">(</span><span class="n">grid</span><span class="p">),</span> <span class="n">xgrid</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">xgrid</span><span class="p">,</span> <span class="n">ygrid</span><span class="p">,</span> <span class="n">Z</span></div>
+
+
+
+<div class="viewcode-block" id="number_density">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.number_density">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">number_density</span><span class="p">(</span>
+    <span class="n">points</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">log</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate local number density using a k-nearest neighbors (kNN) adaptive</span>
+<span class="sd">    volume estimator.</span>
+
+<span class="sd">    For each point, the distance to its k-th nearest neighbor defines a</span>
+<span class="sd">    hypersphere of radius r_k. The density is estimated as:</span>
+
+<span class="sd">        rho = k / V_D(r_k)</span>
+
+<span class="sd">    where V_D is the volume of a D-dimensional ball:</span>
+
+<span class="sd">        V_D(r) = (pi^(D/2) / Gamma(D/2 + 1)) * r^D</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : np.ndarray of shape (N, D)</span>
+<span class="sd">        Input point coordinates. N is the number of points, D is the</span>
+<span class="sd">        spatial dimension (typically 2 or 3).</span>
+<span class="sd">    k : int</span>
+<span class="sd">        Number of nearest neighbors used to define the local volume scale.</span>
+<span class="sd">        Controls the bias–variance trade-off of the estimator:</span>
+
+<span class="sd">        * small `k` → high spatial resolution, noisy estimate</span>
+<span class="sd">        * large `k` → smoother estimate, reduced variance</span>
+
+<span class="sd">    log : bool, default=False</span>
+<span class="sd">        If `True`, returns `np.log10` of the density. Recommended when</span>
+<span class="sd">        densities span multiple orders of magnitude.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rho : np.ndarray of shape (N,)</span>
+<span class="sd">        Estimated number density at each point. If `log=True`, returns</span>
+<span class="sd">        `np.log10(rho)`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - The method generalizes to arbitrary dimensions via the volume formula</span>
+<span class="sd">      of the N-dimensional ball.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import visualastro as va</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; pos = np.random.rand(20000, 3)</span>
+<span class="sd">    &gt;&gt;&gt; rho = va.number_density(pos, k=10)</span>
+<span class="sd">    &gt;&gt;&gt; plt.scatter(pos[:,0], pos[:,1], c=rho, s=0.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
+    <span class="n">distances</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">rk</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">gamma</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">rk</span><span class="o">**</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">k</span> <span class="o">/</span> <span class="n">volume</span>
+
+    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">rho</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

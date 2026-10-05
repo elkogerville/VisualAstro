@@ -1,0 +1,856 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.help.help &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.help.help</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.help.help</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-05-23</span>
+<span class="sd">Date Modified: 2026-07-26</span>
+<span class="sd">Description:</span>
+<span class="sd">    VisualAstro help documentation class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">colors</span> <span class="k">as</span> <span class="n">mcolors</span><span class="p">,</span> <span class="n">colormaps</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_manager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.analysis.ic</span><span class="w"> </span><span class="kn">import</span> <span class="n">blob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span> <span class="n">_resolve_default</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">imread</span><span class="p">,</span> <span class="n">savefig</span> <span class="k">as</span> <span class="n">_savefig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical</span><span class="w"> </span><span class="kn">import</span> <span class="n">number_density</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span><span class="p">,</span> <span class="n">_cycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.ax</span><span class="w"> </span><span class="kn">import</span> <span class="n">ax</span> <span class="k">as</span> <span class="n">_ax</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.base.plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colormaps</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmap</span><span class="p">,</span> <span class="n">plot_cmap_lightness</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">VISUALASTRO_NAMED_COLORS</span><span class="p">,</span>
+    <span class="n">get_colors</span><span class="p">,</span>
+    <span class="n">plot_colors</span><span class="p">,</span>
+    <span class="n">plot_colortable</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.legend</span><span class="w"> </span><span class="kn">import</span> <span class="n">legend</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.style</span><span class="w"> </span><span class="kn">import</span> <span class="n">_style_context</span><span class="p">,</span> <span class="n">reset_rcParams</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.text_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_font</span>
+
+
+<div class="viewcode-block" id="help">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">help</span><span class="p">:</span>
+<div class="viewcode-block" id="help.color">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.color">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">color</span><span class="p">(</span>
+        <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">show_color_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display VisualAstro color colorsets with optional colorblindness simulation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        color : str | ColorType | int | Sequence[ColorType] | None, optional, default=None</span>
+<span class="sd">            Name of a specific VisualAstro colorset to display. If `None`,</span>
+<span class="sd">            all VisualAstro colorsets are shown.</span>
+<span class="sd">        cvd_type : Literal[&#39;deuteranomaly&#39;, &#39;protanomaly&#39;, &#39;tritanomaly&#39;, &#39;all&#39;] | None, optional, default=None</span>
+<span class="sd">            Simulate colorblindness. If `&#39;all&#39;`, all three types are simulated.</span>
+<span class="sd">            If `None`, no simulation is applied.</span>
+<span class="sd">        severity : int</span>
+<span class="sd">            Severity level (0-100). 100 = complete colorblindness.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Display all default VisualAstro color colorsets:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.colors()</span>
+
+<span class="sd">        Display the &#39;astro&#39; colorset as perceived by protanomaly:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.colors(&#39;astro&#39;, cvd_type=&#39;protanomaly&#39;)</span>
+
+<span class="sd">        Display the &#39;astro&#39; colorset with all colorblindness simulations:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.colors(&#39;astro&#39;, cvd_type=&#39;all&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plot_colors</span><span class="p">(</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span><span class="p">,</span>
+            <span class="n">show_color_name</span><span class="o">=</span><span class="n">show_color_name</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="help.named_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.named_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">named_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot all VisualAstro and Matplotlib named colors together.&quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;named_colors&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.mpl_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.mpl_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mpl_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot Matplotlib named colors.&quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;mpl_colors&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+    <span class="n">matplotlib_colors</span> <span class="o">=</span> <span class="n">mpl_colors</span>
+
+<div class="viewcode-block" id="help.va_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.va_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">va_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot VisualAstro named colors.&quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">VISUALASTRO_NAMED_COLORS</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.xkcd_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.xkcd_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">xkcd_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot xkcd named colors.&quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;All colors displayed here are recognizable by VisualAstro and &quot;</span>
+            <span class="s2">&quot;Matplotlib under &#39;xkcd:color name&#39;.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Unless there is a color with the same name, VisualAstro will &quot;</span>
+            <span class="s2">&quot;also recognize the colors if the </span><span class="se">\n</span><span class="s2">&#39;xkcd:&#39; prefix is dropped. &quot;</span>
+            <span class="s2">&quot;Colors are shown here with &#39;xkcd:&#39; dropped &quot;</span>
+            <span class="s2">&quot;whenever possible.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Matplotlib does not recognize the colors if &#39;xkcd:&#39; is dropped.&quot;</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;xkcd&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.base_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.base_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">base_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot Matplotlib base named colors.&quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.tableau_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.tableau_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tableau_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot Matplotlib tableau colors.&quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;tableau&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.all_colors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.all_colors">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_colors</span><span class="p">(</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">sort_colors</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cvd_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;protanomaly&#39;</span><span class="p">,</span> <span class="s1">&#39;tritanomaly&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">severity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot all named colors recognized by VisualAstro. Includes all named colors from</span>
+<span class="sd">        Matplotlib (including base and tableau colors), xkcd, and VisualAstro.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plot_colortable</span><span class="p">(</span>
+            <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">sort_colors</span><span class="o">=</span><span class="n">sort_colors</span><span class="p">,</span>
+            <span class="n">cvd_type</span><span class="o">=</span><span class="n">cvd_type</span><span class="p">,</span>
+            <span class="n">severity</span><span class="o">=</span><span class="n">severity</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="help.cmap">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.cmap">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cmap</span><span class="p">(</span>
+        <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display a series of colormap(s), or all available colormaps if `cmap=None`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmap : str | mcolors.Colormap | list[str | mcolors.Colormap] | None, optional, default=None</span>
+<span class="sd">            Colormap or list of colormaps to plot. If `None`, plots all colormaps.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Display all colormaps:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.cmap()</span>
+
+<span class="sd">        Display the &#39;turbo&#39; and &#39;PuRd&#39; colormaps:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.cmap([&#39;turbo&#39;, &#39;PuRd&#39;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colormaps</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_r&#39;</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmaps</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmaps</span><span class="p">)</span>
+        <span class="n">ncols</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">ncols</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">ncols</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">nrows</span><span class="o">*</span><span class="mf">1.5</span><span class="p">))</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">cmap_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">cmaps</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap_name</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">cmap_name</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">[</span><span class="n">n</span><span class="p">:]:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="help.cmap_lightness">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.cmap_lightness">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cmap_lightness</span><span class="p">(</span>
+        <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">savefig</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colormaps</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_r&#39;</span><span class="p">)]</span>
+            <span class="n">ncols</span> <span class="o">=</span> <span class="mi">12</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+            <span class="n">inline_offset</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmaps</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+            <span class="n">inline_offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">legend_label</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmaps</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="k">else</span> <span class="kc">False</span>
+        <span class="n">inline_label</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">legend_label</span>
+
+        <span class="n">plot_cmap_lightness</span><span class="p">(</span>
+            <span class="n">cmaps</span><span class="p">,</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">s</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+            <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span>
+            <span class="n">offset</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">legend_label</span><span class="o">=</span><span class="n">legend_label</span><span class="p">,</span>
+            <span class="n">inline_label</span><span class="o">=</span><span class="n">inline_label</span><span class="p">,</span>
+            <span class="n">inline_label_offset</span><span class="o">=</span><span class="n">inline_offset</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">savefig</span><span class="p">:</span>
+            <span class="n">_savefig</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="help.style">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.style">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">style</span><span class="p">(</span><span class="n">style_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display example plots for one or more available Matplotlib style sheets.</span>
+
+<span class="sd">        This method is primarily intended for previewing and comparing the</span>
+<span class="sd">        visual appearance of built-in style sheets such as `&#39;astro&#39;`,</span>
+<span class="sd">        `&#39;latex&#39;`, and `&#39;cmu&#39;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        style_name : str or None, optional</span>
+<span class="sd">            Name of a specific style to preview. If `None` (default),</span>
+<span class="sd">            all predefined VisualAstro styles are shown sequentially.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Display all VisualAstro plotting styles:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.styles()</span>
+<span class="sd">        Display a Matplotlib or VisualAstro plotting style:</span>
+<span class="sd">        &gt;&gt;&gt; va.help.styles(&#39;classic&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">style_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stylelib</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;visualastro&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;stylelib&#39;</span>
+            <span class="n">style_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stylelib</span><span class="p">)</span>
+            <span class="n">style_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">({</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">style_root</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s1">&#39;*.mplstyle&#39;</span><span class="p">)}))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">style_names</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">style_name</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">get_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">style_names</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="n">ecs</span> <span class="o">=</span> <span class="n">get_colors</span><span class="p">(</span><span class="s1">&#39;astro&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;Here are sample plots made with the available VisualAstro plot styles. &#39;</span>
+            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Each style sets the axes, fonts and fontsizes, but leaves the color up to the user.</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">style_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">style_names</span><span class="p">):</span>
+            <span class="n">reset_rcParams</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">style_name</span><span class="p">):</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.8</span> <span class="o">+</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)],</span>
+                    <span class="n">ec</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">ecs</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                    <span class="n">s</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;${\lambda}$&#39;</span><span class="p">,</span>
+                    <span class="n">zorder</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">plot_data</span>
+                <span class="p">)</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Wavelength [$\mu m$]&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Counts&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">fr</span><span class="s1">&#39;Style : </span><span class="si">{</span><span class="n">style_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">})</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="help.fontstyle">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.fontstyle">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fontstyle</span><span class="p">(</span><span class="n">fontstyle</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a plot of a fontsyle. See `styles.fonts` for available fonts.</span>
+<span class="sd">        `None` will test the default font, which is `&#39;DejaVu Sans&#39;`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fontstyle</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">available</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="n">fontstyle</span><span class="p">):</span>
+                <span class="n">family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.family&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">font_name</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;font.&#39;</span><span class="o">+</span><span class="n">family</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="c1"># some styles have font name in place of font family</span>
+                    <span class="n">font_name</span> <span class="o">=</span> <span class="n">family</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fontstyle</span> <span class="o">=</span> <span class="s1">&#39;dejavu&#39;</span>
+            <span class="n">family</span> <span class="o">=</span> <span class="s1">&#39;sans-serif&#39;</span>
+            <span class="n">font_name</span> <span class="o">=</span> <span class="s1">&#39;DejaVu Sans&#39;</span>
+
+        <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">fontstyle</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.89</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">80</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\sin(80x)$&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;dsb&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">80</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\cos(80x)$&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;mvr&#39;</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;VisualAstro Test for Font: </span><span class="si">{</span><span class="n">font_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Stylesheet: &#39;</span><span class="si">{</span><span class="n">fontstyle</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s1">&#39;ABCDEFGHIJKLMNOPQRSTUVWXYZ</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="s1">&#39;abcdefghijklmnopqrstuvwxyz</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="s1">&#39;0123456789&#39;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span>
+                <span class="s1">&#39;Mathtext Greek Letters:&#39;</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;$A B \Gamma \Delta E Z H \Theta I K \Lambda M N \Xi O \Pi P \Sigma T \Upsilon&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;\Phi X \Psi \Omega$&#39;</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;$\alpha \beta \gamma \delta \epsilon \zeta \eta \theta \iota \kappa&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;\lambda \mu \nu \xi o \pi \rho \sigma \tau \upsilon \phi \chi \psi \omega$&#39;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span>
+            <span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span>
+                <span class="sa">r</span><span class="s1">&#39;$\times \div - + \pm \leq \geq \ll \leqq$&#39;</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;$\equiv \neq \sim \simeq \approx \cong \propto$&#39;</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="sa">r</span><span class="s1">&#39;$\therefore \because \subset \subseteq \in \Subset \cap \wedge$&#39;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span>
+            <span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">)</span>
+
+            <span class="n">samples</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s1">&#39;Italic&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&#39;italic&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;Bold Italic&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;italic&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;0123456789&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s1">&#39;monospace&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;Text Styles:&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s1">&#39;Regular&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;Bold&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">weight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s1">&#39;Monospace&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s1">&#39;monospace&#39;</span><span class="p">)),</span>
+            <span class="p">]</span>
+
+            <span class="n">n_rows</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">col_x</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.87</span><span class="p">]</span>
+            <span class="n">y0</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="mf">0.023</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">i</span> <span class="o">//</span> <span class="n">n_rows</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">n_rows</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                    <span class="n">col_x</span><span class="p">[</span><span class="n">col</span><span class="p">],</span>
+                    <span class="n">y0</span> <span class="o">-</span> <span class="n">row</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span>
+                    <span class="n">text</span><span class="p">,</span>
+                    <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">weights</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">font_manager</span><span class="o">.</span><span class="n">fontManager</span><span class="o">.</span><span class="n">ttflist</span>
+                <span class="k">if</span> <span class="n">font_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">and</span> <span class="n">check_font</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">check_font</span><span class="p">(</span><span class="n">font_name</span><span class="p">):</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                    <span class="mf">0.16</span><span class="p">,</span>
+                    <span class="mf">0.4</span><span class="p">,</span>
+                    <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No available &#39;</span><span class="si">{</span><span class="n">font_name</span><span class="si">}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">fonts found on system!&quot;</span>
+                        <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">(Currently using next</span><span class="se">\n</span><span class="s2">available font from family&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&#39;</span><span class="si">{</span><span class="n">family</span><span class="si">}</span><span class="s2">&#39;, which is &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">font_manager</span><span class="o">.</span><span class="n">FontProperties</span><span class="p">()</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+                    <span class="p">),</span>
+                    <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="mf">0.5</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                    <span class="mf">0.16</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">+</span><span class="mf">0.03</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;Available Weights</span><span class="se">\n</span><span class="s2">for &#39;</span><span class="si">{</span><span class="n">font_name</span><span class="si">}</span><span class="s2">&#39; Fonts:&quot;</span><span class="p">,</span>
+                    <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
+                    <span class="n">horizontalalignment</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">fs</span> <span class="o">=</span> <span class="mi">9</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="mi">12</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="mf">0.017</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="mf">0.025</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">:</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                        <span class="mf">0.16</span><span class="p">,</span>
+                        <span class="n">y</span><span class="p">,</span>
+                        <span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39; (</span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+                        <span class="n">font</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span><span class="p">,</span>
+                        <span class="n">fontsize</span> <span class="o">=</span> <span class="n">fs</span><span class="p">,</span>
+                        <span class="n">horizontalalignment</span> <span class="o">=</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">y</span> <span class="o">-=</span> <span class="n">step</span>
+
+            <span class="n">smiley</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;☺ UNICODE SMILEY ☻&quot;</span> <span class="k">if</span> <span class="n">check_font</span><span class="p">(</span><span class="n">font_name</span><span class="p">,</span> <span class="n">glyph</span><span class="o">=</span><span class="s1">&#39;☺&#39;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">check_font</span><span class="p">(</span><span class="n">font_name</span><span class="p">,</span> <span class="n">glyph</span><span class="o">=</span><span class="s1">&#39;☻&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;no unicode smiley &lt;/3&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">mathfont</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;mathtext.fontset&#39;</span><span class="p">]</span>
+            <span class="n">mathname</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;mathtext.rm&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">mathfont</span> <span class="o">==</span> <span class="s1">&#39;custom&#39;</span> <span class="k">else</span> <span class="n">mathfont</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="mf">0.87</span><span class="p">,</span>
+                <span class="mf">0.44</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;MATHTEXT Font: </span><span class="si">{</span><span class="n">mathname</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\partial \; \nabla \; \sum \; \prod \; \int \; \iint \; \oint \; \oiint \; \iiint$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$M_\odot L_\odot R_\oplus M_\star \AA \odot \; \oplus \; \otimes \; \star$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$0 1 2 3 4 5 6 7 8 9 \; \infty \to \leftarrow \Leftarrow \Longrightarrow \; \Im \; \Re$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\frac</span><span class="si">{1}</span><span class="s1">{\sqrt{2\pi\sigma^2}}&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;e^{-\frac{(x-\mu)^2}{2\sigma^2}}$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\sum_{i=1}^</span><span class="si">{N}</span><span class="s1">\alpha_i^2&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;=\int_0^\infty e^{-x}\,dx$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\mathrm</span><span class="si">{Roman}</span><span class="s1">\;&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;\mathit</span><span class="si">{Italic}</span><span class="s1">\;&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;\mathbf</span><span class="si">{Bold}</span><span class="s1">\;&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;\mathsf</span><span class="si">{Sans}</span><span class="s1">\;&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;\mathtt</span><span class="si">{Mono}</span><span class="s1">$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;MATHTEXT degree: $13^\circ$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[BRACKETS]: &#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\left[-:  ;-\right]$&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">{CURLY BRACKETS}: {^:  B-}&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">(PARENTHESIS): &#39;</span>
+                    <span class="sa">r</span><span class="s1">&#39;$\left( \text{=  :}\right)$&#39;</span>
+                <span class="p">),</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+                <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="mf">0.87</span><span class="p">,</span>
+                <span class="mf">0.25</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="s1">&#39;UNICODE GREEK LETTERS:&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Αα Ββ Γγ Δδ Εε Ζζ Ηη Θθ&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Ιι Κκ Λλ Μμ Νν Ξξ Οο Ππ&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Ρρ Σσ Ττ Υυ Φφ Χχ Ψψ Ωω&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">UNICODE degree: 13°&#39;</span>
+                    <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">MINUS SIGN: </span><span class="se">\N{MINUS SIGN}</span><span class="s1">1&#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="si">{</span><span class="n">smiley</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">),</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span>
+                <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span>
+                <span class="n">usetex</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+            <span class="n">legend</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Legend&#39;</span><span class="p">,</span>
+                <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower left&#39;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.imshow">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.imshow">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">imshow</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">foampath</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;visualastro&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;data&#39;</span> <span class="o">/</span> <span class="s1">&#39;foamrnbw.png&#39;</span>
+        <span class="n">foam</span> <span class="o">=</span> <span class="n">imread</span><span class="p">(</span><span class="n">foampath</span><span class="p">)</span>
+        <span class="n">_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">foam</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.plot">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.plot">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">function</span><span class="p">(</span><span class="n">lamda</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">lamda</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="n">l0</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">l1</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">l2</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">l3</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="mf">.25</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">l4</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="mf">.1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="sa">r</span><span class="s1">&#39;$\lambda$ = 1.5&#39;</span><span class="p">,</span>
+                <span class="sa">r</span><span class="s1">&#39;$\lambda$ = 1.0&#39;</span><span class="p">,</span>
+                <span class="sa">r</span><span class="s1">&#39;$\lambda$ = 0.5&#39;</span><span class="p">,</span>
+                <span class="sa">r</span><span class="s1">&#39;$\lambda$ = 0.25&#39;</span><span class="p">,</span>
+                <span class="sa">r</span><span class="s1">&#39;$\lambda$ = 0.1&#39;</span>
+            <span class="p">]</span>
+            <span class="k">with</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s1">&#39;thorlabs&#39;</span><span class="p">):</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+                <span class="n">plot</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">l0</span><span class="p">,</span><span class="n">l1</span><span class="p">,</span><span class="n">l2</span><span class="p">,</span><span class="n">l3</span><span class="p">,</span><span class="n">l4</span><span class="p">],</span>
+                    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                    <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">2.6</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">2.6</span><span class="p">),</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$ka$&#39;</span><span class="p">,</span>
+                    <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$[\frac</span><span class="si">{ka}</span><span class="s1">{\lambda} - 1]e^</span><span class="si">{2ka}</span><span class="s1">$&#39;</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;high_vis&#39;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+                    <span class="n">hlines</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mf">.01</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">8</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">x2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">y2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">x3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">y3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">x4</span> <span class="o">=</span> <span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">6</span><span class="o">/</span><span class="mi">5</span><span class="p">))</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">y4</span> <span class="o">=</span> <span class="p">((</span><span class="mi">10</span><span class="o">*</span><span class="p">(</span><span class="mi">6</span><span class="o">/</span><span class="mi">5</span><span class="p">))</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;Px=x=2&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;px=x=$\sqrt</span><span class="si">{2}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;px=x=$\sqrt</span><span class="si">{8}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;px=x=$\sqrt</span><span class="si">{2}</span><span class="s1">$&#39;</span>
+            <span class="p">]</span>
+
+            <span class="n">_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">x3</span><span class="p">,</span><span class="n">x4</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">y3</span><span class="p">,</span><span class="n">y4</span><span class="p">],</span>
+                <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;MSG&#39;</span><span class="p">,</span>
+                <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;P$_{\mathrm</span><span class="si">{x}</span><span class="s1">}$&#39;</span><span class="p">,</span>
+                <span class="n">point</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+                <span class="n">legend_ncols</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">_style_context</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">):</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span><span class="mf">0.01</span><span class="p">)</span>
+                <span class="n">ft</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">t</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">4</span><span class="o">/</span><span class="p">(</span><span class="mi">7</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">7</span><span class="o">*</span><span class="n">t</span><span class="p">)</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+                <span class="n">plot</span><span class="p">(</span>
+                    <span class="n">t</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">ft</span><span class="p">,</span>
+                    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkslateblue&#39;</span><span class="p">,</span>
+                    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Intensity Value&#39;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Fourier </span><span class="se">\n</span><span class="s1">Expansion&#39;</span>
+                <span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Square Wave&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">y</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+
+                <span class="n">legend</span><span class="p">()</span>
+
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="help.scatter">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.scatter">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter</span><span class="p">(</span><span class="n">cmap</span><span class="p">:</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">_resolve_default</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">cmap</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">blob</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="n">as_array</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">_ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">number_density</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">100</span><span class="p">),</span> <span class="n">index_spec</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">300</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">M_sun</span>
+            <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">M_sun</span>
+            <span class="n">y3</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">M_sun</span>
+            <span class="n">_ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">y3</span><span class="p">],</span>
+                <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                <span class="n">l</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">get_colors</span><span class="p">(</span><span class="s1">&#39;MSGII&#39;</span><span class="p">,</span> <span class="n">cvd_type</span><span class="o">=</span><span class="s1">&#39;deuteranomaly&#39;</span><span class="p">),</span>
+                <span class="n">style</span><span class="o">=</span><span class="s1">&#39;smplot-og&#39;</span><span class="p">,</span>
+                <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;ibm&#39;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.scatter_fit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.scatter_fit">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter_fit</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">300</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">radian</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">Lsun</span>
+        <span class="n">y2</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">Lsun</span>
+        <span class="n">_ax</span><span class="o">.</span><span class="n">scatter_fit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="n">deg</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="help.scatter3D">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.help.scatter3D">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scatter3D</span><span class="p">(</span>
+        <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span>
+        <span class="n">plot_contours</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+        <span class="n">axis_style</span><span class="o">=</span><span class="s1">&#39;cube&#39;</span><span class="p">,</span>
+        <span class="n">elev</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="n">azim</span><span class="o">=-</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">blob</span><span class="p">(</span><span class="mi">7000</span><span class="p">,</span> <span class="n">as_array</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_ax</span><span class="o">.</span><span class="n">scatter3D</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">number_density</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+            <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span>
+            <span class="n">plot_contours</span><span class="o">=</span><span class="n">plot_contours</span><span class="p">,</span>
+            <span class="n">axis_style</span><span class="o">=</span><span class="n">axis_style</span><span class="p">,</span>
+            <span class="n">elev</span><span class="o">=</span><span class="n">elev</span><span class="p">,</span> <span class="n">azim</span><span class="o">=</span><span class="n">azim</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="n">roll</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="getsource">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.getsource">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print the source code of a function.</span>
+
+<span class="sd">    Equivalent to:</span>
+<span class="sd">        &gt;&gt;&gt; import inspect</span>
+<span class="sd">        &gt;&gt;&gt; print(inspect.getsource(function))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    function :</span>
+<span class="sd">        function to inspect.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">function</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

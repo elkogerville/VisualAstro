@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-05-24</span>
+<span class="sd">Date Modified: 2026-07-31</span>
+<span class="sd">Description:</span>
+<span class="sd">    Plotting utility functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.markers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MarkerStyle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span><span class="p">,</span> <span class="n">Ellipse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorType</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">get_config_value</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_value</span><span class="p">,</span>
+    <span class="n">to_list</span><span class="p">,</span>
+    <span class="n">_cycle</span><span class="p">,</span>
+    <span class="n">_extract_xy</span><span class="p">,</span>
+    <span class="n">_is_1d</span><span class="p">,</span> <span class="n">_is_2d</span><span class="p">,</span>
+    <span class="n">_is_iterable</span><span class="p">,</span>
+    <span class="n">_is_ndarray_or_quantity_array</span><span class="p">,</span>
+    <span class="n">_is_scalar</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_unit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._regions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PixCoord</span><span class="p">,</span> <span class="n">EllipsePixelRegion</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_colors</span><span class="p">,</span> <span class="n">sample_cmap</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_plotting_inputs</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">data</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+    <span class="n">order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">index_spec</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="s1">&#39;explicit&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;plot&#39;</span><span class="p">,</span> <span class="s1">&#39;scatter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;scatter&#39;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract and normalize X, Y inputs for plotting.</span>
+
+<span class="sd">    Handles variable input formats and ensures X and Y have compatible</span>
+<span class="sd">    dimensionality for broadcasting. Generates implicit X indices when not</span>
+<span class="sd">    provided. Wraps scalars and 1D data in lists to match 2D counterparts.</span>
+
+<span class="sd">    See `visualastro.plotting.core.utils._extract_xy` for documentation</span>
+<span class="sd">    on how `*data` is interpreted.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *data : float | Quantity | ndarray | list thereof</span>
+<span class="sd">        Plotting data. Accepts 1 or 2 arguments:</span>
+
+<span class="sd">        - Single argument: interpreted as Y (X set to None)</span>
+<span class="sd">        - Two arguments: interpreted as (X, Y)</span>
+
+<span class="sd">    order : {&#39;c&#39;, &#39;fortran&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Memory layout for 2D input interpretation. Defines what a</span>
+<span class="sd">        column is for `index_spec`.</span>
+
+<span class="sd">        * &#39;c&#39;: row-major, shape (N, 2)</span>
+<span class="sd">        * &#39;fortran&#39;: column-major, shape (2, N)</span>
+
+<span class="sd">        If `_UNSET`, uses `config.array_order`.</span>
+<span class="sd">    index_spec : {&#39;implicit&#39;, &#39;explicit&#39;} | tuple[int, int], optional</span>
+<span class="sd">        Specifies which columns to extract from 2D input.</span>
+<span class="sd">        - `&#39;implicit&#39;`: extract all columns as separate Y arrays</span>
+<span class="sd">        - `&#39;explicit&#39;`: extract columns 0 and 1 as X, Y</span>
+<span class="sd">        - `tuple (i, j)`: extract columns i and j</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    X : ArrayLike | list[ArrayLike]</span>
+<span class="sd">        X coordinates. Generated as np.arange(n) if not provided.</span>
+<span class="sd">    Y : ArrayLike | list[ArrayLike]</span>
+<span class="sd">        Y coordinates.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If 2D input has inconsistent row lengths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">_extract_xy</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">index_spec</span><span class="o">=</span><span class="n">index_spec</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">xlist</span><span class="p">,</span> <span class="n">ylist</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">Y</span><span class="p">:</span>
+            <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span> <span class="o">=</span> <span class="n">_normalize_xy_plotting_inputs</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+            <span class="n">xlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+            <span class="n">ylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yi</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ylist</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">_is_ndarray_or_quantity_array</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ylist</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">y</span><span class="p">):</span>
+                <span class="n">ylist</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">ylist</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">xlist</span><span class="p">,</span> <span class="n">ylist</span>
+
+    <span class="k">return</span> <span class="n">_normalize_xy_plotting_inputs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_xy_plotting_inputs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper method for _normalize_plotting_inputs.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+            <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">Y</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">length</span> <span class="o">==</span> <span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;2D input has inconsistent row lengths: </span><span class="si">{</span><span class="n">lengths</span><span class="si">}</span><span class="s1">. &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;All rows must have length </span><span class="si">{</span><span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">.&#39;</span>
+                <span class="p">)</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">_is_scalar</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">_is_scalar</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;plot&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_is_1d</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">_is_1d</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_plotting_input</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize single input to consistent dimensionality structure.</span>
+
+<span class="sd">    Ensures error arrays and similar inputs match the dimensionality of</span>
+<span class="sd">    corresponding data arrays. Scalars are wrapped in lists, 2D structures</span>
+<span class="sd">    are validated for consistent row lengths.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : scalar | Sequence | None</span>
+<span class="sd">        Input data to normalize. Can be a scalar, 1D ArrayLike, 2D ArrayLike,</span>
+<span class="sd">        or `None`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    normalized : scalar | list | np.ndarray</span>
+<span class="sd">        Normalized input. Scalars wrapped in lists, 2D data validated and</span>
+<span class="sd">        returned unchanged, 1D iterables returned as-is, None returned as-is.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If 2D input has inconsistent row lengths.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">_is_2d</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">length</span> <span class="o">==</span> <span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;2D input has inconsistent row lengths: </span><span class="si">{</span><span class="n">lengths</span><span class="si">}</span><span class="s1">. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;All rows must have length </span><span class="si">{</span><span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">if</span> <span class="n">_is_scalar</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">data</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">_is_iterable</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">data</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_zorder</span><span class="p">(</span><span class="n">zorders</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fallback</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get zorder value from a list of zorders with a fallback zorder.</span>
+<span class="sd">    Increments the fallback value by i.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    zorders : list[float] | None</span>
+<span class="sd">        List of zorders to cycle through. If `None`, returns</span>
+<span class="sd">        `fallback + 1`.</span>
+<span class="sd">    fallback : float</span>
+<span class="sd">        Fallback value if `zorders` or `zorders[i]` is `None`.</span>
+<span class="sd">        Always incremented by 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">zorders</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fallback</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">_cycle</span><span class="p">(</span><span class="n">zorders</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">_cycle</span><span class="p">(</span><span class="n">zorders</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fallback</span><span class="o">+</span><span class="n">i</span>
+
+
+<span class="c1"># Plot Matplotlib Patches and Shapes</span>
+<span class="c1"># ----------------------------------</span>
+<div class="viewcode-block" id="plot_circles">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_circles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_circles</span><span class="p">(</span>
+    <span class="n">circles</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">linewidth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot one or more circles on a Matplotlib axis with customizable style.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    circles : ArrayLike | None</span>
+<span class="sd">        Circle coordinates and radii. Can be a single circle `[x, y, r]`</span>
+<span class="sd">        or a list/array of circles `[[x1, y1, r1], [x2, y2, r2], ...]`.</span>
+<span class="sd">        If None, no circles are plotted.</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        The Matplotlib axis on which to plot the circles.</span>
+<span class="sd">    colors : list[colors] | str | None, optional, default=None</span>
+<span class="sd">        List of colors to cycle through for each circle. None defaults</span>
+<span class="sd">        to [&#39;r&#39;, &#39;mediumvioletred&#39;, &#39;magenta&#39;]. A single color can also</span>
+<span class="sd">        be passed. If there are more circles than colors, colors are</span>
+<span class="sd">        sampled from a colormap using sample_cmap(cmap=`cmap`).</span>
+<span class="sd">    linewidth : float | None, optional, default=None</span>
+<span class="sd">        Width of the circle edge lines. If None,</span>
+<span class="sd">        uses `config.linewidth`.</span>
+<span class="sd">    fill : bool | None, optional, default=None</span>
+<span class="sd">        Whether the circles are filled. If None,</span>
+<span class="sd">        uses `config.circle_fill`.</span>
+<span class="sd">    cmap : str | None, optional, default=None</span>
+<span class="sd">        matplolib cmap used to sample default circle colors.</span>
+<span class="sd">        If None, uses `config.cmap`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># get default config values</span>
+    <span class="n">linewidth</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">linewidth</span><span class="p">,</span> <span class="s1">&#39;linewidth&#39;</span><span class="p">)</span>
+    <span class="n">fill</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="s1">&#39;circle_fill&#39;</span><span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="s1">&#39;cmap&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">circles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># ensure circles is list [x,y,r] or list of list [[x,y,r],[x,y,r]...]</span>
+        <span class="n">circles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">circles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">circles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Circles must be either [x, y, r] or [[x1, y1, r1], [x2, y2, r2], ...]&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># number of circles to plot</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">circles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># set circle colors</span>
+        <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;mediumvioletred&#39;</span><span class="p">,</span> <span class="s1">&#39;magenta&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">N</span><span class="o">&lt;=</span><span class="mi">3</span> <span class="k">else</span> <span class="n">sample_cmap</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">colors</span><span class="p">]</span>
+
+        <span class="c1"># plot each cirlce</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">circle</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">circles</span><span class="p">):</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">circle</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
+            <span class="n">circle_patch</span> <span class="o">=</span> <span class="n">Circle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">circle_patch</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_ellipses">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_ellipses">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ellipses</span><span class="p">(</span><span class="n">ellipses</span><span class="p">:</span> <span class="n">Ellipse</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Ellipse</span><span class="p">],</span> <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots an ellipse or list of ellipses to an axes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ellipses : matplotlib.patches.Ellipse | list</span>
+<span class="sd">        The Ellipse or list of Ellipses to plot.</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        Matplotlib axis on which to plot the ellipses(s).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ellipses</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ellipses</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">ellipses</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ellipse</span> <span class="ow">in</span> <span class="n">ellipses</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ellipse</span><span class="p">,</span> <span class="n">Ellipse</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;ellipses must contain matplotlib.patches.Ellipse instances! &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;got: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ellipse</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">_copy_ellipse</span><span class="p">(</span><span class="n">ellipse</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_copy_ellipse</span><span class="p">(</span><span class="n">ellipse</span><span class="p">:</span> <span class="n">Ellipse</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Ellipse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a copy of an Ellipse object.</span>
+
+<span class="sd">    This function is used to avoid running into</span>
+<span class="sd">    a matplotlib error when plotting the same</span>
+<span class="sd">    artist onto multiple figures.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ellipse : matplotlib.patches.Ellipse</span>
+<span class="sd">        The Ellipse object to copy.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    matplotlib.patches.Ellipse</span>
+<span class="sd">        A new Ellipse object with the same properties as the input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Ellipse</span><span class="p">(</span>
+        <span class="n">xy</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">center</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+        <span class="n">angle</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span>
+        <span class="n">edgecolor</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">get_edgecolor</span><span class="p">(),</span>
+        <span class="n">facecolor</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">get_facecolor</span><span class="p">(),</span>
+        <span class="n">lw</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">(),</span>
+        <span class="n">ls</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">get_linestyle</span><span class="p">(),</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="n">ellipse</span><span class="o">.</span><span class="n">get_alpha</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="plot_interactive_ellipse">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_interactive_ellipse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_interactive_ellipse</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">text_loc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">text_color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">highlight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">angle</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">rotation_step</span><span class="o">=</span><span class="mf">5.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an interactive ellipse selector on an Axes</span>
+<span class="sd">    along with an interactive text window displaying</span>
+<span class="sd">    the current ellipse center, width, and height.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    center : tuple of float</span>
+<span class="sd">        (x, y) coordinates of the ellipse center in data units.</span>
+<span class="sd">    w : float</span>
+<span class="sd">        Width of the ellipse.</span>
+<span class="sd">    h : float</span>
+<span class="sd">        Height of the ellipse.</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        The Axes on which to draw the ellipse selector.</span>
+<span class="sd">    text_loc : list[float] | None, optional, default=None</span>
+<span class="sd">        Position of the text label in Axes coordinates, given as [x, y].</span>
+<span class="sd">        If None, uses `config.text_loc`.</span>
+<span class="sd">    text_color : str | None, optional, default=None</span>
+<span class="sd">        Color of the annotation text. If None, uses `config.text_color`.</span>
+<span class="sd">    highlight : bool | None, optional, default=None</span>
+<span class="sd">        If True, adds a bbox to highlight the text. If None,</span>
+<span class="sd">        uses `config.highlight`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Ensure an interactive backend is active. This can be</span>
+<span class="sd">    activated with use_interactive().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;regions&#39;</span><span class="p">)</span>
+    <span class="n">text_loc</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">text_loc</span><span class="p">,</span> <span class="s1">&#39;ellipse_label_loc&#39;</span><span class="p">)</span>
+    <span class="n">text_color</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">text_color</span><span class="p">,</span> <span class="s1">&#39;text_color&#39;</span><span class="p">)</span>
+    <span class="n">highlight</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">highlight</span><span class="p">,</span> <span class="s1">&#39;highlight&#39;</span><span class="p">)</span>
+
+    <span class="n">facecolor</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span> <span class="k">if</span> <span class="n">text_color</span> <span class="o">==</span> <span class="s1">&#39;w&#39;</span> <span class="k">else</span> <span class="s1">&#39;w&#39;</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">highlight</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+        <span class="n">text_loc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">text_loc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">transform</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span>
+        <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span>
+    <span class="p">)</span>
+
+    <span class="c1"># create and store region explicitly</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">EllipsePixelRegion</span><span class="p">(</span>
+        <span class="n">center</span><span class="o">=</span><span class="n">PixCoord</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+        <span class="n">angle</span><span class="o">=</span><span class="n">angle</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+    <span class="p">)</span>
+
+    <span class="n">selector</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">as_mpl_selector</span><span class="p">(</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">_update_ellipse_region</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">_ellipse_selector</span> <span class="o">=</span> <span class="n">selector</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">_ellipse_region</span> <span class="o">=</span> <span class="n">region</span>
+
+    <span class="n">artist</span> <span class="o">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">_selection_artist</span>
+    <span class="n">artist</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="n">angle</span>
+
+    <span class="c1"># initialize display</span>
+    <span class="n">_update_ellipse_region</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rotate</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotate the ellipse region based on key press events.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event :</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">artist</span> <span class="o">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">_selection_artist</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">_ellipse_region</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;e&#39;</span><span class="p">:</span>
+            <span class="n">artist</span><span class="o">.</span><span class="n">angle</span> <span class="o">-=</span> <span class="n">rotation_step</span>
+
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;f&#39;</span><span class="p">:</span>
+            <span class="n">artist</span><span class="o">.</span><span class="n">angle</span> <span class="o">+=</span> <span class="n">rotation_step</span>
+
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span>
+            <span class="n">artist</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;o&#39;</span><span class="p">:</span>
+            <span class="n">selector</span><span class="o">.</span><span class="n">set_active</span><span class="p">(</span><span class="ow">not</span> <span class="n">selector</span><span class="o">.</span><span class="n">active</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># synchronize region &lt;- artist</span>
+        <span class="n">region</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="o">-</span><span class="n">artist</span><span class="o">.</span><span class="n">angle</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">deg</span>
+
+        <span class="n">artist</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw_idle</span><span class="p">()</span>
+
+        <span class="n">_update_ellipse_region</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;key_press_event&#39;</span><span class="p">,</span> <span class="n">_rotate</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">selector</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_update_ellipse_region</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update ellipse information text when the</span>
+<span class="sd">    interactive region is modified.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    region : regions.EllipsePixelRegion</span>
+<span class="sd">        The ellipse region being updated.</span>
+<span class="sd">    text : matplotlib.text.Text</span>
+<span class="sd">        The text object used to display ellipse parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x_center</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">x</span>
+    <span class="n">y_center</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">y</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">width</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">height</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">angle</span>
+    <span class="n">major</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">minor</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+
+    <span class="c1"># display properties</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;Center: [</span><span class="si">{</span><span class="n">x_center</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">y_center</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">]</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;Major: </span><span class="si">{</span><span class="n">major</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;Minor: </span><span class="si">{</span><span class="n">minor</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;Angle: </span><span class="si">{</span><span class="n">angle</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="ellipse_patch">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.ellipse_patch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ellipse_patch</span><span class="p">(</span>
+    <span class="n">center</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a matplotlib.patches.Ellipse object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    center : tuple of float</span>
+<span class="sd">        (x, y) coordinates of the ellipse center.</span>
+<span class="sd">    w : float</span>
+<span class="sd">        Width of the ellipse (along x-axis before rotation).</span>
+<span class="sd">    h : float</span>
+<span class="sd">        Height of the ellipse (along y-axis before rotation).</span>
+<span class="sd">    angle : float, optional, default=0</span>
+<span class="sd">        Rotation angle of the ellipse in degrees (counterclockwise).</span>
+<span class="sd">    fill : bool, optional, default=False</span>
+<span class="sd">        Whether the ellipse should be filled (True) or only outlined (False).</span>
+<span class="sd">    edgecolor : str, optional, default=&#39;k&#39;</span>
+<span class="sd">        Color of patch edges.</span>
+<span class="sd">    facecolor : str, optional, default=None</span>
+<span class="sd">        Color of patch face. If not `None`,</span>
+<span class="sd">        sets `fill=True`.</span>
+<span class="sd">    linestyle or ls : {&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;, &#39;&#39;, (offset, on-off-seq), ...}, optional</span>
+<span class="sd">        Linestyle of ellipse patch.</span>
+<span class="sd">    linewidth or lw : float | None, optional</span>
+<span class="sd">        Linewidth of ellipse patch.</span>
+<span class="sd">    Any other kwargs accepted by matplotlib.patches.Ellipse</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ellipse : matplotlib.patches.Ellipse</span>
+<span class="sd">        An Ellipse patch that can be added to a matplotlib Axes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">facecolor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fill</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">Ellipse</span><span class="p">(</span>
+        <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+        <span class="n">angle</span><span class="o">=</span><span class="n">angle</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span>
+        <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plot_points">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_points</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">points</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">],</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="s1">&#39;astro&#39;</span><span class="p">,</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="n">marker</span><span class="p">:</span> <span class="n">MarkerStyle</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">MarkerStyle</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span>
+    <span class="n">order</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;fortran&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">index_spec</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;implicit&#39;</span><span class="p">,</span> <span class="s1">&#39;explicit&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;implicit&#39;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot points on a given Matplotlib axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]</span>
+<span class="sd">        Input data. Supported forms:</span>
+
+<span class="sd">        * Single argument:</span>
+<span class="sd">            * 1D ArrayLike or Quantity: Y values, X = None</span>
+<span class="sd">            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`</span>
+<span class="sd">            * list/tuple of scalars: Y values, X = None</span>
+<span class="sd">            * scalar or scalar Quantity: single Y value, X = None</span>
+
+<span class="sd">        * Two arguments:</span>
+<span class="sd">            * (X, Y) pairs passed through unchanged</span>
+
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        The Matplotlib axis on which to plot the points.</span>
+<span class="sd">    color : ColorType | list[ColorType] | int, optional, default=&#39;astro&#39;</span>
+<span class="sd">        Color of the points. If an integer, will draw colors using `config.cmap`.</span>
+<span class="sd">    size : float | list[float], optional, default=20</span>
+<span class="sd">        Marker size(s).</span>
+<span class="sd">    marker : MarkerStyle | list[MarkerStyle], optional, default=&#39;*&#39;</span>
+<span class="sd">        Matplotlib marker style(s).</span>
+<span class="sd">    order : {&#39;c&#39;, &#39;fortran&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Memory layout for 2D input interpretation. Defines what a</span>
+<span class="sd">        column is for `index_spec`.</span>
+
+<span class="sd">        * &#39;c&#39;: row-major, shape (N, 2)</span>
+<span class="sd">        * &#39;fortran&#39;: column-major, shape (2, N)</span>
+
+<span class="sd">        If `_UNSET`, uses `config.array_order`.</span>
+<span class="sd">    index_spec : {&#39;implicit&#39;, &#39;explicit&#39;} | tuple[int, int], optional</span>
+<span class="sd">        Column extraction mode for 2D inputs.</span>
+
+<span class="sd">        * &#39;implicit&#39;: return (None, [col_0, col_1, ...])</span>
+<span class="sd">        * &#39;explicit&#39;: return (col_0, col_1)</span>
+<span class="sd">        * tuple (i, j): return (col_i, col_j)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xlist</span><span class="p">,</span> <span class="n">ylist</span> <span class="o">=</span> <span class="n">_normalize_plotting_inputs</span><span class="p">(</span>
+            <span class="o">*</span><span class="n">points</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">index_spec</span><span class="o">=</span><span class="n">index_spec</span>
+        <span class="p">)</span>
+
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">get_colors</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">markers</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ylist</span><span class="p">)):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">_cycle</span><span class="p">(</span><span class="n">xlist</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">_cycle</span><span class="p">(</span><span class="n">ylist</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">markers</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                <span class="n">s</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="axvline">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.axvline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">axvline</span><span class="p">(</span><span class="n">vlines</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot one or more vertical reference lines on a Matplotlib axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vlines : float | Quantity | Sequence[float | Quantity] | None</span>
+<span class="sd">        X-axis coordinate(s) at which to draw vertical line(s). If a Quantity,</span>
+<span class="sd">        each value is converted to `unit` before plotting. If an iterable is</span>
+<span class="sd">        provided, a vertical line is drawn for each element. If None, no lines</span>
+<span class="sd">        are drawn.</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        Matplotlib Axes object on which to draw the vertical line(s).</span>
+<span class="sd">    unit : astropy.units.UnitBase | str, optional, default=None</span>
+<span class="sd">        Unit to which Quantity values in `vlines` are converted before plotting.</span>
+<span class="sd">        If None, Quantity inputs must already be in the axis unit system or must</span>
+<span class="sd">        not require conversion.</span>
+<span class="sd">    equivalencies : astropy.units.equivalencies | None, optional, default=None</span>
+<span class="sd">        Equivalencies for converting units. If None, is ignored.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">vlines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vlines</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">vlines</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">vline</span> <span class="ow">in</span> <span class="n">vlines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vline</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">vline</span> <span class="o">=</span> <span class="n">vline</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">equivalencies</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vline</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">vline</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span>
+                <span class="n">vline</span><span class="p">,</span>
+                <span class="n">ls</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">linestyle</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">linewidth</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">vlines</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="axhline">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.axhline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">axhline</span><span class="p">(</span><span class="n">hlines</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot one or more horizontal reference lines on a Matplotlib axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hlines : float | Quantity | Sequence[float | Quantity] | None</span>
+<span class="sd">        Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,</span>
+<span class="sd">        each value is converted to `unit` before plotting. If an iterable is</span>
+<span class="sd">        provided, a horizontal line is drawn for each element. If None, no lines</span>
+<span class="sd">        are drawn.</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        Matplotlib Axes object on which to draw the horizontal line(s).</span>
+<span class="sd">    unit : astropy.units.UnitBase | str, optional, default=None</span>
+<span class="sd">        Unit to which Quantity values in `hlines` are converted before plotting.</span>
+<span class="sd">        If None, Quantity inputs must already be in the axis unit system or must</span>
+<span class="sd">        not require conversion.</span>
+<span class="sd">    equivalencies : astropy.units.equivalencies | None, optional, default=None</span>
+<span class="sd">        Equivalencies for converting units. If None, is ignored.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Horizontal lines are drawn using `ax.axhline` with a dotted linestyle,</span>
+<span class="sd">    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">hlines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hlines</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">hlines</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">hline</span> <span class="ow">in</span> <span class="n">hlines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hline</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">hline</span> <span class="o">=</span> <span class="n">hline</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">equivalencies</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hline</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">hline</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span>
+                <span class="n">hline</span><span class="p">,</span>
+                <span class="n">ls</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">linestyle</span><span class="p">,</span>
+                <span class="n">lw</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">linewidth</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">axline</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">hlines</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="c1"># Notebook Utils</span>
+<span class="c1"># --------------</span>
+<div class="viewcode-block" id="inline">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.inline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">inline</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Start an inline IPython backend session.</span>
+<span class="sd">    Allows for inline plots in IPython sessions</span>
+<span class="sd">    like Jupyter Notebook.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.core.getipython</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ipython</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s1">&#39;IPython is not installed. Install it to use this feature&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">ipython</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ipython</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Not inside an IPython environment&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">close</span><span class="p">()</span>
+        <span class="n">ipython</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">&#39;matplotlib&#39;</span><span class="p">,</span> <span class="s1">&#39;inline&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unable to set inline backend: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="interactive">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.interactive">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interactive</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Start an interactive IPython backend session.</span>
+<span class="sd">    Allows for interactive plots in IPython sessions</span>
+<span class="sd">    like Jupyter Notebook.</span>
+
+<span class="sd">    Ensure ipympl is installed:</span>
+<span class="sd">    &gt;&gt;&gt; $ conda install -c conda-forge ipympl</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.core.getipython</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ipython</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s1">&#39;IPython is not installed. Install it to use this feature&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">ipython</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ipython</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Not inside an IPython environment&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ipython</span><span class="o">.</span><span class="n">run_line_magic</span><span class="p">(</span><span class="s1">&#39;matplotlib&#39;</span><span class="p">,</span> <span class="s1">&#39;ipympl&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;ipympl backend unavailable: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">. Please install with:</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;$ conda install -c conda-forge ipympl&#39;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="close">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.close">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Closes all interactive plots in session.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

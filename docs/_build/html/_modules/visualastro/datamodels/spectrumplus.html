@@ -1,0 +1,937 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.datamodels.spectrumplus &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.datamodels.spectrumplus</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.datamodels.spectrumplus</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-09-22</span>
+<span class="sd">Date Modified: 2026-07-28</span>
+<span class="sd">Description:</span>
+<span class="sd">    SpectrumPlus data structure for 1D spectrum objects.</span>
+<span class="sd">    This is an extension of the specutils.Spectrum class</span>
+<span class="sd">    that offers convenience methods to work with spectra.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">UnitBase</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_config_value</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ensure_common_unit</span><span class="p">,</span>
+    <span class="n">to_spectral_region</span><span class="p">,</span>
+    <span class="n">_check_unit_equality</span><span class="p">,</span>
+    <span class="n">_require_spectral_region</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._specutils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SpectralAxis</span><span class="p">,</span>
+    <span class="n">SpectralRegion</span><span class="p">,</span>
+    <span class="n">Spectrum</span><span class="p">,</span>
+    <span class="n">_extract_region</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.fits_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_copy_headers</span><span class="p">,</span>
+    <span class="n">_get_history</span><span class="p">,</span>
+    <span class="n">_log_history</span><span class="p">,</span>
+    <span class="n">_region_to_history</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="SpectrumPlus">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SpectrumPlus</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lightweight extension of specutils.Spectrum, offering convenience methods.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum : `~specutils.Spectrum`, optional</span>
+<span class="sd">        Spectrum object containing wavelength, flux, and unit information.</span>
+<span class="sd">        Takes precedent over `wavelength` and `flux`.</span>
+<span class="sd">    wavelength : array-like or `~astropy.units.Quantity`, optional</span>
+<span class="sd">        Wavelength array corresponding to the spectral axis.</span>
+<span class="sd">    flux : array-like or `~astropy.units.Quantity`, optional</span>
+<span class="sd">        Flux values of the spectrum. Units are inferred if possible.</span>
+<span class="sd">    normalized : array-like or `~astropy.units.Quantity`, optional</span>
+<span class="sd">        Normalized flux values of the spectrum, if available.</span>
+<span class="sd">    continuum : array-like or `~astropy.units.Quantity`, optional</span>
+<span class="sd">        Continuum flux values evaluated on the same spectral axis as the</span>
+<span class="sd">        spectrum. Must have the same shape and physical units as `flux`.</span>
+<span class="sd">    log_file : Header</span>
+<span class="sd">        Log file to track SpectrumPlus operations using</span>
+<span class="sd">        `HISTORY` cards. Methods that return a new SpectrumPlus</span>
+<span class="sd">        instance will transfer over any existing logs.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum : specutils.Spectrum</span>
+<span class="sd">        Underlying Spectrum object containing the spectrum</span>
+<span class="sd">        spectral axis and flux arrays.</span>
+<span class="sd">    continuum : Quantity</span>
+<span class="sd">        Quantity array of continuum values.</span>
+<span class="sd">    normalized : array-like</span>
+<span class="sd">        Normalized flux array.</span>
+<span class="sd">    fit_method : {&#39;fit_continuum&#39;, &#39;generic&#39;}</span>
+<span class="sd">        Method used to compute the continuum fit.</span>
+<span class="sd">    region : SpectralRegion or None</span>
+<span class="sd">        Region used to compute the continuum fit.</span>
+<span class="sd">        Can be used to remove strong absorption/emission</span>
+<span class="sd">        lines that can skew the fit.</span>
+<span class="sd">    log : list of str</span>
+<span class="sd">        List of each log output in primary_header[&#39;HISTORY&#39;]</span>
+
+<span class="sd">    Properties</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectral_axis : Quantity or SpectralAxis</span>
+<span class="sd">        Spectral axis array of the spectrum.</span>
+<span class="sd">    wavelength : Quantity or SpectralAxis</span>
+<span class="sd">        Spectral axis array of the spectrum converted to Angstroms.</span>
+<span class="sd">    frequency : Quantity or SpectralAxis</span>
+<span class="sd">        Spectral axis array of the spectrum converted to GHz.</span>
+<span class="sd">    flux : Quantity</span>
+<span class="sd">        Flux array of the spectrum.</span>
+<span class="sd">    spectral_unit : Astropy.Unit</span>
+<span class="sd">        Unit of spectral axis.</span>
+<span class="sd">    unit : Astropy.Unit</span>
+<span class="sd">        Unit of flux array.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    extract_region(region, return_single_spectrum=False)</span>
+<span class="sd">        Extract a subregion of the spectrum.</span>
+<span class="sd">    replace_flux_where(mask, values)</span>
+<span class="sd">        Replace flux values at selected locations.</span>
+
+<span class="sd">    Array Interface</span>
+<span class="sd">    ---------------</span>
+<span class="sd">    __getattr__</span>
+<span class="sd">        Delegate undefined attributes or methods</span>
+<span class="sd">        to the underlying `Spectrum` object.</span>
+<span class="sd">    __getitem__</span>
+<span class="sd">        Return a slice of the spectrum.</span>
+<span class="sd">    __mul__</span>
+<span class="sd">        Multiply the spectrum flux by a scalar factor.</span>
+<span class="sd">    __rmul__</span>
+<span class="sd">        Multiply a scalar value by the spectrum flux.</span>
+<span class="sd">    __truediv__</span>
+<span class="sd">        Divide the spectrum flux by a scalar factor.</span>
+<span class="sd">    __rtruediv__</span>
+<span class="sd">        Raise an error as dividing by the spectrum flux</span>
+<span class="sd">        is undefined behavior.</span>
+
+<span class="sd">    Helper Methods</span>
+<span class="sd">    --------------</span>
+<span class="sd">    _apply_region</span>
+<span class="sd">        Helper method for `extract_region`.</span>
+<span class="sd">    _fit_continuum</span>
+<span class="sd">        Helper method to fit the spectrum continuum.</span>
+<span class="sd">    _construct_spectrum</span>
+<span class="sd">        Helper method to construct a Spectrum object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">spectrum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">spectral_axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">flux</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">normalized</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">continuum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;specutils&#39;</span><span class="p">)</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;fit_method&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span>
+            <span class="n">fit_method</span><span class="p">,</span> <span class="s1">&#39;spectrum_continuum_fit_method&#39;</span>
+        <span class="p">)</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;region&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">region</span><span class="p">:</span> <span class="n">SpectralRegion</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log_file</span> <span class="o">=</span> <span class="n">Header</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;log_file should be a astropy.fits.Header! &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Got type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># validate that spectral axis and flux units are consistent</span>
+        <span class="n">spectral_candidates</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">spectral_axis</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="s1">&#39;spectral_axis&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">flux_candidates</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">spectrum</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="s1">&#39;flux&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">flux</span><span class="p">,</span>
+            <span class="n">continuum</span>
+        <span class="p">)</span>
+
+        <span class="n">ensure_common_unit</span><span class="p">(</span>
+            <span class="n">spectral_candidates</span><span class="p">,</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;spectral axis&#39;</span>
+        <span class="p">)</span>
+        <span class="n">ensure_common_unit</span><span class="p">(</span>
+            <span class="n">flux_candidates</span><span class="p">,</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;flux&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># generate Spectrum</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_spectrum</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="o">=</span><span class="n">spectrum</span><span class="p">,</span>
+            <span class="n">spectral_axis</span><span class="o">=</span><span class="n">spectral_axis</span><span class="p">,</span>
+            <span class="n">flux</span><span class="o">=</span><span class="n">flux</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">log_file</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="c1"># fit continuum and normalize</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                 <span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="p">)</span>
+
+        <span class="n">region</span> <span class="o">=</span> <span class="n">_require_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">continuum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continuum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_continuum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span>
+            <span class="n">region_log</span> <span class="o">=</span> <span class="n">_region_to_history</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+            <span class="n">_log_history</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Computing continuum: </span><span class="si">{</span><span class="n">region_log</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">normalized</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">normalized</span> <span class="o">=</span> <span class="n">spectrum</span> <span class="o">/</span> <span class="n">continuum</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">:</span> <span class="n">Spectrum</span> <span class="o">=</span> <span class="n">spectrum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuum</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">=</span> <span class="n">continuum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalized</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">=</span> <span class="n">normalized</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;fit_continuum&#39;</span><span class="p">,</span> <span class="s1">&#39;generic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">:</span> <span class="n">SpectralRegion</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">:</span> <span class="n">Header</span> <span class="o">=</span> <span class="n">log_file</span>
+
+    <span class="c1"># Properties</span>
+    <span class="c1"># ----------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">spectral_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectralAxis or Quantity : Spectral axis array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectralAxis or Quantity : Wavelength array in Å units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">wavelength</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectralAxis or Quantity : wavelength array in GHz units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">frequency</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flux</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Quantity : Flux array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">flux</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">spectral_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Unit : Spectral axis unit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span><span class="o">.</span><span class="n">unit</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Unit : Flux unit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">UnitBase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="o">.</span><span class="n">flux</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the processing history from the FITS HISTORY cards.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str or None</span>
+<span class="sd">            List of HISTORY entries, or None if no header exists.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_get_history</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">)</span>
+
+    <span class="c1"># Methods</span>
+    <span class="c1"># -------</span>
+<div class="viewcode-block" id="SpectrumPlus.extract_region">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.extract_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_region</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">return_single_spectrum</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">continuum_region</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract a spectral sub-region.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        region : SpectralRegion or array-like of tuple</span>
+<span class="sd">            Spectral region(s) to extract. If array-like,</span>
+<span class="sd">            it must be a sequence of ``(lower, upper)``</span>
+<span class="sd">            bounds, typically as ``Quantity``.</span>
+<span class="sd">            Ex : [(6.5*u.um, 8*u.um), (8.5*u.um, 9*u.um)]</span>
+<span class="sd">            Ex : [(6000, 6200), (7000, 8000)] * u.AA</span>
+<span class="sd">        return_single_spectrum : boolean, optional, default=False</span>
+<span class="sd">            If True, the resulting spectra will be concatenated</span>
+<span class="sd">            together into a single Spectrum object instead.</span>
+<span class="sd">        continuum_region : SpectralRegion, array-like, or list thereof, optional</span>
+<span class="sd">            Spectral region(s) to use when fitting the continuum.</span>
+
+<span class="sd">            * If ``return_single_spectrum=True`` :</span>
+<span class="sd">                single region specification</span>
+<span class="sd">            * If ``return_single_spectrum=False`` and multiple regions extracted :</span>
+<span class="sd">                must be a list with one region per extracted subregion, or None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectrumPlus or list of SpectrumPlus</span>
+<span class="sd">            A new SpectrumPlus object (or list of objects) restricted</span>
+<span class="sd">            to the specified region(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span>
+
+        <span class="n">region</span> <span class="o">=</span> <span class="n">_require_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+        <span class="n">subregions</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">subregions</span>
+        <span class="k">if</span> <span class="n">subregions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;region.subregions is None!&#39;</span>
+            <span class="p">)</span>
+        <span class="n">N_regions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subregions</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">continuum_region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_single_spectrum</span> <span class="ow">and</span> <span class="n">N_regions</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">continuum_region</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;When extracting multiple separate spectra, &#39;</span>
+                        <span class="s1">&#39;continuum_region must be a list with one region per subregion&#39;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">continuum_region</span><span class="p">)</span> <span class="o">!=</span> <span class="n">N_regions</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;continuum_region has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">continuum_region</span><span class="p">)</span><span class="si">}</span><span class="s1"> elements &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;but </span><span class="si">{</span><span class="n">N_regions</span><span class="si">}</span><span class="s1"> spectral regions were specified&#39;</span>
+                    <span class="p">)</span>
+                <span class="n">continuum_region</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_spectral_region</span><span class="p">(</span><span class="n">cr</span><span class="p">)</span> <span class="k">for</span> <span class="n">cr</span> <span class="ow">in</span> <span class="n">continuum_region</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">continuum_region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">continuum_region</span><span class="p">)</span>
+
+        <span class="c1"># extract region</span>
+        <span class="n">new_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_region</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span>
+            <span class="n">region</span><span class="p">,</span>
+            <span class="n">return_single_spectrum</span><span class="o">=</span><span class="n">return_single_spectrum</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get lower and upper bound of each subregion</span>
+        <span class="n">rmins</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">lower</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">region</span><span class="p">]</span>
+        <span class="n">rmaxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">upper</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">region</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">return_single_spectrum</span> <span class="ow">or</span> <span class="n">N_regions</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+            <span class="n">log</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Extracting </span><span class="si">{</span><span class="n">N_regions</span><span class="si">}</span><span class="s1"> region(s) btwn: &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">rmins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">rmaxs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+                <span class="n">spectrum</span><span class="o">=</span><span class="n">new_spectrum</span><span class="p">,</span>
+                <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+                <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span><span class="p">,</span>
+                <span class="n">region</span><span class="o">=</span><span class="n">continuum_region</span>
+            <span class="p">)</span>
+
+        <span class="c1"># convert each subregion to a SpectrumPlus</span>
+        <span class="n">spectrum_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_spectrum</span><span class="p">,</span> <span class="n">rmins</span><span class="p">,</span> <span class="n">rmaxs</span><span class="p">)):</span>
+            <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+            <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Extracting region: </span><span class="si">{</span><span class="n">rmin</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">rmax</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+            <span class="n">continuum_reg</span> <span class="o">=</span> <span class="n">continuum_region</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">continuum_region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="n">spectrum_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">SpectrumPlus</span><span class="p">(</span>
+                    <span class="n">spectrum</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span>
+                    <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+                    <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span><span class="p">,</span>
+                    <span class="n">region</span><span class="o">=</span><span class="n">continuum_reg</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">spectrum_list</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.recompute_continuum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.recompute_continuum">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">recompute_continuum</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">region</span><span class="p">:</span> <span class="n">SpectralRegion</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fit_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;fit_continuum&#39;</span><span class="p">,</span> <span class="s1">&#39;generic&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recompute the continuum fit and normalized spectrum.</span>
+
+<span class="sd">        This method refits the continuum using the specified region and</span>
+<span class="sd">        fitting method, then updates both the stored continuum and the</span>
+<span class="sd">        normalized spectrum in-place.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        region : SpectralRegion | array-like of tuple | None, optional, default=None</span>
+<span class="sd">            Spectral region(s) to include in the continuum fit. If None,</span>
+<span class="sd">            the currently stored `self.region` is used. Input is coerced</span>
+<span class="sd">            via `to_spectral_region`.</span>
+<span class="sd">        fit_method : {&#39;fit_continuum&#39;, &#39;generic&#39;} | None, optional, default=None</span>
+<span class="sd">            Continuum fitting method. If None, the currently stored</span>
+<span class="sd">            `self.fit_method` is used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            Updates `self.continuum`, `self.normalized`,</span>
+<span class="sd">            `self.region`, and `self.fit_method` in-place.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">region</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="k">if</span> <span class="n">fit_method</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fit_method</span>
+
+        <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit_continuum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span>
+        <span class="n">region_log</span> <span class="o">=</span> <span class="n">_region_to_history</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+        <span class="n">_log_history</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Recomputing continuum: </span><span class="si">{</span><span class="n">region_log</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuum</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span> <span class="o">=</span> <span class="n">fit_method</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.remove_nonfinite">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.remove_nonfinite">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_nonfinite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a new SpectrumPlus with all samples removed</span>
+<span class="sd">        where the flux is not finite (NaN, +inf, -inf).</span>
+
+<span class="sd">        This reduces the length of the spectrum!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        return_mask : bool, optional, default=False</span>
+<span class="sd">            If True, return the boolean mask used</span>
+<span class="sd">            to remove non finite values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectrumPlus :</span>
+<span class="sd">            New SpectrumPlus object with all non finite values</span>
+<span class="sd">            removed from the object.</span>
+<span class="sd">        finite : bool</span>
+<span class="sd">            Boolean mask used to mask the spectrum spectral axis</span>
+<span class="sd">            and flux. Only returned if `return_mask` is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="p">)</span>
+
+        <span class="n">finite_spec</span> <span class="o">=</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+            <span class="n">spectral_axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_axis</span><span class="p">[</span><span class="n">finite</span><span class="p">],</span>
+            <span class="n">flux</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="p">[</span><span class="n">finite</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_mask</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">finite_spec</span><span class="p">,</span> <span class="n">finite</span>
+
+        <span class="k">return</span> <span class="n">finite_spec</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.replace_flux_where">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.replace_flux_where">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace_flux_where</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace flux values at selected locations and return a new spectrum.</span>
+
+<span class="sd">        This method returns a new `SpectrumPlus` in which the flux values</span>
+<span class="sd">        corresponding to `mask` are replaced by `values`. The WCS, velocity</span>
+<span class="sd">        convention, rest value and meta attributes are preserved. The operation</span>
+<span class="sd">        is non-mutating; the original spectrum remains unchanged.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mask : array-like of bool</span>
+<span class="sd">            Boolean mask with the same shape as the spectrum flux. Elements</span>
+<span class="sd">            set to True indicate locations where the flux will be replaced.</span>
+<span class="sd">        values : `Quantity`</span>
+<span class="sd">            Replacement flux values. Must have the same shape and units as</span>
+<span class="sd">            the spectrum flux.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        `SpectrumPlus`</span>
+<span class="sd">            A new spectrum with modified flux values. The spectral axis and</span>
+<span class="sd">            coordinate metadata are preserved, while uncertainty and masking</span>
+<span class="sd">            information are not propagated.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError :</span>
+<span class="sd">            If `values` does not have the same shape as the spectrum flux.</span>
+<span class="sd">        TypeError :</span>
+<span class="sd">            If `values` is not a `Quantity` with units compatible with the</span>
+<span class="sd">            spectrum flux.</span>
+<span class="sd">        UnitsError :</span>
+<span class="sd">            If `flux` and `values` don&#39;t have the same units.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span>
+        <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span>
+        <span class="n">flux</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">flux</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">flux</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Replacement values must match flux shape. &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Flux shape: </span><span class="si">{</span><span class="n">flux</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">, values shape: </span><span class="si">{</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`values` must be an Astropy Quantity.&quot;</span><span class="p">)</span>
+
+        <span class="n">_check_unit_equality</span><span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">values</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;flux&#39;</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)</span>
+
+        <span class="n">flux</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="n">new_spectrum</span> <span class="o">=</span> <span class="n">Spectrum</span><span class="p">(</span>
+            <span class="n">spectral_axis</span><span class="o">=</span><span class="n">spectral_axis</span><span class="p">,</span>
+            <span class="n">flux</span><span class="o">=</span><span class="n">flux</span><span class="p">,</span>
+            <span class="n">wcs</span><span class="o">=</span><span class="n">spectrum</span><span class="o">.</span><span class="n">wcs</span><span class="p">,</span>
+            <span class="n">velocity_convention</span><span class="o">=</span><span class="n">spectrum</span><span class="o">.</span><span class="n">velocity_convention</span><span class="p">,</span>
+            <span class="n">rest_value</span><span class="o">=</span><span class="n">spectrum</span><span class="o">.</span><span class="n">rest_value</span><span class="p">,</span>
+            <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">meta</span><span class="p">)</span> <span class="k">if</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span>
+        <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Replacing flux at masked locations&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="o">=</span><span class="n">new_spectrum</span><span class="p">,</span>
+            <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># helper functions</span>
+    <span class="c1"># ----------------</span>
+<div class="viewcode-block" id="SpectrumPlus.__getattr__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.__getattr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delegate attribute/method access to underlying Spectrum object</span>
+<span class="sd">        if it is not defined in SpectrumPlus.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of attribute, property, method, etc...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object has no attribute &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object has no attribute &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.__getitem__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Slice the underlying `Spectrum` object, and return a new</span>
+<span class="sd">        SpectrumPlus. The continuum fit and normalized spectra</span>
+<span class="sd">        are automatically recomputed for the spectra slice.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : int, slice, or array-like</span>
+<span class="sd">            Index or slice used to select specific elements from</span>
+<span class="sd">            the wavelength, flux, and other stored arrays.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SpectrumPlus</span>
+<span class="sd">            A new ``SpectrumPlus`` instance containing the sliced</span>
+<span class="sd">            spectrum object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sub_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span>
+        <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">)</span>
+
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Sliced data with key : </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="o">=</span><span class="n">sub_spectrum</span><span class="p">,</span>
+            <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.__mul__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.__mul__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiply spectrum by a scalar.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        factor : scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scaled_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">*</span> <span class="n">factor</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Multiplying flux by </span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="o">=</span><span class="n">scaled_spectrum</span><span class="p">,</span>
+            <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span>
+        <span class="p">)</span></div>
+
+
+    <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
+
+<div class="viewcode-block" id="SpectrumPlus.__truediv__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.__truediv__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Divide spectrum by a scalar.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        factor : scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scaled_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">/</span> <span class="n">factor</span>
+        <span class="n">fit_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_method</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="n">new_log</span> <span class="o">=</span> <span class="n">_copy_headers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="n">_log_history</span><span class="p">(</span><span class="n">new_log</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Dividing flux by </span><span class="si">{</span><span class="n">factor</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SpectrumPlus</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="o">=</span><span class="n">scaled_spectrum</span><span class="p">,</span>
+            <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">new_log</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus.__rtruediv__">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus.__rtruediv__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;Division by an SpectrumPlus is not defined.&#39;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus._apply_region">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus._apply_region">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">return_single_spectrum</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply a spectral region to a Spectrum object.</span>
+
+<span class="sd">        This is a thin wrapper around ``specutils.manipulation.extract_region``.</span>
+<span class="sd">        If ``region`` is not already a ``SpectralRegion``, it is coerced into one</span>
+<span class="sd">        before extraction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spectrum : Spectrum or None</span>
+<span class="sd">            Input spectrum to which the region will be applied. If None,</span>
+<span class="sd">            the function returns None.</span>
+<span class="sd">        region : SpectralRegion or array-like</span>
+<span class="sd">            Spectral region to extract. If array-like, it is interpreted as</span>
+<span class="sd">            region bounds and converted to a ``SpectralRegion``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Spectrum or None</span>
+<span class="sd">            A new ``Spectrum`` object containing only the portion defined</span>
+<span class="sd">            by ``region``, or None if the input spectrum is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_extract_region</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">return_single_spectrum</span><span class="o">=</span><span class="n">return_single_spectrum</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpectrumPlus._fit_continuum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus._fit_continuum">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_continuum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit spectrum continuum.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spectrum : Spectrum</span>
+<span class="sd">            Spectrum object.</span>
+<span class="sd">        fit_method : {&#39;fit_continuum&#39;, &#39;generic&#39;}</span>
+<span class="sd">            Continuum fitting method.</span>
+<span class="sd">        region : array-like of tuple, optional</span>
+<span class="sd">            Spectral region(s) to include in the continuum fit.</span>
+<span class="sd">            Ex:</span>
+<span class="sd">            region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        continuum : Quantity</span>
+<span class="sd">            Quantity array of continuum values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.analysis.spectra_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">fit_continuum</span>
+
+        <span class="k">return</span> <span class="n">fit_continuum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SpectrumPlus._construct_spectrum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.SpectrumPlus._construct_spectrum">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_construct_spectrum</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spectral_axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">flux</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spectrum</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct and return a Spectrum instance from either an existing spectrum</span>
+<span class="sd">        or from spectral axis and flux arrays.</span>
+
+<span class="sd">        Exactly one of the following input combinations must be provided:</span>
+
+<span class="sd">        * `spectrum`: a pre-existing `specutils.Spectrum` instance, or</span>
+<span class="sd">        * `spectral_axis` and `flux`: array-like objects used to construct a new</span>
+<span class="sd">          `Spectrum`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spectrum : `specutils.Spectrum`, optional</span>
+<span class="sd">            Existing spectrum object to return directly. If provided, `spectral_axis`</span>
+<span class="sd">            and `flux` must be None.</span>
+<span class="sd">        spectral_axis : array-like or `astropy.units.Quantity`, optional</span>
+<span class="sd">            Spectral axis values. Must be provided together with `flux` if</span>
+<span class="sd">            `spectrum` is not given.</span>
+<span class="sd">        flux : array-like or `astropy.units.Quantity`, optional</span>
+<span class="sd">            Flux values corresponding to `spectral_axis`. Must be provided together</span>
+<span class="sd">            with `spectral_axis` if `spectrum` is not given.</span>
+
+<span class="sd">        **kwargs</span>
+<span class="sd">            Additional keyword arguments forwarded to the `Spectrum` constructor</span>
+<span class="sd">            (e.g., velocity_convention, rest_value, wcs, radial_velocity. etc).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        spectrum : `specutils.Spectrum`</span>
+<span class="sd">            A validated spectrum instance.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If both `spectrum` and (`wavelength` or `flux`) are provided, if neither</span>
+<span class="sd">            input path is fully specified, or if `spectrum` is not a `Spectrum`</span>
+<span class="sd">            instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">spectrum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">flux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Provide either spectrum OR spectral_axis + flux, not both!&#39;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;&#39;spectrum&#39; must be a Spectrum instance!&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_log_history</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s2">&quot;Initialize SpectrumPlus from a &lt;Spectrum&gt; object&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">spectrum</span>
+
+        <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">flux</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;spectral_axis and flux must both be provided if spectrum is None.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log_history</span><span class="p">(</span>
+                <span class="n">log_file</span><span class="p">,</span> <span class="s2">&quot;Initialize SpectrumPlus with input arrays&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Spectrum</span><span class="p">(</span>
+            <span class="n">spectral_axis</span><span class="o">=</span><span class="n">spectral_axis</span><span class="p">,</span>
+            <span class="n">flux</span><span class="o">=</span><span class="n">flux</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure both `SpectrumPlus` and `specutils.Spectrum`</span>
+<span class="sd">        attributes are included in dir().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span>
+                <span class="nb">dir</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="o">+</span>
+                <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span>
+                <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str : String representation of ``SpectrumPlus``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">flux</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;flux=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1"> ... </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">) &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s1">]; &#39;</span>
+        <span class="p">)</span>
+        <span class="n">spectral_axis</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;spectral_axis=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_axis</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1"> ... &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_axis</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1">) &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_unit</span><span class="si">}</span><span class="s1">]; &#39;</span>
+        <span class="p">)</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s1">], &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_axis</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;SpectrumPlus: </span><span class="si">{</span><span class="n">flux</span><span class="si">}{</span><span class="n">spectral_axis</span><span class="si">}{</span><span class="n">stats</span><span class="si">}</span><span class="s1">&gt;&#39;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.style &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.style</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.style</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-07-13</span>
+<span class="sd">Date Modified: 2026-07-04</span>
+<span class="sd">Description:</span>
+<span class="sd">    Functions related to setting the plotting style.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractContextManager</span><span class="p">,</span> <span class="n">contextmanager</span><span class="p">,</span> <span class="n">nullcontext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.visualization.wcsaxes.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCSAxes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.style</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mplstyle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorType</span><span class="p">,</span> <span class="n">LineStyleType</span><span class="p">,</span> <span class="n">MarkerType</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">_resolve_default</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.kwargs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_kwarg</span><span class="p">,</span> <span class="n">_param</span><span class="p">,</span>
+    <span class="n">_resolve_kwargs</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_list</span><span class="p">,</span> <span class="n">match_length</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VisualAstroStyles</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container providing information on VisualAstro Matplotlib styles.</span>
+
+<span class="sd">    Styles can be used directly with `matplotlib.pyplot.style.use`</span>
+<span class="sd">    or `matplotlib.pyplot.style.context`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    available : list[str]</span>
+<span class="sd">        All available VisualAstro styles registered with Matplotlib.</span>
+<span class="sd">    axes : AxesStyles</span>
+<span class="sd">        Collection of axes-related styles.</span>
+<span class="sd">    fonts : FontStyles</span>
+<span class="sd">        Collection of font-related styles.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; va.styles.available</span>
+<span class="sd">    [&#39;computer-modern-serif&#39;, &#39;computer-modern-mono&#39;, &#39;full&#39;, &#39;minimal&#39; ...]</span>
+
+<span class="sd">    &gt;&gt;&gt; va.styles.fonts.serif</span>
+<span class="sd">    [&#39;computer-modern-serif&#39;, &#39;stix&#39;, &#39;times-serif&#39;, ...]</span>
+
+<span class="sd">    &gt;&gt;&gt; va.styles.axes.available</span>
+<span class="sd">    [&#39;full&#39;, &#39;minimal&#39;, ...]</span>
+
+<span class="sd">    &gt;&gt;&gt; plt.style.use([&#39;full&#39;, &#39;computer-modern-serif&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">Fonts</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Collection of font-related styles.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        available : list[str]</span>
+<span class="sd">            All available font styles.</span>
+<span class="sd">        mono : list[str]</span>
+<span class="sd">            Available monospace font styles.</span>
+<span class="sd">        sans : list[str]</span>
+<span class="sd">            Available sans-serif font styles.</span>
+<span class="sd">        serif : list[str]</span>
+<span class="sd">            Available serif font styles.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fontstyles</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">available</span> <span class="o">=</span> <span class="n">_get_styles</span><span class="p">(</span><span class="n">fontstyles</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;monospace&#39;</span><span class="p">,</span> <span class="s1">&#39;sans_serif&#39;</span><span class="p">,</span> <span class="s1">&#39;serif&#39;</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">family</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                    <span class="n">_get_styles</span><span class="p">(</span><span class="n">fontstyles</span> <span class="o">/</span> <span class="n">family</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">styles</span> <span class="o">=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Fonts([</span><span class="se">\n</span><span class="si">{</span><span class="n">styles</span><span class="si">}</span><span class="se">\n</span><span class="s1">])&#39;</span>
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">Axes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Collection of axes-related styles.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        available : list[str]</span>
+<span class="sd">            All available axes styles.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axesstyles</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">available</span> <span class="o">=</span> <span class="n">_get_styles</span><span class="p">(</span><span class="n">axesstyles</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">styles</span> <span class="o">=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Axes([</span><span class="se">\n</span><span class="si">{</span><span class="n">styles</span><span class="si">}</span><span class="se">\n</span><span class="s1">])&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">available_styles</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;VisualAstroStyles initialization.&quot;&quot;&quot;</span>
+        <span class="n">stylelib</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;visualastro&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;stylelib&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">available</span> <span class="o">=</span> <span class="n">available_styles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Axes</span><span class="p">(</span><span class="n">stylelib</span> <span class="o">/</span> <span class="s1">&#39;axes_styles&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fonts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Fonts</span><span class="p">(</span><span class="n">stylelib</span> <span class="o">/</span> <span class="s1">&#39;fontstyles&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">styles</span> <span class="o">=</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;Available Styles([</span><span class="se">\n</span><span class="si">{</span><span class="n">styles</span><span class="si">}</span><span class="se">\n</span><span class="s1">])&#39;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_styles</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function used by `VisualAstroStyles`.</span>
+
+<span class="sd">    Returns a sorted list of style names in a given directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">({</span><span class="n">p</span><span class="o">.</span><span class="n">stem</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">directory</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s1">&#39;*.mplstyle&#39;</span><span class="p">)}))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_style_context</span><span class="p">(</span><span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AbstractContextManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a context manager applying a Matplotlib style, or `nullcontext`</span>
+<span class="sd">    if none is resolved.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    style : str | None, optional, default=None</span>
+<span class="sd">        Name of the style to resolve via `_get_stylepath`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AbstractContextManager</span>
+<span class="sd">        `plt.style.context(stylepath)` if a style path was resolved, otherwise</span>
+<span class="sd">        `nullcontext()`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="n">style</span> <span class="k">if</span> <span class="n">style</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">available</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="n">style</span><span class="p">)</span> <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">nullcontext</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_stylepath</span><span class="p">(</span><span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the path to a visualastro mpl stylesheet for</span>
+<span class="sd">    consistent plotting parameters.</span>
+
+<span class="sd">    Matplotlib styles are also allowed (ex: &#39;classic&#39;).</span>
+
+<span class="sd">    To add custom user defined mpl sheets, add files in:</span>
+<span class="sd">    `VisualAstro/visualastro/stylelib/`</span>
+<span class="sd">    Ensure the stylesheet follows the naming convention:</span>
+<span class="sd">        `mystylesheet.mplstyle`</span>
+
+<span class="sd">    If a style is unable to load due to missing fonts</span>
+<span class="sd">    or other errors, `config.style_fallback` is used.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    style : str | list[str] | None</span>
+<span class="sd">        Name of the mpl stylesheet(s) without the extension.</span>
+<span class="sd">        Stylesheets farther to the right take precedence.</span>
+<span class="sd">        ie: `&#39;astro&#39;`, `&#39;courier-new&#39;`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    style_path : str | list[str] | None</span>
+<span class="sd">        Path to matplotlib stylesheet(s). Returns `None` if `style`</span>
+<span class="sd">        is `None`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1"># if style is a default matplotlib stylesheet</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="ow">in</span> <span class="n">mplstyle</span><span class="o">.</span><span class="n">available</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">style</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span> <span class="ow">in</span> <span class="n">mplstyle</span><span class="o">.</span><span class="n">available</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">style</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">style</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Invalid styles! To check available styles, &#39;</span>
+                <span class="s2">&quot;run `plt.style.available`.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># if style is a visualastro stylesheet</span>
+    <span class="n">stylelib</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;visualastro&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s1">&#39;stylelib&#39;</span><span class="p">)</span>
+    <span class="n">base_style</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">style</span> <span class="k">else</span> <span class="n">style</span>
+    <span class="n">style_path</span> <span class="o">=</span> <span class="n">stylelib</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base_style</span><span class="si">}</span><span class="s1">.mplstyle&#39;</span><span class="p">)</span>
+
+    <span class="c1"># ensure that style works on computer, otherwise return default style</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">style_path</span><span class="p">)):</span>
+            <span class="c1"># pass if can load style successfully on computer</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">style_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;[visualastro] Could not apply style &#39;</span><span class="si">{</span><span class="n">style</span><span class="si">}</span><span class="s2">&#39; (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Falling back to &#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">style_fallback</span><span class="si">}</span><span class="s2">&#39; style.&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">style_fallback</span>
+        <span class="n">base_style</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">style</span> <span class="k">else</span> <span class="n">style</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">stylelib</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">base_style</span><span class="si">}</span><span class="s1">.mplstyle&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="reset_rcParams">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.reset_rcParams">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reset_rcParams</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset all rcParams to their default values.&quot;&quot;&quot;</span>
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcdefaults</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="print_rcParams">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.print_rcParams">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_rcParams</span><span class="p">(</span><span class="n">print_nondefault</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print all current rcParams.</span>
+
+<span class="sd">    Paramters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    print_nondefault : bool, optional, default=True</span>
+<span class="sd">        If `True`, print only the non default values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">print_nondefault</span><span class="p">:</span>
+        <span class="n">diffs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">!=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParamsDefault</span><span class="p">[</span><span class="n">k</span><span class="p">]}</span>
+        <span class="n">pprint</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="set_plot_cycle">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.set_plot_cycle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_plot_cycle</span><span class="p">(</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">ColorType</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ColorType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">linestyles</span><span class="p">:</span> <span class="n">LineStyleType</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">LineStyleType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">markers</span><span class="p">:</span> <span class="n">MarkerType</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">MarkerType</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;broadcast&#39;</span><span class="p">,</span> <span class="s1">&#39;zip&#39;</span><span class="p">,</span> <span class="s1">&#39;product&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;broadcast&#39;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the matplotlib axes property cycle for color, linestyle, and/or marker.</span>
+
+<span class="sd">    Only sets properties for the arguments passed in. Calling this function</span>
+<span class="sd">    with no inputs does nothing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    colors : list[str] | None, optional, default=None</span>
+<span class="sd">        Color sequence, resolved via `get_colors` if provided.</span>
+<span class="sd">    linestyles : LineStyleType | Sequence[LineStyleType] | None, optional, default=None</span>
+<span class="sd">        Linestyle sequence (e.g. &#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;).</span>
+<span class="sd">    markers : MarkerType | Sequence[MarkerType] | None, optional, default=None</span>
+<span class="sd">        Marker sequence (e.g. &#39;o&#39;, &#39;s&#39;, &#39;^&#39;, &#39;x&#39;).</span>
+<span class="sd">    mode : {&#39;broadcast&#39;, &#39;zip&#39;, &#39;product&#39;}, optional, default=&#39;broadcast&#39;</span>
+
+<span class="sd">        * `&#39;broadcast&#39;` cycles shorter sequences to match the running combined length.</span>
+<span class="sd">        * `&#39;zip&#39;` pairs sequences element-wise (requires equal length).</span>
+<span class="sd">        * `&#39;product&#39;` generates the Cartesian product of all sequences.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_colors</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_resolve_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">color</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;linestyle&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">linestyle</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;marker&#39;</span><span class="p">,</span> <span class="n">markers</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">marker</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">cyclers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cyclers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">get_colors</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">color</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">linestyle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cyclers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="n">linestyle</span><span class="o">=</span><span class="n">as_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">linestyle</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cyclers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="n">as_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">marker</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cyclers</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">cyclers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cyclers</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;zip&#39;</span><span class="p">:</span>
+            <span class="n">combined</span> <span class="o">=</span> <span class="n">combined</span> <span class="o">+</span> <span class="n">c</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;broadcast&#39;</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">))</span>
+            <span class="n">matched</span> <span class="o">=</span> <span class="n">match_length</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">by_key</span><span class="p">()[</span><span class="n">key</span><span class="p">],</span> <span class="n">combined</span><span class="p">)</span>
+            <span class="n">combined</span> <span class="o">=</span> <span class="n">combined</span> <span class="o">+</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cycler</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">matched</span><span class="p">})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">combined</span> <span class="o">=</span> <span class="n">combined</span> <span class="o">*</span> <span class="n">c</span>
+
+    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined</span></div>
+
+
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">style</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">additional_styles</span><span class="p">,</span> <span class="n">rc</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">rc_kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Context manager to temporarily apply a Matplotlib or VisualAstro style,</span>
+<span class="sd">    with optional rcParams overrides.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Matplotlib or VisualAstro style name. If `_UNSET`,</span>
+<span class="sd">        uses `config.style`. Ex: &#39;astro&#39; or &#39;latex&#39;.</span>
+<span class="sd">    rc : dict, optional</span>
+<span class="sd">        Dictionary of rcParams overrides.</span>
+<span class="sd">        Ex: {&#39;font.size&#39;: 14}</span>
+<span class="sd">    **rc_kwargs :</span>
+<span class="sd">        Additional rcParams overrides supplied as keyword arguments.</span>
+<span class="sd">        Use underscores in place of dots: font_size → font.size</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; with style(&#39;latex&#39;, font_size=23, axes_labelsize=40):</span>
+<span class="sd">    ...     plt.plot(x, y)</span>
+
+<span class="sd">    &gt;&gt;&gt; with style(&#39;paper&#39;, rc={&#39;font.size&#39;: 14, &#39;lines.linewidth&#39;: 2}):</span>
+<span class="sd">    ...     fig, ax = plt.subplots()</span>
+
+<span class="sd">    &gt;&gt;&gt; with style(&#39;astro&#39;, rc={&#39;font.size&#39;: 12}, xtick_labelsize=10):</span>
+<span class="sd">    ...     # rc dict and kwargs are merged (kwargs take precedence)</span>
+<span class="sd">    ...     plt.plot(x, y)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">style_name</span> <span class="o">=</span> <span class="n">_get_stylepath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># update rcParams, with priority to kwargs</span>
+    <span class="n">rc_combined</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rc_combined</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rc_kwargs</span><span class="p">:</span>
+        <span class="c1"># replace &#39;_&#39; with &#39;.&#39; for rcParams</span>
+        <span class="n">rc_combined</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">rc_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">})</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="p">[</span><span class="n">style_name</span><span class="p">,</span> <span class="n">rc_combined</span><span class="p">]</span>
+    <span class="n">modifiers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">style</span> <span class="ow">in</span> <span class="n">additional_styles</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">modifiers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">modifiers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">styles</span> <span class="o">+=</span> <span class="n">modifiers</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">styles</span> <span class="k">if</span> <span class="n">rc_combined</span> <span class="k">else</span> <span class="n">style_name</span>
+
+    <span class="k">with</span> <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+        <span class="k">yield</span>
+
+
+<span class="n">STYLE_ALIASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;computer-modern&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;cm&#39;</span><span class="p">,</span> <span class="s1">&#39;cmu&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;computer-modern-mono&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;cm-mono&#39;</span><span class="p">,</span> <span class="s1">&#39;cmu-mono&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;computer-modern-sans&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;cm-sans&#39;</span><span class="p">,</span> <span class="s1">&#39;cmu-sans&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;dejavu&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;dejavu-serif&#39;</span><span class="p">,),</span>
+    <span class="s1">&#39;times-new-roman&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;tnr&#39;</span><span class="p">,</span> <span class="s1">&#39;timesnewroman&#39;</span><span class="p">,</span> <span class="s1">&#39;times&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_style_modifiers</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply programmatic style modifiers based on underscore-separated suffixes.</span>
+<span class="sd">    This updates an axes instance in place with stylistic modifiers.</span>
+
+<span class="sd">    Modifiers are appended to the base style name with underscores and can be</span>
+<span class="sd">    chained together in any order (e.g., &#39;astro_minimal_grid&#39; or &#39;latex_bare&#39;).</span>
+<span class="sd">    This function is mostly for internal use by plotting functions in the</span>
+<span class="sd">    visualastro.plotting.ax module.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : matplotlib.axes.Axes or astropy.visualization.wcsaxes.WCSAxes</span>
+<span class="sd">        Axes object to apply style modifiers to.</span>
+<span class="sd">    style : str</span>
+<span class="sd">        Full style string including base style and optional modifiers.</span>
+<span class="sd">        Format: &#39;basestyle_modifier1_modifier2_...&#39;</span>
+<span class="sd">        Example: &#39;astro_minimal_grid&#39;</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Supported modifiers:</span>
+<span class="sd">        - minimal : Remove minor ticks and show ticks only on bottom-left axes.</span>
+<span class="sd">                    For WCSAxes, uses coords positioning. For regular axes,</span>
+<span class="sd">                    disables top and right ticks.</span>
+<span class="sd">        - nominor : Remove minor tick marks only, keeping major ticks unchanged.</span>
+<span class="sd">        - bare : Remove all frame elements including ticks, tick labels, and</span>
+<span class="sd">                spines/frame. Creates a minimal plot with data only.</span>
+<span class="sd">        - grid : Add a background grid. Uses config settings for color, alpha,</span>
+<span class="sd">                and linestyle. Grid style differs between WCSAxes and regular axes.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">    &gt;&gt;&gt; apply_style_modifiers(ax, &#39;astro_minimal&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; apply_style_modifiers(ax, &#39;latex_grid_nominor&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; apply_style_modifiers(ax, &#39;default_bare&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="s1">&#39;_&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">style</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">modifiers</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">for</span> <span class="n">modifier</span> <span class="ow">in</span> <span class="n">modifiers</span><span class="p">:</span>
+
+        <span class="n">modifier</span> <span class="o">=</span> <span class="n">modifier</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">modifier</span> <span class="o">==</span> <span class="s1">&#39;minimal&#39;</span><span class="p">:</span>
+            <span class="c1"># remove minor ticks</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">WCSAxes</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;ra&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bl&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;dec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bl&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">modifier</span> <span class="o">==</span> <span class="s1">&#39;nominor&#39;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">modifier</span> <span class="o">==</span> <span class="s1">&#39;bare&#39;</span><span class="p">:</span>
+            <span class="c1"># remove the frame, ticks, and ticklabels</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">WCSAxes</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;ra&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticklabel_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;dec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticklabel_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;ra&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticks_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;dec&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ticks_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+                <span class="k">for</span> <span class="n">spine</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="n">spine</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">modifier</span> <span class="o">==</span> <span class="s1">&#39;grid&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">WCSAxes</span><span class="p">):</span>
+                 <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+                     <span class="kc">True</span><span class="p">,</span>
+                     <span class="n">color</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">wcs_grid_color</span><span class="p">,</span>
+                     <span class="n">alpha</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">grid_alpha</span><span class="p">,</span>
+                     <span class="n">ls</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">wcs_grid_linestyle</span>
+                 <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">grid_color</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">grid_alpha</span><span class="p">,</span>
+                    <span class="n">ls</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">grid_linestyle</span>
+                <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.colorbar &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.colorbar</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.colorbar</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-07-31</span>
+<span class="sd">Date Modified: 2026-07-31</span>
+<span class="sd">Description:</span>
+<span class="sd">    Colorbar plotting functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.cm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScalarMappable</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span> <span class="n">_resolve_default</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="add_colorbar">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.add_colorbar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_colorbar</span><span class="p">(</span>
+    <span class="n">im</span><span class="p">:</span> <span class="n">ScalarMappable</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="n">cbar_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">cbar_pad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fontsize</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">tick_which</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="s1">&#39;both&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">tick_dir</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;in&#39;</span><span class="p">,</span> <span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="s1">&#39;inout&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">tick_fontsize</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">rasterized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a colorbar next to an Axes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    im : matplotlib.cm.ScalarMappable</span>
+<span class="sd">        The image, contour set, or mappable object returned by</span>
+<span class="sd">        a plotting function (e.g., &#39;imshow&#39;, &#39;scatter&#39;, etc...).</span>
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        The axes to which the colorbar will be attached.</span>
+<span class="sd">    cbar_width : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Width of the colorbar in figure coordinates.</span>
+<span class="sd">        If `_UNSET`, uses `config.colorbar.width`.</span>
+<span class="sd">    cbar_pad : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Padding between the main axes and the colorbar</span>
+<span class="sd">        in figure coordinates. If `_UNSET`, uses `config.colorbar.pad`.</span>
+<span class="sd">    label : str, optional, default=None</span>
+<span class="sd">        Label for the colorbar. If `None`, no label is set.</span>
+<span class="sd">    fontsize : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Fontsize of colorbar label in points. If `_UNSET`, uses</span>
+<span class="sd">        `config.fontsizes.colorbar_label`, expressed as a scaling</span>
+<span class="sd">        factor relative to `config.fontsizes.size`.</span>
+<span class="sd">    tick_which :  {&#39;major&#39;, &#39;minor&#39;, &#39;both&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        The group of ticks to which the parameters are applied.</span>
+<span class="sd">    tick_dir : {&#39;in&#39;, &#39;out&#39;, &#39;inout&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Puts ticks inside the Axes, outside the Axes, or both.</span>
+<span class="sd">    tick_fontsize : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Fontsize for colorbar tick labels. If `_UNSET`, uses</span>
+<span class="sd">        `config.fontsizes.colorbar_tick_labels`, expressed as a</span>
+<span class="sd">        scaling factor relative to `config.fontsizes.size`.</span>
+<span class="sd">    rasterized : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Whether to rasterize colorbar. Rasterization</span>
+<span class="sd">        converts the artist to a bitmap when saving to</span>
+<span class="sd">        vector formats (e.g., PDF, SVG), which can</span>
+<span class="sd">        significantly reduce file size for complex plots.</span>
+<span class="sd">        If `_UNSET`, uses `config.rasterized`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cbar_width</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">cbar_width</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+    <span class="n">cbar_pad</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">cbar_pad</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">pad</span><span class="p">)</span>
+    <span class="n">fontsize</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span>
+        <span class="n">fontsize</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">fontsizes</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s1">&#39;colorbar_label&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">tick_which</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">tick_which</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">tick_which</span><span class="p">)</span>
+    <span class="n">tick_dir</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">tick_dir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">tick_dir</span><span class="p">)</span>
+    <span class="n">tick_fontsize</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span>
+        <span class="n">tick_fontsize</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">fontsizes</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s1">&#39;colorbar_tick_labels&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">rasterized</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">rasterized</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rasterized</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">figure</span>
+    <span class="n">cax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span><span class="o">.</span><span class="n">x1</span><span class="o">+</span><span class="n">cbar_pad</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span>
+            <span class="n">cbar_width</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span><span class="o">.</span><span class="n">height</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cax</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span>
+        <span class="n">which</span><span class="o">=</span><span class="n">tick_which</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="n">tick_dir</span><span class="p">,</span>
+        <span class="n">labelsize</span><span class="o">=</span><span class="n">tick_fontsize</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">fr</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">fontsize</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">rasterized</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">solids</span><span class="o">.</span><span class="n">set_rasterized</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

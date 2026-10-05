@@ -1,0 +1,1011 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.utils.wcs_utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.utils.wcs_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.utils.wcs_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache, Qiushi Chris Tian</span>
+<span class="sd">Date Created: 2025-12-06</span>
+<span class="sd">Date Modified: 2026-07-27</span>
+<span class="sd">Description:</span>
+<span class="sd">    WCS utility functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">overload</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.coordinates</span><span class="w"> </span><span class="kn">import</span> <span class="n">SkyCoord</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.nddata</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cutout2D</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">UnitBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_config_value</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">_UNSET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span><span class="p">,</span> <span class="n">_unwrap_if_single</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_offer_dependency</span><span class="p">,</span> <span class="n">_require_dependency</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._reproject</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">reproject_exact</span><span class="p">,</span> <span class="n">reproject_interp</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._spectralcube</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SpectralCube</span><span class="p">,</span> <span class="n">_HAS_SPECTRAL_CUBE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_unit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.fits_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_log_history</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="n">WCS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="get_wcs">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_wcs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the WCS from an object, if it exists.</span>
+
+<span class="sd">    This function attempts to retrieve a World Coordinate System (WCS)</span>
+<span class="sd">    associated with the input object. The extraction proceeds in the</span>
+<span class="sd">    following order:</span>
+
+<span class="sd">    * If the object is already a `WCS` instance, it is returned directly.</span>
+<span class="sd">    * If the object is a FITS `Header`, a `WCS` is constructed from it.</span>
+<span class="sd">    * If the object has a `.wcs` attribute, that attribute is recursively</span>
+<span class="sd">      inspected until a `WCS` or `Header` is found.</span>
+<span class="sd">    * If the object has a `.data` attribute, that attribute is recursively</span>
+<span class="sd">      inspected until a `WCS` or `Header` is found.</span>
+<span class="sd">    * Otherwise, None is returned.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : object</span>
+<span class="sd">        The input object from which to extract a WCS. This can be:</span>
+
+<span class="sd">        * an astropy.wcs.WCS instance</span>
+<span class="sd">        * an astropy.io.fits.Header</span>
+<span class="sd">        * any object with a `.wcs` attribute</span>
+<span class="sd">        * any object with a `.data` attribute</span>
+<span class="sd">        * any other object (returns None)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.wcs.WCS | None</span>
+<span class="sd">        The WCS associated with the input object, if it exists and can be</span>
+<span class="sd">        constructed. Returns None if no valid WCS is found or extraction fails.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function follows attribute references recursively via `.wcs` and</span>
+<span class="sd">    `.data` to support nested container objects such as NDData, SpectralCube,</span>
+<span class="sd">    or custom data structures.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WCS</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;wcs&#39;</span><span class="p">):</span>
+        <span class="n">wcs_attr</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">wcs</span>
+        <span class="k">if</span> <span class="n">wcs_attr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">wcs</span> <span class="o">=</span> <span class="n">get_wcs</span><span class="p">(</span><span class="n">wcs_attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">wcs</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">wcs</span> <span class="o">=</span> <span class="n">get_wcs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">wcs</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs_celestial</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="n">WCS</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs_celestial</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="get_wcs_celestial">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_wcs_celestial">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_wcs_celestial</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WCS</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the celestial WCS from an object, if it exists.</span>
+
+<span class="sd">    This function retrieves the World Coordinate System (WCS) associated</span>
+<span class="sd">    with the input object using `get_wcs` and returns its celestial</span>
+<span class="sd">    component. The celestial WCS contains only the sky-coordinate axes</span>
+<span class="sd">    (e.g., right ascension and declination), excluding spectral, temporal,</span>
+<span class="sd">    or other non-celestial axes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : object</span>
+<span class="sd">        The input object from which to extract a celestial WCS. This can be:</span>
+
+<span class="sd">        * an astropy.wcs.WCS instance</span>
+<span class="sd">        * an astropy.io.fits.Header</span>
+<span class="sd">        * any object with a `.wcs` attribute</span>
+<span class="sd">        * any object with a `.data` attribute</span>
+<span class="sd">        * any nested combination of the above</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.wcs.WCS | None</span>
+<span class="sd">        The celestial component of the object&#39;s WCS, if it exists.</span>
+<span class="sd">        Returns None if no valid WCS is found or if the WCS has no</span>
+<span class="sd">        celestial axes.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The returned WCS is a reduced WCS containing only celestial axes.</span>
+<span class="sd">    For example, a 3D WCS with axes (RA, Dec, wavelength) will return</span>
+<span class="sd">    a 2D WCS containing only (RA, Dec).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wcs</span> <span class="o">=</span> <span class="n">get_wcs</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">wcs</span><span class="o">.</span><span class="n">celestial</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="get_header_wcs">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_header_wcs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_header_wcs</span><span class="p">(</span><span class="n">header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Header</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">WCS</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">WCS</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract WCS from header(s).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    header : Header | ArrayLike[Header]</span>
+<span class="sd">        Single Header or ArrayLike of Headers.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    WCS | list[WCS] | None</span>
+
+<span class="sd">        * Single `WCS` if `header` is a `Header` and wcs extraction succeeds.</span>
+<span class="sd">        * List of `WCS` if `header` is a sequence and *all* headers yield</span>
+<span class="sd">          valid WCS objects.</span>
+<span class="sd">        * None if `header` is a single `Header` and WCS extraction fails,</span>
+<span class="sd">          or if a sequence is provided and *no* headers yield valid WCS.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a sequence of headers is provided and only a subset yield valid WCS.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_wcs</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+    <span class="c1"># if a list of headers extract a list of wcs</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">wcs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_wcs</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">Header</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs_list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">w</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs_list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Inconsistent WCS: some headers have WCS and some do not.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="n">WCS</span><span class="p">],</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs_list</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_valid_wcs_slice</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a key is a valid slice for a WCS object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    key : slice | tuple</span>
+<span class="sd">        key to slice WCS with.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool :</span>
+<span class="sd">        If key is a valid WCS slice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="c1"># Data Transformations</span>
+<span class="c1"># --------------------</span>
+<div class="viewcode-block" id="crop2D">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.crop2D">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">crop2D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;trim&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="s1">&#39;icrs&#39;</span><span class="p">,</span> <span class="n">origin_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a Cutout2D from array-like data using WCS and a world/pixel position.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ArrayLike | Quantity</span>
+<span class="sd">        The image to crop. Must be 2D.</span>
+<span class="sd">    size : Quantity | float | int | tuple</span>
+<span class="sd">        Size of the cutout. Interpreted as pixels if unitless.</span>
+<span class="sd">        Ex:</span>
+
+<span class="sd">            * 6 * u.arcsec</span>
+<span class="sd">            * (6*u.deg, 4*u.deg)</span>
+<span class="sd">            * (7, 8)</span>
+
+<span class="sd">    position : tuple | Quantity tuple | SkyCoord, optional, default=None</span>
+<span class="sd">        The center of the cutout region. Accepted formats are:</span>
+
+<span class="sd">        * `(x, y)` : pixel coordinates (integers or floats)</span>
+<span class="sd">        * `(ra, dec)` : sky coordinates as `~astropy.units.Quantity` in angular units</span>
+<span class="sd">        * `~astropy.coordinates.SkyCoord` : directly specify a coordinate object</span>
+<span class="sd">        * If None, defaults to the center of the image.</span>
+
+<span class="sd">    wcs : astropy.wcs.WCS</span>
+<span class="sd">        WCS corresponding to `data`. If `data` has an attribute</span>
+<span class="sd">        `.wcs`, it will be used automatically.</span>
+<span class="sd">    mode : {&#39;trim&#39;, &#39;partial&#39;, &#39;strict&#39;}, optional, default=&#39;trim&#39;</span>
+<span class="sd">        Defines how the function handles edges that fall outside the image:</span>
+
+<span class="sd">        * &#39;trim&#39;: Trim the cutout to fit within the image bounds.</span>
+<span class="sd">        * &#39;partial&#39;: Include all pixels that overlap the image, padded with NaNs.</span>
+<span class="sd">        * &#39;strict&#39;: Raise an error if any part of the cutout is outside the image.</span>
+
+<span class="sd">    frame : str, optional, default=&#39;icrs&#39;</span>
+<span class="sd">        Coordinate frame for interpreting RA/Dec values when creating the `SkyCoord`.</span>
+<span class="sd">    origin_idx : int, optional, default=0</span>
+<span class="sd">        Origin index for pixel-to-world conversion (0 for 0-based, 1 for 1-based).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Quantity | ndarray</span>
+<span class="sd">        The cropped region with units if the original data had units.</span>
+<span class="sd">    WCS</span>
+<span class="sd">        The WCS of the cropped region</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the WCS is missing (None) or cutout creation fails.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If `position` is not a supported type.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If the data were transposed and the WCS was swapped via `wcs.swapaxes(0, 1)`,</span>
+<span class="sd">    the method will automatically attempt to correct for inverted RA/Dec axes.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">celestial</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;wcs&#39;</span><span class="p">):</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">celestial</span>
+
+    <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span> <span class="p">(</span>
+            <span class="s1">&#39;WCS is None. Provide a WCS or crop manually with slicing.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># default to center of image</span>
+    <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="n">nx</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ny</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># assume floats and ints are pixel coordinates</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
+        <span class="p">):</span>
+        <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">wcs_pix2world</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin_idx</span><span class="p">)</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+
+    <span class="c1"># convert Quantities to degrees</span>
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">position</span><span class="p">)</span>
+        <span class="p">):</span>
+        <span class="n">p0</span> <span class="o">=</span> <span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+
+        <span class="n">test1</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">p0</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">p1</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">test1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">y1</span><span class="p">):</span>
+            <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">p0</span><span class="p">,</span> <span class="n">p1</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">test2</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">p1</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">p0</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+            <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">world_to_pixel</span><span class="p">(</span><span class="n">test2</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">y2</span><span class="p">):</span>
+                <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="o">=</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not interpret input as RA/Dec.&#39;</span><span class="p">)</span>
+
+        <span class="n">center</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">dec</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+
+    <span class="c1"># if position passed in as SkyCoord, use that</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">SkyCoord</span><span class="p">):</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">position</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;Position must be a (x, y) pixel tuple, (ra, dec) in degrees, or a SkyCoord.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># crop image</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cutout</span> <span class="o">=</span> <span class="n">Cutout2D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="n">center</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># fallback if WCS RA/Dec swapped</span>
+        <span class="n">center_swapped</span> <span class="o">=</span> <span class="n">SkyCoord</span><span class="p">(</span><span class="n">ra</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">dec</span><span class="o">=</span><span class="n">center</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+
+        <span class="n">cutout</span> <span class="o">=</span> <span class="n">Cutout2D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="n">center_swapped</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">wcs</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+    <span class="n">crop_data</span> <span class="o">=</span> <span class="n">cutout</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">crop_wcs</span> <span class="o">=</span> <span class="n">cutout</span><span class="o">.</span><span class="n">wcs</span>
+
+    <span class="k">return</span> <span class="n">crop_data</span><span class="p">,</span> <span class="n">crop_wcs</span></div>
+
+
+
+<div class="viewcode-block" id="reproject_wcs">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.reproject_wcs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reproject_wcs</span><span class="p">(</span>
+    <span class="n">input_data_list</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">]],</span>
+    <span class="n">reference_wcs</span><span class="p">:</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;interp&#39;</span><span class="p">,</span> <span class="s1">&#39;exact&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_footprint</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">log_file</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_data_list : tuple | list[tuple]</span>
+<span class="sd">        A single `(np.ndarray, WCS/Header)` tuple or a list of such tuples.</span>
+<span class="sd">        Note:</span>
+
+<span class="sd">            * [np.ndarray, WCS/Header] is not allowed!</span>
+<span class="sd">              Ensure they follow the format:</span>
+
+<span class="sd">                * [(np.ndarray, WCS/Header), ...]</span>
+
+<span class="sd">    reference_wcs : astropy.wcs.WCS | astropy.io.fits.Header</span>
+<span class="sd">        The target WCS or FITS header to which `input_data` will be reprojected.</span>
+<span class="sd">        Dimensional handling:</span>
+<span class="sd">        Input WCS → Reference WCS</span>
+
+<span class="sd">            * 2D → 2D: Direct reprojection</span>
+<span class="sd">            * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)</span>
+<span class="sd">            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves</span>
+<span class="sd">              spectral axis)</span>
+<span class="sd">            * 3D → 3D: Direct reprojection (spectral axes must be compatible)</span>
+
+<span class="sd">    method : {&#39;interp&#39;, &#39;exact&#39;} | None, optional, default=None</span>
+<span class="sd">        Reprojection method:</span>
+
+<span class="sd">            * &#39;interp&#39; : use `reproject_interp`</span>
+<span class="sd">            * &#39;exact&#39; : use `reproject_exact`</span>
+
+<span class="sd">        If None, uses `config.reproject_method`.</span>
+<span class="sd">    return_footprint : bool | None, optional, default=None</span>
+<span class="sd">        If True, return both reprojected data and reprojection</span>
+<span class="sd">        footprints. If False, return only the reprojected data.</span>
+<span class="sd">        If None, uses `config.return_footprint`.</span>
+<span class="sd">    parallel : bool | int | str | None, optional, default=None</span>
+<span class="sd">        If True, the reprojection is carried out in parallel,</span>
+<span class="sd">        and if a positive integer, this specifies the number</span>
+<span class="sd">        of threads to use. The reprojection will be parallelized</span>
+<span class="sd">        over output array blocks specified by `block_size` (if the</span>
+<span class="sd">        block size is not set, it will be determined automatically).</span>
+<span class="sd">        If None, uses `config.reproject_parallel`.</span>
+<span class="sd">    block_size : tuple | &#39;auto&#39; | None, optional, default=`_UNSET`</span>
+<span class="sd">        The size of blocks in terms of output array pixels that each block</span>
+<span class="sd">        will handle reprojecting. Extending out from (0,0) coords positively,</span>
+<span class="sd">        block sizes are clamped to output space edges when a block would extend</span>
+<span class="sd">        past edge. Specifying &#39;auto&#39; means that reprojection will be done in</span>
+<span class="sd">        blocks with the block size automatically determined. If `block_size` is</span>
+<span class="sd">        not specified or set to None, the reprojection will not be carried out</span>
+<span class="sd">        in blocks. If `_UNSET`, uses `config.reproject_block_size`.</span>
+<span class="sd">    log_file : fits.Header | None, optional, default=None</span>
+<span class="sd">        If provided, reprojection details are logged to this header&#39;s</span>
+<span class="sd">        HISTORY. Intended for internal use within VisualAstro.</span>
+<span class="sd">    description : str | None, optional, default=None</span>
+<span class="sd">        Description message for the progress bar. If None, a default message</span>
+<span class="sd">        is used. Intended for internal use within VisualAstro.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    reprojected_data : ndarray | list[ndarray]</span>
+<span class="sd">        Reprojected data. A single array is returned if a single input</span>
+<span class="sd">        was provided; otherwise a list of arrays.</span>
+<span class="sd">    footprint : ndarray | list[ndarray], optional</span>
+<span class="sd">        Reprojection footprint(s), returned only if `return_footprint=True`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the inputs are not able to be reprojected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;reproject&#39;</span><span class="p">)</span>
+    <span class="n">_offer_dependency</span><span class="p">(</span><span class="s1">&#39;tqdm&#39;</span><span class="p">)</span>
+    <span class="n">input_data_list</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">input_data_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;log_file must be a fits.Header or None!&#39;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_data_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">_log_history</span><span class="p">(</span>
+            <span class="n">log_file</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;Reprojected batch of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_data_list</span><span class="p">)</span><span class="si">}</span><span class="s1"> datasets&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">reprojected_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">footprints</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_data_list</span><span class="p">):</span>
+        <span class="n">log_once</span> <span class="o">=</span> <span class="n">log_file</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">reprojected</span><span class="p">,</span> <span class="n">footprint</span> <span class="o">=</span> <span class="n">_reproject_wcs</span><span class="p">(</span>
+            <span class="n">item</span><span class="p">,</span> <span class="n">reference_wcs</span><span class="p">,</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">return_footprint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="o">=</span><span class="n">log_once</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="n">reprojected_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reprojected</span><span class="p">)</span>
+        <span class="n">footprints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">footprint</span><span class="p">)</span>
+
+    <span class="n">reprojected_data</span> <span class="o">=</span> <span class="n">_unwrap_if_single</span><span class="p">(</span><span class="n">reprojected_data</span><span class="p">)</span>
+    <span class="n">footprints</span> <span class="o">=</span> <span class="n">_unwrap_if_single</span><span class="p">(</span><span class="n">footprints</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">reprojected_data</span><span class="p">,</span> <span class="n">footprints</span><span class="p">)</span> <span class="k">if</span> <span class="n">return_footprint</span> <span class="k">else</span> <span class="n">reprojected_data</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">strip_wcs_from_header</span><span class="p">(</span>
+    <span class="n">header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Header</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Header</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Header</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Header</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Strip all WCS information from a Header.</span>
+
+<span class="sd">    Calls `_strip_wcs_from_header`, which is adapted from</span>
+<span class="sd">    the spectral-cube package.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    header : Header | ArrayLike[Header]</span>
+<span class="sd">        Header(s) to strip WCS related entries from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nowcs_header : Header | ArrayLike[Header]</span>
+<span class="sd">        Header(s) with no WCS information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_strip_wcs_from_header</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;header must be an astropy.io.fits.Header or sequence thereof&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_strip_wcs_from_header</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">update_header_from_wcs</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">wcs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update Header key-value pairs in place using a WCS object.</span>
+
+<span class="sd">    The WCS is converted to a Header, then each key-value</span>
+<span class="sd">    pair is iterated over to update the original header.</span>
+<span class="sd">    This should only update WCS related keys. It is ideal</span>
+<span class="sd">    to call `strip_wcs_from_header` before calling this function,</span>
+<span class="sd">    to avoid stale WCS keywords.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    header : Header</span>
+<span class="sd">        Astropy Header object to update.</span>
+<span class="sd">    wcs : WCS</span>
+<span class="sd">        WCS object to update header with.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;header must be a Fits Header!&#39;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+        <span class="n">wcs_header</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">to_header</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;wcs must be a WCS object!&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">wcs_header</span><span class="p">:</span>
+        <span class="n">header</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">wcs_header</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reproject_wcs</span><span class="p">(</span>
+    <span class="n">input_data</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">],</span>
+    <span class="n">reference_wcs</span><span class="p">:</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;interp&#39;</span><span class="p">,</span> <span class="s1">&#39;exact&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">return_footprint</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">log_file</span><span class="p">:</span> <span class="n">Header</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reproject data or Quantity arrays onto a reference WCS.</span>
+
+<span class="sd">    Units are conserved if present in `input_data`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_data : tuple</span>
+<span class="sd">        A `(np.ndarray | Quantity, WCS)` or `(np.ndarray, Header)` tuple</span>
+<span class="sd">        Note:</span>
+
+<span class="sd">            * [np.ndarray | Quantity, WCS/Header] is not allowed!</span>
+<span class="sd">              Ensure they are all tuples.</span>
+
+<span class="sd">    reference_wcs : astropy.wcs.WCS or astropy.io.fits.Header</span>
+<span class="sd">        The target WCS or FITS header to which `input_data` will be reprojected.</span>
+<span class="sd">        Dimensional handling:</span>
+<span class="sd">        Input WCS → Reference WCS</span>
+
+<span class="sd">            * 2D → 2D: Direct reprojection</span>
+<span class="sd">            * 2D → 3D: Uses celestial WCS from 3D target (ignores spectral axis)</span>
+<span class="sd">            * 3D → 2D: Reprojects each spectral slice onto 2D target (preserves</span>
+<span class="sd">              spectral axis)</span>
+<span class="sd">            * 3D → 3D: Direct reprojection (spectral axes must be compatible)</span>
+
+<span class="sd">    method : {&#39;interp&#39;, &#39;exact&#39;} | None, optional, default=None</span>
+<span class="sd">        Reprojection method:</span>
+
+<span class="sd">            * &#39;interp&#39; : use `reproject_interp`</span>
+<span class="sd">            * &#39;exact&#39; : use `reproject_exact`</span>
+
+<span class="sd">        If None, uses `config.reproject_method`.</span>
+<span class="sd">    return_footprint : bool | None, optional, default=None</span>
+<span class="sd">        If True, return both reprojected data and reprojection</span>
+<span class="sd">        footprints. If False, return only the reprojected data.</span>
+<span class="sd">        If None, uses `config.return_footprint`.</span>
+<span class="sd">    parallel : bool | int | str | None, optional, default=None</span>
+<span class="sd">        If True, the reprojection is carried out in parallel,</span>
+<span class="sd">        and if a positive integer, this specifies the number</span>
+<span class="sd">        of threads to use. The reprojection will be parallelized</span>
+<span class="sd">        over output array blocks specified by `block_size` (if the</span>
+<span class="sd">        block size is not set, it will be determined automatically).</span>
+<span class="sd">        If None, uses `config.reproject_parallel`.</span>
+<span class="sd">    block_size : tuple | &#39;auto&#39; | None, optional, default=`_UNSET`</span>
+<span class="sd">        The size of blocks in terms of output array pixels that each block</span>
+<span class="sd">        will handle reprojecting. Extending out from (0,0) coords positively,</span>
+<span class="sd">        block sizes are clamped to output space edges when a block would extend</span>
+<span class="sd">        past edge. Specifying &#39;auto&#39; means that reprojection will be done in</span>
+<span class="sd">        blocks with the block size automatically determined. If `block_size` is</span>
+<span class="sd">        not specified or set to None, the reprojection will not be carried out</span>
+<span class="sd">        in blocks. If `_UNSET`, uses `config.reproject_block_size`.</span>
+<span class="sd">    log_file : fits.Header | None, optional, default=None</span>
+<span class="sd">        If provided, reprojection details are logged to this header&#39;s</span>
+<span class="sd">        HISTORY. Intended for internal use within VisualAstro.</span>
+<span class="sd">    description : str | None, optional, default=None</span>
+<span class="sd">        Description message for the progress bar. If None, a default message</span>
+<span class="sd">        is used. Intended for internal use within VisualAstro.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    reprojected : ndarray</span>
+<span class="sd">        The reprojected data array.</span>
+<span class="sd">    footprint : ndarray, optional</span>
+<span class="sd">        The reprojection footprint. Only returned if `return_footprint=True`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the inputs are not able to be reprojected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">method</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="s1">&#39;reproject_method&#39;</span><span class="p">)</span>
+    <span class="n">return_footprint</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">return_footprint</span><span class="p">,</span> <span class="s1">&#39;return_footprint&#39;</span><span class="p">)</span>
+    <span class="n">parallel</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">parallel</span><span class="p">,</span> <span class="s1">&#39;reproject_parallel&#39;</span><span class="p">)</span>
+    <span class="n">block_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">reproject_block_size</span> <span class="k">if</span> <span class="n">block_size</span> <span class="ow">is</span> <span class="n">_UNSET</span> <span class="k">else</span> <span class="n">block_size</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_wcs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;reference_wcs must be a single WCS or Header&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_wcs</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">Header</span><span class="p">):</span>
+        <span class="n">reference_wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">reference_wcs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;log_file must be a fits.Header or None!&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">obj</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">_normalize_reproject_input</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+    <span class="n">reproject_func</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;interp&#39;</span><span class="p">:</span> <span class="n">reproject_interp</span><span class="p">,</span>
+        <span class="s1">&#39;exact&#39;</span><span class="p">:</span> <span class="n">reproject_exact</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">method</span><span class="p">),</span> <span class="n">reproject_interp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log_history</span><span class="p">(</span>
+            <span class="n">log_file</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Reprojection algorithm: reproject_</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span><span class="p">,</span> <span class="n">wcs</span> <span class="o">=</span> <span class="n">obj</span>
+    <span class="n">data_ndim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span>
+    <span class="n">ref_ndim</span> <span class="o">=</span> <span class="n">reference_wcs</span><span class="o">.</span><span class="n">naxis</span>
+
+    <span class="c1"># 3D data -&gt; 2D reference: reproject each slice</span>
+    <span class="k">if</span> <span class="n">data_ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">ref_ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">wcs_celestial</span> <span class="o">=</span> <span class="n">get_wcs_celestial</span><span class="p">(</span><span class="n">wcs</span><span class="p">)</span>
+
+        <span class="n">reprojects</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">footprints_slice</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;Looping over each slice&#39;</span> <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">description</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">desc</span><span class="o">=</span><span class="n">desc</span><span class="p">):</span>
+            <span class="n">repr_i</span><span class="p">,</span> <span class="n">foot_i</span> <span class="o">=</span> <span class="n">reproject_func</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">wcs_celestial</span><span class="p">),</span> <span class="n">reference_wcs</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span>
+            <span class="p">)</span>
+            <span class="n">reprojects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">repr_i</span><span class="p">)</span>
+            <span class="n">footprints_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">foot_i</span><span class="p">)</span>
+
+        <span class="n">reprojected</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">reprojects</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">footprint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">footprints_slice</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log_history</span><span class="p">(</span>
+                <span class="n">log_file</span><span class="p">,</span>
+                <span class="s1">&#39;Reprojection mode: 3D data -&gt; 2D reference (slice-by-slice)&#39;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># single reprojection</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># determine which WCS to use based on dimensions</span>
+        <span class="k">if</span> <span class="n">data_ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">ref_ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># 2D data -&gt; 3+D reference: use celestial slice</span>
+            <span class="n">ref_wcs</span> <span class="o">=</span> <span class="n">reference_wcs</span><span class="o">.</span><span class="n">celestial</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;2D data -&gt; 3D reference (celestial WCS only)&#39;</span>
+
+        <span class="k">elif</span> <span class="n">data_ndim</span> <span class="o">==</span> <span class="n">ref_ndim</span><span class="p">:</span>
+            <span class="c1"># matching dimensions</span>
+            <span class="n">ref_wcs</span> <span class="o">=</span> <span class="n">reference_wcs</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">data_ndim</span><span class="si">}</span><span class="s1">D data -&gt; </span><span class="si">{</span><span class="n">ref_ndim</span><span class="si">}</span><span class="s1">D reference&#39;</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Unsupported dimension combination: data_ndim=</span><span class="si">{</span><span class="n">data_ndim</span><span class="si">}</span><span class="s1">, &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;ref_ndim=</span><span class="si">{</span><span class="n">ref_ndim</span><span class="si">}</span><span class="s1">. Supported: (2,2), (2,3), (3,2), (3,3)&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log_history</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Reprojection mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">reprojected</span><span class="p">,</span> <span class="n">footprint</span> <span class="o">=</span> <span class="n">reproject_func</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">wcs</span><span class="p">),</span> <span class="n">ref_wcs</span><span class="p">,</span>
+            <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">reprojected</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">reprojected</span> <span class="o">*=</span> <span class="n">unit</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">reprojected</span><span class="p">,</span> <span class="n">footprint</span><span class="p">)</span> <span class="k">if</span> <span class="n">return_footprint</span> <span class="k">else</span> <span class="n">reprojected</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_copy_wcs</span><span class="p">(</span><span class="n">wcs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Copy a single or list of WCS.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wcs : WCS | ArrayLike[WCS]</span>
+<span class="sd">        WCS(s) to be copied.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    WCS | list[WCS]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">wcs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">wcs</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">WCS</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wcs</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Invalid wcs(s) inputs!&#39;</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_reproject_input</span><span class="p">(</span>
+    <span class="n">input_data</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">WCS</span> <span class="o">|</span> <span class="n">Header</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">WCS</span><span class="p">],</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensures that the reprojection input is a valid (data, WCS) tuple.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_data : tuple</span>
+<span class="sd">        Input data as (data, header/WCS) tuple.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    normalized : tuple</span>
+<span class="sd">        A `(ndarray, WCS)` tuple suitable for reprojection.</span>
+<span class="sd">    unit : astropy.units.Unit | None</span>
+<span class="sd">        The unit of the input data, if present.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If `input_data` is not a valid tuple format.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If WCS/Header is not a recognized type.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `data` in input_data is neither 2D or 3D.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;Input must be a (data, header/WCS) tuple.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span><span class="p">,</span> <span class="n">wcs_or_header</span> <span class="o">=</span> <span class="n">input_data</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs_or_header</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">Header</span><span class="p">):</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">wcs_or_header</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs_or_header</span><span class="p">,</span> <span class="n">WCS</span><span class="p">):</span>
+        <span class="n">wcs</span> <span class="o">=</span> <span class="n">wcs_or_header</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;WCS must be a Header or WCS object, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">wcs_or_header</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_HAS_SPECTRAL_CUBE</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">SpectralCube</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">filled_data</span><span class="p">[:]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">unit</span>  <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">unit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Data must be 2D or 3D for reprojection, got ndim=</span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+    <span class="n">unit_cast</span><span class="p">:</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">wcs</span><span class="p">),</span> <span class="n">unit_cast</span>
+
+
+<span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># The following function is adapted from spectral-cube:</span>
+<span class="c1"># https://github.com/radio-astro-tools/spectral-cube</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2014, spectral-cube developers</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c1"># modification, are permitted provided that the following conditions are</span>
+<span class="c1"># met:</span>
+<span class="c1">#</span>
+<span class="c1"># 1. Redistributions of source code must retain the above copyright</span>
+<span class="c1"># notice, this list of conditions and the following disclaimer.</span>
+<span class="c1">#</span>
+<span class="c1"># 2. Redistributions in binary form must reproduce the above copyright</span>
+<span class="c1"># notice, this list of conditions and the following disclaimer in the</span>
+<span class="c1"># documentation and/or other materials provided with the distribution.</span>
+<span class="c1">#</span>
+<span class="c1"># 3. Neither the name of the copyright holder nor the names of its</span>
+<span class="c1"># contributors may be used to endorse or promote products derived from</span>
+<span class="c1"># this software without specific prior written permission.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT</span>
+<span class="c1"># HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,</span>
+<span class="c1"># SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_strip_wcs_from_header</span><span class="p">(</span><span class="n">header</span><span class="p">:</span> <span class="n">Header</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Header</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a header with WCS information,</span>
+<span class="sd">    remove ALL WCS information from that header.</span>
+
+<span class="sd">    This function is adapted from spectral-cube:</span>
+<span class="sd">    https://github.com/radio-astro-tools/spectral-cube.</span>
+<span class="sd">    See notes above for full license.</span>
+
+<span class="sd">    Copyright (c) 2014, spectral-cube developers. All rights reserved.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    header : Header</span>
+<span class="sd">        Header to strip WCS from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    newheader : Header</span>
+<span class="sd">        Header without WCS.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hwcs</span> <span class="o">=</span> <span class="n">WCS</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">wcsh</span> <span class="o">=</span> <span class="n">hwcs</span><span class="o">.</span><span class="n">to_header</span><span class="p">()</span>
+
+    <span class="n">keys_to_keep</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span> <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">wcsh</span> <span class="ow">and</span> <span class="s1">&#39;NAXIS&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">k</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">newheader</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Strip blanks first. They appear to cause serious problems,</span>
+    <span class="c1"># like not deleting things they should!</span>
+    <span class="k">if</span> <span class="s1">&#39;&#39;</span> <span class="ow">in</span> <span class="n">newheader</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">newheader</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">newheader</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">kw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys_to_keep</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">newheader</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s1">&#39;CRPIX</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CRVAL</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CDELT</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CUNIT</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CTYPE</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PC0</span><span class="si">{ii}</span><span class="s1">_0</span><span class="si">{jj}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CD</span><span class="si">{ii}</span><span class="s1">_</span><span class="si">{jj}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;CROTA</span><span class="si">{ii}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PC</span><span class="si">{ii}</span><span class="s1">_</span><span class="si">{jj}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PC</span><span class="si">{ii:03d}{jj:03d}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PV0</span><span class="si">{ii}</span><span class="s1">_0</span><span class="si">{jj}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PV</span><span class="si">{ii}</span><span class="s1">_</span><span class="si">{jj}</span><span class="s1">&#39;</span>
+    <span class="p">):</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ii</span><span class="o">=</span><span class="n">ii</span><span class="p">,</span><span class="n">jj</span><span class="o">=</span><span class="n">jj</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">newheader</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">del</span> <span class="n">newheader</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">newheader</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

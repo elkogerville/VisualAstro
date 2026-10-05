@@ -1,0 +1,674 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.science.wcs_plots &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.science.wcs_plots</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.science.wcs_plots</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-05-23</span>
+<span class="sd">Date Modified: 2026-07-30</span>
+<span class="sd">Description:</span>
+<span class="sd">    Plotting functions for 2D and 3D astronomical images.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.utils.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AstropyWarning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.visualization.wcsaxes.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCSAxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.wcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WCS</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colormap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">AxesImage</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.analysis.image_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">stack_cube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span>
+    <span class="n">_UNSET</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.kwargs</span><span class="w"> </span><span class="kn">import</span> <span class="n">_kwarg</span><span class="p">,</span> <span class="n">_param</span><span class="p">,</span> <span class="n">_resolve_kwargs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">as_list</span><span class="p">,</span>
+    <span class="n">get_data</span><span class="p">,</span>
+    <span class="n">get_value</span><span class="p">,</span>
+    <span class="n">to_list</span><span class="p">,</span>
+    <span class="n">_cycle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensure_common_unit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.datacube</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataCube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._spectralcube</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Slice</span><span class="p">,</span> <span class="n">SpectralCube</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ax</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.colormaps</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cmap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.image_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_imshow_scale</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.interfaces.interface</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_apply_plot_utils</span><span class="p">,</span> <span class="n">_extract_plot_util_kwargs</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.science.spectra_plot_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">spectral_axis_label</span>
+
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">AstropyWarning</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="imshow">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.imshow">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">imshow</span><span class="p">(</span>
+    <span class="n">images</span><span class="p">:</span> <span class="n">DataCube</span> <span class="o">|</span> <span class="n">SpectralCube</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">DataCube</span> <span class="o">|</span> <span class="n">SpectralCube</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">],</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="n">WCSAxes</span><span class="p">,</span>
+    <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">stack_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">aspect</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;equal&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">mask_non_pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">AxesImage</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display 2D image data with optional overlays and customization.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datas : DataCube | SpectralCube | NDArray | u.Quantity | list of such</span>
+<span class="sd">        Image or list of images to plot. Each image should be 2D (Ny, Nx),</span>
+<span class="sd">        or 3D (Nz, Nx, Ny) if using `idx` to slice the cube.</span>
+<span class="sd">    ax : WCSAxes | matplotlib.axes.Axes</span>
+<span class="sd">        The axes on which to draw the slice.</span>
+<span class="sd">    idx : int | tuple[int, int] | None | list[int | tuple[int, int] | None]</span>
+<span class="sd">        Spectral axis indices to slice. Tuples denote [start, end] (inclusive)</span>
+<span class="sd">        and are collapsed via `stack_method`. If int, applies to all cubes; if list,</span>
+<span class="sd">        each entry specifies indices for the corresponding cube. `None` collapses</span>
+<span class="sd">        the entire spectral axis via `stack_method`.</span>
+<span class="sd">    vmin, vmax: float | None | _Unset, optional, default=`_UNSET`</span>
+<span class="sd">        Lower / upper limits for colormap scaling; overides `percentile`.</span>
+<span class="sd">        If `None`, values are determined from `percentile[0]` for `vmin`</span>
+<span class="sd">        and `percentile[1]` for `vmax`. If `_UNSET`, uses `config.vmin`</span>
+<span class="sd">        and `config.vmax`.</span>
+<span class="sd">    norm : str | None | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Normalization algorithm for colormap scaling.</span>
+
+<span class="sd">        * `&#39;asinh&#39;` -&gt; asinh stretch using `ImageNormalize`</span>
+<span class="sd">        * `&#39;asinhnorm&#39;` -&gt; asinh stretch using `AsinhNorm`</span>
+<span class="sd">        * `&#39;log&#39;` -&gt; logarithmic scaling using `LogNorm`</span>
+<span class="sd">        * `&#39;power&#39;` -&gt; power-law normalization using `PowerNorm`</span>
+<span class="sd">        * `&#39;twoslope&#39;` -&gt; twoslope normalization use `TwoSlopeNorm`</span>
+<span class="sd">        * `&#39;linear&#39;`, `&#39;none&#39;`, or `None` -&gt; no normalization applied</span>
+
+<span class="sd">        If `_UNSET`, uses `config.norm`.</span>
+<span class="sd">    percentile : tuple[float, float] | _Unset, default=_UNSET</span>
+<span class="sd">        Default percentile range used to determine `vmin` and `vmax`.</span>
+<span class="sd">        If `None`, use no percentile stretch (as long as `vmin` and</span>
+<span class="sd">        `vmax`, are None). If `_UNSET`, uses `config.percentile`.</span>
+<span class="sd">    stack_method : {&#39;mean&#39;, &#39;median&#39;, &#39;sum&#39;, &#39;max&#39;, &#39;min&#39;, &#39;std&#39;} | _Unset, default=_UNSET</span>
+<span class="sd">        Stacking method. This controls how the cube is collapsed into a 2D</span>
+<span class="sd">        image for plotting. The axis along to flatten is controlled by `axis`.</span>
+<span class="sd">        If `_UNSET`, uses `config.stack_cube_method`.</span>
+<span class="sd">    origin : {&#39;upper&#39;, &#39;lower&#39;} | _Unset, default=_UNSET</span>
+<span class="sd">        Pixel origin convention for imshow. If `_UNSET`, uses `config.origin`.</span>
+<span class="sd">    cmap : Colormap | str | list[Colormap | str] | _Unset, default=_UNSET</span>
+<span class="sd">        Colormap(s) to use for plotting. If `_UNSET`, uses `config.cmap`.</span>
+<span class="sd">    aspect : {&#39;auto&#39;, &#39;equal&#39;} | float | None | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Aspect ratio passed to imshow, shortcut for `Axes.set_aspect`. `&#39;auto&#39;`</span>
+<span class="sd">        results in fixed axes with the aspect adjusted to fit the axes. `&#39;equal``</span>
+<span class="sd">        sets an aspect ratio of 1. `None` defaults to `&#39;equal&#39;`, however, if the</span>
+<span class="sd">        image uses a transform that does not contain the axes data transform,</span>
+<span class="sd">        then `None` means to not modify the axes aspect at all. If `_UNSET`,</span>
+<span class="sd">        uses `config.aspect`.</span>
+<span class="sd">    mask_non_pos : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, mask out non-positive data values. Useful for displaying</span>
+<span class="sd">        log scaling of images with non-positive values. If `_UNSET`, uses</span>
+<span class="sd">        `config.mask_non_positive`. The mask value is set by `mask_out_val`.</span>
+<span class="sd">        axis : int, optional, default=0</span>
+<span class="sd">    axis : int, optional, default=0</span>
+<span class="sd">        Axis used for collapsing 3D cubes into a 2D image.</span>
+<span class="sd">    rasterized : bool, optional, default=config.rasterized</span>
+<span class="sd">        Whether to rasterize plot artists. Rasterization</span>
+<span class="sd">        converts the artist to a bitmap when saving to</span>
+<span class="sd">        vector formats (e.g., PDF, SVG), which can</span>
+<span class="sd">        significantly reduce file size for complex plots.</span>
+<span class="sd">    mask_out_val : float, optional, default=config.mask_out_value</span>
+<span class="sd">        Value to use when masking out non-positive values.</span>
+<span class="sd">        ie: np.nan, 1e-6, np.inf</span>
+<span class="sd">    linear_width : float, optional, default=config.linear_width</span>
+<span class="sd">        The effective width of the linear region, beyond which the</span>
+<span class="sd">        transformation becomes asymptotically logarithmic.</span>
+<span class="sd">        Used for `norm=&#39;asinhnorm&#39;`.</span>
+<span class="sd">    gamma : float, optional, default=config.gamma</span>
+<span class="sd">        Power law exponent. Used for `norm=&#39;power&#39;`.</span>
+<span class="sd">    vcenter : float, optional, default=None</span>
+<span class="sd">        Center point of normalization. Must be in between `vmin` and `vmax`.</span>
+<span class="sd">        If `None`, is the midpoint between `vmin` and `vmax`.</span>
+<span class="sd">    invert_xaxis, invert_yaxis : bool, optional, default=False</span>
+<span class="sd">        Invert the x or y axis if True.</span>
+
+<span class="sd">    * `text_loc` : list[float], optional, default=`config.text_loc`</span>
+<span class="sd">        Relative axes coordinates for text placement when</span>
+<span class="sd">        plotting interactive ellipses.</span>
+<span class="sd">    * `text_color` : str, optional, default=`config.text_color`</span>
+<span class="sd">        Color of the ellipse annotation text.</span>
+<span class="sd">    * `xlabel` : str, optional, default=None</span>
+<span class="sd">        X-axis label.</span>
+<span class="sd">    * `ylabel` : str, optional, default=None</span>
+<span class="sd">        Y-axis label.</span>
+<span class="sd">    * `colorbar` : bool, optional, default=`config.colorbar.enable`</span>
+<span class="sd">        Add colorbar if True.</span>
+<span class="sd">    * `clabel` : str | bool, optional, default=`config.colorbar.label`</span>
+<span class="sd">        Colorbar label. If True, use default label; if None or False, no label.</span>
+<span class="sd">    * `cbar_width` : float, optional, default=`config.colorbar.width`</span>
+<span class="sd">        Width of the colorbar.</span>
+<span class="sd">    * `cbar_pad` : float, optional, default=`config.colorbar.pad`</span>
+<span class="sd">        Padding between plot and colorbar.</span>
+<span class="sd">    * `mask_out_val` : float, optional, default=`config.mask_out_value`</span>
+<span class="sd">        Value to use when masking out non-positive values.</span>
+<span class="sd">        Ex: np.nan, 1e-6, np.inf</span>
+<span class="sd">    * `circles` : list, optional, default=None</span>
+<span class="sd">        List of Circle objects (e.g., `matplotlib.patches.Circle`) to overplot on the axes.</span>
+<span class="sd">    * `ellipses` : list, optional, default=None</span>
+<span class="sd">        List of Ellipse objects (e.g., `matplotlib.patches.Ellipse`) to overplot on the axes.</span>
+<span class="sd">        Single Ellipse objects can also be passed directly.</span>
+<span class="sd">    * `points` : ArrayLike, shape (2,) or (N, 2), optional, default=None</span>
+<span class="sd">        Coordinates of points to overplot. Can be a single point `[x, y]`</span>
+<span class="sd">        or a list/array of points `[[x1, y1], [x2, y2], ...]`.</span>
+<span class="sd">        Points are plotted as red stars by default.</span>
+<span class="sd">    * `plot_ellipse` : bool, optional, default=False</span>
+<span class="sd">        If True, plot an interactive ellipse overlay. Requires an interactive backend.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    images : list[matplotlib.image.AxesImage]</span>
+<span class="sd">        list of `AxesImage` objects returned by the `ax.imshow`</span>
+<span class="sd">        call for each image in `images`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_resolve_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;vmin&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vmin</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;vmax&#39;</span><span class="p">,</span> <span class="n">vmax</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vmax</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">norm</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;percentile&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">percentile</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;stack_method&#39;</span><span class="p">,</span> <span class="n">stack_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">stack_cube_method</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;origin&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">origin</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;cmap&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">cmap</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;aspect&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">aspect</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;mask_non_pos&#39;</span><span class="p">,</span> <span class="n">mask_non_pos</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">mask_non_positive</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">additional_kwargs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;unit_fmt&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_label_format</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;rasterized&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rasterized</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;mask_out_val&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">mask_out_value</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;stack_method&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">stack_cube_method</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;linear_width&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">linear_width</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">gamma</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;vcenter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;invert_xaxis&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;invert_yaxis&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;rotate_wcs_labels&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">plot_params</span> <span class="o">=</span> <span class="n">_extract_plot_util_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">images</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">as_list</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="n">cmaps</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">cmap</span><span class="p">)</span>
+
+    <span class="n">ref_unit</span> <span class="o">=</span> <span class="n">ensure_common_unit</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">WCSAxes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">origin</span> <span class="o">==</span> <span class="s1">&#39;upper&#39;</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;origin cannot be &#39;upper&#39; if ax is a WCSAxes! &quot;</span>
+            <span class="s2">&quot;setting invert_yaxis=True and origin=&#39;lower&#39;!&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="s1">&#39;lower&#39;</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">invert_yaxis</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">image_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">images</span><span class="p">):</span>
+        <span class="n">data_slice</span> <span class="o">=</span> <span class="n">stack_cube</span><span class="p">(</span>
+            <span class="n">image</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="n">stack_method</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">data_slice</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mask_non_pos</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">mask_out_val</span><span class="p">)</span>
+
+        <span class="n">img_norm</span><span class="p">,</span> <span class="n">cube_vmin</span><span class="p">,</span> <span class="n">cube_vmax</span> <span class="o">=</span> <span class="n">compute_imshow_scale</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vmin</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vmax</span><span class="p">,</span>
+            <span class="n">percentile</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">percentile</span><span class="p">,</span>
+            <span class="n">linear_width</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">linear_width</span><span class="p">,</span>
+            <span class="n">gamma</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">gamma</span><span class="p">,</span>
+            <span class="n">vcenter</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vcenter</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">_cycle</span><span class="p">(</span><span class="n">cmaps</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+        <span class="n">imshow_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">norm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">cube_vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">cube_vmax</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vmin&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vmax&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">img_norm</span><span class="p">)</span>
+
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span>
+            <span class="n">origin</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">origin</span><span class="p">,</span>
+            <span class="n">aspect</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">aspect</span><span class="p">,</span>
+            <span class="n">rasterized</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">rasterized</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">imshow_kwargs</span>
+        <span class="p">)</span>
+
+        <span class="n">image_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">invert_xaxis</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">rotate_wcs_labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">WCSAxes</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
+                <span class="n">coord_type</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">coord_type</span>
+                <span class="n">coord_index</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">coord_index</span>
+
+                <span class="c1"># set label based on coordinate type</span>
+                <span class="k">if</span> <span class="n">coord_type</span> <span class="o">==</span> <span class="s1">&#39;longitude&#39;</span><span class="p">:</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">set_axislabel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">right_ascension_label</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">coord_type</span> <span class="o">==</span> <span class="s1">&#39;latitude&#39;</span><span class="p">:</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">set_axislabel</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">declination_label</span><span class="p">)</span>
+
+                <span class="c1"># determine which pixel axis this world coordinate</span>
+                <span class="c1"># primarily affects by checking the PC/CD matrix</span>
+                <span class="n">wcs</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">wcs</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="n">WCS</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">wcs</span><span class="p">,</span> <span class="s1">&#39;pixel_to_world_values&#39;</span><span class="p">):</span>
+                    <span class="c1"># check which pixel axis (0=x, 1=y) this world axis varies most with</span>
+                    <span class="c1"># look at the absolute values in the transformation matrix</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">wcs</span><span class="o">.</span><span class="n">wcs</span><span class="p">,</span> <span class="s1">&#39;pc&#39;</span><span class="p">):</span>
+                        <span class="n">pc_matrix</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">pc</span>
+                    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">wcs</span><span class="o">.</span><span class="n">wcs</span><span class="p">,</span> <span class="s1">&#39;cd&#39;</span><span class="p">):</span>
+                        <span class="n">pc_matrix</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">wcs</span><span class="o">.</span><span class="n">cd</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pc_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">if</span> <span class="n">pc_matrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># for this world axis, see which pixel axis it affects most</span>
+                        <span class="n">world_axis_row</span> <span class="o">=</span> <span class="n">pc_matrix</span><span class="p">[</span><span class="n">coord_index</span><span class="p">,</span> <span class="p">:]</span>
+                        <span class="n">dominant_pixel_axis</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">world_axis_row</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+
+                        <span class="c1"># dominant_pixel_axis: 0 = x-axis (horizontal), 1 = y-axis (vertical)</span>
+                        <span class="k">if</span> <span class="n">dominant_pixel_axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">coord</span><span class="o">.</span><span class="n">set_axislabel_position</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+                            <span class="n">coord</span><span class="o">.</span><span class="n">set_ticklabel</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">dominant_pixel_axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">coord</span><span class="o">.</span><span class="n">set_axislabel_position</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
+                            <span class="n">coord</span><span class="o">.</span><span class="n">set_ticklabel</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+    <span class="n">_apply_plot_utils</span><span class="p">(</span>
+        <span class="n">plot_params</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
+        <span class="n">im_list</span><span class="o">=</span><span class="n">image_list</span><span class="p">,</span>
+        <span class="n">ref_unit</span><span class="o">=</span><span class="n">ref_unit</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image_list</span></div>
+
+
+
+<div class="viewcode-block" id="plot_spectral_cube">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.plot_spectral_cube">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_spectral_cube</span><span class="p">(</span>
+    <span class="n">cubes</span><span class="p">:</span> <span class="n">DataCube</span> <span class="o">|</span> <span class="n">SpectralCube</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">DataCube</span> <span class="o">|</span> <span class="n">SpectralCube</span><span class="p">],</span>
+    <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">WCSAxes</span> <span class="o">|</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">stack_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">radial_vel</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">spectral_unit</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">:</span> <span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Colormap</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">mask_non_pos</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">AxesImage</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot a spectral slice from one or more spectral cubes on a WCSAxes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cubes : DataCube | SpectralCube | list of such</span>
+<span class="sd">        One or more spectral cubes to plot. All cubes should have consistent units.</span>
+<span class="sd">    idx : int | tuple[int, int] | None | list[int | tuple[int, int] | None]</span>
+<span class="sd">        Spectral axis indices to slice. Tuples denote [start, end] (inclusive)</span>
+<span class="sd">        and are collapsed via `stack_method`. If int, applies to all cubes; if list,</span>
+<span class="sd">        each entry specifies indices for the corresponding cube. `None` collapses</span>
+<span class="sd">        the entire spectral axis via `stack_method`.</span>
+<span class="sd">    ax : WCSAxes | matplotlib.axes.Axes</span>
+<span class="sd">        The axes on which to draw the slice.</span>
+<span class="sd">    vmin, vmax: float | None | _Unset, optional, default=`_UNSET`</span>
+<span class="sd">        Lower / upper limits for colormap scaling; overides `percentile`.</span>
+<span class="sd">        If `None`, values are determined from `percentile[0]` for `vmin`</span>
+<span class="sd">        and `percentile[1]` for `vmax`. If `_UNSET`, uses `config.vmin`</span>
+<span class="sd">        and `config.vmax`.</span>
+<span class="sd">    norm : str | None | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Normalization algorithm for colormap scaling.</span>
+
+<span class="sd">        * `&#39;asinh&#39;` -&gt; asinh stretch using `ImageNormalize`</span>
+<span class="sd">        * `&#39;asinhnorm&#39;` -&gt; asinh stretch using `AsinhNorm`</span>
+<span class="sd">        * `&#39;log&#39;` -&gt; logarithmic scaling using `LogNorm`</span>
+<span class="sd">        * `&#39;power&#39;` -&gt; power-law normalization using `PowerNorm`</span>
+<span class="sd">        * `&#39;twoslope&#39;` -&gt; twoslope normalization use `TwoSlopeNorm`</span>
+<span class="sd">        * `&#39;linear&#39;`, `&#39;none&#39;`, or `None` -&gt; no normalization applied</span>
+
+<span class="sd">        If `_UNSET`, uses `config.norm`.</span>
+<span class="sd">    percentile : tuple[float, float] | _Unset, default=_UNSET</span>
+<span class="sd">        Default percentile range used to determine `vmin` and `vmax`.</span>
+<span class="sd">        If `None`, use no percentile stretch (as long as `vmin` and</span>
+<span class="sd">        `vmax`, are None). If `_UNSET`, uses `config.percentile`.</span>
+<span class="sd">    stack_method : {&#39;mean&#39;, &#39;median&#39;, &#39;sum&#39;, &#39;max&#39;, &#39;min&#39;, &#39;std&#39;} | _Unset, default=_UNSET</span>
+<span class="sd">        Stacking method. This controls how the cube is collapsed into a 2D</span>
+<span class="sd">        image for plotting. The axis along to flatten is controlled by `axis`.</span>
+<span class="sd">        If `_UNSET`, uses `config.stack_cube_method`.</span>
+<span class="sd">    radial_vel : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Radial velocity in km/s to shift the spectral axis.</span>
+<span class="sd">        Astropy units are optional. If `_UNSET`, uses `config.radial_velocity`.</span>
+<span class="sd">    spectral_unit : u.UnitBase | str, optional, default=None</span>
+<span class="sd">        Desired spectral axis unit for labeling. If `None`, detects unit automatically.</span>
+<span class="sd">    cmap : Colormap | str | list[Colormap | str] | _Unset, default=_UNSET</span>
+<span class="sd">        Colormap(s) to use for plotting. If `_UNSET`, uses `config.cmap`.</span>
+<span class="sd">    mask_non_pos : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, mask out non-positive data values. Useful for displaying</span>
+<span class="sd">        log scaling of images with non-positive values. If `_UNSET`, uses</span>
+<span class="sd">        `config.mask_non_positive`. The mask value is set by `mask_out_val`.</span>
+<span class="sd">    axis : int, optional, default=0</span>
+<span class="sd">        Axis used for collapsing 3D cubes into a 2D image.</span>
+<span class="sd">    spectral_label : bool, optional, default=True</span>
+<span class="sd">        If `True`, annotate the figure with the slice&#39;s spectral axis value,</span>
+<span class="sd">        ie. the wavelength of the cube&#39;s spectral_axis.</span>
+<span class="sd">    as_title : bool, optional, default=False</span>
+<span class="sd">         If `True`, display spectral slice label as plot title.</span>
+<span class="sd">    unit_fmt : str | optional, default=config.unit_label_format</span>
+<span class="sd">        Format for the colorbar and spectral unit label. Accepted formats are</span>
+<span class="sd">        `&#39;latex&#39;`, `&#39;latex_inline&#39;`, `&#39;fits&#39;`, `&#39;unicode&#39;`, `&#39;console&#39;`, `&#39;vounit&#39;`,</span>
+<span class="sd">        `&#39;cds&#39;`, or `&#39;ogip&#39;`.</span>
+<span class="sd">    emission_line : str | None, optional, default=None</span>
+<span class="sd">        Optional emission line label prepended to the spectral axis label.</span>
+<span class="sd">    rasterized : bool, optional, default=config.rasterized</span>
+<span class="sd">        Whether to rasterize plot artists. Rasterization</span>
+<span class="sd">        converts the artist to a bitmap when saving to</span>
+<span class="sd">        vector formats (e.g., PDF, SVG), which can</span>
+<span class="sd">        significantly reduce file size for complex plots.</span>
+<span class="sd">    mask_out_val : float, optional, default=config.mask_out_value</span>
+<span class="sd">        Value to use when masking out non-positive values.</span>
+<span class="sd">        ie: np.nan, 1e-6, np.inf</span>
+<span class="sd">    linear_width : float, optional, default=config.linear_width</span>
+<span class="sd">        The effective width of the linear region, beyond which the</span>
+<span class="sd">        transformation becomes asymptotically logarithmic.</span>
+<span class="sd">        Used for `norm=&#39;asinhnorm&#39;`.</span>
+<span class="sd">    gamma : float, optional, default=config.gamma</span>
+<span class="sd">        Power law exponent. Used for `norm=&#39;power&#39;`.</span>
+<span class="sd">    vcenter : float, optional, default=None</span>
+<span class="sd">        Center point of normalization. Must be in between `vmin` and `vmax`.</span>
+<span class="sd">        If `None`, is the midpoint between `vmin` and `vmax`.</span>
+<span class="sd">    highlight : bool, optional, default=config.highlight</span>
+<span class="sd">        Whether to highlight interactive ellipse or wavelength label if plotted.</span>
+<span class="sd">    text_loc : list[float], optional, default=config.text_loc</span>
+<span class="sd">        Axes coordinates for overlay text placement in figure coordinates.</span>
+<span class="sd">    text_color : ColorType, default=config.text_color</span>
+<span class="sd">        Color of overlay text.</span>
+
+<span class="sd">    * `colorbar` : bool, default=`config.colorbar.enable`</span>
+<span class="sd">        Whether to add a colorbar.</span>
+<span class="sd">    * `cbar_width` : float, default=`config.colorbar.width`</span>
+<span class="sd">        Width of the colorbar.</span>
+<span class="sd">    * `cbar_pad` : float, default=`config.colorbar.pad`</span>
+<span class="sd">        Padding between axes and colorbar.</span>
+<span class="sd">    * `clabel` : str | bool | None, default=`config.colorbar.label`</span>
+<span class="sd">        Label for colorbar. If True, automatically generate from cube unit.</span>
+<span class="sd">    * `xlabel` : str, default=`config.right_ascension_label`</span>
+<span class="sd">        X axis label.</span>
+<span class="sd">    * `ylabel` : str, default=`config.declination_label`</span>
+<span class="sd">        Y axis label.</span>
+<span class="sd">    * `ellipses` : list | None, default=None</span>
+<span class="sd">        Ellipse objects to overlay on the image.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    images : list[matplotlib.image.AxesImage]</span>
+<span class="sd">        list of `AxesImage` objects returned by the `ax.imshow`</span>
+<span class="sd">        call for each cube in `cubes`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    * If multiple cubes are provided, they are overplotted in sequence</span>
+<span class="sd">    on the wcs of `cubes[config.reference_idx]`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;spectral-cube&#39;</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_resolve_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;vmin&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vmin</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;vmax&#39;</span><span class="p">,</span> <span class="n">vmax</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vmax</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">norm</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;percentile&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">percentile</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;stack_method&#39;</span><span class="p">,</span> <span class="n">stack_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">stack_cube_method</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;radial_velocity&#39;</span><span class="p">,</span> <span class="n">radial_vel</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">radial_velocity</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;cmap&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">cmap</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;mask_non_pos&#39;</span><span class="p">,</span> <span class="n">mask_non_pos</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">mask_non_positive</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">additional_kwargs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;spectral_label&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;as_title&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;unit_fmt&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_label_format</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;emission_line&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;rasterized&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rasterized</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;mask_out_val&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">mask_out_value</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;linear_width&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">linear_width</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">gamma</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;vcenter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">copy_kwargs</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;plot_ellipse&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;highlight&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">highlight</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;text_loc&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">text_loc</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;text_color&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">text_color</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">plot_params</span> <span class="o">=</span> <span class="n">_extract_plot_util_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">cubes</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">cubes</span><span class="p">)</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">as_list</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="n">cmaps</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">cmap</span><span class="p">)</span>
+
+    <span class="n">ref_unit</span> <span class="o">=</span> <span class="n">ensure_common_unit</span><span class="p">(</span><span class="n">cubes</span><span class="p">,</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">unit_mismatch</span><span class="p">)</span>
+
+    <span class="n">images</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cube</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cubes</span><span class="p">):</span>
+        <span class="n">cube</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">cube</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="p">(</span><span class="n">SpectralCube</span><span class="p">,</span> <span class="n">Slice</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Input cubes must contain a SpectralCube! &#39;</span>
+                <span class="s1">&#39;For non SpectralCube data, use imshow.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="n">cube_slice</span> <span class="o">=</span> <span class="n">stack_cube</span><span class="p">(</span>
+            <span class="n">cube</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="n">stack_method</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">cube_slice</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mask_non_pos</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">mask_out_val</span><span class="p">)</span>
+
+        <span class="n">cube_norm</span><span class="p">,</span> <span class="n">cube_vmin</span><span class="p">,</span> <span class="n">cube_vmax</span> <span class="o">=</span> <span class="n">compute_imshow_scale</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vmin</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vmax</span><span class="p">,</span>
+            <span class="n">percentile</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">percentile</span><span class="p">,</span>
+            <span class="n">linear_width</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">linear_width</span><span class="p">,</span>
+            <span class="n">gamma</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">gamma</span><span class="p">,</span>
+            <span class="n">vcenter</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">vcenter</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">_cycle</span><span class="p">(</span><span class="n">cmaps</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+        <span class="n">imshow_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">norm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;norm&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">cube_vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">cube_vmax</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vmin&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vmax&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">imshow_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">cube_norm</span><span class="p">)</span>
+
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span>
+            <span class="n">rasterized</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">rasterized</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">imshow_kwargs</span>
+        <span class="p">)</span>
+
+        <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">plot_ellipse</span><span class="p">:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">spectral_label</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># plot wavelength/frequency of current spectral slice, and emission line</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">spectral_label</span><span class="p">:</span>
+        <span class="n">spectral_axis_label</span><span class="p">(</span>
+            <span class="n">_cycle</span><span class="p">(</span><span class="n">cubes</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reference_idx</span><span class="p">),</span>
+            <span class="n">idx</span><span class="o">=</span><span class="n">_cycle</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">reference_idx</span><span class="p">),</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">ref_unit</span><span class="o">=</span><span class="n">spectral_unit</span><span class="p">,</span>
+            <span class="n">radial_vel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">radial_velocity</span><span class="p">,</span>
+            <span class="n">emission_line</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">emission_line</span><span class="p">,</span>
+            <span class="n">as_title</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">as_title</span><span class="p">,</span>
+            <span class="n">highlight</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">highlight</span><span class="p">,</span>
+            <span class="n">text_loc</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">text_loc</span><span class="p">,</span>
+            <span class="n">text_color</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">text_color</span><span class="p">,</span>
+            <span class="n">unit_fmt</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">unit_fmt</span>
+        <span class="p">)</span>
+
+    <span class="n">_apply_plot_utils</span><span class="p">(</span>
+        <span class="n">plot_params</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
+        <span class="n">im_list</span><span class="o">=</span><span class="n">images</span><span class="p">,</span>
+        <span class="n">ref_unit</span><span class="o">=</span><span class="n">ref_unit</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">images</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1384 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.analysis.spectra_utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.analysis.spectra_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.analysis.spectra_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-09-22</span>
+<span class="sd">Date Modified: 2026-07-17</span>
+<span class="sd">Description:</span>
+<span class="sd">    Spectra utility functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">fields</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">overload</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">Quantity</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">_resolve_default</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_value</span><span class="p">,</span>
+    <span class="n">mask_within_range</span><span class="p">,</span>
+    <span class="n">to_list</span><span class="p">,</span>
+    <span class="n">_unwrap_if_single</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ensure_common_unit</span><span class="p">,</span>
+    <span class="n">get_spectral_unit</span><span class="p">,</span>
+    <span class="n">get_unit</span><span class="p">,</span>
+    <span class="n">to_spectral_region</span><span class="p">,</span>
+    <span class="n">_is_spectral_axis</span><span class="p">,</span>
+    <span class="n">_require_spectral_region</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.datacube</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataCube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.spectrumplus</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectrumPlus</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._dust_extinction</span><span class="w"> </span><span class="kn">import</span> <span class="n">M14</span><span class="p">,</span> <span class="n">G23</span><span class="p">,</span> <span class="n">WD01</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._spectralcube</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectralCube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._specutils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SpectralAxis</span><span class="p">,</span>
+    <span class="n">SpectralRegion</span><span class="p">,</span>
+    <span class="n">Spectrum</span><span class="p">,</span>
+    <span class="n">_HAS_SPECUTILS</span><span class="p">,</span>
+    <span class="n">_fit_continuum</span><span class="p">,</span>
+    <span class="n">_fit_generic</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.utils.text_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_pretty_table</span>
+
+
+<span class="c1"># Science Spectrum Functions</span>
+<span class="c1"># --------------------------</span>
+<div class="viewcode-block" id="fit_continuum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.fit_continuum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fit_continuum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="s1">&#39;fit_continuum&#39;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fit the continuum of a 1D spectrum using a specified method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum : Spectrum or SpectrumPlus</span>
+<span class="sd">        Input 1D spectrum object containing flux and spectral_axis.</span>
+<span class="sd">    fit_method : {&#39;fit_continuum&#39;, &#39;generic&#39;}, optional, default=&#39;fit_continuum&#39;</span>
+<span class="sd">        Method used for fitting the continuum.</span>
+
+<span class="sd">        * &#39;fit_continuum&#39;: uses `fit_continuum` with a specified window</span>
+<span class="sd">        * &#39;generic&#39; : uses `fit_generic_continuum`</span>
+
+<span class="sd">    region : array-like of tuple, optional</span>
+<span class="sd">        Spectral region(s) to include in the continuum fit when</span>
+<span class="sd">        `fit_method=&#39;fit_continuum&#39;`. Each region is specified as a</span>
+<span class="sd">        `(lower, upper)` bound in wavelength or pixel coordinates</span>
+<span class="sd">        (typically `Quantity`). Multiple regions may be provided to</span>
+<span class="sd">        restrict the fit to selected portions of the spectrum. This</span>
+<span class="sd">        is commonly used to exclude strong emission or absorption features</span>
+<span class="sd">        that would otherwise bias the continuum model.Ignored for all</span>
+<span class="sd">        other fitting methods.</span>
+<span class="sd">        Ex: Remove strong emission peak at 7um from fit</span>
+<span class="sd">        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    continuum : Quantity</span>
+<span class="sd">        Continuum flux values evaluated at `spectrum.spectral_axis`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * Warnings during the fitting process are suppressed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;specutils&#39;</span><span class="p">)</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+    <span class="c1"># if input spectrum is SpectrumPlus object</span>
+    <span class="c1"># extract the spectrum attribute</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="s1">&#39;spectrum&#39;</span><span class="p">):</span>
+            <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">spectrum</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span> <span class="p">(</span>
+                <span class="s1">&#39;Input object is not a Spectrum &#39;</span>
+                <span class="s2">&quot;or has no `spectrum` attribute. &quot;</span>
+                <span class="sa">f</span><span class="s1">&#39;type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+    <span class="c1"># extract spectral axis</span>
+    <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">spectral_axis</span>
+
+    <span class="c1"># suppress warnings during continuum fitting</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="c1"># fit continuum with selected method</span>
+        <span class="k">if</span> <span class="n">fit_method</span><span class="o">==</span><span class="s1">&#39;fit_continuum&#39;</span><span class="p">:</span>
+            <span class="c1"># convert region to default units</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="n">_convert_region_units</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">spectral_axis</span><span class="p">)</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="n">_fit_continuum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">region</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="n">_fit_generic</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+
+    <span class="c1"># fit the continuum of the provided spectral axis</span>
+    <span class="k">return</span> <span class="n">fit</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="deredden_flux">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.deredden_flux">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">deredden_flux</span><span class="p">(</span>
+    <span class="n">wavelength</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">flux</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">Rv</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">Ebv</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">deredden_method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;G23&#39;</span><span class="p">,</span> <span class="s1">&#39;WD01&#39;</span><span class="p">,</span> <span class="s1">&#39;M14&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply extinction correction (dereddening) to a spectrum.</span>
+<span class="sd">    Default values are for LMC parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wavelength : ArrayLike | u.Quantity</span>
+<span class="sd">        Wavelength array (in Angstroms, microns, or units expected by the</span>
+<span class="sd">        extinction law being used).</span>
+<span class="sd">    flux : ArrayLike | u.Quantity</span>
+<span class="sd">        Observed flux values at the corresponding wavelengths. Must be in</span>
+<span class="sd">        linear units (e.g., erg/s/cm^2/Å, Jy).</span>
+<span class="sd">    Rv : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Ratio of total-to-selective extinction (A_V / E(B-V)).</span>
+<span class="sd">        If `_UNSET`, uses `config.deredden.Rv`.</span>
+<span class="sd">    Ebv : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Color excess E(B-V), representing the amount of reddening.</span>
+<span class="sd">        If `_UNSET, uses `config.deredden.Ebv`.</span>
+<span class="sd">    deredden_method : {&#39;G23&#39;, &#39;WD01&#39;, &#39;M14&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Choice of extinction law:</span>
+
+<span class="sd">        * &#39;G23&#39; : Gordon et al. (2023)</span>
+<span class="sd">        * &#39;WD01&#39;: Weingartner &amp; Draine (2001)</span>
+<span class="sd">        * `&#39;M14&#39;` : Maíz Apellániz et al. (2014)</span>
+
+<span class="sd">        If `_UNSET`, uses `config.deredden.method`.</span>
+<span class="sd">    region : str | _Unset, optional, default=_Unset</span>
+<span class="sd">        For `deredden_method=&#39;WD01&#39;` extinction: the environment/region</span>
+<span class="sd">        to use (e.g., `&#39;MWAvg&#39;`, `&#39;LMC&#39;`, `&#39;LMCAvg&#39;`, `&#39;SMCBar&#39;`).</span>
+<span class="sd">        Ignored for other methods. If `_UNSET`, uses `config.deredden.region`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    deredden_flux : array-like</span>
+<span class="sd">        Flux array corrected for extinction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;dust_extinction&#39;</span><span class="p">)</span>
+    <span class="n">Rv</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">Rv</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">deredden</span><span class="o">.</span><span class="n">Rv</span><span class="p">)</span>
+    <span class="n">Ebv</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">Ebv</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">deredden</span><span class="o">.</span><span class="n">Ebv</span><span class="p">)</span>
+    <span class="n">dered_method</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">_resolve_default</span><span class="p">(</span><span class="n">deredden_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">deredden</span><span class="o">.</span><span class="n">method</span><span class="p">))</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">deredden</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;G23&#39;</span><span class="p">:</span> <span class="n">G23</span><span class="p">,</span>
+        <span class="s1">&#39;WD01&#39;</span><span class="p">:</span> <span class="n">WD01</span><span class="p">,</span>
+        <span class="s1">&#39;M14&#39;</span><span class="p">:</span> <span class="n">M14</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">dered_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown deredden_method &#39;</span><span class="si">{</span><span class="n">dered_method</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+            <span class="s2">&quot;Choose from &#39;G23&#39;, &#39;WD01&#39;, or &#39;M14&#39;.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">deredden</span> <span class="o">=</span> <span class="n">methods</span><span class="p">[</span><span class="n">dered_method</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">dered_method</span> <span class="o">==</span> <span class="s1">&#39;WD01&#39;</span><span class="p">:</span>
+        <span class="n">extinction</span> <span class="o">=</span> <span class="n">deredden</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">extinction</span> <span class="o">=</span> <span class="n">deredden</span><span class="p">(</span><span class="n">Rv</span><span class="o">=</span><span class="n">Rv</span><span class="p">)</span>
+
+    <span class="n">dereddened_flux</span> <span class="o">=</span> <span class="n">flux</span> <span class="o">/</span> <span class="n">extinction</span><span class="o">.</span><span class="n">extinguish</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">Ebv</span><span class="o">=</span><span class="n">Ebv</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dereddened_flux</span></div>
+
+
+
+<div class="viewcode-block" id="shift_by_radial_vel">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.shift_by_radial_vel">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shift_by_radial_vel</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">,</span> <span class="n">radial_vel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shift spectral axis to rest frame using a radial velocity.</span>
+<span class="sd">    If `radial_vel` is None, return `spectral_axis` unchanged.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectral_axis : astropy.units.Quantity</span>
+<span class="sd">        The spectral axis to shift. Can be in frequency or wavelength units.</span>
+<span class="sd">    radial_vel : float, astropy.units.Quantity or None</span>
+<span class="sd">        Radial velocity in km/s (astropy units are optional). Positive values</span>
+<span class="sd">        correspond to a redshift (moving away). If None, no shift is applied.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    shifted_axis : astropy.units.Quantity</span>
+<span class="sd">        The spectral axis shifted to the rest frame according to the given</span>
+<span class="sd">        radial velocity. If the input is in frequency units, the classical</span>
+<span class="sd">        Doppler formula for frequency is applied; otherwise, the classical</span>
+<span class="sd">        formula for wavelength is applied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># speed of light in km/s in vacuum</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mf">299792.458</span> <span class="c1"># [km/s]</span>
+    <span class="k">if</span> <span class="n">radial_vel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">radial_vel</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+            <span class="n">radial_vel</span> <span class="o">=</span> <span class="n">radial_vel</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">km</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="c1"># type: ignore</span>
+        <span class="c1"># if spectral axis in units of frequency</span>
+        <span class="k">if</span> <span class="n">spectral_axis</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">is_equivalent</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;Hz&#39;</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">spectral_axis</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">radial_vel</span> <span class="o">/</span> <span class="n">c</span><span class="p">)</span>
+        <span class="c1"># if spectral axis in units of wavelength</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">spectral_axis</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">radial_vel</span> <span class="o">/</span> <span class="n">c</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">spectral_axis</span></div>
+
+
+
+<div class="viewcode-block" id="estimate_spectrum_line_flux">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.estimate_spectrum_line_flux">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">estimate_spectrum_line_flux</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">spec_range</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the integrated line flux over a spectral interval.</span>
+
+<span class="sd">    This function supports both single-spectrum inputs and iterable</span>
+<span class="sd">    containers of spectra. For each spectrum, the continuum-subtracted</span>
+<span class="sd">    flux is numerically integrated over the specified spectral range</span>
+<span class="sd">    using the trapezoidal rule.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum : Any | Sequence[Any]</span>
+<span class="sd">        Spectral object(s) from which a spectral axis, flux, and continuum</span>
+<span class="sd">        can be extracted. This includes `ExtractedPixelSpectra` or</span>
+<span class="sd">        lists of `Spectrum`/`SpectrumPlus`.</span>
+<span class="sd">    spec_range : Quantity | ArrayLike of length 2</span>
+<span class="sd">        Lower and upper bounds of the spectral interval over which to</span>
+<span class="sd">        integrate. Must be compatible with the spectral axis units.</span>
+<span class="sd">        If no units, the units of `spectrum` are assumed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    line_flux : astropy.units.Quantity | list[Quantity]</span>
+<span class="sd">        Integrated line flux(es) over the specified interval.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">ExtractedPixelSpectra</span><span class="p">):</span>
+        <span class="n">spectra</span> <span class="o">=</span> <span class="n">spectra</span><span class="o">.</span><span class="n">spectra</span>
+
+    <span class="n">spectra_list</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">spectra</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">_estimate_spectrum_line_flux</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">spec_range</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra_list</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">_unwrap_if_single</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_estimate_spectrum_line_flux</span><span class="p">(</span>
+    <span class="n">spectrum</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">spec_range</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">NDArray</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the integrated line flux over a spectral interval.</span>
+
+<span class="sd">    The line flux is computed by numerically integrating the</span>
+<span class="sd">    continuum-subtracted spectrum over the specified spectral range</span>
+<span class="sd">    using the trapezoidal rule. This provides a model-independent</span>
+<span class="sd">    estimate of the line strength.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectrum : Any</span>
+<span class="sd">        Spectral object from which a spectral axis, flux, and continuum</span>
+<span class="sd">        can be extracted. Typically a `Spectrum`, `SpectrumPlus`,</span>
+<span class="sd">        `ExtractedPixelSpectra` or compatible container.</span>
+<span class="sd">    spec_range : Quantity of length 2</span>
+<span class="sd">        Lower and upper bounds of the spectral interval over which to</span>
+<span class="sd">        integrate. Values must be comparable to the spectral axis.</span>
+<span class="sd">        If no units, the units of `spectrum` are assumed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    line_flux : astropy.units.Quantity | float</span>
+<span class="sd">        Integrated line flux over the specified interval. If no spectral</span>
+<span class="sd">        samples fall within the interval, a zero-valued result is</span>
+<span class="sd">        returned (with units if available).</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the spectral axis, flux, or continuum cannot be determined,</span>
+<span class="sd">        or if `spec_range` is not a length-2 array-like object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">_get_spectral_axis</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+    <span class="n">flux</span> <span class="o">=</span> <span class="n">_get_flux</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+    <span class="n">continuum</span> <span class="o">=</span> <span class="n">_get_continuum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">flux</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">continuum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Could not determine spectral_axis, flux, and continuum &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;from the provided spectrum! Got: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">flux</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">continuum</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec_range</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;spec_range must be array-like of length 2, containing &#39;</span>
+            <span class="s1">&#39;the lower and upper bounds of the spectral axis&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">spec_unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="n">flux_unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">flux</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec_range</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spec_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">spec_range</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">spec_range</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">spec_unit</span><span class="p">)</span>
+
+    <span class="n">spec_min</span><span class="p">,</span> <span class="n">spec_max</span> <span class="o">=</span> <span class="n">spec_range</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">spec_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">spec_min</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">spec_min</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">spec_unit</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">spec_max</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">spec_max</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">spec_unit</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spec_min</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec_min</span><span class="p">)</span>
+            <span class="n">spec_max</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">spec_max</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;spec_range units are incompatible with the spectral axis.&#39;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">flux</span> <span class="o">-</span> <span class="n">continuum</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">spec_min</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">spec_max</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">flux_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">spec_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Quantity</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">flux_unit</span> <span class="o">*</span> <span class="n">spec_unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">flux_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">spec_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">flux_unit</span> <span class="o">*</span> <span class="n">spec_unit</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="sort_spectra_by_line_strength">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.sort_spectra_by_line_strength">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sort_spectra_by_line_strength</span><span class="p">(</span>
+    <span class="n">spectra</span><span class="p">,</span>
+    <span class="n">spec_range</span><span class="p">,</span>
+    <span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">emission_only</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sort spectra by their integrated line flux over a spectral range.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectra : list, array-like, or ExtractedPixelSpectra</span>
+<span class="sd">        Spectrum objects to sort. If `ExtractedPixelSpectra`, returns</span>
+<span class="sd">        a new `ExtractedPixelSpectra` with all attributes reordered.</span>
+<span class="sd">    spec_range : Quantity of length 2 or array-like</span>
+<span class="sd">        Lower and upper bounds of the spectral interval for integration.</span>
+<span class="sd">    descending : bool, default=True</span>
+<span class="sd">        If True, sort from strongest to weakest emission.</span>
+<span class="sd">    emission_only : bool or None, optional, default=None</span>
+<span class="sd">        If True, only return spectra with positive line flux (emission).</span>
+<span class="sd">        If False, only return spectra with negative line flux (absorption)</span>
+<span class="sd">        If None, return all spectra.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    If input is ExtractedPixelSpectra:</span>
+<span class="sd">        ExtractedPixelSpectra</span>
+<span class="sd">            New instance with all attributes sorted by line strength.</span>
+<span class="sd">    Otherwise:</span>
+<span class="sd">        sorted_indices : np.ndarray</span>
+<span class="sd">            Indices that would sort the input spectra by line strength.</span>
+<span class="sd">        line_strengths : Quantity</span>
+<span class="sd">            Integrated line flux for each spectrum, in sorted order.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spec_list</span> <span class="o">=</span> <span class="n">spectra</span><span class="o">.</span><span class="n">spectra</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">ExtractedPixelSpectra</span><span class="p">)</span> <span class="k">else</span> <span class="n">spectra</span>
+
+    <span class="n">fluxes</span> <span class="o">=</span> <span class="n">estimate_spectrum_line_flux</span><span class="p">(</span><span class="n">spec_list</span><span class="p">,</span> <span class="n">spec_range</span><span class="p">)</span>
+
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">ensure_common_unit</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+    <span class="c1"># flatten list[Quantity] -&gt; Quantity</span>
+    <span class="n">line_strengths</span> <span class="o">=</span> <span class="n">Quantity</span><span class="p">(</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">emission_only</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">line_strengths</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">emission_only</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">line_strengths</span> <span class="o">&lt;</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">line_strengths</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="n">valid_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">valid_strengths</span> <span class="o">=</span> <span class="n">line_strengths</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span>
+
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">valid_strengths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">descending</span><span class="p">:</span>
+        <span class="n">sort_order</span> <span class="o">=</span> <span class="n">sort_order</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">valid_indices</span><span class="p">[</span><span class="n">sort_order</span><span class="p">]</span>
+    <span class="n">sorted_strengths</span> <span class="o">=</span> <span class="n">valid_strengths</span><span class="p">[</span><span class="n">sort_order</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span> <span class="n">ExtractedPixelSpectra</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ExtractedPixelSpectra</span><span class="p">(</span>
+            <span class="n">spectra</span><span class="o">=</span><span class="p">[</span><span class="n">spec_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="p">],</span>
+            <span class="n">cube_array</span><span class="o">=</span><span class="n">spectra</span><span class="o">.</span><span class="n">cube_array</span><span class="p">,</span>
+            <span class="n">error_array</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">extract_idx</span><span class="o">=</span><span class="n">spectra</span><span class="o">.</span><span class="n">extract_idx</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">],</span>
+            <span class="n">coords</span><span class="o">=</span><span class="n">spectra</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">],</span>
+            <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">spectra</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="p">],</span>
+            <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">spectra</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="p">],</span>
+            <span class="n">combined_spectrum</span><span class="o">=</span><span class="n">spectra</span><span class="o">.</span><span class="n">combined_spectrum</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sorted_indices</span><span class="p">,</span> <span class="n">sorted_strengths</span></div>
+
+
+
+<div class="viewcode-block" id="spectral_idx_2_world">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.spectral_idx_2_world">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spectral_idx_2_world</span><span class="p">(</span>
+    <span class="n">spectral_axis</span><span class="p">:</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">keep_unit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a representative value from a spectral axis</span>
+<span class="sd">    given an index or index range.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectral_axis : SpectralAxis | Quantity</span>
+<span class="sd">        The spectral axis (e.g., wavelength, frequency, or</span>
+<span class="sd">        velocity) as an `astropy.units.Quantity` or a</span>
+<span class="sd">        `specutils.spectra.spectral_axis.SpectralAxis` array.</span>
+<span class="sd">    idx : int | tuple[int, int] | list[int | tuple[int, int]] | None</span>
+<span class="sd">        Indices specifying the slice along the first axis:</span>
+
+<span class="sd">        * `i` -&gt; returns `spectral_axis[i]`</span>
+<span class="sd">        * `[i]` -&gt; returns `spectral_axis[i]`</span>
+<span class="sd">        * `[i, j]` -&gt; returns `(spectral_axis[i] + spectral_axis[j+1])/2`</span>
+<span class="sd">        * `None` -&gt; returns `(spectral_axis[0] + spectral_axis[-1]) / 2`</span>
+
+<span class="sd">    keep_unit : bool, optional, default=True</span>
+<span class="sd">        If `True`, return the result as an `astropy.units.Quantity`.</span>
+<span class="sd">        If `False`, return the raw float value without units.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spectral_value : float or Quantity</span>
+<span class="sd">        The spectral value at the specified index or index</span>
+<span class="sd">        range, in the units of &#39;spectral_axis&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spec_unit</span> <span class="o">=</span> <span class="n">get_spectral_unit</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">spectral_axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">spectral_axis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">spectral_axis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">spectral_axis</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">spectral_axis</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">spectral_axis</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;idx&#39; must be an int or a list of one or two integers&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;idx&#39; must be an int or a list of one or two integers&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">spec_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">*</span> <span class="n">spec_unit</span> <span class="k">if</span> <span class="n">get_spectral_unit</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">result</span>
+
+    <span class="k">return</span> <span class="n">result</span> <span class="k">if</span> <span class="n">keep_unit</span> <span class="k">else</span> <span class="n">get_value</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="spectral_world_2_idx">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.spectral_world_2_idx">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spectral_world_2_idx</span><span class="p">(</span>
+    <span class="n">spectral_axis</span><span class="p">:</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the index of the nearest spectral channel to a given value.</span>
+<span class="sd">    If `value` has no unit, the cube unit is assumed.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spectral_axis : Quantity | SpectralAxis</span>
+<span class="sd">        The spectral axis (e.g., wavelength, frequency, or</span>
+<span class="sd">        velocity) as an `astropy.units.Quantity` or a</span>
+<span class="sd">        `specutils.spectra.spectral_axis.SpectralAxis` array.</span>
+<span class="sd">    value : Quantity | float</span>
+<span class="sd">        Spectral value in the same units as the cube&#39;s spectral axis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int :</span>
+<span class="sd">        Index of the nearest spectral channel.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If `spectral_axis` is not a `SpectralAxis` or `Quantity`.</span>
+<span class="sd">    UnitsError :</span>
+<span class="sd">        If a unit mismatch is detected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">_get_spectral_axis</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="n">_valid_types</span> <span class="o">=</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">SpectralAxis</span><span class="p">)</span> <span class="k">if</span> <span class="n">_HAS_SPECUTILS</span> <span class="k">else</span> <span class="p">(</span><span class="n">Quantity</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">,</span> <span class="n">_valid_types</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;spectral_axis must be a Quantity or SpectralAxis!&#39;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">spectral_axis</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">*</span> <span class="n">spectral_axis</span><span class="o">.</span><span class="n">unit</span>
+
+    <span class="n">ensure_common_unit</span><span class="p">([</span><span class="n">spectral_axis</span><span class="p">,</span> <span class="n">value</span><span class="p">],</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spectral_axis</span> <span class="o">-</span> <span class="n">value</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="mask_spectral_region">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.mask_spectral_region">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_spectral_region</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">spectral_region</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a boolean mask selecting values within a SpectralRegion.</span>
+
+<span class="sd">    This function constructs the union of all subregions in the input</span>
+<span class="sd">    SpectralRegion and returns a boolean array that is True for elements</span>
+<span class="sd">    of `x` that fall within any subregion.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array-like or `~astropy.units.Quantity`</span>
+<span class="sd">        1D array of spectral coordinates (e.g., wavelength or frequency).</span>
+<span class="sd">        If a Quantity is provided, its values are converted to plain</span>
+<span class="sd">        numeric values.</span>
+
+<span class="sd">    spectral_region : `~specutils.SpectralRegion` or region-like</span>
+<span class="sd">        Spectral region definition. May contain multiple disjoint</span>
+<span class="sd">        subregions. The mask is the logical union of all subregions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mask : ndarray of bool</span>
+<span class="sd">        Boolean mask with the same shape as `x`. True where the spectral</span>
+<span class="sd">        coordinate lies within any subregion, False otherwise.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        If `spectral_region.subregions` is None.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - Subregions are combined using logical OR (union semantics).</span>
+<span class="sd">    - This function assumes that `x` and the subregion bounds are in</span>
+<span class="sd">        compatible units. No explicit unit conversion is performed.</span>
+<span class="sd">    - Boundary comparisons are inclusive (`&gt;= xmin` and `&lt;= xmax`).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; mask = mask_spectral_region(wavelength, region)</span>
+<span class="sd">    &gt;&gt;&gt; n_valid = np.count_nonzero(mask &amp; np.isfinite(flux))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">spectral_region</span> <span class="o">=</span> <span class="n">_require_spectral_region</span><span class="p">(</span><span class="n">spectral_region</span><span class="p">)</span>
+    <span class="n">subregions</span> <span class="o">=</span> <span class="n">spectral_region</span><span class="o">.</span><span class="n">subregions</span>
+    <span class="k">if</span> <span class="n">subregions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;spectral_region.subregions is None!&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">subregions</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">mask</span> <span class="o">|=</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span> <span class="n">xmax</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mask</span></div>
+
+
+
+<div class="viewcode-block" id="propagate_flux_errors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.propagate_flux_errors">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">propagate_flux_errors</span><span class="p">(</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute propagated flux errors from individual</span>
+<span class="sd">    pixel errors in a spectrum.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    errors : np.ndarray</span>
+<span class="sd">        Either:</span>
+
+<span class="sd">        * 2D array with shape (N_spectra, N_pixels), or</span>
+<span class="sd">        * 1D array with shape (N_pixels,) for a single spectrum.</span>
+
+<span class="sd">    method : {&#39;mean&#39;, &#39;sum&#39;, &#39;median&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Flux extraction method. If `_UNSET`, uses</span>
+<span class="sd">        `config.propagate_flux_error_method`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux_errors : np.ndarray</span>
+<span class="sd">        1D array of propagated flux errors (shape N_spectra).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">propagate_flux_error_method</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;method must be : {&#39;mean&#39;, &#39;sum&#39;, &#39;median&#39;}&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ensure errors are 2-dimensional</span>
+    <span class="k">if</span> <span class="n">errors</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">errors</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># number of valid (non-NaN) pixels per spectrum</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">errors</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># quadratic sum per spectrum</span>
+    <span class="n">quad_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">errors</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="c1"># propagation method based on flux extraction method</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+        <span class="n">flux_errors</span> <span class="o">=</span> <span class="n">quad_sum</span> <span class="o">/</span> <span class="n">N</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+        <span class="n">flux_errors</span> <span class="o">=</span> <span class="n">quad_sum</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+        <span class="c1"># statistically correct median error scaling</span>
+        <span class="n">flux_errors</span> <span class="o">=</span> <span class="mf">1.253</span> <span class="o">*</span> <span class="p">(</span><span class="n">quad_sum</span> <span class="o">/</span> <span class="n">N</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;interquartile&#39;</span><span class="p">:</span>
+        <span class="n">q1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">q3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">flux_errors</span> <span class="o">=</span> <span class="n">q3</span> <span class="o">-</span> <span class="n">q1</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown flux extraction method &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">flux_errors</span></div>
+
+
+
+<span class="c1"># Science Helper Functions</span>
+<span class="c1"># ------------------------</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_convert_region_units</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">spectral_axis</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the units of a list of spectral regions to match</span>
+<span class="sd">    a given spectral axis. Helper function used when fitting</span>
+<span class="sd">    a spectrum continuum.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    region : list of tuple of astropy.units.Quantity or None</span>
+<span class="sd">        Each element is a tuple `(rmin, rmax)` defining a spectral region.</span>
+<span class="sd">        Both `rmin` and `rmax` should be `Quantity` objects with units.</span>
+<span class="sd">        If `None`, the function returns `None`.</span>
+<span class="sd">    spectral_axis : astropy.units.Quantity</span>
+<span class="sd">        The spectral axis whose unit is used for conversion.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of tuple of astropy.units.Quantity or None</span>
+<span class="sd">        The input regions converted to the same unit as &#39;spectral_axis&#39;.</span>
+<span class="sd">        Returns `None` if `region` is `None`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># extract unit</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">spectral_axis</span><span class="o">.</span><span class="n">unit</span>
+
+    <span class="c1"># convert each element to spectral axis units</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">SpectralRegion</span><span class="p">):</span>
+        <span class="n">converted_bounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">subregion</span> <span class="ow">in</span> <span class="n">region</span><span class="p">:</span>
+            <span class="n">rmin</span> <span class="o">=</span> <span class="n">subregion</span><span class="o">.</span><span class="n">lower</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+            <span class="n">rmax</span> <span class="o">=</span> <span class="n">subregion</span><span class="o">.</span><span class="n">upper</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+            <span class="n">converted_bounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">converted_bounds</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">rmin</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="n">rmax</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span> <span class="k">for</span> <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span> <span class="ow">in</span> <span class="n">region</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;region must be SpectralRegion or list of tuples, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_spectral_axis_2_array</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">:</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a `SpectralAxis` or `u.Quantity` representing a `SpectralAxis` to an array.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="s1">&#39;spectral_axis is not a SpectralAxis!&#39;</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># Model Fitting Functions</span>
+<span class="c1"># -----------------------</span>
+<div class="viewcode-block" id="construct_gaussian_p0">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.construct_gaussian_p0">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">construct_gaussian_p0</span><span class="p">(</span><span class="n">extracted_spectrum</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    extracted_spectrum : SpectrumPlus</span>
+<span class="sd">        `SpectrumPlus` object containing `wavelength` and `flux` attributes.</span>
+<span class="sd">        These can be `numpy.ndarray` or `astropy.units.Quantity`.</span>
+<span class="sd">    args : list or array-like</span>
+<span class="sd">        Additional parameters to append to the initial guess after</span>
+<span class="sd">        amplitude and center (e.g., sigma, linear continuum slope/intercept).</span>
+<span class="sd">    xlim : tuple of float, optional, default=None</span>
+<span class="sd">        Wavelength range `(xmin, xmax)` to restrict the fitting region.</span>
+<span class="sd">        If None, the full spectrum is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    p0 : list of float</span>
+<span class="sd">        Initial guess for Gaussian fitting parameters:</span>
+<span class="sd">        - First element: amplitude (`max(flux)` in the region)</span>
+<span class="sd">        - Second element: center (`wavelength` at max flux)</span>
+<span class="sd">        - Remaining elements: values from `args`</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - Useful for feeding into `scipy.optimize.curve_fit`</span>
+<span class="sd">      or similar fitting routines.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;specutils&#39;</span><span class="p">)</span>
+    <span class="c1"># extract wavelength and flux from SpectrumPlus object</span>
+    <span class="n">wavelength</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">extracted_spectrum</span><span class="o">.</span><span class="n">spectral_axis</span><span class="p">)</span>
+    <span class="n">flux</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">extracted_spectrum</span><span class="o">.</span><span class="n">flux</span><span class="p">)</span>
+    <span class="c1"># clip arrays by xlim</span>
+    <span class="k">if</span> <span class="n">xlim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_within_range</span><span class="p">(</span><span class="n">wavelength</span><span class="p">,</span> <span class="n">xlim</span><span class="p">)</span>
+        <span class="n">wavelength</span> <span class="o">=</span> <span class="n">wavelength</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">flux</span> <span class="o">=</span> <span class="n">flux</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="c1"># compute index of peak flux value</span>
+    <span class="n">peak_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">flux</span><span class="p">))</span>
+    <span class="c1"># compute max amplitude and corresponding wavelength value</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">flux</span><span class="p">),</span> <span class="n">wavelength</span><span class="p">[</span><span class="n">peak_idx</span><span class="p">]]</span>
+    <span class="c1"># extend any arguments needed for gaussian fitting</span>
+    <span class="n">p0</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">p0</span></div>
+
+
+
+<div class="viewcode-block" id="gaussian">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.gaussian">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a gaussian curve.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : np.ndarray</span>
+<span class="sd">        (N,) shaped range of x values (pixel indices) to</span>
+<span class="sd">        compute the gaussian function over.</span>
+<span class="sd">    A : float</span>
+<span class="sd">        Amplitude of gaussian function.</span>
+<span class="sd">    mu : float</span>
+<span class="sd">        Mean or center of gaussian function.</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Standard deviation of gaussian function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y : np.ndarray</span>
+<span class="sd">        (N,) shaped array of values of gaussian function</span>
+<span class="sd">        evaluated at each `x`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="gaussian_line">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.gaussian_line">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian_line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a Gaussian curve with a linear continuum.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : np.ndarray</span>
+<span class="sd">        (N,) shaped array of x values (e.g., pixel indices)</span>
+<span class="sd">        to evaluate the Gaussian.</span>
+<span class="sd">    A : float</span>
+<span class="sd">        Amplitude of the Gaussian.</span>
+<span class="sd">    mu : float</span>
+<span class="sd">        Mean or center of the Gaussian.</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Standard deviation of the Gaussian.</span>
+<span class="sd">    m : float</span>
+<span class="sd">        Slope of the linear continuum.</span>
+<span class="sd">    b : float</span>
+<span class="sd">        Y-intercept of the linear continuum.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y : np.ndarray</span>
+<span class="sd">        (N,) shaped array of the Gaussian function evaluated</span>
+<span class="sd">        at each `x`, including the linear continuum `m*x + b`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">m</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">b</span>
+
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="gaussian_continuum">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.gaussian_continuum">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian_continuum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">continuum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a Gaussian curve with a continuum offset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : np.ndarray</span>
+<span class="sd">        (N,) shaped array of x values (e.g., pixel indices)</span>
+<span class="sd">        to evaluate the Gaussian.</span>
+<span class="sd">    A : float</span>
+<span class="sd">        Amplitude of the Gaussian.</span>
+<span class="sd">    mu : float</span>
+<span class="sd">        Mean or center of the Gaussian.</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Standard deviation of the Gaussian.</span>
+<span class="sd">    continuum : np.ndarray or array-like</span>
+<span class="sd">        Continuum values to add to the Gaussian.</span>
+<span class="sd">        Must be the same shape as `x`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y : np.ndarray</span>
+<span class="sd">        (N,) shaped array of the Gaussian function evaluated</span>
+<span class="sd">        at `x`, including the continuum offset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">y</span> <span class="o">+</span> <span class="n">continuum</span></div>
+
+
+
+<div class="viewcode-block" id="GaussianFitResult">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.GaussianFitResult">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GaussianFitResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lightweight dataclass for gaussian fitting results.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    amplitude : Any</span>
+<span class="sd">        Amplitude of gaussian.</span>
+<span class="sd">    amplitude_error : Any</span>
+<span class="sd">        Error on `amplitude`.</span>
+<span class="sd">    mu : Any</span>
+<span class="sd">        Mu or center of gaussian.</span>
+<span class="sd">    mu_error : Any</span>
+<span class="sd">        Error on `mu`.</span>
+<span class="sd">    sigma : Any</span>
+<span class="sd">        Sigma or standard deviation of gaussian.</span>
+<span class="sd">    sigma_error : Any</span>
+<span class="sd">        Error on `sigma`.</span>
+<span class="sd">    flux : Any</span>
+<span class="sd">        Integrated flux of gaussian.</span>
+<span class="sd">    flux_error : Any</span>
+<span class="sd">        Error on `flux`.</span>
+<span class="sd">    FWHM : Any</span>
+<span class="sd">        Full width at half maxixum or the width of</span>
+<span class="sd">        the gaussian at half of its maximum value.</span>
+<span class="sd">    FWHM_error : Any</span>
+<span class="sd">        Error on `FWHM`.</span>
+<span class="sd">    slope : Any</span>
+<span class="sd">        Slope of continuum, if modelled as a linear line</span>
+<span class="sd">        using the `gaussian_line` model.</span>
+<span class="sd">    slope_error : Any</span>
+<span class="sd">        Error on `slope`.</span>
+<span class="sd">    intercept : Any</span>
+<span class="sd">        Y-intercept of continuum, if modelled as a linear</span>
+<span class="sd">        line using the `gaussian_line` model.</span>
+<span class="sd">    intercept_error : Any</span>
+<span class="sd">        Error on `intercept`.</span>
+<span class="sd">    peak_height : Any</span>
+<span class="sd">        Height (y value) of gaussian peak.</span>
+<span class="sd">    popt : Any</span>
+<span class="sd">        Optimal values for the parameters so that the sum of the</span>
+<span class="sd">        squared residuals of `f(xdata, *popt) - ydata` is minimized.</span>
+<span class="sd">        Returned by `scipy.optimize.curve_fit`.</span>
+<span class="sd">    pcov : Any</span>
+<span class="sd">        The estimated approximate covariance of popt. The diagonals</span>
+<span class="sd">        provide the variance of the parameter estimate. Returned by</span>
+<span class="sd">        `scipy.optimize.curve_fit`.</span>
+<span class="sd">    perr : Any</span>
+<span class="sd">        The one standard deviation errors on the parameters.</span>
+<span class="sd">        Computed as `perr = np.sqrt(np.diag(pcov))`.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - If new gaussian models are added, make sure to update</span>
+<span class="sd">      the `additional_parameters` and `parameters_labels` list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># fitted parameters</span>
+    <span class="n">amplitude</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">amplitude_error</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">mu</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">mu_error</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">sigma</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">sigma_error</span><span class="p">:</span> <span class="n">Any</span>
+
+    <span class="c1"># derived quantities</span>
+    <span class="n">flux</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">flux_error</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">FWHM</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">FWHM_error</span><span class="p">:</span> <span class="n">Any</span>
+
+    <span class="c1"># additional parameters</span>
+    <span class="n">slope</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">slope_error</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">intercept</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">intercept_error</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">peak_height</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># NOTE: ensure these are updated!</span>
+    <span class="n">additional_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slope&#39;</span><span class="p">,</span> <span class="s1">&#39;intercept&#39;</span><span class="p">,</span> <span class="s1">&#39;peak_height&#39;</span><span class="p">]</span>
+    <span class="n">parameters_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Slope (m)&#39;</span><span class="p">,</span> <span class="s1">&#39;Intercept (b)&#39;</span><span class="p">,</span> <span class="s1">&#39;Peak Height&#39;</span><span class="p">]</span>
+
+    <span class="c1"># raw curve fit results</span>
+    <span class="n">popt</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pcov</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">perr</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">p0</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fit_config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GaussianFitResult.pretty_print">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.GaussianFitResult.pretty_print">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pretty_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pretty print the results in table format.&quot;&quot;&quot;</span>
+
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_precision</span><span class="p">)</span>
+        <span class="n">sci_notation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sci_notation&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_sci_notation</span><span class="p">)</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">table_column_pad</span><span class="p">)</span>
+
+        <span class="n">fitted_data</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="s1">&#39;Amplitude&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude_error</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;Mu (μ)&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu_error</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;Sigma (σ)&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_error</span><span class="p">],</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">additional_parameters</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters_labels</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="o">+</span><span class="s1">&#39;_error&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">fitted_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">error</span><span class="p">])</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fitted Parameters:&#39;</span><span class="p">)</span>
+        <span class="n">print_pretty_table</span><span class="p">(</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">,</span> <span class="s1">&#39;Error&#39;</span><span class="p">],</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">fitted_data</span><span class="p">,</span>
+            <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+            <span class="n">sci_notation</span><span class="o">=</span><span class="n">sci_notation</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="n">pad</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Derived Parameters: &#39;</span><span class="p">)</span>
+        <span class="n">print_pretty_table</span><span class="p">(</span>
+            <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">[</span><span class="s1">&#39;Integrated Flux&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flux_error</span><span class="p">],</span>
+                <span class="p">[</span><span class="s1">&#39;FWHM&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHM_error</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+            <span class="n">sci_notation</span><span class="o">=</span><span class="n">sci_notation</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="n">pad</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns values ± errors.&quot;&quot;&quot;</span>
+        <span class="n">exclude</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;popt&#39;</span><span class="p">,</span> <span class="s1">&#39;pcov&#39;</span><span class="p">,</span> <span class="s1">&#39;perr&#39;</span><span class="p">,</span> <span class="s1">&#39;additional_parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters_labels&#39;</span><span class="p">}</span>
+
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GaussianFitResult(&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_error&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_error&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> : </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1"> ± </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> : </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ExtractedPixelSpectra">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ExtractedPixelSpectra">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractedPixelSpectra</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    spectra : SpectrumPlus or list of SpectrumPlus</span>
+<span class="sd">        Extracted per-pixel spectra. If a single index is selected,</span>
+<span class="sd">        this is returned as a single `SpectrumPlus` instance;</span>
+<span class="sd">        otherwise, a list is returned.</span>
+<span class="sd">    cube_array : np.ndarray or Quantity</span>
+<span class="sd">        Cube of array values corresponding to the extracted pixels.</span>
+<span class="sd">        All other pixels are set to NaN.</span>
+<span class="sd">    error_array : np.ndarray, Quantity, or None, optional</span>
+<span class="sd">        Cube of error values corresponding to the extracted pixels.</span>
+<span class="sd">        All other pixels are set to NaN. Set to None if no error</span>
+<span class="sd">        extension is present.</span>
+<span class="sd">    extract_idx : np.ndarray of int, shape (N,)</span>
+<span class="sd">        Indices of the extracted spectra corresponding to the ordering</span>
+<span class="sd">        of valid spatial pixels.</span>
+<span class="sd">    coords : np.ndarray of int, shape (N, 2)</span>
+<span class="sd">        Spatial coordinates of extracted pixels in `(y, x)` order.</span>
+<span class="sd">    colors : list</span>
+<span class="sd">        Colors assigned to each extracted pixel/spectrum.</span>
+<span class="sd">    labels : list of str</span>
+<span class="sd">        Human-readable labels of the form `&quot;&lt;idx&gt;: (x=&lt;x&gt;, y=&lt;y&gt;)&quot;`.</span>
+<span class="sd">    combined_spectrum : SpectrumPlus or None</span>
+<span class="sd">        Combined spectrum computed using `combine_method` if</span>
+<span class="sd">        `combine_spectra=True`; otherwise None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spectra</span><span class="p">:</span> <span class="n">SpectrumPlus</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">SpectrumPlus</span><span class="p">]</span>
+    <span class="n">cube_array</span> <span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span>
+    <span class="n">error_array</span> <span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">extract_idx</span><span class="p">:</span> <span class="n">NDArray</span>
+    <span class="n">coords</span><span class="p">:</span> <span class="n">NDArray</span>
+    <span class="n">colors</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="n">NDArray</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span>
+    <span class="n">combined_spectrum</span><span class="p">:</span> <span class="nb">object</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;specutils&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_idx</span><span class="p">)</span>
+
+        <span class="n">spectra_type</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;SpectrumPlus&#39;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="p">,</span> <span class="n">SpectrumPlus</span><span class="p">)</span>
+            <span class="k">else</span> <span class="s1">&#39;list[SpectrumPlus]&#39;</span>
+        <span class="p">)</span>
+
+        <span class="n">combined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_spectrum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;N=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;spectra=</span><span class="si">{</span><span class="n">spectra_type</span><span class="si">}</span><span class="s1">, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;coords_shape=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">, &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;combined=</span><span class="si">{</span><span class="n">combined</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="c1"># Getters</span>
+<span class="c1"># -------</span>
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_spectral_axis</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">SpectralCube</span> <span class="o">|</span> <span class="n">DataCube</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_spectral_axis</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_spectral_axis</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralAxis</span> <span class="o">|</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the `spectral_axis` associated with an object, if one exists.</span>
+
+<span class="sd">    The function follows a recursive search strategy:</span>
+
+<span class="sd">    1. If `obj` is a `SpectralAxis`, it is returned directly.</span>
+<span class="sd">    2. If `obj` has a `.spectral_axis` attribute, that attribute is returned.</span>
+<span class="sd">    3. If `obj` has a `.data` attribute, the function is applied recursively</span>
+<span class="sd">        to `obj.data`.</span>
+
+<span class="sd">    If no spectral axis can be identified, the function returns None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object from which to extract a spectral axis. This may include:</span>
+<span class="sd">        - a `SpectralAxis` instance</span>
+<span class="sd">        - objects exposing a `.spectral_axis` attribute</span>
+<span class="sd">        - container objects with a `.data` attribute holding one of the above</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spectral_axis : astropy.coordinates.SpectralAxis or astropy.units.Quantity or None</span>
+<span class="sd">        The spectral axis associated with the object, or None if unavailable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_HAS_SPECUTILS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">SpectralAxis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="n">spectral_axis</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;spectral_axis&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">spectral_axis</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">_get_spectral_axis</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">spectral_axis</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_flux</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the flux associated with an object, if one exists.</span>
+
+<span class="sd">    The function follows a recursive search strategy:</span>
+
+<span class="sd">    1. If `obj` exposes a `.flux` attribute, that attribute is returned.</span>
+<span class="sd">    2. If `obj` is an `astropy.units.Quantity`, it is returned directly.</span>
+<span class="sd">    3. If `obj` exposes a `.data` attribute, the function is applied recursively</span>
+<span class="sd">       to `obj.data`.</span>
+
+<span class="sd">    If no flux can be identified, the function returns None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object from which to extract a flux array. This may include:</span>
+<span class="sd">        - objects exposing a `.flux` attribute</span>
+<span class="sd">        - an `astropy.units.Quantity`</span>
+<span class="sd">        - container objects with a `.data` attribute holding one of the above</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    flux : astropy.units.Quantity or None</span>
+<span class="sd">        Flux array associated with the object, or None if unavailable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;flux&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">flux</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_get_flux</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_continuum</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">fit_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;fit_continuum&#39;</span><span class="p">,</span>
+    <span class="n">region</span><span class="p">:</span> <span class="n">SpectralRegion</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get or compute the continuum associated with an object, if possible.</span>
+
+<span class="sd">    The function follows a recursive search-and-construction strategy:</span>
+
+<span class="sd">    1. If `obj` exposes a `.continuum` attribute, that value is returned.</span>
+<span class="sd">    2. If `obj` is a `specutils.Spectrum`, a continuum is computed using</span>
+<span class="sd">       `fit_continuum`.</span>
+<span class="sd">    3. If `obj` exposes a `.spectrum` attribute, the function is applied</span>
+<span class="sd">       recursively to that attribute.</span>
+<span class="sd">    4. If both a spectral axis and flux can be extracted from `obj`,</span>
+<span class="sd">       a temporary `Spectrum` is constructed and a continuum is computed.</span>
+
+<span class="sd">    If no continuum can be retrieved or constructed, the function returns None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Object from which to retrieve or compute a continuum. This may include:</span>
+
+<span class="sd">        * a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`</span>
+<span class="sd">        * a `specutils.Spectrum`</span>
+<span class="sd">        * container objects exposing `.spectrum`</span>
+<span class="sd">        * objects from which both a spectral axis and flux can be inferred</span>
+
+<span class="sd">    fit_method : str, optional, default=&#39;fit_continuum&#39;</span>
+<span class="sd">        Continuum fitting method passed to `fit_continuum`.</span>
+<span class="sd">        Either `&#39;fit_continuum&#39;`, or `&#39;generic&#39;`.</span>
+<span class="sd">    region : SpectralRegion | list[tuple] | None, optional, default=None</span>
+<span class="sd">        Spectral region(s) used during continuum fitting.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    continuum : astropy.units.Quantity | None</span>
+<span class="sd">        Continuum flux array evaluated on the spectral axis, or None if</span>
+<span class="sd">        no continuum can be determined.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;continuum&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">continuum</span>
+
+    <span class="k">if</span> <span class="n">_HAS_SPECUTILS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">fit_continuum</span><span class="p">(</span>
+            <span class="n">obj</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;spectrum&#39;</span><span class="p">):</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">spectrum</span>
+        <span class="k">if</span> <span class="n">spectrum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_get_continuum</span><span class="p">(</span>
+                <span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span>
+            <span class="p">)</span>
+
+    <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">_get_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">flux</span> <span class="o">=</span> <span class="n">_get_flux</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">_HAS_SPECUTILS</span> <span class="ow">and</span>
+        <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+        <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span> <span class="ow">and</span>
+        <span class="n">flux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+        <span class="n">flux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span>
+    <span class="p">):</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">Spectrum</span><span class="p">(</span>
+            <span class="n">spectral_axis</span><span class="o">=</span><span class="n">spectral_axis</span><span class="p">,</span> <span class="n">flux</span><span class="o">=</span><span class="n">flux</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_get_continuum</span><span class="p">(</span>
+            <span class="n">spectrum</span><span class="p">,</span> <span class="n">fit_method</span><span class="o">=</span><span class="n">fit_method</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

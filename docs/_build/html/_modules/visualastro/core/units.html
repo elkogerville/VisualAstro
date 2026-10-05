@@ -1,0 +1,1080 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.core.units &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.core.units</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.core.units</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-12-10</span>
+<span class="sd">Date Modified: 2026-07-28</span>
+<span class="sd">Description:</span>
+<span class="sd">    Utility functions for Astropy units.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">overload</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io.fits</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">StructuredUnit</span><span class="p">,</span>
+    <span class="n">Unit</span><span class="p">,</span>
+    <span class="n">UnitBase</span><span class="p">,</span>
+    <span class="n">UnitConversionError</span><span class="p">,</span>
+    <span class="n">UnitsError</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.units.physical</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhysicalType</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span>
+    <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">_resolve_default</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span><span class="p">,</span> <span class="n">_unwrap_if_single</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_require_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._specutils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SpectralAxis</span><span class="p">,</span> <span class="n">SpectralRegion</span><span class="p">,</span> <span class="n">_HAS_SPECUTILS</span>
+<span class="p">)</span>
+
+
+<span class="c1"># define units</span>
+<span class="n">u</span><span class="o">.</span><span class="n">def_physical_type</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">solMass</span><span class="o">/</span><span class="n">u</span><span class="o">.</span><span class="n">yr</span><span class="p">,</span> <span class="s1">&#39;Star Formation Rate&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="convert_quantity">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.convert_quantity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_quantity</span><span class="p">(</span>
+    <span class="n">quantity</span><span class="p">,</span>
+    <span class="n">unit</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">equivalencies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">on_failure</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;warn&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an Astropy Quantity to a specified unit.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    quantity : astropy.units.Quantity</span>
+<span class="sd">        Input quantity to convert.</span>
+<span class="sd">    unit : str or astropy.units.Unit or None</span>
+<span class="sd">        Target unit. If None, the input is returned unchanged.</span>
+<span class="sd">    equivalencies : list or None, optional</span>
+<span class="sd">        Unit equivalencies to use during conversion</span>
+<span class="sd">        (e.g. `spectral()`). Default is None.</span>
+<span class="sd">    on_failure : {&#39;warn&#39;, &#39;ignore&#39;, &#39;raise&#39;}, optional, default=&#39;warn&#39;</span>
+<span class="sd">        Behavior if unit conversion fails.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.units.Quantity</span>
+<span class="sd">        Converted quantity, or the original quantity if conversion</span>
+<span class="sd">        fails and `on_failure` is not `&#39;raise&#39;`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    UnitConversionError</span>
+<span class="sd">        If conversion fails and `on_failure=&#39;raise&#39;`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span>
+
+    <span class="n">target_unit</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">quantity</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">target_unit</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">equivalencies</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">UnitConversionError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">on_failure</span> <span class="o">==</span> <span class="s1">&#39;raise&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnitConversionError</span>
+        <span class="k">if</span> <span class="n">on_failure</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Could not convert from </span><span class="si">{</span><span class="n">quantity</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">target_unit</span><span class="si">}</span><span class="s1">; &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;leaving quantity unchanged.&#39;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">quantity</span></div>
+
+
+
+<div class="viewcode-block" id="get_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the unit from an object, if it exists.</span>
+
+<span class="sd">    This function checks if the object has a `.unit` attribute,</span>
+<span class="sd">    or if `&#39;BUNIT&#39;` exists in `obj`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Object</span>
+<span class="sd">        The input object from which to extract a unit. This can be:</span>
+
+<span class="sd">        * an Astropy `UnitBase`</span>
+<span class="sd">        * a `u.Quantity`</span>
+<span class="sd">        * a list/tuple of `u.Quantities` (validates all have same unit)</span>
+<span class="sd">        * a `fits.Header` with a `&#39;BUNIT&#39;` key</span>
+<span class="sd">        * any object with a `.data` attribute</span>
+<span class="sd">        * any object with a `.header` attribute</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.units.Unit or None</span>
+<span class="sd">        The unit associated with the input object, if it exists.</span>
+<span class="sd">        Returns `None` if the object has no unit or if the unit cannot be parsed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">UnitBase</span><span class="p">,</span> <span class="n">StructuredUnit</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">unit</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_unit</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+        <span class="n">non_none_units</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_none_units</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">first_unit</span> <span class="o">=</span> <span class="n">non_none_units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="o">==</span> <span class="n">first_unit</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">non_none_units</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Inconsistent units in list: </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">u</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">non_none_units</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">first_unit</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Header</span><span class="p">):</span>
+        <span class="n">bunit</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BUNIT&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">bunit</span><span class="p">)</span>
+
+    <span class="n">unit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;header&#39;</span><span class="p">):</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;header&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_units</span><span class="p">(</span>
+    <span class="n">objs</span><span class="p">:</span> <span class="nb">list</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_units</span><span class="p">(</span>
+    <span class="n">objs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="get_units">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_units">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_units</span><span class="p">(</span>
+    <span class="n">objs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the unit from a list of objects, if it exists.</span>
+
+<span class="sd">    This function checks if the object has a `.unit` attribute,</span>
+<span class="sd">    or if &#39;BUNIT&#39; exists in `obj`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    objs : Any | list[Any]</span>
+<span class="sd">        The input object(s) from which to extract a unit. These can be:</span>
+
+<span class="sd">        * an Astropy `UnitBase`</span>
+<span class="sd">        * an `astropy.units.Quantity`</span>
+<span class="sd">        * a list/tuple of `u.Quantities` (validates all have same unit)</span>
+<span class="sd">        * a fits.Header with a &#39;BUNIT&#39; key</span>
+<span class="sd">        * any object with a .data attribute</span>
+<span class="sd">        * any object with a .header attribute</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[UnitBase | StructuredUnit | None] | UnitBase | StructuredUnit | None</span>
+<span class="sd">        The associated unit(s) of the input object(s), if they exist.</span>
+<span class="sd">        Returns None if the object has no unit or if the unit cannot be parsed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">objs</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">_unwrap_if_single</span><span class="p">(</span><span class="n">units</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_spectral_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_spectral_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_spectral_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract a spectral (wavelength/frequency/energy) unit</span>
+<span class="sd">    from an object, if one can be identified.</span>
+
+<span class="sd">    The function follows a recursive search strategy:</span>
+
+<span class="sd">    1. If `obj` is a `SpectralAxis`, its `.unit` attribute is returned.</span>
+<span class="sd">    2. If `obj` is an `astropy.units.Quantity`, its unit is</span>
+<span class="sd">       returned if it is convertible to a spectral unit using</span>
+<span class="sd">       `u.spectral()` or `u.doppler_radio` equivalencies.</span>
+<span class="sd">    3. If `obj` has a `.spectral_unit` attribute, the function</span>
+<span class="sd">    is applied recursively to `obj.spectral_unit`.</span>
+<span class="sd">    4. If `obj` has a `.data` attribute, the function is applied</span>
+<span class="sd">    recursively to `obj.data`.</span>
+<span class="sd">    5. If `obj` has a `.spectral_axis` attribute, the function is applied</span>
+<span class="sd">    recursively to `obj.spectral_axis`.</span>
+
+<span class="sd">    If no spectral unit can be identified, the function returns None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        Input object from which to extract a spectral unit:</span>
+
+<span class="sd">        * `astropy.coordinates.SpectralAxis`</span>
+<span class="sd">        * `astropy.units.Quantity` with spectral-equivalent units</span>
+<span class="sd">        * objects exposing a `.spectral_unit` attribute</span>
+<span class="sd">        * objects exposing a `.spectral_axis` attribute</span>
+<span class="sd">        * container objects with a `.data` attribute holding one of the above</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.units.UnitBase or astropy.units.StructuredUnit or None</span>
+<span class="sd">        A spectral unit (e.g. micron, Angstrom, Hz, eV) if found and valid,</span>
+<span class="sd">        otherwise None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_HAS_SPECUTILS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">SpectralAxis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="n">unit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;spectral_unit&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">get_spectral_unit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s1">&#39;spectral_axis&#39;</span><span class="p">):</span>
+        <span class="n">spectral_axis</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">spectral_axis</span>
+        <span class="k">if</span> <span class="n">spectral_axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">get_spectral_unit</span><span class="p">(</span><span class="n">spectral_axis</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">unit</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="get_physical_type">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_physical_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_physical_type</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PhysicalType</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the physical type associated with an object&#39;s unit.</span>
+
+<span class="sd">    Returns None if no physical type is found, or if the unit</span>
+<span class="sd">    is a `StructuredUnit`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : any</span>
+<span class="sd">        Object from which a unit can be extracted via `get_unit`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    astropy.units.physical.PhysicalType or None</span>
+<span class="sd">        Physical type of the unit, or None if unavailable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">StructuredUnit</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">unit</span><span class="o">.</span><span class="n">physical_type</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="to_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.to_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize an input into an Astropy Unit.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Unit, Quantity, str, or None</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    unit : astropy.units.Unit or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">UnitBase</span><span class="p">,</span> <span class="n">StructuredUnit</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">unit</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Unit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">UnitsError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unit_2_string</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unit_2_string</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="unit_2_string">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.unit_2_string">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unit_2_string</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an astropy unit to a FITS compliant string representation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    unit : Quantity, Unit, str, or None</span>
+<span class="sd">        Astropy unit. If `Quantity`, uses</span>
+<span class="sd">        the unit of the `Quantity`.</span>
+<span class="sd">    fmt : {&#39;latex&#39;, &#39;latex_inline&#39;, &#39;fits&#39;, &#39;unicode&#39;, &#39;console&#39;, &#39;vounit&#39;, &#39;cds&#39;, &#39;ogip&#39;} or None, optional, default=None</span>
+<span class="sd">        String format for returned unit. `&#39;inline&#39;` works as an alias for</span>
+<span class="sd">        `&#39;latex_inline&#39;`. If `None`, does not use a format.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str :</span>
+<span class="sd">        FITS compliant string representation of the unit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">fmt</span> <span class="o">=</span> <span class="n">fmt</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;inline&#39;</span><span class="p">:</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="s1">&#39;latex_inline&#39;</span>
+
+        <span class="k">return</span> <span class="n">unit</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">unit</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_latex_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_latex_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="to_latex_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.to_latex_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_latex_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an astropy unit into a LaTeX-formatted label</span>
+<span class="sd">    for plotting. Returns None if no unit is found.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    unit : str or astropy.Unit</span>
+<span class="sd">        The astropy.Unit or unit string to convert.</span>
+<span class="sd">    fmt : {&#39;latex&#39;, &#39;latex_inline&#39;, &#39;inline&#39;} or None, optional, default=None</span>
+<span class="sd">        The format of the unit label. `&#39;latex_inline&#39;` and `&#39;inline&#39;`</span>
+<span class="sd">        (alias for `&#39;latex_inline&#39;`) uses negative exponents while</span>
+<span class="sd">        `&#39;latex&#39;` uses fractions. If `None`, uses</span>
+<span class="sd">        the default value set by `config.unit_label_format`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str or None</span>
+<span class="sd">        A LaTeX-formatted unit label if the input is recognized.</span>
+<span class="sd">        Returns None if the unit is invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_label_format</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;latex&#39;</span><span class="p">,</span> <span class="s1">&#39;latex_inline&#39;</span><span class="p">,</span> <span class="s1">&#39;inline&#39;</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;format must be: {&#39;latex&#39;, &#39;latex_inline&#39;, &#39;inline&#39;} &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;got: </span><span class="si">{</span><span class="n">fmt</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">unit_2_string</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_fits_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_fits_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="to_fits_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.to_fits_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_fits_unit</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">Quantity</span> <span class="o">|</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert an Astropy unit into a FITS compliant label.</span>
+<span class="sd">    Returns None if no unit is found.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    unit : Quantity | UnitBase | StructuredUnit | str | None</span>
+<span class="sd">        Unit to convert.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str or None :</span>
+<span class="sd">        Unit converted as a FITS formatted string or `None`</span>
+<span class="sd">        if no unit is found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">unit_2_string</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;fits&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_unit_label">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_unit_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_unit_label</span><span class="p">(</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">UnitBase</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">StructuredUnit</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">bracket_style</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;round&#39;</span><span class="p">,</span> <span class="s1">&#39;square&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the unit of an object as a string for plotting.</span>
+
+<span class="sd">    Displays unit as either &#39;[unit]&#39; or &#39;(unit)&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    unit : u.UnitBase | u.StructuredUnit | u.Quantity</span>
+<span class="sd">        Unit to convert.</span>
+<span class="sd">    bracket_style : Literal[&#39;round&#39;, &#39;square&#39;] | _Unset, default=_UNSET</span>
+<span class="sd">        Bracket style for unit label. `&#39;round&#39;` displays the unit as &#39;(unit)&#39;,</span>
+<span class="sd">        while `&#39;square&#39;` as &#39;[unit]&#39;.</span>
+<span class="sd">    fmt : str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Format for unit rendering. Passed to `to_latex_unit`.</span>
+
+<span class="sd">        Accepted options are `&#39;latex&#39;`, `&#39;latex_inline&#39;`, `&#39;fits&#39;`,</span>
+<span class="sd">        `&#39;unicode&#39;`, `&#39;console&#39;`, `&#39;vounit&#39;`, `&#39;cds&#39;`, `&#39;ogip&#39;`</span>
+
+<span class="sd">        If `_UNSET`, uses `config.unit_label_format`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; get_unit_label(u.um, fmt=&#39;latex_inline&#39;)</span>
+<span class="sd">    &#39;[$\\mathrm{\\mu m}$]&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; va.get_unit_label(u.um, fmt=&#39;unicode&#39;)</span>
+<span class="sd">    &#39;[µm]&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bstyle</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">bracket_style</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_bracket_style</span><span class="p">)</span>
+    <span class="n">unit_fmt</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_label_format</span><span class="p">)</span>
+
+    <span class="n">data_unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data_unit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">data_unit</span> <span class="o">==</span> <span class="n">u</span><span class="o">.</span><span class="n">dimensionless_unscaled</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="n">brackets</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">_unit_bracket_styles</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">bstyle</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_bracket_style</span>
+    <span class="p">)</span>
+
+    <span class="n">unit_str</span> <span class="o">=</span> <span class="n">unit_2_string</span><span class="p">(</span><span class="n">data_unit</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">unit_fmt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">fr</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">brackets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}{</span><span class="n">unit_str</span><span class="si">}{</span><span class="n">brackets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span></div>
+
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_spectral_region</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">SpectralRegion</span>
+        <span class="o">|</span> <span class="n">Quantity</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]]</span>
+    <span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralRegion</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@overload</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_spectral_region</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="to_spectral_region">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.to_spectral_region">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_spectral_region</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">SpectralRegion</span>
+        <span class="o">|</span> <span class="n">Quantity</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]]</span>
+        <span class="o">|</span> <span class="kc">None</span>
+    <span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralRegion</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Coerce input into a SpectralRegion with units.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : SpectralRegion | Quantity | tuple | list[tuple] | None</span>
+<span class="sd">        Region specification. Accepted forms:</span>
+
+<span class="sd">        * `SpectralRegion`: returned as-is</span>
+<span class="sd">        * `(low, high) * unit`: single region with shared unit</span>
+<span class="sd">        * `[(low, high), ...] * unit`: multiple regions with shared unit</span>
+<span class="sd">        * `(Quantity, Quantity)`: single region with explicit units</span>
+<span class="sd">        * `[(Quantity, Quantity), ...]`: multiple regions with explicit units</span>
+<span class="sd">        * `None`: returned as-is</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SpectralRegion :</span>
+<span class="sd">        A SpectralRegion object containing one or more spectral subregions.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If a Quantity has incorrect shape (must be (2,) or (N, 2)).</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If the input `obj` cannot be coerced into a `SpectralRegion`.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import astropy.units as u</span>
+<span class="sd">    &gt;&gt;&gt; # Single region with shared unit</span>
+<span class="sd">    &gt;&gt;&gt; to_spectral_region((6.5, 6.6) * u.um)</span>
+
+<span class="sd">    &gt;&gt;&gt; # Multiple regions with shared unit</span>
+<span class="sd">    &gt;&gt;&gt; to_spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)</span>
+
+<span class="sd">    &gt;&gt;&gt; # Single region with explicit units</span>
+<span class="sd">    &gt;&gt;&gt; to_spectral_region((6.5*u.um, 6.6*u.um))</span>
+
+<span class="sd">    &gt;&gt;&gt; # Multiple regions with explicit units</span>
+<span class="sd">    &gt;&gt;&gt; to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_require_dependency</span><span class="p">(</span><span class="s1">&#39;specutils&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">SpectralRegion</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="n">region</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="c1"># single region</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="p">,):</span>
+            <span class="n">lo</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">hi</span> <span class="o">=</span> <span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)]</span>
+
+        <span class="c1"># multiple regions</span>
+        <span class="k">elif</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">region</span> <span class="o">=</span> <span class="p">[(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">region</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Quantity must have shape (2,) or (N,2), got </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># case: quantities inside list/tuple</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">region</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span>
+        <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">region</span><span class="p">)):</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="p">[</span><span class="n">region</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Expected SpectralRegion, Quantity, tuple, or list, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SpectralRegion</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Could not construct SpectralRegion from </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_require_spectral_region</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">SpectralRegion</span>
+        <span class="o">|</span> <span class="n">Quantity</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Quantity</span><span class="p">,</span> <span class="n">Quantity</span><span class="p">]]</span>
+    <span class="p">)</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpectralRegion</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Enforce that the input `obj` is a `SpectralRegion`.</span>
+
+<span class="sd">    This is a wrapper of `to_spectral_region`, which unlike</span>
+<span class="sd">    this function allows for None inputs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : SpectralRegion, Quantity, tuple, or list</span>
+<span class="sd">        Region specification. Accepted forms:</span>
+
+<span class="sd">        * `SpectralRegion`: returned as-is</span>
+<span class="sd">        * `(low, high) * unit`: single region with shared unit</span>
+<span class="sd">        * `[(low, high), ...] * unit`: multiple regions with shared unit</span>
+<span class="sd">        * `(Quantity, Quantity)`: single region with explicit units</span>
+<span class="sd">        * `[(Quantity, Quantity), ...]`: multiple regions with explicit units</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SpectralRegion :</span>
+<span class="sd">        Input region as a SpectralRegion</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If input `obj` results in `None` when converted to</span>
+<span class="sd">        a SpectralRegion.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">to_spectral_region</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">region</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">SpectralRegion</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;A SpectralRegion is required; got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">region</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">region</span>
+
+
+<div class="viewcode-block" id="ensure_common_unit">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.ensure_common_unit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_common_unit</span><span class="p">(</span>
+    <span class="n">objs</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">unit</span><span class="p">:</span> <span class="n">UnitBase</span> <span class="o">|</span>  <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">on_mismatch</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnitBase</span> <span class="o">|</span> <span class="n">StructuredUnit</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check unit consistency across one or more objects.</span>
+
+<span class="sd">    This function verifies that all objects with defined units share the same</span>
+<span class="sd">    unit. No unit conversion is performed. The function will either raise an</span>
+<span class="sd">    UnitsError, issue a warning, or ignore.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    objs : object or list or tuple of objects</span>
+<span class="sd">        Input objects carrying units (e.g. Quantity, DataCube, SpectralCube).</span>
+<span class="sd">        Objects without units are allowed.</span>
+<span class="sd">    unit : astropy.units.Unit or str or None, optional, default=None</span>
+<span class="sd">        Reference unit to compare against. If None, the first non-None unit</span>
+<span class="sd">        encountered among the inputs is used.</span>
+<span class="sd">    on_mismatch : {&#39;warn&#39;, &#39;ignore&#39;, &#39;raise&#39;}, optional, default=None</span>
+<span class="sd">        Action to take when a unit mismatch is detected. If None, uses</span>
+<span class="sd">        the default value from `config.unit_mismatch`.</span>
+<span class="sd">    label : str or None, optional, default=None</span>
+<span class="sd">        Optional context label prepended to warnings or errors.</span>
+<span class="sd">        Is ignored if None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ref_unit : UnitBase</span>
+<span class="sd">        Common unit between `objs`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    UnitsError :</span>
+<span class="sd">        If a unit mismatch is detected and `on_mismatch=&#39;raise&#39;`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">on_mismatch</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">on_mismatch</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">unit_mismatch</span><span class="p">)</span>
+
+    <span class="n">objs</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ref_unit</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">u</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="p">(</span><span class="n">UnitBase</span><span class="p">,</span> <span class="n">StructuredUnit</span><span class="p">)):</span>
+        <span class="n">ref_unit</span> <span class="o">=</span> <span class="n">unit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ref_unit</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">: &#39;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">u</span> <span class="o">==</span> <span class="n">ref_unit</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">on_mismatch</span> <span class="o">==</span> <span class="s1">&#39;raise&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2"> Unit mismatch at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">ref_unit</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">on_mismatch</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1"> Unit mismatch at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s1"> != </span><span class="si">{</span><span class="n">ref_unit</span><span class="si">}</span><span class="s1">. &#39;</span>
+                <span class="s1">&#39;Values may be interpreted incorrectly.&#39;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ref_unit</span></div>
+
+
+
+<div class="viewcode-block" id="stack_quantities">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.stack_quantities">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stack_quantities</span><span class="p">(</span><span class="n">quantities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stack multiple quantities into a single quantity array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    quantities : list[u.Quantity]</span>
+<span class="sd">        List of Quantity objects to stack. All must have compatible units.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    u.Quantity</span>
+<span class="sd">        Stacked quantity with combined values and common unit.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If any element is not a Quantity or units are incompatible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">quantities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Non-Quantity at index </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">: got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+    <span class="n">ref_unit</span> <span class="o">=</span> <span class="n">ensure_common_unit</span><span class="p">(</span><span class="n">quantities</span><span class="p">,</span> <span class="n">on_mismatch</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">quantities</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">ref_unit</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine whether an object represents a spectral axis or a spectral quantity.</span>
+
+<span class="sd">    An object is considered spectral if any of the following is true:</span>
+<span class="sd">    1. It is a `SpectralAxis` instance.</span>
+<span class="sd">    2. It exposes a `.spectral_axis` or `.spectral_unit` attribute that itself</span>
+<span class="sd">        represents a spectral axis.</span>
+<span class="sd">    3. Its unit corresponds to a spectral quantity such as wavelength, frequency,</span>
+<span class="sd">        energy, or Doppler velocity, as determined via Astropy&#39;s `u.spectral()`</span>
+<span class="sd">        or `u.doppler_radio()` equivalencies.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : Any</span>
+<span class="sd">        The object to evaluate. This may be a `SpectralAxis`, `Quantity`,</span>
+<span class="sd">        unit, or any object exposing spectral metadata.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the object represents a spectral axis or spectral quantity, False otherwise.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    * Length units (e.g., meters, microns) are only treated as spectral when</span>
+<span class="sd">        they can be converted to frequency using `u.spectral()` equivalencies.</span>
+<span class="sd">    * Plain length quantities without spectral context are not automatically</span>
+<span class="sd">        considered spectral axes.</span>
+<span class="sd">    * Doppler velocity units are recognized only if they can be converted</span>
+<span class="sd">        to a spectral representation using `u.doppler_radio()` equivalencies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_HAS_SPECUTILS</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">SpectralAxis</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;spectral_axis&#39;</span><span class="p">,</span> <span class="s1">&#39;spectral_unit&#39;</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">get_unit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">physical_type</span> <span class="o">=</span> <span class="n">get_physical_type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">physical_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">physical_type</span> <span class="o">==</span> <span class="s1">&#39;length&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">unit</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">spectral</span><span class="p">())</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">UnitConversionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">physical_type</span> <span class="o">==</span> <span class="s1">&#39;speed&#39;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">unit</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">doppler_radio</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">UnitConversionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">physical_type</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;energy&#39;</span><span class="p">}:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_infer_physical_type_label</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Infer a human-readable physical-type label for an object.</span>
+
+<span class="sd">    This function determines an appropriate scientific label</span>
+<span class="sd">    based on the physical type of an object&#39;s associated unit.</span>
+<span class="sd">    Spectral axes are treated with higher precedence than other</span>
+<span class="sd">    physical quantities (i.e. &#39;um&#39; is mapped to &#39;Wavelength&#39;</span>
+<span class="sd">    rather than &#39;Distance&#39;). If no suitable label can be inferred,</span>
+<span class="sd">    the function returns None.</span>
+
+<span class="sd">    The inference logic follows this order:</span>
+
+<span class="sd">    1. If the object represents a spectral axis, return a spectral-axis</span>
+<span class="sd">        label (e.g., &#39;Wavelength&#39;, &#39;Frequency&#39;, &#39;Velocity&#39;).</span>
+<span class="sd">    2. Otherwise, return a curated physical-type label (e.g., &#39;Flux&#39;,</span>
+<span class="sd">        &#39;Surface Brightness&#39;).</span>
+<span class="sd">    3. If no mapping exists, return None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : any</span>
+<span class="sd">        An object describing an axis or quantity. This may be an Astropy</span>
+<span class="sd">        `Quantity`, a Spectrum-like object exposing spectral metadata, or</span>
+<span class="sd">        any object from which a unit can be extracted via `get_unit`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    label : str or None</span>
+<span class="sd">        A human-readable physical-type label, or None if no appropriate</span>
+<span class="sd">        label can be inferred.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    * Spectral axes take precedence over generic physical types.</span>
+<span class="sd">    * Length units are only interpreted as wavelengths when spectral context</span>
+<span class="sd">        can be inferred (via Astropy spectral equivalencies or explicit spectral</span>
+<span class="sd">        metadata). For example, units such as &#39;um&#39;, &#39;m&#39;, etc.. are mapped to</span>
+<span class="sd">        &#39;Wavelength&#39; but distance units like &#39;pc&#39; would return &#39;Distance&#39;.</span>
+<span class="sd">    * Structured units and non-scalar physical types are ignored.</span>
+<span class="sd">    * This function does not raise exceptions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">physical_type</span> <span class="o">=</span> <span class="n">get_physical_type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">physical_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">_is_spectral_axis</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">_SPECTRAL_TYPE_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">physical_type</span><span class="p">,</span> <span class="s1">&#39;Spectral Axis&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">_PHYSICAL_TYPE_LABELS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">physical_type</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_unit_equality</span><span class="p">(</span><span class="n">unit1</span><span class="p">,</span> <span class="n">unit2</span><span class="p">,</span> <span class="n">name1</span><span class="o">=</span><span class="s1">&#39;unit1&#39;</span><span class="p">,</span> <span class="n">name2</span><span class="o">=</span><span class="s1">&#39;unit2&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate that two units are exactly equal.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    unit1, unit2 : str or astropy.units.Unit or None</span>
+<span class="sd">        Units to compare. None means &#39;unitless&#39;.</span>
+<span class="sd">    name1, name2 : str</span>
+<span class="sd">        Labels used in error messages.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    UnitsError</span>
+<span class="sd">        If units differ (either convertible or incompatible).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">u1</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit1</span><span class="p">)</span>
+        <span class="n">u2</span> <span class="o">=</span> <span class="n">to_unit</span><span class="p">(</span><span class="n">unit2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span><span class="s1">&#39;Invalid unit(s) supplied&#39;</span><span class="p">)</span>
+
+    <span class="c1"># case 1: either of the units are None</span>
+    <span class="k">if</span> <span class="n">u1</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">u2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">u1_str</span> <span class="o">=</span> <span class="n">unit_2_string</span><span class="p">(</span><span class="n">u1</span><span class="p">)</span>
+    <span class="n">u2_str</span> <span class="o">=</span> <span class="n">unit_2_string</span><span class="p">(</span><span class="n">u2</span><span class="p">)</span>
+
+    <span class="c1"># case 1: units are exactly equal</span>
+    <span class="k">if</span> <span class="n">u1</span> <span class="o">==</span> <span class="n">u2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># case 2: equivalent but not equal</span>
+    <span class="k">if</span> <span class="n">u1</span><span class="o">.</span><span class="n">is_equivalent</span><span class="p">(</span><span class="n">u2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name1</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">name2</span><span class="si">}</span><span class="s1"> units are equivalent but not equal &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">u1_str</span><span class="si">}</span><span class="s1"> vs </span><span class="si">{</span><span class="n">u2_str</span><span class="si">}</span><span class="s1">). Convert one to match.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># case 3: mismatch</span>
+    <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name1</span><span class="si">}</span><span class="s1"> and </span><span class="si">{</span><span class="n">name2</span><span class="si">}</span><span class="s1"> have incompatible units: &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">u1_str</span><span class="si">}</span><span class="s1"> vs </span><span class="si">{</span><span class="n">u2_str</span><span class="si">}</span><span class="s1">.&#39;</span>
+    <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

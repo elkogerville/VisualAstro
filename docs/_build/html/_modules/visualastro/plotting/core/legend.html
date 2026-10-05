@@ -1,0 +1,396 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.legend &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.legend</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.legend</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2026-07-30</span>
+<span class="sd">Date Modified: 2026-09-25</span>
+<span class="sd">Description:</span>
+<span class="sd">    Legend plotting functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bbox</span><span class="p">,</span> <span class="n">Transform</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span><span class="p">,</span> <span class="n">_resolve_default</span><span class="p">,</span> <span class="n">_Unset</span><span class="p">,</span> <span class="n">_UNSET</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.kwargs</span><span class="w"> </span><span class="kn">import</span> <span class="n">_extract_kwargs</span><span class="p">,</span> <span class="n">_param</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_list</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.plotting.core.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ax</span>
+
+
+<div class="viewcode-block" id="legend">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.legend">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">legend</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">handles</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">loc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">bbox_to_anchor</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="n">Bbox</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">ncols</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">fontsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">labelcolor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">numpoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">scatterpoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">markerscale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">markerfirst</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">reverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">frameon</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">fancybox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">framealpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">facecolor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">edgecolor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;expand&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">bbox_transform</span><span class="p">:</span> <span class="n">Transform</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">linewidth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;spines&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">alignment</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">borderpad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">labelspacing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">handlelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">handleheight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">borderaxespad</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">columnspacing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">draggable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a legend on the specified axes with configuration defaults.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args : tuple</span>
+<span class="sd">        Positional arguments for legend specification:</span>
+
+<span class="sd">        * If 1 arg: `labels` only</span>
+<span class="sd">        * If 2 args: `handles`, `labels`</span>
+
+<span class="sd">        Maximum of 2 positional arguments allowed.</span>
+<span class="sd">    ax : matplotlib.axes.Axes | None, optional, default=None</span>
+<span class="sd">        The axes object on which to place the legend. If `None`, uses</span>
+<span class="sd">        `get_ax(ax)` to resolve the current axes.</span>
+<span class="sd">    loc : str | int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Legend location. If `_UNSET`, uses `config.legend.loc`.</span>
+
+<span class="sd">        Accepts standard matplotlib `loc` strings/codes (e.g. `&#39;upper</span>
+<span class="sd">        right&#39;`, `&#39;lower left&#39;`, `&#39;center&#39;`, `0`–`10`) as well as well</span>
+<span class="sd">        as two new positions `&#39;top&#39;` and `&#39;bottom&#39;`. These place the</span>
+<span class="sd">        legend above and below the axes.</span>
+<span class="sd">        token (`&#39;left&#39;`, `&#39;center&#39;`, `&#39;right&#39;`), e.g. `&#39;bottom left&#39;`,</span>
+<span class="sd">        `&#39;top center&#39;`, `&#39;bottom right&#39;`.</span>
+
+<span class="sd">        `&#39;top&#39;`/`&#39;bottom&#39;` must be combined with exactly one horizontal</span>
+<span class="sd">        position (`&#39;left&#39;`, `&#39;center&#39;`, `&#39;right&#39;`), e.g. `&#39;bottom left&#39;`,</span>
+<span class="sd">        `&#39;top center&#39;`, `&#39;bottom right&#39;`.</span>
+
+<span class="sd">        If `loc` contains `&#39;bottom&#39;`/`&#39;top&#39;`, `bbox_to_anchor` is</span>
+<span class="sd">        computed automatically from the token combination and any</span>
+<span class="sd">        explicitly passed `bbox_to_anchor` is discarded.</span>
+<span class="sd">    bbox_to_anchor : tuple | matplotlib.transforms.Bbox | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Bbox that the legend will be anchored to. If `_UNSET`, uses `loc`</span>
+<span class="sd">        relative to the axes.</span>
+<span class="sd">    ncols : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of columns. If `_UNSET`, uses `config.legend.ncols`.</span>
+<span class="sd">    fontsize : int | str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Fontsize for legend text in points. If `_UNSET`, uses</span>
+<span class="sd">        `config.legend.fontsize`, resolved via</span>
+<span class="sd">        `config.fontsizes.resolve(&#39;legend&#39;)` as a scaling factor relative</span>
+<span class="sd">        to `config.fontsizes.size`.</span>
+<span class="sd">    labelcolor : str | Sequence | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Text color for legend labels. Accepts a single color, a list of</span>
+<span class="sd">        colors, or `&#39;linecolor&#39;` / `&#39;markerfacecolor&#39;` / `&#39;markeredgecolor&#39;`</span>
+<span class="sd">        to match the corresponding artist property.</span>
+<span class="sd">    numpoints : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of marker points in the legend for `Line2D` entries. If</span>
+<span class="sd">        `_UNSET`, uses `config.legend.numpoints`.</span>
+<span class="sd">    scatterpoints : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Number of marker points in the legend for scatter plot entries.</span>
+<span class="sd">        If `_UNSET`, uses `config.legend.scatterpoints`.</span>
+<span class="sd">    markerscale : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Relative size of legend markers compared to plotted markers. If</span>
+<span class="sd">        `_UNSET`, uses `config.legend.markerscale`.</span>
+<span class="sd">    markerfirst : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, marker is placed to the left of the label. If `_UNSET`,</span>
+<span class="sd">        uses `config.legend.markerfirst`.</span>
+<span class="sd">    reverse : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, reverses the legend entry order. If `_UNSET`, uses</span>
+<span class="sd">        `config.legend.reverse`.</span>
+<span class="sd">    frameon : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Enable legend frame. If `_UNSET`, uses `config.legend.frameon`.</span>
+<span class="sd">    fancybox : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Enable rounded box frame. If `_UNSET`, uses `config.legend.fancybox`.</span>
+<span class="sd">    framealpha : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Frame alpha transparency [0, 1]. If `_UNSET`, uses</span>
+<span class="sd">        `config.legend.framealpha`.</span>
+<span class="sd">    facecolor : str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Frame background color. If `_UNSET`, uses `config.legend.facecolor`.</span>
+<span class="sd">    edgecolor : str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Frame edge color. If `_UNSET`, uses `config.legend.edgecolor`.</span>
+<span class="sd">    mode : {&#39;expand&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `&#39;expand&#39;`, horizontally expands legend to fill axes width.</span>
+<span class="sd">    bbox_transform : matplotlib.transforms.Transform | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Transform for `bbox_to_anchor`. If `_UNSET`, uses `ax.transAxes`.</span>
+<span class="sd">    linewidth : float | {&#39;spines&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Linewidth of the legend. If `&#39;spines&#39;`, uses the `linewidth` of</span>
+<span class="sd">        the spines from `ax`. If `_UNSET`, does not set.</span>
+<span class="sd">    title : str | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Legend title. If `_UNSET`, uses `config.legend.title`.</span>
+<span class="sd">    alignment : {&#39;center&#39;, &#39;left&#39;, &#39;right&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Legend alignment. If `_UNSET`, uses `config.legend.alignment`.</span>
+<span class="sd">    borderpad : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Padding between legend content and frame, in units of fontsize.</span>
+<span class="sd">        If `_UNSET`, uses `config.legend.borderpad`.</span>
+<span class="sd">    labelspacing : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Vertical spacing between legend entries, in units of fontsize.</span>
+<span class="sd">        If `_UNSET`, uses `config.legend.labelspacing`.</span>
+<span class="sd">    handlelength : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Length of legend handles, in units of fontsize. If `_UNSET`,</span>
+<span class="sd">        uses `2`.</span>
+<span class="sd">    handleheight : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Height of legend handles, in units of fontsize. If `_UNSET`,</span>
+<span class="sd">        uses `0.7`.</span>
+<span class="sd">    borderaxespad : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Padding between legend and axes, in units of fontsize. If</span>
+<span class="sd">        `_UNSET`, uses `config.legend.borderaxespad`.</span>
+<span class="sd">    columnspacing : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Spacing between columns in units of fontsize. If `_UNSET`, uses</span>
+<span class="sd">        `config.legend.columnspacing`.</span>
+<span class="sd">    draggable : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Enable legend dragging. If `_UNSET`, uses `config.legend.draggable`.</span>
+<span class="sd">    zorder : float | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Legend zorder. If `_UNSET`, uses `config.zorder.legend`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If more than 2 positional arguments provided.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">legend_kwargs</span> <span class="o">=</span> <span class="n">_extract_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;loc&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">loc</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;bbox_to_anchor&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;ncols&#39;</span><span class="p">,</span> <span class="n">ncols</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">ncols</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">fontsize</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;labelcolor&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;numpoints&#39;</span><span class="p">,</span> <span class="n">numpoints</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">numpoints</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;scatterpoints&#39;</span><span class="p">,</span> <span class="n">scatterpoints</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">scatterpoints</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;markerscale&#39;</span><span class="p">,</span> <span class="n">markerscale</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">markerscale</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;markerfirst&#39;</span><span class="p">,</span> <span class="n">markerfirst</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">markerfirst</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;reverse&#39;</span><span class="p">,</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">reverse</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;frameon&#39;</span><span class="p">,</span> <span class="n">frameon</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">frameon</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;fancybox&#39;</span><span class="p">,</span> <span class="n">fancybox</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">fancybox</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;framealpha&#39;</span><span class="p">,</span> <span class="n">framealpha</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">framealpha</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">facecolor</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">edgecolor</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">linewidth</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;bbox_transform&#39;</span><span class="p">,</span> <span class="n">bbox_transform</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">title</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;alignment&#39;</span><span class="p">,</span> <span class="n">alignment</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">alignment</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;borderpad&#39;</span><span class="p">,</span> <span class="n">borderpad</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">borderpad</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;labelspacing&#39;</span><span class="p">,</span> <span class="n">labelspacing</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">labelspacing</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;handlelength&#39;</span><span class="p">,</span> <span class="n">handlelength</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;handleheight&#39;</span><span class="p">,</span> <span class="n">handleheight</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;borderaxespad&#39;</span><span class="p">,</span> <span class="n">borderaxespad</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">borderaxespad</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;columnspacing&#39;</span><span class="p">,</span> <span class="n">columnspacing</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">columnspacing</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;draggable&#39;</span><span class="p">,</span> <span class="n">draggable</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">draggable</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;zorder&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">zorder</span><span class="o">.</span><span class="n">legend</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;fontsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span>
+        <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;fontsize&#39;</span><span class="p">],</span> <span class="n">config</span><span class="o">.</span><span class="n">fontsizes</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">get_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="c1"># resolve handles and labels from *args</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">handles</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="k">if</span> <span class="n">handles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;handles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">handles</span>
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;legend() takes at most 2 positional arguments&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">handles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;handles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">handles</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;handles&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">legend_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">legend_kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">legend_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">linewidth</span> <span class="o">=</span> <span class="n">legend_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;linewidth&#39;</span><span class="p">)</span>
+    <span class="n">zorder</span> <span class="o">=</span> <span class="n">legend_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;zorder&#39;</span><span class="p">)</span>
+
+    <span class="n">_resolve_vertical_loc</span><span class="p">(</span><span class="n">legend_kwargs</span><span class="p">)</span>
+
+    <span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">**</span><span class="n">legend_kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">linewidth</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">linewidth</span> <span class="o">==</span> <span class="s1">&#39;spines&#39;</span><span class="p">:</span>
+            <span class="n">spines</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">linewidth</span> <span class="o">=</span> <span class="n">spines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_linewidth</span><span class="p">()</span>
+
+        <span class="n">leg</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="n">linewidth</span><span class="p">)</span>
+
+    <span class="n">leg</span><span class="o">.</span><span class="n">set_zorder</span><span class="p">(</span><span class="n">zorder</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_vertical_loc</span><span class="p">(</span><span class="n">legend_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve a `loc` string containing `&#39;bottom&#39;`/`&#39;top&#39;` into an</span>
+<span class="sd">    explicit `bbox_to_anchor` and mpl-native `loc`, mutating</span>
+<span class="sd">    `legend_kwargs` in place.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    legend_kwargs : dict</span>
+<span class="sd">        Kwargs dict being built for `ax.legend`. Mutated in place.</span>
+<span class="sd">    loc : str</span>
+<span class="sd">        Space-separated loc string, e.g. `&#39;bottom left&#39;`.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If `loc` contains `&#39;bottom&#39;`/`&#39;top&#39;` without exactly one</span>
+<span class="sd">        horizontal companion token (`&#39;left&#39;`, `&#39;center&#39;`, `&#39;right&#39;`).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_LOC_X</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="n">_LOC_Y</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bottom&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="mf">1.05</span><span class="p">}</span>
+    <span class="n">_MPL_VERTICAL</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bottom&#39;</span><span class="p">:</span> <span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="s1">&#39;lower&#39;</span><span class="p">}</span>
+
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;loc&#39;</span><span class="p">]</span>
+    <span class="n">locations</span> <span class="o">=</span> <span class="n">loc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">vertical</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">locations</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">{</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">vertical</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">horizontal</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">locations</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">_LOC_X</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">horizontal</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;loc=</span><span class="si">{</span><span class="n">loc</span><span class="si">!r}</span><span class="s2"> must combine &#39;bottom&#39;/&#39;top&#39; with exactly one &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;of </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">_LOC_X</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">vertical</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">horizontal</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+    <span class="n">legend_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bbox_to_anchor&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;bbox_to_anchor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">_LOC_X</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">_LOC_Y</span><span class="p">[</span><span class="n">y</span><span class="p">])</span>
+    <span class="n">legend_kwargs</span><span class="p">[</span><span class="s1">&#39;loc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">_MPL_VERTICAL</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s1">&#39;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.plotting.core.image_utils &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.plotting.core.image_utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.plotting.core.image_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2026-06-07</span>
+<span class="sd">Date Modified: 2026-07-28</span>
+<span class="sd">Description:</span>
+<span class="sd">    Image utility functions for plotting.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsinhStretch</span><span class="p">,</span> <span class="n">ImageNormalize</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">maxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AsinhNorm</span><span class="p">,</span> <span class="n">LogNorm</span><span class="p">,</span> <span class="n">PowerNorm</span><span class="p">,</span> <span class="n">TwoSlopeNorm</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.offsetbox</span><span class="w"> </span><span class="kn">import</span> <span class="n">OffsetImage</span><span class="p">,</span> <span class="n">AnnotationBbox</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">cdist</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.analysis.image_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">stack_cube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_resolve_default</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span>
+    <span class="n">_UNSET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_data</span><span class="p">,</span> <span class="n">get_value</span><span class="p">,</span> <span class="n">to_array</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.datacube</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataCube</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.datamodels.fitsfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitsFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._spectralcube</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpectralCube</span>
+
+
+<div class="viewcode-block" id="get_imshow_norm">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.get_imshow_norm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_imshow_norm</span><span class="p">(</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImageNormalize</span> <span class="o">|</span> <span class="n">AsinhNorm</span> <span class="o">|</span> <span class="n">LogNorm</span> <span class="o">|</span> <span class="n">PowerNorm</span> <span class="o">|</span> <span class="n">TwoSlopeNorm</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a Matplotlib or Astropy normalization object for image display.</span>
+
+<span class="sd">    Returns `None` if `norm=None`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    norm : {&#39;asinh&#39;, &#39;asinhnorm&#39;, &#39;log&#39;, &#39;power&#39;, &#39;twoslope&#39;} | None</span>
+<span class="sd">        Normalization algorithm for colormap scaling.</span>
+
+<span class="sd">        * `&#39;asinh&#39;` -&gt; asinh stretch using `ImageNormalize`</span>
+<span class="sd">        * `&#39;asinhnorm&#39;` -&gt; asinh stretch using `AsinhNorm`</span>
+<span class="sd">        * `&#39;log&#39;` -&gt; logarithmic scaling using `LogNorm`</span>
+<span class="sd">        * `&#39;power&#39;` -&gt; power-law normalization using `PowerNorm`</span>
+<span class="sd">        * `&#39;twoslope&#39;` -&gt; normalize centered around `vcenter` using `TwoSlopeNorm`</span>
+
+<span class="sd">    vmin, vmax : float | None</span>
+<span class="sd">        Minimum and maximum value for normalization.</span>
+<span class="sd">    linear_width : float, optional, default=`config.linear_width`</span>
+<span class="sd">        The effective width of the linear region, beyond</span>
+<span class="sd">        which the transformation becomes asymptotically logarithmic.</span>
+<span class="sd">        Used for `norm=&#39;asinhnorm&#39;`.</span>
+<span class="sd">    gamma : float, optional, default=`config.gamma`</span>
+<span class="sd">    Power law exponent. Used for `norm=&#39;power&#39;`.</span>
+<span class="sd">    vcenter : float, optional, default=None</span>
+<span class="sd">        Center point of normalization. Must be in between</span>
+<span class="sd">        `vmin` and `vmax`. If `None`, is the midpoint between</span>
+<span class="sd">        `vmin` and `vmax`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None</span>
+<span class="sd">        Normalization object to pass to `imshow`. `None` if `norm=None`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">linear_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;linear_width&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">linear_width</span><span class="p">)</span>
+    <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;gamma&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="n">vcenter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;vcenter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># use linear stretch if plotting boolean array</span>
+    <span class="k">if</span> <span class="n">vmin</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">vmax</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">norm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">vmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">vmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;vmin and vmax must not be None if norm is not None! &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;got: vmin: </span><span class="si">{</span><span class="n">vmin</span><span class="si">}</span><span class="s1">, vmax: </span><span class="si">{</span><span class="n">vmax</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+    <span class="n">vmin</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">vmin</span><span class="p">)</span>
+    <span class="n">vmax</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">vcenter</span> <span class="o">=</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">+</span> <span class="n">vmin</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="k">if</span> <span class="n">vcenter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">vcenter</span>
+
+    <span class="n">norm_str</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="c1"># dict containing possible stretch algorithms</span>
+    <span class="n">norm_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;asinh&#39;</span><span class="p">:</span> <span class="n">ImageNormalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">AsinhStretch</span><span class="p">()),</span>
+        <span class="s1">&#39;asinhnorm&#39;</span><span class="p">:</span> <span class="n">AsinhNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">linear_width</span><span class="o">=</span><span class="n">linear_width</span><span class="p">),</span>
+        <span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="n">LogNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">),</span>
+        <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="n">PowerNorm</span><span class="p">(</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">),</span>
+        <span class="s1">&#39;twoslope&#39;</span><span class="p">:</span> <span class="n">TwoSlopeNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vcenter</span><span class="o">=</span><span class="n">vcenter</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">norm_str</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">norm_map</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;ERROR: unsupported norm: </span><span class="si">{</span><span class="n">norm_str</span><span class="si">}</span><span class="s1">. &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">supported norms are </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">norm_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">norm_map</span><span class="p">[</span><span class="n">norm_str</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="get_vmin_vmax">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.get_vmin_vmax">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_vmin_vmax</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">DataCube</span> <span class="o">|</span> <span class="n">FitsFile</span> <span class="o">|</span> <span class="n">SpectralCube</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute vmin and vmax for image display. By default uses the</span>
+<span class="sd">    data nanpercentile set by `percentile`, but optionally `vmin`</span>
+<span class="sd">    and/or `vmax` can be set by the user.</span>
+
+<span class="sd">    Passing in a boolean array returns `vmin=0`, `vmax=1`.</span>
+<span class="sd">    This function is used internally by  `compute_imshow_scale`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : NDArray | u.Quantity | DataCube | FitsFile | SpectralCube</span>
+<span class="sd">        Input data array (e.g., 2D image) for which to compute vmin and vmax.</span>
+<span class="sd">        Must be convertable to an array via `to_array`.</span>
+<span class="sd">    percentile : tuple[float, float] |  _Unset, optional, default=_UNSET</span>
+<span class="sd">        Percentile range `[pmin, pmax]` to compute vmin and vmax.</span>
+<span class="sd">        If None, sets vmin and vmax to None. If `_UNSET`, uses</span>
+<span class="sd">        default value from `config.percentile`.</span>
+<span class="sd">    vmin, vmax : float | None, optional, default=None</span>
+<span class="sd">        If provided, overrides the computed vmin and vmax.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    vmin, vmax : float | int | None</span>
+<span class="sd">        Minimum and maximum values for image scaling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">percentile_range</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">percentile</span> <span class="k">if</span> <span class="n">percentile</span> <span class="ow">is</span> <span class="n">_UNSET</span> <span class="k">else</span> <span class="n">percentile</span>
+    <span class="k">if</span> <span class="n">percentile_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;get_vmin_vmax requires a valid percentile range. &#39;</span>
+            <span class="s1">&#39;Received None. This function should only be called &#39;</span>
+            <span class="s1">&#39;when percentile-based scaling is enabled.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># check if data is an array</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keep_unit</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># check if data is boolean</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">vmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">percentile_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">vmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">percentile_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_imshow_scale</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">DataCube</span> <span class="o">|</span> <span class="n">FitsFile</span> <span class="o">|</span> <span class="n">SpectralCube</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;asinh&#39;</span><span class="p">,</span> <span class="s1">&#39;asinhnorm&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="s1">&#39;twoslope&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">percentile</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span>
+    <span class="n">ImageNormalize</span> <span class="o">|</span> <span class="n">AsinhNorm</span> <span class="o">|</span> <span class="n">LogNorm</span> <span class="o">|</span> <span class="n">PowerNorm</span> <span class="o">|</span> <span class="n">TwoSlopeNorm</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute normalization and intensity scaling parameters for `plt.imshow`.</span>
+
+<span class="sd">    Resolves interaction between `norm`, `vmin`, `vmax`, and</span>
+<span class="sd">    `percentile` into consistent display parameters.</span>
+
+<span class="sd">    Modes</span>
+<span class="sd">    -----</span>
+<span class="sd">    1. Normalized scaling (`norm` is not None):</span>
+
+<span class="sd">    * `vmin`/`vmax` from `percentile` or explicit values (required)</span>
+<span class="sd">    * Returns `(norm_obj, vmin, vmax)`</span>
+
+<span class="sd">    2. Linear with percentile (`norm` is None, `percentile` provided):</span>
+
+<span class="sd">    * `vmin`/`vmax` from `percentile` (unless explicit)</span>
+<span class="sd">    * Returns `(None, vmin, vmax)`</span>
+
+<span class="sd">    3. Linear with explicit limits (`norm` is None, `vmin` or `vmax` set):</span>
+
+<span class="sd">    * Missing bounds from `percentile` if available, else None</span>
+<span class="sd">    * Returns `(None, vmin, vmax)`</span>
+
+<span class="sd">    4. Matplotlib autoscaling (all None), or norm=&#39;linear&#39;:</span>
+
+<span class="sd">    * Returns `(None, None, None)`</span>
+
+<span class="sd">    5. Boolean data (dtype is bool):</span>
+
+<span class="sd">    * Forces `vmin=0`, `vmax=1`</span>
+<span class="sd">    * Returns `(None, 0, 1)`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ndarray | Quantity | DataCube | FitsFile | SpectralCube</span>
+<span class="sd">        Input image data. Must be convertible to a NumPy array via `to_array`.</span>
+<span class="sd">    norm : {&#39;asinh&#39;, &#39;asinhnorm&#39;, &#39;log&#39;, &#39;power&#39;, &#39;twoslope&#39;, &#39;linear&#39;} | None</span>
+<span class="sd">        Normalization algorithm for colormap scaling.</span>
+<span class="sd">        If `None`, linear scaling is used.</span>
+<span class="sd">    vmin, vmax : float | None</span>
+<span class="sd">        Lower and upper bounds for intensity scaling. If `None`, may be computed</span>
+<span class="sd">        from `percentile` or left unset depending on mode.</span>
+<span class="sd">    percentile : tuple[float, float] | None</span>
+<span class="sd">        Percentile range `(pmin, pmax)` used to compute `vmin` and</span>
+<span class="sd">        `vmax`. If `None`, no automatic clipping is applied.</span>
+<span class="sd">    linear_width : float, optional, default=config.linear_width</span>
+<span class="sd">        The effective width of the linear region, beyond which the</span>
+<span class="sd">        transformation becomes asymptotically logarithmic.</span>
+<span class="sd">        Used for `norm=&#39;asinhnorm&#39;`.</span>
+<span class="sd">    gamma : float, optional, default=config.gamma</span>
+<span class="sd">        Power law exponent. Used for `norm=&#39;power&#39;`.</span>
+<span class="sd">    vcenter : float, optional, default=None</span>
+<span class="sd">        Center point of normalization. Must be in between `vmin` and `vmax`.</span>
+<span class="sd">        If `None`, is the midpoint between `vmin` and `vmax`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None</span>
+<span class="sd">        Normalization object for `imshow`. None indicates linear scaling.</span>
+<span class="sd">    vmin, vmax : float | None</span>
+<span class="sd">        Lower and upper intensity bounds for `imshow`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">norm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="n">get_vmin_vmax</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span>
+
+    <span class="k">if</span> <span class="n">percentile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="n">get_vmin_vmax</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">vmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">vmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;vmin and vmax must not be None if norm is not None! &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;got: norm: </span><span class="si">{</span><span class="n">norm</span><span class="si">}</span><span class="s1">, vmin: </span><span class="si">{</span><span class="n">vmin</span><span class="si">}</span><span class="s1">, vmax: </span><span class="si">{</span><span class="n">vmax</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+    <span class="n">img_norm</span> <span class="o">=</span> <span class="n">get_imshow_norm</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img_norm</span><span class="p">,</span> <span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span>
+
+
+<div class="viewcode-block" id="nanpercentile_limits">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.nanpercentile_limits">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nanpercentile_limits</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">slice_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stack_method</span><span class="o">=</span><span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute NaN-safe percentile-based color limits.</span>
+
+<span class="sd">    If input is 3D, it is reduced to 2D before computing limits.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ArrayLike | SpectralCube | DataCube</span>
+<span class="sd">        Input image or cube.</span>
+<span class="sd">    vmin, vmax : float</span>
+<span class="sd">        Lower and upper percentiles (0–100).</span>
+<span class="sd">    slice_idx : int | tuple[int, int] | None, optional, default=None</span>
+<span class="sd">        Index specification:</span>
+
+<span class="sd">        * int: extract single slice</span>
+<span class="sd">        * tuple[start, end]: extract range (inclusive)</span>
+<span class="sd">        * None: use entire cube</span>
+
+<span class="sd">    stack_method : {&#39;mean&#39;, &#39;median&#39;, &#39;sum&#39;, &#39;max&#39;, &#39;min&#39;, &#39;std&#39;} | _Unset, default=_UNSET</span>
+<span class="sd">        Reduction method if stacking is required. If `_UNSET`,</span>
+<span class="sd">        uses `config.stack_cube_method`.</span>
+<span class="sd">    axis : int, default=0</span>
+<span class="sd">        Axis to flatten if data.ndim &gt; 2 and no slice_idx is given.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    vmin_val, vmax_val : float</span>
+<span class="sd">        Lower and upper intensity bounds.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stack_method</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">stack_method</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">stack_cube_method</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">slice_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">stack_cube</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">slice_idx</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">stack_method</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span>
+        <span class="p">)</span>
+
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">get_value</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">np</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;nan</span><span class="si">{</span><span class="n">stack_method</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">vmin</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">vmax</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="thorlabs_logo">
+<a class="viewcode-back" href="../../../../api/visualastro.html#visualastro.thorlabs_logo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">thorlabs_logo</span><span class="p">(</span>
+    <span class="n">ax</span><span class="p">:</span> <span class="n">maxes</span><span class="o">.</span><span class="n">Axes</span><span class="p">,</span>
+    <span class="n">loc</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="s1">&#39;lower left&#39;</span><span class="p">,</span> <span class="s1">&#39;lower right&#39;</span><span class="p">,</span> <span class="s1">&#39;upper left&#39;</span><span class="p">,</span> <span class="s1">&#39;upper right&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">transparent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">zoom</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.015</span><span class="p">,</span>
+    <span class="n">darkmode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a thorlabs logo to a plot.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : maxes.Axes</span>
+<span class="sd">        Matplotlib axes to plot on.</span>
+<span class="sd">    loc : {&#39;best&#39;, &#39;lower left&#39;, &#39;lower right&#39;, &#39;upper left&#39;, &#39;upper right&#39;} | None | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Figure location to plot image on. If `&#39;best&#39;`, finds the most optimal location for the image.</span>
+<span class="sd">        The algorithm chooses the corner farthest away from any data point or legend on the plot.</span>
+<span class="sd">        If `None`, does nothing. If `_UNSET`, uses `config.thorlabs_loc`.</span>
+<span class="sd">    transparent : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, logo will have a transparent background. If `_UNSET`,</span>
+<span class="sd">        uses `config.thorlabs_transparent`.</span>
+<span class="sd">    zoom : float, optional, default=0.015</span>
+<span class="sd">        Logo size scaling factor.</span>
+<span class="sd">    darkmode : bool | _Unset, optional, default=_UNSET</span>
+<span class="sd">        If `True`, inverts the color of the logo. If `_UNSET`,</span>
+<span class="sd">        uses `config.thorlabs_darkmode`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">loc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">loc</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">thorlabs_loc</span><span class="p">)</span>
+    <span class="n">transparent</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">transparent</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">thorlabs_transparent</span><span class="p">)</span>
+    <span class="n">darkmode</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">darkmode</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">thorlabs_darkmode</span><span class="p">)</span>
+
+    <span class="n">logo_name</span> <span class="o">=</span> <span class="s1">&#39;thorlabs_dark&#39;</span> <span class="k">if</span> <span class="n">darkmode</span> <span class="k">else</span> <span class="s1">&#39;thorlabs&#39;</span>
+    <span class="n">logo</span> <span class="o">=</span> <span class="n">logo_name</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span> <span class="k">if</span> <span class="n">transparent</span> <span class="k">else</span> <span class="n">logo_name</span><span class="o">+</span><span class="s1">&#39;.jpg&#39;</span>
+
+    <span class="n">img_path</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;visualastro&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;data&#39;</span> <span class="o">/</span> <span class="n">logo</span>
+
+    <span class="n">thorlabs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;image.origin&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;lower&#39;</span><span class="p">:</span>
+        <span class="n">thorlabs</span> <span class="o">=</span> <span class="n">thorlabs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">imagebox</span> <span class="o">=</span> <span class="n">OffsetImage</span><span class="p">(</span><span class="n">thorlabs</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;best&#39;</span><span class="p">:</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">get_xydata</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">collections</span><span class="p">:</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">get_offsets</span><span class="p">()</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offsets</span><span class="p">)</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_legend</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">legend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bb</span> <span class="o">=</span> <span class="n">legend</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">()</span><span class="o">.</span><span class="n">transformed</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="o">.</span><span class="n">inverted</span><span class="p">())</span>
+            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="n">bb</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">bb</span><span class="o">.</span><span class="n">x1</span><span class="p">,</span> <span class="n">bb</span><span class="o">.</span><span class="n">y1</span><span class="p">]])</span>
+
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="k">if</span> <span class="n">segments</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">xy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+            <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+            <span class="n">corners</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;lower left&#39;</span><span class="p">:</span>  <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span>
+                <span class="s1">&#39;lower right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span>
+                <span class="s1">&#39;upper left&#39;</span><span class="p">:</span>  <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span>
+                <span class="s1">&#39;upper right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span>
+            <span class="p">}</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="n">corners</span><span class="p">,</span>
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">cdist</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="p">[</span><span class="n">corners</span><span class="p">[</span><span class="n">k</span><span class="p">]],</span> <span class="s1">&#39;sqeuclidean&#39;</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="s1">&#39;upper right&#39;</span>
+
+    <span class="n">img_locations</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;lower left&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;lower right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;upper left&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;upper right&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="n">img_loc</span> <span class="o">=</span> <span class="n">img_locations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">ab</span> <span class="o">=</span> <span class="n">AnnotationBbox</span><span class="p">(</span>
+        <span class="n">imagebox</span><span class="p">,</span>
+        <span class="n">xy</span><span class="o">=</span><span class="n">img_loc</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span>
+        <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span>
+        <span class="n">box_alignment</span><span class="o">=</span><span class="n">img_loc</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span>
+        <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">ab</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

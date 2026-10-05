@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualastro.core.io &mdash; VisualAstro 0.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=4621528c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            VisualAstro
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">visualastro</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">VisualAstro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">visualastro.core.io</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for visualastro.core.io</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Author: Elko Gerville-Reache</span>
+<span class="sd">Date Created: 2025-09-22</span>
+<span class="sd">Date Modified: 2026-07-27</span>
+<span class="sd">Description:</span>
+<span class="sd">    Functions for I/O operations within VisualAstro.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">u</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bbox</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">DTypeLike</span><span class="p">,</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_config_value</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">_Unset</span><span class="p">,</span>
+    <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">_resolve_default</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.kwargs</span><span class="w"> </span><span class="kn">import</span> <span class="n">_kwarg</span><span class="p">,</span> <span class="n">_param</span><span class="p">,</span> <span class="n">_resolve_kwargs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.numerical_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_array</span><span class="p">,</span> <span class="n">to_list</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.core.units</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies.register</span><span class="w"> </span><span class="kn">import</span> <span class="n">_offer_dependency</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">visualastro.optional_dependencies._tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_sci_from_hdul</span><span class="p">(</span>
+    <span class="n">hdul</span><span class="p">:</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">fits</span><span class="o">.</span><span class="n">Header</span><span class="p">]]:</span>
+
+    <span class="n">sci</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hdul</span> <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;SCI&#39;</span> <span class="ow">or</span> <span class="n">h</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;DATA&#39;</span><span class="p">]</span> <span class="c1"># type: ignore</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sci</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No SCI HDUs found&#39;</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">sci</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">header</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">sci</span><span class="p">]</span> <span class="c1"># type: ignore</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">headers</span>
+
+
+<div class="viewcode-block" id="get_errors">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.get_errors">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_errors</span><span class="p">(</span>
+    <span class="n">hdul</span><span class="p">:</span> <span class="n">fits</span><span class="o">.</span><span class="n">HDUList</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">DTypeLike</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">transpose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the error array from an HDUList, falling back to square root</span>
+<span class="sd">    of variance if needed. If a unit is found from the header, return</span>
+<span class="sd">    the error array as a Quantity object instead.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hdul : fits.HDUList</span>
+<span class="sd">        The HDUList object containing FITS extensions to search for errors or variance.</span>
+<span class="sd">    dtype : np.dtype | str | None, optional, default=None</span>
+<span class="sd">        The desired NumPy dtype of the returned error array.</span>
+<span class="sd">        If None, uses `config.default_dtype`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    errors : u.Quantity | np.ndarray | None</span>
+<span class="sd">        The error array if found, or None if no suitable extension is present.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">error_unit</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">hdu</span> <span class="ow">in</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hdu</span><span class="p">,</span> <span class="p">(</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">BinTableHDU</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">CompImageHDU</span><span class="p">))</span>
+            <span class="ow">or</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+
+        <span class="n">extname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">extname</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">hdu</span><span class="o">.</span><span class="n">error_extensions</span><span class="p">:</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">_get_dtype</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">error_unit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BUNIT&#39;</span><span class="p">)))</span>
+                    <span class="n">errors</span> <span class="o">*=</span> <span class="n">error_unit</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="s1">&#39;Error extension has invalid BUNIT; returning errors without units.&#39;</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+                    <span class="p">)</span>
+
+            <span class="k">break</span>
+
+    <span class="c1"># fallback to variance if no explicit errors</span>
+    <span class="k">if</span> <span class="n">errors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">hdu</span> <span class="ow">in</span> <span class="n">hdul</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hdu</span><span class="p">,</span> <span class="p">(</span><span class="n">fits</span><span class="o">.</span><span class="n">ImageHDU</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">BinTableHDU</span><span class="p">,</span> <span class="n">fits</span><span class="o">.</span><span class="n">CompImageHDU</span><span class="p">))</span>
+                <span class="ow">or</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">extname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EXTNAME&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">extname</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">hdu</span><span class="o">.</span><span class="n">variance_extensions</span><span class="p">:</span>
+                <span class="n">dt</span> <span class="o">=</span> <span class="n">_get_dtype</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+                <span class="n">variance</span> <span class="o">=</span> <span class="n">hdu</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">hdu</span><span class="o">.</span><span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">var_unit</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">hdu</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BUNIT&#39;</span><span class="p">)))</span>
+                        <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variance</span> <span class="o">*</span> <span class="n">var_unit</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+                        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s1">&#39;Variance extension </span><span class="si">{</span><span class="n">extname</span><span class="si">}</span><span class="s1"> has invalid or missing BUNIT; &#39;</span>
+                            <span class="s1">&#39;returning errors without units.&#39;</span><span class="p">,</span>
+                            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+                        <span class="p">)</span>
+                        <span class="n">errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variance</span><span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">transpose</span> <span class="ow">and</span> <span class="n">errors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">return</span> <span class="n">errors</span></div>
+
+
+
+<div class="viewcode-block" id="write_arrays_2_file">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.write_arrays_2_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_arrays_2_file</span><span class="p">(</span>
+    <span class="n">arrays</span><span class="p">:</span> <span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">NDArray</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">],</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\t&#39;</span><span class="p">,</span>
+    <span class="n">precision</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save multiple 1D arrays as columns to a text file with optional headers and units.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arrays : NDArray, Quantity, or list of (NDArray or Quantity)</span>
+<span class="sd">        One or more 1D arrays to be written as columns.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Output filename.</span>
+<span class="sd">    headers : list of str, optional</span>
+<span class="sd">        Column header labels. If fewer headers than arrays are given,</span>
+<span class="sd">        remaining headers are left blank.</span>
+<span class="sd">    delimiter : str, optional</span>
+<span class="sd">        Column delimiter written between values.</span>
+<span class="sd">    precision : int, optional</span>
+<span class="sd">        Number of digits in scientific notation for numeric values.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    If arrays contain quantities, their units are written on a second header</span>
+<span class="sd">    line using the format &#39;[unit]&#39;. Numeric values are written in scientific</span>
+<span class="sd">    notation.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import astropy.units as u</span>
+<span class="sd">    &gt;&gt;&gt; distance = np.array([1.23e-5, 4.56e-3, 7.89e2]) * u.m</span>
+<span class="sd">    &gt;&gt;&gt; time = np.array([9.87e6, 6.54e4, 3.21e-1]) * u.s</span>
+<span class="sd">    &gt;&gt;&gt; save_arrays_to_file([distance, time], &#39;data.txt&#39;, headers=[&#39;Distance&#39;, &#39;Time&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arrays</span> <span class="o">=</span> <span class="n">to_list</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;All arrays must have the same length. Got lengths: </span><span class="si">{</span><span class="n">lengths</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">n_cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">headers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_cols</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_cols</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">headers</span><span class="p">))</span>
+
+    <span class="n">units</span> <span class="o">=</span> <span class="n">get_units</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+    <span class="n">unit_strs</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;[</span><span class="si">{</span><span class="n">u</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s1">]&#39;</span> <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
+
+    <span class="n">data_arrays</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">a</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">)</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;%.</span><span class="si">{</span><span class="n">precision</span><span class="si">}</span><span class="s1">e&#39;</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">data</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">col_width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="p">),</span> <span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">),</span> <span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unit_strs</span><span class="p">))</span>
+
+    <span class="n">header_line</span> <span class="o">=</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">col_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span>
+    <span class="n">unit_line</span> <span class="o">=</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">col_width</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unit_strs</span><span class="p">)</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span>
+        <span class="n">filename</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;%</span><span class="si">{</span><span class="n">col_width</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">precision</span><span class="si">}</span><span class="s1">e&#39;</span><span class="p">,</span>
+        <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=</span><span class="n">header_line</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">unit_line</span><span class="p">,</span>
+        <span class="n">comments</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="write_cube_2_fits">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.write_cube_2_fits">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_cube_2_fits</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a 3D data cube to a series of FITS files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cube : ndarray (N_frames, N, M)</span>
+<span class="sd">        Data cube containing N_frames images of shape (N, M).</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Base filename (without extension). Each</span>
+<span class="sd">        output file will be saved as `&#39;{filename}_i.fits&#39;`.</span>
+<span class="sd">    overwrite : bool, optional, default=False</span>
+<span class="sd">        If True, existing files with the same name</span>
+<span class="sd">        will be overwritten.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Prints a message indicating the number of</span>
+<span class="sd">    frames and the base filename.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_offer_dependency</span><span class="p">(</span><span class="s1">&#39;tqdm&#39;</span><span class="p">)</span>
+    <span class="n">N_frames</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">shape</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Writing </span><span class="si">{</span><span class="n">N_frames</span><span class="si">}</span><span class="s1"> FITS files to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">_i.fits&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N_frames</span><span class="p">)):</span>
+        <span class="n">output_name</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.fits&#39;</span>
+        <span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="n">cube</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_array">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.save_array">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save a NumPy array to disk.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : np.ndarray</span>
+<span class="sd">        Array to be saved.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Output filename. Should include the extension, otherwise</span>
+<span class="sd">        the array will be saved according to `fmt`.</span>
+<span class="sd">    fmt : {&#39;.dat&#39;, &#39;.csv&#39;, &#39;.npy&#39;, &#39;.txt&#39;} or None, optional, default=None</span>
+<span class="sd">        Default output extension. Only used if filename has</span>
+<span class="sd">        no extension. If None, uses</span>
+<span class="sd">        `config.save_format`. The format is correctly recognized</span>
+<span class="sd">        even if the &#39;.&#39; is omitted.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError :</span>
+<span class="sd">        If provided `fmt` is invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">VALID_EXTS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.npy&#39;</span><span class="p">,</span> <span class="s1">&#39;.txt&#39;</span><span class="p">}</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="n">get_config_value</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="s1">&#39;save_format&#39;</span><span class="p">)</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_EXTS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid fmt &#39;</span><span class="si">{</span><span class="n">fmt</span><span class="si">}</span><span class="s2">&#39;. Must be one of </span><span class="si">{</span><span class="n">VALID_EXTS</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;arr must be a NumPy ndarray!&#39;</span><span class="p">)</span>
+
+    <span class="n">root</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="n">fmt</span>
+
+    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.npy&#39;</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;.csv&#39;</span><span class="p">}:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported file extension: </span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_quantity">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.save_quantity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_quantity</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save an Astropy Quantity to disk.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : Quantity</span>
+<span class="sd">        Array to be saved.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Output filename with ot without `.npz` extension.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError :</span>
+<span class="sd">        If `quantity` is not a astropy.units.Quantity.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">quantity</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;quantity must be an astropy.units.Quantity&#39;</span><span class="p">)</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span>
+        <span class="n">filename</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">quantity</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">quantity</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_quantity">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.load_quantity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_quantity</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a saved quantity array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Path to quantity array. Should be a `.npz`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Quantity : astropy.units.Quantity</span>
+<span class="sd">        NumPy array with units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span></div>
+
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ImageArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container to hold non FITS file images (jpgs, pngs, etc)</span>
+<span class="sd">    readable by `plt.imread`.</span>
+
+<span class="sd">    Is used by `visualastro.core.io.imread`</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Image data as returned by `plt.imread`.</span>
+<span class="sd">    is_rgb : bool</span>
+<span class="sd">        `True` if `data.ndim=3` and `data.shape` is either</span>
+<span class="sd">        `(N,M,3)` or `(N,M,4)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">is_rgb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">imread</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">as_array</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImageArray</span> <span class="o">|</span> <span class="n">NDArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Equivalent to `plt.imread`.</span>
+
+<span class="sd">    This is the prefered way to read images (pngs, jpgs, etc)</span>
+<span class="sd">    into VisualAstro. The image is accessible via the `data`</span>
+<span class="sd">    attribute.</span>
+
+<span class="sd">    Rgb and rgba images will have the attribute `is_rgb` set to</span>
+<span class="sd">    `True` (used by other VisualAstro functions to differentiate</span>
+<span class="sd">    images from astronomical data).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Path to the image.</span>
+<span class="sd">    as_array : bool, optional, default=False</span>
+<span class="sd">        If `True`, return just the image data as a `np.ndarray`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ImageArray :</span>
+<span class="sd">        Dataclass containing the image. Only if `as_array=False`.</span>
+<span class="sd">    array : np.ndarray</span>
+<span class="sd">        Image as a np.ndarray. Only if `as_array=True`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">as_array</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">img</span>
+
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">is_rgb</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">is_rgb</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">ImageArray</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">is_rgb</span><span class="o">=</span><span class="n">is_rgb</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="savefig">
+<a class="viewcode-back" href="../../../api/visualastro.html#visualastro.savefig">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">savefig</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;figure&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">pdf_compression</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="n">transparent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">bbox_inches</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Bbox</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Unset</span> <span class="o">=</span> <span class="n">_UNSET</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves current figure to disk as a `.eps`, `.pdf`, `.png`,</span>
+<span class="sd">    or `.svg`, and prompts user for a filename and format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str | None, optional, default=None</span>
+<span class="sd">        If `None`, prompts user for a filename and format.</span>
+<span class="sd">        If `str`, uses `filename` as the filename directly.</span>
+<span class="sd">    dpi : float | {&#39;figure&#39;} | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Resolution in dots per inch. If `&#39;figure&#39;`, uses the</span>
+<span class="sd">        figure dpi. If `_UNSET`, uses `config.savefig.dpi`.</span>
+<span class="sd">    pdf_compression : int | _Unset, optional, default=_UNSET</span>
+<span class="sd">        Pdf compression value for matplotlib.rcParams.</span>
+<span class="sd">        Accepts integers from 0-9, with 0 meaning no</span>
+<span class="sd">        compression. If `_UNSET`, uses `config.savefig.pdf_compression`.</span>
+<span class="sd">    transparent : bool, optional, default=False</span>
+<span class="sd">        If `True`, the Axes patches will all be transparent;</span>
+<span class="sd">        the Figure patch will also be transparent unless</span>
+<span class="sd">        `facecolor` and/or `edgecolor` are specified via kwargs.</span>
+<span class="sd">    bbox_inches : str | Bbox | None | _Unset, default=`_UNSET`</span>
+<span class="sd">        Bounding box in inches: only the given portion of the</span>
+<span class="sd">        figure is saved. If `&#39;tight&#39;`, try to figure out the</span>
+<span class="sd">        tight bbox of the figure. If `_UNSET`, uses</span>
+<span class="sd">        `config.savefig.bbox_inches`.</span>
+<span class="sd">    facecolorcolor : {&#39;auto&#39;} | str, optional, default=&#39;auto&#39;</span>
+<span class="sd">        The facecolor of the figure. If `&#39;auto&#39;`,</span>
+<span class="sd">        use the current figure facecolor.</span>
+<span class="sd">    edgecolorcolor : {&#39;auto&#39;} | str, default=&#39;auto&#39;</span>
+<span class="sd">        The edgecolor of the figure. If &#39;auto&#39;,</span>
+<span class="sd">        use the current figure edgecolor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">_resolve_kwargs</span><span class="p">(</span>
+        <span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;dpi&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">dpi</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;pdf_compression&#39;</span><span class="p">,</span> <span class="n">pdf_compression</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">pdf_compression</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;transparent&#39;</span><span class="p">,</span> <span class="n">transparent</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">transparent</span><span class="p">),</span>
+            <span class="n">_param</span><span class="p">(</span><span class="s1">&#39;bbox_inches&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">bbox_inches</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="p">[</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;facecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">),</span>
+            <span class="n">_kwarg</span><span class="p">(</span><span class="s1">&#39;edgecolor&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">allowed_formats</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">savefig</span><span class="o">.</span><span class="n">allowed_formats</span>
+    <span class="c1"># prompt user for filename, and extract extension</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Input filename for image (ex: myimage.pdf): &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;filename must be str or None, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;filename cannot be empty&#39;</span><span class="p">)</span>
+
+    <span class="n">basename</span><span class="p">,</span> <span class="o">*</span><span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># if extension exists, and is allowed, extract extension from list</span>
+    <span class="k">if</span> <span class="n">extension</span> <span class="ow">and</span> <span class="n">extension</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">allowed_formats</span><span class="p">:</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">extension</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># else prompt user to input a valid extension</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">while</span> <span class="n">extension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_formats</span><span class="p">:</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please choose a format from (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">allowed_formats</span><span class="p">)</span><span class="si">}</span><span class="s2">): &quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">basename</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">extension</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">with</span> <span class="n">plt</span><span class="o">.</span><span class="n">rc_context</span><span class="p">(</span><span class="n">rc</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pdf.compression&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">pdf_compression</span><span class="p">)}</span> <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;pdf&#39;</span> <span class="k">else</span> <span class="p">{}):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="n">fname</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="n">extension</span><span class="p">,</span>
+            <span class="n">transparent</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">transparent</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">bbox_inches</span><span class="p">,</span>
+            <span class="n">facecolor</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">facecolor</span><span class="p">,</span>
+            <span class="n">edgecolor</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">edgecolor</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">dpi</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_dtype</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">ArrayLike</span> <span class="o">|</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">,</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_dtype</span><span class="o">=</span><span class="n">_UNSET</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DTypeLike</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the dtype from the provided data. Promotes</span>
+<span class="sd">    integers and unsigned to floats.</span>
+
+<span class="sd">    Used internally by VisualAstro data I/O functions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : ArrayLike | u.Quantity</span>
+<span class="sd">        Input array whose dtype will be checked.</span>
+<span class="sd">        Can be anything convertible to an NDArray</span>
+<span class="sd">        by `to_array`.</span>
+<span class="sd">    dtype : data-type, optional, default=None</span>
+<span class="sd">        If provided, this dtype is returned directly.</span>
+<span class="sd">        If None, returns `data.dtype` if floating or</span>
+<span class="sd">        `default_dtype` if integer or unsigned.</span>
+<span class="sd">    default_dtype : data-type, optional, default=None</span>
+<span class="sd">        Float type to use if `data` is integer or unsigned.</span>
+<span class="sd">        If None, uses `config.default_dtype`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dtype : np.dtype</span>
+<span class="sd">        User dtype if given, otherwise the array&#39;s float dtype</span>
+<span class="sd">        or `default_dtype` if array is integer/unsigned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_dtype</span> <span class="o">=</span> <span class="n">_resolve_default</span><span class="p">(</span><span class="n">default_dtype</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">default_dtype</span><span class="p">)</span>
+
+    <span class="c1"># return user dtype if passed in</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">to_array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="c1"># by default use data dtype if floating</span>
+    <span class="c1"># if unsigned or int use default_dtype</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">default_dtype</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elko Gerville-Reache.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
