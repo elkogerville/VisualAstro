@@ -397,20 +397,6 @@ def _pop_mapped(
     >>> _pop_mapped(kwargs, ('ellipses', 'plot_ellipse', 'highlight', 'text_loc'))
     {'highlight': True}
 
-    Examples
-    --------
-    >>> kwargs = {'xlim': (0, 1), 'ypad': 0.1, 'color': 'red'}
-    >>> _pop_mapped(kwargs, ('limits', 'xlim', 'ylim', 'xpad', 'ypad'))
-    {'xlim': (0, 1), 'ypad': 0.1}
-    >>> kwargs
-    {'color': 'red'}
-
-    Absent keys are omitted and not filled with a default:
-
-    >>> kwargs = {'highlight': True}
-    >>> _pop_mapped(kwargs, ('ellipses', 'plot_ellipse', 'highlight', 'text_loc'))
-    {'highlight': True}
-
     With a prefix group:
 
     >>> kwargs = {'xlim': (0, 1), 'legend_loc': 'best', 'lw': 2}
