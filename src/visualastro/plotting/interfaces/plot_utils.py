@@ -245,7 +245,7 @@ def _apply_plot_utils(
     # PRE SETTING AXIS LIMITS
     # -----------------------
     if 'labels' in kwargs and params.legend.pop('legend'):
-        if kwargs['labels'] is not None:
+        if kwargs['labels'][0] is not None:
             legend(ax=ax, **params.legend)
 
     plot_ellipses(params.ellipses.pop('ellipses', None), ax)
