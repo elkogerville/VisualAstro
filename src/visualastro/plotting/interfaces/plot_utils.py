@@ -203,8 +203,8 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
 def _apply_plot_utils(
     params: PlotUtilParams,
     ax: maxes.Axes | WCSAxes,
-    xlist: list | None = None,
-    ylist: list | None = None,
+    x: ArrayLike | None = None,
+    y: ArrayLike | None = None,
     im_list: list | None = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
@@ -220,7 +220,7 @@ def _apply_plot_utils(
     ax : matplotlib.axes.Axes | astropy.visualization.wcsaxes.WCSAxes
         Axes to decorate. `WCSAxes` triggers WCS-specific label, tick, and
         grid handling.
-    xlist, ylist : list | None, optional, default=None
+    x, y : ArrayLike | None, optional, default=None
         Plotted x and y data. Used for axis limits and for
         deriving the x and y-axis label (unit).
     im_list : list | None, optional, default=None
@@ -245,7 +245,7 @@ def _apply_plot_utils(
     # PRE SETTING AXIS LIMITS
     # -----------------------
     if 'labels' in kwargs and params.legend.pop('legend'):
-        if _cycle(kwargs['labels'], params.reference_idx) is not None:
+        if kwargs['labels'] is not None:
             legend(ax=ax, **params.legend)
 
     plot_ellipses(params.ellipses.pop('ellipses', None), ax)
@@ -258,7 +258,7 @@ def _apply_plot_utils(
 
     if params.compute_limits:
         set_axis_limits(
-            xlist, ylist,
+            x, y,
             ax=ax,
             **params.limits
         )
@@ -294,8 +294,8 @@ def _apply_plot_utils(
 
     else:
         set_axis_labels(
-            _cycle(xlist, params.reference_idx) if xlist is not None else None,
-            _cycle(ylist, params.reference_idx) if ylist is not None else None,
+            x if x is not None else None,
+            y if y is not None else None,
             ax=ax,
             fontsize=label_fontsize,
             **labels,
