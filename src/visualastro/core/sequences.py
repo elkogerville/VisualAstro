@@ -846,6 +846,6 @@ def _unwrap_if_single(
         The sole element if `len(array) == 1`, otherwise the original
         input sequence.
     """
-    if isinstance(array, (Sequence, np.ndarray)):
+    if isinstance(array, (list, tuple, np.ndarray)):
         return array[0] if len(array) == 1 else array
     return array
