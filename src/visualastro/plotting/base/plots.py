@@ -44,9 +44,8 @@ from visualastro.core.sequences import _cycle
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colormaps import get_cmap
-from visualastro.plotting.core.colors import (
-    as_color,
-    get_colors,
+from visualastro.plotting.core.colors import as_color, get_colors
+from visualastro.plotting.core.colors.plots import (
     _resolve_color_kwargs,
     _resolve_scatter_norm,
 )
@@ -692,7 +691,7 @@ def scatter(
     zorder: float | list[float] | None = None,
     array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
     **kwargs
-) ->  list[PatchCollection]:
+) ->  list[PathCollection]:
     """
     Scatter plot data with optional error bars on a matplotlib Axes.
 

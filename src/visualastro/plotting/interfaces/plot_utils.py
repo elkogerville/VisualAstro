@@ -46,7 +46,7 @@ from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits, set_title
 )
 from visualastro.plotting.core.colorbar import add_colorbar
-from visualastro.plotting.core.colors import _has_color_mapping
+from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.utils import (
     axhline,
