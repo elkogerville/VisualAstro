@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-26
+Date Modified: 2026-10-06
 Description:
     VisualAstro help documentation class.
 """

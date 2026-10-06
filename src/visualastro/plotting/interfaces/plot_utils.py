@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-10-05
+Date Modified: 2026-10-06
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,

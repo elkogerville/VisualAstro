@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-07
-Date Modified: 2026-07-28
+Date Modified: 2026-10-06
 Description:
     Image utility functions for plotting.
 """

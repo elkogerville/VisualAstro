@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-12-06
-Date Modified: 2026-07-27
+Date Modified: 2026-10-06
 Description:
     WCS utility functions.
 """

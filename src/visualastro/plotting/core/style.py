@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2026-07-04
+Date Modified: 2026-10-06
 Description:
     Functions related to setting the plotting style.
 """

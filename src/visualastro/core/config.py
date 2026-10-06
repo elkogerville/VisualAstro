@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-07-31
+Date Modified: 2026-10-06
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va

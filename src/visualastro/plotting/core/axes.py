@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-07-31
+Date Modified: 2026-10-06
 Description:
     Functions related to Matplotlib axes.
 """

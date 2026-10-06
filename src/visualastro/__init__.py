@@ -47,15 +47,15 @@ from visualastro.core.io import (
 )
 from visualastro.core.numerical import (
     interpolate,
-    kde1d,
-    kde2d,
-    number_density,
-)
-from visualastro.core.numerical_utils import (
     finite,
     flatten,
+    kde1d,
+    kde2d,
     mask_finite,
     mask_within_range,
+    number_density,
+)
+from visualastro.core.sequences import (
     match_length,
 )
 from visualastro.core.stats import (

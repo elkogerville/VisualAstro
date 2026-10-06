@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-30
-Date Modified: 2026-09-25
+Date Modified: 2026-10-06
 Description:
     Legend plotting functions.
 """
