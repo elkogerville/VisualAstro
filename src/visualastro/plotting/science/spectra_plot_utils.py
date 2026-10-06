@@ -28,7 +28,8 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.numerical_utils import get_value, _cycle
+from visualastro.core.data import get_value
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,

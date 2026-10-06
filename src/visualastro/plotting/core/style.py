@@ -24,11 +24,12 @@ from visualastro.core.config import (
     _Unset, _UNSET,
     _resolve_default
 )
+from visualastro.core.data import as_list
 from visualastro.core.kwargs import (
     _kwarg, _param,
     _resolve_kwargs
 )
-from visualastro.core.numerical_utils import as_list, match_length
+from visualastro.core.sequences import match_length
 
 
 class VisualAstroStyles:

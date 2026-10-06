@@ -13,8 +13,8 @@ import matplotlib.axes as maxes
 from matplotlib.transforms import Bbox, Transform
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
+from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _param
-from visualastro.core.numerical_utils import to_list
 from visualastro.plotting.core.axes import get_ax
 
 

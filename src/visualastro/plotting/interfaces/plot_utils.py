@@ -36,10 +36,11 @@ from typing import Literal
 import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from numpy.typing import ArrayLike
 
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
-from visualastro.core.numerical_utils import _cycle
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits, set_title

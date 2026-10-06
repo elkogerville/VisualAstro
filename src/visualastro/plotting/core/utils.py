@@ -20,21 +20,20 @@ from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.config import (
-    config,
-    get_config_value,
-    _Unset, _UNSET,
-)
-from visualastro.core.numerical_utils import (
-    get_value,
-    to_list,
-    _cycle,
-    _extract_xy,
+from visualastro.core.array_types import (
     _is_1d, _is_2d,
     _is_iterable,
     _is_ndarray_or_quantity_array,
     _is_scalar,
 )
+from visualastro.core.config import (
+    config,
+    get_config_value,
+    _Unset, _UNSET,
+)
+from visualastro.core.data import get_value, to_list
+from visualastro.core.plot_input import _extract_xy
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import to_unit
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (

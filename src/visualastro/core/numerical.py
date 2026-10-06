@@ -11,11 +11,13 @@ from typing import Callable, Literal, overload
 
 import astropy.units as u
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import CubicSpline, interp1d
 from scipy.spatial import KDTree
 from scipy.special import gamma
+
+from visualastro.core.data import get_value, to_array
 
 
 @overload

@@ -39,19 +39,16 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.data import get_value, to_array, to_list
 from visualastro.core.io import savefig
 from visualastro.core.kwargs import (
     _pop_kwargs, _param, _kwarg, _resolve_kwargs
 )
-from visualastro.core.numerical import interpolate as _interpolate
-from visualastro.core.numerical_utils import (
-    get_value,
-    mask_within_range,
-    to_array,
-    to_list,
-    _cycle,
-    _unwrap_if_single
+from visualastro.core.numerical import (
+    interpolate as _interpolate,
+    mask_within_range
 )
+from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,

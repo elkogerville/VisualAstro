@@ -12,7 +12,6 @@ from typing import Literal, Sequence
 
 import astropy.units as u
 import matplotlib.axes as maxes
-from matplotlib.collections import PatchCollection
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
@@ -31,17 +30,17 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.kwargs import (
-    _kwarg, _param, _pop_kwargs, _resolve_kwargs
-)
-from visualastro.core.numerical_utils import (
+from visualastro.core.data import (
     get_value,
     get_data,
     to_array,
     to_list,
-    _extract_xyz,
-    _cycle,
 )
+from visualastro.core.kwargs import (
+    _kwarg, _param, _pop_kwargs, _resolve_kwargs
+)
+from visualastro.core.plot_input import _extract_xyz
+from visualastro.core.sequences import _cycle
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit
 from visualastro.plotting.core.colormaps import get_cmap

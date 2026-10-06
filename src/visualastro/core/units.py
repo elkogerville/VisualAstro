@@ -29,7 +29,8 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.core.data import to_list
+from visualastro.core.sequences import _unwrap_if_single
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
     SpectralAxis, SpectralRegion, _HAS_SPECUTILS

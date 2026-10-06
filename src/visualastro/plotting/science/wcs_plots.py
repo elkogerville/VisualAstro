@@ -26,14 +26,14 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
-from visualastro.core.numerical_utils import (
+from visualastro.core.data import (
     as_list,
     get_data,
     get_value,
     to_list,
-    _cycle,
 )
+from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import ensure_common_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies.register import _require_dependency

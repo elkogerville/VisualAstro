@@ -24,8 +24,8 @@ from scipy.ndimage import convolve
 from visualastro.core.config import (
     config, get_config_value, _resolve_default, _Unset, _UNSET,
 )
+from visualastro.core.data import get_data, get_value
 from visualastro.core.io import get_errors, _get_dtype
-from visualastro.core.numerical_utils import get_data, get_value
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile

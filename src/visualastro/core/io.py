@@ -25,8 +25,8 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.data import to_array, to_list
 from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
-from visualastro.core.numerical_utils import to_array, to_list
 from visualastro.core.units import get_units
 from visualastro.optional_dependencies.register import _offer_dependency
 from visualastro.optional_dependencies._tqdm import tqdm

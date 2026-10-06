@@ -24,7 +24,8 @@ from numpy.typing import NDArray
 from visualastro.core.config import (
     get_config_value, config, _UNSET,
 )
-from visualastro.core.numerical_utils import to_list, _unwrap_if_single
+from visualastro.core.data import to_list
+from visualastro.core.sequences import _unwrap_if_single
 from visualastro.optional_dependencies.register import (
     _offer_dependency, _require_dependency
 )
