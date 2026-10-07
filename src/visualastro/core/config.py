@@ -321,6 +321,7 @@ class VisualAstroConfig(PrettyRepr):
     hdu: HDUConfig = field(default_factory=HDUConfig)
     array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
     index_specification: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+    xy_indices: tuple[int, int] = (0, 1)
     index_specification_3D: tuple[int, int, int] = (0, 1, 2)
 
     # figure params
