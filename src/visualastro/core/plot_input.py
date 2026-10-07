@@ -119,7 +119,7 @@ def _extract_xy_from_ndarray2D(
     return _2d_to_1d_array(obj, ix, order), _2d_to_1d_array(obj, iy, order)
 
 
-def _extract_xy(
+def _extract_xy2(
     *data,
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
     xy_indices: tuple[int, int] | _Unset = _UNSET,
@@ -168,7 +168,7 @@ def _extract_xy(
 
     return _extract_xy_from_ndarray2D(obj, order, tuple(indices))
 
-def _extract_xy1(
+def _extract_xy(
     *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
     index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET
