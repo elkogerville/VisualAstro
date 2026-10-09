@@ -417,19 +417,74 @@ def random_colors(
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """
-    Generate N random colors
+    Generate N random RGB colors.
 
     Parameters
     ----------
     N : int
-        Number of colors to generate
+        Number of colors to generate.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
 
     Returns
     -------
-    colors : list[tuple[float, float, float]]
+    list[str] | list[RGBTuple] | list[RGBATuple]
+        `list[str]` for `fmt='hex'`, `list[RGBTuple]` for `fmt='rgb'`,
+        `list[RGBATuple]` for `fmt='rgba'`.
     """
     random_colors = np.random.rand(N, 3)
     return as_color(
         [tuple([float(c[0]), float(c[1]), float(c[2])]) for c in random_colors],  # type: ignore
         fmt=fmt
     )
+
+
+def _apply_color_modifiers(
+    colors: ColorType | Sequence[ColorType],
+    fmt: Literal['hex', 'rgb', 'rgba'],
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100,
+) -> list[str | RGBTuple | RGBATuple]:
+    """
+    Apply a color transform, then an optional CVD simulation.
+
+    Parameters
+    ----------
+    colors : ColorType | Sequence[ColorType]
+        Single color or sequence of colors.
+    fmt : {'hex', 'rgb', 'rgba'}
+        Output color format.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        If `_UNSET`, uses `config.color_transform`. `None` skips the transform.
+    factor : float | _Unset, optional, default=_UNSET
+        If `_UNSET`, uses `config.color_transform_factor`.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        If not None, apply a CVD simulation after the transform.
+    severity : int, optional, default=100
+        CVD severity in [0, 100]. Ignored if `cvd_type` is None.
+
+    Returns
+    -------
+    list[str] | list[RGBTuple] | list[RGBATuple]
+        Always a list, even for a single input color.
+    """
+    transform = _resolve_default(transform, config.color_transform)
+    factor = _resolve_default(factor, config.color_transform_factor)
+    colors = as_list(
+        _transform_colors(
+            colors,
+            transform=transform,
+            factor=factor,
+            fmt=fmt
+        )
+    )
+    if cvd_type is not None:
+        colors = simulate_colorblindness(
+            colors,
+            cvd_type=cvd_type,
+            severity=severity,
+            fmt=fmt
+        )
+    return colors
