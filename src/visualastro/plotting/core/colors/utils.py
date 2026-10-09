@@ -7,14 +7,17 @@ Description:
 """
 
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal, TypeGuard
 
 import matplotlib as mpl
 from matplotlib import colors as mcolors
+from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType
+import numpy as np
 
+from visualastro.core.config import config, _UNSET, _resolve_default
 from visualastro.core.data import as_list
-from visualastro.core.sequences import _unwrap_if_single
+from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.plotting.core.colors.definitions import (
     RGBATuple, RGBTuple, COLORSET_ALIASES
 )
@@ -116,3 +119,52 @@ def _is_colorset(name: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _is_color_like(color: Any) -> TypeGuard[ColorType]:
+    """Check if an input is a valid Matplotlib color."""
+    return mcolors.is_color_like(color)
+
+
+def _get_single_color(color: Any) -> str | RGBTuple | RGBATuple:
+    """
+    Reduce a color or a sequence of colors to a single color.
+
+    Parameters
+    ----------
+    color : str | tuple | list | np.ndarray
+        A single Matplotlib color, or a non-empty sequence of colors.
+
+    Returns
+    -------
+    color : str | RGBTuple | RGBATuple
+        A single color.
+
+    Raises
+    ------
+    ValueError
+        If `color` is an empty sequence.
+    TypeError
+        If `color` is neither a color nor a sequence of colors.
+    """
+    if is_color_like(color):
+        return color
+
+    if isinstance(color, (Sequence, np.ndarray)) and not isinstance(color, str):
+        if len(color) == 0:
+            raise ValueError("Cannot select a color from an empty sequence.")
+        selected = _cycle(color, 0)
+        if not is_color_like(selected):
+            raise TypeError(f"Invalid color: {selected!r}")
+        return selected
+
+    raise TypeError(f"Expected a color or a sequence of colors, got {color!r}")
+
+
+def _is_cycled_colorset(colors) -> bool:
+    """Whether `colors` resolves to a named colorset."""
+    if colors is _UNSET:
+        if _is_colorset(_resolve_default(colors, config.default_colorset)):
+            return True
+        return False
+    return isinstance(colors, str) and _is_colorset(colors)
