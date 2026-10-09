@@ -33,29 +33,48 @@ from visualastro.plotting.core.colors.transforms import (
 from visualastro.plotting.core.colors.utils import (
     as_color,
     _convert_color,
+    _get_single_color,
     _find_colorset,
+    _is_color_like,
     _is_colorset,
+    _is_cycled_colorset,
 )
 
 
 def get_color(
     color: ColorType,
+    *,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100,
 ) -> str | RGBTuple | RGBATuple:
     """
     Convert a single Matplotlib color to the requested format.
 
-    Named colors (including bare xkcd names) are resolved via
-    `get_namedcolor`. Everything else (hex, RGB(A) tuples, grayscale
-    strings, 'C0'-style cycle colors) is passed to `as_color`.
-    Colorset names are not supported, see `get_colorset`.
+    Named colors (including bare xkcd names) are resolved first. All other
+    inputs are passed to `as_color`. Colorset names are not supported, see
+    `get_colorset`. Modifiers are applied once.
 
     Parameters
     ----------
     color : ColorType
         A single color: named, hex, grayscale string, or RGB(A) tuple.
-    fmt : Literal['hex', 'rgb', 'rgba'], default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        Method to modify the color. If `None`, the color is unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
+        Modification strength, see `get_colors`. If `_UNSET`, uses
+        `config.color_transform_factor`.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        If not `None`, apply a color vision deficiency
+        simulation after `transform`.
+    severity : int, optional, default=100
+        CVD severity in [0, 100]. 100 = complete colorblindness.
+        Ignored if `cvd_type` is `None`.
 
     Returns
     -------
