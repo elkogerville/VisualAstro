@@ -122,3 +122,26 @@ def _unwrap_if_single(
     if isinstance(array, (list, tuple, np.ndarray)):
         return array[0] if len(array) == 1 else array
     return array
+
+
+def _roll(items: list[T], shift: int) -> list[T]:
+    """
+    Roll a list by `shift` positions.
+
+    Parameters
+    ----------
+    items : list
+        List to roll. Not modified.
+    shift : int
+        Positive shifts elements right, negative shifts left.
+
+    Returns
+    -------
+    list
+        New rolled list. Empty input returns an empty list.
+    """
+    n = len(items)
+    if n == 0:
+        return []
+    shift = int(shift) % n
+    return items[-shift:] + items[:-shift] if shift else list(items)
