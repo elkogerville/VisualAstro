@@ -19,7 +19,7 @@ from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.data import as_list
-from visualastro.core.sequences import _unwrap_if_single
+from visualastro.core.sequences import _roll
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors.definitions import (
     RGBATuple,
@@ -87,131 +87,116 @@ def get_color(
     ValueError
         If `color` is not a valid Matplotlib color.
     """
-    if isinstance(color, str):
-        named = get_namedcolor(color, fmt)
-        if named is not None:
-            return named
+    if isinstance(color, str) and (named := _get_namedcolor(color)) is not None:
+        color = named
 
-    if not mcolors.is_color_like(color):
+    if not _is_color_like(color):
         raise ValueError(f"Invalid color: {color!r}")
 
-    return _unwrap_if_single(as_color(color, fmt))
+    return _get_single_color(_apply_color_modifiers(
+        as_color(color, fmt),
+        fmt=fmt,
+        transform=transform,
+        factor=factor,
+        cvd_type=cvd_type,
+        severity=severity,
+    ))
 
 
 def get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
+    *,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     cmap_range: tuple[float, float] = (0, 1),
     transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
     factor: float | _Unset = _UNSET,
-    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
-    severity: int = 100
+    severity: int = 100,
 ) -> list[str | RGBTuple | RGBATuple]:
     """
-    Get colors from colorset name, colormap sampling, or explicit colors.
+    Get colors from a colorset name, colormap sampling, or explicit colors.
+
+    Modifiers are applied once, in the order `transform` -> CVD simulation.
+    Named colorsets are rotated left by `config.color_cycle_idx`.
 
     Parameters
     ----------
     colors : ColorType | int | Sequence[ColorType] | _Unset, optional, default=_UNSET
+        - `_UNSET`: default colorset (`config.default_colorset`).
+        - `str`: VisualAstro colorset name (optional '_r' suffix to reverse),
+          named color, or `'random'`.
+        - `ColorType`: a single explicit color.
+        - `int`: number of colors to sample from `cmap`.
+        - `Sequence[ColorType]`: explicit list of colors.
 
-        - `UNSET`: Use default colorset
-        - `str`:  VisualAstro colorset name (with optional '_r' suffix) or single color
-        - `ColorType`: Explicit color
-        - `int`: Number of colors to sample from cmap
-        - `Sequence[ColorType]`: Explicit list of colors
-        - `random`: Random sequence of colors
-
-        If `_UNSET`, uses `config.default_colorset`.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
-        Colormap for sampling when colors is int. If `_UNSET`,
-        uses `config.cmap`.
+        Colormap sampled when `colors` is an `int`. If `_UNSET`, uses
+        `config.sample_cmap`.
     cmap_range : tuple[float, float], optional, default=(0, 1)
-        The normalized range of the colormap. By default, is `(0,1)`,
-        meaning the returned colormap has its entire range. Ignored
-        if `cmap` is an `int`.
-    transform : str | None | _Unset, optional, default=_UNSET
-        Method to modify the color. Can be one of `'lighten'`, `'darken'`,
-        `'saturate'`, or `'desaturate'`. If `None`, returns `color` unchanged.
+        Normalized range of `cmap` to sample. Used only if `colors` is an
+        `int`.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        Method to modify the colors. If `None`, colors are unchanged.
         If `_UNSET`, uses `config.color_transform`.
     factor : float | _Unset, optional, default=_UNSET
-        Modification strength.
+        `transform` Modification strength. If `_UNSET`, uses
+        `config.color_transform_factor`.
 
-        - If `transform='lighten'`: Blending ratio with white.
+        - `'lighten'`: blending ratio with white (0 = original, 1 = white).
+        - `'darken'`: blending ratio with black (0 = original, 1 = black).
+        - `'saturate'`: saturation level in HSL space (0 = grayscale,
+          1 = maximum saturation).
+        - `'desaturate'`: desaturation amount (0 = original, 1 = grayscale).
 
-            - `factor=0`: Original color
-            - `factor=1`: Pure white
-
-        - If `transform='darken'`: Blending ratio with black.
-
-            - `factor=0`: Original color
-            - `factor=1`: Pure black
-
-        - If `transform='saturate'`: Saturation level in hsl space.
-
-            - `factor=1`: Maximum saturation for each given color
-            - `factor=0`: Grayscale
-
-        - If `transform='desaturate'`: Desaturation amount.
-
-            - `factor=0`: Original color
-            - `factor=1`: Grayscale
-
-        If `_UNSET`, uses `config.color_transform_factor`.
-    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
-        Output format.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not None, return the list of colors with a colorblind simulation applied.
+        If not None, apply a color vision deficiency simulation after `transform`.
     severity : int, optional, default=100
-        Severity level (0-100). 100 = complete colorblindness.
-        Only used if `cvd_type` is not None.
+        CVD severity in [0, 100]. 100 = complete colorblindness. Ignored
+        if `cvd_type` is None.
 
     Returns
     -------
-    list[str] :
-        If `fmt='hex'`.
-    list[tuple[float, float, float]] :
-        If `fmt='rgb'`.
-    list[tuple[float, float, float, float]] :
-        If `fmt='rgba'`.
+    list[str] | list[RGBTuple] | list[RGBATuple]
+        `list[str]` for `fmt='hex'`, `list[RGBTuple]` for `fmt='rgb'`,
+        `list[RGBATuple]` for `fmt='rgba'`.
+
+    Raises
+    ------
+    TypeError
+        If `colors` is not a supported type.
+    ValueError
+        If `colors` contains an invalid color.
     """
-    transform = _resolve_default(transform, config.color_transform)
-    factor = _resolve_default(factor, config.color_transform_factor)
     colorname = colors
     if colors is None or isinstance(colors, str) and colors in {'face', 'none'}:
          return [colors]
 
-    colors = _get_colors(colors, cmap, fmt=fmt, cmap_range=cmap_range)
-    colors = as_list(
-        _transform_colors(
-            colors,
-            transform=transform,
-            factor=factor,
-            fmt=fmt
-        )
+    colors = _get_colors(colors, fmt=fmt, cmap=cmap, cmap_range=cmap_range)
+    colors = _apply_color_modifiers(
+        colors=colors,
+        fmt=fmt,
+        transform=transform,
+        factor=factor,
+        cvd_type=cvd_type,
+        severity=severity,
     )
-    if cvd_type is not None:
-        colors = simulate_colorblindness(
-            colors,
-            cvd_type=cvd_type,
-            severity=severity,
-            fmt=fmt
-        )
-    if isinstance(colorname, str) and colorname.removesuffix('_r') in COLORSETS:
-        modulo_idx = config.color_cycle_idx % len(colors)
-        colors = colors[modulo_idx:] + colors[:modulo_idx]
+
+    if _is_cycled_colorset(colorname):
+        colors = _roll(colors, -config.color_cycle_idx)
 
     return colors
 
 
 def _get_colors(
     colors: ColorType | int | Sequence[ColorType] | _Unset = _UNSET,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
     cmap: mcolors.Colormap | str | _Unset = _UNSET,
     cmap_range: tuple[float, float] = (0, 1),
-    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex'
 ) -> list[str | RGBTuple | RGBATuple]:
     """Helper function for `get_colors`"""
-
     if colors is _UNSET:
         colorset = COLORSETS.get(
             config.default_colorset, COLORSETS['visualastro']
@@ -224,19 +209,17 @@ def _get_colors(
             return random_colors(int(n), fmt=fmt)
 
         if _is_colorset(colors):
-            return get_colorset(colors, fmt)
+            return _get_colorset(colors, fmt)
 
-        named_color = get_namedcolor(colors)
-        if named_color is not None:
-            return as_list(named_color)
+        return as_list(as_color(_get_namedcolor(colors) or colors, fmt))
 
-        return as_list(as_color(colors, fmt))
-
-    if isinstance(colors, tuple):
+    if _is_color_like(colors):
         return as_list(as_color(colors, fmt))
 
     if isinstance(colors, (np.ndarray, list)):
-        return [_get_colors(c, fmt=fmt)[0] for c in colors]
+        return [
+            _get_colors(c, fmt=fmt, cmap=cmap, cmap_range=cmap_range)[0] for c in colors
+        ]
 
     # if user passes an integer N, sample a cmap for N colors
     if isinstance(colors, int):

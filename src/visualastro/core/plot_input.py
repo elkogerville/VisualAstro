@@ -168,6 +168,7 @@ def _extract_xy2(
 
     return _extract_xy_from_ndarray2D(obj, order, tuple(indices))
 
+
 def _extract_xy(
     *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
