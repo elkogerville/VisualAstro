@@ -236,47 +236,72 @@ def _get_colors(
 
 
 def get_colorset(
-    colors: str,
+    colorset_name: str,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100,
 ) -> list[str | RGBTuple | RGBATuple]:
     """
     Return a color sequence by name, converted to the requested format.
 
-    Looks up `colors` in `COLORSET_ALIASES` and
-    `matplotlib.color_sequences`. A trailing '_r' reverses the
-    sequence.
+    Looks up `colors` via `_find_colorset` (VisualAstro aliases and
+    `matplotlib.color_sequences`). A trailing '_r' reverses the sequence.
 
     Parameters
     ----------
-    colors : str
-        Name of the colorset. Must be a key of `COLORSET_ALIASES` or
-        `matplotlib.color_sequences`. Append '_r' to reverse the
-        order.
-    fmt : Literal['hex', 'rgb', 'rgba'], default='hex'
-        Output color format, forwarded to `as_color`.
+    colorset_name : str
+        Colorset name. Append '_r' to reverse the order.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        Method to modify the colors. If `None`, colors are unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
+        Modification strength, see `get_colors`. If `_UNSET`, uses
+        `config.color_transform_factor`.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        If not None, apply a color vision deficiency simulation after
+        `transform`.
+    severity : int, optional, default=100
+        CVD severity in [0, 100]. Ignored if `cvd_type` is None.
 
     Returns
     -------
-    list[str | RGBTuple | RGBATuple]
-        Colors in the requested format, in sequence order (reversed if
-        `colors` ends with '_r' and is not itself a colorset name).
-        Element type is `str` for `fmt='hex'`, `RGBTuple` for
-        `fmt='rgb'`, `RGBATuple` for `fmt='rgba'`.
+    list[str] | list[RGBTuple] | list[RGBATuple]
+        Colors in sequence order (reversed if '_r' suffix was used and the
+        full name is not itself a colorset).
 
     Raises
     ------
     TypeError
         If `colors` is not a `str`.
     ValueError
-        If `colors` (with or without the '_r' suffix) is not a known
-        colorset.
+        If `colors` (with or without '_r') is not a known colorset.
     """
-    if not isinstance(colors, str):
-        raise TypeError(
-            f"colors must be a str! got {type(colors).__name__}"
-        )
+    colorset = _get_colorset(colorset_name)
 
-    name, reverse = _find_colorset(colors)
+    return _apply_color_modifiers(
+        colors=colorset,
+        fmt=fmt,
+        transform=transform,
+        factor=factor,
+        cvd_type=cvd_type,
+        severity=severity
+    )
+
+
+def _get_colorset(
+    colorset_name: str,
+    fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+) -> list[str | RGBTuple | RGBATuple]:
+    """Retrieve a colorset from a colorset name."""
+    if not isinstance(colorset_name, str):
+        raise TypeError(
+            f"colors must be a str! got {type(colorset_name).__name__}"
+        )
+    name, reverse = _find_colorset(colorset_name)
     colorset = mpl.color_sequences[name]
     if reverse:
         colorset = colorset[::-1]
@@ -287,6 +312,10 @@ def get_colorset(
 def get_namedcolor(
     name: str,
     fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
+    cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+    severity: int = 100,
 ) -> str | RGBTuple | RGBATuple | None:
     """
     Resolve a named color to the requested format.
@@ -295,31 +324,53 @@ def get_namedcolor(
 
     1. `matplotlib.colors.get_named_colors_mapping()` (CSS4, base,
        tableau, prefixed xkcd).
-    2. Bare xkcd name (`'xkcd:' + name`), only if `name` is not a
-       CSS4 color.
+    2. Bare xkcd name (`'xkcd:' + name`).
 
     Parameters
     ----------
     name : str
         Color name.
-    fmt : Literal['hex', 'rgb', 'rgba'], default='hex'
-        Output color format, forwarded to `as_color`.
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+        Output color format.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        Method to modify the color. If `None`, the color is unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
+        Modification strength, see `get_colors`. If `_UNSET`, uses
+        `config.color_transform_factor`.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        If not None, apply a color vision deficiency simulation after
+        `transform`.
+    severity : int, optional, default=100
+        CVD severity in [0, 100]. Ignored if `cvd_type` is None.
 
     Returns
     -------
     str | RGBTuple | RGBATuple | None
-        Color in the requested format, or `None` if `name` is not a
-        known named color.
+        Color in the requested format, or `None` if `name` is not a known
+        named color.
     """
+    color = _get_namedcolor(name)
+    if color is not None:
+        return _get_single_color(_apply_color_modifiers(
+            colors=color,
+            fmt=fmt,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        ))
+    return None
+
+
+def _get_namedcolor(name: str) -> str | None:
+    """Retrieve a named color."""
     named = mcolors.get_named_colors_mapping()
-
     if name in named:
-        return _unwrap_if_single(as_color(named[name], fmt))
-
+        return name
     xkcd_name = f'xkcd:{name}'
     if xkcd_name in mcolors.XKCD_COLORS and name not in mcolors.CSS4_COLORS:
-        return _unwrap_if_single(as_color(xkcd_name, fmt))
-
+        return xkcd_name
     return None
 
 
