@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-03-29
-Date Modified: 2026-07-27
+Date Modified: 2026-10-06
 Description:
     Tests for numerical utils module.
 """
@@ -13,15 +13,14 @@ import numpy as np
 import pytest
 
 from tests.conftest import generate_test_cube
+from visualastro.core.data import to_array, to_list
 from visualastro.core.numerical import interpolate
-from visualastro.core.numerical_utils import (
-    to_array,
-    to_list,
+from visualastro.core.plot_input import (
     _extract_xy,
     _extract_xyz,
     _extract_xyz_from_ndarray,
-    _unwrap_if_single
 )
+from visualastro.core.sequences import _unwrap_if_single
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import (

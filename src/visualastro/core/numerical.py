@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-11
-Date Modified: 2026-06-11
+Date Modified: 2026-10-06
 Description:
     Numerical and computational functions.
 """
@@ -11,11 +11,13 @@ from typing import Callable, Literal, overload
 
 import astropy.units as u
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 from scipy.interpolate import CubicSpline, interp1d
 from scipy.spatial import KDTree
 from scipy.special import gamma
+
+from visualastro.core.data import get_value, to_array
 
 
 @overload
@@ -322,3 +324,132 @@ def number_density(
         rho = np.log10(rho)
 
     return rho
+
+
+def flatten(data: ArrayLike) -> NDArray | None:
+    """
+    Flatten a dataset or a list of datasets into
+    a single 1D array.
+
+    Parameters
+    ----------
+    data : array-like or list of array-like
+        Dataset(s) to flatten.
+
+    Returns
+    -------
+    flat_array : np.ndarray
+        Flattened array.
+    """
+    if data is None:
+        return None
+
+    if isinstance(data, (list, tuple)):
+        arrays = [
+            np.asarray(d).ravel()
+            for d in data
+            if d is not None and np.size(d) > 0
+        ]
+        return np.concatenate(arrays) if arrays else None
+
+    array = np.asarray(data).ravel()
+    return array if array.size > 0 else None
+
+
+def keep_finite(
+    obj: ArrayLike,
+    *,
+    keep_unit: bool = True,
+    keep_inf: bool = False
+) -> NDArray | u.Quantity:
+    """
+    Filter NaN and optionally infinite values from
+    array-like input. The output is always 1D.
+
+    Parameters
+    ----------
+    obj : ArrayLike
+        Input data. May be a `np.ndarray`, `list`, `DataCube`,
+        `FitsFile`, `u.Quantity`, or any object compatible with `to_array`.
+    keep_unit : bool, optional, default=True
+        If `True`, preserve astropy units if present on the input.
+    keep_inf : bool, optional, default=False
+        If `True`, keep ±inf values and remove only NaNs.
+        If `False`, remove NaN and ±inf values.
+
+    Returns
+    -------
+    np.ndarray or u.Quantity
+        A 1-D array containing the filtered values. Units are preserved
+        if `keep_unit=True` and the input carries units.
+
+    Notes
+    -----
+    - Filtering is performed using `np.isfinite` when `keep_inf=False`,
+        and `~np.isnan` when `keep_inf=True`.
+    """
+    data = to_array(obj, keep_unit)
+    mask = get_finite_mask(data, keep_inf=keep_inf)
+
+    return data[mask]
+
+
+def get_finite_mask(
+    obj: ArrayLike,
+    *,
+    keep_inf: bool = False
+) -> NDArray[np.bool_]:
+    """
+    Return a boolean mask identifying finite values in array-like input.
+
+    Parameters
+    ----------
+    obj : ArrayLike
+        Input data. May be a `np.ndarray`, `list`, `DataCube`,
+        `FitsFile`, `u.Quantity`, or any object compatible with `to_array`.
+    keep_inf : bool, default=False
+        If `False`, mask excludes NaN and ±inf values.
+        If `True`, mask excludes only NaNs and retains ±inf values.
+
+    Returns
+    -------
+    np.ndarray[bool]
+        Boolean mask with the same shape as the input data.
+        `True` indicates values that are kept.
+
+    Notes
+    -----
+    - Uses `np.isfinite` when `keep_inf=False`.
+    - Uses `~np.isnan` when `keep_inf=True`.
+    """
+    data = to_array(obj)
+    return ~np.isnan(data) if keep_inf else np.isfinite(data)
+
+
+def mask_within_range(
+    x: ArrayLike,
+    lim: tuple[float, float] | None = None
+) -> NDArray[np.bool_]:
+    """
+    Return a boolean mask for values of x within the given limits.
+
+    Parameters
+    ----------
+    x : array-like
+        Data array (e.g., wavelength or flux values).
+    lim : tuple[float, float] or None, optional, default=None
+        (xmin, xmax) range. If None, uses the min/max of `x`.
+
+    Returns
+    -------
+    mask : ndarray of bool
+        True where x is within the limits.
+    """
+    x = np.asarray(get_value(x), dtype=float)
+
+    xmin = get_value(lim[0]) if lim is not None else np.nanmin(x)
+    xmax = get_value(lim[1]) if lim is not None else np.nanmax(x)
+
+    mask = (x >= xmin) & (x <= xmax)
+
+    return mask

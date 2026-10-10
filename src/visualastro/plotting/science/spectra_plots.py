@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-29
+Date Modified: 2026-10-06
 Description:
     Spectra science functions.
 """
@@ -39,19 +39,16 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.data import get_value, to_array, to_list
 from visualastro.core.io import savefig
 from visualastro.core.kwargs import (
     _pop_kwargs, _param, _kwarg, _resolve_kwargs
 )
-from visualastro.core.numerical import interpolate as _interpolate
-from visualastro.core.numerical_utils import (
-    get_value,
-    mask_within_range,
-    to_array,
-    to_list,
-    _cycle,
-    _unwrap_if_single
+from visualastro.core.numerical import (
+    interpolate as _interpolate,
+    mask_within_range
 )
+from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
@@ -69,9 +66,8 @@ from visualastro.optional_dependencies._specutils import (
 from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
-from visualastro.plotting.core.colors import (
-    get_colors, sample_cmap, _lighten_color
-)
+from visualastro.plotting.core.colors import get_colors, sample_cmap
+from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )

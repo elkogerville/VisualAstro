@@ -46,16 +46,16 @@ from visualastro.core.io import (
     write_cube_2_fits
 )
 from visualastro.core.numerical import (
+    get_finite_mask,
     interpolate,
+    flatten,
     kde1d,
     kde2d,
+    keep_finite,
+    mask_within_range,
     number_density,
 )
-from visualastro.core.numerical_utils import (
-    finite,
-    flatten,
-    mask_finite,
-    mask_within_range,
+from visualastro.core.sequences import (
     match_length,
 )
 from visualastro.core.stats import (
@@ -114,7 +114,10 @@ from visualastro.plotting.core.colors import (
     as_color,
     darken_colors,
     desaturate_colors,
+    get_color,
     get_colors,
+    get_colorset,
+    get_namedcolor,
     lighten_colors,
     plot_color_deltaE,
     plot_colors,

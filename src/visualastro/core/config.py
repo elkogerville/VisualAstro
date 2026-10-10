@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-07-31
+Date Modified: 2026-10-10
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -321,6 +321,7 @@ class VisualAstroConfig(PrettyRepr):
     hdu: HDUConfig = field(default_factory=HDUConfig)
     array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
     index_specification: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
+    xy_indices: tuple[int, int] = (0, 1)
     index_specification_3D: tuple[int, int, int] = (0, 1, 2)
 
     # figure params
@@ -333,7 +334,7 @@ class VisualAstroConfig(PrettyRepr):
     # if _UNSET, defaults to `self.default_colorset`.
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.
-    color: ColorType | int | Sequence[ColorType] | None | _Unset = _UNSET
+    color: ColorType | int | Sequence[ColorType] | None | _Unset = None
     default_colorset: str = 'astro_seq' # see `get_colors` in plot_utils.py
     color_cycle_idx: int = 0
     color_transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None

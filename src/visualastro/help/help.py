@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-26
+Date Modified: 2026-10-06
 Description:
     VisualAstro help documentation class.
 """
@@ -23,9 +23,10 @@ from visualastro.analysis.ic import blob
 from visualastro.core.config import (
     config, _Unset, _UNSET, _resolve_default
 )
+from visualastro.core.data import to_list
 from visualastro.core.io import imread, savefig as _savefig
 from visualastro.core.numerical import number_density
-from visualastro.core.numerical_utils import to_list, _cycle
+from visualastro.core.sequences import _cycle
 from visualastro.plotting.ax import ax as _ax
 from visualastro.plotting.base.plots import plot
 from visualastro.plotting.core.colormaps import get_cmap, plot_cmap_lightness

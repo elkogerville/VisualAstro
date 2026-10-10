@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-07-30
+Date Modified: 2026-10-06
 Description:
     Plotting functions for 2D and 3D astronomical images.
 """
@@ -26,14 +26,14 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
-from visualastro.core.numerical_utils import (
+from visualastro.core.data import (
     as_list,
     get_data,
     get_value,
     to_list,
-    _cycle,
 )
+from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import ensure_common_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies.register import _require_dependency

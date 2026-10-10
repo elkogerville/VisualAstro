@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-10-05
+Date Modified: 2026-10-06
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,
@@ -36,16 +36,17 @@ from typing import Literal
 import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from numpy.typing import ArrayLike
 
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
-from visualastro.core.numerical_utils import _cycle
+from visualastro.core.sequences import _cycle
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits, set_title
 )
 from visualastro.plotting.core.colorbar import add_colorbar
-from visualastro.plotting.core.colors import _has_color_mapping
+from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.utils import (
     axhline,
@@ -202,8 +203,8 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
 def _apply_plot_utils(
     params: PlotUtilParams,
     ax: maxes.Axes | WCSAxes,
-    xlist: list | None = None,
-    ylist: list | None = None,
+    x: ArrayLike | None = None,
+    y: ArrayLike | None = None,
     im_list: list | None = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
@@ -219,7 +220,7 @@ def _apply_plot_utils(
     ax : matplotlib.axes.Axes | astropy.visualization.wcsaxes.WCSAxes
         Axes to decorate. `WCSAxes` triggers WCS-specific label, tick, and
         grid handling.
-    xlist, ylist : list | None, optional, default=None
+    x, y : ArrayLike | None, optional, default=None
         Plotted x and y data. Used for axis limits and for
         deriving the x and y-axis label (unit).
     im_list : list | None, optional, default=None
@@ -244,7 +245,7 @@ def _apply_plot_utils(
     # PRE SETTING AXIS LIMITS
     # -----------------------
     if 'labels' in kwargs and params.legend.pop('legend'):
-        if _cycle(kwargs['labels'], params.reference_idx) is not None:
+        if kwargs['labels'][0] is not None:
             legend(ax=ax, **params.legend)
 
     plot_ellipses(params.ellipses.pop('ellipses', None), ax)
@@ -257,7 +258,7 @@ def _apply_plot_utils(
 
     if params.compute_limits:
         set_axis_limits(
-            xlist, ylist,
+            x, y,
             ax=ax,
             **params.limits
         )
@@ -293,8 +294,8 @@ def _apply_plot_utils(
 
     else:
         set_axis_labels(
-            _cycle(xlist, params.reference_idx) if xlist is not None else None,
-            _cycle(ylist, params.reference_idx) if ylist is not None else None,
+            x if x is not None else None,
+            y if y is not None else None,
             ax=ax,
             fontsize=label_fontsize,
             **labels,
