@@ -46,12 +46,12 @@ from visualastro.core.io import (
     write_cube_2_fits
 )
 from visualastro.core.numerical import (
+    get_finite_mask,
     interpolate,
-    finite,
     flatten,
     kde1d,
     kde2d,
-    mask_finite,
+    keep_finite,
     mask_within_range,
     number_density,
 )

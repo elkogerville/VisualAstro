@@ -356,7 +356,7 @@ def flatten(data: ArrayLike) -> NDArray | None:
     return array if array.size > 0 else None
 
 
-def finite(
+def keep_finite(
     obj: ArrayLike,
     *,
     keep_unit: bool = True,
@@ -389,12 +389,12 @@ def finite(
         and `~np.isnan` when `keep_inf=True`.
     """
     data = to_array(obj, keep_unit)
-    mask = mask_finite(data, keep_inf=keep_inf)
+    mask = get_finite_mask(data, keep_inf=keep_inf)
 
     return data[mask]
 
 
-def mask_finite(
+def get_finite_mask(
     obj: ArrayLike,
     *,
     keep_inf: bool = False
