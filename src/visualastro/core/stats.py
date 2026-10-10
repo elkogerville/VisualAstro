@@ -6,6 +6,8 @@ Description:
     Functions related to statistical analysis.
 """
 
+from typing import Literal
+
 import astropy.units as u
 import numpy as np
 from numpy.typing import NDArray
@@ -15,30 +17,73 @@ from visualastro.core.units import ensure_common_unit
 
 
 def normalize(
-    data: NDArray | u.Quantity | list | tuple | float
+    data: NDArray | u.Quantity | list | tuple,
+    method: Literal['max', 'min', 'mean', 'median'] = 'max',
 ) -> NDArray | u.Quantity | list:
     """
-    Normalize input data with the formula: norm = data / np.nanmax(data).
+    Rescale data so that a chosen statistic (default: the maximum) equals 1.
 
     Parameters
     ----------
     data : NDArray | u.Quantity | list | tuple
-        Input data to normalize.
+        Input data. Lists and tuples must be flat. A list of `Quantity`
+        objects must share compatible units.
+    method : {'max', 'min', 'mean', 'median'}, optional, default='max'
+        Statistic used as the reference, computed ignoring NaNs.
 
     Returns
     -------
-    NDArray | u.Quantity | list :
-        Normalized data. Tuples are converted to lists.
+    NDArray | u.Quantity | list
+        Normalized data, `data / reference`. Tuples are returned as
+        lists. `Quantity` input yields dimensionless values.
+
+    Raises
+    ------
+    ValueError
+        If `method` is not supported, or the reference value is zero
+        or non-finite.
+    TypeError
+        If `data` is not an array, `Quantity`, list, or tuple.
+    astropy.units.UnitConversionError
+        If a list contains `Quantity` objects with incompatible units.
+
+    Notes
+    -----
+    A negative reference (e.g. `method='max'` on all-negative data)
+    flips the sign of the result.
     """
-    if isinstance(data, (np.ndarray, u.Quantity)):
-        return data / np.nanmax(data)
+    if not isinstance(data, (np.ndarray, u.Quantity, list, tuple)):
+        raise TypeError(f"Unsupported input type: {type(data).__name__}")
 
-    if isinstance(data, (list, tuple)):
-        return [d/np.nanmax(data) for d in data]
+    norm_method = {
+        'max': np.nanmax,
+        'min': np.nanmin,
+        'mean': np.nanmean,
+        'median': np.nanmedian,
+    }.get(str(method).lower())
+    if norm_method is None:
+        raise ValueError(
+            "method must be one of: 'max', 'min', 'mean', 'median', "
+            f"got: {method!r}"
+        )
 
-    raise ValueError(
-        f'Unsupported input type! got {type(data).__name__}.'
-    )
+    is_seq = isinstance(data, (list, tuple))
+    has_unit = isinstance(data, u.Quantity)
+    if is_seq:
+        has_unit = any(isinstance(d, u.Quantity) for d in data)
+        arr = u.Quantity(data) if has_unit else np.asarray(data, dtype=float)
+    else:
+        arr = data
+
+    norm = norm_method(arr)
+    value = norm.value if isinstance(norm, u.Quantity) else norm
+    if not np.isfinite(value) or value == 0:
+        raise ValueError(f"Cannot normalize: reference value is {norm}.")
+
+    result = arr / norm
+    if not is_seq:
+        return result.tolist() if not has_unit else list(result)
+    return result
 
 
 def percent_difference(a: NDArray, b: NDArray) -> NDArray:
