@@ -11,10 +11,13 @@ import pytest
 import astropy.units as u
 from astropy.units import UnitConversionError
 
-from visualastro.core.stats import normalize
+from visualastro.core.stats import (
+    normalize, percent_difference, relative_error
+)
 
 
 class TestNormalize:
+    """Test `visualastro.core.stats.normalize`."""
     def test_list_default_max(self):
         assert np.all(normalize([1, 2, 4]) == [0.25, 0.5, 1.0])
 
@@ -105,3 +108,91 @@ class TestNormalize:
         original = data.copy()
         normalize(data)
         np.testing.assert_array_equal(data, original)
+
+
+class TestPercentDifference:
+    """Test `visualastro.core.stats.percent_difference`."""
+    def test_scalars(self):
+        np.testing.assert_allclose(percent_difference(1.0, 2.0), 200 / 3)
+
+    def test_arrays(self):
+        result = percent_difference(np.array([1.0, 2.0, 3.0]), np.array([2.0, 2.0, 4.0]))
+        np.testing.assert_allclose(result, [200 / 3, 0.0, 200 / 7])
+
+    def test_symmetric(self):
+        a, b = np.array([1.0, 5.0]), np.array([3.0, 2.0])
+        np.testing.assert_allclose(percent_difference(a, b), percent_difference(b, a))
+
+    def test_identical_is_zero(self):
+        np.testing.assert_allclose(percent_difference(np.array([1.0, 7.0]), np.array([1.0, 7.0])), 0.0)
+
+    def test_negative_values_match_positive(self):
+        np.testing.assert_allclose(percent_difference(-1.0, -2.0), percent_difference(1.0, 2.0))
+
+    def test_broadcasting(self):
+        result = percent_difference(np.array([1.0, 2.0]), 2.0)
+        np.testing.assert_allclose(result, [200 / 3, 0.0])
+
+    def test_both_zero_is_nan(self):
+        assert np.isnan(percent_difference(0.0, 0.0))
+
+    def test_zero_mean_nonzero_diff_is_inf(self):
+        assert np.isinf(percent_difference(1.0, -1.0))
+
+    def test_same_units(self):
+        np.testing.assert_allclose(percent_difference(1 * u.m, 2 * u.m), 200 / 3)
+
+    def test_unit_scale_conversion(self):
+        np.testing.assert_allclose(percent_difference(1 * u.m, 100 * u.cm), 0.0, atol=1e-12)
+
+    def test_returns_dimensionless_array(self):
+        result = percent_difference(1 * u.m, 2 * u.m)
+        assert not isinstance(result, u.Quantity)
+
+    def test_incompatible_units_raises(self):
+        with pytest.raises(UnitConversionError):
+            percent_difference(1 * u.m, 1 * u.s)
+
+
+class TestRelativeError:
+    """Test `visualastro.core.stats.relative_error`."""
+    def test_scalars(self):
+        np.testing.assert_allclose(relative_error(2.0, 1.0), 1.0)
+
+    def test_arrays(self):
+        result = relative_error(np.array([2.0, 4.0]), np.array([1.0, 2.0]))
+        np.testing.assert_allclose(result, [1.0, 1.0])
+
+    def test_signed(self):
+        np.testing.assert_allclose(relative_error(0.5, 1.0), -0.5)
+
+    def test_not_symmetric(self):
+        assert relative_error(2.0, 1.0) != relative_error(1.0, 2.0)
+
+    def test_negative_reference_flips_sign(self):
+        np.testing.assert_allclose(relative_error(-2.0, -1.0), 1.0)
+        np.testing.assert_allclose(relative_error(-0.5, -1.0), -0.5)
+
+    def test_broadcasting(self):
+        result = relative_error(np.array([2.0, 3.0]), 1.0)
+        np.testing.assert_allclose(result, [1.0, 2.0])
+
+    def test_both_zero_is_nan(self):
+        assert np.isnan(relative_error(0.0, 0.0))
+
+    def test_zero_reference_is_inf(self):
+        assert np.isinf(relative_error(1.0, 0.0))
+
+    def test_same_units(self):
+        np.testing.assert_allclose(relative_error(2 * u.m, 1 * u.m), 1.0)
+
+    def test_unit_scale_conversion(self):
+        np.testing.assert_allclose(relative_error(1 * u.m, 100 * u.cm), 0.0, atol=1e-12)
+
+    def test_returns_dimensionless_array(self):
+        result = relative_error(2 * u.m, 1 * u.m)
+        assert not isinstance(result, u.Quantity)
+
+    def test_incompatible_units_raises(self):
+        with pytest.raises(UnitConversionError):
+            relative_error(1 * u.m, 1 * u.s)
