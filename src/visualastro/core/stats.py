@@ -12,8 +12,7 @@ import astropy.units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.config import config
-from visualastro.core.units import ensure_common_unit, get_unit, _has_unit
+from visualastro.core.units import get_unit, _has_unit
 
 
 def normalize(
