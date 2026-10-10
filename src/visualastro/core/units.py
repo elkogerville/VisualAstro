@@ -22,6 +22,7 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
+from numpy.typing import NDArray
 
 from visualastro.core.config import (
     config,
@@ -939,3 +940,43 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
         f'{name1} and {name2} have incompatible units: '
         f'{u1_str} vs {u2_str}.'
     )
+
+
+def _has_unit(*objs) -> bool:
+    """
+    Check whether any object carries a physical unit.
+
+    An object is considered unit-bearing if it is an
+    `astropy.units.Quantity` or exposes a `unit` attribute
+    (e.g. `SpectralCube`, `NDData`, `Column`).
+
+    Parameters
+    ----------
+    *objs : Any
+        Objects to check. Any number of positional arguments.
+
+    Returns
+    -------
+    bool
+        `True` if at least one object is a `Quantity` or has a `unit`
+        attribute, `False` otherwise (including when no objects are given).
+
+    Notes
+    -----
+    - Only the presence of the attribute is checked, not its value. An
+        object with `unit=None` (e.g. an `NDData` without units) returns `True`.
+    - `Quantity` is a subclass of `ndarray` with a `unit` attribute, so the
+        `isinstance` check is redundant with `hasattr` but kept for clarity.
+    - Dimensionless `Quantity` objects count as unit-bearing.
+
+    Examples
+    --------
+    >>> has_unit(1.0, np.arange(3))
+    False
+    >>> has_unit(1.0, 2 * u.m)
+    True
+    """
+    for o in objs:
+        if isinstance(o, u.Quantity) or hasattr(o, 'unit'):
+            return True
+    return False

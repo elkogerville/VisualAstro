@@ -10,10 +10,10 @@ from typing import Literal
 
 import astropy.units as u
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.config import config
-from visualastro.core.units import ensure_common_unit
+from visualastro.core.units import ensure_common_unit, get_unit, _has_unit
 
 
 def normalize(
@@ -86,29 +86,34 @@ def normalize(
     return result
 
 
-def percent_difference(a: NDArray, b: NDArray) -> NDArray:
+def percent_difference(a: NDArray | u.Quantity, b: NDArray | u.Quantity) -> NDArray:
     """
     Compute the percent difference between two arrays.
 
     The percent difference is defined as the absolute difference between
     `a` and `b` divided by their mean, expressed as a percentage:
 
-        percent_difference = |a - b| / ((a + b) / 2) * 100
+        percent_difference = |a - b| / (|a + b| / 2) * 100
 
     Parameters
     ----------
-    a : np.ndarray
+    a : np.ndarray | u.Quantity
         First input array. Must be convertable to an array
         with `np.asarray`.
-    b : np.ndarray
+    b : np.ndarray | u.Quantity
         Second input array. Must be broadcastable with `a`.
         Must be convertable to an array with `np.asarray`.
 
     Returns
     -------
-    numpy.ndarray
+    np.ndarray :
         Percent difference between `a` and `b`, element-wise.
         Returns `nan` where both `a` and `b` are zero.
+
+    Raises
+    ------
+    astropy.units.UnitConversionError :
+        If `a` and `b` have incompatible units.
 
     Notes
     -----
@@ -119,61 +124,60 @@ def percent_difference(a: NDArray, b: NDArray) -> NDArray:
     Examples
     --------
     >>> percent_difference(1.0, 2.0)
-    66.666...
+    np.float64(66.666...)
     >>> percent_difference(np.array([1, 2, 3]), np.array([2, 2, 4]))
-    array([66.666...,  0.    , 28.571...])
+    array([66.666..., 0.    , 28.571...])
     >>> percent_difference(0.0, 0.0)
-    nan
+    np.float64(nan)
     """
-    unit = ensure_common_unit([a, b], on_mismatch=config.unit_mismatch)
-
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
+    if _has_unit(a, b):
+        unit = get_unit(a)
+        a = np.asarray(u.Quantity(a).to_value(unit))
+        b = np.asarray(u.Quantity(b).to_value(unit))
+    else:
+        a = np.asarray(a, dtype=float)
+        b = np.asarray(b, dtype=float)
 
     with np.errstate(invalid='ignore', divide='ignore'):
-        result = (np.abs(a - b) / (a + b) / 2) * 100
-
-    if unit is not None:
-        result = result * unit
+        result = np.abs(a - b) / (np.abs(a + b) / 2) * 100
 
     return result
 
 
-def relative_error(a: NDArray | u.Quantity, b: NDArray | u.Quantity) -> NDArray | u.Quantity:
+def relative_error(
+    a: ArrayLike | u.Quantity, b: ArrayLike | u.Quantity
+) -> NDArray:
     """
-    Compute element-wise relative error between two arrays.
+    Compute element-wise relative error of `a` with respect to `b`.
 
     Parameters
     ----------
-    a : NDArray or Quantity
+    a : ArrayLike | astropy.units.Quantity
         Approximation or predicted values.
-    b : NDArray or Quantity
-        Reference or ground truth values. Must be broadcastable with `a`.
+    b : ArrayLike | astropy.units.Quantity
+        Reference values. Must be broadcastable with `a` and have
+        compatible units.
 
     Returns
     -------
-    NDArray or Quantity
-        Relative error computed as (a - b) / b. Shape matches broadcasted
-        input. Preserves units if inputs are Quantities.
+    numpy.ndarray
+        Dimensionless `(a - b) / b`. Signed: positive when `a > b` for
+        positive `b`. `nan` where `a == b == 0`, `inf` where `b == 0`
+        and `a != 0`.
 
     Raises
     ------
-    UnitsError
-        If `a` and `b` have incompatible units and `config.unit_mismatch='raise'`.
-
-    Notes
-    -----
-    Division by zero produces nan without raising warnings.
+    astropy.units.UnitConversionError
+        If `a` and `b` have incompatible units and
+        `config.unit_mismatch='raise'`.
     """
-    unit = ensure_common_unit([a, b], on_mismatch=config.unit_mismatch)
-
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
+    if _has_unit(a, b):
+        unit = get_unit(a)
+        a = np.asarray(u.Quantity(a).to_value(unit))
+        b = np.asarray(u.Quantity(b).to_value(unit))
+    else:
+        a = np.asarray(a, dtype=float)
+        b = np.asarray(b, dtype=float)
 
     with np.errstate(invalid='ignore', divide='ignore'):
-        error = (a - b) / b
-
-    if unit is not None:
-        error = error * unit
-
-    return error
+        return (a - b) / b
