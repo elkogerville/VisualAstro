@@ -428,7 +428,7 @@ def mask_finite(
 
 def mask_within_range(
     x: ArrayLike,
-    xlim: tuple[float, float] | None = None
+    lim: tuple[float, float] | None = None
 ) -> NDArray[np.bool_]:
     """
     Return a boolean mask for values of x within the given limits.
@@ -437,7 +437,7 @@ def mask_within_range(
     ----------
     x : array-like
         Data array (e.g., wavelength or flux values).
-    xlim : tuple[float, float] or None, optional, default=None
+    lim : tuple[float, float] or None, optional, default=None
         (xmin, xmax) range. If None, uses the min/max of `x`.
 
     Returns
@@ -447,8 +447,8 @@ def mask_within_range(
     """
     x = np.asarray(get_value(x), dtype=float)
 
-    xmin = get_value(xlim[0]) if xlim is not None else np.nanmin(x)
-    xmax = get_value(xlim[1]) if xlim is not None else np.nanmax(x)
+    xmin = get_value(lim[0]) if lim is not None else np.nanmin(x)
+    xmax = get_value(lim[1]) if lim is not None else np.nanmax(x)
 
     mask = (x >= xmin) & (x <= xmax)
 
