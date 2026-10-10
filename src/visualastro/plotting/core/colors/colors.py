@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-10
 Description:
     Color related functions.
 """
@@ -406,7 +406,7 @@ def sample_cmap(
     list[tuple[float, float, float, float]] :
         If `fmt='rgba'`.
     """
-    cmap = _resolve_default(cmap, config.cmap)
+    cmap = _resolve_default(cmap, config.sample_cmap)
     colors = plt.get_cmap(cmap)(np.linspace(cmap_range[0], cmap_range[1], N))
 
     return [_convert_color(c, fmt) for c in colors]

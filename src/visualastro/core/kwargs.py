@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-29
-Date Modified: 2026-06-29
+Date Modified: 2026-10-10
 Description:
     Functions for kwargs and aliases within visualastro.
 """
@@ -194,6 +194,8 @@ def _resolve_kwargs(
 
     if additional_kwargs is not None:
         for name, default in additional_kwargs:
+            if name in out:
+                continue
             out[name] = _pop_kwargs(kwargs, name, default)
 
     return SimpleNamespace(**out)

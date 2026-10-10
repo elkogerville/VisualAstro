@@ -1,9 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-06
+Date Modified: 2026-10-10
 Description:
-    Numerical utility functions.
+    Sequence utility functions.
 """
 
 from collections.abc import Sequence

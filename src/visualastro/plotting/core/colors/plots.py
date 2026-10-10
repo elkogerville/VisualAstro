@@ -670,9 +670,9 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
     norm_method : {'log', 'global'} | None
         Normalization method.
 
-        * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
-        * `'global'` -> linear scaling using `Normalize` with global min/max.
-        * `None` -> per-population normalization (Matplotlib default).
+        - `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
+        - `'global'` -> linear scaling using `Normalize` with global min/max.
+        - `None` -> per-population normalization (Matplotlib default).
 
     log_floor : float, optional, default=1e-10
         Minimum value clamp for `vmin` when `norm_method='log'`, to avoid
