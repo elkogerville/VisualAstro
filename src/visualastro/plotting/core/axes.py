@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-07-31
+Date Modified: 2026-10-06
 Description:
     Functions related to Matplotlib axes.
 """
@@ -24,20 +24,17 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from visualastro.core.array_types import (
+    _is_iterable, _is_ndarray_or_quantity_array
+)
 from visualastro.core.config import (
     config,
     _Unset,
     _UNSET,
     _resolve_default
 )
-from visualastro.core.numerical_utils import (
-    as_list,
-    flatten,
-    get_value,
-    to_list,
-    _is_iterable,
-    _is_ndarray_or_quantity_array,
-)
+from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.numerical import flatten
 from visualastro.core.units import (
     get_physical_type,
     get_unit_label,

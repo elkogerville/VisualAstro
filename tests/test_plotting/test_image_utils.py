@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-10
-Date Modified: 2026-07-27
+Date Modified: 2026-10-06
 Description:
     Tests for image utils plotting module.
 """
@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 from tests.conftest import generate_test_spectralcube
-from visualastro.core.numerical_utils import get_value
+from visualastro.core.data import get_value
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import (

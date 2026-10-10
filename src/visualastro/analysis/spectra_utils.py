@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-07-17
+Date Modified: 2026-10-06
 Description:
     Spectra utility functions.
 """
@@ -20,12 +20,9 @@ from numpy.typing import ArrayLike, NDArray
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
 )
-from visualastro.core.numerical_utils import (
-    get_value,
-    mask_within_range,
-    to_list,
-    _unwrap_if_single
-)
+from visualastro.core.data import get_value, to_list
+from visualastro.core.numerical import mask_within_range
+from visualastro.core.sequences import _unwrap_if_single
 from visualastro.core.units import (
     ensure_common_unit,
     get_spectral_unit,

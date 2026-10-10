@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-07
-Date Modified: 2026-07-28
+Date Modified: 2026-10-06
 Description:
     Image utility functions for plotting.
 """
@@ -29,7 +29,7 @@ from visualastro.core.config import (
     _Unset,
     _UNSET,
 )
-from visualastro.core.numerical_utils import (
+from visualastro.core.data import (
     get_data, get_value, to_array
 )
 from visualastro.datamodels.datacube import DataCube

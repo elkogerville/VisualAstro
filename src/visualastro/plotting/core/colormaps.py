@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-04
-Date Modified: 2026-07-29
+Date Modified: 2026-10-06
 Description:
     Functions related to colormaps in plotting.
     To define custom colormaps, define them at
@@ -22,7 +22,7 @@ from matplotlib.typing import ColorType
 import numpy as np
 
 from visualastro.core.config import config
-from visualastro.core.numerical_utils import to_list
+from visualastro.core.data import to_list
 from visualastro.optional_dependencies.register import _offer_dependency, _require_dependency
 from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
 from visualastro.optional_dependencies._colorspacious import cspace_converter

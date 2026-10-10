@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-07-13
-Date Modified: 2026-03-14
+Date Modified: 2026-10-06
 Description:
     Visualastro user interface for publication ready plots.
 """
@@ -25,8 +25,9 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
+from visualastro.core.data import to_list
 from visualastro.core.io import savefig
-from visualastro.core.numerical_utils import to_list, _cycle
+from visualastro.core.sequences import _cycle
 from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.plotting.base.plots import (
     hist,
