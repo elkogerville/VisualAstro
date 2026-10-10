@@ -81,7 +81,7 @@ def normalize(
         raise ValueError(f"Cannot normalize: reference value is {norm}.")
 
     result = arr / norm
-    if not is_seq:
+    if is_seq:
         return result.tolist() if not has_unit else list(result)
     return result
 
