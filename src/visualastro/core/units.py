@@ -105,12 +105,12 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     obj : Object
         The input object from which to extract a unit. This can be:
 
-        * an Astropy `UnitBase`
-        * a `u.Quantity`
-        * a list/tuple of `u.Quantities` (validates all have same unit)
-        * a `fits.Header` with a `'BUNIT'` key
-        * any object with a `.data` attribute
-        * any object with a `.header` attribute
+        - an Astropy `UnitBase`
+        - a `u.Quantity`
+        - a list/tuple of `u.Quantities` (validates all have same unit)
+        - a `fits.Header` with a `'BUNIT'` key
+        - any object with a `.data` attribute
+        - any object with a `.header` attribute
 
     Returns
     -------
@@ -191,12 +191,12 @@ def get_units(
     objs : Any | list[Any]
         The input object(s) from which to extract a unit. These can be:
 
-        * an Astropy `UnitBase`
-        * an `astropy.units.Quantity`
-        * a list/tuple of `u.Quantities` (validates all have same unit)
-        * a fits.Header with a 'BUNIT' key
-        * any object with a .data attribute
-        * any object with a .header attribute
+        - an Astropy `UnitBase`
+        - an `astropy.units.Quantity`
+        - a list/tuple of `u.Quantities` (validates all have same unit)
+        - a fits.Header with a 'BUNIT' key
+        - any object with a .data attribute
+        - any object with a .header attribute
 
     Returns
     -------
@@ -235,11 +235,11 @@ def get_spectral_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     obj : Any
         Input object from which to extract a spectral unit:
 
-        * `astropy.coordinates.SpectralAxis`
-        * `astropy.units.Quantity` with spectral-equivalent units
-        * objects exposing a `.spectral_unit` attribute
-        * objects exposing a `.spectral_axis` attribute
-        * container objects with a `.data` attribute holding one of the above
+        - `astropy.coordinates.SpectralAxis`
+        - `astropy.units.Quantity` with spectral-equivalent units
+        - objects exposing a `.spectral_unit` attribute
+        - objects exposing a `.spectral_axis` attribute
+        - container objects with a `.data` attribute holding one of the above
 
     Returns
     -------
@@ -543,12 +543,12 @@ def to_spectral_region(
     obj : SpectralRegion | Quantity | tuple | list[tuple] | None
         Region specification. Accepted forms:
 
-        * `SpectralRegion`: returned as-is
-        * `(low, high) * unit`: single region with shared unit
-        * `[(low, high), ...] * unit`: multiple regions with shared unit
-        * `(Quantity, Quantity)`: single region with explicit units
-        * `[(Quantity, Quantity), ...]`: multiple regions with explicit units
-        * `None`: returned as-is
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+        - `None`: returned as-is
 
     Returns
     -------
@@ -565,16 +565,16 @@ def to_spectral_region(
     Examples
     --------
     >>> import astropy.units as u
-    >>> # Single region with shared unit
+    # Single region with shared unit
     >>> to_spectral_region((6.5, 6.6) * u.um)
 
-    >>> # Multiple regions with shared unit
+    # Multiple regions with shared unit
     >>> to_spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)
 
-    >>> # Single region with explicit units
+    # Single region with explicit units
     >>> to_spectral_region((6.5*u.um, 6.6*u.um))
 
-    >>> # Multiple regions with explicit units
+    # Multiple regions with explicit units
     >>> to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
     """
     _require_dependency('specutils')
@@ -640,11 +640,11 @@ def _require_spectral_region(
     obj : SpectralRegion, Quantity, tuple, or list
         Region specification. Accepted forms:
 
-        * `SpectralRegion`: returned as-is
-        * `(low, high) * unit`: single region with shared unit
-        * `[(low, high), ...] * unit`: multiple regions with shared unit
-        * `(Quantity, Quantity)`: single region with explicit units
-        * `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
 
     Returns
     -------
@@ -795,11 +795,11 @@ def _is_spectral_axis(obj: Any) -> bool:
     Notes
     -----
 
-    * Length units (e.g., meters, microns) are only treated as spectral when
+    - Length units (e.g., meters, microns) are only treated as spectral when
         they can be converted to frequency using `u.spectral()` equivalencies.
-    * Plain length quantities without spectral context are not automatically
+    - Plain length quantities without spectral context are not automatically
         considered spectral axes.
-    * Doppler velocity units are recognized only if they can be converted
+    - Doppler velocity units are recognized only if they can be converted
         to a spectral representation using `u.doppler_radio()` equivalencies.
     """
     if _HAS_SPECUTILS and isinstance(obj, SpectralAxis):
@@ -872,13 +872,13 @@ def _infer_physical_type_label(obj: Any) -> str | None:
     Notes
     -----
 
-    * Spectral axes take precedence over generic physical types.
-    * Length units are only interpreted as wavelengths when spectral context
+    - Spectral axes take precedence over generic physical types.
+    - Length units are only interpreted as wavelengths when spectral context
         can be inferred (via Astropy spectral equivalencies or explicit spectral
         metadata). For example, units such as 'um', 'm', etc.. are mapped to
         'Wavelength' but distance units like 'pc' would return 'Distance'.
-    * Structured units and non-scalar physical types are ignored.
-    * This function does not raise exceptions.
+    - Structured units and non-scalar physical types are ignored.
+    - This function does not raise exceptions.
     """
     physical_type = get_physical_type(obj)
     if physical_type is None:
