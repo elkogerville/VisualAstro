@@ -30,6 +30,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.array_types import _is_iterable
 from visualastro.core.data import to_list
 from visualastro.core.sequences import _unwrap_if_single
 from visualastro.optional_dependencies.register import _require_dependency
@@ -128,7 +129,7 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, Quantity):
         return obj.unit
 
-    if isinstance(obj, (list, tuple)) and len(obj) > 0:
+    if _is_iterable(obj):
         units = [get_unit(item) for item in obj]
         non_none_units = [u for u in units if u is not None]
 
