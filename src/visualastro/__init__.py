@@ -1,3 +1,7 @@
+from importlib.metadata import version
+
+__version__ = version('visualastro')
+
 # core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
