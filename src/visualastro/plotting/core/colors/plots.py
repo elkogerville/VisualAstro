@@ -241,9 +241,9 @@ def plot_color_deltaE(
 
         - Normal deltaE matrix is scaled by its own max value (relative distance).
         - CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
-        retention). A ratio of 1 means the color pair remains equally
-        distinguishable under CVD as under normal vision; lower values indicate
-        greater loss of distinguishability.
+          retention). A ratio of 1 means the color pair remains equally
+          distinguishable under CVD as under normal vision; lower values indicate
+          greater loss of distinguishability.
 
     wspace : float, optional, default=0.4
         Horizontal spacing between subplots, passed to `gridspec`. Only used

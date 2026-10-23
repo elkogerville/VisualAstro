@@ -1103,7 +1103,7 @@ def _format_axis_label(
         If a string is provided, use it as the physical label directly, overriding
         any auto-detected physical type. If None, the physical label is inferred
         from the object's physical type (when `show_physical_type=True`).
-        bracket_style : {'round', 'square'}
+    bracket_style : {'round', 'square'}
         If `'round`' displays the unit of `obj` as (unit). If `'square`' as [unit].
     show_physical_type : bool
         If `True`, include the physical type label in the output. If `False`, omit
