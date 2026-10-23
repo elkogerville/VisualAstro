@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-10-06
+Date Modified: 2026-10-23
 Description:
     VisualAstro help documentation class.
 """
@@ -47,7 +47,8 @@ class help:
         color: ColorType | int | Sequence[ColorType] | None = None,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
         severity: int = 100,
-        show_color_name: bool = True
+        show_color_name: bool = True,
+        width: float | int | None = 8
     ) -> None:
         """
         Display VisualAstro color colorsets with optional colorblindness simulation.
@@ -58,10 +59,16 @@ class help:
             Name of a specific VisualAstro colorset to display. If `None`,
             all VisualAstro colorsets are shown.
         cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
-            Simulate colorblindness. If `'all'`, all three types are simulated.
-            If `None`, no simulation is applied.
+            Type of colorblindness to simulate after `transform`. Can be
+            shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+            cvd types. If `None`, no colorblindness simulation is applied.
         severity : int
             Severity level (0-100). 100 = complete colorblindness.
+        show_color_name : bool, optional, default=True
+            If `True`, also plots the colorset name. Only applicable to VisualAstro
+            colorsets (as opposed to a sequence of colors).
+        width: float | int | None, optional, default=8
+            Width of the colorset plot.
 
         Examples
         --------
@@ -78,7 +85,8 @@ class help:
             color=color,
             cvd_type=cvd_type,
             severity=severity,
-            show_color_name=show_color_name
+            show_color_name=show_color_name,
+            width=width
         )
 
 

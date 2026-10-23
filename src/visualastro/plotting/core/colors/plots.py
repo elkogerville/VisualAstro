@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-23
 Description:
     Color plotting functions.
 """
@@ -45,7 +45,8 @@ def plot_colors(
     color: ColorType | int | Sequence[ColorType] | None = None,
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
     severity: int = 100,
-    show_color_name: bool = True
+    show_color_name: bool = True,
+    width: float | int | None = 8
 ) -> None:
     """
     Visualize one or multiple colorsets.
@@ -55,14 +56,17 @@ def plot_colors(
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
-    cvd_type : str | None, optional, default=None
+    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to
         `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
+        If `None`, no colorblindness simulation is applied.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
         If `True`, also plots the colorset name. Only applicable to VisualAstro
         colorsets (as opposed to a sequence of colors).
+    width : float | int | None, optional, default=8
+        Width of the colorset plot.
 
     Examples
     --------
@@ -93,7 +97,7 @@ def plot_colors(
     pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))
     factor = 0.3 if n_rows > 10 else 1
-    fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
+    fig, ax = plt.subplots(figsize=(width, n_rows*factor), layout='constrained')
     ax.axis('off')
     row = 0
     for i, colorset in enumerate(colorsets):
@@ -670,9 +674,9 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
     norm_method : {'log', 'global'} | None
         Normalization method.
 
-        - `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
-        - `'global'` -> linear scaling using `Normalize` with global min/max.
-        - `None` -> per-population normalization (Matplotlib default).
+        * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
+        * `'global'` -> linear scaling using `Normalize` with global min/max.
+        * `None` -> per-population normalization (Matplotlib default).
 
     log_floor : float, optional, default=1e-10
         Minimum value clamp for `vmin` when `norm_method='log'`, to avoid
