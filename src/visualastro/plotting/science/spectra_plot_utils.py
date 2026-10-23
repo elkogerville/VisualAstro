@@ -79,7 +79,7 @@ def spectral_line_marker(
         ax.axvline at the location of the peak of each line.
     label : str, optional
         Label for the group of lines.
-    direction : Literal['up', 'down'] | _Unset, optional, default=_UNSET
+    direction : {'up', 'down'} | _Unset, optional, default=_UNSET
         Direction of the prongs. If `_UNSET`, uses
         `config.spectral_line_marker.marker_direction`.
     label_offset_points : tuple[float, float], optional, default=_UNSET
@@ -95,9 +95,9 @@ def spectral_line_marker(
     label_reference : {'marker', 'hline', 'auto'}, optional, default=_UNSET
         Reference point for label x-position:
 
-        * `'marker'`: Position relative to marker x-values (ignores hline extension)
-        * `'hline'`: Position relative to hline endpoints (includes extension)
-        * `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
+        - `'marker'`: Position relative to marker x-values (ignores hline extension)
+        - `'hline'`: Position relative to hline endpoints (includes extension)
+        - `'auto'`: Uses 'hline' if hline_extend is set, otherwise 'marker'
 
         If `_UNSET`, uses `config.spectral_line_marker.label_reference`.
     rotation : float, optional, default=_UNSET
@@ -108,9 +108,9 @@ def spectral_line_marker(
         between all x values when len(x) > 1. If provided, draws horizontal
         line extending in direction specified by `label_position`:
 
-        * `'left'`: extends leftward from leftmost x
-        * `'right'`: extends rightward from rightmost x
-        * `'center'`: extends symmetrically from center
+        - `'left'`: extends leftward from leftmost x
+        - `'right'`: extends rightward from rightmost x
+        - `'center'`: extends symmetrically from center
 
     **kwargs
         Additional keyword arguments passed to vlines and hlines.
@@ -391,10 +391,10 @@ def spectral_axis_label(
     idx : int | tuple[int, int] | None
         Index or index range specifying the slice:
 
-        * `i` → label corresponding to spectral_axis[i]
-        * `[i]` → label corresponding to spectral_axis[i]
-        * `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
-        * `None` → label corresponding to midpoint of entire spectral axis
+        - `i` → label corresponding to spectral_axis[i]
+        - `[i]` → label corresponding to spectral_axis[i]
+        - `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
+        - `None` → label corresponding to midpoint of entire spectral axis
 
     ax : matplotlib.axes.Axes
         Target matplotlib Axes on which the label will be rendered.

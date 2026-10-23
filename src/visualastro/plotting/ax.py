@@ -333,39 +333,39 @@ class ax:
 
             Supported keywords:
 
-            * `rasterized` : bool, default=`config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            * ylim : tuple, optional, default=None
+            - ylim : tuple, optional, default=None
                 y-axis limits as (ymin, ymax).
-            * `color` or `c` : list of colors or None, optional, default=None
+            - `color` or `c` : list of colors or None, optional, default=None
                 Aliases for `colors`.
-            * `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
+            - `linestyles`, `linestyle`, `ls` : str or list of str, default=`config.linestyle`
                 Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-            * `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
+            - `linewidths`, `linewidth`, `lw` : float or list of float, optional, default=`config.linewidth`
                 Line width for the plotted lines.
-            * `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
+            - `alphas`, `alpha`, `a` : float or list of float default=`config.alpha`
                 The alpha blending value, between 0 (transparent) and 1 (opaque).
-            * cmap : str, optional, default=`config.cmap`
+            - cmap : str, optional, default=`config.cmap`
                 Colormap name for generating colors.
-            * label : str, optional, default=None.
+            - label : str, optional, default=None.
                 Label for the plotted spectrum.
-            * loc : str, optional, default=`config.legend.loc`
+            - loc : str, optional, default=`config.legend.loc`
                 Legend location (e.g., 'best', 'upper right').
-            * xlabel, ylabel : str, optional, default=None
+            - xlabel, ylabel : str, optional, default=None
                 Axis labels.
-            * unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            - unit_bracket_style : {'round', 'square'}, optional, default=`config.unit_bracket_style`
                 If `'round`' displays `extracted_spectra` unit as (unit). If `'square`' as [unit].
-            * `figsize` : tuple of float, default=`config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            * `style` : str, default=`config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            * `savefig` : bool, default=`config.savefig.enable`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
-            * `dpi` : int, default=`config.savefig.dpi`
+            - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
 
         Returns
@@ -376,8 +376,8 @@ class ax:
 
         Notes
         -----
-        * If `concatenate` is True, all spectra are merged and plotted as one line.
-        * If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
+        - If `concatenate` is True, all spectra are merged and plotted as one line.
+        - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
           wavelength interval before plotting.
         """
         # figure params
@@ -458,45 +458,45 @@ class ax:
 
             Supported keyword arguments include:
 
-            * `rasterized` : bool, default=`config.rasterized`
+            - `rasterized` : bool, default=`config.rasterized`
                 Whether to rasterize plot artists. Rasterization
                 converts the artist to a bitmap when saving to
                 vector formats (e.g., PDF, SVG), which can
                 significantly reduce file size for complex plots.
-            * `color`, `c` : list of colors, str, or None, optional, default=None
+            - `color`, `c` : list of colors, str, or None, optional, default=None
                 aliases for `colors`.
-            * `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
+            - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
                 Marker size(s) for scatter points.
-            * `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
+            - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
                 Marker style(s) for scatter points.
-            * `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
+            - `alphas`, `alpha`, `a` : float or list, optional, default=`config.alpha`
                 Transparency level(s).
-            * `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
+            - `edgecolors`, `edgecolor`, `ec` : str or list, optional, default=`config.edgecolor`
                 Edge colors for scatter points.
-            * `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
+            - `linestyles`, `linestyle`, `ls` : str or list, optional, default=`config.linestyle`
                 Line style(s) for histogram edges.
-            * `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
+            - `linewidth`, `lw` : float or list, optional, default=`config.linewidth`
                 Line width(s) for histogram edges.
-            * `zorders`, `zorder` : int or list, optional, default=None
+            - `zorders`, `zorder` : int or list, optional, default=None
                 Z-order(s) for drawing priority.
-            * `cmap` : str, optional, default=`config.cmap`
+            - `cmap` : str, optional, default=`config.cmap`
                 Colormap name for automatic color assignment.
-            * `xlim`, `ylim` : tuple, optional, default=None
+            - `xlim`, `ylim` : tuple, optional, default=None
                 Axis limits for the scatter plot.
-            * `labels`, `label`, `l` : list or str, optional, default=None
+            - `labels`, `label`, `l` : list or str, optional, default=None
                 Labels for legend entries.
-            * `loc` : str, optional, default=`config.legend.loc`
+            - `loc` : str, optional, default=`config.legend.loc`
                 Legend location.
-            * `xlabel`, `ylabel` : str, optional, default=None
+            - `xlabel`, `ylabel` : str, optional, default=None
                 Axis labels for the scatter plot.
-            * `figsize` : tuple of float, default=`config.figsize`
+            - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
-            * `style` : str, default=`config.style`
+            - `style` : str, default=`config.style`
                 Matplotlib or visualastro style name to apply during plotting.
                 Ex: 'astro', 'classic', etc...
-            * `savefig` : bool, default=`config.savefig.enable`
+            - `savefig` : bool, default=`config.savefig.enable`
                 If True, saves the figure to disk using `savefig`.
-            * `dpi` : int, default=`config.savefig.dpi`
+            - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
         """
         # figure params

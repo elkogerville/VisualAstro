@@ -61,15 +61,15 @@ def get_color(
     ----------
     color : ColorType
         A single color: named, hex, grayscale string, or RGB(A) tuple.
-    fmt : Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
-    transform : Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset, optional, default=_UNSET
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
         Method to modify the color. If `None`, the color is unchanged.
         If `_UNSET`, uses `config.color_transform`.
     factor : float | _Unset, optional, default=_UNSET
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
         Type of colorblindness to simulate after `transform`. Can be
         shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
         cvd types. If `None`, no colorblindness simulation is applied.
@@ -125,14 +125,14 @@ def get_colors(
     ----------
     colors : ColorType | int | Sequence[ColorType] | _Unset, optional, default=_UNSET
 
-        * `_UNSET`: default colorset (`config.default_colorset`).
-        * `str`: VisualAstro colorset name (optional '_r' suffix to reverse),
+        - `_UNSET`: default colorset (`config.default_colorset`).
+        - `str`: VisualAstro colorset name (optional '_r' suffix to reverse),
           named color, or `'random'`.
-        * `ColorType`: a single explicit color.
-        * `int`: number of colors to sample from `cmap`.
-        * `Sequence[ColorType]`: explicit list of colors.
+        - `ColorType`: a single explicit color.
+        - `int`: number of colors to sample from `cmap`.
+        - `Sequence[ColorType]`: explicit list of colors.
 
-    fmt : Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
     cmap : Colormap | str | _Unset, optional, default=_UNSET
         Colormap sampled when `colors` is an `int`. If `_UNSET`, uses
@@ -140,20 +140,20 @@ def get_colors(
     cmap_range : tuple[float, float], optional, default=(0, 1)
         Normalized range of `cmap` to sample. Used only if `colors` is an
         `int`.
-    transform : Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset, optional, default=_UNSET
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
         Method to modify the colors. If `None`, colors are unchanged.
         If `_UNSET`, uses `config.color_transform`.
     factor : float | _Unset, optional, default=_UNSET
         `transform` Modification strength. If `_UNSET`, uses
         `config.color_transform_factor`.
 
-        * `'lighten'`: blending ratio with white (0 = original, 1 = white).
-        * `'darken'`: blending ratio with black (0 = original, 1 = black).
-        * `'saturate'`: saturation level in HSL space (0 = grayscale,
+        - `'lighten'`: blending ratio with white (0 = original, 1 = white).
+        - `'darken'`: blending ratio with black (0 = original, 1 = black).
+        - `'saturate'`: saturation level in HSL space (0 = grayscale,
           1 = maximum saturation).
-        * `'desaturate'`: desaturation amount (0 = original, 1 = grayscale).
+        - `'desaturate'`: desaturation amount (0 = original, 1 = grayscale).
 
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
         Type of colorblindness to simulate after `transform`. Can be
         shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
         cvd types. If `None`, no colorblindness simulation is applied.
@@ -257,15 +257,15 @@ def get_colorset(
     ----------
     colorset_name : str
         Colorset name. Append '_r' to reverse the order.
-    fmt : Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
-    transform : Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset, optional, default=_UNSET
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
         Method to modify the colors. If `None`, colors are unchanged.
         If `_UNSET`, uses `config.color_transform`.
     factor : float | _Unset, optional, default=_UNSET
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
         Type of colorblindness to simulate after `transform`. Can be
         shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
         cvd types. If `None`, no colorblindness simulation is applied.
@@ -335,15 +335,15 @@ def get_namedcolor(
     ----------
     name : str
         Color name.
-    fmt : Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
-    transform : Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset, optional, default=_UNSET
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
         Method to modify the color. If `None`, the color is unchanged.
         If `_UNSET`, uses `config.color_transform`.
     factor : float | _Unset, optional, default=_UNSET
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
         Type of colorblindness to simulate after `transform`. Can be
         shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
         cvd types. If `None`, no colorblindness simulation applied.
@@ -400,7 +400,7 @@ def sample_cmap(
     cmap_range : tuple[float, float], optional, default=(0,1)
         The normalized value range in the colormap from which colors
         should be taken. By default, the entire colormap is used.
-    fmt: Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt: {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
     Returns
@@ -429,7 +429,7 @@ def random_colors(
     ----------
     N : int
         Number of colors to generate.
-    fmt : Literal['hex', 'rgb', 'rgba'], optional, default='hex'
+    fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
 
     Returns
@@ -460,15 +460,15 @@ def _apply_color_modifiers(
     ----------
     colors : ColorType | Sequence[ColorType]
         Single color or sequence of colors.
-    fmt : Literal['hex', 'rgb', 'rgba']
+    fmt : {'hex', 'rgb', 'rgba'}
         Output color format.
-    transform : Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset, optional, default=_UNSET
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
         Type of transform to apply to colors or colorset.
         If `_UNSET`, uses `config.color_transform`. `None`
         skips the transform.
     factor : float | _Unset, optional, default=_UNSET
         If `_UNSET`, uses `config.color_transform_factor`.
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
         Type of colorblindness to simulate after `transform`. Can be
         shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
         cvd types. If `None`, no colorblindness simulation is applied.

@@ -56,7 +56,7 @@ def plot_colors(
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
-    cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to
         `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
         If `None`, no colorblindness simulation is applied.
@@ -239,8 +239,8 @@ def plot_color_deltaE(
     normalize : bool, optional, default=False
         If `True`:
 
-        * Normal deltaE matrix is scaled by its own max value (relative distance).
-        * CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
+        - Normal deltaE matrix is scaled by its own max value (relative distance).
+        - CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
         retention). A ratio of 1 means the color pair remains equally
         distinguishable under CVD as under normal vision; lower values indicate
         greater loss of distinguishability.
@@ -466,13 +466,13 @@ def plot_colortable(
     colors : dict[str, ColorType] | str | None, optional, default=None
         Dictionary containing colors to plot, or one of the following:
 
-        * `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
-        * `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
-        * `'xkcd'` or `'xkcd_colors'`: XKCD named colors
-        * `'visualastro'` or `'va'`: VisualAstro named colors
-        * `'base'` or `'base_colors'`: Matplotlib base colors
-        * `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
-        * `'all'` or `'all_colors'`: All of the above
+        - `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+        - `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+        - `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+        - `'visualastro'` or `'va'`: VisualAstro named colors
+        - `'base'` or `'base_colors'`: Matplotlib base colors
+        - `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+        - `'all'` or `'all_colors'`: All of the above
 
     ncols : int, optional, default=4
         Number of columns to plot.
@@ -674,9 +674,9 @@ def _resolve_scatter_norm(c_list, norm_method, log_floor=1e-10):
     norm_method : {'log', 'global'} | None
         Normalization method.
 
-        * `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
-        * `'global'` -> linear scaling using `Normalize` with global min/max.
-        * `None` -> per-population normalization (Matplotlib default).
+        - `'log'` -> logarithmic scaling using `LogNorm` with global min/max.
+        - `'global'` -> linear scaling using `Normalize` with global min/max.
+        - `None` -> per-population normalization (Matplotlib default).
 
     log_floor : float, optional, default=1e-10
         Minimum value clamp for `vmin` when `norm_method='log'`, to avoid

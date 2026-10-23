@@ -58,7 +58,7 @@ class help:
         color : str | ColorType | int | Sequence[ColorType] | None, optional, default=None
             Name of a specific VisualAstro colorset to display. If `None`,
             all VisualAstro colorsets are shown.
-        cvd_type : Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None, optional, default=None
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
             Type of colorblindness to simulate after `transform`. Can be
             shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
             cvd types. If `None`, no colorblindness simulation is applied.

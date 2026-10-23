@@ -39,7 +39,7 @@ def _normalize_order(order: str) -> Literal['c', 'fortran']:
 
     Returns
     -------
-    Literal['c', 'fortran']
+    {'c', 'fortran'}
         Canonical order string.
 
     Raises

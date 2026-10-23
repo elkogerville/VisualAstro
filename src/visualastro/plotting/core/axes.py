@@ -190,15 +190,15 @@ def subplot(
     *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
         The position of the subplot described by one of:
 
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
+        - three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+          take the *index* position on a grid with *nrows* rows and *ncols* columns.
+          *index* starts at 1 in the upper left corner and increases to the right.
+          *index* can also be a two-tuple specifying the (*first*, *last*) indices
+          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          makes a subplot that spans the upper 2/3 of the figure.
+        - A 3-digit integer. The digits are interpreted as if given separately as
+          three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+          Note that this can only be used if there are no more than 9 subplots.
 
     figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize`.
@@ -239,15 +239,15 @@ def add_subplot(
     *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
         The position of the subplot described by one of:
 
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
+        - three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+          take the *index* position on a grid with *nrows* rows and *ncols* columns.
+          *index* starts at 1 in the upper left corner and increases to the right.
+          *index* can also be a two-tuple specifying the (*first*, *last*) indices
+          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          makes a subplot that spans the upper 2/3 of the figure.
+        - A 3-digit integer. The digits are interpreted as if given separately as
+          three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+          Note that this can only be used if there are no more than 9 subplots.
 
     ax : Axes | None, optional, default=None
         Axes instance. Either `ax` or `fig` should be provided.
@@ -301,15 +301,15 @@ def ax3d(
     *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
         The position of the subplot described by one of:
 
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
+        - three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+          take the *index* position on a grid with *nrows* rows and *ncols* columns.
+          *index* starts at 1 in the upper left corner and increases to the right.
+          *index* can also be a two-tuple specifying the (*first*, *last*) indices
+          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          makes a subplot that spans the upper 2/3 of the figure.
+        - A 3-digit integer. The digits are interpreted as if given separately as
+          three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+          Note that this can only be used if there are no more than 9 subplots.
 
     figsize : tuple[float, float] | _Unset, optional, default=_UNSET
         Figure size. If `_UNSET`, uses `config.figsize3D`.
@@ -345,15 +345,15 @@ def add_ax3d(
     *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
         The position of the subplot described by one of:
 
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
+        - three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+          take the *index* position on a grid with *nrows* rows and *ncols* columns.
+          *index* starts at 1 in the upper left corner and increases to the right.
+          *index* can also be a two-tuple specifying the (*first*, *last*) indices
+          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+        - makes a subplot that spans the upper 2/3 of the figure.
+        - A 3-digit integer. The digits are interpreted as if given separately as
+          three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+          Note that this can only be used if there are no more than 9 subplots.
 
     ax : Axes | Axes3D | None, optional, default=None
         Axes instance. Either `ax` or `fig` should be provided.
@@ -391,15 +391,15 @@ def wcsax(
     *args :  int | tuple[int, int, *index*], optional, default=(1, 1, 1)
         The position of the subplot described by one of:
 
-        * three integers `(*nrows*, *ncols*, *index*)`. The subplot will
-        take the *index* position on a grid with *nrows* rows and *ncols* columns.
-        *index* starts at 1 in the upper left corner and increases to the right.
-        *index* can also be a two-tuple specifying the (*first*, *last*) indices
-        (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
-        makes a subplot that spans the upper 2/3 of the figure.
-        * A 3-digit integer. The digits are interpreted as if given separately as
-        three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
-        Note that this can only be used if there are no more than 9 subplots.
+        - three integers `(*nrows*, *ncols*, *index*)`. The subplot will
+          take the *index* position on a grid with *nrows* rows and *ncols* columns.
+          *index* starts at 1 in the upper left corner and increases to the right.
+          *index* can also be a two-tuple specifying the (*first*, *last*) indices
+          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          makes a subplot that spans the upper 2/3 of the figure.
+        - A 3-digit integer. The digits are interpreted as if given separately as
+          three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
+          Note that this can only be used if there are no more than 9 subplots.
 
     wcs : WCS | Header
         Object from which to extract WCS. See docstring for
@@ -480,10 +480,10 @@ def gridspec(
     fancy_axes : bool, optional, default=False
         If True, enables 'fancy' axes styling:
 
-        * minor ticks on
-        * inward ticks on all sides
-        * axes labels on outer grid axes
-        * h/wspace = 0.0
+        - minor ticks on
+        - inward ticks on all sides
+        - axes labels on outer grid axes
+        - h/wspace = 0.0
 
     Nticks : int | None | _Unset, optional, default=`_UNSET`
         Maximum number of major ticks per axis. If `None`,
@@ -1013,7 +1013,7 @@ def set_axis_labels(
         Fontsize of both axes labels in points. If `_UNSET`, uses
         `config.fontsizes.axes_labels`, expressed as a scaling
         factor relative to `config.fontsizes.size`.
-    unit_bracket_style : Literal['round', 'square'] | _Unset, optional, default=_UNSET
+    unit_bracket_style : {'round', 'square'} | _Unset, optional, default=_UNSET
         If `'round`' displays the unit of `X` and `Y` as (unit). If `'square`' as [unit].
     show_physical_type : bool | _Unset, optional, default=_UNSET
         If `True`, include the inferred physical type in the axis label.
@@ -1053,9 +1053,9 @@ def set_axis_labels(
     Notes
     -----
 
-    * Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
+    - Units are formatted using `to_latex_unit`, which provides LaTeX-friendly
       representations.
-    * If both `show_physical_type` and `show_unit` are False, the resulting
+    - If both `show_physical_type` and `show_unit` are False, the resulting
       axis label is an empty string.
     """
     fontsize = _resolve_default(
@@ -1103,7 +1103,7 @@ def _format_axis_label(
         If a string is provided, use it as the physical label directly, overriding
         any auto-detected physical type. If None, the physical label is inferred
         from the object's physical type (when `show_physical_type=True`).
-    bracket_style : Literal['round', 'square']
+        bracket_style : {'round', 'square'}
         If `'round`' displays the unit of `obj` as (unit). If `'square`' as [unit].
     show_physical_type : bool
         If `True`, include the physical type label in the output. If `False`, omit
@@ -1124,17 +1124,17 @@ def _format_axis_label(
     str
         A formatted axis label string. The format depends on the parameters:
 
-        * Label only: 'Wavelength'
-        * Unit only: '[$\\mu$m]'
-        * Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
-        * Neither: '' (empty string)
+        - Label only: 'Wavelength'
+        - Unit only: '[$\\mu$m]'
+        - Both enabled: 'Wavelength ($\\mathrm{\\mu m}$)'
+        - Neither: '' (empty string)
 
     Notes
     -----
 
-    * If the object has no unit or the unit cannot be formatted, the unit
+    - If the object has no unit or the unit cannot be formatted, the unit
       portion is omitted regardless of `show_unit`.
-    * The output is stripped of leading/trailing whitespace.
+    - The output is stripped of leading/trailing whitespace.
     """
     physical_type = get_physical_type(obj)
 
@@ -1182,16 +1182,16 @@ def ax3d_axis_style(
     style : str | None, optional, default='cube'
         Spine layout to apply.
 
-        * `'triad'`        : 3 edges from the front-right-bottom corner (Matplotlib default-like).
-        * `'floor'`        : 4 bottom edges of the bounding box.
-        * `'ceiling'`      : 4 top edges of the bounding box.
-        * `'cube'`         : all 12 edges of the bounding box.
-        * `'panel_back'`   : floor + back vertical edges + back-top edges (alias `'panel'`).
-        * `'panel_front'`  : floor + front vertical edges + front-top edges (alias `'panel_r'`).
-        * `'x_panel'`      : floor + back x-aligned top edge + right vertical edges.
-        * `'x_panel_front'`: floor + front x-aligned top edge + left vertical edges (alias `'x_panel_r'`).
-        * `'y_panel'`      : floor + back y-aligned top edge + left vertical edges.
-        * `'y_panel_front'`: floor + front y-aligned top edge + right vertical edges (alias `'y_panel_r'`).
+        - `'triad'`        : 3 edges from the front-right-bottom corner (Matplotlib default-like).
+        - `'floor'`        : 4 bottom edges of the bounding box.
+        - `'ceiling'`      : 4 top edges of the bounding box.
+        - `'cube'`         : all 12 edges of the bounding box.
+        - `'panel_back'`   : floor + back vertical edges + back-top edges (alias `'panel'`).
+        - `'panel_front'`  : floor + front vertical edges + front-top edges (alias `'panel_r'`).
+        - `'x_panel'`      : floor + back x-aligned top edge + right vertical edges.
+        - `'x_panel_front'`: floor + front x-aligned top edge + left vertical edges (alias `'x_panel_r'`).
+        - `'y_panel'`      : floor + back y-aligned top edge + left vertical edges.
+        - `'y_panel_front'`: floor + front y-aligned top edge + right vertical edges (alias `'y_panel_r'`).
 
     If `None`, uses Matplotlib rendering engine.
     """
