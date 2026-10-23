@@ -205,4 +205,8 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'G train': '#72B444',
     '7 train': '#AD3F97',
     'T train': '#00ABCD',
+    'ethernet orange' : '#FB7A1F',
+    'ethernet green' : '#10A807',
+    'ethernet blue' : '#1177F7',
+    'ethernet brown' : '#85450c',
 }
