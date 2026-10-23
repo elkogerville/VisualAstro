@@ -143,13 +143,13 @@ from visualastro.plotting.core.image_utils import (
     thorlabs_logo,
 )
 from visualastro.plotting.core.legend import legend
+from visualastro.plotting.core.lines import axhlines, axvlines
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
     set_plot_cycle,
 )
 from visualastro.plotting.core.utils import (
-    axhline,
     close,
     ellipse_patch,
     inline,
@@ -158,7 +158,6 @@ from visualastro.plotting.core.utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    axvline,
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
