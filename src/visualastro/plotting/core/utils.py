@@ -11,7 +11,6 @@ from typing import Literal
 from functools import partial
 
 import astropy.units as u
-from astropy.units import Quantity
 import matplotlib.axes as maxes
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
@@ -27,14 +26,12 @@ from visualastro.core.array_types import (
     _is_scalar,
 )
 from visualastro.core.config import (
-    config,
     get_config_value,
     _Unset, _UNSET,
 )
 from visualastro.core.data import get_value, to_list
 from visualastro.core.plot_input import _extract_xy
 from visualastro.core.sequences import _cycle
-from visualastro.core.units import to_unit
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (
     PixCoord, EllipsePixelRegion
@@ -584,90 +581,6 @@ def plot_points(
                 marker=_cycle(markers, i),
                 s=_cycle(sizes, i),
                 color=_cycle(colors, i)
-            )
-
-
-def axvline(vlines, ax, unit=None, equivalencies=None) -> None:
-    """
-    Plot one or more vertical reference lines on a Matplotlib axis.
-
-    Parameters
-    ----------
-    vlines : float | Quantity | Sequence[float | Quantity] | None
-        X-axis coordinate(s) at which to draw vertical line(s). If a Quantity,
-        each value is converted to `unit` before plotting. If an iterable is
-        provided, a vertical line is drawn for each element. If None, no lines
-        are drawn.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the vertical line(s).
-    unit : astropy.units.UnitBase | str, optional, default=None
-        Unit to which Quantity values in `vlines` are converted before plotting.
-        If None, Quantity inputs must already be in the axis unit system or must
-        not require conversion.
-    equivalencies : astropy.units.equivalencies | None, optional, default=None
-        Equivalencies for converting units. If None, is ignored.
-
-    """
-    if vlines is not None:
-        vlines = to_list(vlines)
-        unit = to_unit(unit)
-
-        for vline in vlines:
-            if isinstance(vline, Quantity) and unit is not None:
-                vline = vline.to(unit, equivalencies=equivalencies).value
-            else:
-                vline = get_value(vline)
-            ax.axvline(
-                vline,
-                ls=config.axline.linestyle,
-                lw=config.axline.linewidth,
-                color=config.axline.color,
-                alpha=config.axline.alpha,
-                zorder=config.zorder.vlines
-            )
-
-
-def axhline(hlines, ax, unit=None, equivalencies=None):
-    """
-    Plot one or more horizontal reference lines on a Matplotlib axis.
-
-    Parameters
-    ----------
-    hlines : float | Quantity | Sequence[float | Quantity] | None
-        Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,
-        each value is converted to `unit` before plotting. If an iterable is
-        provided, a horizontal line is drawn for each element. If None, no lines
-        are drawn.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the horizontal line(s).
-    unit : astropy.units.UnitBase | str, optional, default=None
-        Unit to which Quantity values in `hlines` are converted before plotting.
-        If None, Quantity inputs must already be in the axis unit system or must
-        not require conversion.
-    equivalencies : astropy.units.equivalencies | None, optional, default=None
-        Equivalencies for converting units. If None, is ignored.
-
-    Notes
-    -----
-    Horizontal lines are drawn using `ax.axhline` with a dotted linestyle,
-    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
-    """
-    if hlines is not None:
-        hlines = to_list(hlines)
-        unit = to_unit(unit)
-
-        for hline in hlines:
-            if isinstance(hline, Quantity) and unit is not None:
-                hline = hline.to(unit, equivalencies=equivalencies).value
-            else:
-                hline = get_value(hline)
-            ax.axhline(
-                hline,
-                ls=config.axline.linestyle,
-                lw=config.axline.linewidth,
-                color=config.axline.color,
-                alpha=config.axline.alpha,
-                zorder=config.zorder.hlines
             )
 
 
