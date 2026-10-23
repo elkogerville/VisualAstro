@@ -71,11 +71,9 @@ from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import (
     set_axis_labels, set_axis_limits
 )
+from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.core.utils import (
-    axvline,
-    _get_zorder
-)
+from visualastro.plotting.core.utils import _get_zorder
 
 
 def extract_cube_spectra(
@@ -325,7 +323,7 @@ def extract_cube_pixel_spectra(
     combine_spectra: bool = False,
     combine_method: Literal['sum', 'mean', 'median'] | _Unset = _UNSET,
     plot_spatial_map: bool = True,
-    vline: float | int | Quantity | None = None,
+    vline: float | Quantity | None = None,
     cmap: str | Colormap | _Unset = _UNSET,
     **kwargs,
 ) -> ExtractedPixelSpectra:
@@ -618,7 +616,7 @@ def extract_cube_pixel_spectra(
             )
             fluxes.append(combined_spec.flux)
 
-        axvline(vline, ax, fluxes[0].unit)
+        axvlines(vline, ax=ax, unit=fluxes[0].unit)
 
         set_axis_limits(
             spectral_axis,
@@ -1102,7 +1100,7 @@ def plot_spectra(
         unit_bracket_style=params.unit_bracket_style
     )
 
-    axvline(vline, ax, _cycle(extracted_spectra, config.reference_idx).unit)
+    axvlines(vline, ax=ax, unit=_cycle(extracted_spectra, config.reference_idx).unit)
 
     if labels[0] is not None:
         ax.legend(loc=params.loc)

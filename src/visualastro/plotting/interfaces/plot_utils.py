@@ -48,9 +48,8 @@ from visualastro.plotting.core.axes import (
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
+from visualastro.plotting.core.lines import axhlines, axvlines
 from visualastro.plotting.core.utils import (
-    axhline,
-    axvline,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
@@ -72,7 +71,7 @@ class PlotUtilParams:
     index_spec : tuple[int, int] | {'implicit', 'explicit'}
         Index convention forwarded to `plot_points`.
     vlines : Sequence[float] | None
-        Vertical line positions. Forwarded to `axvline` with `ref_unit`.
+        Vertical line positions. Forwarded to `axvlines` with `ref_unit`.
     hlines : Sequence[float] | None
         Horizontal line positions. Forwarded to `axhline` with `ref_unit`.
     ticklabel_fontsize : float
@@ -228,7 +227,7 @@ def _apply_plot_utils(
         the colorbar and the interactive ellipse. The element at
         `params.reference_idx` is used.
     ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
-        Reference unit for the colorbar label and for `axvline`/`axhline`.
+        Reference unit for the colorbar label and for `axvlines`/`axhlines`.
     labels : sequence | None
         Plot labels. The legend is drawn only if this key is present,
         `params.legend['legend']` is truthy, and the label at
@@ -331,8 +330,8 @@ def _apply_plot_utils(
                 **cparams
             )
 
-    axvline(params.vlines, ax, ref_unit)
-    axhline(params.hlines, ax, ref_unit)
+    axvlines(params.vlines, ax=ax, unit=ref_unit)
+    axhlines(params.hlines, ax=ax, unit=ref_unit)
 
     if params.ellipses.pop('plot_ellipse', None) and im_list is not None:
         im = _cycle(im_list, params.reference_idx)
