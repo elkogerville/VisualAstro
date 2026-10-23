@@ -10,6 +10,7 @@ from collections.abc import Sequence
 from typing import Literal
 
 import matplotlib.axes as maxes
+from matplotlib.legend import Legend
 from matplotlib.transforms import Bbox, Transform
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
@@ -52,7 +53,7 @@ def legend(
     zorder: float | _Unset = _UNSET,
     draggable: bool | _Unset = _UNSET,
     **kwargs
-) -> None:
+) -> Legend:
     """
     Create a legend on the specified axes with configuration defaults.
 
@@ -163,6 +164,11 @@ def legend(
     zorder : float | _Unset, optional, default=_UNSET
         Legend zorder. If `_UNSET`, uses `config.zorder.legend`.
 
+    Returns
+    -------
+    Legend:
+        Created matplotlib legend.
+
     Raises
     ------
     ValueError
@@ -245,6 +251,8 @@ def legend(
         leg.get_frame().set_linewidth(linewidth)
 
     leg.set_zorder(zorder)
+
+    return leg
 
 
 def _resolve_vertical_loc(legend_kwargs: dict) -> None:
