@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-23
 Description:
     VisualAstro color definitions.
 """
@@ -89,8 +89,24 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night': ['#719C95', '#9CD6CF', '#FFDA81', '#F3A169', '#8FB3D3', '#6B859C', '#435561'],
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
+    'doucus': [
+        '#51251A', '#9F452F', '#C77D53', '#DCA96E', '#D6C792',
+        '#CED1B1', '#A3A684', '#6F7F80', '#5970A5', '#4972E3'
+    ],
+    'extreme_docus': [
+        '#5e1d0d', '#b4381a', '#e27538', '#e8aa62', '#ecd37c',
+        '#e7f092', '#d6e545', '#1ec7d1', '#2059de', '#4771e5'
+    ],
+    'bbq': [
+        '#228546', '#2E9A46', '#61B54E', '#88CB52', '#3CB7AC', '#3293D6',
+        '#2771BB', '#1C5B83', '#983132', '#E02F2F', '#F18724', '#F4C735'
+    ],
     'debos': ['#3464F5', '#93BFE6', '#8FE3BC', '#F4C572', '#F56D53', '#D3153A', '#9C0569'],
     'deb': ['#3464F5', '#93BFE6', '#F4C572', '#D3153A'],
+    'mpf': [
+        '#4285f4', '#D72000FF','#2CA030FF', '#EE6100FF', '#FFAD0AFF',
+        '#1BB6AFFF', '#9093A2FF', '#132157FF', '#9151B8'
+    ],
     'NGC6818': ['#5AC3BE', '#E770A2', '#4165C0', '#696969'],
     'rgb': ['#FF000F', '#007C6C', '#006B96'],
     'crayons_neon_rgb': ['#FF1DCE', '#CCFF00', '#00B9FB'],
@@ -173,6 +189,7 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'worm of the day': '#B577AC',
     'worm of the night': '#75415C',
     'soup of the day': '#848A21',
+    'melocoton': '#FFAF19',
     'Holy Grey': '#555555',
     'Holy Blue': '#5555FF',
     'Holy Green': '#55FF55',
@@ -192,4 +209,8 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'G train': '#72B444',
     '7 train': '#AD3F97',
     'T train': '#00ABCD',
+    'ethernet orange' : '#FB7A1F',
+    'ethernet green' : '#10A807',
+    'ethernet blue' : '#1177F7',
+    'ethernet brown' : '#85450c',
 }

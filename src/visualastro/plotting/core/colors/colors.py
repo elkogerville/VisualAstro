@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-10
+Date Modified: 2026-10-23
 Description:
     Color related functions.
 """
@@ -70,8 +70,9 @@ def get_color(
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not `None`, apply a color vision deficiency
-        simulation after `transform`.
+        Type of colorblindness to simulate after `transform`. Can be
+        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+        cvd types. If `None`, no colorblindness simulation is applied.
     severity : int, optional, default=100
         CVD severity in [0, 100]. 100 = complete colorblindness.
         Ignored if `cvd_type` is `None`.
@@ -123,6 +124,7 @@ def get_colors(
     Parameters
     ----------
     colors : ColorType | int | Sequence[ColorType] | _Unset, optional, default=_UNSET
+
         - `_UNSET`: default colorset (`config.default_colorset`).
         - `str`: VisualAstro colorset name (optional '_r' suffix to reverse),
           named color, or `'random'`.
@@ -152,7 +154,9 @@ def get_colors(
         - `'desaturate'`: desaturation amount (0 = original, 1 = grayscale).
 
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not None, apply a color vision deficiency simulation after `transform`.
+        Type of colorblindness to simulate after `transform`. Can be
+        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+        cvd types. If `None`, no colorblindness simulation is applied.
     severity : int, optional, default=100
         CVD severity in [0, 100]. 100 = complete colorblindness. Ignored
         if `cvd_type` is None.
@@ -262,8 +266,9 @@ def get_colorset(
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not None, apply a color vision deficiency simulation after
-        `transform`.
+        Type of colorblindness to simulate after `transform`. Can be
+        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+        cvd types. If `None`, no colorblindness simulation is applied.
     severity : int, optional, default=100
         CVD severity in [0, 100]. Ignored if `cvd_type` is None.
 
@@ -339,8 +344,9 @@ def get_namedcolor(
         Modification strength, see `get_colors`. If `_UNSET`, uses
         `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not None, apply a color vision deficiency simulation after
-        `transform`.
+        Type of colorblindness to simulate after `transform`. Can be
+        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+        cvd types. If `None`, no colorblindness simulation applied.
     severity : int, optional, default=100
         CVD severity in [0, 100]. Ignored if `cvd_type` is None.
 
@@ -457,11 +463,15 @@ def _apply_color_modifiers(
     fmt : {'hex', 'rgb', 'rgba'}
         Output color format.
     transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
-        If `_UNSET`, uses `config.color_transform`. `None` skips the transform.
+        Type of transform to apply to colors or colorset.
+        If `_UNSET`, uses `config.color_transform`. `None`
+        skips the transform.
     factor : float | _Unset, optional, default=_UNSET
         If `_UNSET`, uses `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        If not None, apply a CVD simulation after the transform.
+        Type of colorblindness to simulate after `transform`. Can be
+        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
+        cvd types. If `None`, no colorblindness simulation is applied.
     severity : int, optional, default=100
         CVD severity in [0, 100]. Ignored if `cvd_type` is None.
 
