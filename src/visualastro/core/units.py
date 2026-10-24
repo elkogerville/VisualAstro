@@ -476,7 +476,7 @@ def get_unit_label(
     ----------
     unit : u.UnitBase | u.StructuredUnit | u.Quantity
         Unit to convert.
-    bracket_style : Literal['round', 'square'] | _Unset, default=_UNSET
+    bracket_style : {'round', 'square'} | _Unset, default=_UNSET
         Bracket style for unit label. `'round'` displays the unit as '(unit)',
         while `'square'` as '[unit]'.
     fmt : str | _Unset, optional, default=_UNSET

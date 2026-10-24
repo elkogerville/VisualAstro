@@ -194,7 +194,7 @@ def load_fits(filepath, header=True, error=True,
               print_info=None, transpose=None,
               dtype=None, target_wcs=_UNSET,
               invert_wcs=None, **kwargs):
-    '''
+    """
     Load a FITS file and return its data, header, and errors.
     The WCS is also extracted if possible. Optionally, the
     data and errors can be reprojected onto a target wcs.
@@ -272,7 +272,7 @@ def load_fits(filepath, header=True, error=True,
 
     data : np.ndarray
         If header is False, returns just the data component.
-    '''
+    """
     # ---- KWARGS ----
     reproject_method = kwargs.get('reproject_method', config.reproject_method)
     return_footprint = kwargs.get('return_footprint', config.return_footprint)
@@ -712,7 +712,7 @@ def mask_image(
 
 
 def compute_line(points):
-    '''
+    """
     Compute the slope and intercept of a line passing through two points.
     Parameters
     ----------
@@ -731,7 +731,7 @@ def compute_line(points):
     * The function assumes the two points have different x-coordinates.
     * If the x-coordinates are equal, a ZeroDivisionError will be raised.
 
-    '''
+    """
     m = (points[0][1] - points[1][1]) / (points[0][0] - points[1][0])
     b = points[0][1] - m*points[0][0]
 
