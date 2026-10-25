@@ -206,7 +206,7 @@ def _apply_plot_utils(
     ax: maxes.Axes | WCSAxes,
     x: ArrayLike | None = None,
     y: ArrayLike | None = None,
-    im_list: list | None = None,
+    img: AxesImage | None = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
 ) -> None:
@@ -224,10 +224,9 @@ def _apply_plot_utils(
     x, y : ArrayLike | None, optional, default=None
         Plotted x and y data. Used for axis limits and for
         deriving the x and y-axis label (unit).
-    im_list : list | None, optional, default=None
-        Plotted artists (e.g. `AxesImage`, `PathCollection`). Required for
-        the colorbar and the interactive ellipse. The element at
-        `params.reference_idx` is used.
+    img : AxesImage | None, optional, default=None
+        Plotted artists. Required for the colorbar and
+        interactive ellipses.
     ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
         Reference unit for the colorbar label and for `axvlines`/`axhlines`.
     labels : sequence | None
@@ -281,7 +280,7 @@ def _apply_plot_utils(
 
     labels = params.labels
 
-    label_fontsize = labels.pop('label_fontsize')
+    label_fontsize = labels.pop('fontsize')
     if isinstance(ax, WCSAxes):
         xlabel = labels.get('xlabel')
         if xlabel is None:
@@ -303,41 +302,34 @@ def _apply_plot_utils(
         )
 
     if params.wcs_grid.pop('wcs_grid', None) and isinstance(ax, WCSAxes):
-        ax.coords.grid(
-            True,
-            zorder=config.zorder.wcs_grid,
-            **params.wcs_grid,
-        )
+        wcs_grid(ax=ax, **params.wcs_grid)
 
     if params.gridlines.pop('gridlines', None):
-        ax.grid(
-            True,
-            zorder=config.zorder.gridlines,
-            **params.gridlines,
-        )
+        grid(ax=ax, **params.gridlines)
 
     if params.colorbar.pop('colorbar', None):
-        if im_list is not None and _has_color_mapping(_cycle(im_list, params.reference_idx)):
+        if img is not None and _has_color_mapping(img):
             cparams = params.colorbar
-            cbar_unit = unit_2_string(ref_unit, fmt=config.unit_label_format)
+            cbar_unit = unit_2_string(
+                ref_unit, fmt=config.unit_label_format
+            )
             clabel = (
-                cparams['cbar_label'] if isinstance(cparams['cbar_label'], str) else
-                cbar_unit if cparams['cbar_label'] else None
+                cb if isinstance(cb := cparams.get('cbar_label'), str) else
+                cbar_unit if config.colorbar.label else None
             )
             add_colorbar(
-                _cycle(im_list, params.reference_idx),
+                img,
                 ax=ax,
                 label=clabel,
                 rasterized=kwargs.pop('rasterized', _UNSET),
                 **cparams
             )
 
-    axvlines(params.vlines, ax=ax, unit=ref_unit)
-    axhlines(params.hlines, ax=ax, unit=ref_unit)
+    axvlines(params.vlines, ax=ax)
+    axhlines(params.hlines, ax=ax)
 
-    if params.ellipses.pop('plot_ellipse', None) and im_list is not None:
-        im = _cycle(im_list, params.reference_idx)
-        data = im.get_array()
+    if params.ellipses.pop('plot_ellipse', None) and img is not None:
+        data = img.get_array()
         if data is not None:
             if data.ndim == 2:
                 X, Y = data.shape
