@@ -41,8 +41,7 @@ from numpy.typing import ArrayLike
 
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
-from visualastro.core.sequences import _cycle
-from visualastro.core.units import get_unit, unit_2_string
+from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
     set_axis_limits, set_title, _set_axis_labels
 )
@@ -156,7 +155,7 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     be passed into a matplotlib function without any contamination
     from visualastro specific keyword arguments.
     """
-    return PlotUtilParams(
+    params = PlotUtilParams(
         reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
         index_spec=_pop_kwargs(kwargs, 'index_spec', config.index_specification),
@@ -182,14 +181,12 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
                 'unit_fmt'
             ),
             prefix='label_',
-            base='label_fontsize',
-            default=config.fontsizes.resolve('axes_labels')
         ),
         wcs_grid=_pop_prefixed(
-            kwargs, 'wcs_grid_', base='wcs_grid', default=config.wcs_grid
+            kwargs, 'wcs_grid_', base='wcs_grid', default=config.wcs_grid.enable
         ),
         gridlines=_pop_prefixed(
-            kwargs, 'grid_', base='gridlines', default=config.gridlines
+            kwargs, 'grid_', base='gridlines', default=config.gridlines.enable
         ),
         colorbar=_pop_prefixed(
             kwargs, 'cbar_', base='colorbar', default=config.colorbar.enable
@@ -198,6 +195,10 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         ellipses=_pop_mapped(kwargs, ('ellipses', 'plot_ellipse')),
         points=_pop_mapped(kwargs, ('points',)),
     )
+    if params.labels.get('fontsize', None) is None:
+        params.labels['fontsize'] = config.fontsizes.resolve('axes_labels')
+
+    return params
 
 
 def _apply_plot_utils(
