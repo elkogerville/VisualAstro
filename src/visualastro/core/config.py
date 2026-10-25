@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-10-10
+Date Modified: 2026-10-25
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -270,6 +270,23 @@ class SpectralLineConfig(PrettyRepr):
     label_rotation: float = 0
 
 @dataclass(slots=True, repr=False)
+class GridConfig(PrettyRepr):
+    enable: bool = False
+    which: Literal['major', 'minor', 'both'] = 'major'
+    color: ColorType = 'k'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
+class WCSGridConfig(PrettyRepr):
+    enable: bool = False
+    color: ColorType = 'w'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
 class DereddenConfig(PrettyRepr):
     method: str | _Unset = _UNSET
     region: str | _Unset = _UNSET
@@ -354,20 +371,6 @@ class VisualAstroConfig(PrettyRepr):
     thorlabs_transparent: bool = False
     thorlabs_darkmode: bool = False
 
-    # figure grid params
-    gridlines: bool = False
-    grid_which: Literal['major', 'minor', 'both'] = 'major'
-    grid_color: ColorType = 'k'
-    grid_linestyle: 'str' = 'dotted'
-    grid_linewidth: float = 0.8
-    grid_alpha: float = 0.8
-
-    wcs_grid: bool = False
-    wcs_grid_color: ColorType = 'w'
-    wcs_grid_linestyle: 'str' = 'dotted'
-    wcs_grid_linewidth: float = 0.8
-    wcs_grid_alpha: float = 0.8
-
     # data params
     normalize_data: bool = False
 
@@ -411,6 +414,8 @@ class VisualAstroConfig(PrettyRepr):
     colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
     contour: ContourConfig = field(default_factory=ContourConfig)
     plot_rug: RugPlotConfig = field(default_factory=RugPlotConfig)
+    gridlines: GridConfig = field(default_factory=GridConfig)
+    wcs_grid: WCSGridConfig = field(default_factory=WCSGridConfig)
 
     # text params
     fontsize: float = 10
