@@ -115,6 +115,7 @@ def get_ax3d(
     if not current_ax.has_data():
         plt.close()
 
+    figsize = _resolve_default(figsize, config.figsize3D)
     fig, ax = ax3d(figsize=figsize, **kwargs)
     return ax
 
@@ -172,6 +173,7 @@ def get_wcsax(
     if wcs is None:
         raise ValueError('No existing WCSAxes found and `wcs` is None.')
 
+    figsize = _resolve_default(figsize, config.figsizeWCS)
     fig, ax = wcsax(wcs, figsize=figsize, **kwargs)
     return ax
 
