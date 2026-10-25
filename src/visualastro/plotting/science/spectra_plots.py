@@ -69,7 +69,7 @@ from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import (
-    set_axis_labels, set_axis_limits
+    set_axis_limits, _set_axis_labels
 )
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
@@ -1092,7 +1092,7 @@ def plot_spectra(
         xlim=params.xlim, ylim=params.ylim,
         xpad=0
     )
-    set_axis_labels(
+    _set_axis_labels(
         _cycle(wavelength_list, config.reference_idx),
         _cycle(flux_list, config.reference_idx),
         ax,
@@ -1279,7 +1279,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                 lw=linewidths, alpha=alphas,
                 rasterized=rasterized)
 
-    set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
+    _set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
 
     if ylim is not None:
         ax.set_ylim(ylim[0], ylim[1])
@@ -1649,7 +1649,7 @@ def fit_gaussian_2_spec(
             label='Gaussian Model'
         )
         # set axis labels and limits
-        set_axis_labels(
+        _set_axis_labels(
             spectral_axis, flux, ax, xlabel, ylabel, unit_bracket_style
         )
         set_axis_limits(

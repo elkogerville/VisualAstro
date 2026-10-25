@@ -974,7 +974,7 @@ def set_title(
     fontsize = _resolve_default(fontsize, config.fontsizes.resolve('title'))
     return ax.set_title(title, loc=loc, pad=pad, fontsize=fontsize, **kwargs)
 
-def set_axis_labels(
+def _set_axis_labels(
     X: u.Quantity | ArrayLike | None,
     Y: u.Quantity | ArrayLike | None,
     ax: maxes.Axes,
@@ -1039,15 +1039,15 @@ def set_axis_labels(
     >>> flux = np.random.random(100) * u.MJy / u.sr
     >>> fig, ax = plt.subplots()
     >>> ax.plot(wavelength, flux)
-    >>> set_axis_labels(wavelength, flux, ax)
+    >>> _set_axis_labels(wavelength, flux, ax)
     # xlabel: 'Wavelength [μm]'
     # ylabel: 'Surface Brightness [MJy/sr]'
 
-    >>> set_axis_labels(wavelength, flux, ax, show_physical_type=False)
+    >>> _set_axis_labels(wavelength, flux, ax, show_physical_type=False)
     # xlabel: '[μm]'
     # ylabel: '[MJy/sr]'
 
-    >>> set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
+    >>> _set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
     # ylabel: 'Custom Flux [MJy/sr]'
 
     Notes

@@ -36,19 +36,20 @@ from typing import Literal
 import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from matplotlib.image import AxesImage
 from numpy.typing import ArrayLike
 
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
 from visualastro.core.sequences import _cycle
-from visualastro.core.units import unit_2_string
+from visualastro.core.units import get_unit, unit_2_string
 from visualastro.plotting.core.axes import (
-    set_axis_labels, set_axis_limits, set_title
+    set_axis_limits, set_title, _set_axis_labels
 )
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
-from visualastro.plotting.core.lines import axhlines, axvlines
+from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcs_grid
 from visualastro.plotting.core.utils import (
     plot_ellipses,
     plot_interactive_ellipse,
@@ -292,7 +293,7 @@ def _apply_plot_utils(
         ax.coords['dec'].set_ticklabel(rotation=90)
 
     else:
-        set_axis_labels(
+        _set_axis_labels(
             x if x is not None else None,
             y if y is not None else None,
             ax=ax,
