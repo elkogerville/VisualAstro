@@ -1,3 +1,9 @@
+"""
+Author: Elko Gerville-Reache
+Date Created: 2025-05-23
+Date Modified: 2026-10-25
+"""
+
 from importlib.metadata import version
 
 __version__ = version('visualastro')
@@ -142,7 +148,9 @@ from visualastro.plotting.core.image_utils import (
     thorlabs_logo,
 )
 from visualastro.plotting.core.legend import legend
-from visualastro.plotting.core.lines import axhlines, axvlines
+from visualastro.plotting.core.lines import (
+    axhlines, axvlines, grid, wcs_grid
+)
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
