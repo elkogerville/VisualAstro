@@ -1,14 +1,14 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Color plotting functions.
 """
 
 from collections.abc import Sequence
 
-from typing import Literal
+from typing import Any, Literal
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -20,25 +20,20 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
-from numpy.typing import NDArray
 
-from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET
+from visualastro.core.config import config
+from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.kwargs import _extract_kwargs, _params_from_explicit
+from visualastro.optional_dependencies._colorspacious import (
+    deltaE as cs_deltaE
 )
-from visualastro.core.data import as_list, to_list
-from visualastro.core.sequences import _unwrap_if_single
-from visualastro.optional_dependencies._colorspacious import deltaE as cs_deltaE
+from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
 from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
-    RGBATuple,
-    RGBTuple,
 )
-from visualastro.plotting.core.colors.transforms import (
-    simulate_colorblindness,
-    _transform_colors
-)
+from visualastro.plotting.core.colors.transforms import simulate_colorblindness
 
 
 def plot_colors(
@@ -589,65 +584,128 @@ def plot_colortable(
     plt.show()
 
 
-def _get_plot_color(
-    color,
-    *,
-    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
-    factor: float | _Unset = _UNSET,
-    cvd_type,
-    severity,
-    fmt
-) -> str | RGBTuple | RGBATuple | None:
-    transform = _resolve_default(transform, config.color_transform)
-    factor = _resolve_default(factor, config.color_transform_factor)
+def _resolve_color_kwargs(
+    kwargs: dict[str, Any], **explicit: Any
+) -> dict[str, Any]:
+    """
+    Resolve color, size, marker and colormap kwargs for a matplotlib call.
 
-    if color is None or isinstance(color, str) and color in {'face', 'none'}:
-         return color
+    Values are collected from `explicit` (arguments exposed in the caller's
+    signature) and `kwargs` (aliases respected), then defaults are applied
+    from `config`. Resolved entries are written back into `kwargs`.
 
-    color = _transform_colors(
-        get_color(color),
-        transform=transform,
-        factor=factor,
-        fmt=fmt
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib. Modified in place:
+        all keys consumed here (including aliases, `cmap_range`, `bad_color`,
+        `under_color`, `over_color`, `transform`, `factor`, `cvd_type`,
+        `severity`) are removed, and the resolved matplotlib keys are set.
+    **explicit : Any, optional
+        Signature-level values, `_UNSET` if omitted. Accepted names:
+        `color`, `c`, `edgecolor`, `facecolor`, `s`, `marker`, `transform`,
+        `factor`, `cvd_type`, `severity`, `cmap`, `cmap_range`, `bad_color`,
+        `under_color`, `over_color`, `norm`, `vmin`, `vmax`, `vcenter`,
+        `gamma`, and `linear_width`.
+
+    Returns
+    -------
+    dict[str, Any]
+        The same `kwargs` object, updated in place.
+
+    Raises
+    ------
+    ValueError
+        If both `c` and `color` are given.
+    TypeError
+        If `explicit` contains a name that is not accepted.
+
+    Notes
+    -----
+    - `c` is passed through `get_value`. `color`, `edgecolor` and `facecolor`
+      are passed through `get_color` with the color modifiers.
+    - `cmap` and `norm` are only set when `c` is given. Otherwise they are
+      popped and discarded.
+    """
+    color_defaults = {
+        'color': None,
+        'c': None,
+        'edgecolor': config.edgecolor,
+        'facecolor': config.facecolor,
+        's': config.scatter_size,
+        'marker': config.marker,
+        'transform': config.color_transform,
+        'factor': config.color_transform_factor,
+        'cvd_type': None,
+        'severity': 100,
+    }
+    cmap_defaults = {
+        'cmap': config.cmap,
+        'cmap_range': (0, 1),
+        'bad_color': None,
+        'under_color': None,
+        'over_color': None,
+    }
+    norm_defaults = {
+        'norm': None,
+        'vmin': None,
+        'vmax': None,
+        'vcenter': None,
+        'gamma': config.gamma,
+        'linear_width': config.linear_width,
+    }
+
+    unknown = explicit.keys() - color_defaults.keys() - cmap_defaults.keys()
+    if unknown:
+        raise TypeError(f'Unexpected explicit arguments: {sorted(unknown)}')
+
+    color_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, color_defaults)
+    )
+    cmap_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, cmap_defaults)
+    )
+    norm_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, norm_defaults)
     )
 
-    if cvd_type is not None:
-        color = simulate_colorblindness(
-            color,
-            cvd_type=cvd_type,
-            severity=severity,
-            fmt=fmt
+    c = color_kw['c']
+    color = color_kw['color']
+    if c is not None and color is not None:
+        raise ValueError("'c' and 'color' are mutually exclusive.")
+    if c is None and color is None:
+        color = config.color
+
+    modifiers = {
+        k: color_kw.pop(k) for k in (
+            'transform', 'factor', 'cvd_type', 'severity'
         )
+    }
+    colors = {
+        'color': color,
+        'edgecolor': color_kw.pop('edgecolor'),
+        'facecolor': color_kw.pop('facecolor'),
+    }
+    kwargs.update({k: v for k, v in color_kw.items() if v is not None})
 
-    return _unwrap_if_single(color)
-
-
-def _resolve_color_kwargs(
-    color: ColorType,
-    c: NDArray | float | int | None,
-    kwargs: dict,
-    cmap: Colormap | str | None = None,
-    norm: Normalize | None = None
-) -> dict:
-    """Resolve `color` and `c` kwargs, giving priority to `c`"""
-    scatter_kwargs = dict(kwargs)
     if c is not None:
-        scatter_kwargs.pop('color', None)
-        scatter_kwargs['c'] = c
+        kwargs['c'] = get_value(c)
+        norm = cmap_kw.pop('norm')
+        cmap = get_cmap(cmap_kw.pop('cmap'), **cmap_kw)
         if cmap is not None:
-            scatter_kwargs['cmap'] = cmap
+            kwargs['cmap'] = cmap
         if norm is not None:
-            scatter_kwargs['norm'] = norm
+            kwargs['norm'] = get_norm(norm, **norm_kw)
 
-    elif color is not None:
-        scatter_kwargs.pop('c', None)
-        scatter_kwargs['color'] = color
+    kwargs.update(
+        {
+            name: get_color(value, **modifiers)
+            for name, value in colors.items()
+            if value is not None
+        }
+    )
 
-    else:
-        scatter_kwargs.pop('c', None)
-        scatter_kwargs.pop('color', None)
-
-    return scatter_kwargs
+    return kwargs
 
 
 def _has_color_mapping(mappable: ScalarMappable) -> bool:
