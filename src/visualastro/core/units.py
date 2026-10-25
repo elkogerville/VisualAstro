@@ -22,7 +22,7 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from visualastro.core.config import (
     config,
