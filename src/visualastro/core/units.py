@@ -22,7 +22,7 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.config import (
     config,
@@ -981,3 +981,26 @@ def _has_unit(*objs) -> bool:
         if isinstance(o, u.Quantity) or hasattr(o, 'unit'):
             return True
     return False
+
+
+def _get_xyplot_units(
+    x: ArrayLike | u.Quantity | None,
+    y: ArrayLike | u.Quantity | None,
+    c: ArrayLike | u.Quantity | None
+) -> tuple[
+    UnitBase | StructuredUnit | None,
+    UnitBase | StructuredUnit | None,
+    UnitBase | StructuredUnit | None
+]:
+    """
+    Get the units of the `x` and `y` plotting inputs,
+    as well as the unit of the `'c'` parameter if it exists.
+
+    This is used for automatic unit labeling of the
+    axes and colorbar.
+    """
+    xunit = get_unit(x)
+    yunit = get_unit(y)
+    cunit = get_unit(c)
+
+    return xunit, yunit, cunit
