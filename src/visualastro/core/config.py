@@ -104,14 +104,49 @@ class FontSizeConfig:
 
     def resolve(self, param) -> float:
         """
-        Method to convert a fontsize parameter from scaling factor to points.
-        Returns `self.size` * `self.param`.
+        Convert a scaling factor to points.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `size`).
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * self.size`.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
+        """
+        return self.with_size(param, self.size)
+
+    def with_size(self, param, size) -> float:
+        """
+        Convert a scaling factor to points relative to `size`.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `size`).
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * size`.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
         """
         if param == 'size':
             raise ValueError(
                 'size is not settable via resolve!'
             )
-        return getattr(self, param) * self.size
+        return getattr(self, param) * size
 
     def update_rcparams(self) -> None:
         """Mutate global rcParams permanently with this config's values."""
