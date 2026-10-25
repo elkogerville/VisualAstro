@@ -43,6 +43,7 @@ def legend(
     bbox_transform: Transform | _Unset = _UNSET,
     linewidth: float | Literal['spines'] | _Unset = _UNSET,
     title: str | _Unset = _UNSET,
+    title_fontsize: int | str | _Unset = _UNSET,
     alignment: Literal['center', 'left', 'right'] | _Unset = _UNSET,
     borderpad: float | _Unset = _UNSET,
     labelspacing: float | _Unset = _UNSET,
@@ -139,6 +140,10 @@ def legend(
         the spines from `ax`. If `_UNSET`, does not set.
     title : str | _Unset, optional, default=_UNSET
         Legend title. If `_UNSET`, uses `config.legend.title`.
+    title_fontsize : int | str | _Unset, optional, default=_UNSET
+        Fontsize for legend title text in points. If `_UNSET`, uses
+        `config.fontsizes.resolve('legend_title')` as a scaling factor relative
+        to `config.fontsizes.size`.
     alignment : {'center', 'left', 'right'} | _Unset, optional, default=_UNSET
         Legend alignment. If `_UNSET`, uses `config.legend.alignment`.
     borderpad : float | _Unset, optional, default=_UNSET
@@ -196,6 +201,7 @@ def legend(
             _param('mode', mode, None),
             _param('bbox_transform', bbox_transform, None),
             _param('title', title, config.legend.title),
+            _param('title_fontsize', title_fontsize, config.fontsizes.resolve('legend_title')),
             _param('alignment', alignment, config.legend.alignment),
             _param('borderpad', borderpad, config.legend.borderpad),
             _param('labelspacing', labelspacing, config.legend.labelspacing),
