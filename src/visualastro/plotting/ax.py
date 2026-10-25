@@ -287,7 +287,7 @@ class ax:
                               concatenate=False, return_spectra=False,
                               plot_normalize=False, use_samecolor=True,
                               colors=None, **kwargs):
-        '''
+        """
         Convenience wrapper for `plot_combine_spectrum`, to facilitate stiching
         spectra together.
 
@@ -356,7 +356,7 @@ class ax:
                 Legend location (e.g., 'best', 'upper right').
             - xlabel, ylabel : str, optional, default=None
                 Axis labels.
-            - unit_bracket_style : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
+            - unit_bracket_style : {'round', 'square'}, optional, default=`config.unit_bracket_style`
                 If `'round`' displays `extracted_spectra` unit as (unit). If `'square`' as [unit].
             - `figsize` : tuple of float, default=`config.figsize`
                 Figure size in inches.
@@ -378,8 +378,8 @@ class ax:
         -----
         - If `concatenate` is True, all spectra are merged and plotted as one line.
         - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
-        wavelength interval before plotting.
-        '''
+          wavelength interval before plotting.
+        """
         # figure params
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)
@@ -412,7 +412,7 @@ class ax:
     def plot_density_histogram(X, Y, bins=None, xlog=None, ylog=None,
                                xlog_hist=None, ylog_hist=None, histtype=None,
                                normalize=True, colors=None, **kwargs):
-        '''
+        """
         Convenience wrapper for `plot_density_histogram`, to plot 2D scatter
         distributions with normalizable histograms of the distributions.
 
@@ -498,7 +498,7 @@ class ax:
                 If True, saves the figure to disk using `savefig`.
             - `dpi` : int, default=`config.savefig.dpi`
                 Resolution (dots per inch) for saved figure.
-        '''
+        """
         # figure params
         figsize = kwargs.pop('figsize', config.figsize)
         style = kwargs.pop('style', config.style)

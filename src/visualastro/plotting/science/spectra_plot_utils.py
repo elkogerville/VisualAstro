@@ -495,10 +495,10 @@ def spectral_axis_label(
     idx : int | tuple[int, int] | None
         Index or index range specifying the slice:
 
-        * `i` → label corresponding to spectral_axis[i]
-        * `[i]` → label corresponding to spectral_axis[i]
-        * `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
-        * `None` → label corresponding to midpoint of entire spectral axis
+        - `i` → label corresponding to spectral_axis[i]
+        - `[i]` → label corresponding to spectral_axis[i]
+        - `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
+        - `None` → label corresponding to midpoint of entire spectral axis
 
     ax : matplotlib.axes.Axes
         Target matplotlib Axes on which the label will be rendered.

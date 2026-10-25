@@ -40,7 +40,8 @@ def plot_colors(
     color: ColorType | int | Sequence[ColorType] | None = None,
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
     severity: int = 100,
-    show_color_name: bool = True
+    show_color_name: bool = True,
+    width: float | int | None = 8
 ) -> None:
     """
     Visualize one or multiple colorsets.
@@ -50,14 +51,17 @@ def plot_colors(
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
-    cvd_type : str | None, optional, default=None
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to
         `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
+        If `None`, no colorblindness simulation is applied.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
     show_color_name : bool, optional, default=True
         If `True`, also plots the colorset name. Only applicable to VisualAstro
         colorsets (as opposed to a sequence of colors).
+    width : float | int | None, optional, default=8
+        Width of the colorset plot.
 
     Examples
     --------
@@ -88,7 +92,7 @@ def plot_colors(
     pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))
     factor = 0.3 if n_rows > 10 else 1
-    fig, ax = plt.subplots(figsize=(8, n_rows*factor), layout='constrained')
+    fig, ax = plt.subplots(figsize=(width, n_rows*factor), layout='constrained')
     ax.axis('off')
     row = 0
     for i, colorset in enumerate(colorsets):
@@ -230,11 +234,11 @@ def plot_color_deltaE(
     normalize : bool, optional, default=False
         If `True`:
 
-        * Normal deltaE matrix is scaled by its own max value (relative distance).
-        * CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
-        retention). A ratio of 1 means the color pair remains equally
-        distinguishable under CVD as under normal vision; lower values indicate
-        greater loss of distinguishability.
+        - Normal deltaE matrix is scaled by its own max value (relative distance).
+        - CVD matrices show the ratio CVD deltaE / normal deltaE (distinguishability
+          retention). A ratio of 1 means the color pair remains equally
+          distinguishable under CVD as under normal vision; lower values indicate
+          greater loss of distinguishability.
 
     wspace : float, optional, default=0.4
         Horizontal spacing between subplots, passed to `gridspec`. Only used
@@ -457,13 +461,13 @@ def plot_colortable(
     colors : dict[str, ColorType] | str | None, optional, default=None
         Dictionary containing colors to plot, or one of the following:
 
-        * `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
-        * `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
-        * `'xkcd'` or `'xkcd_colors'`: XKCD named colors
-        * `'visualastro'` or `'va'`: VisualAstro named colors
-        * `'base'` or `'base_colors'`: Matplotlib base colors
-        * `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
-        * `'all'` or `'all_colors'`: All of the above
+        - `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+        - `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+        - `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+        - `'visualastro'` or `'va'`: VisualAstro named colors
+        - `'base'` or `'base_colors'`: Matplotlib base colors
+        - `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+        - `'all'` or `'all_colors'`: All of the above
 
     ncols : int, optional, default=4
         Number of columns to plot.

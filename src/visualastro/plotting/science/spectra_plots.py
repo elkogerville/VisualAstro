@@ -106,15 +106,15 @@ def extract_cube_spectra(
         Specifies how the spectral cube should be traversed during flux
         extraction. This controls memory usage and performance for large cubes.
 
-            * 'cube' :
+            - 'cube' :
                 Load and operate on the entire cube in memory. This is the
                 simplest mode but may be slow or disabled for very large datasets
                 unless `cube.allow_huge_operations = True` is set.
-            * 'slice' :
+            - 'slice' :
                 Process the cube slice-by-slice along the spectral axis. This
                 avoids loading the full cube into memory and is recommended for
                 moderately large datasets.
-            * 'ray' :
+            - 'ray' :
                 Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
                 load at the cost of speed. Recommended for extremely large cubes
                 or low-memory environments.
@@ -157,61 +157,61 @@ def extract_cube_spectra(
 
         Supported keywords:
 
-        * `how` : str, optional, default=`config.spectral_cube_extraction_mode`
-            Alias for `extract_mode`.
-        * `convention` : str, optional
-            Doppler convention.
-        * `Rv` : float, optional, default=`config.deredden.Rv`
-            Dereddening parameter.
-        * `Ebv` : float, optional, default=`config.deredden.Ebv`
-            Dereddening parameter.
-        * `deredden_method` : str, optional, default=`config.deredden.method`
-            Extinction law to use.
-        * `deredden_region` : str, optional, default=`config.deredden.region`
-            Region/environment for WD01 extinction law.
-        * `figsize` : tuple, optional, default=`config.figsize`
-            Figure size for plotting.
-        * `style` : str, optional, default=`config.style`
-            Plotting style.
-        * `savefig` : bool, optional, default=`config.savefig.enable`
-            Whether to save the figure to disk.
-        * `dpi` : int, optional, default=`config.savefig.dpi`
-            Figure resolution for saving.
-        * `rasterized` : bool, optional, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        * `colors`, `color`, `c` : list[colors] | None, optional, default=None
-            Colors to use for each dataset. If None, default
-            color cycle is used.
-        * `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        * `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-            Line width for the plotted lines.
-        * `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-        * `zorders`, `zorder` : float | None, optional, default=None
-            Order of line placement. If None, will increment by 1 for
-            each additional line plotted.
-        * `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        * `xlim` : tuple, optional, default=None
-            Wavelength range to display.
-        * `ylim` : tuple, optional
-            Flux range to display.
-        * `labels`, `label`, `l` : str | list[str], optional, default=None
-            Legend labels.
-        * `loc` : str, optional, default=`config.legend.loc`
-            Location of legend.
-        * `xlabel` : str, optional
-            Label for the x-axis.
-        * `ylabel` : str, optional
-            Label for the y-axis.
-        * `text_loc` : list[float], optional, default=`config.text_loc`
-            Location for emission line annotation text in axes coordinates.
-        * `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
-            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+        - `how` : str, optional, default=`config.spectral_cube_extraction_mode`
+          Alias for `extract_mode`.
+        - `convention` : str, optional
+          Doppler convention.
+        - `Rv` : float, optional, default=`config.deredden.Rv`
+          Dereddening parameter.
+        - `Ebv` : float, optional, default=`config.deredden.Ebv`
+          Dereddening parameter.
+        - `deredden_method` : str, optional, default=`config.deredden.method`
+          Extinction law to use.
+        - `deredden_region` : str, optional, default=`config.deredden.region`
+          Region/environment for WD01 extinction law.
+        - `figsize` : tuple, optional, default=`config.figsize`
+          Figure size for plotting.
+        - `style` : str, optional, default=`config.style`
+          Plotting style.
+        - `savefig` : bool, optional, default=`config.savefig.enable`
+          Whether to save the figure to disk.
+        - `dpi` : int, optional, default=`config.savefig.dpi`
+          Figure resolution for saving.
+        - `rasterized` : bool, optional, default=`config.rasterized`
+          Whether to rasterize plot artists. Rasterization
+          converts the artist to a bitmap when saving to
+          vector formats (e.g., PDF, SVG), which can
+          significantly reduce file size for complex plots.
+        - `colors`, `color`, `c` : list[colors] | None, optional, default=None
+          Colors to use for each dataset. If None, default
+          color cycle is used.
+        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
+          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
+          Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
+          The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `zorders`, `zorder` : float | None, optional, default=None
+          Order of line placement. If None, will increment by 1 for
+          each additional line plotted.
+        - `cmap` : str, optional, default=`config.cmap`
+          Colormap to use if `colors` is not provided.
+        - `xlim` : tuple, optional, default=None
+          Wavelength range to display.
+        - `ylim` : tuple, optional
+          Flux range to display.
+        - `labels`, `label`, `l` : str | list[str], optional, default=None
+          Legend labels.
+        - `loc` : str, optional, default=`config.legend.loc`
+          Location of legend.
+        - `xlabel` : str, optional
+          Label for the x-axis.
+        - `ylabel` : str, optional
+          Label for the y-axis.
+        - `text_loc` : list[float], optional, default=`config.text_loc`
+          Location for emission line annotation text in axes coordinates.
+        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
+          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
@@ -388,8 +388,8 @@ def extract_cube_pixel_spectra(
         Index or indices specifying which cube slice to plot
         for the spatial map plot:
 
-        * `i` or `[i]` -> returns `cube[i]`
-        * `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
+        - `i` or `[i]` -> returns `cube[i]`
+        - `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
 
         If `None`, uses `map_idx=0`.
     legend : bool, optional, default=True
@@ -410,25 +410,25 @@ def extract_cube_pixel_spectra(
         Container object holding the results of the extraction. It exposes
         the following attributes:
 
-        * `spectra` : SpectrumPlus | list[SpectrumPlus]
-            Extracted per-pixel spectra. If a single index is selected,
-            this is returned as a single `SpectrumPlus` instance;
-            otherwise, a list is returned.
-        * `cube_array` : NDArray
-            Copy of the original cube, with all pixels set to NaN
-            other than the pixels corresponding to `extract_idx`.
-        * `extract_idx` : ndarray of int, shape (N,)
-            Indices of the extracted spectra corresponding to the ordering
-            of valid spatial pixels.
-        * `coords` : ndarray of int, shape (N, 2)
-            Spatial coordinates of extracted pixels in `(y, x)` order.
-        * `colors` : list
-            Colors assigned to each extracted pixel/spectrum.
-        * `labels` : list[str]
-            Human-readable labels of the form `<idx>: (x=<x>, y=<y>)`.
-        * `combined_spectrum` : SpectrumPlus | None
-            Combined spectrum computed using `combine_method` if
-            `combine_spectra=True`; otherwise None.
+        - `spectra` : SpectrumPlus | list[SpectrumPlus]
+          Extracted per-pixel spectra. If a single index is selected,
+          this is returned as a single `SpectrumPlus` instance;
+          otherwise, a list is returned.
+        - `cube_array` : NDArray
+          Copy of the original cube, with all pixels set to NaN
+          other than the pixels corresponding to `extract_idx`.
+        - `extract_idx` : ndarray of int, shape (N,)
+          Indices of the extracted spectra corresponding to the ordering
+          of valid spatial pixels.
+        - `coords` : ndarray of int, shape (N, 2)
+          Spatial coordinates of extracted pixels in `(y, x)` order.
+        - `colors` : list
+          Colors assigned to each extracted pixel/spectrum.
+        - `labels` : list[str]
+          Human-readable labels of the form `<idx>: (x=<x>, y=<y>)`.
+        - `combined_spectrum` : SpectrumPlus | None
+          Combined spectrum computed using `combine_method` if
+          `combine_spectra=True`; otherwise None.
     """
     _require_dependency('spectral-cube', 'specutils')
     _offer_dependency('tqdm')
@@ -688,13 +688,13 @@ def plot_extracted_pixel_map(
         Object containing the results of a pixel-spectra extraction.
         Must expose the following attributes:
 
-        * `cube_array` : 3D NDArray
+        - `cube_array` : 3D NDArray
           NumPy 3D array to plot spatial map onto.
-        * `extract_idx` : ArrayLike of int
+        - `extract_idx` : ArrayLike of int
           Indices of the extracted pixel spectra.
-        * `coords` : ArrayLike, shape `(N, 2)`
+        - `coords` : ArrayLike, shape `(N, 2)`
           Spatial pixel coordinates in `(y, x)` order.
-        * `colors` : sequence
+        - `colors` : sequence
           Colors assigned to each extracted pixel, matching the spectral plot.
 
     cube : DataCube | SpectralCube | Quantity | np.ndarray, optional, default=None
@@ -714,9 +714,9 @@ def plot_extracted_pixel_map(
         Index or indices specifying the slice along the first axis
         for the spatial map plot:
 
-            * `i` -> returns `cube[i]`
-            * `[i]` -> returns `cube[i]`
-            * `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
+            - `i` -> returns `cube[i]`
+            - `[i]` -> returns `cube[i]`
+            - `[i, j]` -> returns `cube[i:j+1].sum(axis=0)`
 
         If `None`, uses `idx=0`.
     savefig : bool, optional, default=False
@@ -738,12 +738,12 @@ def plot_extracted_pixel_map(
 
     Notes
     -----
-    * Spatial coordinates are interpreted in `(y, x)` order.
-    * Extracted pixels are rendered as an RGBA overlay for efficient,
+    - Spatial coordinates are interpreted in `(y, x)` order.
+    - Extracted pixels are rendered as an RGBA overlay for efficient,
       vectorized plotting.
-    * This function is intended to be used in conjunction with
+    - This function is intended to be used in conjunction with
       `extract_cube_pixel_spectra` and its returned extraction object.
-    * For best results, set `idx` to the correct cube slice to preserve
+    - For best results, set `idx` to the correct cube slice to preserve
       the correct mapping between pixels and indices.
     """
     params = _resolve_kwargs(
@@ -886,54 +886,54 @@ def plot_spectra(
 
         Supported keywords:
 
-        * `rasterized` : bool, optional, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        * `color` or `c` : list[colors] | None, optional, default=None
-            Aliases for `colors`.
-        * `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        * `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-            Line width for the plotted lines.
-        * `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-        * `zorders`, `zorder` : float, optional, default=None
-            Order of line placement. If None, will increment by 1 for
-            each additional line plotted.
-        * `cmap` : str, optional, default=`config.cmap`
-            Colormap to use if `colors` is not provided.
-        * `xlim` : tuple, optional, default=None
-            Wavelength range to display.
-        * `ylim` : tuple, optional
-            Flux range to display.
-        * `labels`, `label`, `l` : str | list[str], optional, default=None
-            Legend labels.
-        * `loc` : str, optional, default=`config.legend.loc`
-            Location of legend.
-        * `xlabel` : str, optional
-            Label for the x-axis.
-        * `ylabel` : str, optional
-            Label for the y-axis.
-        * `text_loc` : list[float], optional, default=`config.text_loc`
-            Location for emission line annotation text in axes coordinates.
-        * `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
-            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+        - `rasterized` : bool, optional, default=`config.rasterized`
+          Whether to rasterize plot artists. Rasterization
+          converts the artist to a bitmap when saving to
+          vector formats (e.g., PDF, SVG), which can
+          significantly reduce file size for complex plots.
+        - `color` or `c` : list[colors] | None, optional, default=None
+          Aliases for `colors`.
+        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
+          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
+          Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
+          The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `zorders`, `zorder` : float, optional, default=None
+          Order of line placement. If None, will increment by 1 for
+          each additional line plotted.
+        - `cmap` : str, optional, default=`config.cmap`
+          Colormap to use if `colors` is not provided.
+        - `xlim` : tuple, optional, default=None
+          Wavelength range to display.
+        - `ylim` : tuple, optional
+          Flux range to display.
+        - `labels`, `label`, `l` : str | list[str], optional, default=None
+          Legend labels.
+        - `loc` : str, optional, default=`config.legend.loc`
+          Location of legend.
+        - `xlabel` : str, optional
+          Label for the x-axis.
+        - `ylabel` : str, optional
+          Label for the y-axis.
+        - `text_loc` : list[float], optional, default=`config.text_loc`
+          Location for emission line annotation text in axes coordinates.
+        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
+          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
     lines : Line2D | list[Line2D] | PlotSpectrum
         The plotted line object(s) created by `Axes.plot`.
 
-        * If `plot_continuum` is False, returns a single `Line2D` object
+        - If `plot_continuum` is False, returns a single `Line2D` object
           or a list of `Line2D` objects corresponding to the main spectrum.
-        * If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
+        - If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
           with the following fields:
 
-            * `lines` : Line2D | list[Line2D]
+            - `lines` : Line2D | list[Line2D]
               The plotted spectrum line(s).
-            * `continuum_lines` : Line2D | list[Line2D]
+            - `continuum_lines` : Line2D | list[Line2D]
               The plotted continuum fit line(s), if available.
     """
     _require_dependency('specutils')
@@ -1159,31 +1159,31 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
 
         Supported keywords:
 
-        * `rasterized` : bool, optional, default=`config.rasterized`
-            Whether to rasterize plot artists. Rasterization
-            converts the artist to a bitmap when saving to
-            vector formats (e.g., PDF, SVG), which can
-            significantly reduce file size for complex plots.
-        * `ylim` : tuple, optional, default=None
-            y-axis limits as (ymin, ymax).
-        * `color` or `c` : list[colors] | None, optional, default=None
-            Aliases for `colors`.
-        * `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-            Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        * `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-            Line width for the plotted lines.
-        * `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-            The alpha blending value, between 0 (transparent) and 1 (opaque).
-        * `cmap` : str, optional, default=`config.cmap`
-            Colormap name for generating colors.
-        * `label` : str, optional, default=None.
-            Label for the plotted spectrum.
-        * `loc` : str, optional, default=`config.legend.loc`
-            Legend location (e.g., 'best', 'upper right').
-        * `xlabel`, `ylabel` : str, optional, default=None
-            Axis labels.
-        * `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
-            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+        - `rasterized` : bool, optional, default=`config.rasterized`
+          Whether to rasterize plot artists. Rasterization
+          converts the artist to a bitmap when saving to
+          vector formats (e.g., PDF, SVG), which can
+          significantly reduce file size for complex plots.
+        - `ylim` : tuple, optional, default=None
+          y-axis limits as (ymin, ymax).
+        - `color` or `c` : list[colors] | None, optional, default=None
+          Aliases for `colors`.
+        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
+          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
+        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
+          Line width for the plotted lines.
+        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
+          The alpha blending value, between 0 (transparent) and 1 (opaque).
+        - `cmap` : str, optional, default=`config.cmap`
+          Colormap name for generating colors.
+        - `label` : str, optional, default=None.
+          Label for the plotted spectrum.
+        - `loc` : str, optional, default=`config.legend.loc`
+          Legend location (e.g., 'best', 'upper right').
+        - `xlabel`, `ylabel` : str, optional, default=None
+          Axis labels.
+        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
+          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
 
     Returns
     -------
@@ -1194,9 +1194,9 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
     Notes
     -----
 
-    * If `concatenate` is True, all spectra are merged and plotted as one line.
-    * If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
-    wavelength interval before plotting.
+    - If `concatenate` is True, all spectra are merged and plotted as one line.
+    - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
+      wavelength interval before plotting.
     """
     _require_dependency('specutils')
     # ---- KWARGS ----
@@ -1324,9 +1324,9 @@ def fit_gaussian_2_spec(
     model : {'gaussian', 'gaussian_line', 'gaussian_continuum'} | None, optional, default=None
         Type of Gaussian model to fit:
 
-        * 'gaussian' : standard Gaussian
-        * 'gaussian_line' : Gaussian with linear continuum
-        * 'gaussian_continuum' : Gaussian with computed continuum array
+        - 'gaussian' : standard Gaussian
+        - 'gaussian_line' : Gaussian with linear continuum
+        - 'gaussian_continuum' : Gaussian with computed continuum array
 
         The continuum can be computed with fit_continuum().
         If None, uses `config.gaussian_model`.
@@ -1380,29 +1380,29 @@ def fit_gaussian_2_spec(
 
         Supported keywords:
 
-        * `figsize` : list | tuple, optional, default=`config.figsize`
-            Figure size.
-        * `style` : str | {'astro', 'latex', 'minimal', 'default'}, optional, default=`config.style`
-            Plot style used. Can either be a Matplotlib mplstyle
-            or an included VisualAstro style.
-        * `xlim` : tuple, optional, default=None
-            Wavelength range for plotting. If None, uses `wave_range`.
-        * `plot_type` : {'plot', 'scatter'}, optional, default='plot'
-            Matplotlib plotting style to use.
-        * `label` : str, optional, default=None
-            Spectrum legend label.
-        * `xlabel` : str, optional, default=None
-            Plot x-axis label.
-        * `ylabel` : str, optional, default=None
-            Plot y-axis label.
-        * `colors` : str | list, optional, default=`config.color`
-            Plot colors. If None, will use default VisualAstro color colorset.
-        * `unit_bracket_style` : Literal['round', 'square'], optional, default=`config.unit_bracket_style`
-            If `'round`' displays spectra units as (unit). If `'square`' as [unit].
-        * `savefig` : bool, optional, default=`config.savefig.enable`
-            If True, save current figure to disk.
-        * `dpi` : float | int, optional, default=`config.savefig.dpi`
-            Resolution in dots per inch.
+        - `figsize` : list | tuple, optional, default=`config.figsize`
+          Figure size.
+        - `style` : str | {'astro', 'latex', 'minimal', 'default'}, optional, default=`config.style`
+          Plot style used. Can either be a Matplotlib mplstyle
+          or an included VisualAstro style.
+        - `xlim` : tuple, optional, default=None
+          Wavelength range for plotting. If None, uses `wave_range`.
+        - `plot_type` : {'plot', 'scatter'}, optional, default='plot'
+          Matplotlib plotting style to use.
+        - `label` : str, optional, default=None
+          Spectrum legend label.
+        - `xlabel` : str, optional, default=None
+          Plot x-axis label.
+        - `ylabel` : str, optional, default=None
+          Plot y-axis label.
+        - `colors` : str | list, optional, default=`config.color`
+          Plot colors. If None, will use default VisualAstro color colorset.
+        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
+          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+        - `savefig` : bool, optional, default=`config.savefig.enable`
+          If True, save current figure to disk.
+        - `dpi` : float | int, optional, default=`config.savefig.dpi`
+          Resolution in dots per inch.
 
     Returns
     -------
@@ -1417,9 +1417,9 @@ def fit_gaussian_2_spec(
         GaussianHandles : namedtuple (when `return_fit_params=False`):
             Simplified namedtuple with key results:
 
-            * flux, FWHM, mu : Quantity
+            - flux, FWHM, mu : Quantity
                 Integrated flux, full width at half maximum, and center position.
-            * flux_error, FWHM_error, mu_error : Quantity
+            - flux_error, FWHM_error, mu_error : Quantity
                 1σ uncertainties on the above quantities.
     """
     _require_dependency('specutils')
