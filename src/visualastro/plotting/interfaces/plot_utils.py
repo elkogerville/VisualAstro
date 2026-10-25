@@ -74,8 +74,6 @@ class PlotUtilParams:
         Vertical line positions. Forwarded to `axvlines` with `ref_unit`.
     hlines : Sequence[float] | None
         Horizontal line positions. Forwarded to `axhline` with `ref_unit`.
-    ticklabel_fontsize : float
-        Major tick label size for both axes.
     compute_limits : bool
         If False, `set_axis_limits` is skipped.
     legend : dict[str, Any]
@@ -133,13 +131,14 @@ class PlotUtilParams:
     index_spec: tuple[int, int] | Literal['implicit', 'explicit']
     vlines: Sequence[float] | None
     hlines: Sequence[float] | None
-    ticklabel_fontsize: float
     compute_limits: bool
+    fontsize: float
 
     legend: dict
     title: dict
     limits: dict
     labels: dict
+    tick: dict
     gridlines: dict
     wcs_grid: dict
     colorbar: dict
@@ -161,10 +160,10 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         index_spec=_pop_kwargs(kwargs, 'index_spec', config.index_specification),
         vlines=_pop_kwargs(kwargs, 'vlines', None),
         hlines=_pop_kwargs(kwargs, 'hlines', None),
-        ticklabel_fontsize=config.fontsizes.resolve('tick_labels'),
         compute_limits=_pop_kwargs(
             kwargs, 'compute_limits', config.axes.compute_limits
         ),
+        fontsize=_pop_kwargs(kwargs, 'fontsize', config.fontsizes.size),
 
         legend=_pop_prefixed(kwargs, 'legend_', base='legend', default=True),
         title=_pop_prefixed(kwargs, 'title_', base='title', default=False),
@@ -182,6 +181,7 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
             ),
             prefix='label_',
         ),
+        tick=_pop_prefixed(kwargs, 'tick_'),
         wcs_grid=_pop_prefixed(
             kwargs, 'wcs_grid_', base='wcs_grid', default=config.wcs_grid.enable
         ),
@@ -195,8 +195,23 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         ellipses=_pop_mapped(kwargs, ('ellipses', 'plot_ellipse')),
         points=_pop_mapped(kwargs, ('points',)),
     )
-    if params.labels.get('fontsize', None) is None:
-        params.labels['fontsize'] = config.fontsizes.resolve('axes_labels')
+
+    _FONTSIZE_KEYS = [
+        # (params attr, config key, field in params attr)
+        ('labels', 'axes_labels', 'fontsize'),
+        ('tick', 'tick_labels', 'fontsize'),
+        ('title', 'title', 'fontsize'),
+        ('legend', 'legend', 'fontsize'),
+        ('legend', 'legend_title', 'title_fontsize'),
+        ('text', 'text', 'fontsize'),
+        ('colorbar', 'colorbar_label', 'fontsize'),
+        ('colorbar', 'colorbar_tick_labels', 'tick_fontsize'),
+    ]
+
+    for attr, key, field in _FONTSIZE_KEYS:
+        group = getattr(params, attr)
+        if group.get(field) is None:
+            group[field] = config.fontsizes.with_size(key, params.fontsize)
 
     return params
 
@@ -266,9 +281,8 @@ def _apply_plot_utils(
     # POST SETTING AXIS LIMITS
     # ------------------------
     ax.tick_params(
-        axis='both',
-        which='major',
-        labelsize=params.ticklabel_fontsize,
+        labelsize=params.tick.pop('fontsize'),
+        **params.tick
     )
 
     if title := params.title.pop('title', None):
