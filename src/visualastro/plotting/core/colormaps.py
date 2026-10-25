@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from typing import Literal
 import warnings
 
+from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib as mpl
 from matplotlib.axes import Axes
 from matplotlib.collections import PathCollection
@@ -21,12 +22,16 @@ from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
 import numpy as np
 
-from visualastro.core.config import config
+from visualastro.core.config import config, _Unset, _UNSET
 from visualastro.core.data import to_list
-from visualastro.optional_dependencies.register import _offer_dependency, _require_dependency
+from visualastro.core.kwargs import _resolve_default
+from visualastro.optional_dependencies.register import (
+    _offer_dependency, _require_dependency
+)
 from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
 from visualastro.optional_dependencies._colorspacious import cspace_converter
 from visualastro.optional_dependencies._tol_colors import _HAS_TOLCOLORS
+from visualastro.plotting.core.colors.utils import _is_colorset
 
 
 def get_cmap(
@@ -75,7 +80,10 @@ def get_cmap(
             'cmap_range must be a tuple[min, max]!'
         )
 
-    out_cmap = plt.get_cmap(cmap)
+    if isinstance(cmap, str) and _is_colorset(cmap) and not _is_valid_cmap(cmap):
+        out_cmap = create_cmap(cmap)
+    else:
+        out_cmap = plt.get_cmap(cmap)
     if cm_range != (0, 1):
         colors = out_cmap(np.linspace(cm_range[0], cm_range[1], N))
         out_cmap = create_cmap(colors, N=N, name=out_cmap.name + '_sub')
