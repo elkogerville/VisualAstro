@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-08
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Spectra plot utility functions.
 """
@@ -12,7 +12,7 @@ from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
-from matplotlib.typing import ColorType
+from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
@@ -59,6 +59,7 @@ def spectral_line_marker(
     fontsize: float | _Unset = _UNSET,
     color: ColorType | _Unset = _UNSET,
     linewidth: float = 0.7,
+    linestyle: LineStyleType = 'dashed',
     va: Literal['top', 'bottom', 'center'] = 'top',
     **kwargs
 ) -> None:
@@ -140,7 +141,9 @@ def spectral_line_marker(
         Color of markers/lines and label text. If `_UNSET`, uses
         `config.axline.color`.
     linewidth : float, optional, default=0.7
-        Line width of markers/lines. `lw` in `**kwargs` takes precedence.
+        Linewidth of vlines/markers.
+    linestyle : LineStyleType, optional, default='dashed'
+        Linestyle of the vlines/markers.
     va : {'top', 'bottom', 'center'}, optional, default='top'
         Vertical alignment of the label in `style='vline'`.
     **kwargs
@@ -185,8 +188,6 @@ def spectral_line_marker(
                 f'got: {type(label).__name__}'
             )
 
-    lw = kwargs.pop('lw', linewidth)
-
     params = _resolve_kwargs(
         kwargs,
         [
@@ -198,6 +199,8 @@ def spectral_line_marker(
             _param('rotation', rotation, config.spectral_line_marker.label_rotation),
             _param('fontsize', fontsize, config.fontsizes.resolve('text')),
             _param('color', color, config.axline.color),
+            _param('linewidth', linewidth, 0.7),
+            _param('linestyle', linestyle, 'dashed'),
         ],
     )
     ax = get_ax(ax)
@@ -244,7 +247,13 @@ def spectral_line_marker(
             anchor_y, xycoords = float(get_value(y)), 'data'
 
         for x_val, lab in zip(x_raw, labels):
-            axvlines(x_val, color=params.color, lw=lw, **kwargs)
+            axvlines(
+                x_val,
+                color=params.color,
+                lw=params.linewidth,
+                ls=params.linestyle,
+                **kwargs
+            )
             if lab is None:
                 continue
             ax.annotate(
@@ -273,7 +282,13 @@ def spectral_line_marker(
 
     x_lo, x_hi = x_vals[0], x_vals[-1]
 
-    ax.vlines(x_vals, y_val, y_val + h_val, color=params.color, lw=lw, **kwargs)
+    ax.vlines(
+        x_vals, y_val, y_val + h_val,
+        color=params.color,
+        lw=params.linewidth,
+        ls=params.linestyle,
+        **kwargs
+    )
 
     h_lo, h_hi = x_lo, x_hi
     if extend_val is not None:
@@ -289,7 +304,10 @@ def spectral_line_marker(
     if extend_val is not None or len(x_vals) > 1:
         ax.hlines(
             y_val + h_val, h_lo, h_hi,
-            color=params.color, lw=lw, **kwargs
+            color=params.color,
+            lw=params.linewidth,
+            ls=params.linestyle,
+            **kwargs
         )
 
     if label is not None:
