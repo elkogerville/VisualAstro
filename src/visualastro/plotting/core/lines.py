@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Hlines and vlines utility functions.
 """
@@ -11,6 +11,7 @@ from typing import Literal
 
 import astropy.units as u
 from astropy.units import Equivalency, StructuredUnit, UnitBase
+from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
@@ -19,7 +20,7 @@ from visualastro.core.array_types import _is_1d, _is_iterable
 from visualastro.core.config import config, _Unset, _UNSET
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param
-from visualastro.plotting.core.axes import get_ax
+from visualastro.plotting.core.axes import get_ax, get_wcsax
 
 
 def axvlines(
@@ -240,3 +241,141 @@ def _axlines(
             line_list.append(draw(line, **params, **kwargs))
 
     return line_list
+
+
+def grid(
+    *,
+    ax: maxes.Axes | None = None,
+    visible: bool | None = True,
+    which: Literal['major', 'minor', 'both'] = 'major',
+    axis: Literal['both', 'x', 'y'] = 'both',
+    color: ColorType | _Unset = _UNSET,
+    linestyle: LineStyleType | _Unset = _UNSET,
+    linewidth: float | _Unset = _UNSET,
+    alpha: float | _Unset = _UNSET,
+    zorder: float | _Unset = _UNSET,
+    **kwargs,
+) -> None:
+    """
+    Add gridlines on a Matplotlib axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        Target axes. If None, the current axes are used.
+    visible : bool | None, optional, default=True
+        Whether to show the gridlines. If None, the visibility is toggled
+        unless `kwargs` are given (Matplotlib behavior).
+    which : {'major', 'minor', 'both'}, optional, default='major'
+        Tick set to which the gridlines apply.
+    axis : {'both', 'x', 'y'}, optional, default='both'
+        Axis to which the gridlines apply.
+    color : ColorType, optional, default=config.gridlines.color
+        Gridline color.
+    linestyle : LineStyleType, optional, default=config.gridlines.linestyle
+        Gridline style.
+    linewidth : float, optional, default=config.gridlines.linewidth
+        Gridline width in points.
+    alpha : float, optional, default=config.gridlines.alpha
+        Gridline opacity, in the range [0, 1].
+    zorder : float, optional, default=config.zorder.gridlines
+        Drawing order of the gridlines.
+    **kwargs
+        Additional keyword arguments forwarded to `matplotlib.axes.Axes.grid`
+        (i.e. `matplotlib.lines.Line2D` properties).
+
+    Returns
+    -------
+    None
+
+    See Also
+    --------
+    matplotlib.axes.Axes.grid : Underlying Matplotlib implementation.
+    wcs_grid : Equivalent function for WCS axes.
+    """
+    params = _extract_kwargs(
+        kwargs,
+        params=[
+            _param('color', color, config.gridlines.color),
+            _param('linestyle', linestyle, config.gridlines.linestyle),
+            _param('linewidth', linewidth, config.gridlines.linewidth),
+            _param('alpha', alpha, config.gridlines.alpha),
+            _param('zorder', zorder, config.zorder.gridlines),
+        ]
+    )
+    kwargs.update(params)
+    ax = get_ax(ax)
+    ax.grid(
+        visible=visible,
+        which=which,
+        axis=axis,
+        **kwargs
+    )
+
+
+def wcs_grid(
+    *,
+    ax: WCSAxes | None = None,
+    draw_grid: bool | None = True,
+    grid_type: Literal['lines', 'contours'] | None = None,
+    color: ColorType | _Unset = _UNSET,
+    linestyle: LineStyleType | _Unset = _UNSET,
+    linewidth: float | _Unset = _UNSET,
+    alpha: float | _Unset = _UNSET,
+    zorder: float | _Unset = _UNSET,
+    **kwargs,
+) -> None:
+    """
+    Add coordinate gridlines on an Astropy WCS axes.
+
+    Parameters
+    ----------
+    ax : astropy.visualization.wcsaxes.WCSAxes | None, optional, default=None
+        Target WCS axes. If None, the current WCS axes are used.
+    draw_grid : bool | None, optional, default=True
+        Whether to draw the gridlines. If None, treated as False.
+    grid_type : {'lines', 'contours'} | None, optional, default=None
+        Rendering method. 'lines' is faster; 'contours' is required for
+        grids that cannot be drawn as straight/simple lines. If None, the
+        Astropy default is used.
+    color : ColorType, optional, default=config.wcs_grid.color
+        Gridline color.
+    linestyle : LineStyleType, optional, default=config.wcs_grid.linestyle
+        Gridline style.
+    linewidth : float, optional, default=config.wcs_grid.linewidth
+        Gridline width in points.
+    alpha : float, optional, default=config.wcs_grid.alpha
+        Gridline opacity, in the range [0, 1].
+    zorder : float, optional, default=config.zorder.wcs_grid
+        Drawing order of the gridlines.
+    **kwargs
+        Additional keyword arguments forwarded to
+        `astropy.visualization.wcsaxes.CoordinatesMap.grid`.
+
+    Returns
+    -------
+    None
+
+    See Also
+    --------
+    astropy.visualization.wcsaxes.CoordinatesMap.grid : Underlying Astropy implementation.
+    grid : Equivalent function for Matplotlib axes.
+    """
+    params = _extract_kwargs(
+        kwargs,
+        params=[
+            _param('color', color, config.wcs_grid.color),
+            _param('linestyle', linestyle, config.wcs_grid.linestyle),
+            _param('linewidth', linewidth, config.wcs_grid.linewidth),
+            _param('alpha', alpha, config.wcs_grid.alpha),
+            _param('zorder', zorder, config.zorder.wcs_grid),
+        ]
+    )
+    kwargs.update(params)
+    wcsax = get_wcsax(ax)
+    draw_grid = False if draw_grid is None else draw_grid
+    wcsax.coords.grid(
+        draw_grid=draw_grid,
+        grid_type=grid_type,
+        **kwargs,
+    )

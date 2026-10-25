@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,
@@ -97,7 +97,7 @@ class PlotUtilParams:
         - `xlabel`, `ylabel` : str | None
             Override labels. For `WCSAxes`, None falls back to
             `config.right_ascension_label` / `config.declination_label`.
-        - remaining keys : forwarded to `set_axis_labels` (non-WCS only).
+        - remaining keys : forwarded to `_set_axis_labels` (non-WCS only).
 
     gridlines : dict[str, Any]
         - `gridlines` : bool
