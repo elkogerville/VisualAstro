@@ -465,3 +465,29 @@ def _kwarg(name: str, default: Any) -> KwargSpec:
             f'name must be a str! got: {type(name).__name__}'
         )
     return (name, default)
+
+
+def _params_from_explicit(
+    explicit: dict[str, Any],
+    defaults: dict[str, Any],
+) -> list[ParamSpec]:
+    """
+    Build `_param` specs from explicit signature values and defaults.
+
+    Parameters
+    ----------
+    explicit : dict[str, Any]
+        Values exposed in the caller's signature. Missing names resolve
+        to `_UNSET`.
+    defaults : dict[str, Any]
+        Mapping of canonical parameter name to fallback value.
+
+    Returns
+    -------
+    list[ParamSpec]
+        One `(name, value, default)` spec per entry in `defaults`.
+    """
+    return [
+        _param(name, explicit.get(name, _UNSET), default)
+        for name, default in defaults.items()
+    ]
