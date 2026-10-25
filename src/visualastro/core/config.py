@@ -273,6 +273,7 @@ class SpectralLineConfig(PrettyRepr):
 class GridConfig(PrettyRepr):
     enable: bool = False
     which: Literal['major', 'minor', 'both'] = 'major'
+    axis: Literal['both', 'x', 'y'] = 'both'
     color: ColorType = 'k'
     linestyle: 'str' = 'dotted'
     linewidth: float = 0.8
@@ -281,6 +282,7 @@ class GridConfig(PrettyRepr):
 @dataclass(slots=True, repr=False)
 class WCSGridConfig(PrettyRepr):
     enable: bool = False
+    grid_type: Literal['lines', 'contours'] | None = None
     color: ColorType = 'w'
     linestyle: 'str' = 'dotted'
     linewidth: float = 0.8

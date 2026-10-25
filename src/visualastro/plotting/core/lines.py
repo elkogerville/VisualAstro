@@ -247,8 +247,8 @@ def grid(
     *,
     ax: maxes.Axes | None = None,
     visible: bool | None = True,
-    which: Literal['major', 'minor', 'both'] = 'major',
-    axis: Literal['both', 'x', 'y'] = 'both',
+    which: Literal['major', 'minor', 'both'] | _Unset = _UNSET,
+    axis: Literal['both', 'x', 'y'] | _Unset = _UNSET,
     color: ColorType | _Unset = _UNSET,
     linestyle: LineStyleType | _Unset = _UNSET,
     linewidth: float | _Unset = _UNSET,
@@ -266,10 +266,12 @@ def grid(
     visible : bool | None, optional, default=True
         Whether to show the gridlines. If None, the visibility is toggled
         unless `kwargs` are given (Matplotlib behavior).
-    which : {'major', 'minor', 'both'}, optional, default='major'
-        Tick set to which the gridlines apply.
-    axis : {'both', 'x', 'y'}, optional, default='both'
-        Axis to which the gridlines apply.
+    which : {'major', 'minor', 'both'} | _Unset, optional, default=_UNSET
+        Tick set to which the gridlines apply. If `_UNSET`, uses
+        `config.gridlines.which`.
+    axis : {'both', 'x', 'y'} | _Unset, optional, default=_UNSET
+        Axis to which the gridlines apply. If `_UNSET`, uses
+        `config.gridlines.axis`.
     color : ColorType, optional, default=config.gridlines.color
         Gridline color.
     linestyle : LineStyleType, optional, default=config.gridlines.linestyle
@@ -296,6 +298,8 @@ def grid(
     params = _extract_kwargs(
         kwargs,
         params=[
+            _param('which', which, config.gridlines.which),
+            _param('axis', axis, config.gridlines.axis),
             _param('color', color, config.gridlines.color),
             _param('linestyle', linestyle, config.gridlines.linestyle),
             _param('linewidth', linewidth, config.gridlines.linewidth),
@@ -307,8 +311,6 @@ def grid(
     ax = get_ax(ax)
     ax.grid(
         visible=visible,
-        which=which,
-        axis=axis,
         **kwargs
     )
 
@@ -364,6 +366,7 @@ def wcs_grid(
     params = _extract_kwargs(
         kwargs,
         params=[
+            _param('grid_type', grid_type, config.wcs_grid.grid_type),
             _param('color', color, config.wcs_grid.color),
             _param('linestyle', linestyle, config.wcs_grid.linestyle),
             _param('linewidth', linewidth, config.wcs_grid.linewidth),
@@ -376,6 +379,5 @@ def wcs_grid(
     draw_grid = False if draw_grid is None else draw_grid
     wcsax.coords.grid(
         draw_grid=draw_grid,
-        grid_type=grid_type,
         **kwargs,
     )
