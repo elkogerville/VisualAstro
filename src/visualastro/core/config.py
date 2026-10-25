@@ -357,7 +357,7 @@ class VisualAstroConfig(PrettyRepr):
     color_transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None
     color_transform_factor: float = 0.5
     random_colors_max_N: int = 20
-    alpha: int = 1
+    alpha: int | None = None
     nrows: int = 1 # make_grid_plot() nrows
     ncols: int = 2 # make_grid_plot() ncols
     rasterized: bool = False # rasterize plot artists wherever possible
