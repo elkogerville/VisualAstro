@@ -270,6 +270,70 @@ def plot_cmap_lightness(
     return scatters
 
 
+def get_norm(
+    norm: str | mcolors.Normalize | None,
+    vmin: float | np.floating | None = None,
+    vmax: float | np.floating | None = None,
+    *,
+    linear_width: float | _Unset = _UNSET,
+    gamma: float | _Unset = _UNSET,
+    vcenter: float | None = None,
+) -> mcolors.Normalize | None:
+    """
+    Return a Matplotlib or Astropy normalization object.
+
+    Parameters
+    ----------
+    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | Normalize | None
+        Normalization algorithm. A `Normalize` instance is returned unchanged.
+        `None` returns `None`.
+    vmin, vmax : float | np.floating | None, optional, default=None
+        Normalization limits. `None` autoscales. Both are required for
+        `'twoslope'` unless `vcenter` is given.
+    linear_width : float | None, optional, default=None
+        Linear region width for `'asinhnorm'`. `None` uses `config.linear_width`.
+    gamma : float | None, optional, default=None
+        Exponent for `'power'`. `None` uses `config.gamma`.
+    vcenter : float | None, optional, default=None
+        Center for `'twoslope'`. `None` uses the midpoint of `vmin` and `vmax`.
+
+    Returns
+    -------
+    Normalize | None
+        Normalization object, or `None` if `norm` is `None`.
+
+    Raises
+    ------
+    ValueError
+        If `norm` is unsupported, or `'twoslope'` lacks the limits it needs.
+    """
+    if norm is None or isinstance(norm, mcolors.Normalize):
+        return norm
+
+    linear_width = _resolve_default(linear_width, config.linear_width)
+    gamma = _resolve_default(gamma, config.gamma)
+    if vmin is not None: vmin = float(vmin)
+    if vmax is not None: vmax = float(vmax)
+
+    def _twoslope() -> mcolors.TwoSlopeNorm:
+        if vcenter is None and (vmin is None or vmax is None):
+            raise ValueError("'twoslope' requires vmin and vmax, or vcenter.")
+        center = (vmin + vmax) / 2 if vcenter is None else vcenter
+        return mcolors.TwoSlopeNorm(vcenter=center, vmin=vmin, vmax=vmax)
+
+    factories = {
+        'asinh': lambda: ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
+        'asinhnorm': lambda: mcolors.AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
+        'log': lambda: mcolors.LogNorm(vmin=vmin, vmax=vmax),
+        'power': lambda: mcolors.PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
+        'twoslope': _twoslope,
+    }
+    key = norm.lower()
+    if key not in factories:
+        raise ValueError(f'Unsupported norm {norm!r}. Supported: {list(factories)}')
+    return factories[key]()
+
+
 # VISUALASTRO COLOR MAPS
 # ----------------------
 BuWhRd = create_cmap(
@@ -308,3 +372,22 @@ if _HAS_TOLCOLORS:
     VISUALASTRO_CMAPS['tol_rainbow'] = tol_rainbow
 
 CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
+
+
+def _is_valid_cmap(cmap: str | mcolors.Colormap) -> bool:
+    """
+    Check whether `cmap` is a usable colormap.
+
+    Parameters
+    ----------
+    cmap : str | Colormap
+        Registered colormap name or `Colormap` instance.
+
+    Returns
+    -------
+    bool
+        `True` if `cmap` is a `Colormap` instance or a name in `mpl.colormaps`.
+    """
+    if isinstance(cmap, mcolors.Colormap):
+        return True
+    return isinstance(cmap, str) and cmap in mpl.colormaps
