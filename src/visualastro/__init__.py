@@ -113,6 +113,11 @@ from visualastro.plotting.core.axes import (
     tripanel_figure,
     wcsax,
 )
+from visualastro.plotting.core.backend import (
+    close,
+    inline,
+    interactive,
+)
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colormaps import (
     create_cmap,
@@ -157,10 +162,7 @@ from visualastro.plotting.core.style import (
     set_plot_cycle,
 )
 from visualastro.plotting.core.utils import (
-    close,
     ellipse_patch,
-    inline,
-    interactive,
     plot_circles,
     plot_ellipses,
     plot_interactive_ellipse,
@@ -331,7 +333,7 @@ def _register_colors() -> None:
                 f"Found custom VisualAstro color of name: '{name}', which "
                 'conflicts with a pre-existing Matplotlib named color! '
                 'Skipping registration, please change name collision in '
-                'visualastro.plotting.core.colors.',
+                'visualastro.plotting.core.colors.definitions.',
                 stacklevel=2
             )
 
