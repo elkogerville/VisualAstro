@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-29
-Date Modified: 2026-10-10
+Date Modified: 2026-10-25
 Description:
     Functions for kwargs and aliases within visualastro.
 """
@@ -23,7 +23,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'edgecolor': ('edgecolors', 'ec'),
     'facecolor': ('facecolors', 'fc'),
     'marker': ('markers', 'm'),
-    'size': ('sizes', 's'),
+    's': ('sizes', 's'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
     'limits': ('limit', 'lims', 'lim'),
