@@ -144,8 +144,8 @@ def plot_colorset(
     list[list[Line2D | PatchCollection]]
         Artists returned by the plotting functions, grouped by plot element.
     """
-    from visualastro.plotting.base.plots import plot, scatter
     from visualastro.plotting.core.axes import get_ax, set_title
+    from visualastro.plotting.core.legend import legend as _legend
 
     ax = get_ax(ax)
     if isinstance(colors, str) and colors in mpl.color_sequences:
@@ -164,29 +164,18 @@ def plot_colorset(
     y_vals = [r * np.sin(theta) for r in r_vals]
 
     labels = [f'e={e:.1f}' for e in e_vals]
+    labels = labels if legend else [None]*len(x_vals[:N])
 
     artists = []
+    for (x, y, label, col) in zip(x_vals[:N], y_vals[:N], labels, colorset):
+        artists.append(ax.plot(x, y, label=label, color=col, lw=lw))
+    artists.append(ax.scatter(0, 0, color='k', fc='none', s=55))
 
-    labels = labels if legend else None
-    pl = plot(
-        x_vals[:N], y_vals[:N],
-        ax=ax,
-        label=labels, color=colorset, lw=lw,
-        xlim=(-5, 3), ylim=(-4, 4),
-        xlabel='X', ylabel='Y',
-    )
-
-    sc = scatter(
-        0, 0,
-        ax=ax,
-        color='k', fc='none',
-        s=55, label='star' if legend else None,
-        compute_limits=False,
-        legend_loc='upper right',
-        legend_title='Eccentricity',
-        legend_frameon=True
-    )
-    artists.extend([pl, sc])
+    ax.set_xlim(-6, 2)
+    ax.set_ylim(-4, 4)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    _legend(ax=ax, loc='bottom center', title='Eccentricity', frameon=True, ncols=4)
 
     return artists
 
