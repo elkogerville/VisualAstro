@@ -206,3 +206,43 @@ def _broadcast(
             f'len({name or "value"})={len(values)} != number of lines={n}'
         )
     return values
+
+
+def _common_value(values, name, label):
+    """
+    Return the value shared by all entries of a group.
+
+    Parameters
+    ----------
+    values : Sequence
+        Values of `name` for every line in the group. Non-empty.
+    name : str
+        Parameter name, used in the error message.
+    label : str | None
+        Group label, used in the error message.
+
+    Returns
+    -------
+    Any
+        The common value.
+
+    Raises
+    ------
+    ValueError
+        If entries of `values` differ.
+
+    Examples
+    --------
+    >>> _common_value((1.0, 1.0, 1.0), 'y', '[OIII]')
+    1.0
+    >>> _common_value((1.0, 2.0), 'y', '[OIII]')
+    ValueError: `y` must be identical for all lines sharing label '[OIII]'; got 1.0 and 2.0.
+    """
+    first, *rest = values
+    for v in rest:
+        if v != first:
+            raise ValueError(
+                f'`{name}` must be identical for all lines sharing '
+                f'label {label!r}; got {first!r} and {v!r}.'
+            )
+    return first
