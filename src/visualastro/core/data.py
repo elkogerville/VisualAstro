@@ -233,20 +233,27 @@ def _ndim(
 
     Parameters
     ----------
-    obj : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
-        Input data. Not converted, not copied for arrays and quantities.
+    obj : float | astropy.units.Quantity | numpy.ndarray | Sequence[float | astropy.units.Quantity]
+        Input data. Never converted to an array. For `list` and `tuple`,
+        the depth is inferred from the first element.
 
     Returns
     -------
     ndim : int
-        Number of dimensions. `0` for scalar and 0D input.
+        Number of dimensions. `0` for scalar, `str` and 0D input;
+        `1` for an empty `list` or `tuple`.
+
+    Notes
+    -----
+    - Nesting is assumed regular.
     """
     if _is_scalar(obj):
         return 0
     ndim = getattr(obj, 'ndim', None)
     if ndim is not None:
-        return ndim
-    shape = getattr(obj, 'shape', None)
-    if shape is not None:
-        return len(shape)
-    return np.ndim(obj)
+        return int(ndim)
+    if isinstance(obj, (str, bytes)):
+        return 0
+    if isinstance(obj, (list, tuple)):
+        return 1 + (_ndim(obj[0]) if obj else 0)
+    return int(np.ndim(obj))

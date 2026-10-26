@@ -151,7 +151,7 @@ def _roll(items: list[T], shift: int) -> list[T]:
 
 
 def _broadcast(
-    value: float | Sequence | Quantity,
+    value: float | Sequence | Quantity | None,
     n: int,
     name: str | None = None
 ) -> list[float | Quantity]:
