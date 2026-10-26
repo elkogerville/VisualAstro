@@ -39,16 +39,9 @@ from visualastro.core.data import (
 from visualastro.core.kwargs import (
     _kwarg, _param, _pop_kwargs, _resolve_kwargs
 )
-from visualastro.core.plot_input import _extract_xyz
 from visualastro.core.sequences import _cycle
 from visualastro.core.stats import normalize as _normalize
-from visualastro.core.units import ensure_common_unit
-from visualastro.plotting.core.colormaps import get_cmap
-from visualastro.plotting.core.colors import as_color, get_colors
-from visualastro.plotting.core.colors.plots import (
-    _resolve_color_kwargs,
-    _resolve_scatter_norm,
-)
+from visualastro.core.units import ensure_common_unit, _get_xyplot_units
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
@@ -56,12 +49,15 @@ from visualastro.plotting.core.axes import (
     _set_axis_limits_scaling_mode,
     get_ax3d
 )
-from visualastro.plotting.core.contour import contour_kde
-from visualastro.plotting.core.utils import (
-    _get_zorder,
-    _normalize_plotting_input,
-    _normalize_plotting_inputs,
+from visualastro.plotting.core.colormaps import get_cmap
+from visualastro.plotting.core.colors import as_color, get_colors
+from visualastro.plotting.core.colors.plots import (
+    _resolve_color_kwargs,
+    _resolve_scatter_norm,
 )
+from visualastro.plotting.core.contour import contour_kde
+from visualastro.plotting.core.plot_input import _extract_xy
+from visualastro.plotting.core.utils import _get_zorder
 from visualastro.plotting.interfaces.plot_utils import (
     _apply_plot_utils, _extract_plot_util_kwargs
 )
@@ -675,260 +671,140 @@ def plot(
 
 
 def scatter(
-    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity],
     ax: maxes.Axes | None = None,
-    xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
-    marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
-    size: float | list[float] | _Unset = _UNSET,
-    alpha: float | list[float] | _Unset = _UNSET,
-    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
-    facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
+    color: ColorType | _Unset = _UNSET,
+    c: ColorType | NDArray | u.Quantity | None = None,
+    marker: MarkerStyle | _Unset = _UNSET,
+    size: float | _Unset = _UNSET,
+    alpha: float | _Unset = _UNSET,
+    edgecolor: Literal['face', 'none'] | ColorType | _Unset = _UNSET,
+    facecolor: Literal['none'] | ColorType | _Unset = _UNSET,
+    label: str | None = None,
     normalize: bool | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
-    zorder: float | list[float] | None = None,
-    array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+    zorder: float | list[float] | _Unset = _UNSET,
+    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
     **kwargs
-) ->  list[PathCollection]:
+) ->  PathCollection:
     """
-    Scatter plot data with optional error bars on a matplotlib Axes.
-
-    Plot multiple datasets by passing in lists of data!
-
-    Examples:
-
-        * scatter(x, y)
-        * scatter([1,2,3], [[4,5,6], [7,8,9]])
-        * scatter(radius, [vel1, vel2])
-        * scatter(flux)
-        * scatter(pos[:,0:2])
+    Scatter plot with automatic labels and plot utilities.
 
     Parameters
     ----------
-    *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
-        Positional arguments specifying x and y data. Accepts either a single
-        2D array or two separate arrays/list of arrays/values. 2D arrays can
-        either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
-        one array is passed in, x values are automatically generated with
-        np.arange(len(array)).
-    ax : matplotlib.axes.Axes | None, optional, default=None
-        The Axes object on which to plot the histogram. If `None`,
-        uses `plt.gca()`.
-    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
-        Errors on x-axis data. Must match shape of x data.
-    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
-        Errors on y-axis data. Must match shape of y data.
-    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
-    marker : str | list[str] | _Unset, optional, default=_UNSET
-        Marker style(s). If `_UNSET`, uses config.marker.
-    size : float | list[float] | _Unset, optional, default=_UNSET
-        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
-    alpha : float | list[float] | _Unset, optional, default=_UNSET
-        Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
-    edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
-        Edge color of markers.
-
-        * 'face': Match face color
-        * 'none': No edge
-        * color or sequence: Explicit color(s)
-
-        If not set, uses `config.edgecolor`.
-
-    facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
-        Face color of markers.
-
-        * 'none': Transparent
-        * color or sequence: Explicit color(s)
-
-        If not set, uses `config.facecolor`.
-
+    *data : float | Quantity | NDArray | list[float | Quantity]
+        Data to plot. Unit labels are added to the axes labels
+        if `config.show_unit_label` is `True`.
+    ax : Axes | None, optional, default=None
+        Axes to plot on. If None, resolved by `plt.gca`.
+    color : ColorType, optional, default=_UNSET
+        Marker color. If `_UNSET`, uses `config.color`
+    c : ColorType | NDArray | Quantity | None, optional, default=None
+        Marker color or values to be color-mapped. Any units found
+        are displayed on the colorbar if `config.colorbar.label`
+        is `True`.
+    marker : MarkerStyle, optional, default=_UNSET
+        Marker style. If `_UNSET`, uses `config.marker`
+    size : float | _Unset, optional, default=_UNSET
+        Marker size. Passed to `ax.scatter` as `s`.
+        If `_UNSET`, uses `config.scatter_size`.
+    alpha : float | _Unset, optional, default=_UNSET
+        Marker transparency, in [0, 1]. If `_UNSET`, uses `config.alpha`.
+    edgecolor : Literal['face', 'none'] | ColorType | _Unset, optional, default=_UNSET
+        Marker edge color. If `_UNSET`, uses `config.edgecolor`.
+    facecolor : Literal['none'] | ColorType | _Unset, optional, default=_UNSET
+        Marker face color. If `_UNSET`, uses `config.facecolor`.
+    label : str | None, optional, default=None
+        Legend label.
     normalize : bool | _Unset, optional, default=_UNSET
-        If `True`, normalize each dataset by its maximum value.
+        Normalize `y` via `normalize` before plotting.
         If `_UNSET`, uses `config.normalize_data`.
     xlog, ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on the respective axis.
-        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
-        `config.axes.ylog` for `ylog`.
-    zorder : float | list[float] | None, optional, default=None
-        Order in which to plot lines in. Lines are drawn in order
-        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
-        and increments the zorder by 1 for each subsequent line drawn.
-    array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
-        Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
-        while `'F'` and `'fortran'` are for (2,N) shaped arrays.
-    label : str | list[str], optional, default=None
-        Legend labels for scatter datasets.
-    loc : str, optional, default=config.legend.loc
-        Legend location.
-    xlabel, ylabel : str, optional, default=None
-        Label for x and y axes.
-    xlim, ylim : tuple[float, float], optional, default=None
-        Limits for x and y axes as (min, max).
-    xpad : float, optional, default=config.axes.ypad
-        Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.xpad
-        Fractional padding added to the y-axis data range when computing axis limits.
-    cmap : Colormap | str, optional, default=config.cmap
-        Colormap used to generate colors if `color` is an int.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
-    ecolor : ColorType, optional, default=config.errorbar.colors
-        Error bar color.
-    markeredgecolor : ColorTpe, optional, default=config.errorbar.markeredgecolor
-        Plot marker edge color.
-    elinewidth : float, optional, default=config.errorbar.linewidth
-        Error bar line width in points.
-    capsize : float, optional, default=config.errorbar.capsize
-        Length of error bar caps in points.
-    capthick : float, optional, default=config.errorbar.capthick
-        Thickness of error bar caps in points.
-    barsabove : bool, optional, default=config.errorbar.barsabove
-        If `True`, draw error bars above plot symbols.
+        Use logarithmic x and y axes scales. If `_UNSET`, uses
+        `config.axes.xlog` and `config.axes.ylog` respectively.
+    zorder : float | _Unset, optional, default=_UNSET
+        Drawing order. If `_UNSET`, uses `config.zorder.plot_data`.
+    array_order : Literal['c', 'fortran'], optional, default=_UNSET
+        Memory order used to interpret multidimensional input.
+        If `_UNSET`, uses `config.array_order`.
+    figsize : tuple[float, float], optional, default=config.figsize
+        Figure size. Used only if a new figure is created.
     rasterized : bool, optional, default=config.rasterized
-        If `True`, rasterize artists when saving to vector formats.
+        Rasterize the scatter artist.
+    **kwargs
+        Additional keyword arguments.
+        For a complete list see:
+
+        - `_extract_plot_util_kwargs`
+        - `_resolve_color_kwargs`
+        - `_set_axis_limits_scaling_mode`
+        - `_apply_plot_utils`
 
     Returns
     -------
-    list[matplotlib.collections.PathCollection]
-        Scatter plot collection(s). Each element represents one scatter plot.
-        Length matches the number of datasets plotted.
+    PathCollection
+        The scatter artist.
 
     See Also
     --------
     matplotlib.axes.Axes.scatter
-    matplotlib.axes.Axes.errorbar
     """
     params = _resolve_kwargs(
         kwargs,
         [
-            _param('color', color, config.color),
-            _param('marker', marker, config.marker),
-            _param('size', size, config.scatter_size),
-            _param('alpha', alpha, config.alpha),
-            _param('edgecolor', edgecolor, config.edgecolor),
-            _param('facecolor', facecolor, config.facecolor),
             _param('normalize', normalize, config.normalize_data),
-            _param('xlog', xlog, config.axes.xlog),
-            _param('ylog', ylog, config.axes.ylog),
-            _param('array_order', array_order, config.array_order),
+            _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
-            _kwarg('index_spec', 'implicit'),
-            _kwarg('autoscale', config.axes.autoscale),
-            _kwarg('label', None),
-            _kwarg('c', None),
-            _kwarg('cmap', config.cmap),
-            _kwarg('bad_color', None),
-            _kwarg('ecolor', config.errorbar.colors),
-            _kwarg('markeredgecolor', config.errorbar.markeredgecolor),
-            _kwarg('elinewidth', config.errorbar.linewidth),
-            _kwarg('capsize', config.errorbar.capsize),
-            _kwarg('capthick', config.errorbar.capthick),
-            _kwarg('barsabove', config.errorbar.barsabove),
             _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
-
     ax = get_ax(ax, figsize=params.figsize)
-    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
-    edgecolors = get_colors(params.edgecolor, cmap=cmap)
-    facecolors = get_colors(params.facecolor, cmap=cmap)
+    x, y = _extract_xy(
+        *data,
+        kwargs=kwargs,
+        order=array_order,
+    )
+    xunit, yunit, cunit = _get_xyplot_units(x, y, c)
 
-    markers = to_list(params.marker)
-    sizes = to_list(params.size)
-    alphas = to_list(params.alpha)
-    zorders = to_list(zorder)
-    labels = to_list(params.label)
-
-    xlist, ylist = _normalize_plotting_inputs(*data, order=params.array_order, index_spec=params.index_spec)
-
-    ensure_common_unit(xlist, on_mismatch=config.unit_mismatch)
-    ensure_common_unit(ylist, on_mismatch=config.unit_mismatch)
-
-    xerrs = _normalize_plotting_input(xerr) if xerr is not None else xerr
-    yerrs = _normalize_plotting_input(yerr) if yerr is not None else yerr
-    c_arr = _normalize_plotting_input(params.c) if params.c is not None else None
+    kwargs = _resolve_color_kwargs(
+        kwargs,
+        color=color, c=c,
+        marker=marker,
+        s=size,
+        alpha=alpha,
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+    )
 
     plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax,
-        params.autoscale,
-        plot_params.compute_limits,
-        params.xlog, params.ylog
+        ax, kwargs, xlog=xlog, ylog=ylog
     )
-    scatters = []
 
-    for i in range(len(ylist)):
-        x = get_value(_cycle(xlist, i))
-        y = get_value(_cycle(ylist, i))
+    if params.normalize:
+        y = _normalize(y)
 
-        color = _cycle(colors, i)
-        c = get_value(_cycle(c_arr, i)) if c_arr is not None else None
-
-        s = _cycle(sizes, i)
-        m = _cycle(markers, i)
-        a = _cycle(alphas, i)
-        ec = _cycle(edgecolors, i)
-        fc = _cycle(facecolors, i)
-        z = _get_zorder(zorders, i, config.zorder.plot_data)
-        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
-        params.ecolor = color if params.ecolor is None else params.ecolor
-        params.markeredgecolor = (
-            color if params.markeredgecolor is None else params.markeredgecolor
-        )
-
-        if fc == 'none' and ec is None:
-            ec = color
-
-        if params.normalize:
-            y = _normalize(y)
-            ylist[i] = y
-
-        scatter_kwargs = _resolve_color_kwargs(color, c, kwargs, cmap)
-
-        scatter = ax.scatter(
-            x, y,
-            s=s,
-            marker=m,
-            alpha=a,
-            edgecolor=ec,
-            facecolor=fc,
-            label=label,
-            rasterized=params.rasterized,
-            zorder=z,
-            **scatter_kwargs
-        )
-
-        scatters.append(scatter)
-
-        xerror = _cycle(xerrs, i) if xerrs is not None else None
-        yerror = _cycle(yerrs, i) if yerrs is not None else None
-
-        if xerror is not None or yerror is not None:
-            ax.errorbar(
-                x, y, yerror, xerror,
-                fmt=config.errorbar.fmt,
-                mfc=params.ecolor,
-                ecolor=params.ecolor,
-                elinewidth=params.elinewidth,
-                mec=params.markeredgecolor,
-                capsize=params.capsize,
-                capthick=params.capthick,
-                barsabove=params.barsabove,
-                rasterized=params.rasterized,
-                zorder=z,
-            )
-
+    scatter = ax.scatter(
+        get_value(x), get_value(y),
+        label=label,
+        rasterized=params.rasterized,
+        zorder=params.zorder,
+        **kwargs
+    )
     _apply_plot_utils(
-        plot_params, ax, im_list=scatters, xlist=xlist, ylist=ylist, labels=labels
+        plot_params, ax,
+        x=x, y=y,
+        img=scatter,
+        ref_unit=cunit,
+        label=label,
+        rasterized=params.rasterized,
+        **kwargs
     )
 
-    return scatters
+    return scatter
 
 
 def scatter_fit(
