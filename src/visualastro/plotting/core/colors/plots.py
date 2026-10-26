@@ -625,8 +625,9 @@ def _resolve_color_kwargs(
         'c': None,
         'edgecolor': config.edgecolor,
         'facecolor': config.facecolor,
-        's': config.scatter_size,
         'marker': config.marker,
+        's': config.scatter_size,
+        'alpha': config.alpha,
         'transform': config.color_transform,
         'factor': config.color_transform_factor,
         'cvd_type': None,
@@ -683,7 +684,7 @@ def _resolve_color_kwargs(
 
     if c is not None:
         kwargs['c'] = get_value(c)
-        norm = cmap_kw.pop('norm')
+        norm = norm_kw.pop('norm')
         cmap = get_cmap(cmap_kw.pop('cmap'), **cmap_kw)
         if cmap is not None:
             kwargs['cmap'] = cmap
