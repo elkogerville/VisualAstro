@@ -1304,10 +1304,8 @@ def ax3d_pane_color(
 
 def _set_axis_limits_scaling_mode(
     ax: maxes.Axes,
-    autoscale: bool,
-    compute_limits: bool,
-    xlog: bool = False,
-    ylog: bool = False
+    kwargs: dict[str, Any],
+    **explicit: Any
 ):
     """
     Set axes limit scaling mode. Must be called before
@@ -1317,17 +1315,22 @@ def _set_axis_limits_scaling_mode(
     ----------
     ax : maxes.Axes
         Axes instance.
-    autoscale : bool
-        If `True`, uses native Matplotlib autoscaling,
-        ie. `ax.set_autoscale_on(True)`, and disables
-        VisualAstro's manual limits computation
-        (`compute_limits=False`).
-    compute_limits : bool
-        Flag to be passed on to one of the VisualAstro
-        plotting interface functions. If `True`, will
-        invoke `visualastro.plotting.core.axes.set_axis_limits`.
-    xlog, ylog : bool, optional, default=False
-        If either is `True`, set `autoscale=True`.
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    **explicit : Any
+        Any of the following keyword arguments:
+
+        - autoscale : bool
+            If `True`, uses native Matplotlib autoscaling,
+            ie. `ax.set_autoscale_on(True)`, and disables
+            VisualAstro's manual limits computation
+            (`compute_limits=False`).
+        - compute_limits : bool
+            Flag to be passed on to one of the VisualAstro
+            plotting interface functions. If `True`, will
+            invoke `visualastro.plotting.core.axes.set_axis_limits`.
+        - xlog, ylog : bool, optional, default=False
+            If either is `True`, set `autoscale=True`.
 
     Returns
     -------
@@ -1335,15 +1338,25 @@ def _set_axis_limits_scaling_mode(
         Set to `False` if `autoscale=True`. Otherwise is left
         unchanged.
     """
-    if xlog or ylog:
-        autoscale = True
-    if autoscale:
+    limits_defaults = {
+        'autoscale': config.axes.autoscale,
+        'compute_limits': config.axes.compute_limits,
+        'xlog': config.axes.xlog,
+        'ylog': config.axes.ylog,
+    }
+    params = _resolve_kwargs(
+        kwargs,
+        params=_params_from_explicit(explicit, limits_defaults)
+    )
+    if params.xlog or params.ylog:
+        params.autoscale = True
+    if params.autoscale:
         ax.set_autoscale_on(True)
-        compute_limits = False
+        params.compute_limits = False
     else:
         ax.set_autoscale_on(False)
 
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    if params.xlog: ax.set_xscale('log')
+    if params.ylog: ax.set_yscale('log')
 
-    return compute_limits
+    return params.compute_limits
