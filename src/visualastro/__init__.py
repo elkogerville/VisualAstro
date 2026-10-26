@@ -179,7 +179,8 @@ from visualastro.plotting.science.spectra_plots import (
 from visualastro.plotting.science.spectra_plot_utils import (
     mark_spectral_lines,
     spectral_axis_label,
-    spectral_line_marker
+    spectral_line_marker,
+    spectral_lines,
 )
 from visualastro.plotting.science.wcs_plots import (
     imshow,
