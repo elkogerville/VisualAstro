@@ -7,12 +7,14 @@ Description:
 """
 
 from __future__ import annotations
+from collections.abc import Sequence
 from typing import Any, Literal, TypeVar, overload
 
 from astropy import units as u
 import numpy as np
 from numpy.typing import NDArray
 
+from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE
 )
@@ -197,3 +199,54 @@ def as_list(obj: T | list[T]) -> list[T]:
         or `obj` itself it is already a list.
     """
     return obj if isinstance(obj, list) else [obj]
+
+
+def _array_length(
+    obj: float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+) -> int:
+    """
+    Return the length of the first axis, treating scalars as length 1.
+
+    Parameters
+    ----------
+    obj : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        Input data. Not converted, not copied.
+
+    Returns
+    -------
+    n : int
+        First-axis length, or `1` for scalar and 0D input.
+    """
+    if _is_scalar(obj):
+        return 1
+    shape = getattr(obj, 'shape', None)
+    if shape is not None:
+        return shape[0] if shape else 1
+    return len(obj)
+
+
+def _ndim(
+    obj: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
+) -> int:
+    """
+    Return the number of dimensions, treating scalars as 0D.
+
+    Parameters
+    ----------
+    obj : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        Input data. Not converted, not copied for arrays and quantities.
+
+    Returns
+    -------
+    ndim : int
+        Number of dimensions. `0` for scalar and 0D input.
+    """
+    if _is_scalar(obj):
+        return 0
+    ndim = getattr(obj, 'ndim', None)
+    if ndim is not None:
+        return ndim
+    shape = getattr(obj, 'shape', None)
+    if shape is not None:
+        return len(shape)
+    return np.ndim(obj)
