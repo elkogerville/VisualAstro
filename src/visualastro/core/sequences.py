@@ -10,8 +10,11 @@ from collections.abc import Sequence
 from itertools import cycle, islice
 from typing import Any, TypeVar, overload
 
+from astropy.units import Quantity
 import numpy as np
 from numpy.typing import NDArray
+
+from visualastro.core.array_types import _is_scalar
 
 
 T = TypeVar('T')
@@ -145,3 +148,61 @@ def _roll(items: list[T], shift: int) -> list[T]:
         return []
     shift = int(shift) % n
     return items[-shift:] + items[:-shift] if shift else list(items)
+
+
+def _broadcast(
+    value: float | Sequence | Quantity,
+    n: int,
+    name: str | None = None
+) -> list[float | Quantity]:
+    """
+    Expand a scalar or sequence into a list of length `n`.
+
+    Parameters
+    ----------
+    value : scalar | Sequence | astropy.units.Quantity | None
+        A scalar (or `None`) is repeated `n` times. A sequence or
+        array is converted to a list and must have length `n`.
+    n : int
+        Required length of the returned list.
+    name : str | None, optional, default=None
+        Name of the argument, used in the error message. If `None`,
+        the message refers to `value` generically.
+
+    Returns
+    -------
+    list
+        A list of length `n`.
+
+    Raises
+    ------
+    ValueError
+        If `value` is a sequence whose length is not `n`.
+
+    Notes
+    -----
+    - A value is treated as a scalar if `value is None` or
+        `np.ndim(value) == 0`. This includes strings and scalar
+        `astropy.units.Quantity` objects.
+    - Array-valued `Quantity` objects are split into a list of
+        per-element `Quantity` objects.
+
+    Examples
+    --------
+    >>> _broadcast(150, 3)
+    [150, 150, 150]
+    >>> _broadcast([1, 2, 3], 3, 'y')
+    [1, 2, 3]
+    >>> _broadcast([1, 2], 3, 'y')
+    ValueError: len(y)=2 != number of lines=3
+    >>> _broadcast([1, 2], 3)
+    ValueError: len(value)=2 != number of lines=3
+    """
+    if value is None or _is_scalar(value):
+        return [value] * n
+    values = list(value)
+    if len(values) != n:
+        raise ValueError(
+            f'len({name or "value"})={len(values)} != number of lines={n}'
+        )
+    return values
