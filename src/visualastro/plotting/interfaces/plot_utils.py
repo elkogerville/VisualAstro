@@ -129,7 +129,6 @@ class PlotUtilParams:
     """
     reference_idx: int
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
-    xy_indices: tuple[int, int] | None
     vlines: Sequence[float] | None
     hlines: Sequence[float] | None
     compute_limits: bool
@@ -158,7 +157,6 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     params = PlotUtilParams(
         reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
-        xy_indices=_pop_kwargs(kwargs, 'xy_indices', config.xy_indices),
         vlines=_pop_kwargs(kwargs, 'vlines', None),
         hlines=_pop_kwargs(kwargs, 'hlines', None),
         compute_limits=_pop_kwargs(
@@ -194,7 +192,7 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         ),
         text=_pop_mapped(kwargs, ('highlight',), prefix='text_'),
         ellipses=_pop_mapped(kwargs, ('ellipses', 'plot_ellipse')),
-        points=_pop_mapped(kwargs, ('points',)),
+        points=_pop_prefixed(kwargs, 'points_', base='points', default=None),
     )
 
     _FONTSIZE_KEYS = [
@@ -268,7 +266,7 @@ def _apply_plot_utils(
         params.points.pop('points', None),
         ax=ax,
         order=params.array_order,
-        xy_indices=params.xy_indices
+        **params.points
     )
 
     if params.compute_limits:

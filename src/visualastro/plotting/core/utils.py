@@ -6,7 +6,6 @@ Description:
     Plotting utility functions.
 """
 
-from collections.abc import Sequence
 from typing import Literal
 from functools import partial
 
@@ -21,6 +20,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from visualastro.core.config import (
+    config,
     get_config_value,
     _Unset, _UNSET,
     _resolve_default
@@ -167,17 +167,16 @@ def _copy_ellipse(ellipse: Ellipse) -> Ellipse:
     matplotlib.patches.Ellipse
         A new Ellipse object with the same properties as the input.
     """
-    return Ellipse(
+    new = Ellipse(
         xy=ellipse.center,
         width=ellipse.width,
         height=ellipse.height,
         angle=ellipse.angle,
-        edgecolor=ellipse.get_edgecolor(),
-        facecolor=ellipse.get_facecolor(),
-        lw=ellipse.get_linewidth(),
-        ls=ellipse.get_linestyle(),
-        alpha=ellipse.get_alpha()
     )
+    new.update_from(ellipse)
+    new.set_zorder(ellipse.get_zorder())
+    new.set_label(ellipse.get_label())
+    return new
 
 
 def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
@@ -385,47 +384,54 @@ def _default_ellipse_geometry(
 
 
 def ellipse_patch(
-    center, w, h, angle=0, fill=False,
-    edgecolor='k', facecolor=None, **kwargs
-):
+    center: tuple[float, float],
+    w: float,
+    h: float,
+    angle: float = 0,
+    fill: bool = False,
+    edgecolor: ColorType = 'k',
+    facecolor: ColorType | None = None,
+    **kwargs,
+) -> Ellipse:
     """
     Create a matplotlib.patches.Ellipse object.
 
     Parameters
     ----------
-    center : tuple of float
+    center : tuple[float, float]
         (x, y) coordinates of the ellipse center.
     w : float
-        Width of the ellipse (along x-axis before rotation).
+        Width of the ellipse (along the x-axis before rotation).
     h : float
-        Height of the ellipse (along y-axis before rotation).
+        Height of the ellipse (along the y-axis before rotation).
     angle : float, optional, default=0
         Rotation angle of the ellipse in degrees (counterclockwise).
     fill : bool, optional, default=False
-        Whether the ellipse should be filled (True) or only outlined (False).
-    edgecolor : str, optional, default='k'
-        Color of patch edges.
-    facecolor : str, optional, default=None
-        Color of patch face. If not `None`,
-        sets `fill=True`.
-    linestyle or ls : {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}, optional
-        Linestyle of ellipse patch.
-    linewidth or lw : float | None, optional
-        Linewidth of ellipse patch.
-    Any other kwargs accepted by matplotlib.patches.Ellipse
+        Whether the ellipse is filled. Forced to `True` if `facecolor`
+        is not `None`.
+    edgecolor : ColorType, optional, default='k'
+        Color of the patch edge.
+    facecolor : ColorType | None, optional, default=None
+        Color of the patch face. If not `None`, `fill` is set to `True`.
+    **kwargs
+        Additional keyword arguments passed to
+        `matplotlib.patches.Ellipse`, e.g. `linestyle` (or `ls`),
+        `linewidth` (or `lw`), `alpha`, `zorder`, `label`.
 
     Returns
     -------
-    ellipse : matplotlib.patches.Ellipse
+    matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
     """
-    if facecolor is not None:
-        fill = True
-
     return Ellipse(
-        xy=(center[0], center[1]), width=w, height=h,
-        angle=angle, fill=fill, edgecolor=edgecolor,
-        facecolor=facecolor, **kwargs
+        xy=tuple(center)[:2],
+        width=w,
+        height=h,
+        angle=angle,
+        fill=fill or facecolor is not None,
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+        **kwargs,
     )
 
 
