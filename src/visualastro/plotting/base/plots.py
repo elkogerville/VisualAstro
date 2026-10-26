@@ -763,10 +763,11 @@ def scatter(
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
     ax = get_ax(ax, figsize=params.figsize)
-    x, y = _extract_xy(
+    x, y = _resolve_xy_plot_inputs(
         *data,
         kwargs=kwargs,
         order=array_order,
+        mode='scatter',
     )
     xunit, yunit, cunit = _get_xyplot_units(x, y, c)
 

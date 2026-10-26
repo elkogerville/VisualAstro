@@ -26,7 +26,7 @@ from visualastro.core.array_types import (
     _is_scalar,
     _is_wrapped_1d,
 )
-from visualastro.core.data import as_list, to_list
+from visualastro.core.data import as_list, to_list, _array_length, _ndim
 from visualastro.core.kwargs import _resolve_kwargs, _params_from_explicit
 
 
@@ -243,6 +243,137 @@ def _extract_xy(
         raise ValueError('xy_indices must be a tuple[int, int].')
     return _extract_xy_from_ndarray2D(obj, order, indices)
 
+
+def _resolve_implicit_x(
+    x: float | u.Quantity | NDArray | Sequence[float | u.Quantity] | None,
+    y: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
+    *,
+    mode: Literal['plot', 'scatter'],
+) -> tuple:
+    """
+    Resolve the plotting data for a matplotlib call when `x` may be implicit.
+
+    Parameters
+    ----------
+    x : float | u.Quantity | NDArray | Sequence[float | u.Quantity] | None
+        X data. `None` means implicit x.
+    y : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        Y data.
+    mode : {'plot', 'scatter'}
+        Target matplotlib method.
+
+        - 'plot': implicit x is delegated to matplotlib, returns `(y,)`.
+        - 'scatter': implicit x is resolved as `arange(N)`, returns `(x, y)`.
+
+    Returns
+    -------
+    args : tuple
+        Positional arguments to unpack into the matplotlib call.
+
+    Raises
+    ------
+    ValueError
+        - `mode` is not recognized.
+        - `mode` is 'scatter', `x` is `None` and `y` is not scalar or 1D.
+
+    Notes
+    -----
+    - Scalar `y` is promoted to 1D, so it yields `x = [0]`.
+    - Explicit `x` is passed through unchanged in both modes.
+    - 2D `y` with implicit x is rejected for 'scatter' because `scatter`
+      flattens its inputs and the x/y pairing would be ambiguous.
+    """
+    if mode not in ('plot', 'scatter'):
+        raise ValueError(f"`mode` must be 'plot' or 'scatter', got {mode!r}.")
+
+    if mode == 'scatter' and _ndim(y) > 1:
+        raise ValueError(
+            f'scatter requires scalar or 1D y, got {_ndim(y)}D. '
+            'Select two variables with `xy_indices=(i, j)` or plot columns '
+            'separately.'
+        )
+
+    if x is not None:
+        return x, y
+
+    if mode == 'plot':
+        return (y,)
+
+    return np.arange(_array_length(y)), y
+
+
+def _resolve_xy_plot_inputs(
+    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
+    kwargs: dict[str, Any],
+    mode:  Literal['plot', 'scatter'],
+    **explicit
+):
+    """
+    Resolve positional plot inputs into arguments for a matplotlib call.
+
+    Combines `_extract_xy` and `_resolve_implicit_x`: first splits the
+    positional inputs into an `(x, y)` pair, then fills in or defers an
+    implicit `x` according to `mode`.
+
+    Parameters
+    ----------
+    *data : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        One or two positional inputs. Accepted signatures:
+
+        - `(y)`: scalar, 0D or 1D. `x` is implicit.
+        - `(y)`: 2D `ndarray`. If `xy_indices` is a tuple, split into
+          `(x, y)` via `order` and `xy_indices`. If `xy_indices` is `None`,
+          returned as `(None, y)` with no split (transposed if `order` is
+          'fortran').
+        - `(x, y)`: used as given.
+
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    mode : {'plot', 'scatter'}
+        Target matplotlib method.
+
+        - 'plot': implicit x is delegated to matplotlib, returns `(y,)`.
+        - 'scatter': implicit x is resolved as `arange(N)`, returns `(x, y)`.
+
+    **explicit
+        Any of the following keyword arguments, see `_extract_xy`:
+
+        - order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+            Array order of 2D input. Single-input only. If `_UNSET`,
+            uses `config.array_order`.
+        - xy_indices : tuple[int, int] | None | _Unset, optional, default=_UNSET
+            Variable selection for 2D input. Single-input only. If
+            `_UNSET`, uses `config.xy_indices`.
+
+    Returns
+    -------
+    args : tuple
+        Positional arguments to unpack into the matplotlib call, i.e.
+        `ax.plot(*args)` or `ax.scatter(*args)`.
+
+    Raises
+    ------
+    ValueError
+        - Number of positional inputs is not 1 or 2.
+        - Two inputs and `order` or `xy_indices` is given.
+        - Two inputs and `y` is `None`.
+        - Single input is `None`.
+        - Single input has ndim > 2.
+        - `order` is not recognized.
+        - `xy_indices` does not have length 2.
+        - `mode` is not recognized.
+        - `mode` is 'scatter' and `y` is 2D or higher after splitting.
+
+    IndexError
+        If an entry of `xy_indices` is out of bounds for the array.
+
+    See Also
+    --------
+    _extract_xy : Resolve positional inputs into `(x, y)`.
+    _resolve_implicit_x : Resolve an implicit `x` for a given `mode`.
+    """
+    x, y = _extract_xy(*data, kwargs=kwargs, **explicit)
+    return _resolve_implicit_x(x, y, mode=mode)
 
 def _extract_xyz(
     *data: NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float,
