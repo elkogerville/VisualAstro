@@ -56,7 +56,7 @@ def _normalize_order(order: str) -> Literal['c', 'fortran']:
         ) from None
 
 
-def _2d_to_1d_array(
+def _get_vector(
     obj: NDArray | u.Quantity,
     idx: int,
     order: Literal['c', 'fortran'],
@@ -116,181 +116,111 @@ def _extract_xy_from_ndarray2D(
         raise ValueError('xy_indices must be a tuple[int, int].')
 
     ix, iy = xy_indices
-    return _2d_to_1d_array(obj, ix, order), _2d_to_1d_array(obj, iy, order)
-
-
-def _extract_xy2(
-    *data,
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    xy_indices: tuple[int, int] | _Unset = _UNSET,
-):
-    """
-    Extract x and y data from positional inputs.
-
-    Parameters
-    ----------
-    *data : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
-        Either a single object (y only, or 2D array) or two objects (x, y).
-    order : {'c', 'fortran'} | _Unset, optional, default=config.array_order
-        Variable layout for 2D arrays.
-    xy_indices : tuple[int, int] | _Unset, optional, default=config.xy_indices
-        - tuple: (x index, y index).
-
-    Returns
-    -------
-    x : float | u.Quantity | NDArray | Sequence[...] | None
-        None if not provided or implicit.
-    y : float | u.Quantity | NDArray | Sequence[...]
-
-    Raises
-    ------
-    ValueError
-        On invalid `order`, `xy_indices`, argument count, or array ndim.
-    """
-    order = _normalize_order(_resolve_default(order, config.array_order))
-    indices = _resolve_default(xy_indices, config.xy_indices)
-
-    if len(data) == 2:
-        return data[0], data[1]
-
-    if len(data) != 1:
-        raise ValueError(f'Expected 1 or 2 positional inputs, got {len(data)}.')
-
-    obj = data[0]
-    if _is_scalar(obj):
-        return None, obj
-    if not isinstance(obj, np.ndarray):
-        return None, obj
-    if obj.ndim == 1:
-        return None, obj
-    if obj.ndim != 2:
-        raise ValueError(f'Input must be 1D or 2D, got {obj.ndim}D.')
-
-    return _extract_xy_from_ndarray2D(obj, order, tuple(indices))
+    return _get_vector(obj, ix, order), _get_vector(obj, iy, order)
 
 
 def _extract_xy(
-    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
+    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
     order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET
-) -> tuple[
-    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray] | None,
-    float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
-]:
+    xy_indices: tuple[int, int] | None | _Unset = _UNSET,
+):
     """
-    Extract X and Y coordinates from flexible numeric inputs.
-
-    Interprets input based on dimensionality and structure. For 2D arrays,
-    extracts columns according to `order` and `index_spec`. Returns X as None
-    if only Y values are detected.
-
-    This function is used by `_normalize_plotting_input(s)`.
+    Resolve positional plot inputs into an ``(x, y)`` pair.
 
     Parameters
     ----------
-    *data : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
-        Input data. Supported forms:
+    *data : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        One or two positional inputs.
 
-        * Single argument:
-            * 1D array-like or Quantity: Y values, X = None
-            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
-            * list/tuple of scalars: Y values, X = None
-            * scalar or scalar Quantity: single Y value, X = None
-
-        * Two arguments:
-            * (X, Y) pairs passed through unchanged
+        - 1 input: treated as `y` (scalar, 1D) or split into `(x, y)` (2D),
+          see `order` and `xy_indices`.
+        - 2 inputs: `(x, y)`, returned unchanged.
 
     order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
+        Array order of 2D input. Single-input only. Defines what a
+        column is for `xy_indices`.
 
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
+        - 'c': row-major, shape (N, M)
+        - 'fortran': column-major, shape (M, N)
 
+        Accepted case-insensitively, with 'f' as alias of 'fortran'.
         If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
-        Column extraction mode for 2D inputs.
+    xy_indices : tuple[int, int] | None | _Unset, optional, default=_UNSET
+        Variable selection for 2D input. Single-input only.
 
-        * 'implicit': return (None, [col_0, col_1, ...])
-        * 'explicit': return (col_0, col_1)
-        * tuple (i, j): return (col_i, col_j)
+        - tuple `(i, j)`: `x` = variable `i`, `y` = variable `j`
+          (negative indices allowed).
+        - None: no split; returns `(None, obj)` with obj transposed
+          if `order` is 'fortran'.
+
+        If `_UNSET`, uses `config.xy_indices`.
 
     Returns
     -------
-    X : ndarray | Quantity | scalar | list | None
-        X coordinates. None indicates implicit indexing (caller should generate).
-        Type preserves input semantics.
-    Y : ndarray | Quantity | scalar | list
-        Y coordinates. Preserves input type.
+    x : float | u.Quantity | NDArray | Sequence[float | u.Quantity] | None
+        X plotting data. None if only `y` was given (implicit x).
+    y : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        Y plotting data.
 
     Raises
     ------
-    ValueError
-        If input has unsupported dimensionality, structure, or count.
+    ValueError :
+        - Number of positional inputs is not 1 or 2.
+        - Any input is None where disallowed.
+        - `order` or `xy_indices` passed with two inputs.
+        - Single input has ndim > 2.
+        - `order` is not recognized.
+        - `xy_indices` does not have length 2.
+    IndexError :
+        If an entry of `xy_indices` is out of bounds for the array.
 
     Notes
     -----
-    For 2D inputs with 'implicit' mode, X is returned as None and Y as a list
-    of column arrays, delegating index generation to the caller.
+    - 2D splitting returns views, not copies.
+    - Units of `u.Quantity` inputs are preserved.
+    - Scalar and 0D/1D single inputs ignore `order` and `xy_indices`.
+    - 2D input must be an `ndarray` (or subclass); nested sequences are
+      not supported.
     """
-    array_order = _resolve_default(order, config.array_order)
-    index_spec = _resolve_default(index_spec, config.index_specification)
+    n = len(data)
+    if n not in (1, 2):
+        raise ValueError(f"Expected 1 or 2 positional inputs, got {n}.")
 
-    if len(data) == 1:
-        obj = data[0]
-        if isinstance(obj, (np.ndarray, u.Quantity)):
-            if obj.ndim == 1:
-                return None, obj
-            if obj.ndim == 2:
-                if array_order.lower() == 'c':
-                    axis = 0
-                    get_col = lambda i: obj[:, i]
-                else:
-                    axis = 1
-                    get_col = lambda i: obj[i, :]
+    if n == 2:
+        if order is not _UNSET or xy_indices is not _UNSET:
+            raise ValueError('`order` and `xy_indices` apply only to a single input.')
+        x, y = data
+        if y is None:
+            raise ValueError('`y` must not be None.')
+        return x, y
 
-                if isinstance(index_spec, (list, tuple)):
-                    ix, iy = index_spec
-                    return get_col(ix), get_col(iy)
-                elif index_spec == 'explicit':
-                    return get_col(0), get_col(1)
-                elif index_spec == 'implicit':
-                    y = [
-                        get_col(i) for i in range(
-                            obj.shape[1] if axis == 0 else obj.shape[0]
-                        )
-                    ]
-                    return None, y
+    obj = data[0]
+    if obj is None:
+        raise ValueError('Input must not be None.')
 
-        if _is_scalar(obj):
-            return None, obj
+    if _is_scalar(obj):
+        return None, obj
 
-        if isinstance(obj, (list, tuple)):
-            if all(_is_scalar(x) for x in obj):
-                return None, obj
+    ndim = getattr(obj, 'ndim', None)
+    if ndim is None:
+        ndim = np.ndim(obj)
+    if ndim <= 1:
+        return None, obj
+    if ndim != 2:
+        raise ValueError(f'Input must be 1D or 2D, got {ndim}D.')
 
-            if all(isinstance(x, (np.ndarray, u.Quantity)) for x in obj):
-                xlist, ylist = [], []
-                for o in obj:
-                    x, y = _extract_xy(o, order=array_order, index_spec=index_spec)
-                    xlist.append(x)
-                    ylist.append(y)
+    order = _normalize_order(_resolve_default(order, config.array_order))
+    indices = _resolve_default(xy_indices, config.xy_indices)
 
-                if all(x is None for x in xlist):
-                    xlist = None
-                # flatten the ylist if list[list[NDArray]]
-                if all(isinstance(y, (list, tuple)) for y in ylist):
-                    if all(_is_ndarray_or_quantity_array(item) for y in ylist for item in y):
-                        ylist = [item for sublist in ylist for item in sublist]
+    if indices is None:
+        return None, (obj.T if order=='fortran' else obj)
 
-                return xlist, ylist
-
-        raise ValueError(f'Unsupported input type {type(obj).__name__}')
-
-    if len(data) == 2:
-        return data[0], data[1]
-
-    raise ValueError(f'Expected 1 or 2 arguments, got {len(data)}')
+    indices = tuple(indices)
+    if len(indices) != 2:
+        raise ValueError(
+            'indices must be a tuple[int, int]!'
+        )
+    return _extract_xy_from_ndarray2D(obj, order, indices)
 
 
 def _extract_xyz(
