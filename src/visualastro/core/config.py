@@ -587,7 +587,7 @@ def _resolve_default(value: T | _Unset, fallback: T) -> T:
     fallback : T
         Default value if `value` is `_UNSET`.
         Should be a `config` attribute.
-        ie. `config.figsize`.
+        i.e. `config.figsize`.
 
     Returns
     -------

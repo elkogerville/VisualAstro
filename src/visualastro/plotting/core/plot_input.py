@@ -110,7 +110,7 @@ def _extract_xy_from_ndarray2D(
     """
     if not isinstance(obj, np.ndarray) or obj.ndim != 2:
         raise ValueError(
-            'Input must be a 2D array, ie. np.random.rand(10, 2).'
+            'Input must be a 2D array, i.e. np.random.rand(10, 2).'
         )
     if len(xy_indices) != 2:
         raise ValueError('xy_indices must be a tuple[int, int].')
@@ -385,5 +385,5 @@ def _extract_xyz_from_ndarray(
     else:
         raise ValueError(
             'input arrays must be 2D with at least 3 axes! '
-            'ie. np.random.rand(10,3) or a list of such.'
+            'i.e. np.random.rand(10,3) or a list of such.'
         )

@@ -389,7 +389,7 @@ def plot_spectral_cube(
         Axis used for collapsing 3D cubes into a 2D image.
     spectral_label : bool, optional, default=True
         If `True`, annotate the figure with the slice's spectral axis value,
-        ie. the wavelength of the cube's spectral_axis.
+        i.e. the wavelength of the cube's spectral_axis.
     as_title : bool, optional, default=False
          If `True`, display spectral slice label as plot title.
     unit_fmt : str | optional, default=config.unit_label_format

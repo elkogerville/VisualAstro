@@ -197,7 +197,7 @@ def subplot(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -246,7 +246,7 @@ def add_subplot(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -308,7 +308,7 @@ def ax3d(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -352,7 +352,7 @@ def add_ax3d(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
         - makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -398,7 +398,7 @@ def wcsax(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -1323,7 +1323,7 @@ def _set_axis_limits_scaling_mode(
 
         - autoscale : bool
             If `True`, uses native Matplotlib autoscaling,
-            ie. `ax.set_autoscale_on(True)`, and disables
+            i.e. `ax.set_autoscale_on(True)`, and disables
             VisualAstro's manual limits computation
             (`compute_limits=False`).
         - compute_limits : bool

@@ -68,7 +68,7 @@ def load_data_cube(
     ----------
     filepath : str
         Path pattern to FITS files. Wildcards are supported.
-        ie. `'Spectro-Module/raw/HARPS*.fits'`
+        i.e. `'Spectro-Module/raw/HARPS*.fits'`
     error : bool, optional, default=True
         If `True`, try to extract the error extension.
         Converts variance to errors using `get_errors`.
@@ -797,7 +797,7 @@ def compute_sobel_filter(image: NDArray) -> NDArray:
     Brings out the edges of an image.
 
     Users should use `detect_edges` for a more stable api,
-    which supports images with more than 2 dimensions (ie. RGB / RGBA).
+    which supports images with more than 2 dimensions (i.e. RGB / RGBA).
 
     Parameters
     ----------
