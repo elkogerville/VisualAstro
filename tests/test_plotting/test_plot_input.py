@@ -10,7 +10,6 @@ import astropy.units as u
 import numpy as np
 import pytest
 
-from visualastro.core.config import config, _UNSET
 from visualastro.plotting.core.plot_input import (
     _extract_xy, _extract_xy_from_ndarray2D
 )
