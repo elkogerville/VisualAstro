@@ -7,7 +7,7 @@ Description:
 """
 
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal
 
 from astropy import units as u
 import numpy as np
@@ -27,6 +27,7 @@ from visualastro.core.array_types import (
     _is_wrapped_1d,
 )
 from visualastro.core.data import as_list, to_list
+from visualastro.core.kwargs import _resolve_kwargs, _params_from_explicit
 
 
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
@@ -121,78 +122,100 @@ def _extract_xy_from_ndarray2D(
 
 def _extract_xy(
     *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    xy_indices: tuple[int, int] | None | _Unset = _UNSET,
+    kwargs: dict[str, Any],
+    **explicit
 ):
     """
-    Resolve positional plot inputs into an ``(x, y)`` pair.
+    Resolve positional plot inputs into an `(x, y)` pair.
 
     Parameters
     ----------
     *data : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
-        One or two positional inputs.
+        One or two positional inputs. Accepted signatures:
 
-        - 1 input: treated as `y` (scalar, 1D) or split into `(x, y)` (2D),
-          see `order` and `xy_indices`.
-        - 2 inputs: `(x, y)`, returned unchanged.
+        - `(y)`: scalar, 0D or 1D. Returned as `(None, y)`.
+        - `(y)`: 2D `ndarray`. Split into `(x, y)` via `order` and
+          `xy_indices`.
+        - `(x, y)`: returned unchanged.
 
-    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Array order of 2D input. Single-input only. Defines what a
-        column is for `xy_indices`.
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    **explicit
+        Any of the following keyword arguments:
 
-        - 'c': row-major, shape (N, M)
-        - 'fortran': column-major, shape (M, N)
+        - order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+            Array order of 2D input. Single-input only. Defines what a
+            column is for `xy_indices`.
 
-        Accepted case-insensitively, with 'f' as alias of 'fortran'.
-        If `_UNSET`, uses `config.array_order`.
-    xy_indices : tuple[int, int] | None | _Unset, optional, default=_UNSET
-        Variable selection for 2D input. Single-input only.
+            - 'c': row-major, shape (N, M)
+            - 'fortran': column-major, shape (M, N)
 
-        - tuple `(i, j)`: `x` = variable `i`, `y` = variable `j`
-          (negative indices allowed).
-        - None: no split; returns `(None, obj)` with obj transposed
-          if `order` is 'fortran'.
+            Accepted case-insensitively, with 'f' as alias of 'fortran'.
+            If `_UNSET`, uses `config.array_order`.
+        - xy_indices : tuple[int, int] | None | _Unset, optional, default=_UNSET
+            Variable selection for 2D input. Single-input only.
 
-        If `_UNSET`, uses `config.xy_indices`.
+            - tuple `(i, j)`: `x` = variable `i`, `y` = variable `j`
+              (negative indices allowed).
+            - `None`: no split. Returns `(None, obj)`, with `obj` transposed
+              if `order` is 'fortran'.
+
+            If `_UNSET`, uses `config.xy_indices`.
 
     Returns
     -------
     x : float | u.Quantity | NDArray | Sequence[float | u.Quantity] | None
-        X plotting data. None if only `y` was given (implicit x).
+        X plotting data. `None` if only `y` was given (implicit x).
     y : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
         Y plotting data.
 
     Raises
     ------
-    ValueError :
+    ValueError
         - Number of positional inputs is not 1 or 2.
-        - Any input is None where disallowed.
-        - `order` or `xy_indices` passed with two inputs.
+        - Two inputs and `order` or `xy_indices` is given.
+        - Two inputs and `y` is `None`.
+        - Single input is `None`.
         - Single input has ndim > 2.
         - `order` is not recognized.
         - `xy_indices` does not have length 2.
-    IndexError :
+    IndexError
         If an entry of `xy_indices` is out of bounds for the array.
 
     Notes
     -----
     - 2D splitting returns views, not copies.
     - Units of `u.Quantity` inputs are preserved.
-    - Scalar and 0D/1D single inputs ignore `order` and `xy_indices`.
-    - 2D input must be an `ndarray` (or subclass); nested sequences are
+    - Scalar, 0D and 1D single inputs ignore `order` and `xy_indices`.
+    - 2D input must be an `ndarray` (or subclass). Nested sequences are
       not supported.
+    - With two inputs, `x=None` is accepted and returned unchanged.
     """
     n = len(data)
     if n not in (1, 2):
-        raise ValueError(f"Expected 1 or 2 positional inputs, got {n}.")
+        raise ValueError(f'Expected 1 or 2 positional inputs, got {n}.')
 
     if n == 2:
-        if order is not _UNSET or xy_indices is not _UNSET:
-            raise ValueError('`order` and `xy_indices` apply only to a single input.')
+        if (
+            explicit.get('order', _UNSET) is not _UNSET
+            or explicit.get('xy_indices', _UNSET) is not _UNSET
+        ):
+            raise ValueError(
+                '`order` and `xy_indices` apply only to a single input.'
+            )
         x, y = data
         if y is None:
             raise ValueError('`y` must not be None.')
         return x, y
+
+    defaults = {
+        'order': config.array_order,
+        'xy_indices': config.xy_indices,
+    }
+    params = _resolve_kwargs(
+        kwargs,
+        params=_params_from_explicit(explicit, defaults),
+    )
 
     obj = data[0]
     if obj is None:
@@ -209,17 +232,15 @@ def _extract_xy(
     if ndim != 2:
         raise ValueError(f'Input must be 1D or 2D, got {ndim}D.')
 
-    order = _normalize_order(_resolve_default(order, config.array_order))
-    indices = _resolve_default(xy_indices, config.xy_indices)
+    order = _normalize_order(params.order)
+    indices = params.xy_indices
 
     if indices is None:
-        return None, (obj.T if order=='fortran' else obj)
+        return None, (obj.T if order == 'fortran' else obj)
 
     indices = tuple(indices)
     if len(indices) != 2:
-        raise ValueError(
-            'indices must be a tuple[int, int]!'
-        )
+        raise ValueError('xy_indices must be a tuple[int, int].')
     return _extract_xy_from_ndarray2D(obj, order, indices)
 
 
