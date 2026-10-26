@@ -16,17 +16,10 @@ from matplotlib.collections import Collection
 from matplotlib.image import AxesImage
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
-import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.array_types import (
-    _is_1d, _is_2d,
-    _is_iterable,
-    _is_ndarray_or_quantity_array,
-    _is_scalar,
-)
 from visualastro.core.config import (
     get_config_value,
     _Unset, _UNSET,
@@ -39,155 +32,10 @@ from visualastro.optional_dependencies._regions import (
 )
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors import get_colors, sample_cmap
-
-
-def _normalize_plotting_inputs(
-    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET,
-    mode: Literal['plot', 'scatter'] = 'scatter'
-):
-    """
-    Extract and normalize X, Y inputs for plotting.
-
-    Handles variable input formats and ensures X and Y have compatible
-    dimensionality for broadcasting. Generates implicit X indices when not
-    provided. Wraps scalars and 1D data in lists to match 2D counterparts.
-
-    See `visualastro.plotting.core.utils._extract_xy` for documentation
-    on how `*data` is interpreted.
-
-    Parameters
-    ----------
-    *data : float | Quantity | ndarray | list thereof
-        Plotting data. Accepts 1 or 2 arguments:
-
-        - Single argument: interpreted as Y (X set to None)
-        - Two arguments: interpreted as (X, Y)
-
-    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
-
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
-
-        If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
-        Specifies which columns to extract from 2D input.
-        - `'implicit'`: extract all columns as separate Y arrays
-        - `'explicit'`: extract columns 0 and 1 as X, Y
-        - `tuple (i, j)`: extract columns i and j
-
-    Returns
-    -------
-    X : ArrayLike | list[ArrayLike]
-        X coordinates. Generated as np.arange(n) if not provided.
-    Y : ArrayLike | list[ArrayLike]
-        Y coordinates.
-
-    Raises
-    ------
-    ValueError
-        If 2D input has inconsistent row lengths.
-    """
-    X, Y = _extract_xy(*data, order=order, index_spec=index_spec)
-
-    if X is None:
-        Y = to_list(Y)
-        xlist, ylist = [], []
-        for y in Y:
-            xi, yi = _normalize_xy_plotting_inputs(None, y, mode=mode)
-            xlist.append(xi)
-            ylist.append(yi)
-
-        if all(isinstance(y, (list, tuple)) for y in ylist):
-            if all(_is_ndarray_or_quantity_array(item) for y in ylist for item in y):
-                ylist = [item for sublist in ylist for item in sublist]
-
-        return xlist, ylist
-
-    return _normalize_xy_plotting_inputs(X, Y, mode=mode)
-
-
-def _normalize_xy_plotting_inputs(X, Y, mode):
-    """Helper method for _normalize_plotting_inputs."""
-    if X is None:
-        if _is_2d(Y):
-            lengths = [len(y) for y in Y]
-            if not all(length == lengths[0] for length in lengths):
-                raise ValueError(
-                    f'2D input has inconsistent row lengths: {lengths}. '
-                    f'All rows must have length {lengths[0]}.'
-                )
-            length = lengths[0]
-        else:
-            length = len(Y) if hasattr(Y, '__len__') else 1
-        X = np.arange(length)
-
-    if _is_2d(Y) and not _is_2d(X):
-        X = [X]
-    if _is_2d(X) and not _is_2d(Y):
-        Y = [Y]
-
-    if _is_scalar(X) or isinstance(X, np.ndarray):
-        X = [X]
-    if _is_scalar(Y) or isinstance(Y, np.ndarray):
-        Y = [Y]
-
-    if mode == 'plot':
-        if _is_1d(X):
-            X = [X]
-        if _is_1d(Y):
-            Y = [Y]
-
-    return X, Y
-
-
-def _normalize_plotting_input(data):
-    """
-    Normalize single input to consistent dimensionality structure.
-
-    Ensures error arrays and similar inputs match the dimensionality of
-    corresponding data arrays. Scalars are wrapped in lists, 2D structures
-    are validated for consistent row lengths.
-
-    Parameters
-    ----------
-    data : scalar | Sequence | None
-        Input data to normalize. Can be a scalar, 1D ArrayLike, 2D ArrayLike,
-        or `None`.
-
-    Returns
-    -------
-    normalized : scalar | list | np.ndarray
-        Normalized input. Scalars wrapped in lists, 2D data validated and
-        returned unchanged, 1D iterables returned as-is, None returned as-is.
-
-    Raises
-    ------
-    ValueError
-        If 2D input has inconsistent row lengths.
-    """
-    if data is None:
-        return None
-
-    if _is_2d(data):
-        lengths = [len(d) for d in data]
-        if not all(length == lengths[0] for length in lengths):
-            raise ValueError(
-                f'2D input has inconsistent row lengths: {lengths}. '
-                f'All rows must have length {lengths[0]}.'
-            )
-        return data
-
-    if _is_scalar(data) or isinstance(data, np.ndarray):
-        return [data]
-
-    if _is_iterable(data):
-        return data
-
-    return [data]
+from visualastro.plotting.core.plot_input import (
+    _extract_xy_from_ndarray2D,
+    _normalize_order
+)
 
 
 def _get_zorder(zorders: list[float] | None, i: int, fallback: float):
