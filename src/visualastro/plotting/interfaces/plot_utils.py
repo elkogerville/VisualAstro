@@ -53,6 +53,7 @@ from visualastro.plotting.core.utils import (
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
+    _default_ellipse_geometry
 )
 
 
@@ -128,7 +129,7 @@ class PlotUtilParams:
     """
     reference_idx: int
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
-    index_spec: tuple[int, int] | Literal['implicit', 'explicit']
+    xy_indices: tuple[int, int] | None
     vlines: Sequence[float] | None
     hlines: Sequence[float] | None
     compute_limits: bool
@@ -157,7 +158,7 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     params = PlotUtilParams(
         reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
-        index_spec=_pop_kwargs(kwargs, 'index_spec', config.index_specification),
+        xy_indices=_pop_kwargs(kwargs, 'xy_indices', config.xy_indices),
         vlines=_pop_kwargs(kwargs, 'vlines', None),
         hlines=_pop_kwargs(kwargs, 'hlines', None),
         compute_limits=_pop_kwargs(
@@ -258,7 +259,7 @@ def _apply_plot_utils(
     """
     # PRE SETTING AXIS LIMITS
     # -----------------------
-    if 'label' in kwargs and params.legend.pop('legend'):
+    if 'label' in kwargs and params.legend.pop('legend', None):
         if kwargs['label'] is not None:
             legend(ax=ax, **params.legend)
 
@@ -267,7 +268,7 @@ def _apply_plot_utils(
         params.points.pop('points', None),
         ax=ax,
         order=params.array_order,
-        index_spec=params.index_spec
+        xy_indices=params.xy_indices
     )
 
     if params.compute_limits:
@@ -307,8 +308,7 @@ def _apply_plot_utils(
 
     else:
         _set_axis_labels(
-            x if x is not None else None,
-            y if y is not None else None,
+            x, y,
             ax=ax,
             fontsize=label_fontsize,
             **labels,
@@ -342,17 +342,13 @@ def _apply_plot_utils(
     axhlines(params.hlines, ax=ax)
 
     if params.ellipses.pop('plot_ellipse', None) and img is not None:
-        data = img.get_array()
-        if data is not None:
-            if data.ndim == 2:
-                X, Y = data.shape
-            else:
-                X, Y = data.shape[-2:]
-            center = X//2, Y//2
-            w = X//5
-            h = Y//5
+        geometry = _default_ellipse_geometry(img)
+        if geometry is not None:
+            center, w, h = geometry
             plot_interactive_ellipse(
-                center, w, h, ax, params.text.get('loc'),
-                params.text.get('color'), params.text.get('highlight'),
-                rotation_step=kwargs.get('rotation_step', 5)
+                center, w, h, ax,
+                params.text.get('loc'),
+                params.text.get('color'),
+                params.text.get('highlight'),
+                rotation_step=kwargs.get('rotation_step', 5),
             )

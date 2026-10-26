@@ -587,7 +587,7 @@ def plot_points(
     size: float | list[float] = 20,
     marker: MarkerStyle | list[MarkerStyle] = '*',
     order: Literal['C', 'c', 'F', 'f', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    xy_indices: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
 ) -> None:
     """
     Plot points on a given Matplotlib axis.
@@ -597,14 +597,14 @@ def plot_points(
     points : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
         Input data. Supported forms:
 
-        * Single argument:
-            * 1D ArrayLike or Quantity: Y values, X = None
-            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
-            * list/tuple of scalars: Y values, X = None
-            * scalar or scalar Quantity: single Y value, X = None
+        - Single argument:
+            - 1D ArrayLike or Quantity: Y values, X = None
+            - 2D array or Quantity: extract X, Y according to `order` and `xy_indices`
+            - list/tuple of scalars: Y values, X = None
+            - scalar or scalar Quantity: single Y value, X = None
 
-        * Two arguments:
-            * (X, Y) pairs passed through unchanged
+        - Two arguments:
+            - (X, Y) pairs passed through unchanged
 
     ax : matplotlib.axes.Axes
         The Matplotlib axis on which to plot the points.
@@ -616,13 +616,13 @@ def plot_points(
         Matplotlib marker style(s).
     order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
         Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
+        column is for `xy_indices`.
 
         * 'c': row-major, shape (N, 2)
         * 'fortran': column-major, shape (2, N)
 
         If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
+    xy_indices : {'implicit', 'explicit'} | tuple[int, int], optional
         Column extraction mode for 2D inputs.
 
         * 'implicit': return (None, [col_0, col_1, ...])
@@ -631,7 +631,7 @@ def plot_points(
     """
     if points[0] is not None:
         xlist, ylist = _normalize_plotting_inputs(
-            *points, order=order, index_spec=index_spec
+            *points, order=order, xy_indices=xy_indices
         )
 
         colors = get_colors(color)
