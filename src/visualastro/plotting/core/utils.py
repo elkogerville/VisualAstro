@@ -23,6 +23,7 @@ from numpy.typing import NDArray
 from visualastro.core.config import (
     get_config_value,
     _Unset, _UNSET,
+    _resolve_default
 )
 from visualastro.core.data import get_value, to_list
 from visualastro.core.sequences import _cycle
@@ -429,69 +430,178 @@ def ellipse_patch(
 
 
 def plot_points(
-    *points: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
+    points: tuple | NDArray | list[tuple | NDArray] | None,
+    *,
     ax: maxes.Axes,
     color: ColorType | list[ColorType] | int = 'astro',
-    size: float | list[float] = 20,
+    size: float | list[float] | NDArray = 20,
     marker: MarkerStyle | list[MarkerStyle] = '*',
     order: Literal['C', 'c', 'F', 'f', 'fortran'] | _Unset = _UNSET,
-    xy_indices: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    xy_indices: tuple[int, int] = (0, 1),
+    zorder: float = 3,
+    autoscale: bool = False,
+    **kwargs,
 ) -> None:
     """
-    Plot points on a given Matplotlib axis.
+    Overlay point markers on an existing Matplotlib axes.
+
+    Intended for marking positions on any kind of plot (`imshow`,
+    `plot`, `pcolormesh`, ...), not for making a scatter plot.
 
     Parameters
     ----------
-    points : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
-        Input data. Supported forms:
+    points : tuple | NDArray | list[tuple | NDArray] | None
+        Coordinates of the markers in data coordinates. The container
+        type determines the meaning:
 
-        - Single argument:
-            - 1D ArrayLike or Quantity: Y values, X = None
-            - 2D array or Quantity: extract X, Y according to `order` and `xy_indices`
-            - list/tuple of scalars: Y values, X = None
-            - scalar or scalar Quantity: single Y value, X = None
+        - `tuple`: one `(x, y)` pair. `x` and `y` are scalars (a single
+          marker) or equal-length 1D arrays or Quantities.
+        - `ndarray` (or Quantity): one 2D array, split into `x` and `y`
+          via `order` and `xy_indices`.
+        - `list`: several marker groups, each a `tuple` or 2D `ndarray`.
+          `color`, `size` and `marker` lists are cycled across groups.
+        - `None`: nothing is plotted.
 
-        - Two arguments:
-            - (X, Y) pairs passed through unchanged
+        A `list` is never interpreted as an `(x, y)` pair; use a tuple.
 
     ax : matplotlib.axes.Axes
-        The Matplotlib axis on which to plot the points.
+        Axes on which to draw.
     color : ColorType | list[ColorType] | int, optional, default='astro'
-        Color of the points. If an integer, will draw colors using `config.cmap`.
-    size : float | list[float], optional, default=20
-        Marker size(s).
+        Marker color(s), one per group, cycled if shorter than the number
+        of groups. If an integer, colors are drawn from `config.cmap`.
+    size : float | list[float] | NDArray, optional, default=20
+        Marker area in points squared. A scalar applies to all groups and
+        a list is cycled across groups. An `ndarray` gives one size per
+        point and is passed unchanged to every group, so it is only
+        sensible with a single group.
     marker : MarkerStyle | list[MarkerStyle], optional, default='*'
-        Matplotlib marker style(s).
+        Matplotlib marker style(s), cycled across groups.
     order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `xy_indices`.
+        Array order of 2D array groups. Defines what a column is for
+        `xy_indices`.
 
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
+        - 'c': row-major, shape (N, M)
+        - 'fortran': column-major, shape (M, N)
 
-        If `_UNSET`, uses `config.array_order`.
-    xy_indices : {'implicit', 'explicit'} | tuple[int, int], optional
-        Column extraction mode for 2D inputs.
+        Accepted case-insensitively, with 'f' as alias of 'fortran'.
+        Ignored for tuple groups. If `_UNSET`, uses `config.array_order`.
+    xy_indices : tuple[int, int], optional, default=(0, 1)
+        `(i, j)`: `x` = variable `i`, `y` = variable `j` of 2D array
+        groups (negative indices allowed). Ignored for tuple groups.
+    zorder : float, optional, default=3
+        Drawing order. The default places markers above images
+        (`imshow`, zorder 0) and lines (zorder 2).
+    autoscale : bool, optional, default=False
+        If `False`, the axis limits in effect before drawing are restored
+        afterwards, so the markers never change the view. If `True`, the
+        limits may expand to include all markers.
+    **kwargs
+        Additional keyword arguments passed to `ax.scatter`.
 
-        * 'implicit': return (None, [col_0, col_1, ...])
-        * 'explicit': return (col_0, col_1)
-        * tuple (i, j): return (col_i, col_j)
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    TypeError
+        A group is not a `tuple` or `ndarray` (e.g. a nested list, or a
+        list given where an `(x, y)` pair was meant).
+    ValueError
+        - A tuple group does not have length 2.
+        - An array group is not 2D.
+        - `x` or `y` of a tuple group is more than 1D.
+        - `order` is not recognized.
+        - `xy_indices` does not have length 2.
+
+    IndexError
+        If an entry of `xy_indices` is out of bounds for an array group.
+
+    Notes
+    -----
+    - Units of `u.Quantity` inputs are stripped via `get_value`, so
+      they must already match the axes units.
     """
-    if points[0] is not None:
-        xlist, ylist = _normalize_plotting_inputs(
-            *points, order=order, xy_indices=xy_indices
+    if points is None:
+        return None
+
+    order = _normalize_order(_resolve_default(order, config.array_order))
+    groups = points if isinstance(points, list) else [points]
+
+    colors = get_colors(color)
+    sizes = [size] if isinstance(size, np.ndarray) else to_list(size)
+    markers = to_list(marker)
+
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+
+    for i, group in enumerate(groups):
+        x, y = _group_to_xy(group, order, xy_indices)
+        ax.scatter(
+            x, y,
+            s=_cycle(sizes, i),
+            marker=_cycle(markers, i),
+            color=_cycle(colors, i),
+            zorder=zorder,
+            **kwargs,
         )
 
-        colors = get_colors(color)
-        sizes = to_list(size)
-        markers = to_list(marker)
-        for i in range(len(ylist)):
-            x = get_value(_cycle(xlist, i))
-            y = get_value(_cycle(ylist, i))
+    if not autoscale:
+        ax.set_xlim(xlim, auto=None)
+        ax.set_ylim(ylim, auto=None)
+    return None
 
-            ax.scatter(
-                x, y,
-                marker=_cycle(markers, i),
-                s=_cycle(sizes, i),
-                color=_cycle(colors, i)
+
+def _group_to_xy(
+    obj: tuple | NDArray,
+    order: str,
+    xy_indices: tuple[int, int],
+) -> tuple[NDArray, NDArray]:
+    """
+    Resolve one marker group into 1D `(x, y)` arrays without units.
+
+    Parameters
+    ----------
+    obj : tuple | NDArray
+        An `(x, y)` tuple or a 2D `ndarray` (including Quantity).
+    order : str
+        Normalized array order, used for 2D arrays only.
+    xy_indices : tuple[int, int]
+        Variable selection, used for 2D arrays only.
+
+    Returns
+    -------
+    x, y : NDArray
+        1D arrays.
+
+    Raises
+    ------
+    TypeError
+        If `obj` is neither a tuple nor an ndarray.
+    ValueError
+        If a tuple does not have length 2, an array is not 2D, or `x`
+        or `y` is more than 1D.
+    """
+    if isinstance(obj, tuple):
+        if len(obj) != 2:
+            raise ValueError(
+                f'A tuple group must be `(x, y)`, got length {len(obj)}.'
             )
+        x, y = obj
+    elif isinstance(obj, np.ndarray):
+        if obj.ndim != 2:
+            raise ValueError(f'An array group must be 2D, got {obj.ndim}D.')
+        x, y = _extract_xy_from_ndarray2D(obj, order, tuple(xy_indices))
+    else:
+        raise TypeError(
+            'Each group must be an `(x, y)` tuple or a 2D ndarray, '
+            f'got {type(obj).__name__}. Use a tuple, not a list, for a '
+            'single `(x, y)` pair.'
+        )
+
+    x = np.atleast_1d(get_value(x))
+    y = np.atleast_1d(get_value(y))
+    if x.ndim > 1 or y.ndim > 1:
+        raise ValueError(
+            f'`x` and `y` must be scalar or 1D, got {x.ndim}D and {y.ndim}D.'
+        )
+    return x, y
