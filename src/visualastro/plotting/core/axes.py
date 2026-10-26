@@ -34,6 +34,7 @@ from visualastro.core.config import (
     _resolve_default
 )
 from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.kwargs import _resolve_kwargs, _params_from_explicit
 from visualastro.core.numerical import flatten
 from visualastro.core.units import (
     get_physical_type,

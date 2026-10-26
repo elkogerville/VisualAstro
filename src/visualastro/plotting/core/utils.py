@@ -12,6 +12,8 @@ from functools import partial
 
 import astropy.units as u
 import matplotlib.axes as maxes
+from matplotlib.collections import Collection
+from matplotlib.image import AxesImage
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 import matplotlib.pyplot as plt
@@ -355,6 +357,24 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     highlight : bool | None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses `config.highlight`.
+    angle : float, optional, default=0.0
+        Initial rotation angle in degrees.
+    rotation_step : float, optional, default=5.0
+        Rotation increment in degrees per key press.
+
+    Returns
+    -------
+    matplotlib.widgets.EllipseSelector
+        Interactive selector. Also stored as `ax._ellipse_selector`.
+
+    Notes
+    -----
+    Key bindings:
+
+    - 'e': rotate by `-rotation_step`.
+    - 'f': rotate by `+rotation_step`.
+    - 't': reset angle to 0.
+    - 'o': toggle the selector on/off.
 
     Notes
     -----
@@ -429,7 +449,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
             return
 
         # synchronize region <- artist
-        region.angle = -artist.angle * u.deg
+        region.angle = artist.angle * u.deg
 
         artist.figure.canvas.draw_idle()
 
@@ -467,6 +487,52 @@ def _update_ellipse_region(region, text):
         f'Minor: {minor:.1f}\n'
         f'Angle: {angle:.1f}\n'
     )
+
+
+def _default_ellipse_geometry(
+    img: AxesImage | Collection,
+) -> tuple[tuple[float, float], float, float] | None:
+    """
+    Default ellipse center and size, in data coordinates, for an artist.
+
+    Parameters
+    ----------
+    img : matplotlib.image.AxesImage | matplotlib.collections.Collection
+        Plotted artist. `AxesImage` uses its extent; `Collection`
+        (e.g. `PathCollection` from `ax.scatter`) uses the bounding box
+        of its finite offsets.
+
+    Returns
+    -------
+    center : tuple[float, float]
+        (x, y) center of the artist's bounding box.
+    w, h : float
+        One fifth of the bounding box width and height.
+
+    None
+        If the artist type is unsupported, has no finite points,
+        or has zero extent along either axis.
+    """
+    if isinstance(img, AxesImage):
+        x0, x1, y0, y1 = img.get_extent()
+
+    elif isinstance(img, Collection):
+        offsets = np.ma.filled(img.get_offsets(), np.nan).astype(float)
+        offsets = offsets[np.isfinite(offsets).all(axis=1)]
+        if offsets.size == 0:
+            return None
+        x0, y0 = offsets.min(axis=0)
+        x1, y1 = offsets.max(axis=0)
+
+    else:
+        return None
+
+    w = abs(x1 - x0) / 5
+    h = abs(y1 - y0) / 5
+    if not (w > 0 and h > 0):
+        return None
+
+    return ((x0 + x1) / 2, (y0 + y1) / 2), w, h
 
 
 def ellipse_patch(
