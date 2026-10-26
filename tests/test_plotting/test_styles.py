@@ -1,13 +1,12 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-10-25
-Date Modified: 2026-10-25
+Date Modified: 2026-10-26
 Description:
     Tests for plot styles.
 """
 
 import matplotlib.pyplot as plt
-import pytest
 import visualastro as va
 
 
