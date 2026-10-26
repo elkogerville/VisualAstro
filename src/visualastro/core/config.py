@@ -298,6 +298,9 @@ class RugPlotConfig(PrettyRepr):
 class SpectralLineConfig(PrettyRepr):
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
+    marker_linestyle: str = 'solid'
+    vline_linestyle: str = 'dashed'
+    linewidth: float = 0.7
     label_offset_points: tuple[float, float] = (0.0, 4.0)
     label_position: Literal['center', 'left', 'right'] = 'center'
     label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'

@@ -7,12 +7,15 @@ Description:
 """
 
 from __future__ import annotations
-from collections.abc import Sequence
+from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType, LineStyleType
+import numpy as np
 
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
@@ -26,9 +29,9 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.data import get_value
+from visualastro.core.data import get_value, _ndim
 from visualastro.core.kwargs import _param, _resolve_kwargs
-from visualastro.core.sequences import _cycle
+from visualastro.core.sequences import _broadcast, _common_value, _cycle
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
@@ -39,6 +42,7 @@ from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import SpectralAxis
 from visualastro.plotting.core.axes import get_ax
+from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.lines import axvlines
 
 
@@ -48,7 +52,7 @@ def spectral_line_marker(
     h: float | u.Quantity | None = None,
     ax: maxes.Axes | None = None,
     style: Literal['marker', 'vline'] = 'marker',
-    label: str | Sequence[str] | None = None,
+    label: str | Sequence[str | None] | None = None,
     direction: Literal['up', 'down'] | _Unset = _UNSET,
     label_offset_points: tuple[float, float] | _Unset = _UNSET,
     label_position: Literal['center', 'left', 'right'] | _Unset = _UNSET,
@@ -58,8 +62,8 @@ def spectral_line_marker(
     hline_extend: float | u.Quantity | None = None,
     fontsize: float | _Unset = _UNSET,
     color: ColorType | _Unset = _UNSET,
-    linewidth: float = 0.7,
-    linestyle: LineStyleType = 'dashed',
+    linewidth: float | _Unset = _UNSET,
+    linestyle: LineStyleType | _Unset = _UNSET,
     va: Literal['top', 'bottom', 'center'] = 'top',
     **kwargs
 ) -> None:
@@ -85,7 +89,7 @@ def spectral_line_marker(
         - `'vline'`: `ax.axvline` at each x-value, spanning the full
             axes height.
 
-    label : str | Sequence[str] | None, optional, default=None
+    label : str | Sequence[str | None] | None, optional, default=None
         Label text.
 
         - `style='marker'`: `str` only; one label for the whole group.
@@ -141,9 +145,12 @@ def spectral_line_marker(
         Color of markers/lines and label text. If `_UNSET`, uses
         `config.axline.color`.
     linewidth : float, optional, default=0.7
-        Linewidth of vlines/markers.
+        Linewidth of vlines/markers. If `_UNSET` uses
+        `config.spectral_line_marker.linewidth`.
     linestyle : LineStyleType, optional, default='dashed'
-        Linestyle of the vlines/markers.
+        Linestyle of the vlines/markers. If `_UNSET` uses
+        `config.spectral_line_marker.marker_linestyle` if
+        `style='marker'` else `config.spectral_line_marker.vline_linestyle`
     va : {'top', 'bottom', 'center'}, optional, default='top'
         Vertical alignment of the label in `style='vline'`.
     **kwargs
@@ -199,8 +206,7 @@ def spectral_line_marker(
             _param('rotation', rotation, config.spectral_line_marker.label_rotation),
             _param('fontsize', fontsize, config.fontsizes.resolve('text')),
             _param('color', color, config.axline.color),
-            _param('linewidth', linewidth, 0.7),
-            _param('linestyle', linestyle, 'dashed'),
+            _param('linewidth', linewidth, config.spectral_line_marker.linewidth),
         ],
     )
     ax = get_ax(ax)
@@ -227,6 +233,9 @@ def spectral_line_marker(
     # vline
     # #####
     if marker_style == 'vline':
+        linestyle = _resolve_default(
+            linestyle, config.spectral_line_marker.vline_linestyle
+        )
         x_raw = [get_value(v) for v in x_list]
         n = len(x_raw)
 
@@ -251,7 +260,7 @@ def spectral_line_marker(
                 x_val,
                 color=params.color,
                 lw=params.linewidth,
-                ls=params.linestyle,
+                ls=linestyle,
                 **kwargs
             )
             if lab is None:
@@ -273,6 +282,9 @@ def spectral_line_marker(
     # ######
     # marker
     # ######
+    linestyle = _resolve_default(
+        linestyle, config.spectral_line_marker.marker_linestyle
+    )
     assert h is not None and y is not None
     x_vals = sorted(get_value(v) for v in x_list)
     y_val = get_value(y)
@@ -286,7 +298,7 @@ def spectral_line_marker(
         x_vals, y_val, y_val + h_val,
         color=params.color,
         lw=params.linewidth,
-        ls=params.linestyle,
+        ls=linestyle,
         **kwargs
     )
 
@@ -306,7 +318,7 @@ def spectral_line_marker(
             y_val + h_val, h_lo, h_hi,
             color=params.color,
             lw=params.linewidth,
-            ls=params.linestyle,
+            ls=linestyle,
             **kwargs
         )
 
