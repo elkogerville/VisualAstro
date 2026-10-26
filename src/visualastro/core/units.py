@@ -7,6 +7,7 @@ Description:
 """
 
 from __future__ import annotations
+from collections.abc import Sequence
 import warnings
 from typing import Any, Literal, overload
 
@@ -984,9 +985,9 @@ def _has_unit(*objs) -> bool:
 
 
 def _get_xyplot_units(
-    x: ArrayLike | u.Quantity | None,
-    y: ArrayLike | u.Quantity | None,
-    c: ArrayLike | u.Quantity | None
+    x: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None,
+    y: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None,
+    c: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None
 ) -> tuple[
     UnitBase | StructuredUnit | None,
     UnitBase | StructuredUnit | None,
