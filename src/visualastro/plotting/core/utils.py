@@ -30,7 +30,6 @@ from visualastro.core.config import (
     _Unset, _UNSET,
 )
 from visualastro.core.data import get_value, to_list
-from visualastro.core.plot_input import _extract_xy
 from visualastro.core.sequences import _cycle
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (

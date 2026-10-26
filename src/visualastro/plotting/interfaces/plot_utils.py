@@ -244,10 +244,9 @@ def _apply_plot_utils(
         interactive ellipses.
     ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
         Reference unit for the colorbar label and for `axvlines`/`axhlines`.
-    labels : sequence | None
-        Plot labels. The legend is drawn only if this key is present,
-        `params.legend['legend']` is truthy, and the label at
-        `params.reference_idx` is not None.
+    label : sequence | None
+        Plot label. The legend is drawn only if this key is not None,
+        and `params.legend['legend']` is truthy.
     rasterized : bool, optional
         Forwarded to `add_colorbar`. Popped from `kwargs`.
     rotation_step : int | float, optional, default=5
@@ -259,8 +258,8 @@ def _apply_plot_utils(
     """
     # PRE SETTING AXIS LIMITS
     # -----------------------
-    if 'labels' in kwargs and params.legend.pop('legend'):
-        if kwargs['labels'][0] is not None:
+    if 'label' in kwargs and params.legend.pop('legend'):
+        if kwargs['label'] is not None:
             legend(ax=ax, **params.legend)
 
     plot_ellipses(params.ellipses.pop('ellipses', None), ax)
