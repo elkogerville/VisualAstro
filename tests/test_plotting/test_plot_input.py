@@ -11,7 +11,11 @@ import numpy as np
 import pytest
 
 from visualastro.plotting.core.plot_input import (
-    _extract_xy, _extract_xy_from_ndarray2D, _extract_xyz
+    _extract_xy,
+    _extract_xy_from_ndarray2D,
+    _extract_xyz,
+    _resolve_implicit_x,
+    _resolve_xy_plot_inputs
 )
 
 
@@ -308,6 +312,97 @@ class TestExtractXYFromNdarray2D:
 
         with pytest.raises(ValueError, match='tuple\\[int, int\\]'):
             _extract_xy_from_ndarray2D(arr, 'c', indices)
+
+
+class TestResolveImplicitX:
+    def test_explicit_x_passes_through(self):
+        x, y = np.arange(3), np.arange(3) * 2
+        for mode in ('plot', 'scatter'):
+            out = _resolve_implicit_x(x, y, mode=mode)
+            assert out[0] is x
+            assert out[1] is y
+
+    def test_plot_implicit_x_returns_y_only(self):
+        y = np.arange(4)
+        out = _resolve_implicit_x(None, y, mode='plot')
+        assert len(out) == 1
+        assert out[0] is y
+
+    def test_scatter_implicit_x_is_arange(self):
+        y = np.array([5.0, 6.0, 7.0])
+        x, y_out = _resolve_implicit_x(None, y, mode='scatter')
+        np.testing.assert_array_equal(x, [0, 1, 2])
+        assert y_out is y
+
+    def test_scatter_scalar_y_gives_single_point(self):
+        x, y = _resolve_implicit_x(None, 3.0, mode='scatter')
+        np.testing.assert_array_equal(x, [0])
+        assert y == 3.0
+
+    def test_plot_allows_2d_y_with_1d_x(self):
+        x, y = np.arange(5), np.zeros((5, 2))
+        out = _resolve_implicit_x(x, y, mode='plot')
+        assert out[1].shape == (5, 2)
+        assert x is out[0]
+        assert y is out[1]
+
+    @pytest.mark.parametrize('x', [None, np.arange(5)])
+    def test_scatter_rejects_2d_y(self, x):
+        with pytest.raises(ValueError):
+            _resolve_implicit_x(x, np.zeros((5, 2)), mode='scatter')
+
+    def test_invalid_mode_raises(self):
+        with pytest.raises(ValueError):
+            _resolve_implicit_x(None, np.arange(3), mode='line')
+
+
+class TestResolveXYPlotInputs:
+    def test_single_1d_plot(self):
+        y = np.arange(4)
+        out = _resolve_xy_plot_inputs(y, kwargs={}, mode='plot')
+        assert len(out) == 1
+        assert out[0] is y
+
+    def test_single_1d_scatter(self):
+        y = np.arange(4)
+        x, y_out = _resolve_xy_plot_inputs(y, kwargs={}, mode='scatter')
+        np.testing.assert_array_equal(x, np.arange(4))
+        assert y_out is y
+
+    @pytest.mark.parametrize('mode', ['plot', 'scatter'])
+    def test_two_inputs_pass_through(self, mode):
+        x, y = np.arange(3), np.arange(3) ** 2
+        out = _resolve_xy_plot_inputs(x, y, kwargs={}, mode=mode)
+        assert out[0] is x
+        assert out[1] is y
+
+    @pytest.mark.parametrize('mode', ['plot', 'scatter'])
+    def test_2d_split_works_for_both_modes(self, mode):
+        arr = np.column_stack([np.arange(5), np.arange(5) * 10])
+        x, y = _resolve_xy_plot_inputs(
+            arr, kwargs={}, mode=mode, order='c', xy_indices=(0, 1)
+        )
+        np.testing.assert_array_equal(x, arr[:, 0])
+        np.testing.assert_array_equal(y, arr[:, 1])
+
+    def test_2d_no_split_plot_returns_2d_y(self):
+        arr = np.zeros((5, 3))
+        out = _resolve_xy_plot_inputs(
+            arr, kwargs={}, mode='plot', order='c', xy_indices=None
+        )
+        assert len(out) == 1
+        assert out[0].shape == (5, 3)
+
+    def test_2d_no_split_scatter_raises(self):
+        with pytest.raises(ValueError):
+            _resolve_xy_plot_inputs(
+                np.zeros((5, 3)), kwargs={}, mode='scatter',
+                order='c', xy_indices=None,
+            )
+
+    def test_invalid_mode_raises(self):
+        with pytest.raises(ValueError):
+            _resolve_xy_plot_inputs(np.arange(3), kwargs={}, mode='line')
 
 
 class TestExtractXYZ:
