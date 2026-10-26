@@ -203,6 +203,18 @@ class TestExtractXY:
         assert np.array_equal(X.value, arr.value[:, 0])
         assert np.array_equal(Y.value, arr.value[:, 1])
 
+    def test_single_2d_no_split_c(self):
+        arr = np.arange(12).reshape(4, 3)
+        X, Y = _extract_xy(arr, order='c', xy_indices=None, kwargs={})
+        assert X is None
+        assert Y is arr
+
+    def test_single_2d_no_split_fortran_transposes(self):
+        arr = np.arange(12).reshape(3, 4)
+        X, Y = _extract_xy(arr, order='fortran', xy_indices=None, kwargs={})
+        assert X is None
+        assert np.array_equal(Y, arr.T)
+
     # ######
     # raises
     # ######
@@ -222,6 +234,32 @@ class TestExtractXY:
     def test_single_none_raises(self):
         with pytest.raises(ValueError, match='must not be None'):
             _extract_xy(None, kwargs=self.kwargs)
+
+    @pytest.mark.parametrize('kw', [{'order': 'c'}, {'xy_indices': (0, 1)}])
+    def test_two_inputs_with_order_or_indices_raises(self, kw):
+        a = np.array([1, 2])
+        with pytest.raises(ValueError, match='single input'):
+            _extract_xy(a, a, kwargs={}, **kw)
+
+    def test_ndim_3_raises(self):
+        with pytest.raises(ValueError, match='1D or 2D'):
+            _extract_xy(np.zeros((2, 2, 2)), kwargs={})
+
+    def test_wrong_length_indices_raises(self):
+        with pytest.raises(ValueError, match='xy_indices'):
+            _extract_xy(np.zeros((4, 3)), xy_indices=(0, 1, 2), kwargs={})
+
+    def test_out_of_bounds_index_raises(self):
+        with pytest.raises(IndexError):
+            _extract_xy(np.zeros((4, 3)), xy_indices=(0, 5), kwargs={})
+
+    def test_nested_list_raises(self):
+        with pytest.raises(ValueError, match='2D array'):
+            _extract_xy([[1, 2], [3, 4]], xy_indices=(0, 1), kwargs={})
+
+    def test_jagged_list_raises(self):
+        with pytest.raises(ValueError):
+            _extract_xy([[1, 2], [3]], kwargs={})
 
 class TestExtractXYFromNdarray2D:
     def test_order_c(self):
