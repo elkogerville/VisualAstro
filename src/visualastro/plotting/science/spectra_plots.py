@@ -1044,7 +1044,7 @@ def plot_spectra(
         wave_arr = _spectral_axis_2_array(w)
         flux_arr = to_array(f)
 
-        mask = mask_within_range(wave_arr, xlim=params.xlim)
+        mask = mask_within_range(wave_arr, lim=params.xlim)
         wavelength_list.append(w[mask])
         flux_list.append(f)
         flux_mask_list.append(flux_arr[mask])

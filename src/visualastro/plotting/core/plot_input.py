@@ -224,9 +224,7 @@ def _extract_xy(
     if _is_scalar(obj):
         return None, obj
 
-    ndim = getattr(obj, 'ndim', None)
-    if ndim is None:
-        ndim = np.ndim(obj)
+    ndim = _ndim(obj)
     if ndim <= 1:
         return None, obj
     if ndim != 2:
