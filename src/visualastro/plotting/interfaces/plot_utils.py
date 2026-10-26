@@ -191,7 +191,7 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
             kwargs, 'cbar_', base='colorbar', default=config.colorbar.enable
         ),
         text=_pop_mapped(kwargs, ('highlight',), prefix='text_'),
-        ellipses=_pop_mapped(kwargs, ('ellipses', 'plot_ellipse')),
+        ellipses=_pop_prefixed(kwargs, 'ellipses_', base='ellipses', default=None),
         points=_pop_prefixed(kwargs, 'points_', base='points', default=None),
     )
 
@@ -211,6 +211,10 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         group = getattr(params, attr)
         if group.get(field) is None:
             group[field] = config.fontsizes.with_size(key, params.fontsize)
+
+    plot_ellipse = kwargs.pop('plot_ellipse', None)
+    if plot_ellipse is not None:
+        params.ellipses['plot_ellipse'] = plot_ellipse
 
     return params
 
