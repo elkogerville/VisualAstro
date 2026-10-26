@@ -6,10 +6,11 @@ Description:
     Tests for sequences module.
 """
 
-
+import astropy.units as u
 import numpy as np
+import pytest
 
-from visualastro.core.sequences import _unwrap_if_single
+from visualastro.core.sequences import _broadcast, _unwrap_if_single
 
 
 class TestSequences:
@@ -38,3 +39,29 @@ class TestSequences:
         assert _unwrap_if_single(G) == G
         assert np.allclose(_unwrap_if_single(H),  H)
         assert np.allclose(_unwrap_if_single(I),  I)
+
+
+class TestBroadcast:
+    def test_scalar_and_none_are_repeated(self):
+        assert _broadcast(150, 3) == [150, 150, 150]
+        assert _broadcast(None, 2) == [None, None]
+
+    def test_sequence_passes_through(self):
+        assert _broadcast([1, 2, 3], 3) == [1, 2, 3]
+        assert _broadcast(np.array([1, 2, 3]), 3) == [1, 2, 3]
+
+    def test_quantity_scalar_and_array(self):
+        scalar = _broadcast(5 * u.AA, 2)
+        assert scalar == [5 * u.AA, 5 * u.AA]
+
+        arr = _broadcast([1, 2, 3] * u.AA, 3)
+        assert len(arr) == 3
+        assert arr[1] == 2 * u.AA
+
+    def test_length_mismatch_raises(self):
+        with pytest.raises(ValueError):
+            _broadcast([1, 2], 3, 'y')
+
+    def test_default_name_in_error(self):
+        with pytest.raises(ValueError):
+            _broadcast([1, 2], 3)
