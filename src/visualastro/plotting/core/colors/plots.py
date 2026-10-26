@@ -583,23 +583,85 @@ def _resolve_color_kwargs(
     """
     Resolve color, size, marker and colormap kwargs for a matplotlib call.
 
-    Values are collected from `explicit` (arguments exposed in the caller's
-    signature) and `kwargs` (aliases respected), then defaults are applied
-    from `config`. Resolved entries are written back into `kwargs`.
+    Resolves `'c'` and `'color'`, as well as related kwargs such as setting
+    color transforms or colormap customizations.
+
+    Updates kwargs.
 
     Parameters
     ----------
     kwargs : dict[str, Any]
-        Keyword arguments forwarded to matplotlib. Modified in place:
-        all keys consumed here (including aliases, `cmap_range`, `bad_color`,
-        `under_color`, `over_color`, `transform`, `factor`, `cvd_type`,
-        `severity`) are removed, and the resolved matplotlib keys are set.
-    **explicit : Any, optional
-        Signature-level values, `_UNSET` if omitted. Accepted names:
-        `color`, `c`, `edgecolor`, `facecolor`, `s`, `marker`, `transform`,
-        `factor`, `cvd_type`, `severity`, `cmap`, `cmap_range`, `bad_color`,
-        `under_color`, `over_color`, `norm`, `vmin`, `vmax`, `vcenter`,
-        `gamma`, and `linear_width`.
+        Keyword arguments forwarded to matplotlib.
+    **explicit
+        Any of the following keyword arguments.
+
+        Color:
+
+        - color : ColorType | None | _Unset, optional, default=_UNSET
+            Marker color. Mutually exclusive with `c`.
+            If `_UNSET` and `c` is not given, uses `config.color`.
+        - c : ColorType | NDArray | Quantity | None, optional, default=None
+            Color or values to be color-mapped. Mutually exclusive with `color`.
+            Passed through `get_value`. Enables `cmap` and `norm` handling.
+        - edgecolor : Literal['face', 'none'] | ColorType | _Unset, optional, default=_UNSET
+            Marker edge color. If `_UNSET`, uses `config.edgecolor`.
+        - facecolor : Literal['none'] | ColorType | _Unset, optional, default=_UNSET
+            Marker face color. If `_UNSET`, uses `config.facecolor`.
+        - alpha : float | _Unset, optional, default=_UNSET
+            Transparency, in [0, 1]. If `_UNSET`, uses `config.alpha`.
+
+        Marker:
+
+        - marker : MarkerStyle | _Unset, optional, default=_UNSET
+            Marker style. If `_UNSET`, uses `config.marker`.
+        - s : float | _Unset, optional, default=_UNSET
+            Marker size. If `_UNSET`, uses `config.scatter_size`.
+
+        Color modifiers:
+
+        - transform : str | None | _Unset, optional, default=_UNSET
+            Color transform. Accepted transforms are `'lighten'`, `'darken'`,
+            `'saturate'`, `'desaturate'` or `None`. If `_UNSET`,
+            uses `config.color_transform`.
+        - factor : float | _Unset, optional, default=_UNSET
+            Strength of `transform`. If `_UNSET`, uses
+            `config.color_transform_factor`.
+        - cvd_type : str | None, optional, default=None
+            Color vision deficiency type to simulate. Possible types are
+            `'deuteranomaly'`, `'protanomaly'`, `'tritanomaly'`, or `None`.
+        - severity : float, optional, default=100
+            Severity of the simulated deficiency.
+
+        Colormap (only used if `c` is given):
+
+        - cmap : str | Colormap | None | _Unset, optional, default=_UNSET
+            Colormap. If `_UNSET`, uses `config.cmap`.
+        - cmap_range : tuple[float, float], optional, default=(0,1)
+            Normalized sub-range to extract from `cmap`.
+        - bad_color : ColorType | None, optional, default=None
+            Color for invalid values (NaN).
+        - under_color : ColorType | None, optional, default=None
+            Color for values below the norm range.
+        - over_color : ColorType | None, optional, default=None
+            Color for values above the norm range.
+
+        Normalization (only used if `c` is given):
+
+        - norm : str | Normalize | None, optional, default=None
+            Normalization. Possible norms are `'asinh'`, `'asinhnorm'`,
+            `'log'`, `'power'`, `'twoslope'` or `None`.
+        - vmin : float | None, optional, default=None
+            Lower bound of the norm.
+        - vmax : float | None, optional, default=None
+            Upper bound of the norm.
+        - vcenter : float | None, optional, default=None
+            Center of the norm.
+        - gamma : float | _Unset, optional, default=_UNSET
+            Exponent for power-law norms.
+            If `_UNSET`, uses `config.gamma`.
+        - linear_width : float | _Unset, optional, default=_UNSET
+            Linear region width for symmetric-log norms.
+            If `_UNSET`, uses `config.linear_width`.
 
     Returns
     -------
@@ -649,7 +711,12 @@ def _resolve_color_kwargs(
         'linear_width': config.linear_width,
     }
 
-    unknown = explicit.keys() - color_defaults.keys() - cmap_defaults.keys()
+    unknown = (
+        explicit.keys()
+        - color_defaults.keys()
+        - cmap_defaults.keys()
+        - norm_defaults.keys()
+    )
     if unknown:
         raise TypeError(f'Unexpected explicit arguments: {sorted(unknown)}')
 
