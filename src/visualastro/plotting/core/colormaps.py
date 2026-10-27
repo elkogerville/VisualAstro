@@ -136,6 +136,7 @@ def create_cmap(
     triggers a warning, not an error.
     """
     if isinstance(colors, str) and colors in mpl.color_sequences:
+        name = colors
         colors = mpl.color_sequences[colors]
 
     rgba_list = [mcolors.to_rgba(color) for color in colors]

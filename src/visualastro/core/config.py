@@ -109,7 +109,7 @@ class FontSizeConfig:
         Parameters
         ----------
         param : str
-            Name of the scale parameter (any field except `size`).
+            Name of the scale parameter (any field except `'size'`).
 
         Returns
         -------
@@ -130,7 +130,9 @@ class FontSizeConfig:
         Parameters
         ----------
         param : str
-            Name of the scale parameter (any field except `size`).
+            Name of the scale parameter (any field except `'size'`).
+        size : float
+            Scaling value.
 
         Returns
         -------
