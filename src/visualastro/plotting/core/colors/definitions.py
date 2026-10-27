@@ -1,12 +1,14 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-23
+Date Modified: 2026-10-27
 Description:
     VisualAstro color definitions.
 """
 
+import datetime
 from typing import TypeAlias
+
 import matplotlib as mpl
 from matplotlib.colors import TABLEAU_COLORS
 from matplotlib.typing import ColorType
@@ -161,6 +163,20 @@ COLORSET_NAMES = [key for key in COLORSETS.keys()]
 # ########################
 # VISUALASTRO NAMED COLORS
 # ########################
+def _soup_of_the_day() -> ColorType:
+    """Get daily soup color."""
+    day = datetime.datetime.today().weekday()
+    return {
+        0: '#D19D78', # mushroom monday
+        1: '#BE992B', # tripe tuesday
+        2: '#E80063', # wacky soup wednesday
+        3: '#D43500', # tomato thursday
+        4: '#662A02', # french onion friday
+        5: '#F6AA00', # sweet potato saturday
+        6: '#848A21', # split pea sunday
+    }.get(day, '#848A21')
+
+
 VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'dsb': '#483D8B',
     'msb': '#7B68EE',
@@ -193,7 +209,8 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'metis merlot': '#7B1242',
     'worm of the day': '#B577AC',
     'worm of the night': '#75415C',
-    'soup of the day': '#848A21',
+    'soup of the day': _soup_of_the_day(),
+    'borscht': '#E80063',
     'melocoton': '#FFAF19',
     'Holy Grey': '#555555',
     'Holy Blue': '#5555FF',
@@ -214,12 +231,21 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'G train': '#72B444',
     '7 train': '#AD3F97',
     'T train': '#00ABCD',
-    'ethernet orange' : '#FB7A1F',
-    'ethernet green' : '#10A807',
-    'ethernet blue' : '#1177F7',
-    'ethernet brown' : '#85450c',
+    'ethernet orange': '#FB7A1F',
+    'ethernet green': '#10A807',
+    'ethernet blue': '#1177F7',
+    'ethernet brown': '#85450c',
+    'Jarate': '#FEED86',
 }
 
 # dict[alias: canonical name]
 NAMED_COLOR_ALIASES = {
+    'борщ': 'borscht',
+    'laserlemon': 'laser lemon',
+    'batterychargedblue': 'battery charged blue',
+    'soupoftheday': 'soup of the day',
+    'wormoftheday': 'worm of the day',
+    'wormofthenight': 'worm of the night',
+    'pond water': 'pondwater',
+    'joseph roddy': 'jarate',
 }
