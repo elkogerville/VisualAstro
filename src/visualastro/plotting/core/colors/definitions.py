@@ -149,6 +149,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tab20b': mpl.color_sequences['tab20b'],
 }
 
+# dict[alias: canonical name]
 COLORSET_ALIASES = {
     'va': 'visualastro',
     'vb': 'ditto',
@@ -219,5 +220,6 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'ethernet brown' : '#85450c',
 }
 
+# dict[alias: canonical name]
 NAMED_COLOR_ALIASES = {
 }
