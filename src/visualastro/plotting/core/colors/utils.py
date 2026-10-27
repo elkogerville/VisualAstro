@@ -96,7 +96,6 @@ def _find_colorset(name: str) -> tuple[str, bool]:
         colorset.
     """
     def _resolve(name: str) -> str | None:
-        name = COLORSET_ALIASES.get(name, name)
         return name if name in mpl.color_sequences else None
 
     resolved = _resolve(name)

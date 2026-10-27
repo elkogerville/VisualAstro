@@ -287,7 +287,7 @@ def _apply_plot_utils(
         **params.tick
     )
 
-    if title := params.title.pop('title', None):
+    if (title := params.title.pop('title', None)):
         set_title(
             title,
             ax=ax,
