@@ -428,7 +428,7 @@ class VisualAstroConfig(PrettyRepr):
 
     # scatter params
     scatter_size: float = 10
-    marker: str = 'o'
+    marker: str | None = None
     edgecolor: ColorType | None = None
     facecolor: ColorType | None = None
 

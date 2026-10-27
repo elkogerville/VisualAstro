@@ -215,3 +215,6 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'ethernet blue' : '#1177F7',
     'ethernet brown' : '#85450c',
 }
+
+NAMED_COLOR_ALIASES = {
+}

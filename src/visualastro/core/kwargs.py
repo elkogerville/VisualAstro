@@ -26,6 +26,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     's': ('sizes', 'size'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
+    'markerfacecolor': ('markefacecolors', 'mfc'),
     'limits': ('limit', 'lims', 'lim'),
     'label': ('labels', 'l'),
     'bbox_to_anchor': ('bbox',),
