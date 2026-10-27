@@ -360,7 +360,7 @@ class VisualAstroConfig(PrettyRepr):
 
     Users can also modify attributes at runtime by modifying the config
     object attributes. This avoids permanently changing the default values.
-    ie:
+    i.e.:
         >>> import visualastro as va
         >>> va.config.style = 'latex'
         >>> va.config.figsize = (6, 6)
