@@ -23,7 +23,7 @@ KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'edgecolor': ('edgecolors', 'ec'),
     'facecolor': ('facecolors', 'fc'),
     'marker': ('markers', 'm'),
-    's': ('sizes', 's'),
+    's': ('sizes', 'size'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
     'limits': ('limit', 'lims', 'lim'),
