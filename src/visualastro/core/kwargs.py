@@ -3,7 +3,7 @@ Author: Elko Gerville-Reache
 Date Created: 2026-06-29
 Date Modified: 2026-10-25
 Description:
-    Functions for kwargs and aliases within visualastro.
+    Functions for kwargs and aliases within VisualAstro.
 """
 
 from types import SimpleNamespace
