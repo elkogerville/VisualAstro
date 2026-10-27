@@ -23,6 +23,7 @@ import numpy as np
 
 from visualastro.core.config import config
 from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.io import savefig as _savefig
 from visualastro.core.kwargs import _extract_kwargs, _params_from_explicit
 from visualastro.optional_dependencies._colorspacious import (
     deltaE as cs_deltaE
@@ -41,7 +42,8 @@ def plot_colors(
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
     severity: int = 100,
     show_color_name: bool = True,
-    width: float | int | None = 8
+    width: float | int | None = 8,
+    savefig: bool = False
 ) -> None:
     """
     Visualize one or multiple colorsets.
@@ -62,6 +64,9 @@ def plot_colors(
         colorsets (as opposed to a sequence of colors).
     width : float | int | None, optional, default=8
         Width of the colorset plot.
+    savefig:
+        If `True`, save the figure to disk with `savefig`.
+        Opens a prompt to set the file name and extention.
 
     Examples
     --------
@@ -114,7 +119,8 @@ def plot_colors(
 
     ax.set_xlim(-pad, max(len(get_colors(c)) for c in colorsets) + pad)
     ax.set_ylim(-n_rows + 1 - pad, 1 + pad)
-
+    if savefig:
+        _savefig()
     plt.show()
 
 
@@ -122,7 +128,8 @@ def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
     lw: float = 2,
-    legend: bool = True
+    legend: bool = True,
+    **kwargs
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
     Plot a sample figure demonstrating a VisualAstro color set.
@@ -138,6 +145,8 @@ def plot_colorset(
         Linewidth of each line.
     legend : bool, optional, default=True
         If `True`, plots the legend.
+    **kwargs
+        Any additional param passed on to `get_colors`.
 
     Returns
     -------
@@ -150,7 +159,7 @@ def plot_colorset(
     ax = get_ax(ax)
     if isinstance(colors, str) and colors in mpl.color_sequences:
         set_title(f'colorset: {colors}', ax=ax)
-    colorset = get_colors(colors)
+    colorset = get_colors(colors, **kwargs)
     N = len(colorset)
 
     r_p = 1.0
@@ -169,12 +178,11 @@ def plot_colorset(
     artists = []
     for (x, y, label, col) in zip(x_vals[:N], y_vals[:N], labels, colorset):
         artists.append(ax.plot(x, y, label=label, color=col, lw=lw))
-    artists.append(ax.scatter(0, 0, color='k', fc='none', s=55))
+    artists.append(ax.scatter(0, 0, color='k', fc='none', s=90, marker='*'))
 
     ax.set_xlim(-6, 2)
     ax.set_ylim(-4, 4)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
+
     _legend(ax=ax, loc='bottom center', title='Eccentricity', frameon=True, ncols=4)
 
     return artists
