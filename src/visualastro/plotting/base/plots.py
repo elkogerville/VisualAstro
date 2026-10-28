@@ -17,11 +17,11 @@ from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, NullLocator
-from matplotlib.typing import ColorType
+from matplotlib.typing import ColorType, LineStyleType
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import PathCollection
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.config import (
     get_config_value,
@@ -51,12 +51,17 @@ from visualastro.plotting.core.axes import (
 )
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import as_color, get_colors
-from visualastro.plotting.core.colors.plots import (
-    _resolve_color_kwargs,
-    _resolve_scatter_norm,
-)
+from visualastro.plotting.core.colors.plots import _resolve_scatter_norm
 from visualastro.plotting.core.contour import contour_kde
-from visualastro.plotting.core.plot_input import _extract_xy
+from visualastro.plotting.core.plot_input import (
+    _plot_color_keys,
+    _plot_props,
+    _resolve_cmap_kwargs,
+    _resolve_color_kwargs,
+    _resolve_props_kwargs,
+    _resolve_xy_plot_inputs,
+    _scatter_props,
+)
 from visualastro.plotting.core.utils import _get_zorder
 from visualastro.plotting.interfaces.plot_utils import (
     _apply_plot_utils, _extract_plot_util_kwargs
