@@ -17,7 +17,10 @@ from visualastro.core.config import _Unset, _UNSET, _resolve_default
 # define aliases here! each key represents a parameter used in visualastro functions,
 # and their values are aliases of that parameter. this way any each set can be used
 # in a function, provided that the function uses the `_resolve_kwargs` interface.
-# ensure that the values are tuples even for single items, meaning: 'key': (value,),
+# Define aliases here! Each key represents a parameter used in VisualAstro functions,
+# and their values are aliases of that parameter. This way, any alias can be used
+# in a function, provided that the function uses the `_resolve_kwargs` interface.
+# Ensure that the values are tuples even for single items, meaning: 'key': (value,),
 KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'color': ('colors',),
     'edgecolor': ('edgecolors', 'ec'),
