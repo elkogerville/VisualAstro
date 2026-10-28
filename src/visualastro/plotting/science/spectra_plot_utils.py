@@ -363,12 +363,9 @@ def spectral_line_marker(
 
 
 def spectral_lines(
-    wavelengths: Sequence[float | u.Quantity] | u.Quantity | float | None = None,
+    wavelengths: Sequence[float | u.Quantity] | u.Quantity | float,
     labels: Sequence[str | None] | None = None,
     *,
-    lines: Mapping[str, Sequence] | None = None,
-    wavelength_col: str = 'wavelength',
-    label_col: str | None = None,
     style: Literal['marker', 'vline'] = 'marker',
     ax: maxes.Axes | None = None,
     y: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
@@ -377,6 +374,7 @@ def spectral_lines(
         ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None
     ) = _UNSET,
     unlabeled_color: ColorType | _Unset | None = _UNSET,
+    draw_hline: bool = False,
     **kwargs,
 ) -> None:
     """
@@ -384,43 +382,39 @@ def spectral_lines(
 
     Parameters
     ----------
-    wavelengths : Sequence[float | astropy.units.Quantity] | astropy.units.Quantity | float | None, optional, default=None
+    wavelengths : Sequence[float | astropy.units.Quantity] | astropy.units.Quantity | float
         Line positions. A scalar is treated as a single line.
-        Mutually exclusive with `lines`.
     labels : Sequence[str | None] | None, optional, default=None
         One label per wavelength; `None` entries are unlabeled.
-        Mutually exclusive with `lines`.
-    lines : Mapping[str, Sequence] | None, optional, default=None
-        Table-like object (e.g. `astropy.table.Table`,
-        `pandas.DataFrame`, `dict`) from which wavelengths and labels
-        are read via `wavelength_col` and `label_col`.
-    wavelength_col : str, optional, default='wavelength'
-        Column of `lines` holding the wavelengths.
-    label_col : str | None, optional, default=None
-        Column of `lines` holding the labels. If `None`, no labels.
     style : {'marker', 'vline'}, optional, default='marker'
-        - `'marker'`: lines sharing a label are drawn as one
-          multi-prong marker with a single label. Unlabeled lines are
-          drawn as individual markers.
+        - `'marker'`: if `draw_hline=True`, lines sharing a label are
+            drawn as one multi-prong marker with a single label.
+            Unlabeled lines are drawn as individual markers. If
+            `draw_hline=False`, every line is drawn as an individual
+            marker with its own label.
         - `'vline'`: one vertical line (and label) per wavelength.
 
     ax : matplotlib.axes.Axes | None, optional, default=None
         Axes on which to draw. If `None`, uses `plt.gca()`.
     y : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line y-coordinate. Required in
-        marker mode. In marker mode, must be identical for all lines
-        sharing a label.
+        marker mode. If `draw_hline=True`, must be identical for all
+        lines sharing a label.
+        - style='marker': y-coordinate of the base of the markers (required).
+        - style='vline': y-coordinate (data) of the label anchor.
+          If None, labels anchor at the top of the axes.
+
     h : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line marker height. Required in
-        marker mode, ignored in vline mode. Must be identical for all
-        lines sharing a label.
+        marker mode, ignored in vline mode. If `draw_hline=True`, must
+        be identical for all lines sharing a label.
     color : ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None, optional, default=_UNSET
         - single color: applied to all lines.
         - mapping `{label: color}`: per-label color; missing labels
-          fall back to the `spectral_line_marker` default.
+            fall back to the `spectral_line_marker` default.
         - sequence of colors: assigned to unique labels in order of
-          first appearance, cycled if too short. Must be a `list`;
-          a tuple of 3 or 4 numbers is read as one RGB(A) color.
+            first appearance, cycled if too short. Must be a `list`;
+            a tuple of 3 or 4 numbers is read as one RGB(A) color.
 
         `None` is treated as `_UNSET`. With a palette or mapping,
         unlabeled lines use the `spectral_line_marker` default unless
@@ -430,6 +424,11 @@ def spectral_lines(
         lines, including when `color` is a single color. If `_UNSET`
         or `None`, unlabeled lines follow `color` (single color) or the
         `spectral_line_marker` default (palette or mapping).
+    draw_hline : bool, optional, default=True
+            Marker mode only; ignored in vline mode. If `False`, the
+            connecting horizontal bar is omitted, grouping by label is
+            disabled, and each line gets its own prong and label
+            (equivalent to vline-mode labeling).
     **kwargs
         Forwarded to `spectral_line_marker`.
 
@@ -443,18 +442,18 @@ def spectral_lines(
         - `labels` is a `str`.
     ValueError
         - `style` is not `'marker'` or `'vline'`.
-        - Both `lines` and `wavelengths`/`labels` are given.
-        - No wavelengths given.
+        - `wavelengths` is empty.
         - `len(labels) != len(wavelengths)`.
         - `y` or `h` differ among lines sharing a label (marker mode).
         - `color` is an empty sequence.
         - `unlabeled_color` is not a valid color.
         - Units are inconsistent among wavelengths, or among `y`/`h`.
+        - `y` or `h` differ among lines sharing a label
+          (marker mode, `draw_hline=True`).
 
     Notes
     -----
     - Modifies `ax` in place.
-    - `wavelength_col` and `label_col` are ignored if `lines` is `None`.
     - Units of `wavelengths` and of `y`/`h` are checked separately,
       since they may differ (e.g. wavelength vs. flux).
     """
@@ -462,16 +461,6 @@ def spectral_lines(
     if style not in {'marker', 'vline'}:
         raise ValueError(f"`style` must be 'marker' or 'vline'; got {style!r}.")
 
-    if lines is not None:
-        if wavelengths is not None or labels is not None:
-            raise ValueError(
-                'Provide either `lines` or `wavelengths`/`labels`, not both.'
-            )
-        wavelengths = lines[wavelength_col]
-        labels = None if label_col is None else lines[label_col]
-
-    if wavelengths is None:
-        raise ValueError('`wavelengths` or `lines` must be provided.')
     if isinstance(labels, str):
         raise TypeError('`labels` must be a sequence of str, not a str.')
 
@@ -519,6 +508,21 @@ def spectral_lines(
 
     records = list(zip(wavelengths, labels, ys, hs))
 
+    if not draw_hline:
+        for w, lab, yi, hi in records:
+            spectral_line_marker(
+                w,
+                label=lab,
+                y=yi,
+                h=hi,
+                color=color_by_label.get(lab, fallback),
+                style='marker',
+                draw_hline=False,
+                ax=ax,
+                **kwargs,
+            )
+        return None
+
     labeled = defaultdict(list)
     unlabeled_groups = []
     for rec in records:
@@ -537,9 +541,11 @@ def spectral_lines(
             h=_common_value(hs_g, 'h', lab),
             color=color_by_label.get(lab, fallback),
             style='marker',
+            draw_hline=True,
             ax=ax,
             **kwargs,
         )
+
     return None
 
 
