@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-26
+Date Modified: 2026-10-28
 Description:
     Public data / array related functions.
 """
@@ -12,7 +12,7 @@ from typing import Any, Literal, TypeVar, overload
 
 from astropy import units as u
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
@@ -257,3 +257,27 @@ def _ndim(
     if isinstance(obj, (list, tuple)):
         return 1 + (_ndim(obj[0]) if obj else 0)
     return int(np.ndim(obj))
+
+
+
+def _to_xy(xy: ArrayLike) -> NDArray | None:
+    """
+    Convert an array-like into a float (N, 2) array, preserving NaNs.
+
+    Masked values are replaced with NaN. Non-finite points are kept.
+
+    Parameters
+    ----------
+    xy : ArrayLike
+        Array-like of shape (N, 2).
+
+    Returns
+    -------
+    NDArray | None
+        Float array of shape (N, 2), or `None` if the input is empty
+        or malformed.
+    """
+    xy = np.ma.filled(np.ma.asarray(xy, dtype=float), np.nan)
+    if xy.ndim != 2 or xy.shape[1] != 2 or len(xy) == 0:
+        return None
+    return xy

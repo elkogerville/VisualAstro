@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-10-25
+Date Modified: 2026-10-28
 """
 
 from importlib.metadata import version
@@ -107,7 +107,7 @@ from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
     gridspec,
-    set_axis_limits,
+    set_limits,
     set_title,
     subplot,
     tripanel_figure,
