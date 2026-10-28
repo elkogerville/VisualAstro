@@ -59,6 +59,7 @@ def spectral_line_marker(
     label_anchor: Literal['center', 'left', 'right', 'auto'] | _Unset = _UNSET,
     label_reference: Literal['marker', 'hline', 'auto'] | _Unset = _UNSET,
     rotation: float | _Unset = _UNSET,
+    draw_hline: bool = True,
     hline_extend: float | u.Quantity | None = None,
     fontsize: float | _Unset = _UNSET,
     color: ColorType | _Unset = _UNSET,
@@ -87,16 +88,16 @@ def spectral_line_marker(
     style : {'marker', 'vline'}, optional, default='marker'
         - `'marker'`: multi-prong marker delineating each line.
         - `'vline'`: `ax.axvline` at each x-value, spanning the full
-            axes height.
+          axes height.
 
     label : str | Sequence[str | None] | None, optional, default=None
         Label text.
 
         - `style='marker'`: `str` only; one label for the whole group.
         - `style='vline'`: `str` is broadcast to every line; a
-            sequence must satisfy `len(label) == len(x)` and is paired
-            with `x` in the order given. Individual entries may be `None`
-            to skip a line.
+          sequence must satisfy `len(label) == len(x)` and is paired
+          with `x` in the order given. Individual entries may be `None`
+          to skip a line.
 
     direction : {'up', 'down'} | _Unset, optional, default=_UNSET
         Direction in which the prongs point away from the connecting
@@ -122,12 +123,18 @@ def spectral_line_marker(
         - `'marker'`: marker x-extent (ignores hline extension).
         - `'hline'`: hline x-extent (includes extension).
         - `'auto'`: `'hline'` if `hline_extend` is not `None`, else
-            `'marker'`.
+          `'marker'`.
 
         If `_UNSET`, uses `config.spectral_line_marker.label_reference`.
     rotation : float | _Unset, optional, default=_UNSET
         Label rotation in degrees. If `_UNSET`, uses
         `config.spectral_line_marker.label_rotation`.
+    draw_hline : bool, optional, default=True
+        Marker mode only. If `False`, only the vertical prongs are drawn
+        and the connecting horizontal bar is omitted. `hline_extend` is
+        then ignored, including for label placement
+        (`label_reference='hline'` and `'auto'` resolve to the prong
+        extent).
     hline_extend : float | astropy.units.Quantity | None, optional, default=None
         Marker mode only. If `None`, the connector spans all x-values
         (drawn only if `len(x) > 1`). Otherwise, the connector spans the
@@ -173,10 +180,10 @@ def spectral_line_marker(
     Notes
     -----
     - Modifies `ax` in place.
-    - `y`, `h`, `direction`, `hline_extend`, `label_reference` and
-        `label_position` have no effect in vline mode.
+    - `y`, `h`, `direction`, `draw_hline`, `hline_extend`, `label_reference` and
+      `label_position` have no effect in vline mode.
     - Vline labels are placed at the top of the axes (axes-fraction
-        y = 1.0) via the x-axis blended transform.
+      y = 1.0) via the x-axis blended transform.
     - Marker mode assumes a non-inverted y-axis.
     """
     marker_style = str(style).lower()
@@ -194,6 +201,10 @@ def spectral_line_marker(
                 "`label` must be a str for style='marker'! "
                 f'got: {type(label).__name__}'
             )
+    if style == 'marker':
+        ls_default = config.spectral_line_marker.marker_linestyle
+    else:
+        ls_default = config.spectral_line_marker.vline_linestyle
 
     params = _resolve_kwargs(
         kwargs,
@@ -207,6 +218,7 @@ def spectral_line_marker(
             _param('fontsize', fontsize, config.fontsizes.resolve('text')),
             _param('color', color, config.axline.color),
             _param('linewidth', linewidth, config.spectral_line_marker.linewidth),
+            _param('linestyle', linestyle, ls_default),
         ],
     )
     ax = get_ax(ax)
@@ -220,7 +232,9 @@ def spectral_line_marker(
             params.label_anchor = params.label_position
 
     if params.label_reference == 'auto':
-        params.label_reference = 'hline' if hline_extend is not None else 'marker'
+        params.label_reference = (
+            'hline' if hline_extend is not None and draw_hline else 'marker'
+        )
 
     x_list = list(x)
     ensure_common_unit([v for v in (*x_list, hline_extend) if v is not None])
@@ -233,9 +247,6 @@ def spectral_line_marker(
     # vline
     # #####
     if marker_style == 'vline':
-        linestyle = _resolve_default(
-            linestyle, config.spectral_line_marker.vline_linestyle
-        )
         x_raw = [get_value(v) for v in x_list]
         n = len(x_raw)
 
@@ -260,7 +271,7 @@ def spectral_line_marker(
                 x_val,
                 color=params.color,
                 lw=params.linewidth,
-                ls=linestyle,
+                ls=params.linestyle,
                 **kwargs
             )
             if lab is None:
@@ -282,15 +293,12 @@ def spectral_line_marker(
     # ######
     # marker
     # ######
-    linestyle = _resolve_default(
-        linestyle, config.spectral_line_marker.marker_linestyle
-    )
     assert h is not None and y is not None
     x_vals = sorted(get_value(v) for v in x_list)
     y_val = get_value(y)
     h_val = get_value(h)
     h_val = -h_val if params.marker_direction == 'up' else h_val
-    extend_val = get_value(hline_extend)
+    extend_val = get_value(hline_extend) if draw_hline else None
 
     x_lo, x_hi = x_vals[0], x_vals[-1]
 
@@ -298,7 +306,7 @@ def spectral_line_marker(
         x_vals, y_val, y_val + h_val,
         color=params.color,
         lw=params.linewidth,
-        ls=linestyle,
+        ls=params.linestyle,
         **kwargs
     )
 
@@ -313,12 +321,12 @@ def spectral_line_marker(
             h_lo = min(x_lo, x_mid - extend_val / 2)
             h_hi = max(x_hi, x_mid + extend_val / 2)
 
-    if extend_val is not None or len(x_vals) > 1:
+    if draw_hline and (extend_val is not None or len(x_vals) > 1):
         ax.hlines(
             y_val + h_val, h_lo, h_hi,
             color=params.color,
             lw=params.linewidth,
-            ls=linestyle,
+            ls=params.linestyle,
             **kwargs
         )
 
