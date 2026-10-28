@@ -26,9 +26,12 @@ from visualastro.core.array_types import (
     _is_scalar,
     _is_wrapped_1d,
 )
-from visualastro.core.data import as_list, to_list, _array_length, _ndim
-from visualastro.core.kwargs import _resolve_kwargs, _params_from_explicit
-
+from visualastro.core.data import as_list, get_value, to_list, _array_length, _ndim
+from visualastro.core.kwargs import (
+    _extract_kwargs, _params_from_explicit, _resolve_kwargs
+)
+from visualastro.plotting.core.colormaps import get_cmap, get_norm
+from visualastro.plotting.core.colors.colors import get_color
 
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
     """Normalize array order specification.
@@ -537,3 +540,316 @@ def _extract_xyz_from_ndarray(
             'input arrays must be 2D with at least 3 axes! '
             'i.e. np.random.rand(10,3) or a list of such.'
         )
+
+
+def _resolve_color_kwargs(
+    kwargs: dict[str, Any],
+    *,
+    allow_c: bool = True,
+    color_keys: dict[str, str | None] | None = None,
+    **explicit: Any,
+) -> dict[str, Any]:
+    """
+    Resolve color kwargs for a matplotlib call.
+
+    Resolves `'c'` and `'color'`, edge/face colors and the color modifiers
+    (color transform, color vision deficiency simulation).
+
+    Updates kwargs.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    allow_c : bool, optional, default=True
+        Whether the target function accepts `c` (e.g. `scatter`).
+    color_keys : dict[str, str | None] | None, optional, default=None
+        Maps the logical names `'edgecolor'` and `'facecolor'` to the names
+        used by the target function (e.g. `'markeredgecolor'` for `plot`).
+        A value of `None` disables that entry. Unspecified entries keep
+        their logical name.
+    **explicit
+        Any of the following keyword arguments. Edge/face names follow
+        `color_keys`.
+
+        Color:
+
+        - color : ColorType | None | _Unset, optional, default=_UNSET
+            Color. Mutually exclusive with `c`.
+            If `_UNSET` and `c` is not given, uses `config.color`.
+        - c : ColorType | NDArray | Quantity | None, optional, default=None
+            Color or values to be color-mapped. Mutually exclusive with
+            `color`. Passed through `get_value`. Only if `allow_c`.
+        - edgecolor : Literal['face', 'none'] | ColorType | _Unset, optional, default=_UNSET
+            Edge color. If `_UNSET`, uses `config.edgecolor`.
+        - facecolor : Literal['none'] | ColorType | _Unset, optional, default=_UNSET
+            Face color. If `_UNSET`, uses `config.facecolor`.
+
+        Color modifiers:
+
+        - transform : str | None | _Unset, optional, default=_UNSET
+            Color transform: `'lighten'`, `'darken'`, `'saturate'`,
+            `'desaturate'` or `None`. If `_UNSET`, uses
+            `config.color_transform`.
+        - factor : float | _Unset, optional, default=_UNSET
+            Strength of `transform`. If `_UNSET`, uses
+            `config.color_transform_factor`.
+        - cvd_type : str | None, optional, default=None
+            Color vision deficiency type to simulate: `'deuteranomaly'`,
+            `'protanomaly'`, `'tritanomaly'` or `None`.
+        - severity : float, optional, default=100
+            Severity of the simulated deficiency.
+
+    Returns
+    -------
+    dict[str, Any]
+        The same `kwargs` object, updated in place.
+
+    Raises
+    ------
+    ValueError
+        If both `c` and `color` are given.
+    TypeError
+        If `c` is in `kwargs` and `allow_c` is False, or if `explicit`
+        contains a name that is not accepted.
+
+    Notes
+    -----
+    - `c` is passed through `get_value`. `color` and the edge/face colors
+      are passed through `get_color` with the color modifiers.
+    - Only keys owned by this resolver are written to `kwargs`.
+    """
+    keys = {'edgecolor': 'edgecolor', 'facecolor': 'facecolor'}
+    if color_keys:
+        keys.update(color_keys)
+    edge_key, face_key = keys['edgecolor'], keys['facecolor']
+
+    if not allow_c and 'c' in kwargs:
+        raise TypeError("'c' is not supported by this function.")
+
+    color_defaults: dict[str, Any] = {'color': None}
+    if allow_c:
+        color_defaults['c'] = None
+    if edge_key is not None:
+        color_defaults[edge_key] = config.edgecolor
+    if face_key is not None:
+        color_defaults[face_key] = config.facecolor
+    modifier_defaults = {
+        'transform': config.color_transform,
+        'factor': config.color_transform_factor,
+        'cvd_type': None,
+        'severity': 100,
+    }
+
+    unknown = (
+        explicit.keys() - color_defaults.keys() - modifier_defaults.keys()
+    )
+    if unknown:
+        raise TypeError(f'Unexpected explicit arguments: {sorted(unknown)}')
+
+    color_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, color_defaults)
+    )
+    modifiers = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, modifier_defaults)
+    )
+
+    c = color_kw.pop('c', None)
+    color = color_kw.pop('color')
+    if c is not None and color is not None:
+        raise ValueError("'c' and 'color' are mutually exclusive.")
+    if c is None and color is None:
+        color = config.color
+
+    colors = {'color': color, **color_kw}  # color_kw: edge/face only
+
+    if c is not None:
+        kwargs['c'] = get_value(c)
+
+    kwargs.update(
+        {
+            name: get_color(value, **modifiers)
+            for name, value in colors.items()
+            if value is not None
+        }
+    )
+
+    return kwargs
+
+
+def _resolve_cmap_kwargs(
+    kwargs: dict[str, Any],
+    *,
+    active: bool = True,
+    **explicit: Any,
+) -> dict[str, Any]:
+    """
+    Resolve colormap and normalization kwargs for a matplotlib call.
+
+    Updates kwargs.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    active : bool, optional, default=True
+        Whether `cmap` and `norm` apply to this call (e.g. for `scatter`:
+        `c` is given). If False, all owned keys are popped from `kwargs`
+        and discarded, so they do not leak into matplotlib.
+    **explicit
+        Any of the following keyword arguments.
+
+        Colormap:
+
+        - cmap : str | Colormap | None | _Unset, optional, default=_UNSET
+            Colormap. If `_UNSET`, uses `config.cmap`.
+        - cmap_range : tuple[float, float], optional, default=(0, 1)
+            Normalized sub-range to extract from `cmap`.
+        - bad_color : ColorType | None, optional, default=None
+            Color for invalid values (NaN).
+        - under_color : ColorType | None, optional, default=None
+            Color for values below the norm range.
+        - over_color : ColorType | None, optional, default=None
+            Color for values above the norm range.
+
+        Normalization:
+
+        - norm : str | Normalize | None, optional, default=None
+            Possible norms are `'asinh'`, `'asinhnorm'`, `'log'`, `'power'`,
+            `'twoslope'` or `None`.
+        - vmin : float | None, optional, default=None
+            Lower bound of the norm.
+        - vmax : float | None, optional, default=None
+            Upper bound of the norm.
+        - vcenter : float | None, optional, default=None
+            Center of the norm.
+        - gamma : float | _Unset, optional, default=_UNSET
+            Exponent for power-law norms. If `_UNSET`, uses `config.gamma`.
+        - linear_width : float | _Unset, optional, default=_UNSET
+            Linear region width for symmetric-log norms.
+            If `_UNSET`, uses `config.linear_width`.
+
+    Returns
+    -------
+    dict[str, Any]
+        The same `kwargs` object, updated in place.
+
+    Raises
+    ------
+    TypeError
+        If `explicit` contains a name that is not accepted.
+    """
+    cmap_defaults = {
+        'cmap': config.cmap,
+        'cmap_range': (0, 1),
+        'bad_color': None,
+        'under_color': None,
+        'over_color': None,
+    }
+    norm_defaults = {
+        'norm': None,
+        'vmin': None,
+        'vmax': None,
+        'vcenter': None,
+        'gamma': config.gamma,
+        'linear_width': config.linear_width,
+    }
+
+    unknown = explicit.keys() - cmap_defaults.keys() - norm_defaults.keys()
+    if unknown:
+        raise TypeError(f'Unexpected explicit arguments: {sorted(unknown)}')
+
+    cmap_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, cmap_defaults)
+    )
+    norm_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, norm_defaults)
+    )
+    if not active:
+        return kwargs
+
+    norm = norm_kw.pop('norm')
+    cmap = get_cmap(cmap_kw.pop('cmap'), **cmap_kw)
+    if cmap is not None:
+        kwargs['cmap'] = cmap
+    if norm is not None:
+        kwargs['norm'] = get_norm(norm, **norm_kw)
+
+    return kwargs
+
+
+def _resolve_props_kwargs(
+    kwargs: dict[str, Any],
+    defaults: dict[str, Any],
+    **explicit: Any,
+) -> dict[str, Any]:
+    """
+    Resolve artist property kwargs (marker, size, line style, alpha...).
+
+    Only names in `defaults` are read or written. Priority per name:
+    `explicit` > existing `kwargs` entry > `defaults`.
+
+    Updates kwargs.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib.
+    defaults : dict[str, Any]
+        Maps each property name accepted by the target function to its
+        default value. Build it at call time, e.g. with `_scatter_props()`,
+        so config changes made after import are respected.
+    **explicit
+        Property overrides. Each name must be in `defaults`.
+        Use `_UNSET` to fall back to the default.
+
+    Returns
+    -------
+    dict[str, Any]
+        The same `kwargs` object, updated in place.
+
+    Raises
+    ------
+    TypeError
+        If `explicit` contains a name that is not in `defaults`.
+
+    Notes
+    -----
+    - Resolved values that are `None` are not written to `kwargs`.
+    """
+    unknown = explicit.keys() - defaults.keys()
+    if unknown:
+        raise TypeError(f'Unexpected explicit arguments: {sorted(unknown)}')
+
+    props_kw = _extract_kwargs(
+        kwargs, params=_params_from_explicit(explicit, defaults)
+    )
+    kwargs.update({k: v for k, v in props_kw.items() if v is not None})
+
+    return kwargs
+
+
+def _plot_color_keys() -> dict[str, str | None]:
+    """Return the `color_keys` mapping for `plot`."""
+    return {
+        'edgecolor': 'markeredgecolor',
+        'facecolor': 'markerfacecolor',
+    }
+
+
+def _scatter_props() -> dict[str, Any]:
+    """Return the property defaults for `scatter`."""
+    return {
+        'marker': config.marker,
+        's': config.scatter_size,
+        'alpha': config.alpha,
+    }
+
+
+def _plot_props() -> dict[str, Any]:
+    """Return the property defaults for `plot`."""
+    return {
+        'linestyle': config.linestyle,
+        'linewidth': config.linewidth,
+        'alpha': config.alpha,
+    }
