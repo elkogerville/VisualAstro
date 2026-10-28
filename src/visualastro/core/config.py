@@ -465,7 +465,6 @@ class VisualAstroConfig(PrettyRepr):
     wcs_grid: WCSGridConfig = field(default_factory=WCSGridConfig)
 
     # text params
-    fontsize: float = 10
     text_color: ColorType = 'k'
     text_loc: tuple[float, float] = (0.03, 0.03)
 

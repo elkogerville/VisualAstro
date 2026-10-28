@@ -247,7 +247,7 @@ def plot_cmap_lightness(
             ax.text(
                 x_start + 0.5, y_offset + 100 + label_pad + stagger, c.name,
                 ha='center', va='bottom',
-                fontsize=config.fontsize
+                fontsize=config.fontsizes.text
             )
 
     if legend_label:
