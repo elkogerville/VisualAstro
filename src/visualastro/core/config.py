@@ -49,7 +49,7 @@ class PrettyRepr:
 class AxesConfig(PrettyRepr):
     """matplotlib.axes config"""
     recompute_other_axis: bool = True
-    autoscale: bool = False
+    autoscale: bool = True
     autoscale3d: bool = True
     xpad: float | None = None
     ypad: float | None = None

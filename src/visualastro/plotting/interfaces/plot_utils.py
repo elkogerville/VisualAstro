@@ -64,19 +64,16 @@ class PlotUtilParams:
 
     Attributes
     ----------
-    reference_idx : int
-        Index of the artist/data/label used for the legend check, axis
-        labels, colorbar, and interactive ellipse. Applied via `_cycle`.
     array_order : {'C', 'c', 'F', 'f', 'fortran'}
         Memory order forwarded to `plot_points`.
     index_spec : tuple[int, int] | {'implicit', 'explicit'}
         Index convention forwarded to `plot_points`.
     vlines : Sequence[float] | None
-        Vertical line positions. Forwarded to `axvlines` with `ref_unit`.
+        Vertical line positions. Forwarded to `axvlines`.
     hlines : Sequence[float] | None
-        Horizontal line positions. Forwarded to `axhline` with `ref_unit`.
-    compute_limits : bool
-        If False, `set_axis_limits` is skipped.
+        Horizontal line positions. Forwarded to `axhline`.
+    fontsize : float
+        Global plot fontsize in points.
     legend : dict[str, Any]
         - `legend` : bool | None
             Draw the legend if truthy and `kwargs['labels']` is given.
@@ -88,7 +85,7 @@ class PlotUtilParams:
         - remaining keys : forwarded to `set_title`.
 
     limits : dict[str, Any]
-        Forwarded to `set_axis_limits`. Used only if `compute_limits`.
+        Forwarded to `set_limits`.
     labels : dict[str, Any]
         - `label_fontsize` : float
             Axis label size.
@@ -127,11 +124,9 @@ class PlotUtilParams:
         - `points` : Any | None
             Point specification forwarded to `plot_points`.
     """
-    reference_idx: int
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
     vlines: Sequence[float] | None
     hlines: Sequence[float] | None
-    compute_limits: bool
     fontsize: float
 
     legend: dict
@@ -155,19 +150,19 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     from visualastro specific keyword arguments.
     """
     params = PlotUtilParams(
-        reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
         vlines=_pop_kwargs(kwargs, 'vlines', None),
         hlines=_pop_kwargs(kwargs, 'hlines', None),
-        compute_limits=_pop_kwargs(
-            kwargs, 'compute_limits', config.axes.compute_limits
-        ),
         fontsize=_pop_kwargs(kwargs, 'fontsize', config.fontsizes.size),
 
         legend=_pop_prefixed(kwargs, 'legend_', base='legend', default=True),
         title=_pop_prefixed(kwargs, 'title_', base='title', default=False),
-        limits=_pop_mapped(kwargs,
-            ('limits', 'xlim', 'ylim', 'xpad', 'ypad')
+        limits=_pop_mapped(
+            kwargs,
+            (
+                'limits', 'xlim', 'ylim', 'xlog', 'ylog',
+                'xpad', 'ypad', 'recompute_other_axis'
+            )
         ),
         labels=_pop_mapped(
             kwargs,
@@ -273,11 +268,11 @@ def _apply_plot_utils(
         **params.points
     )
 
-    if params.compute_limits:
-        set_limits(
-            ax=ax,
-            **params.limits
-        )
+
+    set_limits(
+        ax=ax,
+        **params.limits
+    )
 
     # POST SETTING AXIS LIMITS
     # ------------------------

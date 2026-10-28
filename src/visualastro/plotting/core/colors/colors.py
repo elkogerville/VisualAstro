@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-23
+Date Modified: 2026-10-28
 Description:
     Color related functions.
 """
