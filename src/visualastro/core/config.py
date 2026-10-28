@@ -24,6 +24,8 @@ from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
 
+from visualastro.utils.text_utils import _size_to_points
+
 
 T = TypeVar('T')
 
@@ -102,7 +104,7 @@ class FontSizeConfig:
     colorbar_label: float = 1.0
     colorbar_tick_labels: float = 0.8
 
-    def resolve(self, param) -> float:
+    def resolve(self, param: str) -> float:
         """
         Convert a scaling factor to points.
 
@@ -114,16 +116,17 @@ class FontSizeConfig:
         Returns
         -------
         float
-            `getattr(self, param) * self.size`.
+            `getattr(self, param) * size`, in points.
 
         Raises
         ------
         ValueError
             If `param` is `'size'` or not a valid field.
+            If `self.size` is not a valid Matplotlib font size.
         """
         return self.with_size(param, self.size)
 
-    def with_size(self, param, size) -> float:
+    def with_size(self, param: str, size: float | str) -> float:
         """
         Convert a scaling factor to points relative to `size`.
 
@@ -131,24 +134,25 @@ class FontSizeConfig:
         ----------
         param : str
             Name of the scale parameter (any field except `'size'`).
-        size : float
-            Scaling value.
+        size : float | str
+            Base size in points, or a Matplotlib named size.
 
         Returns
         -------
         float
-            `getattr(self, param) * size`.
+            `getattr(self, param) * size`, in points.
 
         Raises
         ------
         ValueError
             If `param` is `'size'` or not a valid field.
+            If `size` is not a valid Matplotlib font size.
         """
-        if param == 'size':
+        if param == 'size' or param not in {f.name for f in fields(self)}:
             raise ValueError(
-                'size is not settable via resolve!'
+                f"param must be a scale field other than 'size'! got {param!r}!"
             )
-        return getattr(self, param) * size
+        return getattr(self, param) * _size_to_points(size)
 
     def update_rcparams(self) -> None:
         """Mutate global rcParams permanently with this config's values."""

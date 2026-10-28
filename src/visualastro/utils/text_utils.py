@@ -315,3 +315,26 @@ def _pprint(
         underscore_numbers=underscore_numbers,
     )
     if footer: print(footer)
+
+
+def _size_to_points(size: float | str) -> float:
+    """
+    Convert a Matplotlib font size to points.
+
+    Parameters
+    ----------
+    size : float | str
+        Size in points, a numeric string, or a Matplotlib named size
+        (e.g. `'small'`, `'x-large'`).
+
+    Returns
+    -------
+    float
+        Size in points.
+
+    Raises
+    ------
+    ValueError
+        If `size` is not a valid Matplotlib font size.
+    """
+    return float(font_manager.FontProperties(size=size).get_size_in_points())
