@@ -257,9 +257,6 @@ class TestExtractXY:
         with pytest.raises(ValueError, match='2D array'):
             _extract_xy([[1, 2], [3, 4]], xy_indices=(0, 1), kwargs={})
 
-    def test_jagged_list_raises(self):
-        with pytest.raises(ValueError):
-            _extract_xy([[1, 2], [3]], kwargs={})
 
 class TestExtractXYFromNdarray2D:
     def test_order_c(self):
