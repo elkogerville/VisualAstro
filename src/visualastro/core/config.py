@@ -17,14 +17,13 @@ from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+from matplotlib import font_manager
 from matplotlib.colors import Colormap
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
-
-from visualastro.utils.text_utils import _size_to_points
 
 
 T = TypeVar('T')
@@ -152,7 +151,7 @@ class FontSizeConfig:
             raise ValueError(
                 f"param must be a scale field other than 'size'! got {param!r}!"
             )
-        return getattr(self, param) * _size_to_points(size)
+        return getattr(self, param) * self._size_to_points(size)
 
     def update_rcparams(self) -> None:
         """Mutate global rcParams permanently with this config's values."""
@@ -179,6 +178,28 @@ class FontSizeConfig:
             'xtick.labelsize': tick,
             'ytick.labelsize': tick,
         }
+
+    def _size_to_points(self, size: float | str) -> float:
+        """
+        Convert a Matplotlib font size to points.
+
+        Parameters
+        ----------
+        size : float | str
+            Size in points, a numeric string, or a Matplotlib named size
+            (e.g. `'small'`, `'x-large'`).
+
+        Returns
+        -------
+        float
+            Size in points.
+
+        Raises
+        ------
+        ValueError
+            If `size` is not a valid Matplotlib font size.
+        """
+        return float(font_manager.FontProperties(size=size).get_size_in_points())
 
     def __repr__(self) -> str:
         """Return both scale factor and size in points of each field."""
