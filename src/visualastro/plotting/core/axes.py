@@ -770,7 +770,7 @@ def _apply_limits(
     Set axis limits, recomputing the unspecified axis from the data
     visible within the specified one.
 
-    Helper function for `visualastro.plotting.core.axes.set_axis_limits`.
+    Helper function for `visualastro.plotting.core.axes.set_limits`.
 
     Parameters
     ----------
