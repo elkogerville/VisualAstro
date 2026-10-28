@@ -7,6 +7,7 @@ Description:
 """
 
 from collections.abc import Sequence
+import datetime
 from typing import Any, Literal, TypeGuard
 
 import matplotlib as mpl
@@ -18,9 +19,7 @@ import numpy as np
 from visualastro.core.config import config, _UNSET, _resolve_default
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
-from visualastro.plotting.core.colors.definitions import (
-    RGBATuple, RGBTuple, COLORSET_ALIASES
-)
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
 def as_color(
@@ -167,3 +166,17 @@ def _is_cycled_colorset(colors) -> bool:
             return True
         return False
     return isinstance(colors, str) and _is_colorset(colors)
+
+
+def _soup_of_the_day() -> ColorType:
+    """Get daily soup color."""
+    day = datetime.datetime.today().weekday()
+    return {
+        0: '#D19D78', # mushroom monday
+        1: '#BE992B', # tripe tuesday
+        2: '#E80063', # wacky soup wednesday
+        3: '#D43500', # tomato thursday
+        4: '#662A02', # french onion friday
+        5: '#F6AA00', # sweet potato saturday
+        6: '#848A21', # split pea sunday
+    }.get(day, '#848A21')

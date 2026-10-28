@@ -18,7 +18,7 @@ from visualastro.core.data import as_list, to_list
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._colorspacious import cspace_convert
 from visualastro.plotting.core.colors.utils import as_color, _convert_color
-from visualastro.plotting.core.colors.definitions import RGBATuple, RGBTuple
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
 

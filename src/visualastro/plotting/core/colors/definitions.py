@@ -1,21 +1,16 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-27
+Date Modified: 2026-10-28
 Description:
     VisualAstro color definitions.
 """
-
-import datetime
-from typing import TypeAlias
 
 import matplotlib as mpl
 from matplotlib.colors import TABLEAU_COLORS
 from matplotlib.typing import ColorType
 
-
-RGBTuple: TypeAlias = tuple[float, float, float]
-RGBATuple: TypeAlias = tuple[float, float, float, float]
+from visualastro.plotting.core.colors.utils import _soup_of_the_day
 
 
 # ##########################
@@ -163,20 +158,6 @@ COLORSET_NAMES = [key for key in COLORSETS.keys()]
 # ########################
 # VISUALASTRO NAMED COLORS
 # ########################
-def _soup_of_the_day() -> ColorType:
-    """Get daily soup color."""
-    day = datetime.datetime.today().weekday()
-    return {
-        0: '#D19D78', # mushroom monday
-        1: '#BE992B', # tripe tuesday
-        2: '#E80063', # wacky soup wednesday
-        3: '#D43500', # tomato thursday
-        4: '#662A02', # french onion friday
-        5: '#F6AA00', # sweet potato saturday
-        6: '#848A21', # split pea sunday
-    }.get(day, '#848A21')
-
-
 VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'dsb': '#483D8B',
     'msb': '#7B68EE',
