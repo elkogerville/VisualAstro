@@ -1481,45 +1481,48 @@ def ax3d_pane_color(
     ax.zaxis.set_pane_color(colors[2])
 
 
-def _set_axis_limits_scaling_mode(
+def _configure_axes_scaling(
     ax: maxes.Axes,
     kwargs: dict[str, Any],
     **explicit: Any
-):
+) -> None:
     """
-    Set axes limit scaling mode. Must be called before
-    the main plotting call/loop in a plotting function.
+    Configure the autoscale state and axis scales of an Axes.
+
+    Must be called before the main plotting call/loop in a plotting
+    function, and before `visualastro.plotting.core.axes.set_limits`.
 
     Parameters
     ----------
-    ax : maxes.Axes
-        Axes instance.
+    ax : matplotlib.axes.Axes
+        Axes instance to configure.
     kwargs : dict[str, Any]
-        Keyword arguments forwarded to matplotlib.
+        Keyword arguments forwarded to matplotlib. Used to resolve
+        the parameters below.
     **explicit : Any
-        Any of the following keyword arguments:
+        Any of the following keyword arguments. Values not given
+        explicitly are taken from `kwargs`, then from `config.axes`.
 
-        - autoscale : bool
-            If `True`, uses native Matplotlib autoscaling,
-            i.e. `ax.set_autoscale_on(True)`, and disables
-            VisualAstro's manual limits computation
-            (`compute_limits=False`).
-        - compute_limits : bool
-            Flag to be passed on to one of the VisualAstro
-            plotting interface functions. If `True`, will
-            invoke `visualastro.plotting.core.axes.set_axis_limits`.
-        - xlog, ylog : bool, optional, default=False
-            If either is `True`, set `autoscale=True`.
+        - autoscale : bool, optional
+            Native Matplotlib autoscaling state, applied with
+            `ax.set_autoscale_on(autoscale)`.
+        - xlog, ylog : bool, optional
+            If `True`, sets the respective axis to log scale.
 
     Returns
     -------
-    compute_limits : bool
-        Set to `False` if `autoscale=True`. Otherwise is left
-        unchanged.
+    None
+
+    Notes
+    -----
+    - `autoscale=False` before plotting prevents Matplotlib from
+      rescaling the view, so limits must then be provided to
+      `set_limits`.
+    - Axis scales are only set to `'log'` when requested. A `False`
+      value does not reset an existing log scale to linear.
     """
     limits_defaults = {
         'autoscale': config.axes.autoscale,
-        'compute_limits': config.axes.compute_limits,
         'xlog': config.axes.xlog,
         'ylog': config.axes.ylog,
     }
@@ -1527,15 +1530,10 @@ def _set_axis_limits_scaling_mode(
         kwargs,
         params=_params_from_explicit(explicit, limits_defaults)
     )
-    if params.xlog or params.ylog:
-        params.autoscale = True
-    if params.autoscale:
-        ax.set_autoscale_on(True)
-        params.compute_limits = False
-    else:
-        ax.set_autoscale_on(False)
 
-    if params.xlog: ax.set_xscale('log')
-    if params.ylog: ax.set_yscale('log')
+    ax.set_autoscale_on(bool(params.autoscale))
 
-    return params.compute_limits
+    if params.xlog:
+        ax.set_xscale('log')
+    if params.ylog:
+        ax.set_yscale('log')

@@ -46,8 +46,8 @@ from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
     get_ax,
-    _set_axis_limits_scaling_mode,
-    get_ax3d
+    get_ax3d,
+    _configure_axes_scaling,
 )
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import as_color, get_colors
@@ -567,7 +567,7 @@ def plot(
         - `_extract_plot_util_kwargs`
         - `_resolve_color_kwargs`
         - `_resolve_props_kwargs`
-        - `_set_axis_limits_scaling_mode`
+        - `_configure_axes_scaling`
         - `_apply_plot_utils`
 
     Returns
@@ -631,10 +631,7 @@ def plot(
         linewidth=linewidth,
         alpha=alpha
     )
-
-    plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, kwargs, xlog=xlog, ylog=ylog
-    )
+    _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
 
     if params.normalize:
         y = _normalize(y)
@@ -747,7 +744,7 @@ def scatter(
         - `_resolve_color_kwargs`
         - `_resolve_cmap_kwargs`
         - `_resolve_props_kwargs`
-        - `_set_axis_limits_scaling_mode`
+        - `_configure_axes_scaling`
         - `_apply_plot_utils`
 
     Returns
@@ -802,9 +799,7 @@ def scatter(
         marker=marker,
         alpha=alpha
     )
-    plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, kwargs, xlog=xlog, ylog=ylog
-    )
+    _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
 
     if params.normalize:
         y = _normalize(y)
@@ -1514,12 +1509,7 @@ def scatter_project(
     facecolors = to_list(params.facecolor)
     labels = to_list(params.label)
 
-    plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax,
-        params.autoscale,
-        plot_params.compute_limits,
-        params.xlog, params.ylog
-    )
+    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
 
     sort_axis = {
         'x': 0,
@@ -1599,9 +1589,7 @@ def scatter_project(
     c_arr_sorted = c_arr[sorted_indeces]
     size_arr_sorted = size_arr[sorted_indeces]
 
-    plot_params.compute_limits = _set_axis_limits_scaling_mode(
-        ax, params.autoscale, plot_params.compute_limits
-    )
+    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
 
     scatter = ax.scatter(
         pos_sorted[:, ax1], pos_sorted[:, ax2],
