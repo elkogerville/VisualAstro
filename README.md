@@ -25,7 +25,7 @@
 ## Features
 
 - Unified interface for Matplotlib, Astropy, NumPy, spectral-cube, specutils, and other astronomy packages
-- Custom mathtext stylesheets without `LaTeX` installation as well as many other styles for publication-quality figures
+- Mathtext and scientific stylesheets without `LaTeX` installation as well as many other styles for publication-quality figures
 - Colorblind safe alternative colorsets, and colormaps
 - User-friendly interface with many convenience methods that integrate with Matplotlib and other packages
 
@@ -140,7 +140,7 @@ year = 2012-2024
 url = https://github.com/alerque/libertinus V7.051
 ```
 
-New Computer Modern, distributed under GNU GENERAL PUBLIC LICENSE from a release by:
+New Computer Modern, distributed under the GNU GENERAL PUBLIC LICENSE from a release by:
 ```
 author = Antonis Tsolomitis
 location = Samos, Greece

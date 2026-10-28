@@ -356,9 +356,9 @@ def hist(
     align : {'left', 'mid', 'right'}, optional, default: 'mid'
         The horizontal alignment of the histogram bars.
 
-            * `'left'`: bars are centered on the left bin edges.
-            * `'mid'`: bars are centered between the bin edges.
-            * `'right'`: bars are centered on the right bin edges.
+            - `'left'`: bars are centered on the left bin edges.
+            - `'mid'`: bars are centered between the bin edges.
+            - `'right'`: bars are centered on the right bin edges.
 
     color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
         Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
@@ -398,11 +398,11 @@ def hist(
     hists : SimpleNamespace | list[SimpleNamespace]
         The result(s) returned by `Axes.hist`. Each SimpleNamespace has the form:
 
-        * n : ndarray
+        - n : ndarray
             The values of the histogram (counts or densities).
-        * bins : ndarray
+        - bins : ndarray
             The edges of the bins (length = len(n) + 1).
-        * patches : list[Patch]
+        - patches : list[Patch]
             The artists created by the histogram (e.g., `Rectangle` or `Polygon`
             objects depending on `histtype`).
 
