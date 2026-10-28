@@ -196,7 +196,7 @@ class FontSizeConfig:
 class ZorderLayers(PrettyRepr):
     axes: float = 0
     gridlines: float = 10
-    wcs_grid: float = 11
+    wcsgrid: float = 11
     contourf: float = 20
     plot_data: float = 30
     contour: float = 50
@@ -462,7 +462,7 @@ class VisualAstroConfig(PrettyRepr):
     contour: ContourConfig = field(default_factory=ContourConfig)
     plot_rug: RugPlotConfig = field(default_factory=RugPlotConfig)
     gridlines: GridConfig = field(default_factory=GridConfig)
-    wcs_grid: WCSGridConfig = field(default_factory=WCSGridConfig)
+    wcsgrid: WCSGridConfig = field(default_factory=WCSGridConfig)
 
     # text params
     text_color: ColorType = 'k'

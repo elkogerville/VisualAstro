@@ -48,7 +48,7 @@ from visualastro.plotting.core.axes import (
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
-from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcs_grid
+from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcsgrid
 from visualastro.plotting.core.utils import (
     plot_ellipses,
     plot_interactive_ellipse,
@@ -99,8 +99,8 @@ class PlotUtilParams:
             Enable `ax.grid`.
         - remaining keys : forwarded to `ax.grid`.
 
-    wcs_grid : dict[str, Any]
-        - `wcs_grid` : bool
+    wcsgrid : dict[str, Any]
+        - `wcsgrid` : bool
             Enable `ax.coords.grid`. Applied for `WCSAxes` only.
         - remaining keys : forwarded to `ax.coords.grid`.
 
@@ -135,7 +135,7 @@ class PlotUtilParams:
     labels: dict
     tick: dict
     gridlines: dict
-    wcs_grid: dict
+    wcsgrid: dict
     colorbar: dict
     text: dict
     ellipses: dict
@@ -176,8 +176,8 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
             prefix='label_',
         ),
         tick=_pop_prefixed(kwargs, 'tick_'),
-        wcs_grid=_pop_prefixed(
-            kwargs, 'wcs_grid_', base='wcs_grid', default=config.wcs_grid.enable
+        wcsgrid=_pop_prefixed(
+            kwargs, 'wcsgrid', base='wcsgrid', default=config.wcsgrid.enable
         ),
         gridlines=_pop_prefixed(
             kwargs, 'grid_', base='gridlines', default=config.gridlines.enable
@@ -310,8 +310,8 @@ def _apply_plot_utils(
             **labels,
         )
 
-    if params.wcs_grid.pop('wcs_grid', None) and isinstance(ax, WCSAxes):
-        wcs_grid(ax=ax, **params.wcs_grid)
+    if params.wcsgrid.pop('wcsgrid', None) and isinstance(ax, WCSAxes):
+        wcsgrid(ax=ax, **params.wcsgrid)
 
     if params.gridlines.pop('gridlines', None):
         grid(ax=ax, **params.gridlines)

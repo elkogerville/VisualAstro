@@ -293,7 +293,7 @@ def grid(
     See Also
     --------
     matplotlib.axes.Axes.grid : Underlying Matplotlib implementation.
-    wcs_grid : Equivalent function for WCS axes.
+    wcsgrid : Equivalent function for WCS axes.
     """
     params = _extract_kwargs(
         kwargs,
@@ -315,7 +315,7 @@ def grid(
     )
 
 
-def wcs_grid(
+def wcsgrid(
     *,
     ax: WCSAxes | None = None,
     draw_grid: bool | None = True,
@@ -340,15 +340,15 @@ def wcs_grid(
         Rendering method. 'lines' is faster; 'contours' is required for
         grids that cannot be drawn as straight/simple lines. If None, the
         Astropy default is used.
-    color : ColorType, optional, default=config.wcs_grid.color
+    color : ColorType, optional, default=config.wcsgrid.color
         Gridline color.
-    linestyle : LineStyleType, optional, default=config.wcs_grid.linestyle
+    linestyle : LineStyleType, optional, default=config.wcsgrid.linestyle
         Gridline style.
-    linewidth : float, optional, default=config.wcs_grid.linewidth
+    linewidth : float, optional, default=config.wcsgrid.linewidth
         Gridline width in points.
-    alpha : float, optional, default=config.wcs_grid.alpha
+    alpha : float, optional, default=config.wcsgrid.alpha
         Gridline opacity, in the range [0, 1].
-    zorder : float, optional, default=config.zorder.wcs_grid
+    zorder : float, optional, default=config.zorder.wcsgrid
         Drawing order of the gridlines.
     **kwargs
         Additional keyword arguments forwarded to
@@ -366,12 +366,12 @@ def wcs_grid(
     params = _extract_kwargs(
         kwargs,
         params=[
-            _param('grid_type', grid_type, config.wcs_grid.grid_type),
-            _param('color', color, config.wcs_grid.color),
-            _param('linestyle', linestyle, config.wcs_grid.linestyle),
-            _param('linewidth', linewidth, config.wcs_grid.linewidth),
-            _param('alpha', alpha, config.wcs_grid.alpha),
-            _param('zorder', zorder, config.zorder.wcs_grid),
+            _param('grid_type', grid_type, config.wcsgrid.grid_type),
+            _param('color', color, config.wcsgrid.color),
+            _param('linestyle', linestyle, config.wcsgrid.linestyle),
+            _param('linewidth', linewidth, config.wcsgrid.linewidth),
+            _param('alpha', alpha, config.wcsgrid.alpha),
+            _param('zorder', zorder, config.zorder.wcsgrid),
         ]
     )
     kwargs.update(params)

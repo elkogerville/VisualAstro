@@ -313,9 +313,9 @@ def apply_style_modifiers(ax, style: str):
             if isinstance(ax, WCSAxes):
                  ax.coords.grid(
                      True,
-                     color=config.wcs_grid.color,
-                     alpha=config.wcs_grid.alpha,
-                     ls=config.wcs_grid.linestyle
+                     color=config.wcsgrid.color,
+                     alpha=config.wcsgrid.alpha,
+                     ls=config.wcsgrid.linestyle
                  )
             else:
                 ax.grid(

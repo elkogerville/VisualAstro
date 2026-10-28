@@ -154,7 +154,7 @@ from visualastro.plotting.core.image_utils import (
 )
 from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.lines import (
-    axhlines, axvlines, grid, wcs_grid
+    axhlines, axvlines, grid, wcsgrid
 )
 from visualastro.plotting.core.style import (
     print_rcParams,
