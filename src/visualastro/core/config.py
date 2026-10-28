@@ -48,7 +48,7 @@ class PrettyRepr:
 @dataclass(slots=True, repr=False)
 class AxesConfig(PrettyRepr):
     """matplotlib.axes config"""
-    compute_limits: bool = True
+    recompute_other_axis: bool = True
     autoscale: bool = False
     autoscale3d: bool = True
     xpad: float | None = None

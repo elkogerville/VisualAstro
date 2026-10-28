@@ -655,6 +655,7 @@ def set_limits(
     ylim: tuple[float, float] | None = None,
     xpad: float | None | _Unset = _UNSET,
     ypad: float | None | _Unset = _UNSET,
+    recompute_other_axis: bool | _Unset = _UNSET
 ) -> tuple[tuple[float, float], tuple[float, float]]:
     """
     Set the limits of a Matplotlib Axes.
@@ -674,7 +675,7 @@ def set_limits(
 
     xlim, ylim : tuple[float, float] | None, optional, default=None
         X and Y-axis limits, applied as given (inverted limits invert the axis).
-        If only one is provided and `recompute=True`, the limits of the other
+        If only one is provided and `recompute_other_axis=True`, the limits of the other
         axis are computed from the data visible within the provided range.
         If both are provided, no computation is done.
     xpad, ypad : float | None, optional, default=None
@@ -682,15 +683,16 @@ def set_limits(
         and `> -0.5`. If `None`, uses `ax.margins()[0]` and `ax.margins()[1]`.
         - `xpad` is only used if `ylim` is provided without `xlim`.
         - `ypad` is only used if `xlim` is provided without `ylim`.
-        - Both are ignored if `recompute=False`, or if `limits` is given.
+        - Both are ignored if `recompute_other_axis=False`, or if `limits` is given.
         - Padding is never applied to user-provided limits.
 
-    recompute : bool, optional, default=True
+    recompute_other_axis : bool | _Unset, optional, default=_UNSET
         If `True` and only one of `xlim` or `ylim` is provided, the limits
         of the other axis are computed from the data visible within the
         provided range. If `False`, only the provided limits are set and
         the other axis is autoscaled by Matplotlib. Ignored if `limits` is
-        given or if both `xlim` and `ylim` are provided.
+        given or if both `xlim` and `ylim` are provided. If `_UNSET`,
+        uses `config.axes.recompute_other_axis`.
 
     Returns
     -------
@@ -712,6 +714,9 @@ def set_limits(
     """
     xpad = _resolve_default(xpad, config.axes.xpad)
     ypad = _resolve_default(ypad, config.axes.ypad)
+    recompute_other_axis = _resolve_default(
+        recompute_other_axis, config.axes.recompute_other_axis
+    )
     ax = get_ax(ax)
 
     for name, pad in (('xpad', xpad), ('ypad', ypad)):
@@ -745,6 +750,8 @@ def set_limits(
         ylim,
         xpad=mx if xpad is None else xpad,
         ypad=my if ypad is None else ypad,
+        recompute_other_axis=recompute_other_axis,
+
     )
 
     return ax.get_xlim(), ax.get_ylim()
@@ -757,7 +764,7 @@ def _apply_limits(
     *,
     xpad: float,
     ypad: float,
-    recompute: bool = True,
+    recompute_other_axis: bool = True,
 ) -> None:
     """
     Set axis limits, recomputing the unspecified axis from the data
@@ -771,12 +778,12 @@ def _apply_limits(
         Axes to modify. Must be populated before calling.
     xlim, ylim : tuple[float, float] | None, optional, default=None
         X and Y-axis limits, applied as given (inverted limits invert the axis).
-        If only one is provided and `recompute=True`, the limits of the other
-        axis are computed from the data visible within the provided range.
+        If only one is provided and `recompute_other_axis=True`, the limits of
+        the other axis are computed from the data visible within the provided range.
         If both are provided, no computation is done.
     xpad, ypad : float
         Fractional padding applied to the computed X/Y limits.
-    recompute : bool, optional, default=True
+    recompute_other_axis : bool, optional, default=True
         If `True`, the limits of the unspecified axis are computed from the
         data visible within the specified one. If `False`, only the
         specified limits are set and the other axis is left to Matplotlib
@@ -813,8 +820,8 @@ def _apply_limits(
         ylim = (float(get_value(ylim[0])), float(get_value(ylim[1])))
         ax.set_ylim(ylim)
 
-    if not recompute or (xlim is not None and ylim is not None):
-            return
+    if not recompute_other_axis or (xlim is not None and ylim is not None):
+        return
 
     w_is_x = xlim is not None
     lo, hi = sorted(xlim if w_is_x else ylim)
