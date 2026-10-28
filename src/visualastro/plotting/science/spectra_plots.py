@@ -69,7 +69,7 @@ from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import (
-    set_axis_limits, _set_axis_labels
+    set_limits, _set_axis_labels
 )
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
@@ -618,9 +618,7 @@ def extract_cube_pixel_spectra(
 
         axvlines(vline, ax=ax, unit=fluxes[0].unit)
 
-        set_axis_limits(
-            spectral_axis,
-            fluxes,
+        set_limits(
             ax=ax,
             xpad=0,
             **kwargs
@@ -1086,8 +1084,7 @@ def plot_spectra(
 
         lines.append(l)
 
-    set_axis_limits(
-        wavelength_list, flux_mask_list,
+    set_limits(
         ax=ax,
         xlim=params.xlim, ylim=params.ylim,
         xpad=0
@@ -1652,9 +1649,7 @@ def fit_gaussian_2_spec(
         _set_axis_labels(
             spectral_axis, flux, ax, xlabel, ylabel, unit_bracket_style
         )
-        set_axis_limits(
-            [x0[plot_mask], x[gauss_mask]],
-            [y0[plot_mask], gaussian[gauss_mask]],
+        set_limits(
             ax=ax, xlim=xlim
         )
 

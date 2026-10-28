@@ -43,7 +43,7 @@ from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
-    set_axis_limits, set_title, _set_axis_labels
+    set_limits, set_title, _set_axis_labels
 )
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
@@ -274,8 +274,7 @@ def _apply_plot_utils(
     )
 
     if params.compute_limits:
-        set_axis_limits(
-            x, y,
+        set_limits(
             ax=ax,
             **params.limits
         )

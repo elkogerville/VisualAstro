@@ -71,6 +71,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'default': list(TABLEAU_COLORS.values()),
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+    'ibmII': ['#7097FD', '#4328C3', '#FFB000', '#FE6100', '#DC267F'],
     'ibm_contrast': [
         '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
     ],
