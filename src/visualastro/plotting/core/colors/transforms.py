@@ -18,7 +18,9 @@ import numpy as np
 from visualastro.core.data import as_list, to_list
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._colorspacious import cspace_convert
-from visualastro.plotting.core.colors.utils import as_color, _convert_color
+from visualastro.plotting.core.colors.utils import (
+    as_color, _convert_color, _get_single_color
+)
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
@@ -372,5 +374,4 @@ def _soup_of_the_day() -> ColorType:
     }.get(day, '#848A21')
 
     factor = np.random.rand(1)[0]
-    print(factor)
-    return _transform_colors(soup, None)
+    return _get_single_color(_transform_colors(soup, None))
