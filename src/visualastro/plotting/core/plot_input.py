@@ -10,6 +10,7 @@ from collections.abc import Sequence
 from typing import Any, Literal
 
 from astropy import units as u
+from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
 
@@ -782,6 +783,8 @@ def _resolve_cmap_kwargs(
 def _resolve_props_kwargs(
     kwargs: dict[str, Any],
     defaults: dict[str, Any],
+    *,
+    size_target: Literal['s', 'markersize'] | None,
     **explicit: Any,
 ) -> dict[str, Any]:
     """
@@ -800,6 +803,10 @@ def _resolve_props_kwargs(
         Maps each property name accepted by the target function to its
         default value. Build it at call time, e.g. with `_scatter_props()`,
         so config changes made after import are respected.
+    size_target : {'s', 'markersize'} | None
+        Controls which parameter is passed on to matplotlib.
+        If `None`, does not perform any `size` or `markersize` conversion.
+        Only pass `None` for functions that do not have `size` or `markersize`.
     **explicit
         Property overrides. Each name must be in `defaults`.
         Use `_UNSET` to fall back to the default.
@@ -825,6 +832,10 @@ def _resolve_props_kwargs(
     props_kw = _extract_kwargs(
         kwargs, params=_params_from_explicit(explicit, defaults)
     )
+
+    if size_target is not None:
+        _resolve_marker_size(props_kw, size_target)
+
     kwargs.update({k: v for k, v in props_kw.items() if v is not None})
 
     return kwargs
@@ -842,15 +853,111 @@ def _scatter_props() -> dict[str, Any]:
     """Return the property defaults for `scatter`."""
     return {
         'marker': config.marker,
-        's': config.scatter_size,
-        'alpha': config.alpha,
+        's': _UNSET,
+        'markersize': _UNSET,
+        'alpha': config.alpha
     }
 
 
 def _plot_props() -> dict[str, Any]:
     """Return the property defaults for `plot`."""
     return {
+        'marker': config.plot_marker,
+        's': _UNSET,
+        'markersize': _UNSET,
         'linestyle': config.linestyle,
         'linewidth': config.linewidth,
         'alpha': config.alpha,
+        'markeredgecolor': None,
+        'markeredgewidth': None,
+        'markerfacecolor': None,
+        'fillstyle': 'full',
+        'drawstyle': 'default'
     }
+
+
+def _resolve_marker_size(
+    props_kw: dict[str, Any],
+    target: Literal['s', 'markersize'],
+) -> None:
+    """
+    Resolve `s` and `markersize` in `props_kw` into the target convention.
+
+    Parameters
+    ----------
+    props_kw : dict[str, Any]
+        Extracted property values. `s` and `markersize` are updated in place.
+        Both must be `_UNSET` if not supplied by the user.
+    target : {'s', 'markersize'}
+        `'s'` is area in points^2 (scatter).
+        `'markersize'` is size in points (plot).
+
+    Raises
+    ------
+    TypeError
+        If both `s` and `markersize`/`ms` are given.
+    ValueError
+        If `target='markersize'` and the size is not scalar, or `s` is negative.
+    """
+    s = props_kw.pop('s', _UNSET)
+    ms = props_kw.pop('markersize', _UNSET)
+
+    if s is not _UNSET and ms is not _UNSET:
+        raise TypeError("`s` and `markersize`/`ms` are mutually exclusive.")
+
+    if s is _UNSET and ms is _UNSET:
+        markersize = float(config.markersize)
+        props_kw[target] = (
+            markersize if target == 'markersize' else markersize**2
+        )
+        return
+
+    s_given = s is not _UNSET
+    value = np.asarray(get_value(s if s_given else ms), dtype=float)
+
+    if target == 'markersize':
+        if value.ndim != 0:
+            raise ValueError("`plot` does not support per-point sizes; use `scatter`.")
+        if s_given and value < 0:
+            raise ValueError("`s` must be non-negative.")
+        props_kw[target] = float(np.sqrt(value) if s_given else value)
+    else:
+        props_kw[target] = value if s_given else np.square(value)
+
+
+def _resolve_color_alias(
+    kwargs: dict[str, Any],
+    color: ColorType | Sequence[ColorType] | _Unset,
+) -> ColorType | Sequence[ColorType] | _Unset:
+    """
+    Resolve the `c` alias of `color`.
+
+    Used internally by `visualastro.plotting.base.plot` and
+    `visualastro.plotting.base.hist`.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Keyword arguments. `c` is removed in place if present.
+    color : ColorType | Sequence[ColorType] | _Unset
+        Value of the `color` argument.
+
+    Returns
+    -------
+    ColorType | Sequence[ColorType] | _Unset
+        Value of `c` if given, otherwise `color`.
+
+    Raises
+    ------
+    ValueError
+        If both `c` and `color` are given.
+
+    Notes
+    -----
+    - `c=None` is treated as not given.
+    """
+    if (c := kwargs.pop('c', None)) is not None:
+        if color is not _UNSET:
+            raise ValueError("'c' and 'color' are mutually exclusive.")
+        return c
+    return color
