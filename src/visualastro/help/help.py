@@ -663,11 +663,11 @@ class help:
             )
 
     @staticmethod
-    def scatter_fit(**kwargs) -> None:
+    def scatter_polyfit(**kwargs) -> None:
         x=np.linspace(1,300,50) * u.radian
         y=np.sin(x) * u.Lsun
         y2=np.sin(-2*x) * u.Lsun
-        _ax.scatter_fit(x, [y, y2], deg=20, **kwargs)
+        _ax.scatter_polyfit(x, [y, y2], deg=20, **kwargs)
 
     @staticmethod
     def scatter3D(

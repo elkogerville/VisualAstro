@@ -866,7 +866,7 @@ def scatter(
     return artist
 
 
-def scatter_fit(
+def scatter_polyfit(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity],
     ax: maxes.Axes | None = None,
     deg: int,

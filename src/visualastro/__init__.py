@@ -96,7 +96,7 @@ from visualastro.plotting.base.plots import (
     plot_density_histogram,
     plot,
     scatter,
-    scatter_fit,
+    scatter_polyfit,
     scatter_project,
     scatter3D
 )
