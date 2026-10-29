@@ -60,9 +60,9 @@ class VisualAstroStyles:
         ----------
         available : list[str]
             All available font styles.
-        mono : list[str]
+        monospace : list[str]
             Available monospace font styles.
-        sans : list[str]
+        sansserif : list[str]
             Available sans-serif font styles.
         serif : list[str]
             Available serif font styles.
