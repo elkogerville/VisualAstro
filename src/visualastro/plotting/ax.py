@@ -465,7 +465,7 @@ class ax:
                 significantly reduce file size for complex plots.
             - `color`, `c` : list of colors, str, or None, optional, default=None
                 aliases for `colors`.
-            - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
+            - `sizes`, `size`, `s` : float or list, optional, default=`config.markersize`
                 Marker size(s) for scatter points.
             - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
                 Marker style(s) for scatter points.

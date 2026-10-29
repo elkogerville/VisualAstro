@@ -376,6 +376,7 @@ def _resolve_xy_plot_inputs(
     x, y = _extract_xy(*data, kwargs=kwargs, **explicit)
     return _resolve_implicit_x(x, y, mode=mode)
 
+
 def _extract_xyz(
     *data: NDArray | u.Quantity | Sequence[NDArray | u.Quantity | float] | float,
     order: Literal['c', 'fortran'] | _Unset = _UNSET,

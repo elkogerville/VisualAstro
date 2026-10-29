@@ -127,7 +127,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
             significantly reduce file size for complex plots.
         * `color`, `c` : list of colors, str, or None, optional, default=None
             aliases for `colors`.
-        * `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
+        * `sizes`, `size`, `s` : float or list, optional, default=`config.markersize`
             Marker size(s) for scatter points.
         * `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
             Marker style(s) for scatter points.
@@ -200,7 +200,7 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     histtype = get_config_value(histtype, 'histtype')
     normalize = get_config_value(normalize, 'normalize_hist')
     colors = _resolve_default(colors, config.color)
-    sizes = get_config_value(sizes, 'scatter_size')
+    sizes = get_config_value(sizes, 'markersize')
     markers = get_config_value(markers, 'marker')
     alphas = get_config_value(alphas, 'alpha')
     edgecolors = get_config_value(edgecolors, 'edgecolor')
@@ -1094,7 +1094,7 @@ def scatter3D(
     marker : str | list[str] | _Unset, optional, default=_UNSET
         Marker style(s). If `_UNSET`, uses config.marker.
     size : float | list[float] | _Unset, optional, default=_UNSET
-        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
+        Marker size(s). If `_UNSET`, uses `config.markersize`.
     alpha : float | list[float] | _Unset, optional, default=_UNSET
         Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
     edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
@@ -1177,7 +1177,7 @@ def scatter3D(
             _param('roll', roll, config.roll),
             _param('color', color, config.color),
             _param('marker', marker, config.marker),
-            _param('size', size, config.scatter_size),
+            _param('size', size, config.markersize),
             _param('alpha', alpha, config.alpha),
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
@@ -1432,7 +1432,7 @@ def scatter_project(
         Point color(s) per population. Ignored if `c` is provided.
     marker : MarkerStyle, optional, default=config.marker
         Marker style. `marker` is used for all points.
-    size : float | np.ndarray | list[float | np.ndarray], optional, default=config.scatter_size
+    size : float | np.ndarray | list[float | np.ndarray], optional, default=config.markersize
         Marker size(s) in points**2. If `np.ndarray`, should contain the same number of points
         as each collection of `data`.
     alpha : float | list[float], optional, default=config.alpha
@@ -1476,7 +1476,7 @@ def scatter_project(
         [
             _param('color', color, config.color),
             _param('marker', marker, config.marker),
-            _param('size', size, config.scatter_size),
+            _param('size', size, config.markersize),
             _param('alpha', alpha, config.alpha),
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
