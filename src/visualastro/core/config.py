@@ -411,7 +411,7 @@ class VisualAstroConfig(PrettyRepr):
     # figure params
     style: str | None = None # default style
     style_fallback: str = 'default'
-    figsize: tuple = (6, 6)
+    figsize: tuple = (6.4, 4.8)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     figsize_gridspec: tuple = (12, 6)
     figsize3D: tuple = (7, 7)
@@ -454,8 +454,9 @@ class VisualAstroConfig(PrettyRepr):
     axline: AXLineConfig = field(default_factory=AXLineConfig)
 
     # scatter params
-    scatter_size: float = 10
+    markersize: float = 6
     marker: str | None = None
+    plot_marker : str | None = None
     edgecolor: ColorType | None = None
     facecolor: ColorType | None = None
 
