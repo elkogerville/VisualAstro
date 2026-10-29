@@ -259,7 +259,6 @@ def _ndim(
     return int(np.ndim(obj))
 
 
-
 def _to_xy(xy: ArrayLike) -> NDArray | None:
     """
     Convert an array-like into a float (N, 2) array, preserving NaNs.

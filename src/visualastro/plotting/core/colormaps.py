@@ -291,10 +291,11 @@ def get_norm(
     vmin, vmax : float | np.floating | None, optional, default=None
         Normalization limits. `None` autoscales. Both are required for
         `'twoslope'` unless `vcenter` is given.
-    linear_width : float | None, optional, default=None
-        Linear region width for `'asinhnorm'`. `None` uses `config.linear_width`.
-    gamma : float | None, optional, default=None
-        Exponent for `'power'`. `None` uses `config.gamma`.
+    linear_width : float | _Unset, optional, default=_UNSET
+        Linear region width for `'asinhnorm'`. If `_UNSET`, uses
+        `config.linear_width`.
+    gamma : float | _Unset, optional, default=_UNSET
+        Exponent for `'power'`. If `_UNSET`, uses `config.gamma`.
     vcenter : float | None, optional, default=None
         Center for `'twoslope'`. `None` uses the midpoint of `vmin` and `vmax`.
 
@@ -329,7 +330,7 @@ def get_norm(
         'power': lambda: mcolors.PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
         'twoslope': _twoslope,
     }
-    key = norm.lower()
+    key = norm.lower() if isinstance(norm, str) else None
     if key not in factories:
         raise ValueError(f'Unsupported norm {norm!r}. Supported: {list(factories)}')
     return factories[key]()
