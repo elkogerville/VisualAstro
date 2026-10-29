@@ -182,10 +182,10 @@ def _broadcast(
     Notes
     -----
     - A value is treated as a scalar if `value is None` or
-        `np.ndim(value) == 0`. This includes strings and scalar
-        `astropy.units.Quantity` objects.
+      `np.ndim(value) == 0`. This includes strings and scalar
+      `astropy.units.Quantity` objects.
     - Array-valued `Quantity` objects are split into a list of
-        per-element `Quantity` objects.
+      per-element `Quantity` objects.
 
     Examples
     --------

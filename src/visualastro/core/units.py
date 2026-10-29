@@ -966,9 +966,9 @@ def _has_unit(*objs) -> bool:
     Notes
     -----
     - Only the presence of the attribute is checked, not its value. An
-        object with `unit=None` (e.g. an `NDData` without units) returns `True`.
+      object with `unit=None` (e.g. an `NDData` without units) returns `True`.
     - `Quantity` is a subclass of `ndarray` with a `unit` attribute, so the
-        `isinstance` check is redundant with `hasattr` but kept for clarity.
+      `isinstance` check is redundant with `hasattr` but kept for clarity.
     - Dimensionless `Quantity` objects count as unit-bearing.
 
     Examples

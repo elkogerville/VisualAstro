@@ -8,6 +8,7 @@ Description:
 
 from collections.abc import Sequence
 import colorsys
+import datetime
 
 from typing import Literal
 from matplotlib import colors as mcolors
@@ -355,3 +356,21 @@ def _desaturate_color(color: ColorType, factor: int | float = 0.5) -> str:
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
 
     return mcolors.to_hex(rgb_new)
+
+
+def _soup_of_the_day() -> ColorType:
+    """Get daily soup color."""
+    day = datetime.datetime.today().weekday()
+    soup = {
+        0: '#D19D78', # mushroom monday
+        1: '#BE992B', # tripe tuesday
+        2: '#E80063', # wacky soup wednesday
+        3: '#D43500', # tomato thursday
+        4: '#662A02', # french onion friday
+        5: '#F6AA00', # sweet potato saturday
+        6: '#848A21', # split pea sunday
+    }.get(day, '#848A21')
+
+    factor = np.random.rand(1)[0]
+    print(factor)
+    return _transform_colors(soup, None)

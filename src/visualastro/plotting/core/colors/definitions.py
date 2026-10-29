@@ -10,7 +10,7 @@ import matplotlib as mpl
 from matplotlib.colors import TABLEAU_COLORS
 from matplotlib.typing import ColorType
 
-from visualastro.plotting.core.colors.utils import _soup_of_the_day
+from visualastro.plotting.core.colors.transforms import _soup_of_the_day
 
 
 # ##########################

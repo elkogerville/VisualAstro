@@ -4,7 +4,7 @@ Date Created: 2026-10-28
 Date Modified: 2026-10-28
 Description:
     VisualAstro color type definitions.
-    Do not import from other visualastro files here!
+    Do not import from other VisualAstro files here!
 """
 
 from typing import TypeAlias
