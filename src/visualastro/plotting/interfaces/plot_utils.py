@@ -241,7 +241,7 @@ def _apply_plot_utils(
         Plotted artists. Required for the colorbar and
         interactive ellipses.
     ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
-        Reference unit for the colorbar label and for `axvlines`/`axhlines`.
+        Reference unit for the colorbar label.
     label : sequence | None
         Plot label. The legend is drawn only if this key is not None,
         and `params.legend['legend']` is truthy.
