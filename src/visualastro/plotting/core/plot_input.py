@@ -32,7 +32,8 @@ from visualastro.core.kwargs import (
     _extract_kwargs, _params_from_explicit, _resolve_kwargs
 )
 from visualastro.plotting.core.colormaps import get_cmap, get_norm
-from visualastro.plotting.core.colors.colors import get_color
+from visualastro.plotting.core.colors.colors import get_color, get_colors
+from visualastro.plotting.core.colors.utils import _is_color_sequence
 
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
     """Normalize array order specification.
@@ -548,6 +549,7 @@ def _resolve_color_kwargs(
     kwargs: dict[str, Any],
     *,
     allow_c: bool = True,
+    allow_color_sequences: bool = False,
     color_keys: dict[str, str | None] | None = None,
     **explicit: Any,
 ) -> dict[str, Any]:
@@ -565,6 +567,8 @@ def _resolve_color_kwargs(
         Keyword arguments forwarded to matplotlib.
     allow_c : bool, optional, default=True
         Whether the target function accepts `c` (e.g. `scatter`).
+    allow_color_sequences : bool, optional, default=False
+        If `True`, color input is allowed to be `Sequence[ColorType]`.
     color_keys : dict[str, str | None] | None, optional, default=None
         Maps the logical names `'edgecolor'` and `'facecolor'` to the names
         used by the target function (e.g. `'markeredgecolor'` for `plot`).
@@ -663,17 +667,18 @@ def _resolve_color_kwargs(
     if c is None and color is None:
         color = config.color
 
-    colors = {'color': color, **color_kw}  # color_kw: edge/face only
+    colors = {'color': color, **color_kw}
 
     if c is not None:
         kwargs['c'] = get_value(c)
 
+    def _convert(value: Any) -> Any:
+        if allow_color_sequences and _is_color_sequence(value):
+            return get_colors(value, **modifiers)
+        return get_color(value, **modifiers)
+
     kwargs.update(
-        {
-            name: get_color(value, **modifiers)
-            for name, value in colors.items()
-            if value is not None
-        }
+        {name: _convert(value) for name, value in colors.items() if value is not None}
     )
 
     return kwargs
@@ -875,6 +880,13 @@ def _plot_props() -> dict[str, Any]:
         'drawstyle': 'default'
     }
 
+def _hist_props() -> dict[str, Any]:
+    """Return the property defaults for `hist`."""
+    return {
+        'linestyle': config.linestyle,
+        'linewidth': config.linewidth,
+        'alpha': config.alpha,
+    }
 
 def _resolve_marker_size(
     props_kw: dict[str, Any],

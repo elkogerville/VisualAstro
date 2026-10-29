@@ -31,12 +31,7 @@ from visualastro.core.config import (
     _Unset,
     _UNSET
 )
-from visualastro.core.data import (
-    get_value,
-    get_data,
-    to_array,
-    to_list,
-)
+from visualastro.core.data import get_value, to_list
 from visualastro.core.kwargs import (
     _kwarg, _param, _pop_kwargs, _resolve_kwargs
 )
