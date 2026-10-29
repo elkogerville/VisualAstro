@@ -445,7 +445,7 @@ class VisualAstroConfig(PrettyRepr):
     # histogram params
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] = 'step'
     bins: int | Sequence[float] | str = 'auto'
-    normalize_hist: bool = True
+    normalize_hist: bool = False
 
     # line2D params
     linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'

@@ -123,6 +123,28 @@ def _is_color_like(color: Any) -> TypeGuard[ColorType]:
     return mcolors.is_color_like(color)
 
 
+def _is_color_sequence(value: Any) -> bool:
+    """
+    Check whether `value` is a sequence of colors rather than a single color.
+
+    Parameters
+    ----------
+    value : Any
+        Color specification.
+
+    Returns
+    -------
+    bool
+        True if `value` is a non-string iterable that is not itself a
+        valid single color.
+    """
+    if isinstance(value, str):
+        return False
+    if mcolors.is_color_like(value):
+        return False
+    return np.iterable(value)
+
+
 def _get_single_color(color: Any) -> str | RGBTuple | RGBATuple:
     """
     Reduce a color or a sequence of colors to a single color.
