@@ -700,6 +700,7 @@ def scatter(
     c: ColorType | NDArray | u.Quantity | None = None,
     marker: MarkerStyle | None | _Unset = _UNSET,
     size: float | ArrayLike | None | _Unset = _UNSET,
+    markersize: float | ArrayLike | None | _Unset = _UNSET,
     alpha: float | ArrayLike | None | _Unset = _UNSET,
     edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | None | _Unset = _UNSET,
     facecolor: Literal['none'] | ColorType | list[ColorType] | None | _Unset = _UNSET,
@@ -739,10 +740,12 @@ def scatter(
     marker : MarkerStyle | None | _Unset, optional, default=_UNSET
         Marker style. If `_UNSET`, uses `config.marker`. If None, not passed
         to matplotlib.
-    size : float | ArrayLike | None | _Unset, optional, default=_UNSET
-        Marker size, scalar or one value per point. Passed to `ax.scatter`
-        as `s`. If `_UNSET`, uses `config.scatter_size`. If None, not passed
-        to matplotlib.
+    size : float | _Unset, optional, default=_UNSET
+        Marker area in points**2. If `_UNSET` uses `(config.markersize)**2`.
+        Only one of `size` and `markersize` can be set.
+    markersize : float | _Unset, optional, default=_UNSET
+        Marker diameter in points. If `_UNSET`, uses `config.markersize`.
+        Only one of `markersize` and `size` can be set.
     alpha : float | ArrayLike | None | _Unset, optional, default=_UNSET
         Marker transparency, in [0, 1]. If `_UNSET`, uses `config.alpha`.
         If None, not passed to matplotlib.
@@ -832,7 +835,9 @@ def scatter(
     _resolve_props_kwargs(
         kwargs,
         defaults=_scatter_props(),
+        size_target='s',
         s=size,
+        markersize=markersize,
         marker=marker,
         alpha=alpha
     )
@@ -862,162 +867,110 @@ def scatter(
 
 
 def scatter_fit(
-    *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity],
     ax: maxes.Axes | None = None,
     deg: int,
-    xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
-    color: ColorType | list[ColorType] | int | _Unset =_UNSET,
-    marker: MarkerStyle | list[MarkerStyle] | _Unset = _UNSET,
-    size: float | list[float] | _Unset = _UNSET,
-    alpha: float | list[float] | _Unset = _UNSET,
-    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | _Unset = _UNSET,
-    facecolor: Literal['none'] | ColorType | list[ColorType] | _Unset = _UNSET,
-    linecolor: ColorType | list[ColorType] | int | _Unset = _UNSET,
-    linestyle: Literal['-', '--', '-.', ':', ''] | list[Literal['-', '--', '-.', ':', '']] | _Unset = _UNSET,
-    linewidth: float | list[float] | _Unset = _UNSET,
-    linealpha: float | list[float] | _Unset = _UNSET,
+    color: ColorType | None | _Unset = _UNSET,
+    marker: MarkerStyle | None | _Unset = _UNSET,
+    size: float | ArrayLike | None | _Unset = _UNSET,
+    alpha: float | ArrayLike | None | _Unset = _UNSET,
+    edgecolor: Literal['face', 'none'] | ColorType | list[ColorType] | None | _Unset = _UNSET,
+    facecolor: Literal['none'] | ColorType | list[ColorType] | None | _Unset = _UNSET,
+    linecolor: ColorType | _Unset = _UNSET,
+    linestyle: LineStyleType | _Unset = _UNSET,
+    linewidth: float | _Unset = _UNSET,
+    linealpha: float | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
-    zorder: float | list[float] | None = None,
-    array_order: Literal['C', 'c', 'F', 'fortran'] | _Unset = _UNSET,
+    zorder: float | _Unset = _UNSET,
+    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
     **kwargs
 ) -> SimpleNamespace:
     """
-    Plot scatter data together with polynomial fits.
+    Plot scatter data together with a polynomial fit.
 
     Parameters
     ----------
-    *data : float | u.Quantity | NDArray | list[float | u.Quantity | NDArray]
-        Positional arguments specifying x and y data. Accepts either a single
-        2D array or two separate arrays/list of arrays/values. 2D arrays can
-        either be (N,2) (`order='c'`) or (2,N) (`order='fortran')`. If only
-        one array is passed in, x values are automatically generated with
-        np.arange(len(array)).
-    ax : matplotlib.axes.Axes | None, optional, default=None
-        The Axes object on which to plot the histogram. If `None`,
-        uses `plt.gca()`.
+    *data : float | Quantity | NDArray | list[float | Quantity]
+        One or two positional inputs, see `scatter`. `y` must be 1D after
+        splitting.
+    ax : Axes | None, optional, default=None
+        Axes to plot on. If None, resolved by `get_ax` in `scatter`.
     deg : int
         Degree of the polynomial fit.
-    xerr : ArrayLike | list[ArrayLike] | None, optional, default=None
-        Errors on x-axis data. Must match shape of x data.
-    yerr : ArrayLike | list[ArrayLike] | None, optional, default=None
-        Errors on y-axis data. Must match shape of y data.
-    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
-    marker : str | list[str] | _Unset, optional, default=_UNSET
-        Marker style(s). If `_UNSET`, uses config.marker.
-    size : float | list[float] | _Unset, optional, default=_UNSET
-        Marker size(s). If `_UNSET`, uses `config.scatter_size`.
-    alpha : float | list[float] | _Unset, optional, default=_UNSET
-        Transparency value(s) in [0, 1]. If `_UNSET`, uses `config.alpha`.
-    edgecolor : {'face', 'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
-        Edge color of markers.
-
-        * 'face': Match face color
-        * 'none': No edge
-        * color or sequence: Explicit color(s)
-
-        If not set, uses `config.edgecolor`.
-
-    facecolor : {'none'} | ColorType | list[ColorType] | _Unset, optional, default=_UNSET
-        Face color of markers.
-
-        * 'none': Transparent
-        * color or sequence: Explicit color(s)
-
-        If not set, uses `config.facecolor`.
-
-
-    linecolor : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Polynomial fit line colors. If unset, uses `color`.
-    linestyle : str | list[str] | _Unset, optional, default=_UNSET
-        Line style(s) to use for plotting. Can be a single string or a list of
-        styles for multiple lines. Accepted values are:
-        {'-', '--', '-.', ':', ''}. If `_UNSET`, uses `config.linestyle`.
-    linewidth : float | list[float] | _Unset, optional, default=_UNSET
-        Line width for the plotted lines. If `_UNSET`, uses the
-        `config.linewidth`.
-    linealpha : float | list[float], optional
-        Alpha values for fitted lines.
+    color : ColorType | None | _Unset, optional, default=_UNSET
+        Marker color. If `_UNSET`, uses `config.color`.
+    marker : MarkerStyle | None | _Unset, optional, default=_UNSET
+        Marker style. If `_UNSET`, uses `config.marker`.
+    size : float | ArrayLike | None | _Unset, optional, default=_UNSET
+        Marker size. If `_UNSET`, uses `config.markersize`.
+    alpha : float | ArrayLike | None | _Unset, optional, default=_UNSET
+        Marker transparency, in [0, 1]. If `_UNSET`, uses `config.alpha`.
+    edgecolor : {'face', 'none'} | ColorType | list[ColorType] | None | _Unset, optional, default=_UNSET
+        Marker edge color. If `_UNSET`, uses `config.edgecolor`.
+    facecolor : {'none'} | ColorType | list[ColorType] | None | _Unset, optional, default=_UNSET
+        Marker face color. If `_UNSET`, uses `config.facecolor`.
+    linecolor : ColorType | _Unset, optional, default=_UNSET
+        Fit line color. If `_UNSET`, uses the first scatter face color,
+        or the first edge color if the face color is empty.
+    linestyle : LineStyleType | _Unset, optional, default=_UNSET
+        Fit line style. If `_UNSET`, uses `config.linestyle`.
+    linewidth : float | _Unset, optional, default=_UNSET
+        Fit line width. If `_UNSET`, uses `config.linewidth`.
+    linealpha : float | _Unset, optional, default=_UNSET
+        Fit line transparency, in [0, 1]. If `_UNSET`, uses 1.
     normalize : bool | _Unset, optional, default=_UNSET
-        If `True`, normalize each dataset by its maximum value.
-        If `_UNSET`, uses `config.normalize_data`.
+        Normalize `y` before plotting and fitting. If `_UNSET`, uses
+        `config.normalize_data`.
     xlog, ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on the respective axis.
-        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
-        `config.axes.ylog` for `ylog`.
-    zorder : float | list[float] | None, optional, default=None
-        Order in which to plot lines in. Lines are drawn in order
-        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
-        and increments the zorder by 1 for each subsequent line drawn.
-    array_order : {'C', 'c', 'F', 'fortran'} | _Unset, optional, default=_UNSET
-        Array order of the input. `'C'` and `'c'` are for (N,2) shaped arrays
-        while `'F'` and `'fortran'` are for (2,N) shaped arrays.
-    label : str | list[str], optional, default=None
-        Legend labels for scatter datasets.
-    loc : str, optional, default=config.legend.loc
-        Legend location.
-    xlabel, ylabel : str, optional, default=None
-        Label for x and y axes.
-    xlim, ylim : tuple[float, float], optional, default=None
-        Limits for x and y axes as (min, max).
-    xpad : float, optional, default=config.axes.xpad
-        Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.ypad
-        Fractional padding added to the y-axis data range when computing axis limits.
-    cmap : Colormap | str, optional, default=config.cmap
-        Colormap used to generate colors if `color` is an int.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
-    ecolor : ColorType, optional, default=config.errorbar.colors
-        Error bar color.
-    markeredgecolor : ColorTpe, optional, default=config.errorbar.markeredgecolor
-        Plot marker edge color.
-    elinewidth : float, optional, default=config.errorbar.linewidth
-        Error bar line width in points.
-    capsize : float, optional, default=config.errorbar.capsize
-        Length of error bar caps in points.
-    capthick : float, optional, default=config.errorbar.capthick
-        Thickness of error bar caps in points.
-    barsabove : bool, optional, default=config.errorbar.barsabove
-        If `True`, draw error bars above plot symbols.
-    rasterized : bool, optional, default=config.rasterized
-        If `True`, rasterize artists when saving to vector formats.
+        Use logarithmic x and y axes scales. The fit is computed in linear
+        space. If `_UNSET`, uses `config.axes.xlog` and `config.axes.ylog`.
+    zorder : float | _Unset, optional, default=_UNSET
+        Drawing order, shared by the scatter and the fit line. If `_UNSET`,
+        uses `config.zorder.plot_data`.
+    array_order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
+        Memory order used to interpret multidimensional input.
+        If `_UNSET`, uses `config.array_order`.
+    **kwargs
+        Additional keyword arguments forwarded to `scatter`
+        (`label`, `c`, `cmap`, `figsize`, `rasterized`, plot utilities).
 
     Returns
     -------
     SimpleNamespace
         Namespace containing:
 
-        scatter : list[matplotlib.collections.PathCollection]
-            Scatter plot artists.
+        scatter : PathCollection
+            Scatter artist.
+        line : list[Line2D]
+            Fit line artist returned by `Axes.plot`.
 
-        line : list[list[matplotlib.lines.Line2D]]
-            Polynomial fit line artists returned by
-            :meth:`matplotlib.axes.Axes.plot`.
+    Notes
+    -----
+    - Non-finite points are excluded from the fit but not from the scatter.
+    - The fit is evaluated at the sorted data x values.
+    - If `c` is given and `linecolor` is `_UNSET`, the line color is taken
+      from the first point and is arbitrary.
+
+    See Also
+    --------
+    scatter
+    numpy.polynomial.Polynomial.fit
     """
     params = _resolve_kwargs(
         kwargs,
         [
-
             _param('linecolor', linecolor, _UNSET),
             _param('linestyle', linestyle, config.linestyle),
             _param('linewidth', linewidth, config.linewidth),
-            _param('linealpha', linealpha, 1),
+            _param('linealpha', linealpha, None),
         ]
     )
-    linestyles = to_list(params.linestyle)
-    linewidths = to_list(params.linewidth)
-    linealphas = to_list(params.linealpha)
-    zorders = to_list(zorder)
 
-    paths = scatter(
+    path = scatter(
         *data,
         ax=ax,
-        xerr=xerr,
-        yerr=yerr,
         color=color,
         marker=marker,
         size=size,
@@ -1027,36 +980,39 @@ def scatter_fit(
         normalize=normalize,
         xlog=xlog,
         ylog=ylog,
+        zorder=zorder,
         array_order=array_order,
         **kwargs
     )
+    ax = path.axes
+    if ax is None:
+        raise ValueError("`ax` cannot be None!")
 
-    datas = [get_data(path.get_offsets()) for path in paths]
     if params.linecolor is _UNSET:
-        colors = [
-            path.get_facecolors() if path.get_facecolors().size > 0 else
-            path.get_edgecolors() for path in paths
-        ]
+        colors = path.get_facecolors()
+        if colors.size == 0:
+            colors = path.get_edgecolors()
+        line_color = colors[0]
     else:
-        colors = get_colors(params.linecolor)
-    lines = []
+        line_color = params.linecolor
 
-    for i, array in enumerate(datas):
-        color = _cycle(colors, i)
-        ls = _cycle(linestyles, i)
-        lw = _cycle(linewidths, i)
-        a = _cycle(linealphas, i)
-        z = _get_zorder(zorders, i, config.zorder.plot_data)
+    x, y = np.asarray(path.get_offsets()).T
+    mask = np.isfinite(x) & np.isfinite(y)
+    x, y = x[mask], y[mask]
 
-        array = np.asarray(array)
-        x = array[:,0]
-        y = array[:,1]
-        fn = np.polynomial.Polynomial.fit(x, y, deg=deg)
+    fn = np.polynomial.Polynomial.fit(x, y, deg=deg)
+    x_fit = np.sort(x)
 
-        l = ax.plot(x, fn(x), color=color, ls=ls, lw=lw, zorder=z, alpha=a)
-        lines.append(l)
+    line = ax.plot(
+        x_fit, fn(x_fit),
+        color=line_color,
+        ls=params.linestyle,
+        lw=params.linewidth,
+        alpha=params.linealpha,
+        zorder=path.get_zorder(),
+    )
 
-    return SimpleNamespace(**{'scatter': paths, 'line': lines})
+    return SimpleNamespace(scatter=path, line=line)
 
 
 def scatter3D(
