@@ -667,7 +667,6 @@ def inset_axes(
     linewidth: float | _Unset = _UNSET,
     alpha: float | _Unset = _UNSET,
     zorder: float = 5,
-    recompute_other_axis: bool | _Unset = _UNSET,
     **kwargs
 ):
     """
@@ -725,9 +724,6 @@ def inset_axes(
         Transparency of the zoom indication. If `_UNSET`, uses `0.5`.
     zorder : float, optional, default=5
         Drawing order of the inset axes.
-    recompute_other_axis : bool, optional
-        Whether to recompute the unspecified axis limits when setting limits.
-        See `va.set_limits()` for details.
     **kwargs
         Additional keyword arguments passed to `Axes.inset_axes()`.
 
@@ -787,7 +783,7 @@ def inset_axes(
             xlim=xlim,
             ylim=ylim,
             limits=limits,
-            recompute_other_axis=recompute_other_axis,
+            recompute_other_axis=False,
         )
 
     if indicate_zoom:

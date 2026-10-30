@@ -366,7 +366,7 @@ def spectral_lines(
     wavelengths: Sequence[float | u.Quantity] | u.Quantity | float,
     labels: Sequence[str | None] | None = None,
     *,
-    style: Literal['marker', 'vline'] = 'marker',
+    style: Literal['marker', 'vline'] = 'vline',
     ax: maxes.Axes | None = None,
     y: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
     h: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
@@ -386,7 +386,7 @@ def spectral_lines(
         Line positions. A scalar is treated as a single line.
     labels : Sequence[str | None] | None, optional, default=None
         One label per wavelength; `None` entries are unlabeled.
-    style : {'marker', 'vline'}, optional, default='marker'
+    style : {'marker', 'vline'}, optional, default='vline'
         - `'marker'`: if `draw_hline=True`, lines sharing a label are
             drawn as one multi-prong marker with a single label.
             Unlabeled lines are drawn as individual markers. If
