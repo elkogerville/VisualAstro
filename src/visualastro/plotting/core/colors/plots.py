@@ -156,7 +156,7 @@ def plot_colorset(
     from visualastro.plotting.core.axes import get_ax, set_title
     from visualastro.plotting.core.legend import legend as _legend
 
-    ax = get_ax(ax)
+    ax = get_ax(ax, figsize=(6,6))
     if isinstance(colors, str) and colors in mpl.color_sequences:
         set_title(f'colorset: {colors}', ax=ax)
     colorset = get_colors(colors, **kwargs)
@@ -178,7 +178,7 @@ def plot_colorset(
     artists = []
     for (x, y, label, col) in zip(x_vals[:N], y_vals[:N], labels, colorset):
         artists.append(ax.plot(x, y, label=label, color=col, lw=lw))
-    artists.append(ax.scatter(0, 0, color='k', fc='none', s=90, marker='*'))
+    artists.append(ax.scatter(0, 0, ec='k', fc='w', s=113, marker='*'))
 
     ax.set_xlim(-6, 2)
     ax.set_ylim(-4, 4)
