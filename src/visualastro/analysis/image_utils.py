@@ -22,7 +22,7 @@ from numpy.typing import DTypeLike, NDArray
 from scipy.ndimage import convolve
 
 from visualastro.core.config import (
-    config, get_config_value, _resolve_default, _Unset, _UNSET,
+    config, _resolve_default, _Unset, _UNSET,
 )
 from visualastro.core.data import get_data, get_value
 from visualastro.core.io import get_errors, _get_dtype
@@ -279,11 +279,10 @@ def load_fits(filepath, header=True, error=True,
     parallel = kwargs.get('parallel', config.reproject_parallel)
     block_size = kwargs.get('block_size', config.reproject_block_size)
 
-    # get default config values
-    print_info = get_config_value(print_info, 'print_info')
-    transpose = get_config_value(transpose, 'transpose')
-    target_wcs = config.target_wcs if target_wcs is _UNSET else target_wcs
-    invert_wcs = get_config_value(invert_wcs, 'invert_wcs_if_transpose')
+    print_info = _resolve_default(print_info, config.print_info)
+    transpose = _resolve_default(transpose, config.transpose)
+    target_wcs = _resolve_default(target_wcs, config.target_wcs)
+    invert_wcs = _resolve_default(invert_wcs, config.invert_wcs_if_transpose)
 
     # disable transpose if reprojecting
     if target_wcs is not None and transpose:
@@ -410,7 +409,7 @@ def load_spectral_cube(
         data = cube.data
     """
     _require_dependency('spectral-cube')
-    print_info = get_config_value(print_info, 'print_info')
+    print_info = _resolve_default(print_info, config.print_info)
 
     spectral_cube = SpectralCube.read(filepath, hdu=hdu)
     # initialize error and header objects

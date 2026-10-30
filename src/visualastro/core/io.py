@@ -19,7 +19,6 @@ import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 
 from visualastro.core.config import (
-    get_config_value,
     config,
     _Unset,
     _UNSET,

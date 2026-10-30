@@ -20,7 +20,7 @@ from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
 from visualastro.core.config import (
-    config, get_config_value, _resolve_default, _Unset, _UNSET
+    config, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.kwargs import _pop_kwargs
 from visualastro.core.units import (
@@ -819,7 +819,7 @@ class DataCube:
         """
         _require_dependency('reproject')
         _offer_dependency('tqdm')
-        return_footprint = get_config_value(return_footprint, 'return_footprint')
+        return_footprint = _resolve_default(return_footprint, config.return_footprint)
 
         if self.wcs is None and self.header is None:
             raise ValueError(

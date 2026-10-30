@@ -23,13 +23,7 @@ from mpl_toolkits.mplot3d.art3d import PathCollection
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.config import (
-    get_config_value,
-    config,
-    _resolve_default,
-    _Unset,
-    _UNSET
-)
+from visualastro.core.config import config, _Unset, _UNSET
 from visualastro.core.data import get_value, to_list
 from visualastro.core.kwargs import (
     _kwarg, _param, _pop_kwargs, _resolve_kwargs
