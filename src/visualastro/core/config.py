@@ -448,8 +448,8 @@ class VisualAstroConfig(PrettyRepr):
     normalize_hist: bool = False
 
     # line2D params
-    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
-    linewidth: float = 0.8
+    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] | None = None
+    linewidth: float | None = None
 
     axline: AXLineConfig = field(default_factory=AXLineConfig)
 
