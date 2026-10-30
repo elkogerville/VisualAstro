@@ -674,6 +674,8 @@ def _resolve_color_kwargs(
         kwargs['c'] = get_value(c)
 
     def _convert(value: Any) -> Any:
+        if isinstance(value, str) and value == 'none' or value == 'face':
+            return value
         if allow_color_sequences and _is_color_sequence(value):
             return get_colors(value, **modifiers)
         return get_color(value, **modifiers)
