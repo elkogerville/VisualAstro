@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-28
+Date Modified: 2026-10-30
 Description:
     General plotting functions.
 """
@@ -16,9 +16,8 @@ from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
 from matplotlib.path import Path
-import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, NullLocator
-from matplotlib.typing import ColorType, LineStyleType, MarkEveryType
+from matplotlib.typing import ColorType, LineStyleType
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import PathCollection
 import numpy as np
@@ -51,6 +50,7 @@ from visualastro.plotting.core.colors.plots import _resolve_scatter_norm
 from visualastro.plotting.core.contour import contour_kde
 from visualastro.plotting.core.plot_input import (
     _extract_xyz,
+    _hist_props,
     _plot_color_keys,
     _plot_props,
     _resolve_cmap_kwargs,
@@ -308,109 +308,106 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
 
 
 def hist(
-    datas: u.Quantity | NDArray | list[u.Quantity | NDArray],
+    data: u.Quantity | NDArray | Sequence[u.Quantity | NDArray],
     ax: maxes.Axes | None = None,
     bins: int | Sequence[float] | str | _Unset = _UNSET,
+    range: tuple[float, float] | None = None,
+    density: bool | _Unset = _UNSET,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
-    normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
-    color: ColorType | list[ColorType] | int | _Unset = _UNSET,
+    color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
+    edgecolor: ColorType | Sequence[ColorType] | None = None,
+    facecolor: ColorType | Sequence[ColorType] | None = None,
+    linestyle: LineStyleType | Sequence[LineStyleType] | None = None,
+    linewidth: float | Sequence[float] | None = None,
+    hatch: Literal["/", "\\", "|", "-", "+", "x", "o", "O", ".", "*"] | None = None,
+    alpha: float | None = None,
+    label: str | Sequence[str] | None = None,
     xlog: bool | _Unset = _UNSET,
     ylog: bool | _Unset = _UNSET,
-    zorder: float | list[float] | None = None,
+    zorder: float | None = None,
     **kwargs
-) -> list[SimpleNamespace]:
-    """
-    Plot one or more histograms on a given Axes object. 2D arrays are flattened.
+):
+    r"""
+    Plot one or more histograms on a given Axes object.
 
     Parameters
     ----------
-    datas : u.Quantity | NDArray | list[u.Quantity | NDArray]
-        Input data to histogram. Can be a single 1D array or a
-        list of 1D/2D arrays. 2D arrays are automatically flattened.
+    data : u.Quantity | NDArray | Sequence[u.Quantity | NDArray]
+        Input data. A single array or a sequence of arrays, one histogram
+        per entry.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        The Axes object on which to plot the histogram. If `None`,
-        uses `plt.gca()`.
+        Target Axes. If `None`, uses `plt.gca()`.
     bins : int | Sequence[float] | str | _Unset, optional, default=_UNSET
-        From ax.hist documentation:
+        Binning specification, as in `Axes.hist`.
 
-        If *bins* is an integer, it defines the number of equal-width bins in
-        the range.
-
-        If *bins* is a sequence, it defines the bin edges, including the left
-        edge of the first bin and the right edge of the last bin; in this case,
-        bins may be unequally spaced.  All but the last (righthand-most) bin is
-        half-open.  In other words, if *bins* is:
-
-        [1, 2, 3, 4]
-
-        then the first bin is [1, 2) (including 1, but excluding 2) and the second
-        [2, 3).  The last bin, however, is [3, 4], which *includes* 4.
-
-        If *bins* is a string, it is one of the binning strategies supported by
-        `numpy.histogram_bin_edges`: `'auto'`, `'fd'`, `'doane'`, `'scott'`,
-        `'stone'`, `'rice'`, `'sturges'`, or `'sqrt'`.
-
-    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
-        Matplotlib histogram type. If `_UNSET`, uses `config.histtype`.
-    normalize : bool | None, optional, default=None
-        Alias for `density`. If `True`, normalize histograms to a probability density.
+        - `int`: number of equal-width bins over `range`.
+        - `Sequence[float]`: bin edges, including the right edge of the last
+          bin. Bins may be unequally spaced. All bins are half-open
+          `[a, b)` except the last, which is closed `[a, b]`.
+        - `str`: strategy of `numpy.histogram_bin_edges` (`'auto'`, `'fd'`,
+          `'doane'`, `'scott'`, `'stone'`, `'rice'`, `'sturges'`, `'sqrt'`).
+        - If `_UNSET`, uses `config.bins`.
+    range : tuple[float, float] | None, optional, default=None
+        Lower and upper limits of the bins. Values outside are ignored.
+        If `None`, uses `(data.min(), data.max())`. Ignored if `bins` is a
+        sequence. Autoscaling uses this range if given.
+    density : bool | _Unset, optional, default=_UNSET
+        If `True`, normalize to a probability density (area = 1).
         If `_UNSET`, uses `config.normalize_hist`.
-    align : {'left', 'mid', 'right'}, optional, default: 'mid'
-        The horizontal alignment of the histogram bars.
+    histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
+        Histogram type. If `_UNSET`, uses `config.histtype`.
+    align : {'left', 'mid', 'right'}, optional, default='mid'
+        Horizontal alignment of bars relative to bin edges.
 
-            - `'left'`: bars are centered on the left bin edges.
-            - `'mid'`: bars are centered between the bin edges.
-            - `'right'`: bars are centered on the right bin edges.
+        - `'left'`: centered on left edges.
+        - `'mid'`: centered between edges.
+        - `'right'`: centered on right edges.
 
-    color : ColorType | list[ColorType] | int | _Unset, optional, default=_UNSET
-        Color(s) for scatter markers. If `_UNSET`, uses `config.color`.
+    color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
+        Color(s). A single color applies to all histograms. A sequence is
+        matched to the datasets. Aliased by `c` in `kwargs`.
+        If `_UNSET`, uses `config.color`.
+    edgecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Edge color(s).
+    facecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Face color(s).
+    linestyle : LineStyleType | Sequence[LineStyleType] | None, optional, default=None
+        Line style(s) of the patch edges.
+    linewidth : float | Sequence[float] | None, optional, default=None
+        Edge line width(s).
+    hatch : {'/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*'} | None, optional, default=None
+        Hatch pattern. Repeat characters to increase density.
+    alpha : float | None, optional, default=None
+        Opacity in [0, 1].
+    label : str | Sequence[str] | None, optional, default=None
+        Legend label(s), one per dataset.
     xlog, ylog : bool | _Unset, optional, default=_UNSET
-        If `True`, uses logarithmic scale on the respective axis.
-        If `_UNSET`, uses `config.axes.xlog` for `xlog` and
-        `config.axes.ylog` for `ylog`.
-    zorder : float | list[float] | None, optional, default=None
-        Order in which to plot lines in. Lines are drawn in order
-        of greatest to lowest zorder. If None, starts at `config.zorder.plot_data`
-        and increments the zorder by 1 for each subsequent line drawn.
-    label : str | list[str], optional, default=None
-        Legend labels for scatter datasets.
-    loc : str, optional, default=config.legend.loc
-        Legend location.
-    xlabel : str, optional, default=None
-        Label for x-axis.
-    ylabel : str, optional, default=None
-        Label for y-axis.
-    xlim : tuple[float, float], optional, default=None
-        Limits for x-axis as (xmin, xmax).
-    ylim : tuple[float, float], optional, default=None
-        Limits for y-axis as (ymin, ymax).
-    xpad : float, optional, default=config.axes.xpad
-        Fractional padding added to the x-axis data range when computing axis limits.
-    ypad : float, optional, default=config.axes.ypad
-        Fractional padding added to the y-axis data range when computing axis limits.
-    cmap : Colormap | str, optional, default=config.cmap
-        Colormap used to generate colors if `color` is an int.
-    bad_color : str, optional
-        Fallback color for invalid values in colormap.
+        Use logarithmic x and y axes scales. If `_UNSET`, uses
+        `config.axes.xlog` and `config.axes.ylog` respectively.
+    zorder : float | None, optional, default=None
+        Drawing order. Higher values are drawn on top.
+
+    Other Parameters
+    ----------------
+    c : ColorType, optional
+        Alias of `color`. Mutually exclusive with `color`.
+    figsize : tuple[float, float], optional, default=config.figsize
+        Figure size. Used only if a new figure is created.
     rasterized : bool, optional, default=config.rasterized
-        If `True`, rasterize artists when saving to vector formats.
+        Rasterize the line artists.
 
     Returns
     -------
-    hists : SimpleNamespace | list[SimpleNamespace]
-        The result(s) returned by `Axes.hist`. Each SimpleNamespace has the form:
+    n : NDArray | list[NDArray]
+        Histogram values (counts or densities). A list if multiple datasets.
+    bins : NDArray
+        Bin edges, length `len(n) + 1`.
+    patches : BarContainer | list[Polygon] | list[BarContainer | list[Polygon]]
+        Artists created by `Axes.hist`. Type depends on `histtype`.
 
-        - n : ndarray
-            The values of the histogram (counts or densities).
-        - bins : ndarray
-            The edges of the bins (length = len(n) + 1).
-        - patches : list[Patch]
-            The artists created by the histogram (e.g., `Rectangle` or `Polygon`
-            objects depending on `histtype`).
-
-        If only one histogram is created, `hists` is a single tuple; otherwise,
-        it is a list of tuples.
+        The return value is the unmodified `(n, bins, patches)` tuple
+        returned by `Axes.hist`.
     """
     params = _resolve_kwargs(
         kwargs,
@@ -418,74 +415,65 @@ def hist(
             _param('bins', bins, config.bins),
             _param('histtype', histtype, config.histtype),
             _param('color', color, config.color),
-            _param('normalize', normalize, config.normalize_hist),
+            _param('density', density, config.normalize_hist),
             _param('xlog', xlog, config.axes.xlog_hist),
             _param('ylog', ylog, config.axes.ylog_hist),
         ],
         [
-            _kwarg('autoscale', config.axes.autoscale),
             _kwarg('label', None),
-            _kwarg('cmap', config.cmap),
-            _kwarg('bad_color', None),
             _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
-
-    datas = to_list(datas)
-    bins_list = to_list(params.bins)
-    histtypes = to_list(params.histtype)
-    labels = to_list(params.label)
-    zorders = to_list(zorder)
-
-    ref_unit = ensure_common_unit(datas)
-
     ax = get_ax(ax, figsize=params.figsize)
-    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
-    data_list = []
 
-    ax.set_autoscale_on(True)
-    plot_params.compute_limits = False
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    _resolve_color_kwargs(
+        kwargs,
+        allow_c=False,
+        allow_color_sequences=True,
+        color=_resolve_color_alias(kwargs, color),
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+    )
+    _resolve_props_kwargs(
+        kwargs,
+        defaults=_hist_props(),
+        size_target=None,
+        linestyle=linestyle,
+        linewidth=linewidth,
+        alpha=alpha
+    )
+    props = {
+        'linestyle': linestyle,
+        'linewidth': linewidth,
+    }
+    kwargs.update({k: v for k, v in props.items() if v is not None})
+    _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
 
-    hists = []
+    artists = ax.hist(
+        get_value(data),
+        bins=params.bins,
+        range=range,
+        density=params.density,
+        histtype=params.histtype,
+        align=align,
+        hatch=hatch,
+        label=label,
+        rasterized=params.rasterized,
+        zorder=zorder,
+        **kwargs
+    )
 
-    for i, data in enumerate(datas):
-        bin = _cycle(bins_list, i)
-        htype = _cycle(histtypes, i)
-        col = _cycle(colors, i)
-        z = _get_zorder(zorders, i, config.zorder.plot_data)
-        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
-        data = to_array(data)
+    _apply_plot_utils(
+        plot_params, ax,
+        x=data,
+        label=label,
+        rasterized=params.rasterized,
+        **kwargs
+    )
 
-        if data.ndim == 2:
-            data = data.flatten()
-
-        h = ax.hist(
-            data,
-            bins=bin,
-            histtype=htype,
-            density=params.normalize,
-            align=align,
-            color=col,
-            label=label,
-            rasterized=params.rasterized,
-            zorder=z
-        )
-        if ref_unit is not None:
-            data = data * ref_unit
-
-        data_list.append(data)
-        hists.append(
-            SimpleNamespace(**{'n': h[0], 'bins': h[1], 'patches': h[2]})
-        )
-
-    _apply_plot_utils(plot_params, ax=ax, ref_unit=ref_unit, xlist=data_list, labels=labels)
-
-    return hists
+    return artists
 
 
 def plot(
