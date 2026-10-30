@@ -1372,20 +1372,20 @@ def scatter_project(
 
         Supported calling conventions:
 
-        * NDArray | Sequence[NDArray]:
+        - NDArray | Sequence[NDArray]:
 
-            * Each array should be 2D and have at least 3 axes. The extracted
-            axes are set by `index_spec`.
+            - Each array should be 2D and have at least 3 axes. The extracted
+              axes are set by `index_spec`.
 
-        * Three 1D ArrayLike:
+        - Three 1D ArrayLike:
 
-            * Three 1D arrays of the same shape.
+            - Three 1D arrays of the same shape.
 
-        * Three Sequences[1D ArrayLike]
+        - Three Sequences[1D ArrayLike]
 
-            * Three Sequences each containing an ArrayLike to plot.
-            Corresponding elements across sequences must share the same shape,
-            i.e. `shape(xi) == shape(yi) == shape(zi)`.
+            - Three Sequences each containing an ArrayLike to plot.
+              Corresponding elements across sequences must share the same shape,
+              i.e. `shape(xi) == shape(yi) == shape(zi)`.
 
     ax : matplotlib.axes.Axes | None, optional, default=None
         The Axes object on which to plot the histogram. If `None`,
@@ -1414,13 +1414,13 @@ def scatter_project(
     norm : {'global', 'log'} | None, optional, default='global'
         Color normalization strategy applied across all populations.
 
-        * `'global'` -> linear normalization using global min/max across
-            all populations, preserving relative density information.
-        * `'log'` -> logarithmic normalization using global min/max.
-            Recommended for number density data spanning large dynamic ranges.
-        * `None` -> per-population linear normalization. Each population's
-            colormap is scaled independently; cross-population color comparison
-            is not meaningful.
+        - `'global'` -> linear normalization using global min/max across
+          all populations, preserving relative density information.
+        - `'log'` -> logarithmic normalization using global min/max.
+          Recommended for number density data spanning large dynamic ranges.
+        - `None` -> per-population linear normalization. Each population's
+          colormap is scaled independently; cross-population color comparison
+          is not meaningful.
 
     array_order : {'C', 'c', 'F', 'fortran'}, optional, default=config.array_order
         Memory layout of input arrays used to extract x, y, z columns.
@@ -1437,9 +1437,9 @@ def scatter_project(
     All populations are concatenated and rendered in a single `ax.scatter`
     call. Render order is controlled by `sort_by_c` and `reverse_sort`:
 
-    * `sort_by_c=True, reverse_sort=False` -> low density rendered first,
-        high density on top (recommended for density plots).
-    * `sort_by_c=False` -> sort by projected axis coordinate (`zdir`).
+    - `sort_by_c=True, reverse_sort=False` -> low density rendered first,
+      high density on top (recommended for density plots).
+    - `sort_by_c=False` -> sort by projected axis coordinate (`zdir`).
     """
     params = _resolve_kwargs(
         kwargs,
