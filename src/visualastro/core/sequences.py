@@ -160,7 +160,7 @@ def _broadcast(
 
     Parameters
     ----------
-    value : scalar | Sequence | astropy.units.Quantity | None
+    value : float | Sequence | astropy.units.Quantity | None
         A scalar (or `None`) is repeated `n` times. A sequence or
         array is converted to a list and must have length `n`.
     n : int

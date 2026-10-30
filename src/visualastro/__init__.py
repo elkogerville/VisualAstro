@@ -107,6 +107,7 @@ from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
     gridspec,
+    inset_axes,
     set_limits,
     set_title,
     subplot,
