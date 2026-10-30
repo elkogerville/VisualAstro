@@ -342,6 +342,7 @@ def hist(
         - `str`: strategy of `numpy.histogram_bin_edges` (`'auto'`, `'fd'`,
           `'doane'`, `'scott'`, `'stone'`, `'rice'`, `'sturges'`, `'sqrt'`).
         - If `_UNSET`, uses `config.bins`.
+
     range : tuple[float, float] | None, optional, default=None
         Lower and upper limits of the bins. Values outside are ignored.
         If `None`, uses `(data.min(), data.max())`. Ignored if `bins` is a
