@@ -657,6 +657,7 @@ def inset_axes(
     transform: Literal['axes', 'data'] | CompositeGenericTransform | None = None,
     projection: str | None = None,
     indicate_zoom: bool = False,
+    connectors: tuple[bool, bool, bool, bool] = (True, False, True, False),
     polar: bool = False,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
@@ -697,6 +698,10 @@ def inset_axes(
     indicate_zoom : bool, optional, default=False
         Whether to indicate the region displayed by the inset on the parent
         axes using a rectangle and connecting lines.
+    connectors : tuple[bool, bool, bool, bool], optional, default=(True, False, True, False)
+        Visibility of the four connectors joining the zoom rectangle to the inset
+        axes. The values correspond to the lower-left, upper-left, lower-right,
+        and upper-right connectors, respectively.
     polar : bool, optional, default=False
         If `True`, equivalent to `projection='polar'`.
     xlim, ylim : tuple[float, float] | None, optional, default=None
@@ -791,7 +796,9 @@ def inset_axes(
                 iter(inset.spines.values())
             ).get_linewidth()
 
-        ax.indicate_inset_zoom(inset, **params)
+        indicator = ax.indicate_inset_zoom(inset, **params)
+        for connector, visible in zip(indicator.connectors, connectors):
+            connector.set_visible(visible)
 
     return inset
 
