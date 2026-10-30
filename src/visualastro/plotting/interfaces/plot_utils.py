@@ -145,9 +145,9 @@ class PlotUtilParams:
 def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     """
     Extracts any keyword argument from a function related to
-    visualastro plotting utilities. This way, kwargs can then
-    be passed into a matplotlib function without any contamination
-    from visualastro specific keyword arguments.
+    VisualAstro plotting utilities. This way, kwargs can then
+    be passed into a Matplotlib function without any contamination
+    from VisualAstro specific keyword arguments.
     """
     params = PlotUtilParams(
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
