@@ -242,21 +242,20 @@ def legend(
         else:
             legend_kwargs.pop(name, None)
 
-    linewidth = legend_kwargs.pop('linewidth')
-    zorder = legend_kwargs.pop('zorder')
+    lw = legend_kwargs.pop('linewidth')
+    z = legend_kwargs.pop('zorder')
 
     _resolve_vertical_loc(legend_kwargs)
 
     leg = ax.legend(**legend_kwargs)
 
-    if linewidth:
-        if linewidth == 'spines':
-            spines = [a for a in ax.spines.values()]
-            linewidth = spines[0].get_linewidth()
+    if lw is not None:
+        if lw == 'spines':
+            lw = next(iter(ax.spines.values())).get_linewidth()
 
-        leg.get_frame().set_linewidth(linewidth)
+        leg.get_frame().set_linewidth(lw)
 
-    leg.set_zorder(zorder)
+    leg.set_zorder(z)
 
     return leg
 
