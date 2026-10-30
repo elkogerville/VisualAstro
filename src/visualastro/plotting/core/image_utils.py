@@ -136,7 +136,7 @@ def get_vmin_vmax(
 
 def compute_imshow_scale(
     data: NDArray | u.Quantity | DataCube | FitsFile | SpectralCube,
-    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None,
+    norm: str | Normalize | None,
     vmin: float | np.floating | None,
     vmax: float | np.floating | None,
     percentile: tuple[float, float] | None,
@@ -184,7 +184,7 @@ def compute_imshow_scale(
     ----------
     data : ndarray | Quantity | DataCube | FitsFile | SpectralCube
         Input image data. Must be convertible to a NumPy array via `to_array`.
-    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'} | None
+    norm: str | mcolors.Normalize | None,
         Normalization algorithm for colormap scaling.
         If `None`, linear scaling is used.
     vmin, vmax : float | None
