@@ -1271,7 +1271,7 @@ def _pad_limits(
 def set_title(
     title: str,
     loc: Literal['center', 'left', 'right'] = 'center',
-    pad: float = 0.6,
+    pad: float | None = None,
     fontsize: float | _Unset = _UNSET,
     ax: maxes.Axes | WCSAxes | None = None,
     **kwargs
@@ -1285,7 +1285,7 @@ def set_title(
         Figure title.
     loc : {'center', 'left', 'right'} | optional, default='center'
         Title location.
-    pad : float, optional, default=0.6
+    pad : float | None, optional, default=None
         Title offset from the top of the `Axes`, in points.
     fontsize : float | _Unset, optional, default=_UNSET
         Title fontsize in points. If `_UNSET`, uses
