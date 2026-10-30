@@ -35,6 +35,7 @@ from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
 from visualastro.plotting.core.colors.utils import _is_color_sequence
 
+
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
     """Normalize array order specification.
 
