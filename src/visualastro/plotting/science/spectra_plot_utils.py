@@ -269,6 +269,7 @@ def spectral_line_marker(
         for x_val, lab in zip(x_raw, labels):
             axvlines(
                 x_val,
+                ax=ax,
                 color=params.color,
                 lw=params.linewidth,
                 ls=params.linestyle,
