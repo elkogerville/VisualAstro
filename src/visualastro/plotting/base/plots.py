@@ -411,11 +411,11 @@ def hist(
             _param('histtype', histtype, config.histtype),
             _param('color', color, config.color),
             _param('density', density, config.normalize_hist),
+            _param('label', label, None),
             _param('xlog', xlog, config.axes.xlog_hist),
             _param('ylog', ylog, config.axes.ylog_hist),
         ],
         [
-            _kwarg('label', None),
             _kwarg('figsize', config.figsize),
             _kwarg('rasterized', config.rasterized),
         ]
@@ -454,7 +454,7 @@ def hist(
         histtype=params.histtype,
         align=align,
         hatch=hatch,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=zorder,
         **kwargs
@@ -1148,7 +1148,7 @@ def scatter3D(
             _param('roll', roll, config.roll),
             _param('color', color, config.color),
             _param('marker', marker, config.marker),
-            _param('size', size, config.markersize),
+            _param('s', size, config.markersize),
             _param('alpha', alpha, config.alpha),
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
@@ -1185,7 +1185,7 @@ def scatter3D(
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
 
     markers = to_list(params.marker)
-    sizes = to_list(params.size)
+    sizes = to_list(params.s)
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
@@ -1242,9 +1242,20 @@ def scatter3D(
         cmap = _cycle(cmaps, i)
         label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
 
-        scatter_kwargs = _resolve_color_kwargs(
-            color, c, kwargs, cmap, norm=norm
-        )
+        scatter_kwargs = dict(kwargs)
+        if c is not None:
+            scatter_kwargs.pop('color', None)
+            scatter_kwargs['c'] = c
+            if cmap is not None:
+                scatter_kwargs['cmap'] = cmap
+            if norm is not None:
+                scatter_kwargs['norm'] = norm
+        elif color is not None:
+            scatter_kwargs.pop('c', None)
+            scatter_kwargs['color'] = color
+        else:
+            scatter_kwargs.pop('c', None)
+            scatter_kwargs.pop('color', None)
 
         sc = ax.scatter3D(
             x,
@@ -1360,10 +1371,10 @@ def scatter_project(
     global sorting and consistent color normalization across populations.
     Each population can have an independent colormap.
 
-    * Single 2D array with at least 3 columns/rows, or a list of such arrays.
-    * Three 1D ArrayLike: `(X, Y, Z)`.
-    * Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
-    * Three scalars: `(x, y, z)`.
+    - Single 2D array with at least 3 columns/rows, or a list of such arrays.
+    - Three 1D ArrayLike: `(X, Y, Z)`.
+    - Three sequences of 1D ArrayLike: `([x1,x2,], [y1,y2,], [z1,z2,])`.
+    - Three scalars: `(x, y, z)`.
 
     Parameters
     ----------
@@ -1447,7 +1458,7 @@ def scatter_project(
         [
             _param('color', color, config.color),
             _param('marker', marker, config.marker),
-            _param('size', size, config.markersize),
+            _param('s', size, config.markersize),
             _param('alpha', alpha, config.alpha),
             _param('edgecolor', edgecolor, config.edgecolor),
             _param('facecolor', facecolor, config.facecolor),
@@ -1474,7 +1485,7 @@ def scatter_project(
     cmaps = [get_cmap(c, bad_color=params.bad_color) for c in cmaps]
     colors = get_colors(params.color, cmap=_cycle(cmaps, 0))
 
-    sizes = to_list(params.size)
+    sizes = to_list(params.s)
     alphas = to_list(params.alpha)
     edgecolors = to_list(params.edgecolor)
     facecolors = to_list(params.facecolor)
@@ -1572,9 +1583,9 @@ def scatter_project(
 
     _apply_plot_utils(
         plot_params, ax,
-        im_list=[scatter],
-        xlist=[pos_sorted[:,ax1]],
-        ylist=[pos_sorted[:,ax2]],
+        img=scatter,
+        x=pos_sorted[:,ax1],
+        y=pos_sorted[:,ax2],
     )
 
     return scatter
