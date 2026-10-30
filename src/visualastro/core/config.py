@@ -46,8 +46,20 @@ class PrettyRepr:
         field_str = '\n'.join(f'  {k}: {v!r}' for k, v in fields.items())
         return f'{self.__class__.__name__}(\n{field_str}\n)'
 
+
+@dataclass(slots=True)
+class ResetConfig:
+    def reset(self) -> None:
+        """
+        Reset all configuration values to defaults.
+        """
+        default = type(self)()
+
+        for f in fields(self):
+            setattr(self, f.name, getattr(default, f.name))
+
 @dataclass(slots=True, repr=False)
-class AxesConfig(PrettyRepr):
+class AxesConfig(PrettyRepr, ResetConfig):
     """matplotlib.axes config"""
     recompute_other_axis: bool = True
     autoscale: bool = True
@@ -67,7 +79,7 @@ class AxesConfig(PrettyRepr):
     aspect = None
 
 @dataclass(slots=True, repr=False)
-class FontSizeConfig:
+class FontSizeConfig(ResetConfig):
     """
     Fontsize Config for VisualAstro.
 
@@ -214,7 +226,7 @@ class FontSizeConfig:
         return f'{type(self).__name__}(\n  {body}\n)'
 
 @dataclass(slots=True, repr=False)
-class ZorderLayers(PrettyRepr):
+class ZorderLayers(PrettyRepr, ResetConfig):
     axes: float = 0
     gridlines: float = 10
     wcsgrid: float = 11
@@ -228,7 +240,7 @@ class ZorderLayers(PrettyRepr):
     legend: float = 100
 
 @dataclass(slots=True, repr=False)
-class AXLineConfig(PrettyRepr):
+class AXLineConfig(PrettyRepr, ResetConfig):
     """ax.vline / ax.hline config"""
     linestyle: Literal['-', '--', '-.', ':', ''] = ':'
     linewidth: float = 1.0
@@ -237,7 +249,7 @@ class AXLineConfig(PrettyRepr):
     zorder: float = 0
 
 @dataclass(slots=True, repr=False)
-class LegendConfig(PrettyRepr):
+class LegendConfig(PrettyRepr, ResetConfig):
     """ax.legend config"""
     handles: Sequence | None = None
     labels: Sequence[str] | None = None
@@ -265,7 +277,7 @@ class LegendConfig(PrettyRepr):
     draggable: bool = True
 
 @dataclass(slots=True, repr=False)
-class SavefigConfig(PrettyRepr):
+class SavefigConfig(PrettyRepr, ResetConfig):
     """plt.savefig config"""
     enable: bool = False
     dpi: float = 600
@@ -275,7 +287,7 @@ class SavefigConfig(PrettyRepr):
     allowed_formats = {'eps', 'pdf', 'png', 'svg', 'jpg'}
 
 @dataclass(slots=True, repr=False)
-class CurveFitConfig(PrettyRepr):
+class CurveFitConfig(PrettyRepr, ResetConfig):
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
     absolute_sigma: bool = False
@@ -285,7 +297,7 @@ class CurveFitConfig(PrettyRepr):
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
 
 @dataclass(slots=True, repr=False)
-class ErrorBarConfig(PrettyRepr):
+class ErrorBarConfig(PrettyRepr, ResetConfig):
     """ax.errorbar config"""
     fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
     colors: ColorType | None = None
@@ -296,7 +308,7 @@ class ErrorBarConfig(PrettyRepr):
     markeredgecolor: ColorType | None = None
 
 @dataclass(slots=True, repr=False)
-class ColorbarConfig(PrettyRepr):
+class ColorbarConfig(PrettyRepr, ResetConfig):
     enable: bool = True
     width: float = 0.03
     pad: float = 0.015
@@ -305,7 +317,7 @@ class ColorbarConfig(PrettyRepr):
     tick_dir: Literal['in', 'out', 'inout'] = 'out'
 
 @dataclass(slots=True, repr=False)
-class ContourConfig(PrettyRepr):
+class ContourConfig(PrettyRepr, ResetConfig):
     levels: int = 20
     method: Literal['contour', 'contourf'] = 'contour'
     bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott'
@@ -315,14 +327,14 @@ class ContourConfig(PrettyRepr):
     zdir : Literal['x', 'y', 'z'] = 'z'
 
 @dataclass(slots=True, repr=False)
-class RugPlotConfig(PrettyRepr):
+class RugPlotConfig(PrettyRepr, ResetConfig):
     color: ColorType | int | Sequence[ColorType | int] = 'k'
     marker: str | Sequence[str] = '+'
     markersize: float | Sequence[float] = 2
     linewidth: float | Sequence[float] = 1
 
 @dataclass(slots=True, repr=False)
-class SpectralLineConfig(PrettyRepr):
+class SpectralLineConfig(PrettyRepr, ResetConfig):
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
     marker_linestyle: str = 'solid'
@@ -335,7 +347,7 @@ class SpectralLineConfig(PrettyRepr):
     label_rotation: float = 0
 
 @dataclass(slots=True, repr=False)
-class GridConfig(PrettyRepr):
+class GridConfig(PrettyRepr, ResetConfig):
     enable: bool = False
     which: Literal['major', 'minor', 'both'] = 'major'
     axis: Literal['both', 'x', 'y'] = 'both'
@@ -345,7 +357,7 @@ class GridConfig(PrettyRepr):
     alpha: float = 0.8
 
 @dataclass(slots=True, repr=False)
-class WCSGridConfig(PrettyRepr):
+class WCSGridConfig(PrettyRepr, ResetConfig):
     enable: bool = False
     grid_type: Literal['lines', 'contours'] | None = None
     color: ColorType = 'w'
@@ -354,14 +366,14 @@ class WCSGridConfig(PrettyRepr):
     alpha: float = 0.8
 
 @dataclass(slots=True, repr=False)
-class DereddenConfig(PrettyRepr):
+class DereddenConfig(PrettyRepr, ResetConfig):
     method: str | _Unset = _UNSET
     region: str | _Unset = _UNSET
     Rv: float | _Unset = _UNSET
     Ebv: float | _Unset = _UNSET
 
 @dataclass(slots=True, repr=False)
-class HDUConfig(PrettyRepr):
+class HDUConfig(PrettyRepr, ResetConfig):
     """HDU config"""
     index: int = 0
     error_extensions: list[str] = field(
@@ -375,7 +387,7 @@ class HDUConfig(PrettyRepr):
 
 
 @dataclass(slots=True, repr=False)
-class VisualAstroConfig(PrettyRepr):
+class VisualAstroConfig(PrettyRepr, ResetConfig):
     """
     Global configuration object for controlling default behavior
     across the VisualAstro package.
@@ -590,15 +602,6 @@ class VisualAstroConfig(PrettyRepr):
     @elinewidth.setter
     def elinewidth(self, value: float | None) -> None:
         self.errorbar.linewidth = value
-
-    def reset(self):
-        """
-        Reset all configuration values to defaults.
-        """
-        default = type(self)()
-
-        for f in fields(self):
-            setattr(self, f.name, getattr(default, f.name))
 
 
 config = VisualAstroConfig()
