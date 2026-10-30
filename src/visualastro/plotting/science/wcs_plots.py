@@ -313,7 +313,7 @@ def imshow(
 
     _apply_plot_utils(
         plot_params, ax,
-        im_list=image_list,
+        img=image_list[0],
         ref_unit=ref_unit,
     )
 

@@ -322,10 +322,13 @@ def _apply_plot_utils(
             cbar_unit = unit_2_string(
                 ref_unit, fmt=config.unit_label_format
             )
-            clabel = (
-                cb if isinstance(cb := cparams.get('cbar_label'), str) else
-                cbar_unit if config.colorbar.label else None
-            )
+            cb = cparams.pop('label', None)
+            if isinstance(cb, str):
+                clabel = cb
+            elif config.colorbar.label:
+                clabel = unit_2_string(ref_unit, fmt=config.unit_label_format)
+            else:
+                clabel = None
             add_colorbar(
                 img,
                 ax=ax,
