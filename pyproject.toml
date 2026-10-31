@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools-scm>=8"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,10 +11,10 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -72,11 +72,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["visualastro"]
-exclude = [
-    "tests*",
-    "build*",
-    "dist*",
-]
-
+include = ["visualastro*"]
+exclude = ["visualastro.stylelib*", "visualastro.data*"]
 [tool.setuptools_scm]
