@@ -23,8 +23,8 @@ _CMASHER_DEP = {
         cmasher is available to add legend labels to this plot.
         Install via:
             CONDA :
-                $ conda install conda-forge::colorspacious
+                $ conda install conda-forge::cmasher
             PIP :
-                $ pip install colorspacious
+                $ pip install cmasher
     """)
 }
