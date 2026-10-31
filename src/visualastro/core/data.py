@@ -1,18 +1,20 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-06
+Date Modified: 2026-10-28
 Description:
     Public data / array related functions.
 """
 
 from __future__ import annotations
+from collections.abc import Sequence
 from typing import Any, Literal, TypeVar, overload
 
 from astropy import units as u
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
+from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE
 )
@@ -197,3 +199,84 @@ def as_list(obj: T | list[T]) -> list[T]:
         or `obj` itself it is already a list.
     """
     return obj if isinstance(obj, list) else [obj]
+
+
+def _array_length(
+    obj: float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+) -> int:
+    """
+    Return the length of the first axis, treating scalars as length 1.
+
+    Parameters
+    ----------
+    obj : float | u.Quantity | NDArray | Sequence[float | u.Quantity]
+        Input data. Not converted, not copied.
+
+    Returns
+    -------
+    n : int
+        First-axis length, or `1` for scalar and 0D input.
+    """
+    if _is_scalar(obj):
+        return 1
+    shape = getattr(obj, 'shape', None)
+    if shape is not None:
+        return shape[0] if shape else 1
+    return len(obj)
+
+
+def _ndim(
+    obj: float | u.Quantity | NDArray | Sequence[float | u.Quantity],
+) -> int:
+    """
+    Return the number of dimensions, treating scalars as 0D.
+
+    Parameters
+    ----------
+    obj : float | astropy.units.Quantity | numpy.ndarray | Sequence[float | astropy.units.Quantity]
+        Input data. Never converted to an array. For `list` and `tuple`,
+        the depth is inferred from the first element.
+
+    Returns
+    -------
+    ndim : int
+        Number of dimensions. `0` for scalar, `str` and 0D input;
+        `1` for an empty `list` or `tuple`.
+
+    Notes
+    -----
+    - Nesting is assumed regular.
+    """
+    if _is_scalar(obj):
+        return 0
+    ndim = getattr(obj, 'ndim', None)
+    if ndim is not None:
+        return int(ndim)
+    if isinstance(obj, (str, bytes)):
+        return 0
+    if isinstance(obj, (list, tuple)):
+        return 1 + (_ndim(obj[0]) if obj else 0)
+    return int(np.ndim(obj))
+
+
+def _to_xy(xy: ArrayLike) -> NDArray | None:
+    """
+    Convert an array-like into a float (N, 2) array, preserving NaNs.
+
+    Masked values are replaced with NaN. Non-finite points are kept.
+
+    Parameters
+    ----------
+    xy : ArrayLike
+        Array-like of shape (N, 2).
+
+    Returns
+    -------
+    NDArray | None
+        Float array of shape (N, 2), or `None` if the input is empty
+        or malformed.
+    """
+    xy = np.ma.filled(np.ma.asarray(xy, dtype=float), np.nan)
+    if xy.ndim != 2 or xy.shape[1] != 2 or len(xy) == 0:
+        return None
+    return xy

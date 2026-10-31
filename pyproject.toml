@@ -80,7 +80,7 @@ exclude = [
 
 [tool.setuptools.package-data]
 "visualastro" = [
-    "stylelib/*.mplstyle",
+    "stylelib/**/*.mplstyle",
     "stylelib/**/LICENSE",
     "stylelib/fontlib/**/*.ttf",
     "stylelib/fontlib/**/*.otf",

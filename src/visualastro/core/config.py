@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-10-10
+Date Modified: 2026-10-25
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -17,6 +17,7 @@ from astropy.wcs import WCS
 from astropy.io.fits import Header
 import astropy.units as u
 from astropy.units import physical
+from matplotlib import font_manager
 from matplotlib.colors import Colormap
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
@@ -45,14 +46,26 @@ class PrettyRepr:
         field_str = '\n'.join(f'  {k}: {v!r}' for k, v in fields.items())
         return f'{self.__class__.__name__}(\n{field_str}\n)'
 
+
+@dataclass(slots=True)
+class ResetConfig:
+    def reset(self) -> None:
+        """
+        Reset all configuration values to defaults.
+        """
+        default = type(self)()
+
+        for f in fields(self):
+            setattr(self, f.name, getattr(default, f.name))
+
 @dataclass(slots=True, repr=False)
-class AxesConfig(PrettyRepr):
+class AxesConfig(PrettyRepr, ResetConfig):
     """matplotlib.axes config"""
-    compute_limits: bool = True
-    autoscale: bool = False
+    recompute_other_axis: bool = True
+    autoscale: bool = True
     autoscale3d: bool = True
-    xpad: float = 0.05  # set_axis_limits() xpad
-    ypad: float = 0.05 # set_axis_limits() ypad
+    xpad: float | None = None
+    ypad: float | None = None
     label_fontsize: float = 13
     xlog: bool = False
     ylog: bool = False
@@ -66,7 +79,7 @@ class AxesConfig(PrettyRepr):
     aspect = None
 
 @dataclass(slots=True, repr=False)
-class FontSizeConfig:
+class FontSizeConfig(ResetConfig):
     """
     Fontsize Config for VisualAstro.
 
@@ -102,16 +115,55 @@ class FontSizeConfig:
     colorbar_label: float = 1.0
     colorbar_tick_labels: float = 0.8
 
-    def resolve(self, param) -> float:
+    def resolve(self, param: str) -> float:
         """
-        Method to convert a fontsize parameter from scaling factor to points.
-        Returns `self.size` * `self.param`.
+        Convert a scaling factor to points.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `'size'`).
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * size`, in points.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
+            If `self.size` is not a valid Matplotlib font size.
         """
-        if param == 'size':
+        return self.with_size(param, self.size)
+
+    def with_size(self, param: str, size: float | str) -> float:
+        """
+        Convert a scaling factor to points relative to `size`.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `'size'`).
+        size : float | str
+            Base size in points, or a Matplotlib named size.
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * size`, in points.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
+            If `size` is not a valid Matplotlib font size.
+        """
+        if param == 'size' or param not in {f.name for f in fields(self)}:
             raise ValueError(
-                'size is not settable via resolve!'
+                f"param must be a scale field other than 'size'! got {param!r}!"
             )
-        return getattr(self, param) * self.size
+        return getattr(self, param) * self._size_to_points(size)
 
     def update_rcparams(self) -> None:
         """Mutate global rcParams permanently with this config's values."""
@@ -139,6 +191,28 @@ class FontSizeConfig:
             'ytick.labelsize': tick,
         }
 
+    def _size_to_points(self, size: float | str) -> float:
+        """
+        Convert a Matplotlib font size to points.
+
+        Parameters
+        ----------
+        size : float | str
+            Size in points, a numeric string, or a Matplotlib named size
+            (e.g. `'small'`, `'x-large'`).
+
+        Returns
+        -------
+        float
+            Size in points.
+
+        Raises
+        ------
+        ValueError
+            If `size` is not a valid Matplotlib font size.
+        """
+        return float(font_manager.FontProperties(size=size).get_size_in_points())
+
     def __repr__(self) -> str:
         """Return both scale factor and size in points of each field."""
         lines = [f'size: {self.size:.2f}pt (base)']
@@ -152,10 +226,10 @@ class FontSizeConfig:
         return f'{type(self).__name__}(\n  {body}\n)'
 
 @dataclass(slots=True, repr=False)
-class ZorderLayers(PrettyRepr):
+class ZorderLayers(PrettyRepr, ResetConfig):
     axes: float = 0
     gridlines: float = 10
-    wcs_grid: float = 11
+    wcsgrid: float = 11
     contourf: float = 20
     plot_data: float = 30
     contour: float = 50
@@ -166,7 +240,7 @@ class ZorderLayers(PrettyRepr):
     legend: float = 100
 
 @dataclass(slots=True, repr=False)
-class AXLineConfig(PrettyRepr):
+class AXLineConfig(PrettyRepr, ResetConfig):
     """ax.vline / ax.hline config"""
     linestyle: Literal['-', '--', '-.', ':', ''] = ':'
     linewidth: float = 1.0
@@ -175,7 +249,7 @@ class AXLineConfig(PrettyRepr):
     zorder: float = 0
 
 @dataclass(slots=True, repr=False)
-class LegendConfig(PrettyRepr):
+class LegendConfig(PrettyRepr, ResetConfig):
     """ax.legend config"""
     handles: Sequence | None = None
     labels: Sequence[str] | None = None
@@ -203,7 +277,7 @@ class LegendConfig(PrettyRepr):
     draggable: bool = True
 
 @dataclass(slots=True, repr=False)
-class SavefigConfig(PrettyRepr):
+class SavefigConfig(PrettyRepr, ResetConfig):
     """plt.savefig config"""
     enable: bool = False
     dpi: float = 600
@@ -213,7 +287,7 @@ class SavefigConfig(PrettyRepr):
     allowed_formats = {'eps', 'pdf', 'png', 'svg', 'jpg'}
 
 @dataclass(slots=True, repr=False)
-class CurveFitConfig(PrettyRepr):
+class CurveFitConfig(PrettyRepr, ResetConfig):
     """scipy.curve_fit config"""
     method: Literal['lm', 'trf', 'dogbox'] = 'trf'
     absolute_sigma: bool = False
@@ -223,7 +297,7 @@ class CurveFitConfig(PrettyRepr):
     error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
 
 @dataclass(slots=True, repr=False)
-class ErrorBarConfig(PrettyRepr):
+class ErrorBarConfig(PrettyRepr, ResetConfig):
     """ax.errorbar config"""
     fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
     colors: ColorType | None = None
@@ -234,7 +308,7 @@ class ErrorBarConfig(PrettyRepr):
     markeredgecolor: ColorType | None = None
 
 @dataclass(slots=True, repr=False)
-class ColorbarConfig(PrettyRepr):
+class ColorbarConfig(PrettyRepr, ResetConfig):
     enable: bool = True
     width: float = 0.03
     pad: float = 0.015
@@ -243,7 +317,7 @@ class ColorbarConfig(PrettyRepr):
     tick_dir: Literal['in', 'out', 'inout'] = 'out'
 
 @dataclass(slots=True, repr=False)
-class ContourConfig(PrettyRepr):
+class ContourConfig(PrettyRepr, ResetConfig):
     levels: int = 20
     method: Literal['contour', 'contourf'] = 'contour'
     bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott'
@@ -253,16 +327,19 @@ class ContourConfig(PrettyRepr):
     zdir : Literal['x', 'y', 'z'] = 'z'
 
 @dataclass(slots=True, repr=False)
-class RugPlotConfig(PrettyRepr):
+class RugPlotConfig(PrettyRepr, ResetConfig):
     color: ColorType | int | Sequence[ColorType | int] = 'k'
     marker: str | Sequence[str] = '+'
     markersize: float | Sequence[float] = 2
     linewidth: float | Sequence[float] = 1
 
 @dataclass(slots=True, repr=False)
-class SpectralLineConfig(PrettyRepr):
+class SpectralLineConfig(PrettyRepr, ResetConfig):
     """spectral_line_marker config"""
     marker_direction: Literal['up', 'down'] = 'down'
+    marker_linestyle: str = 'solid'
+    vline_linestyle: str = 'dashed'
+    linewidth: float = 0.7
     label_offset_points: tuple[float, float] = (0.0, 4.0)
     label_position: Literal['center', 'left', 'right'] = 'center'
     label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
@@ -270,14 +347,33 @@ class SpectralLineConfig(PrettyRepr):
     label_rotation: float = 0
 
 @dataclass(slots=True, repr=False)
-class DereddenConfig(PrettyRepr):
+class GridConfig(PrettyRepr, ResetConfig):
+    enable: bool = False
+    which: Literal['major', 'minor', 'both'] = 'major'
+    axis: Literal['both', 'x', 'y'] = 'both'
+    color: ColorType = 'k'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
+class WCSGridConfig(PrettyRepr, ResetConfig):
+    enable: bool = False
+    grid_type: Literal['lines', 'contours'] | None = None
+    color: ColorType = 'w'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
+class DereddenConfig(PrettyRepr, ResetConfig):
     method: str | _Unset = _UNSET
     region: str | _Unset = _UNSET
     Rv: float | _Unset = _UNSET
     Ebv: float | _Unset = _UNSET
 
 @dataclass(slots=True, repr=False)
-class HDUConfig(PrettyRepr):
+class HDUConfig(PrettyRepr, ResetConfig):
     """HDU config"""
     index: int = 0
     error_extensions: list[str] = field(
@@ -291,7 +387,7 @@ class HDUConfig(PrettyRepr):
 
 
 @dataclass(slots=True, repr=False)
-class VisualAstroConfig(PrettyRepr):
+class VisualAstroConfig(PrettyRepr, ResetConfig):
     """
     Global configuration object for controlling default behavior
     across the VisualAstro package.
@@ -303,7 +399,7 @@ class VisualAstroConfig(PrettyRepr):
 
     Users can also modify attributes at runtime by modifying the config
     object attributes. This avoids permanently changing the default values.
-    ie:
+    i.e.:
         >>> import visualastro as va
         >>> va.config.style = 'latex'
         >>> va.config.figsize = (6, 6)
@@ -320,17 +416,18 @@ class VisualAstroConfig(PrettyRepr):
     target_wcs: Header | WCS | None = None
     hdu: HDUConfig = field(default_factory=HDUConfig)
     array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
-    index_specification: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit'
-    xy_indices: tuple[int, int] = (0, 1)
+    index_specification: Literal['implicit', 'explicit'] | tuple[int, int] | None = None
+    xy_indices: tuple[int, int] | None = None
     index_specification_3D: tuple[int, int, int] = (0, 1, 2)
 
     # figure params
     style: str | None = None # default style
     style_fallback: str = 'default'
-    figsize: tuple = (6, 6)
+    figsize: tuple = (6.4, 4.8)
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     figsize_gridspec: tuple = (12, 6)
     figsize3D: tuple = (7, 7)
+    figsizeWCS: tuple = (7, 7)
     # if _UNSET, defaults to `self.default_colorset`.
     # To define a custom default colorset,
     # define it in `get_colors` and change the `default_colorset`.
@@ -340,7 +437,7 @@ class VisualAstroConfig(PrettyRepr):
     color_transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None
     color_transform_factor: float = 0.5
     random_colors_max_N: int = 20
-    alpha: int = 1
+    alpha: int | None = None
     nrows: int = 1 # make_grid_plot() nrows
     ncols: int = 2 # make_grid_plot() ncols
     rasterized: bool = False # rasterize plot artists wherever possible
@@ -354,37 +451,24 @@ class VisualAstroConfig(PrettyRepr):
     thorlabs_transparent: bool = False
     thorlabs_darkmode: bool = False
 
-    # figure grid params
-    gridlines: bool = False
-    grid_which: Literal['major', 'minor', 'both'] = 'major'
-    grid_color: ColorType = 'k'
-    grid_linestyle: 'str' = 'dotted'
-    grid_linewidth: float = 0.8
-    grid_alpha: float = 0.8
-
-    wcs_grid: bool = False
-    wcs_grid_color: ColorType = 'w'
-    wcs_grid_linestyle: 'str' = 'dotted'
-    wcs_grid_linewidth: float = 0.8
-    wcs_grid_alpha: float = 0.8
-
     # data params
     normalize_data: bool = False
 
     # histogram params
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] = 'step'
     bins: int | Sequence[float] | str = 'auto'
-    normalize_hist: bool = True
+    normalize_hist: bool = False
 
     # line2D params
-    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] = '-'
-    linewidth: float = 0.8
+    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] | None = None
+    linewidth: float | None = None
 
     axline: AXLineConfig = field(default_factory=AXLineConfig)
 
     # scatter params
-    scatter_size: float = 10
-    marker: str = 'o'
+    markersize: float = 6
+    marker: str | None = None
+    plot_marker : str | None = None
     edgecolor: ColorType | None = None
     facecolor: ColorType | None = None
 
@@ -411,9 +495,10 @@ class VisualAstroConfig(PrettyRepr):
     colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
     contour: ContourConfig = field(default_factory=ContourConfig)
     plot_rug: RugPlotConfig = field(default_factory=RugPlotConfig)
+    gridlines: GridConfig = field(default_factory=GridConfig)
+    wcsgrid: WCSGridConfig = field(default_factory=WCSGridConfig)
 
     # text params
-    fontsize: float = 10
     text_color: ColorType = 'k'
     text_loc: tuple[float, float] = (0.03, 0.03)
 
@@ -518,15 +603,6 @@ class VisualAstroConfig(PrettyRepr):
     def elinewidth(self, value: float | None) -> None:
         self.errorbar.linewidth = value
 
-    def reset(self):
-        """
-        Reset all configuration values to defaults.
-        """
-        default = type(self)()
-
-        for f in fields(self):
-            setattr(self, f.name, getattr(default, f.name))
-
 
 config = VisualAstroConfig()
 
@@ -544,7 +620,7 @@ def _resolve_default(value: T | _Unset, fallback: T) -> T:
     fallback : T
         Default value if `value` is `_UNSET`.
         Should be a `config` attribute.
-        ie. `config.figsize`.
+        i.e. `config.figsize`.
 
     Returns
     -------

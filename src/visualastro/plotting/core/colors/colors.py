@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-23
+Date Modified: 2026-10-28
 Description:
     Color related functions.
 """
@@ -21,11 +21,7 @@ from visualastro.core.config import (
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _roll
 from visualastro.plotting.core.colormaps import get_cmap
-from visualastro.plotting.core.colors.definitions import (
-    RGBATuple,
-    RGBTuple,
-    COLORSETS,
-)
+from visualastro.plotting.core.colors.definitions import COLORSETS
 from visualastro.plotting.core.colors.transforms import (
     simulate_colorblindness,
     _transform_colors,
@@ -39,6 +35,7 @@ from visualastro.plotting.core.colors.utils import (
     _is_colorset,
     _is_cycled_colorset,
 )
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
 def get_color(

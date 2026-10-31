@@ -1,14 +1,14 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-23
+Date Modified: 2026-10-25
 Description:
     Color plotting functions.
 """
 
 from collections.abc import Sequence
 
-from typing import Literal
+from typing import Any, Literal
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -20,25 +20,21 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
-from numpy.typing import NDArray
 
-from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET
+from visualastro.core.config import config
+from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.io import savefig as _savefig
+from visualastro.core.kwargs import _extract_kwargs, _params_from_explicit
+from visualastro.optional_dependencies._colorspacious import (
+    deltaE as cs_deltaE
 )
-from visualastro.core.data import as_list, to_list
-from visualastro.core.sequences import _unwrap_if_single
-from visualastro.optional_dependencies._colorspacious import deltaE as cs_deltaE
+from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
 from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
-    RGBATuple,
-    RGBTuple,
 )
-from visualastro.plotting.core.colors.transforms import (
-    simulate_colorblindness,
-    _transform_colors
-)
+from visualastro.plotting.core.colors.transforms import simulate_colorblindness
 
 
 def plot_colors(
@@ -46,7 +42,8 @@ def plot_colors(
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
     severity: int = 100,
     show_color_name: bool = True,
-    width: float | int | None = 8
+    width: float | int | None = 8,
+    savefig: bool = False
 ) -> None:
     """
     Visualize one or multiple colorsets.
@@ -67,6 +64,9 @@ def plot_colors(
         colorsets (as opposed to a sequence of colors).
     width : float | int | None, optional, default=8
         Width of the colorset plot.
+    savefig:
+        If `True`, save the figure to disk with `savefig`.
+        Opens a prompt to set the file name and extention.
 
     Examples
     --------
@@ -119,7 +119,8 @@ def plot_colors(
 
     ax.set_xlim(-pad, max(len(get_colors(c)) for c in colorsets) + pad)
     ax.set_ylim(-n_rows + 1 - pad, 1 + pad)
-
+    if savefig:
+        _savefig()
     plt.show()
 
 
@@ -127,7 +128,8 @@ def plot_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
     lw: float = 2,
-    legend: bool = True
+    legend: bool = True,
+    **kwargs
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
     Plot a sample figure demonstrating a VisualAstro color set.
@@ -143,19 +145,21 @@ def plot_colorset(
         Linewidth of each line.
     legend : bool, optional, default=True
         If `True`, plots the legend.
+    **kwargs
+        Any additional param passed on to `get_colors`.
 
     Returns
     -------
     list[list[Line2D | PatchCollection]]
         Artists returned by the plotting functions, grouped by plot element.
     """
-    from visualastro.plotting.base.plots import plot, scatter
     from visualastro.plotting.core.axes import get_ax, set_title
+    from visualastro.plotting.core.legend import legend as _legend
 
-    ax = get_ax(ax)
+    ax = get_ax(ax, figsize=(6,6))
     if isinstance(colors, str) and colors in mpl.color_sequences:
         set_title(f'colorset: {colors}', ax=ax)
-    colorset = get_colors(colors)
+    colorset = get_colors(colors, **kwargs)
     N = len(colorset)
 
     r_p = 1.0
@@ -169,29 +173,17 @@ def plot_colorset(
     y_vals = [r * np.sin(theta) for r in r_vals]
 
     labels = [f'e={e:.1f}' for e in e_vals]
+    labels = labels if legend else [None]*len(x_vals[:N])
 
     artists = []
+    for (x, y, label, col) in zip(x_vals[:N], y_vals[:N], labels, colorset):
+        artists.append(ax.plot(x, y, label=label, color=col, lw=lw))
+    artists.append(ax.scatter(0, 0, ec='k', fc='w', s=113, marker='*'))
 
-    labels = labels if legend else None
-    pl = plot(
-        x_vals[:N], y_vals[:N],
-        ax=ax,
-        label=labels, color=colorset, lw=lw,
-        xlim=(-5, 3), ylim=(-4, 4),
-        xlabel='X', ylabel='Y',
-    )
+    ax.set_xlim(-6, 2)
+    ax.set_ylim(-4, 4)
 
-    sc = scatter(
-        0, 0,
-        ax=ax,
-        color='k', fc='none',
-        s=55, label='star' if legend else None,
-        compute_limits=False,
-        legend_loc='upper right',
-        legend_title='Eccentricity',
-        legend_frameon=True
-    )
-    artists.extend([pl, sc])
+    _legend(ax=ax, loc='bottom center', title='Eccentricity', frameon=True, ncols=4)
 
     return artists
 
@@ -591,67 +583,6 @@ def plot_colortable(
         )
 
     plt.show()
-
-
-def _get_plot_color(
-    color,
-    *,
-    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
-    factor: float | _Unset = _UNSET,
-    cvd_type,
-    severity,
-    fmt
-) -> str | RGBTuple | RGBATuple | None:
-    transform = _resolve_default(transform, config.color_transform)
-    factor = _resolve_default(factor, config.color_transform_factor)
-
-    if color is None or isinstance(color, str) and color in {'face', 'none'}:
-         return color
-
-    color = _transform_colors(
-        get_color(color),
-        transform=transform,
-        factor=factor,
-        fmt=fmt
-    )
-
-    if cvd_type is not None:
-        color = simulate_colorblindness(
-            color,
-            cvd_type=cvd_type,
-            severity=severity,
-            fmt=fmt
-        )
-
-    return _unwrap_if_single(color)
-
-
-def _resolve_color_kwargs(
-    color: ColorType,
-    c: NDArray | float | int | None,
-    kwargs: dict,
-    cmap: Colormap | str | None = None,
-    norm: Normalize | None = None
-) -> dict:
-    """Resolve `color` and `c` kwargs, giving priority to `c`"""
-    scatter_kwargs = dict(kwargs)
-    if c is not None:
-        scatter_kwargs.pop('color', None)
-        scatter_kwargs['c'] = c
-        if cmap is not None:
-            scatter_kwargs['cmap'] = cmap
-        if norm is not None:
-            scatter_kwargs['norm'] = norm
-
-    elif color is not None:
-        scatter_kwargs.pop('c', None)
-        scatter_kwargs['color'] = color
-
-    else:
-        scatter_kwargs.pop('c', None)
-        scatter_kwargs.pop('color', None)
-
-    return scatter_kwargs
 
 
 def _has_color_mapping(mappable: ScalarMappable) -> bool:

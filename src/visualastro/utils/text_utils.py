@@ -232,10 +232,9 @@ def check_font(font_name: str, glyph: str = 'D') -> bool:
 
 
 def pprint(
-    obj: Any,
+    *objs: Any,
     header: str | None = None,
     footer: str | None = '\n',
-    *,
     stream: IO[str] | None = None,
     indent: int = 1,
     width: int = 80,
@@ -245,13 +244,13 @@ def pprint(
     underscore_numbers: bool = False,
 ) -> None:
     """
-    Pretty-print an object using `pprint.pprint`, optionally wrapped with
+    Pretty-print object(s) using `pprint.pprint`, optionally wrapped with
     a header and footer.
 
     Parameters
     ----------
     obj : Any
-        Object to pretty-print.
+        Object(s) to pretty-print.
     header : str, optional, default=None
         Line printed before `obj`. If falsy, omitted.
     footer : str, optional, default='\\n'
@@ -275,6 +274,35 @@ def pprint(
     -------
     None
     """
+    for obj in objs:
+        _pprint(
+            obj,
+            header=header,
+            footer=footer,
+            stream=stream,
+            indent=indent,
+            width=width,
+            depth=depth,
+            compact=compact,
+            sort_dicts=sort_dicts,
+            underscore_numbers=underscore_numbers
+        )
+
+
+def _pprint(
+    obj: Any,
+    header: str | None = None,
+    footer: str | None = '\n',
+    *,
+    stream: IO[str] | None = None,
+    indent: int = 1,
+    width: int = 80,
+    depth: int | None = None,
+    compact: bool = False,
+    sort_dicts: bool = True,
+    underscore_numbers: bool = False,
+) -> None:
+    """Helper function for `pprint`."""
     if header: print(header)
     _pp(
         obj,

@@ -10,7 +10,8 @@ from .definitions import (
     COLORSETS,
     COLORSET_ALIASES,
     COLORSET_NAMES,
-    VISUALASTRO_NAMED_COLORS
+    VISUALASTRO_NAMED_COLORS,
+    NAMED_COLOR_ALIASES,
 )
 from .plots import (
     plot_color_deltaE,

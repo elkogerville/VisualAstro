@@ -1,3 +1,13 @@
+"""
+Author: Elko Gerville-Reache
+Date Created: 2025-05-23
+Date Modified: 2026-10-28
+"""
+
+from importlib.metadata import version
+
+__version__ = version('visualastro')
+
 # core classes
 # ------------
 from visualastro.datamodels.datacube import DataCube
@@ -86,7 +96,7 @@ from visualastro.plotting.base.plots import (
     plot_density_histogram,
     plot,
     scatter,
-    scatter_fit,
+    scatter_polyfit,
     scatter_project,
     scatter3D
 )
@@ -97,12 +107,17 @@ from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
     gridspec,
-    set_axis_labels,
-    set_axis_limits,
+    inset_axes,
+    set_limits,
     set_title,
     subplot,
     tripanel_figure,
     wcsax,
+)
+from visualastro.plotting.core.backend import (
+    close,
+    inline,
+    interactive,
 )
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colormaps import (
@@ -139,22 +154,20 @@ from visualastro.plotting.core.image_utils import (
     thorlabs_logo,
 )
 from visualastro.plotting.core.legend import legend
+from visualastro.plotting.core.lines import (
+    axhlines, axvlines, grid, wcsgrid
+)
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
     set_plot_cycle,
 )
 from visualastro.plotting.core.utils import (
-    axhline,
-    close,
     ellipse_patch,
-    inline,
-    interactive,
     plot_circles,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    axvline,
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
@@ -167,7 +180,8 @@ from visualastro.plotting.science.spectra_plots import (
 from visualastro.plotting.science.spectra_plot_utils import (
     mark_spectral_lines,
     spectral_axis_label,
-    spectral_line_marker
+    spectral_line_marker,
+    spectral_lines,
 )
 from visualastro.plotting.science.wcs_plots import (
     imshow,
@@ -293,12 +307,16 @@ styles = _register_styles()
 def _register_colorsets() -> None:
     """Register VisualAstro colorsets with matplotlib."""
     import matplotlib as mpl
-    from visualastro.plotting.core.colors import COLORSETS
+    from visualastro.plotting.core.colors import COLORSETS, COLORSET_ALIASES
 
     registry = mpl.color_sequences
     for name, colors in COLORSETS.items():
         if name not in registry:
             registry.register(name, colors)
+
+    for alias, name in COLORSET_ALIASES.items():
+        if alias not in registry and name in registry:
+            registry.register(alias, registry[name])
 
 _register_colorsets()
 
@@ -306,24 +324,46 @@ _register_colorsets()
 # REGISTER NAMED COLORS
 # ---------------------
 def _register_colors() -> None:
-    """Register additional named colors with Matplotlib."""
+    """
+    Register additional named colors with Matplotlib.
+
+    Notes
+    -----
+    - Existing colors are never overwritten.
+    - Each name is also registered in lowercase.
+    - Warns on any name collision.
+    """
     import warnings
     import matplotlib as mpl
-    from visualastro.plotting.core.colors import VISUALASTRO_NAMED_COLORS
+    from visualastro.plotting.core.colors import (
+        VISUALASTRO_NAMED_COLORS,
+        NAMED_COLOR_ALIASES,
+    )
+
+    cmap = mpl.colors.get_named_colors_mapping()
+
+    def _register(key, color):
+        for k in {key, key.lower()}:
+            if k in cmap:
+                warnings.warn(
+                    f"Color name '{k}' (from '{key}') conflicts with an "
+                    'existing named color. Skipping registration.',
+                    stacklevel=3,
+                )
+            else:
+                cmap[k] = color
 
     for name, color in VISUALASTRO_NAMED_COLORS.items():
-        if name not in mpl.colors.get_named_colors_mapping():
-            mpl.colors.get_named_colors_mapping()[name] = color
-            if name.lower() not in mpl.colors.get_named_colors_mapping():
-                mpl.colors.get_named_colors_mapping()[name.lower()] = color
-        else:
+        _register(name, color)
+
+    for alias, name in NAMED_COLOR_ALIASES.items():
+        if name not in cmap:
             warnings.warn(
-                f"Found custom VisualAstro color of name: '{name}', which "
-                'conflicts with a pre-existing Matplotlib named color! '
-                'Skipping registration, please change name collision in '
-                'visualastro.plotting.core.colors.',
-                stacklevel=2
+                f"Alias '{alias}' targets unknown color '{name}'. Skipping.",
+                stacklevel=3,
             )
+            continue
+        _register(alias, cmap[name])
 
 _register_colors()
 
@@ -337,7 +377,7 @@ def _register_cmaps() -> None:
     from visualastro.optional_dependencies._cmasher import (
         cmasher, _HAS_CMASHER
     )
-    # register tol-colors cmaps
+    # register tol-colors cmaps upon import
     from visualastro.optional_dependencies._tol_colors import tol_colors
 
     mpl_cmaps = set(mpl.colormaps.keys())

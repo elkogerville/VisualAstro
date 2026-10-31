@@ -1,195 +1,42 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-24
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Plotting utility functions.
 """
 
-from collections.abc import Sequence
 from typing import Literal
 from functools import partial
 
 import astropy.units as u
-from astropy.units import Quantity
 import matplotlib.axes as maxes
+from matplotlib.collections import Collection
+from matplotlib.image import AxesImage
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
-import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.array_types import (
-    _is_1d, _is_2d,
-    _is_iterable,
-    _is_ndarray_or_quantity_array,
-    _is_scalar,
-)
 from visualastro.core.config import (
     config,
     get_config_value,
     _Unset, _UNSET,
+    _resolve_default
 )
 from visualastro.core.data import get_value, to_list
-from visualastro.core.plot_input import _extract_xy
 from visualastro.core.sequences import _cycle
-from visualastro.core.units import to_unit
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._regions import (
     PixCoord, EllipsePixelRegion
 )
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors import get_colors, sample_cmap
-
-
-def _normalize_plotting_inputs(
-    *data: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
-    order: Literal['c', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] | _Unset = _UNSET,
-    mode: Literal['plot', 'scatter'] = 'scatter'
-):
-    """
-    Extract and normalize X, Y inputs for plotting.
-
-    Handles variable input formats and ensures X and Y have compatible
-    dimensionality for broadcasting. Generates implicit X indices when not
-    provided. Wraps scalars and 1D data in lists to match 2D counterparts.
-
-    See `visualastro.plotting.core.utils._extract_xy` for documentation
-    on how `*data` is interpreted.
-
-    Parameters
-    ----------
-    *data : float | Quantity | ndarray | list thereof
-        Plotting data. Accepts 1 or 2 arguments:
-
-        - Single argument: interpreted as Y (X set to None)
-        - Two arguments: interpreted as (X, Y)
-
-    order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
-
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
-
-        If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
-        Specifies which columns to extract from 2D input.
-        - `'implicit'`: extract all columns as separate Y arrays
-        - `'explicit'`: extract columns 0 and 1 as X, Y
-        - `tuple (i, j)`: extract columns i and j
-
-    Returns
-    -------
-    X : ArrayLike | list[ArrayLike]
-        X coordinates. Generated as np.arange(n) if not provided.
-    Y : ArrayLike | list[ArrayLike]
-        Y coordinates.
-
-    Raises
-    ------
-    ValueError
-        If 2D input has inconsistent row lengths.
-    """
-    X, Y = _extract_xy(*data, order=order, index_spec=index_spec)
-
-    if X is None:
-        Y = to_list(Y)
-        xlist, ylist = [], []
-        for y in Y:
-            xi, yi = _normalize_xy_plotting_inputs(None, y, mode=mode)
-            xlist.append(xi)
-            ylist.append(yi)
-
-        if all(isinstance(y, (list, tuple)) for y in ylist):
-            if all(_is_ndarray_or_quantity_array(item) for y in ylist for item in y):
-                ylist = [item for sublist in ylist for item in sublist]
-
-        return xlist, ylist
-
-    return _normalize_xy_plotting_inputs(X, Y, mode=mode)
-
-
-def _normalize_xy_plotting_inputs(X, Y, mode):
-    """Helper method for _normalize_plotting_inputs."""
-    if X is None:
-        if _is_2d(Y):
-            lengths = [len(y) for y in Y]
-            if not all(length == lengths[0] for length in lengths):
-                raise ValueError(
-                    f'2D input has inconsistent row lengths: {lengths}. '
-                    f'All rows must have length {lengths[0]}.'
-                )
-            length = lengths[0]
-        else:
-            length = len(Y) if hasattr(Y, '__len__') else 1
-        X = np.arange(length)
-
-    if _is_2d(Y) and not _is_2d(X):
-        X = [X]
-    if _is_2d(X) and not _is_2d(Y):
-        Y = [Y]
-
-    if _is_scalar(X) or isinstance(X, np.ndarray):
-        X = [X]
-    if _is_scalar(Y) or isinstance(Y, np.ndarray):
-        Y = [Y]
-
-    if mode == 'plot':
-        if _is_1d(X):
-            X = [X]
-        if _is_1d(Y):
-            Y = [Y]
-
-    return X, Y
-
-
-def _normalize_plotting_input(data):
-    """
-    Normalize single input to consistent dimensionality structure.
-
-    Ensures error arrays and similar inputs match the dimensionality of
-    corresponding data arrays. Scalars are wrapped in lists, 2D structures
-    are validated for consistent row lengths.
-
-    Parameters
-    ----------
-    data : scalar | Sequence | None
-        Input data to normalize. Can be a scalar, 1D ArrayLike, 2D ArrayLike,
-        or `None`.
-
-    Returns
-    -------
-    normalized : scalar | list | np.ndarray
-        Normalized input. Scalars wrapped in lists, 2D data validated and
-        returned unchanged, 1D iterables returned as-is, None returned as-is.
-
-    Raises
-    ------
-    ValueError
-        If 2D input has inconsistent row lengths.
-    """
-    if data is None:
-        return None
-
-    if _is_2d(data):
-        lengths = [len(d) for d in data]
-        if not all(length == lengths[0] for length in lengths):
-            raise ValueError(
-                f'2D input has inconsistent row lengths: {lengths}. '
-                f'All rows must have length {lengths[0]}.'
-            )
-        return data
-
-    if _is_scalar(data) or isinstance(data, np.ndarray):
-        return [data]
-
-    if _is_iterable(data):
-        return data
-
-    return [data]
+from visualastro.plotting.core.plot_input import (
+    _extract_xy_from_ndarray2D,
+    _normalize_order
+)
 
 
 def _get_zorder(zorders: list[float] | None, i: int, fallback: float):
@@ -320,17 +167,16 @@ def _copy_ellipse(ellipse: Ellipse) -> Ellipse:
     matplotlib.patches.Ellipse
         A new Ellipse object with the same properties as the input.
     """
-    return Ellipse(
+    new = Ellipse(
         xy=ellipse.center,
         width=ellipse.width,
         height=ellipse.height,
         angle=ellipse.angle,
-        edgecolor=ellipse.get_edgecolor(),
-        facecolor=ellipse.get_facecolor(),
-        lw=ellipse.get_linewidth(),
-        ls=ellipse.get_linestyle(),
-        alpha=ellipse.get_alpha()
     )
+    new.update_from(ellipse)
+    new.set_zorder(ellipse.get_zorder())
+    new.set_label(ellipse.get_label())
+    return new
 
 
 def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
@@ -359,6 +205,24 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
     highlight : bool | None, optional, default=None
         If True, adds a bbox to highlight the text. If None,
         uses `config.highlight`.
+    angle : float, optional, default=0.0
+        Initial rotation angle in degrees.
+    rotation_step : float, optional, default=5.0
+        Rotation increment in degrees per key press.
+
+    Returns
+    -------
+    matplotlib.widgets.EllipseSelector
+        Interactive selector. Also stored as `ax._ellipse_selector`.
+
+    Notes
+    -----
+    Key bindings:
+
+    - 'e': rotate by `-rotation_step`.
+    - 'f': rotate by `+rotation_step`.
+    - 't': reset angle to 0.
+    - 'o': toggle the selector on/off.
 
     Notes
     -----
@@ -433,7 +297,7 @@ def plot_interactive_ellipse(center, w, h, ax, text_loc=None,
             return
 
         # synchronize region <- artist
-        region.angle = -artist.angle * u.deg
+        region.angle = artist.angle * u.deg
 
         artist.figure.canvas.draw_idle()
 
@@ -473,263 +337,277 @@ def _update_ellipse_region(region, text):
     )
 
 
+def _default_ellipse_geometry(
+    img: AxesImage | Collection,
+) -> tuple[tuple[float, float], float, float] | None:
+    """
+    Default ellipse center and size, in data coordinates, for an artist.
+
+    Parameters
+    ----------
+    img : matplotlib.image.AxesImage | matplotlib.collections.Collection
+        Plotted artist. `AxesImage` uses its extent; `Collection`
+        (e.g. `PathCollection` from `ax.scatter`) uses the bounding box
+        of its finite offsets.
+
+    Returns
+    -------
+    center : tuple[float, float]
+        (x, y) center of the artist's bounding box.
+    w, h : float
+        One fifth of the bounding box width and height.
+
+    None
+        If the artist type is unsupported, has no finite points,
+        or has zero extent along either axis.
+    """
+    if isinstance(img, AxesImage):
+        x0, x1, y0, y1 = img.get_extent()
+
+    elif isinstance(img, Collection):
+        offsets = np.ma.filled(img.get_offsets(), np.nan).astype(float)
+        offsets = offsets[np.isfinite(offsets).all(axis=1)]
+        if offsets.size == 0:
+            return None
+        x0, y0 = offsets.min(axis=0)
+        x1, y1 = offsets.max(axis=0)
+
+    else:
+        return None
+
+    w = abs(x1 - x0) / 5
+    h = abs(y1 - y0) / 5
+    if not (w > 0 and h > 0):
+        return None
+
+    return ((x0 + x1) / 2, (y0 + y1) / 2), w, h
+
+
 def ellipse_patch(
-    center, w, h, angle=0, fill=False,
-    edgecolor='k', facecolor=None, **kwargs
-):
+    center: tuple[float, float],
+    w: float,
+    h: float,
+    angle: float = 0,
+    fill: bool = False,
+    edgecolor: ColorType = 'k',
+    facecolor: ColorType | None = None,
+    **kwargs,
+) -> Ellipse:
     """
     Create a matplotlib.patches.Ellipse object.
 
     Parameters
     ----------
-    center : tuple of float
+    center : tuple[float, float]
         (x, y) coordinates of the ellipse center.
     w : float
-        Width of the ellipse (along x-axis before rotation).
+        Width of the ellipse (along the x-axis before rotation).
     h : float
-        Height of the ellipse (along y-axis before rotation).
+        Height of the ellipse (along the y-axis before rotation).
     angle : float, optional, default=0
         Rotation angle of the ellipse in degrees (counterclockwise).
     fill : bool, optional, default=False
-        Whether the ellipse should be filled (True) or only outlined (False).
-    edgecolor : str, optional, default='k'
-        Color of patch edges.
-    facecolor : str, optional, default=None
-        Color of patch face. If not `None`,
-        sets `fill=True`.
-    linestyle or ls : {'-', '--', '-.', ':', '', (offset, on-off-seq), ...}, optional
-        Linestyle of ellipse patch.
-    linewidth or lw : float | None, optional
-        Linewidth of ellipse patch.
-    Any other kwargs accepted by matplotlib.patches.Ellipse
+        Whether the ellipse is filled. Forced to `True` if `facecolor`
+        is not `None`.
+    edgecolor : ColorType, optional, default='k'
+        Color of the patch edge.
+    facecolor : ColorType | None, optional, default=None
+        Color of the patch face. If not `None`, `fill` is set to `True`.
+    **kwargs
+        Additional keyword arguments passed to
+        `matplotlib.patches.Ellipse`, e.g. `linestyle` (or `ls`),
+        `linewidth` (or `lw`), `alpha`, `zorder`, `label`.
 
     Returns
     -------
-    ellipse : matplotlib.patches.Ellipse
+    matplotlib.patches.Ellipse
         An Ellipse patch that can be added to a matplotlib Axes.
     """
-    if facecolor is not None:
-        fill = True
-
     return Ellipse(
-        xy=(center[0], center[1]), width=w, height=h,
-        angle=angle, fill=fill, edgecolor=edgecolor,
-        facecolor=facecolor, **kwargs
+        xy=tuple(center)[:2],
+        width=w,
+        height=h,
+        angle=angle,
+        fill=fill or facecolor is not None,
+        edgecolor=edgecolor,
+        facecolor=facecolor,
+        **kwargs,
     )
 
 
 def plot_points(
-    *points: float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray],
+    points: tuple | NDArray | list[tuple | NDArray] | None,
+    *,
     ax: maxes.Axes,
     color: ColorType | list[ColorType] | int = 'astro',
-    size: float | list[float] = 20,
+    size: float | list[float] | NDArray = 20,
     marker: MarkerStyle | list[MarkerStyle] = '*',
     order: Literal['C', 'c', 'F', 'f', 'fortran'] | _Unset = _UNSET,
-    index_spec: Literal['implicit', 'explicit'] | tuple[int, int] = 'implicit',
+    xy_indices: tuple[int, int] = (0, 1),
+    zorder: float = 3,
+    autoscale: bool = False,
+    **kwargs,
 ) -> None:
     """
-    Plot points on a given Matplotlib axis.
+    Overlay point markers on an existing Matplotlib axes.
+
+    Intended for marking positions on any kind of plot (`imshow`,
+    `plot`, `pcolormesh`, ...), not for making a scatter plot.
 
     Parameters
     ----------
-    points : float | u.Quantity | NDArray | Sequence[float | u.Quantity | NDArray]
-        Input data. Supported forms:
+    points : tuple | NDArray | list[tuple | NDArray] | None
+        Coordinates of the markers in data coordinates. The container
+        type determines the meaning:
 
-        * Single argument:
-            * 1D ArrayLike or Quantity: Y values, X = None
-            * 2D array or Quantity: extract X, Y according to `order` and `index_spec`
-            * list/tuple of scalars: Y values, X = None
-            * scalar or scalar Quantity: single Y value, X = None
+        - `tuple`: one `(x, y)` pair. `x` and `y` are scalars (a single
+          marker) or equal-length 1D arrays or Quantities.
+        - `ndarray` (or Quantity): one 2D array, split into `x` and `y`
+          via `order` and `xy_indices`.
+        - `list`: several marker groups, each a `tuple` or 2D `ndarray`.
+          `color`, `size` and `marker` lists are cycled across groups.
+        - `None`: nothing is plotted.
 
-        * Two arguments:
-            * (X, Y) pairs passed through unchanged
+        A `list` is never interpreted as an `(x, y)` pair; use a tuple.
 
     ax : matplotlib.axes.Axes
-        The Matplotlib axis on which to plot the points.
+        Axes on which to draw.
     color : ColorType | list[ColorType] | int, optional, default='astro'
-        Color of the points. If an integer, will draw colors using `config.cmap`.
-    size : float | list[float], optional, default=20
-        Marker size(s).
+        Marker color(s), one per group, cycled if shorter than the number
+        of groups. If an integer, colors are drawn from `config.cmap`.
+    size : float | list[float] | NDArray, optional, default=20
+        Marker area in points squared. A scalar applies to all groups and
+        a list is cycled across groups. An `ndarray` gives one size per
+        point and is passed unchanged to every group, so it is only
+        sensible with a single group.
     marker : MarkerStyle | list[MarkerStyle], optional, default='*'
-        Matplotlib marker style(s).
+        Matplotlib marker style(s), cycled across groups.
     order : {'c', 'fortran'} | _Unset, optional, default=_UNSET
-        Memory layout for 2D input interpretation. Defines what a
-        column is for `index_spec`.
+        Array order of 2D array groups. Defines what a column is for
+        `xy_indices`.
 
-        * 'c': row-major, shape (N, 2)
-        * 'fortran': column-major, shape (2, N)
+        - 'c': row-major, shape (N, M)
+        - 'fortran': column-major, shape (M, N)
 
-        If `_UNSET`, uses `config.array_order`.
-    index_spec : {'implicit', 'explicit'} | tuple[int, int], optional
-        Column extraction mode for 2D inputs.
+        Accepted case-insensitively, with 'f' as alias of 'fortran'.
+        Ignored for tuple groups. If `_UNSET`, uses `config.array_order`.
+    xy_indices : tuple[int, int], optional, default=(0, 1)
+        `(i, j)`: `x` = variable `i`, `y` = variable `j` of 2D array
+        groups (negative indices allowed). Ignored for tuple groups.
+    zorder : float, optional, default=3
+        Drawing order. The default places markers above images
+        (`imshow`, zorder 0) and lines (zorder 2).
+    autoscale : bool, optional, default=False
+        If `False`, the axis limits in effect before drawing are restored
+        afterwards, so the markers never change the view. If `True`, the
+        limits may expand to include all markers.
+    **kwargs
+        Additional keyword arguments passed to `ax.scatter`.
 
-        * 'implicit': return (None, [col_0, col_1, ...])
-        * 'explicit': return (col_0, col_1)
-        * tuple (i, j): return (col_i, col_j)
-    """
-    if points[0] is not None:
-        xlist, ylist = _normalize_plotting_inputs(
-            *points, order=order, index_spec=index_spec
-        )
+    Returns
+    -------
+    None
 
-        colors = get_colors(color)
-        sizes = to_list(size)
-        markers = to_list(marker)
-        for i in range(len(ylist)):
-            x = get_value(_cycle(xlist, i))
-            y = get_value(_cycle(ylist, i))
+    Raises
+    ------
+    TypeError
+        A group is not a `tuple` or `ndarray` (e.g. a nested list, or a
+        list given where an `(x, y)` pair was meant).
+    ValueError
+        - A tuple group does not have length 2.
+        - An array group is not 2D.
+        - `x` or `y` of a tuple group is more than 1D.
+        - `order` is not recognized.
+        - `xy_indices` does not have length 2.
 
-            ax.scatter(
-                x, y,
-                marker=_cycle(markers, i),
-                s=_cycle(sizes, i),
-                color=_cycle(colors, i)
-            )
-
-
-def axvline(vlines, ax, unit=None, equivalencies=None) -> None:
-    """
-    Plot one or more vertical reference lines on a Matplotlib axis.
-
-    Parameters
-    ----------
-    vlines : float | Quantity | Sequence[float | Quantity] | None
-        X-axis coordinate(s) at which to draw vertical line(s). If a Quantity,
-        each value is converted to `unit` before plotting. If an iterable is
-        provided, a vertical line is drawn for each element. If None, no lines
-        are drawn.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the vertical line(s).
-    unit : astropy.units.UnitBase | str, optional, default=None
-        Unit to which Quantity values in `vlines` are converted before plotting.
-        If None, Quantity inputs must already be in the axis unit system or must
-        not require conversion.
-    equivalencies : astropy.units.equivalencies | None, optional, default=None
-        Equivalencies for converting units. If None, is ignored.
-
-    """
-    if vlines is not None:
-        vlines = to_list(vlines)
-        unit = to_unit(unit)
-
-        for vline in vlines:
-            if isinstance(vline, Quantity) and unit is not None:
-                vline = vline.to(unit, equivalencies=equivalencies).value
-            else:
-                vline = get_value(vline)
-            ax.axvline(
-                vline,
-                ls=config.axline.linestyle,
-                lw=config.axline.linewidth,
-                color=config.axline.color,
-                alpha=config.axline.alpha,
-                zorder=config.zorder.vlines
-            )
-
-
-def axhline(hlines, ax, unit=None, equivalencies=None):
-    """
-    Plot one or more horizontal reference lines on a Matplotlib axis.
-
-    Parameters
-    ----------
-    hlines : float | Quantity | Sequence[float | Quantity] | None
-        Y-axis coordinate(s) at which to draw horizontal line(s). If a Quantity,
-        each value is converted to `unit` before plotting. If an iterable is
-        provided, a horizontal line is drawn for each element. If None, no lines
-        are drawn.
-    ax : matplotlib.axes.Axes
-        Matplotlib Axes object on which to draw the horizontal line(s).
-    unit : astropy.units.UnitBase | str, optional, default=None
-        Unit to which Quantity values in `hlines` are converted before plotting.
-        If None, Quantity inputs must already be in the axis unit system or must
-        not require conversion.
-    equivalencies : astropy.units.equivalencies | None, optional, default=None
-        Equivalencies for converting units. If None, is ignored.
+    IndexError
+        If an entry of `xy_indices` is out of bounds for an array group.
 
     Notes
     -----
-    Horizontal lines are drawn using `ax.axhline` with a dotted linestyle,
-    linewidth of 1.0, black color, alpha of 0.7, and z-order of 0.
+    - Units of `u.Quantity` inputs are stripped via `get_value`, so
+      they must already match the axes units.
     """
-    if hlines is not None:
-        hlines = to_list(hlines)
-        unit = to_unit(unit)
+    if points is None:
+        return None
 
-        for hline in hlines:
-            if isinstance(hline, Quantity) and unit is not None:
-                hline = hline.to(unit, equivalencies=equivalencies).value
-            else:
-                hline = get_value(hline)
-            ax.axhline(
-                hline,
-                ls=config.axline.linestyle,
-                lw=config.axline.linewidth,
-                color=config.axline.color,
-                alpha=config.axline.alpha,
-                zorder=config.zorder.hlines
+    order = _normalize_order(_resolve_default(order, config.array_order))
+    groups = points if isinstance(points, list) else [points]
+
+    colors = get_colors(color)
+    sizes = [size] if isinstance(size, np.ndarray) else to_list(size)
+    markers = to_list(marker)
+
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+
+    for i, group in enumerate(groups):
+        x, y = _group_to_xy(group, order, xy_indices)
+        ax.scatter(
+            x, y,
+            s=_cycle(sizes, i),
+            marker=_cycle(markers, i),
+            color=_cycle(colors, i),
+            zorder=zorder,
+            **kwargs,
+        )
+
+    if not autoscale:
+        ax.set_xlim(xlim, auto=None)
+        ax.set_ylim(ylim, auto=None)
+    return None
+
+
+def _group_to_xy(
+    obj: tuple | NDArray,
+    order: str,
+    xy_indices: tuple[int, int],
+) -> tuple[NDArray, NDArray]:
+    """
+    Resolve one marker group into 1D `(x, y)` arrays without units.
+
+    Parameters
+    ----------
+    obj : tuple | NDArray
+        An `(x, y)` tuple or a 2D `ndarray` (including Quantity).
+    order : str
+        Normalized array order, used for 2D arrays only.
+    xy_indices : tuple[int, int]
+        Variable selection, used for 2D arrays only.
+
+    Returns
+    -------
+    x, y : NDArray
+        1D arrays.
+
+    Raises
+    ------
+    TypeError
+        If `obj` is neither a tuple nor an ndarray.
+    ValueError
+        If a tuple does not have length 2, an array is not 2D, or `x`
+        or `y` is more than 1D.
+    """
+    if isinstance(obj, tuple):
+        if len(obj) != 2:
+            raise ValueError(
+                f'A tuple group must be `(x, y)`, got length {len(obj)}.'
             )
-
-
-# Notebook Utils
-# --------------
-def inline():
-    """
-    Start an inline IPython backend session.
-    Allows for inline plots in IPython sessions
-    like Jupyter Notebook.
-    """
-    try:
-        from IPython.core.getipython import get_ipython
-    except ImportError:
-        raise ImportError(
-            'IPython is not installed. Install it to use this feature'
+        x, y = obj
+    elif isinstance(obj, np.ndarray):
+        if obj.ndim != 2:
+            raise ValueError(f'An array group must be 2D, got {obj.ndim}D.')
+        x, y = _extract_xy_from_ndarray2D(obj, order, tuple(xy_indices))
+    else:
+        raise TypeError(
+            'Each group must be an `(x, y)` tuple or a 2D ndarray, '
+            f'got {type(obj).__name__}. Use a tuple, not a list, for a '
+            'single `(x, y)` pair.'
         )
 
-    ipython = get_ipython()
-    if ipython is None:
-        print('Not inside an IPython environment')
-        return None
-
-    try:
-        close()
-        ipython.run_line_magic('matplotlib', 'inline')
-    except Exception as e:
-        print(f'Unable to set inline backend: {e}')
-
-
-def interactive():
-    """
-    Start an interactive IPython backend session.
-    Allows for interactive plots in IPython sessions
-    like Jupyter Notebook.
-
-    Ensure ipympl is installed:
-    >>> $ conda install -c conda-forge ipympl
-    """
-    try:
-        from IPython.core.getipython import get_ipython
-    except ImportError:
-        raise ImportError(
-            'IPython is not installed. Install it to use this feature'
+    x = np.atleast_1d(get_value(x))
+    y = np.atleast_1d(get_value(y))
+    if x.ndim > 1 or y.ndim > 1:
+        raise ValueError(
+            f'`x` and `y` must be scalar or 1D, got {x.ndim}D and {y.ndim}D.'
         )
-
-    ipython = get_ipython()
-    if ipython is None:
-        print('Not inside an IPython environment')
-        return None
-
-    try:
-        ipython.run_line_magic('matplotlib', 'ipympl')
-    except Exception as e:
-        print(
-            f'ipympl backend unavailable: {e}. Please install with:\n'
-            f'$ conda install -c conda-forge ipympl'
-        )
-
-
-def close():
-    """
-    Closes all interactive plots in session.
-    """
-    plt.close('all')
+    return x, y

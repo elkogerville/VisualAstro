@@ -7,15 +7,12 @@ Description:
 """
 
 from __future__ import annotations
-from typing import Literal
+from typing import Any, Literal
 from importlib.resources import files
 
 import astropy.units as u
-from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib.axes as maxes
-from matplotlib.colors import (
-    AsinhNorm, LogNorm, PowerNorm, TwoSlopeNorm
-)
+from matplotlib.colors import Normalize
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,84 +32,53 @@ from visualastro.core.data import (
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import SpectralCube
+from visualastro.plotting.core.colormaps import get_norm
 
 
 def get_imshow_norm(
-    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope'] | None,
+    norm: str | Normalize | None,
     vmin: float | np.floating | None,
     vmax: float | np.floating | None,
-    **kwargs
-) -> ImageNormalize | AsinhNorm | LogNorm | PowerNorm | TwoSlopeNorm | None:
+    **kwargs: Any,
+) -> Normalize | None:
     """
-    Return a Matplotlib or Astropy normalization object for image display.
+    Return a normalization object for image display.
 
-    Returns `None` if `norm=None`.
+    Thin wrapper around `get_norm` that adds the `imshow`-specific
+    boolean-array shortcut.
 
     Parameters
     ----------
-    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | None
-        Normalization algorithm for colormap scaling.
-
-        * `'asinh'` -> asinh stretch using `ImageNormalize`
-        * `'asinhnorm'` -> asinh stretch using `AsinhNorm`
-        * `'log'` -> logarithmic scaling using `LogNorm`
-        * `'power'` -> power-law normalization using `PowerNorm`
-        * `'twoslope'` -> normalize centered around `vcenter` using `TwoSlopeNorm`
-
-    vmin, vmax : float | None
-        Minimum and maximum value for normalization.
-    linear_width : float, optional, default=`config.linear_width`
-        The effective width of the linear region, beyond
-        which the transformation becomes asymptotically logarithmic.
-        Used for `norm='asinhnorm'`.
-    gamma : float, optional, default=`config.gamma`
-    Power law exponent. Used for `norm='power'`.
-    vcenter : float, optional, default=None
-        Center point of normalization. Must be in between
-        `vmin` and `vmax`. If `None`, is the midpoint between
-        `vmin` and `vmax`.
+    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope'} | Normalize | None
+        Normalization algorithm. See `get_norm`.
+    vmin, vmax : float | np.floating | None
+        Normalization limits. If `vmin == 0` and `vmax == 1`, the data is
+        assumed to be boolean and `None` (linear stretch) is returned.
+    **kwargs : Any
+        Forwarded to `get_norm`. Accepted keys: `linear_width`, `gamma`,
+        `vcenter`.
 
     Returns
     -------
-    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
-        Normalization object to pass to `imshow`. `None` if `norm=None`.
+    Normalize | None
+        Normalization object to pass to `imshow`. `None` if `norm` is `None`
+        or the boolean shortcut applies.
+
+    Raises
+    ------
+    ValueError
+        If `norm` is set but `vmin` or `vmax` is `None`.
+
+    See Also
+    --------
+    get_norm
     """
-    linear_width: float = kwargs.pop('linear_width', config.linear_width)
-    gamma: float = kwargs.pop('gamma', config.gamma)
-    vcenter: float | None = kwargs.pop('vcenter', None)
-
-    # use linear stretch if plotting boolean array
-    if vmin == 0 and vmax == 1:
+    if norm is None or (vmin == 0 and vmax == 1):
         return None
-    elif norm is None:
-        return None
-    else:
-        if vmin is None or vmax is None:
-            raise ValueError(
-                'vmin and vmax must not be None if norm is not None! '
-                f'got: vmin: {vmin}, vmax: {vmax}'
-            )
-    vmin = float(vmin)
-    vmax = float(vmax)
-    vcenter = (vmax + vmin)/2 if vcenter is None else vcenter
+    vmin = None if vmin is None else float(vmin)
+    vmax = None if vmax is None else float(vmax)
 
-    norm_str = norm.lower()
-
-    # dict containing possible stretch algorithms
-    norm_map = {
-        'asinh': ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch()),
-        'asinhnorm': AsinhNorm(vmin=vmin, vmax=vmax, linear_width=linear_width),
-        'log': LogNorm(vmin=vmin, vmax=vmax),
-        'power': PowerNorm(gamma=gamma, vmin=vmin, vmax=vmax),
-        'twoslope': TwoSlopeNorm(vmin=vmin, vcenter=vcenter, vmax=vmax)
-    }
-    if norm_str not in norm_map:
-        raise ValueError(
-            f'ERROR: unsupported norm: {norm_str}. '
-            f'\nsupported norms are {list(norm_map.keys())}'
-        )
-
-    return norm_map[norm_str]
+    return get_norm(norm, vmin, vmax, **kwargs)
 
 
 def get_vmin_vmax(
@@ -170,13 +136,13 @@ def get_vmin_vmax(
 
 def compute_imshow_scale(
     data: NDArray | u.Quantity | DataCube | FitsFile | SpectralCube,
-    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None,
+    norm: str | Normalize | None,
     vmin: float | np.floating | None,
     vmax: float | np.floating | None,
     percentile: tuple[float, float] | None,
     **kwargs
 ) -> tuple[
-    ImageNormalize | AsinhNorm | LogNorm | PowerNorm | TwoSlopeNorm | None,
+    Normalize | None,
     float | np.floating | None,
     float | np.floating | None
 ]:
@@ -188,35 +154,37 @@ def compute_imshow_scale(
 
     Modes
     -----
-    1. Normalized scaling (`norm` is not None):
+    Resolution proceeds by the first matching case:
 
-    * `vmin`/`vmax` from `percentile` or explicit values (required)
-    * Returns `(norm_obj, vmin, vmax)`
+    1. Boolean data (dtype is `bool`):
 
-    2. Linear with percentile (`norm` is None, `percentile` provided):
+       - Forces `vmin=0`, `vmax=1`.
+       - Returns `(None, 0, 1)`.
 
-    * `vmin`/`vmax` from `percentile` (unless explicit)
-    * Returns `(None, vmin, vmax)`
+    2. Normalized scaling (`norm` is not `None` and not `'linear'`):
 
-    3. Linear with explicit limits (`norm` is None, `vmin` or `vmax` set):
+       - `vmin`/`vmax` from explicit values, else from `percentile`.
+       - Returns `(norm_obj, vmin, vmax)`.
 
-    * Missing bounds from `percentile` if available, else None
-    * Returns `(None, vmin, vmax)`
+    3. Linear with explicit limits (`norm` is `None` or `'linear'`, `vmin` or `vmax` set):
 
-    4. Matplotlib autoscaling (all None), or norm='linear':
+       - Missing bounds from `percentile` if provided, else `None`.
+       - Returns `(None, vmin, vmax)`.
 
-    * Returns `(None, None, None)`
+    4. Linear with percentile (`norm` is `None` or `'linear'`, only `percentile` set):
 
-    5. Boolean data (dtype is bool):
+       - `vmin`/`vmax` from `percentile`.
+       - Returns `(None, vmin, vmax)`.
 
-    * Forces `vmin=0`, `vmax=1`
-    * Returns `(None, 0, 1)`
+    5. Matplotlib autoscaling (`norm`, `vmin`, `vmax`, `percentile` all `None`):
+
+       - Returns `(None, None, None)`.
 
     Parameters
     ----------
     data : ndarray | Quantity | DataCube | FitsFile | SpectralCube
         Input image data. Must be convertible to a NumPy array via `to_array`.
-    norm : {'asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'} | None
+    norm: str | mcolors.Normalize | None,
         Normalization algorithm for colormap scaling.
         If `None`, linear scaling is used.
     vmin, vmax : float | None
@@ -237,7 +205,7 @@ def compute_imshow_scale(
 
     Returns
     -------
-    norm_obj : ImageNormalize | AsinhNorm | LogNorm | PowerNorm | None
+    norm_obj : Normalize | None
         Normalization object for `imshow`. None indicates linear scaling.
     vmin, vmax : float | None
         Lower and upper intensity bounds for `imshow`.

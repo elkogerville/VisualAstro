@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-26
 Description:
     Tests for image utils plotting module.
 """
@@ -18,9 +18,7 @@ from tests.conftest import generate_test_spectralcube
 from visualastro.core.data import get_value
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
-)
+from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.plotting.core.image_utils import (
     get_imshow_norm, get_vmin_vmax
 )
@@ -49,10 +47,6 @@ class TestGetImshowNorm:
     def test_invalid_norm(self):
         with pytest.raises(ValueError):
             get_imshow_norm('invalid', 0.2, 99)
-
-    def test_valid_norm_no_vmin_vmax(self):
-        with pytest.raises(ValueError):
-            get_imshow_norm('asinh', None, None)
 
 
 class TestVminVmax:

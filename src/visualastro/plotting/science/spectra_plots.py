@@ -69,13 +69,11 @@ from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import (
-    set_axis_labels, set_axis_limits
+    set_limits, _set_axis_labels
 )
+from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.core.utils import (
-    axvline,
-    _get_zorder
-)
+from visualastro.plotting.core.utils import _get_zorder
 
 
 def extract_cube_spectra(
@@ -325,7 +323,7 @@ def extract_cube_pixel_spectra(
     combine_spectra: bool = False,
     combine_method: Literal['sum', 'mean', 'median'] | _Unset = _UNSET,
     plot_spatial_map: bool = True,
-    vline: float | int | Quantity | None = None,
+    vline: float | Quantity | None = None,
     cmap: str | Colormap | _Unset = _UNSET,
     **kwargs,
 ) -> ExtractedPixelSpectra:
@@ -618,11 +616,9 @@ def extract_cube_pixel_spectra(
             )
             fluxes.append(combined_spec.flux)
 
-        axvline(vline, ax, fluxes[0].unit)
+        axvlines(vline, ax=ax, unit=fluxes[0].unit)
 
-        set_axis_limits(
-            spectral_axis,
-            fluxes,
+        set_limits(
             ax=ax,
             xpad=0,
             **kwargs
@@ -1046,7 +1042,7 @@ def plot_spectra(
         wave_arr = _spectral_axis_2_array(w)
         flux_arr = to_array(f)
 
-        mask = mask_within_range(wave_arr, xlim=params.xlim)
+        mask = mask_within_range(wave_arr, lim=params.xlim)
         wavelength_list.append(w[mask])
         flux_list.append(f)
         flux_mask_list.append(flux_arr[mask])
@@ -1088,13 +1084,12 @@ def plot_spectra(
 
         lines.append(l)
 
-    set_axis_limits(
-        wavelength_list, flux_mask_list,
+    set_limits(
         ax=ax,
         xlim=params.xlim, ylim=params.ylim,
         xpad=0
     )
-    set_axis_labels(
+    _set_axis_labels(
         _cycle(wavelength_list, config.reference_idx),
         _cycle(flux_list, config.reference_idx),
         ax,
@@ -1102,7 +1097,7 @@ def plot_spectra(
         unit_bracket_style=params.unit_bracket_style
     )
 
-    axvline(vline, ax, _cycle(extracted_spectra, config.reference_idx).unit)
+    axvlines(vline, ax=ax, unit=_cycle(extracted_spectra, config.reference_idx).unit)
 
     if labels[0] is not None:
         ax.legend(loc=params.loc)
@@ -1281,7 +1276,7 @@ def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
                 lw=linewidths, alpha=alphas,
                 rasterized=rasterized)
 
-    set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
+    _set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
 
     if ylim is not None:
         ax.set_ylim(ylim[0], ylim[1])
@@ -1651,12 +1646,10 @@ def fit_gaussian_2_spec(
             label='Gaussian Model'
         )
         # set axis labels and limits
-        set_axis_labels(
+        _set_axis_labels(
             spectral_axis, flux, ax, xlabel, ylabel, unit_bracket_style
         )
-        set_axis_limits(
-            [x0[plot_mask], x[gauss_mask]],
-            [y0[plot_mask], gaussian[gauss_mask]],
+        set_limits(
             ax=ax, xlim=xlim
         )
 

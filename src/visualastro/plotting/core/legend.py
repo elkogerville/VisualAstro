@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-07-30
-Date Modified: 2026-10-06
+Date Modified: 2026-10-26
 Description:
     Legend plotting functions.
 """
@@ -10,6 +10,7 @@ from collections.abc import Sequence
 from typing import Literal
 
 import matplotlib.axes as maxes
+from matplotlib.legend import Legend
 from matplotlib.transforms import Bbox, Transform
 
 from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
@@ -42,6 +43,7 @@ def legend(
     bbox_transform: Transform | _Unset = _UNSET,
     linewidth: float | Literal['spines'] | _Unset = _UNSET,
     title: str | _Unset = _UNSET,
+    title_fontsize: int | str | _Unset = _UNSET,
     alignment: Literal['center', 'left', 'right'] | _Unset = _UNSET,
     borderpad: float | _Unset = _UNSET,
     labelspacing: float | _Unset = _UNSET,
@@ -52,7 +54,7 @@ def legend(
     zorder: float | _Unset = _UNSET,
     draggable: bool | _Unset = _UNSET,
     **kwargs
-) -> None:
+) -> Legend:
     """
     Create a legend on the specified axes with configuration defaults.
 
@@ -138,6 +140,10 @@ def legend(
         the spines from `ax`. If `_UNSET`, does not set.
     title : str | _Unset, optional, default=_UNSET
         Legend title. If `_UNSET`, uses `config.legend.title`.
+    title_fontsize : int | str | _Unset, optional, default=_UNSET
+        Fontsize for legend title text in points. If `_UNSET`, uses
+        `config.fontsizes.resolve('legend_title')` as a scaling factor relative
+        to `config.fontsizes.size`.
     alignment : {'center', 'left', 'right'} | _Unset, optional, default=_UNSET
         Legend alignment. If `_UNSET`, uses `config.legend.alignment`.
     borderpad : float | _Unset, optional, default=_UNSET
@@ -162,6 +168,11 @@ def legend(
         Enable legend dragging. If `_UNSET`, uses `config.legend.draggable`.
     zorder : float | _Unset, optional, default=_UNSET
         Legend zorder. If `_UNSET`, uses `config.zorder.legend`.
+
+    Returns
+    -------
+    Legend:
+        Created matplotlib legend.
 
     Raises
     ------
@@ -190,6 +201,7 @@ def legend(
             _param('mode', mode, None),
             _param('bbox_transform', bbox_transform, None),
             _param('title', title, config.legend.title),
+            _param('title_fontsize', title_fontsize, config.fontsizes.resolve('legend_title')),
             _param('alignment', alignment, config.legend.alignment),
             _param('borderpad', borderpad, config.legend.borderpad),
             _param('labelspacing', labelspacing, config.legend.labelspacing),
@@ -230,21 +242,22 @@ def legend(
         else:
             legend_kwargs.pop(name, None)
 
-    linewidth = legend_kwargs.pop('linewidth')
-    zorder = legend_kwargs.pop('zorder')
+    lw = legend_kwargs.pop('linewidth')
+    z = legend_kwargs.pop('zorder')
 
     _resolve_vertical_loc(legend_kwargs)
 
     leg = ax.legend(**legend_kwargs)
 
-    if linewidth:
-        if linewidth == 'spines':
-            spines = [a for a in ax.spines.values()]
-            linewidth = spines[0].get_linewidth()
+    if lw is not None:
+        if lw == 'spines':
+            lw = next(iter(ax.spines.values())).get_linewidth()
 
-        leg.get_frame().set_linewidth(linewidth)
+        leg.get_frame().set_linewidth(lw)
 
-    leg.set_zorder(zorder)
+    leg.set_zorder(z)
+
+    return leg
 
 
 def _resolve_vertical_loc(legend_kwargs: dict) -> None:

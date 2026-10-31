@@ -1,12 +1,11 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-02
-Date Modified: 2026-10-06
+Date Modified: 2026-10-28
 Description:
     Functions related to Matplotlib axes.
 """
 
-from collections.abc import Sequence
 from typing import Any, Literal
 
 from astropy.io.fits import Header
@@ -14,27 +13,30 @@ import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
 import matplotlib.axes as maxes
+from matplotlib.collections import PathCollection
 from matplotlib.figure import Figure, SubFigure
 import matplotlib.gridspec as _gridspec
+from matplotlib.lines import Line2D
+from matplotlib.path import Path
 import matplotlib.pyplot as plt
 from matplotlib.text import Text
 import matplotlib.ticker as ticker
-from matplotlib.typing import ColorType
+from matplotlib.transforms import CompositeGenericTransform
+from matplotlib.typing import ColorType, LineStyleType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.array_types import (
-    _is_iterable, _is_ndarray_or_quantity_array
-)
 from visualastro.core.config import (
     config,
     _Unset,
     _UNSET,
     _resolve_default
 )
-from visualastro.core.data import as_list, get_value, to_list
-from visualastro.core.numerical import flatten
+from visualastro.core.data import get_value, to_list, _to_xy
+from visualastro.core.kwargs import (
+    _extract_kwargs, _param, _params_from_explicit, _resolve_kwargs
+)
 from visualastro.core.units import (
     get_physical_type,
     get_unit_label,
@@ -115,6 +117,7 @@ def get_ax3d(
     if not current_ax.has_data():
         plt.close()
 
+    figsize = _resolve_default(figsize, config.figsize3D)
     fig, ax = ax3d(figsize=figsize, **kwargs)
     return ax
 
@@ -172,6 +175,7 @@ def get_wcsax(
     if wcs is None:
         raise ValueError('No existing WCSAxes found and `wcs` is None.')
 
+    figsize = _resolve_default(figsize, config.figsizeWCS)
     fig, ax = wcsax(wcs, figsize=figsize, **kwargs)
     return ax
 
@@ -194,7 +198,7 @@ def subplot(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -243,7 +247,7 @@ def add_subplot(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -305,7 +309,7 @@ def ax3d(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -349,7 +353,7 @@ def add_ax3d(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
         - makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -395,7 +399,7 @@ def wcsax(
           take the *index* position on a grid with *nrows* rows and *ncols* columns.
           *index* starts at 1 in the upper left corner and increases to the right.
           *index* can also be a two-tuple specifying the (*first*, *last*) indices
-          (1-based, and including *last*) of the subplot, ie. `(3, 1, (1, 2))`
+          (1-based, and including *last*) of the subplot, i.e. `(3, 1, (1, 2))`
           makes a subplot that spans the upper 2/3 of the figure.
         - A 3-digit integer. The digits are interpreted as if given separately as
           three single-digit integers, i.e. `235` is the same as `(2, 3, 5)`.
@@ -646,300 +650,628 @@ def tripanel_figure(
     return fig, axes
 
 
-def set_axis_limits(
-    xdata: ArrayLike | Sequence[ArrayLike] | None = None,
-    ydata: ArrayLike | Sequence[ArrayLike] | None = None,
-    *,
+def inset_axes(
+    bounds: tuple[float, float, float, float],
     ax: maxes.Axes | None = None,
-    limits: float | tuple[float, float] | None = None,
+    *,
+    transform: Literal['axes', 'data'] | CompositeGenericTransform | None = None,
+    projection: str | None = None,
+    indicate_zoom: bool = False,
+    connectors: tuple[bool, bool, bool, bool] = (True, False, True, False),
+    polar: bool = False,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
-    xpad: float | _Unset = _UNSET,
-    ypad: float | _Unset = _UNSET,
-) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
+    limits: float | tuple[float, float] | None = None,
+    edgecolor: ColorType = 'k',
+    linestyle: LineStyleType | _Unset = _UNSET,
+    linewidth: float | _Unset = _UNSET,
+    alpha: float | _Unset = _UNSET,
+    zorder: float = 5,
+    **kwargs
+):
     """
-    Set axis limits on a Matplotlib Axes based on data range
-    and optional user-specified limits.
+    Add an inset axes to an existing axes.
 
-    To disable VisualAstro limit computation, set `compute_limits=False`
-    or `config.axes.compute_limits=False`. This is recommended for heavy
-    plotting calls.
+    The inset position and displayed data limits can be specified independently.
+    Optionally, indicate the region displayed by the inset on the parent axes.
 
     Parameters
     ----------
-    xdata : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
-        X-axis data. Can be a single array, a sequence of arrays, or None.
-        If `None`, the X-axis will be autoscaled unless `xlim` is provided.
-    ydata : ArrayLike | Sequence[ArrayLike] | None, optional
-        Y-axis data. Can be a single array, a sequence of arrays, or None.
-        If `None`, the Y-axis will be autoscaled unless `ylim` is provided.
-    ax : matplotlib.axes.Axes
-        The Axes object on which to set the limits. Required.
-    compute_limits : bool | _Unset, optional, default=_UNSET
-        If `False`, does not compute any limits based on data,
-        and lets Matplotlib decide axes limits. If `_UNSET`,
-        uses `config.axes.compute_limits`.
+    bounds : tuple[float, float, float, float]
+        Four values `(x0, y0, width, height)` defining the inset position.
+        The coordinate system is determined by `transform`.
+    ax : matplotlib.axes.Axes, optional
+        Parent axes. If `None`, uses `get_ax`.
+    transform : {'axes', 'data'} | CompositeGenericTransform | None, optional, default=None
+        Transform defining the coordinate system of `bounds`. Can be a
+        Matplotlib Transform or one of:
+
+        - `'data'` : parent axes data coordinates.
+        - `'axes'` : parent axes coordinates (0–1).
+
+        `None` defaults to `ax.transAxes`.
+    projection : str | None, optional, default=None
+        Projection of the inset axes. Supported projections include
+        `'aitoff'`, `'hammer'`, `'lambert'`, `'mollweide'`, `'polar'`, and
+        `'rectilinear'`.
+    indicate_zoom : bool, optional, default=False
+        Whether to indicate the region displayed by the inset on the parent
+        axes using a rectangle and connecting lines.
+    connectors : tuple[bool, bool, bool, bool], optional, default=(True, False, True, False)
+        Visibility of the four connectors joining the zoom rectangle to the inset
+        axes. The values correspond to the lower-left, upper-left, lower-right,
+        and upper-right connectors, respectively.
+    polar : bool, optional, default=False
+        If `True`, equivalent to `projection='polar'`.
+    xlim, ylim : tuple[float, float] | None, optional, default=None
+        X and Y-axis limits, applied as given (inverted limits invert the axis).
+        If only one is provided and `recompute_other_axis=True`, the limits of the other
+        axis are computed from the data visible within the provided range.
+        If both are provided, no computation is done.
     limits : float | tuple[float, float] | None, optional, default=None
-        Set symmetric axis limits. Overrides `xlim` and `ylim`.
-        If a single float, sets `xlim=ylim=(-abs(limits), limits)`.
-        If a `tuple[float, float]`, sets `xlim=ylim=(limits[0], limits[1])`.
-        If `None`, delegates limits to `xlim` and `ylim`.
-    xlim : tuple[float, float] | None, optional, default=None
-        User-defined X-axis limits. If provided, only data within this range
-        is considered when computing Y-axis limits automatically. If `None`,
-        uses the whole data range.
-    ylim : tuple[float, float] | None, optional, default=None
-        User-defined Y-axis limits. If provided, only data within this range
-        is considered when computing X-axis limits automatically. If `None`,
-        uses the whole data range.
-    xpad : float | _Unset, optional, default=_UNSET
-        Fractional padding to apply to X-axis limits. If `_UNSET`,
-        uses `config.axes.xpad`.
-    ypad : float | _Unset, optional, default=_UNSET
-        Fractional padding to apply to Y-axis limits. If `_UNSET`,
-        uses `config.axes.ypad`.
+        Limits applied to both axes. Cannot be combined with `xlim` or `ylim`.
+        - If a scalar, sets `xlim = ylim = (-abs(limits), abs(limits))`.
+        - If a `tuple[float, float]`, sets `xlim = ylim = limits` as is.
+
+    edgecolor : ColorType, optional, default='k'
+        Edge color of the zoom indication.
+    linestyle : LineStyleType | _Unset, optional, default=_UNSET
+        Line style of the zoom indication. If `_UNSET`, uses `None`.
+    linewidth : float | _Unset, optional, default=_UNSET
+        Line width of the zoom indication. If `_UNSET`, uses the
+        inset axes spine linewidth.
+    alpha : float | _Unset, optional, default=_UNSET
+        Transparency of the zoom indication. If `_UNSET`, uses `0.5`.
+    zorder : float, optional, default=5
+        Drawing order of the inset axes.
+    **kwargs
+        Additional keyword arguments passed to `Axes.inset_axes()`.
 
     Returns
     -------
-    xlim, ylim : tuple[float, float] | None
-        X and Y axis limits. Is only `None` if `xdata/ydata` and `xlim/ylim`
-        are also `None`.
-
-    Raises
-    ------
-    ValueError :
-        If `limits` is not `None` and isn't either a `float` or `tuple[float, float]`.
+    matplotlib.axes.Axes
+        The newly created inset axes.
     """
-    xpad_frac = _resolve_default(xpad, config.axes.xpad)
-    ypad_frac = _resolve_default(ypad, config.axes.ypad)
+    params = _extract_kwargs(
+        kwargs,
+        params=[
+            _param('edgecolor', edgecolor, 'k'),
+            _param('linestyle', linestyle, None),
+            _param('linewidth', linewidth, None),
+            _param('alpha', alpha, 0.5),
+        ]
+    )
+    params = {k:v for k,v in params.items() if v is not None}
 
     ax = get_ax(ax)
 
+    try:
+        bounds = tuple(bounds)
+    except TypeError:
+        bounds = ()
+    if len(bounds) != 4:
+        raise ValueError(
+            "`bounds` must be (x0, y0, width, height)! "
+            f"Got: {bounds}"
+        )
+
+    if isinstance(transform, str):
+        transforms = {
+            'data': ax.transData,
+            'axes': ax.transAxes,
+        }
+        try:
+            transform = transforms[transform]
+        except KeyError:
+            raise ValueError(
+                f"`transform` must be one of {list(transforms)} "
+                f"or a matplotlib Transform, got: {transform!r}"
+            ) from None
+
+    inset = ax.inset_axes(
+        bounds,
+        transform=transform,
+        projection=projection,
+        polar=polar,
+        zorder=zorder,
+        **kwargs
+    )
+
+    if any(v is not None for v in (xlim, ylim, limits)):
+        set_limits(
+            ax=inset,
+            xlim=xlim,
+            ylim=ylim,
+            limits=limits,
+            recompute_other_axis=False,
+        )
+
+    if indicate_zoom:
+        if 'linewidth' not in params:
+            params['linewidth'] = next(
+                iter(inset.spines.values())
+            ).get_linewidth()
+
+        indicator = ax.indicate_inset_zoom(inset, **params)
+        for connector, visible in zip(indicator.connectors, connectors):
+            connector.set_visible(visible)
+
+    return inset
+
+
+def set_limits(
+    ax: maxes.Axes | None = None,
+    *,
+    limits: float | tuple[float, float] | None = None,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
+    xpad: float | None | _Unset = _UNSET,
+    ypad: float | None | _Unset = _UNSET,
+    recompute_other_axis: bool | _Unset = _UNSET
+) -> tuple[tuple[float, float], tuple[float, float]]:
+    """
+    Set the limits of a Matplotlib Axes.
+
+    If only one of `xlim` or `ylim` is provided, the limits of the other
+    axis are recomputed from the data visible within the provided range.
+    Matplotlib does not do this by itself. Call after all plotting calls.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        Axes to modify. If `None`, uses the current Axes.
+    limits : float | tuple[float, float] | None, optional, default=None
+        Limits applied to both axes. Cannot be combined with `xlim` or `ylim`.
+        - If a scalar, sets `xlim = ylim = (-abs(limits), abs(limits))`.
+        - If a `tuple[float, float]`, sets `xlim = ylim = limits` as is.
+
+    xlim, ylim : tuple[float, float] | None, optional, default=None
+        X and Y-axis limits, applied as given (inverted limits invert the axis).
+        If only one is provided and `recompute_other_axis=True`, the limits of the other
+        axis are computed from the data visible within the provided range.
+        If both are provided, no computation is done.
+    xpad, ypad : float | None, optional, default=None
+        Fractional padding of the computed X and Y-axis limits. Must be finite
+        and `> -0.5`. If `None`, uses `ax.margins()[0]` and `ax.margins()[1]`.
+        - `xpad` is only used if `ylim` is provided without `xlim`.
+        - `ypad` is only used if `xlim` is provided without `ylim`.
+        - Both are ignored if `recompute_other_axis=False`, or if `limits` is given.
+        - Padding is never applied to user-provided limits.
+
+    recompute_other_axis : bool | _Unset, optional, default=_UNSET
+        If `True` and only one of `xlim` or `ylim` is provided, the limits
+        of the other axis are computed from the data visible within the
+        provided range. If `False`, only the provided limits are set and
+        the other axis is autoscaled by Matplotlib. Ignored if `limits` is
+        given or if both `xlim` and `ylim` are provided. If `_UNSET`,
+        uses `config.axes.recompute_other_axis`.
+
+    Returns
+    -------
+    xlim, ylim : tuple[float, float]
+        Limits on `ax` after the call.
+
+    Raises
+    ------
+    ValueError
+        If `limits` is combined with `xlim` or `ylim`.
+        If `limits` is not a scalar or a `tuple[float, float]`.
+        If `xpad` or `ypad` is not finite or is `<= -0.5`.
+
+    Notes
+    -----
+    - If no limits are given, nothing is done.
+    - Limits are interpreted in the units the data was plotted in.
+    - Setting limits disables autoscaling on the affected axes.
+    """
+    xpad = _resolve_default(xpad, config.axes.xpad)
+    ypad = _resolve_default(ypad, config.axes.ypad)
+    recompute_other_axis = _resolve_default(
+        recompute_other_axis, config.axes.recompute_other_axis
+    )
+    ax = get_ax(ax)
+
+    for name, pad in (('xpad', xpad), ('ypad', ypad)):
+        if pad is not None and not (np.isfinite(pad) and pad > -0.5):
+            raise ValueError(f'{name} must be finite and > -0.5! got {pad}!')
+
     if limits is not None:
+        if xlim is not None or ylim is not None:
+            raise ValueError('limits cannot be combined with xlim or ylim!')
+
         if isinstance(limits, (list, tuple)) and len(limits) == 2:
-            lmin, lmax = limits[0], limits[1]
-        elif isinstance(limits, (float, int, np.floating, np.integer)):
-            limits = np.abs(limits)
-            lmin, lmax = -1*limits, limits
+            lim = (float(get_value(limits[0])), float(get_value(limits[1])))
+        elif (
+            isinstance(limits, (int, float, np.integer, np.floating))
+            and not isinstance(limits, (bool, np.bool_))
+        ):
+            lim = (-abs(float(limits)), abs(float(limits)))
         else:
             raise ValueError(
                 'limits must be either a scalar or a tuple[float, float]! '
                 f'got {type(limits).__name__}!'
             )
-        xlim = (lmin, lmax)
-        ylim = (lmin, lmax)
+        ax.set_xlim(lim)
+        ax.set_ylim(lim)
+        return ax.get_xlim(), ax.get_ylim()
 
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        return xlim, ylim
+    mx, my = ax.margins()
+    _apply_limits(
+        ax,
+        xlim,
+        ylim,
+        xpad=mx if xpad is None else xpad,
+        ypad=my if ypad is None else ypad,
+        recompute_other_axis=recompute_other_axis,
 
-    xvals, yvals = _extract_xy_within_bounds(xdata, ydata, xlim=xlim, ylim=ylim)
-    xvals, yvals = _add_bounds_from_ax(xvals, yvals, ax, xlim=xlim, ylim=ylim)
+    )
 
-    if xlim is None and xvals is not None:
-        xmin: float = np.nanmin(xvals)
-        xmax: float = np.nanmax(xvals)
-        if xmin == xmax:
-            xpad = (
-                abs(xmin) * xpad_frac if xmin != 0 else
-                (xpad_frac if xpad_frac > 0 else 0.1)
-            )
-        else:
-            xpad = xpad_frac * (xmax - xmin)
-        xlim = (xmin - xpad, xmax + xpad)
-
-    if ylim is None and yvals is not None:
-        ymin: float = np.nanmin(yvals)
-        ymax: float = np.nanmax(yvals)
-        if ymin == ymax:
-            ypad = (
-                abs(ymin) * ypad_frac if ymin != 0 else
-                (ypad_frac if ypad_frac > 0 else 0.1)
-            )
-        else:
-            ypad = ypad_frac * (ymax - ymin)
-        ylim = (ymin - ypad, ymax + ypad)
-
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-
-    return xlim, ylim
+    return ax.get_xlim(), ax.get_ylim()
 
 
-def _extract_xy_within_bounds(
-    xdata,
-    ydata,
-    *,
-    xlim: tuple[float, float] | None = None,
-    ylim: tuple[float, float] | None = None
-) -> tuple[NDArray | None, NDArray | None]:
-    """
-    Extracts the xy values of `xdata` and `ydata` within the bounds `xlim`
-    and `ylim`.
-
-    Helper function for `visualastro.plotting.core.axes.set_axis_limits`.
-
-    Parameters
-    ----------
-    xdata, ydata : np.ndarray | Sequence[np.ndarray] :
-        X and Y values to extract.
-    xlim : tuple[float, float] | None, optional, default=None
-        User-defined X-axis limits. If provided, only data within this range
-        is considered when computing Y-axis limits automatically. If `None`,
-        uses the whole data range.
-    ylim : tuple[float, float] | None, optional, default=None
-        User-defined Y-axis limits. If provided, only data within this range
-        is considered when computing X-axis limits automatically. If `None`,
-        uses the whole data range.
-
-    Returns
-    -------
-    tuple[np.ndarray | None, np.ndarray | None] :
-        Array of X/Y values if `xdata`/`ydata` is provided, else `None`.
-    """
-    if xdata is not None and ydata is not None:
-        if not _is_iterable(xdata):
-            xdata = as_list(xdata)
-        if not _is_iterable(ydata):
-            ydata = as_list(ydata)
-
-        if len(xdata) == 1:
-            xdata = xdata * len(ydata)
-        if len(ydata) == 1:
-            ydata = ydata * len(xdata)
-        if len(xdata) != len(ydata):
-            if _is_ndarray_or_quantity_array(xdata):
-                xdata = [xdata]
-                xdata = xdata * len(ydata)
-            if len(xdata) != len(ydata):
-                raise ValueError('Cannot broadcast xdata and ydata')
-
-        xs, ys = [], []
-        for x, y in zip(xdata, ydata):
-            if x is None or y is None:
-                continue
-
-            x = np.asarray(x).ravel()
-            y = np.asarray(y).ravel()
-            if x.shape != y.shape:
-                raise ValueError(
-                    'Each x/y pair must match in shape! '
-                    f'Got: x.shape: {x.shape}, y.shape: {y.shape}'
-                )
-
-            mask = np.ones_like(x, bool)
-            if xlim is not None:
-                mask &= (x >= get_value(xlim[0])) & (x <= get_value(xlim[1]))
-            if ylim is not None:
-                mask &= (y >= get_value(ylim[0])) & (y <= get_value(ylim[1]))
-
-            if np.any(mask):
-                xs.append(x[mask])
-                ys.append(y[mask])
-
-        xvals = np.concatenate(xs) if xs else None
-        yvals = np.concatenate(ys) if ys else None
-
-    else:
-        xvals = None
-        if xdata is not None:
-            xvals = flatten(xdata)
-            if xvals is not None and xlim is not None:
-                mask = (xvals >= get_value(xlim[0])) & (xvals <= get_value(xlim[1]))
-                xvals = xvals[mask] if np.any(mask) else xvals
-
-        yvals = None
-        if ydata is not None:
-            yvals = flatten(ydata)
-            if yvals is not None and ylim is not None:
-                mask = (yvals >= get_value(ylim[0])) & (yvals <= get_value(ylim[1]))
-                yvals = yvals[mask] if np.any(mask) else yvals
-
-    return xvals, yvals
-
-
-def _add_bounds_from_ax(
-    xvals: NDArray | None,
-    yvals: NDArray | None,
+def _apply_limits(
     ax: maxes.Axes,
-    *,
     xlim: tuple[float, float] | None = None,
-    ylim: tuple[float, float] | None = None
-) -> tuple[NDArray | None, NDArray | None]:
+    ylim: tuple[float, float] | None = None,
+    *,
+    xpad: float,
+    ypad: float,
+    recompute_other_axis: bool = True,
+) -> None:
     """
-    Add current axes bounds from an ax instance to
-    existing arrays containing the plotting values
-    used to determine optimal plotting limits.
+    Set axis limits, recomputing the unspecified axis from the data
+    visible within the specified one.
+
+    Helper function for `visualastro.plotting.core.axes.set_limits`.
 
     Parameters
     ----------
-    xvals, yvals : np.ndarray | None
-        Array of X and Y plotting values, or `None` if not available.
-    ax : maxes.Axes
-        Axes instance to grab existing plotting data from.
+    ax : matplotlib.axes.Axes
+        Axes to modify. Must be populated before calling.
+    xlim, ylim : tuple[float, float] | None, optional, default=None
+        X and Y-axis limits, applied as given (inverted limits invert the axis).
+        If only one is provided and `recompute_other_axis=True`, the limits of
+        the other axis are computed from the data visible within the provided range.
+        If both are provided, no computation is done.
+    xpad, ypad : float
+        Fractional padding applied to the computed X/Y limits.
+    recompute_other_axis : bool, optional, default=True
+        If `True`, the limits of the unspecified axis are computed from the
+        data visible within the specified one. If `False`, only the
+        specified limits are set and the other axis is left to Matplotlib
+        autoscaling.
+
 
     Returns
     -------
-    tuple[np.ndarray | None, np.ndarray | None] :
-        Array of X and Y values if `xvals` or `yvals` is
-        not `None` or if `ax` has plotting data.
+    None
+
+    Notes
+    -----
+    - If neither `xlim` nor `ylim` is provided, nothing is done and
+      Matplotlib autoscaling is left untouched.
+    - If no data lies within the provided limits, the other axis is
+      left untouched.
+    - Only `Line2D` segments are clipped to the window. All other
+      artists contribute their vertices only.
+    - In-window vertices are always included. `_clip_segments` only
+      adds the points where segments cross the window edges.
+    - If the computed range is singular, the limits are given by the
+      `nonsingular` method of the axis major locator. `xpad`/`ypad`
+      are not applied.
+    - `Axes.set_xlim`/`set_ylim` disable autoscaling on the affected
+      axis.
     """
-    xy = _get_xydata_from_ax(ax)
+    if xlim is None and ylim is None:
+        return
 
-    xvals = np.empty(0) if xvals is None else xvals
-    yvals = np.empty(0) if yvals is None else yvals
+    if xlim is not None:
+        xlim = (float(get_value(xlim[0])), float(get_value(xlim[1])))
+        ax.set_xlim(xlim)
+    if ylim is not None:
+        ylim = (float(get_value(ylim[0])), float(get_value(ylim[1])))
+        ax.set_ylim(ylim)
 
-    if xy is not None:
-        mask = np.ones(len(xy), dtype=bool)
-        if xlim is not None:
-            mask &= (xy[:, 0] >= xlim[0]) & (xy[:, 0] <= xlim[1])
-        if ylim is not None:
-            mask &= (xy[:, 1] >= ylim[0]) & (xy[:, 1] <= ylim[1])
-        xy_masked = xy[mask]
-        if xy_masked.size > 0:
-            xlim_data = np.nanmin(xy_masked[:, 0]), np.nanmax(xy_masked[:, 0])
-            ylim_data = np.nanmin(xy_masked[:, 1]), np.nanmax(xy_masked[:, 1])
-            xvals = np.append(xvals, xlim_data)
-            yvals = np.append(yvals, ylim_data)
+    if not recompute_other_axis or (xlim is not None and ylim is not None):
+        return
 
-    if xvals.size == 0:
-        xvals = None
-    if yvals.size == 0:
-        yvals = None
+    w_is_x = xlim is not None
+    lo, hi = sorted(xlim if w_is_x else ylim)
+    w_log = (ax.get_xscale() if w_is_x else ax.get_yscale()) == 'log'
+    t_log = (ax.get_yscale() if w_is_x else ax.get_xscale()) == 'log'
+    t_axis = ax.yaxis if w_is_x else ax.xaxis
+    set_t = ax.set_ylim if w_is_x else ax.set_xlim
+    pad = ypad if w_is_x else xpad
 
-    return xvals, yvals
+    chunks = []
+    for x, y, connected in _get_xy_pairs_from_ax(ax):
+        w, t = (x, y) if w_is_x else (y, x)
+        inside = (w >= lo) & (w <= hi) & np.isfinite(t)
+        chunks.append(t[inside])
+        if connected and len(w) > 1:
+            chunks.append(
+                _clip_segments(w, t, lo, hi, w_log=w_log, t_log=t_log)
+            )
+
+    if not chunks:
+        return
+    vals = np.concatenate(chunks)
+    vals = vals[np.isfinite(vals)]
+    if t_log:
+        vals = vals[vals > 0]
+    if vals.size == 0:
+        return
+
+    vmin, vmax = vals.min(), vals.max()
+    if vmin == vmax:
+        lim = t_axis.get_major_locator().nonsingular(vmin, vmax)
+    else:
+        lim = _pad_limits(vmin, vmax, pad, log=t_log)
+
+    lim = (float(lim[0]), float(lim[1]))
+    set_t(lim[::-1] if t_axis.get_inverted() else lim)
 
 
-def _get_xydata_from_ax(ax: maxes.Axes) -> NDArray | None:
+def _get_xy_pairs_from_ax(
+    ax: maxes.Axes,
+) -> list[tuple[NDArray, NDArray, bool]]:
     """
-    Get the xy plotting data from an Axes instance.
+    Get 1D (x, y) arrays in data coordinates from the artists on an Axes.
+
+    Includes `Line2D`, `PathCollection` (scatter), other collections
+    drawn in data coordinates (e.g. `fill_between`, `errorbar` bars)
+    and patches. Invisible artists and artists not drawn with
+    `ax.transData` (e.g. `axhline`, `axvspan`) are skipped.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes to read artists from.
 
     Returns
     -------
-    xy : np.ndarray | None
-        Array of `ndim=2` of xy plotting data, or `None`
-        if `ax` is empty.
+    list[tuple[NDArray, NDArray, bool]]
+        One `(x, y, connected)` per artist (per path for generic
+        collections). If `connected` is `True`, consecutive points are
+        joined by straight segments and NaNs are preserved as gaps.
+        Otherwise non-finite points have been dropped.
+        Empty if `ax` has no valid artists.
     """
-    segments = []
+    out = []
+
+    def _add(xy, connected=False):
+        xy = _to_xy(xy)
+        if xy is None:
+            return
+        if not connected:
+            xy = xy[np.isfinite(xy).all(axis=1)]
+        elif not np.isfinite(xy).all(axis=1).any():
+            return
+        if len(xy) > 0:
+            out.append((xy[:, 0], xy[:, 1], connected))
+
     for line in ax.lines:
-        segments.append(line.get_xydata())
+        if line.get_visible() and line.get_transform() == ax.transData:
+            _add(line.get_xydata(), connected=_is_connected_line(line))
+
     for col in ax.collections:
-        offsets = col.get_offsets().data
-        if len(offsets) > 0:
-            segments.append(offsets)
+        if not col.get_visible():
+            continue
+        if isinstance(col, PathCollection):
+            if col.get_offset_transform() == ax.transData:
+                _add(col.get_offsets())
+        elif col.get_transform() == ax.transData:
+            for path in col.get_paths():
+                _add(_path_vertices(path))
+
     for patch in ax.patches:
-        if hasattr(patch, 'get_xy'):
-            segments.append(patch.get_xy())
+        if patch.get_visible() and patch.get_data_transform() == ax.transData:
+            verts = _path_vertices(patch.get_path())
+            _add(patch.get_patch_transform().transform(verts))
 
-    xy = np.vstack(segments) if segments else None
+    return out
 
-    return xy
+
+def _path_vertices(path: Path) -> NDArray:
+    """
+    Get the vertices of a `Path`, excluding `CLOSEPOLY` dummy vertices.
+
+    Helper for `_get_xy_pairs_from_ax`.
+
+    Parameters
+    ----------
+    path : matplotlib.path.Path
+        Path to read vertices from.
+
+    Returns
+    -------
+    NDArray
+        Array of shape (N, 2).
+    """
+    verts = np.asarray(path.vertices)
+    if path.codes is not None:
+        verts = verts[path.codes != Path.CLOSEPOLY]
+    return verts
+
+
+def _is_connected_line(line: Line2D) -> bool:
+    """
+    Whether the vertices of a `Line2D` are drawn as straight segments.
+
+    Parameters
+    ----------
+    line : matplotlib.lines.Line2D
+        Line to check.
+
+    Returns
+    -------
+    bool
+        `False` for marker-only lines and non-default drawstyles
+        (e.g. `steps-*`), where the drawn path differs from the vertices.
+    """
+    return (
+        line.get_drawstyle() == 'default'
+        and line.get_linestyle() not in ('None', 'none', ' ', '')
+    )
+
+
+def _clip_segments(
+    w: NDArray,
+    t: NDArray,
+    lo: float,
+    hi: float,
+    *,
+    w_log: bool = False,
+    t_log: bool = False,
+) -> NDArray:
+    """
+    Get the `t` coordinates at the endpoints of polyline segments
+    clipped to the window `lo <= w <= hi`.
+
+    1D implementation of the Liang–Barsky clipping algorithm.
+    Helper for `_apply_limits`.
+
+    Parameters
+    ----------
+    w : NDArray
+        Coordinates along the windowed axis, shape (N,). May contain NaN.
+    t : NDArray
+        Coordinates along the target axis, shape (N,). May contain NaN.
+    lo, hi : float
+        Window bounds on the `w` axis. Sorted internally.
+    w_log, t_log : bool, optional, default=False
+        If `True`, the respective axis has a log scale. Segments are
+        interpolated in log10 space, matching how they are drawn.
+        Non-positive coordinates on logarithmic axes are excluded.
+
+    Returns
+    -------
+    NDArray
+        Values of `t` in data space at the endpoints of the clipped
+        segments. Empty if no segment intersects the window.
+
+    Notes
+    -----
+    - Segments with a non-finite endpoint are discarded, preserving
+      the gaps Matplotlib draws at NaNs.
+    - Segments with constant `w` coordinates are discarded. Their
+      endpoints must be handled separately by the caller.
+    """
+    lo, hi = sorted((lo, hi))
+    if w_log:
+        if hi <= 0:
+            return np.empty(0)
+        lo = np.log10(lo) if lo > 0 else -np.inf
+        hi = np.log10(hi)
+
+    ws, ts = _to_scale(w, w_log), _to_scale(t, t_log)
+    # w0 & d0 are the starting coordinates of each segment
+    # dw & dt are the displacements from each point to the next
+    w0, dw = ws[:-1], np.diff(ws)
+    t0, dt = ts[:-1], np.diff(ts)
+
+    # coordinate of a point on a segment is given by:
+    # x(s) = x0 + sΔx
+    # where x0 is the starting point of the segment,
+    # Δx is the total distance between the start and end points
+    # of the segment, and s is the fraction of the way along the segment
+    # of the point (i.e. s=0.5 is the midpoint).
+    # plugging lo and hi for x(s) and solving for s we get:
+    # s = (lo - x0) / Δx
+    # sa and sb represent the s parameter required for each segment
+    # to reach the low and hi clipping boundaries.
+    # s = 0 is the start of the segment
+    # s = 1 is the end of the segment
+    # s < 0 & s > 1 lies outside the segment
+    with np.errstate(divide='ignore', invalid='ignore'):
+        sa = (lo - w0) / dw
+        sb = (hi - w0) / dw
+    # inner np.minimum and np.maximum of (sa, sb)
+    # is to account for a flip in direction of the line
+    # sa in one direction == sb in the opposite direction.
+    # s0 ensures that all values are >= 0 while s1 <= 1.
+    s0 = np.maximum(0.0, np.minimum(sa, sb))
+    s1 = np.minimum(1.0, np.maximum(sa, sb))
+    # keep finite, non-parallel segments whose clipped parameter
+    # interval overlaps the segment's [0, 1] range. this restricts
+    # the data to inside the window
+    keep = np.isfinite(dw) & np.isfinite(dt) & (dw != 0) & (s0 <= s1)
+    t0, dt, s0, s1 = t0[keep], dt[keep], s0[keep], s1[keep]
+
+    # t(s) = t0 + sΔt
+    # t-coordinates at the start and end of each clipped segment
+    t_clipped = np.concatenate([t0 + s0 * dt, t0 + s1 * dt])
+
+    return 10.0**t_clipped if t_log else t_clipped
+
+
+def _to_scale(v: NDArray, log: bool) -> NDArray:
+    """
+    Transform values into axis scale space.
+
+    Helper for `_clip_segments`.
+
+    Parameters
+    ----------
+    v : NDArray
+        Values in data space.
+    log : bool
+        If `True`, return `log10(v)` with non-positive values set to NaN.
+        Otherwise return `v` unchanged.
+
+    Returns
+    -------
+    NDArray
+        Values in scale space.
+    """
+    if not log:
+        return v
+    return np.log10(np.where(v > 0, v, np.nan))
+
+
+def _pad_limits(
+    vmin: float,
+    vmax: float,
+    frac: float,
+    *,
+    log: bool = False,
+) -> tuple[float, float]:
+    """
+    Pad a data range by a fraction of its extent.
+
+    Helper for `_apply_limits`.
+
+    Parameters
+    ----------
+    vmin, vmax : float
+        Minimum and maximum of the data range. Must satisfy `vmin < vmax`,
+        and be positive if `log=True`.
+    frac : float
+        Fractional padding applied to each side.
+    log : bool, optional, default=False
+        If `True`, pad in log10 space (multiplicative padding).
+
+    Returns
+    -------
+    tuple[float, float]
+        Padded (min, max) limits.
+    """
+    if log:
+        vmin, vmax = np.log10(vmin), np.log10(vmax)
+
+    pad = frac * (vmax - vmin)
+    lo, hi = vmin - pad, vmax + pad
+
+    if log:
+        lo, hi = 10.0**lo, 10.0**hi
+
+    return float(lo), float(hi)
 
 
 def set_title(
     title: str,
     loc: Literal['center', 'left', 'right'] = 'center',
-    pad: float = 0.6,
+    pad: float | None = None,
     fontsize: float | _Unset = _UNSET,
     ax: maxes.Axes | WCSAxes | None = None,
     **kwargs
@@ -953,7 +1285,7 @@ def set_title(
         Figure title.
     loc : {'center', 'left', 'right'} | optional, default='center'
         Title location.
-    pad : float, optional, default=0.6
+    pad : float | None, optional, default=None
         Title offset from the top of the `Axes`, in points.
     fontsize : float | _Unset, optional, default=_UNSET
         Title fontsize in points. If `_UNSET`, uses
@@ -974,7 +1306,8 @@ def set_title(
     fontsize = _resolve_default(fontsize, config.fontsizes.resolve('title'))
     return ax.set_title(title, loc=loc, pad=pad, fontsize=fontsize, **kwargs)
 
-def set_axis_labels(
+
+def _set_axis_labels(
     X: u.Quantity | ArrayLike | None,
     Y: u.Quantity | ArrayLike | None,
     ax: maxes.Axes,
@@ -984,7 +1317,7 @@ def set_axis_labels(
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
     show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
-    fmt: str | _Unset = _UNSET,
+    unit_fmt: str | _Unset = _UNSET,
     **kwargs
 ) -> None:
     """
@@ -1021,7 +1354,7 @@ def set_axis_labels(
     show_unit : bool | _Unset, optional, default=_UNSET
         If `True`, include the unit in the axis label. If `_UNSET`, uses
         `config.show_unit_label`.
-    fmt : str | _Unset, optional, default=_UNSET
+    unit_fmt : str | _Unset, optional, default=_UNSET
         Format for unit rendering. Passed to `to_latex_unit`.
 
         Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
@@ -1039,15 +1372,15 @@ def set_axis_labels(
     >>> flux = np.random.random(100) * u.MJy / u.sr
     >>> fig, ax = plt.subplots()
     >>> ax.plot(wavelength, flux)
-    >>> set_axis_labels(wavelength, flux, ax)
+    >>> _set_axis_labels(wavelength, flux, ax)
     # xlabel: 'Wavelength [μm]'
     # ylabel: 'Surface Brightness [MJy/sr]'
 
-    >>> set_axis_labels(wavelength, flux, ax, show_physical_type=False)
+    >>> _set_axis_labels(wavelength, flux, ax, show_physical_type=False)
     # xlabel: '[μm]'
     # ylabel: '[MJy/sr]'
 
-    >>> set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
+    >>> _set_axis_labels(wavelength, flux, ax, ylabel='Custom Flux')
     # ylabel: 'Custom Flux [MJy/sr]'
 
     Notes
@@ -1064,7 +1397,7 @@ def set_axis_labels(
     unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
     show_physical_type = _resolve_default(show_physical_type, config.show_type_label)
     show_unit = _resolve_default(show_unit, config.show_unit_label)
-    fmt = _resolve_default(fmt, config.unit_label_format)
+    fmt = _resolve_default(unit_fmt, config.unit_label_format)
 
     xlabel = _format_axis_label(
         X, xlabel, unit_bracket_style, show_physical_type, show_unit, fmt
@@ -1300,48 +1633,59 @@ def ax3d_pane_color(
     ax.zaxis.set_pane_color(colors[2])
 
 
-def _set_axis_limits_scaling_mode(
+def _configure_axes_scaling(
     ax: maxes.Axes,
-    autoscale: bool,
-    compute_limits: bool,
-    xlog: bool = False,
-    ylog: bool = False
-):
+    kwargs: dict[str, Any],
+    **explicit: Any
+) -> None:
     """
-    Set axes limit scaling mode. Must be called before
-    the main plotting call/loop in a plotting function.
+    Configure the autoscale state and axis scales of an Axes.
+
+    Must be called before the main plotting call/loop in a plotting
+    function, and before `visualastro.plotting.core.axes.set_limits`.
 
     Parameters
     ----------
-    ax : maxes.Axes
-        Axes instance.
-    autoscale : bool
-        If `True`, uses native Matplotlib autoscaling,
-        ie. `ax.set_autoscale_on(True)`, and disables
-        VisualAstro's manual limits computation
-        (`compute_limits=False`).
-    compute_limits : bool
-        Flag to be passed on to one of the VisualAstro
-        plotting interface functions. If `True`, will
-        invoke `visualastro.plotting.core.axes.set_axis_limits`.
-    xlog, ylog : bool, optional, default=False
-        If either is `True`, set `autoscale=True`.
+    ax : matplotlib.axes.Axes
+        Axes instance to configure.
+    kwargs : dict[str, Any]
+        Keyword arguments forwarded to matplotlib. Used to resolve
+        the parameters below.
+    **explicit : Any
+        Any of the following keyword arguments. Values not given
+        explicitly are taken from `kwargs`, then from `config.axes`.
+
+        - autoscale : bool, optional
+            Native Matplotlib autoscaling state, applied with
+            `ax.set_autoscale_on(autoscale)`.
+        - xlog, ylog : bool, optional
+            If `True`, sets the respective axis to log scale.
 
     Returns
     -------
-    compute_limits : bool
-        Set to `False` if `autoscale=True`. Otherwise is left
-        unchanged.
+    None
+
+    Notes
+    -----
+    - `autoscale=False` before plotting prevents Matplotlib from
+      rescaling the view, so limits must then be provided to
+      `set_limits`.
+    - Axis scales are only set to `'log'` when requested. A `False`
+      value does not reset an existing log scale to linear.
     """
-    if xlog or ylog:
-        autoscale = True
-    if autoscale:
-        ax.set_autoscale_on(True)
-        compute_limits = False
-    else:
-        ax.set_autoscale_on(False)
+    limits_defaults = {
+        'autoscale': config.axes.autoscale,
+        'xlog': config.axes.xlog,
+        'ylog': config.axes.ylog,
+    }
+    params = _resolve_kwargs(
+        kwargs,
+        params=_params_from_explicit(explicit, limits_defaults)
+    )
 
-    if xlog: ax.set_xscale('log')
-    if ylog: ax.set_yscale('log')
+    ax.set_autoscale_on(bool(params.autoscale))
 
-    return compute_limits
+    if params.xlog:
+        ax.set_xscale('log')
+    if params.ylog:
+        ax.set_yscale('log')
