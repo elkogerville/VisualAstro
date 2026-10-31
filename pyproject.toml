@@ -73,5 +73,11 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["visualastro*"]
-exclude = ["visualastro.stylelib*", "visualastro.data*"]
+exclude = [
+    "visualastro.data",
+    "visualastro.data.*",
+    "visualastro.stylelib",
+    "visualastro.stylelib.*",
+]
+
 [tool.setuptools_scm]
