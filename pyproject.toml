@@ -66,6 +66,7 @@ all = [
 
 [project.urls]
 Homepage = "https://github.com/elkogerville/VisualAstro"
+Documentation = "https://visualastro.readthedocs.io"
 
 [tool.setuptools]
 include-package-data = true
