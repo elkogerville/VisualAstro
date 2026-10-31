@@ -15,3 +15,9 @@ VisualAstro Documentation Page.
    :caption: Reference
 
    reference/index
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Developer
+
+    contributing_docs
