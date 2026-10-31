@@ -1317,7 +1317,7 @@ def _set_axis_labels(
     unit_bracket_style: Literal['round', 'square'] | _Unset = _UNSET,
     show_physical_type: bool | _Unset = _UNSET,
     show_unit: bool | _Unset = _UNSET,
-    fmt: str | _Unset = _UNSET,
+    unit_fmt: str | _Unset = _UNSET,
     **kwargs
 ) -> None:
     """
@@ -1354,7 +1354,7 @@ def _set_axis_labels(
     show_unit : bool | _Unset, optional, default=_UNSET
         If `True`, include the unit in the axis label. If `_UNSET`, uses
         `config.show_unit_label`.
-    fmt : str | _Unset, optional, default=_UNSET
+    unit_fmt : str | _Unset, optional, default=_UNSET
         Format for unit rendering. Passed to `to_latex_unit`.
 
         Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
@@ -1397,7 +1397,7 @@ def _set_axis_labels(
     unit_bracket_style = _resolve_default(unit_bracket_style, config.unit_bracket_style)
     show_physical_type = _resolve_default(show_physical_type, config.show_type_label)
     show_unit = _resolve_default(show_unit, config.show_unit_label)
-    fmt = _resolve_default(fmt, config.unit_label_format)
+    fmt = _resolve_default(unit_fmt, config.unit_label_format)
 
     xlabel = _format_axis_label(
         X, xlabel, unit_bracket_style, show_physical_type, show_unit, fmt
