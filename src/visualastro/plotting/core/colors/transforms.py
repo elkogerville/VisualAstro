@@ -8,6 +8,7 @@ Description:
 
 from collections.abc import Sequence
 import colorsys
+import datetime
 
 from typing import Literal
 from matplotlib import colors as mcolors
@@ -17,8 +18,10 @@ import numpy as np
 from visualastro.core.data import as_list, to_list
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._colorspacious import cspace_convert
-from visualastro.plotting.core.colors.utils import as_color, _convert_color
-from visualastro.plotting.core.colors.definitions import RGBATuple, RGBTuple
+from visualastro.plotting.core.colors.utils import (
+    as_color, _convert_color, _get_single_color
+)
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
 
@@ -355,3 +358,20 @@ def _desaturate_color(color: ColorType, factor: int | float = 0.5) -> str:
     rgb_new = colorsys.hls_to_rgb(h, l, s_new)
 
     return mcolors.to_hex(rgb_new)
+
+
+def _soup_of_the_day() -> ColorType:
+    """Get daily soup color."""
+    day = datetime.datetime.today().weekday()
+    soup = {
+        0: '#D19D78', # mushroom monday
+        1: '#BE992B', # tripe tuesday
+        2: '#E80063', # wacky soup wednesday
+        3: '#D43500', # tomato thursday
+        4: '#662A02', # french onion friday
+        5: '#F6AA00', # sweet potato saturday
+        6: '#848A21', # split pea sunday
+    }.get(day, '#848A21')
+
+    factor = np.random.rand(1)[0]
+    return _get_single_color(_transform_colors(soup, None))

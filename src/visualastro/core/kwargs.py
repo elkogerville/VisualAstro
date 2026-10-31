@@ -1,9 +1,9 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-29
-Date Modified: 2026-10-10
+Date Modified: 2026-10-25
 Description:
-    Functions for kwargs and aliases within visualastro.
+    Functions for kwargs and aliases within VisualAstro.
 """
 
 from types import SimpleNamespace
@@ -17,15 +17,21 @@ from visualastro.core.config import _Unset, _UNSET, _resolve_default
 # define aliases here! each key represents a parameter used in visualastro functions,
 # and their values are aliases of that parameter. this way any each set can be used
 # in a function, provided that the function uses the `_resolve_kwargs` interface.
-# ensure that the values are tuples even for single items, meaning: 'key': (value,),
+# Define aliases here! Each key represents a parameter used in VisualAstro functions,
+# and their values are aliases of that parameter. This way, any alias can be used
+# in a function, provided that the function uses the `_resolve_kwargs` interface.
+# Ensure that the values are tuples even for single items, meaning: 'key': (value,),
 KWARG_ALIASES: dict['str', tuple[str, ...]] = {
     'color': ('colors',),
     'edgecolor': ('edgecolors', 'ec'),
     'facecolor': ('facecolors', 'fc'),
     'marker': ('markers', 'm'),
-    'size': ('sizes', 's'),
+    's': ('sizes', 'size'),
+    'markersize': ('markersizes', 'ms'),
     'alpha': ('alphas', 'a'),
     'markeredgecolor': ('markeredgecolors', 'mec'),
+    'markeredgewidth': ('markeredgewidths', 'mew'),
+    'markerfacecolor': ('markefacecolors', 'mfc'),
     'limits': ('limit', 'lims', 'lim'),
     'label': ('labels', 'l'),
     'bbox_to_anchor': ('bbox',),
@@ -465,3 +471,29 @@ def _kwarg(name: str, default: Any) -> KwargSpec:
             f'name must be a str! got: {type(name).__name__}'
         )
     return (name, default)
+
+
+def _params_from_explicit(
+    explicit: dict[str, Any],
+    defaults: dict[str, Any],
+) -> list[ParamSpec]:
+    """
+    Build `_param` specs from explicit signature values and defaults.
+
+    Parameters
+    ----------
+    explicit : dict[str, Any]
+        Values exposed in the caller's signature. Missing names resolve
+        to `_UNSET`.
+    defaults : dict[str, Any]
+        Mapping of canonical parameter name to fallback value.
+
+    Returns
+    -------
+    list[ParamSpec]
+        One `(name, value, default)` spec per entry in `defaults`.
+    """
+    return [
+        _param(name, explicit.get(name, _UNSET), default)
+        for name, default in defaults.items()
+    ]

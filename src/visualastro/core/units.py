@@ -1,12 +1,13 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-12-10
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Utility functions for Astropy units.
 """
 
 from __future__ import annotations
+from collections.abc import Sequence
 import warnings
 from typing import Any, Literal, overload
 
@@ -22,6 +23,7 @@ from astropy.units import (
 )
 from astropy.units.physical import PhysicalType
 import numpy as np
+from numpy.typing import ArrayLike
 
 from visualastro.core.config import (
     config,
@@ -29,6 +31,7 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
+from visualastro.core.array_types import _is_iterable
 from visualastro.core.data import to_list
 from visualastro.core.sequences import _unwrap_if_single
 from visualastro.optional_dependencies.register import _require_dependency
@@ -127,7 +130,7 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, Quantity):
         return obj.unit
 
-    if isinstance(obj, (list, tuple)) and len(obj) > 0:
+    if _is_iterable(obj):
         units = [get_unit(item) for item in obj]
         non_none_units = [u for u in units if u is not None]
 
@@ -939,3 +942,66 @@ def _check_unit_equality(unit1, unit2, name1='unit1', name2='unit2'):
         f'{name1} and {name2} have incompatible units: '
         f'{u1_str} vs {u2_str}.'
     )
+
+
+def _has_unit(*objs) -> bool:
+    """
+    Check whether any object carries a physical unit.
+
+    An object is considered unit-bearing if it is an
+    `astropy.units.Quantity` or exposes a `unit` attribute
+    (e.g. `SpectralCube`, `NDData`, `Column`).
+
+    Parameters
+    ----------
+    *objs : Any
+        Objects to check. Any number of positional arguments.
+
+    Returns
+    -------
+    bool
+        `True` if at least one object is a `Quantity` or has a `unit`
+        attribute, `False` otherwise (including when no objects are given).
+
+    Notes
+    -----
+    - Only the presence of the attribute is checked, not its value. An
+      object with `unit=None` (e.g. an `NDData` without units) returns `True`.
+    - `Quantity` is a subclass of `ndarray` with a `unit` attribute, so the
+      `isinstance` check is redundant with `hasattr` but kept for clarity.
+    - Dimensionless `Quantity` objects count as unit-bearing.
+
+    Examples
+    --------
+    >>> has_unit(1.0, np.arange(3))
+    False
+    >>> has_unit(1.0, 2 * u.m)
+    True
+    """
+    for o in objs:
+        if isinstance(o, u.Quantity) or hasattr(o, 'unit'):
+            return True
+    return False
+
+
+def _get_xyplot_units(
+    x: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None,
+    y: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None,
+    c: ArrayLike | u.Quantity | Sequence[float | u.Quantity] | None
+) -> tuple[
+    UnitBase | StructuredUnit | None,
+    UnitBase | StructuredUnit | None,
+    UnitBase | StructuredUnit | None
+]:
+    """
+    Get the units of the `x` and `y` plotting inputs,
+    as well as the unit of the `'c'` parameter if it exists.
+
+    This is used for automatic unit labeling of the
+    axes and colorbar.
+    """
+    xunit = get_unit(x)
+    yunit = get_unit(y)
+    cunit = get_unit(c)
+
+    return xunit, yunit, cunit

@@ -18,9 +18,7 @@ import numpy as np
 from visualastro.core.config import config, _UNSET, _resolve_default
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
-from visualastro.plotting.core.colors.definitions import (
-    RGBATuple, RGBTuple, COLORSET_ALIASES
-)
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
 
 def as_color(
@@ -96,7 +94,6 @@ def _find_colorset(name: str) -> tuple[str, bool]:
         colorset.
     """
     def _resolve(name: str) -> str | None:
-        name = COLORSET_ALIASES.get(name, name)
         return name if name in mpl.color_sequences else None
 
     resolved = _resolve(name)
@@ -124,6 +121,28 @@ def _is_colorset(name: str) -> bool:
 def _is_color_like(color: Any) -> TypeGuard[ColorType]:
     """Check if an input is a valid Matplotlib color."""
     return mcolors.is_color_like(color)
+
+
+def _is_color_sequence(value: Any) -> bool:
+    """
+    Check whether `value` is a sequence of colors rather than a single color.
+
+    Parameters
+    ----------
+    value : Any
+        Color specification.
+
+    Returns
+    -------
+    bool
+        True if `value` is a non-string iterable that is not itself a
+        valid single color.
+    """
+    if isinstance(value, str):
+        return False
+    if mcolors.is_color_like(value):
+        return False
+    return np.iterable(value)
 
 
 def _get_single_color(color: Any) -> str | RGBTuple | RGBATuple:

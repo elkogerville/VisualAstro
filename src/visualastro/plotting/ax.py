@@ -35,7 +35,7 @@ from visualastro.plotting.base.plots import (
     plot,
     scatter,
     scatter3D,
-    scatter_fit,
+    scatter_polyfit,
     scatter_project
 )
 from visualastro.plotting.core.style import apply_style_modifiers, _style_context
@@ -465,7 +465,7 @@ class ax:
                 significantly reduce file size for complex plots.
             - `color`, `c` : list of colors, str, or None, optional, default=None
                 aliases for `colors`.
-            - `sizes`, `size`, `s` : float or list, optional, default=`config.scatter_size`
+            - `sizes`, `size`, `s` : float or list, optional, default=`config.markersize`
                 Marker size(s) for scatter points.
             - `markers`, `marker`, `m` : str or list, optional, default=`config.marker`
                 Marker style(s) for scatter points.
@@ -694,7 +694,7 @@ class ax:
 
 
     @staticmethod
-    def scatter_fit(
+    def scatter_polyfit(
         *data: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray],
         xerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
         yerr: float | u.Quantity | NDArray | list[float | u.Quantity | NDArray] | None = None,
@@ -711,14 +711,14 @@ class ax:
         **kwargs
     ) -> None:
         """
-        Wrapper for `scatter_fit` with automatic figure creation.
+        Wrapper for `scatter_polyfit` with automatic figure creation.
 
-        See `visualastro.plotting.base.plots.scatter_fit` for full documentation.
+        See `visualastro.plotting.base.plots.scatter_polyfit` for full documentation.
 
         Equivalent to:
 
             >>> fig, ax = plt.subplots()
-            >>> va.scatter_fit(X, Y, deg=3, ax=ax, **kwargs)
+            >>> va.scatter_polyfit(X, Y, deg=3, ax=ax, **kwargs)
             >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
@@ -728,7 +728,7 @@ class ax:
 
         with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
-            _ = scatter_fit(
+            _ = scatter_polyfit(
                 *data,
                 ax=ax,
                 xerr=xerr,

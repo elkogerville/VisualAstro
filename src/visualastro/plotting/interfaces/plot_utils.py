@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-05-26
-Date Modified: 2026-10-06
+Date Modified: 2026-10-25
 Description:
     Interface for plotting functions. Handles kwargs and
     automatically adds functionality such as colorbar creation,
@@ -36,24 +36,24 @@ from typing import Literal
 import astropy.units as u
 from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from matplotlib.image import AxesImage
 from numpy.typing import ArrayLike
 
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
-from visualastro.core.sequences import _cycle
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import (
-    set_axis_labels, set_axis_limits, set_title
+    set_limits, set_title, _set_axis_labels
 )
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
+from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcsgrid
 from visualastro.plotting.core.utils import (
-    axhline,
-    axvline,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
+    _default_ellipse_geometry
 )
 
 
@@ -64,21 +64,16 @@ class PlotUtilParams:
 
     Attributes
     ----------
-    reference_idx : int
-        Index of the artist/data/label used for the legend check, axis
-        labels, colorbar, and interactive ellipse. Applied via `_cycle`.
     array_order : {'C', 'c', 'F', 'f', 'fortran'}
         Memory order forwarded to `plot_points`.
     index_spec : tuple[int, int] | {'implicit', 'explicit'}
         Index convention forwarded to `plot_points`.
     vlines : Sequence[float] | None
-        Vertical line positions. Forwarded to `axvline` with `ref_unit`.
+        Vertical line positions. Forwarded to `axvlines`.
     hlines : Sequence[float] | None
-        Horizontal line positions. Forwarded to `axhline` with `ref_unit`.
-    ticklabel_fontsize : float
-        Major tick label size for both axes.
-    compute_limits : bool
-        If False, `set_axis_limits` is skipped.
+        Horizontal line positions. Forwarded to `axhline`.
+    fontsize : float
+        Global plot fontsize in points.
     legend : dict[str, Any]
         - `legend` : bool | None
             Draw the legend if truthy and `kwargs['labels']` is given.
@@ -90,22 +85,22 @@ class PlotUtilParams:
         - remaining keys : forwarded to `set_title`.
 
     limits : dict[str, Any]
-        Forwarded to `set_axis_limits`. Used only if `compute_limits`.
+        Forwarded to `set_limits`.
     labels : dict[str, Any]
         - `label_fontsize` : float
             Axis label size.
         - `xlabel`, `ylabel` : str | None
             Override labels. For `WCSAxes`, None falls back to
             `config.right_ascension_label` / `config.declination_label`.
-        - remaining keys : forwarded to `set_axis_labels` (non-WCS only).
+        - remaining keys : forwarded to `_set_axis_labels` (non-WCS only).
 
     gridlines : dict[str, Any]
         - `gridlines` : bool
             Enable `ax.grid`.
         - remaining keys : forwarded to `ax.grid`.
 
-    wcs_grid : dict[str, Any]
-        - `wcs_grid` : bool
+    wcsgrid : dict[str, Any]
+        - `wcsgrid` : bool
             Enable `ax.coords.grid`. Applied for `WCSAxes` only.
         - remaining keys : forwarded to `ax.coords.grid`.
 
@@ -129,20 +124,18 @@ class PlotUtilParams:
         - `points` : Any | None
             Point specification forwarded to `plot_points`.
     """
-    reference_idx: int
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
-    index_spec: tuple[int, int] | Literal['implicit', 'explicit']
-    vlines: Sequence[float] | None
-    hlines: Sequence[float] | None
-    ticklabel_fontsize: float
-    compute_limits: bool
+    fontsize: float
 
     legend: dict
     title: dict
     limits: dict
     labels: dict
+    tick: dict
     gridlines: dict
-    wcs_grid: dict
+    wcsgrid: dict
+    vlines: dict
+    hlines: dict
     colorbar: dict
     text: dict
     ellipses: dict
@@ -152,25 +145,22 @@ class PlotUtilParams:
 def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     """
     Extracts any keyword argument from a function related to
-    visualastro plotting utilities. This way, kwargs can then
-    be passed into a matplotlib function without any contamination
-    from visualastro specific keyword arguments.
+    VisualAstro plotting utilities. This way, kwargs can then
+    be passed into a Matplotlib function without any contamination
+    from VisualAstro specific keyword arguments.
     """
-    return PlotUtilParams(
-        reference_idx=_pop_kwargs(kwargs, 'reference_idx', config.reference_idx),
+    params = PlotUtilParams(
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
-        index_spec=_pop_kwargs(kwargs, 'index_spec', config.index_specification),
-        vlines=_pop_kwargs(kwargs, 'vlines', None),
-        hlines=_pop_kwargs(kwargs, 'hlines', None),
-        ticklabel_fontsize=config.fontsizes.resolve('tick_labels'),
-        compute_limits=_pop_kwargs(
-            kwargs, 'compute_limits', config.axes.compute_limits
-        ),
+        fontsize=_pop_kwargs(kwargs, 'fontsize', config.fontsizes.size),
 
         legend=_pop_prefixed(kwargs, 'legend_', base='legend', default=True),
         title=_pop_prefixed(kwargs, 'title_', base='title', default=False),
-        limits=_pop_mapped(kwargs,
-            ('limits', 'xlim', 'ylim', 'xpad', 'ypad')
+        limits=_pop_mapped(
+            kwargs,
+            (
+                'limits', 'xlim', 'ylim', 'xlog', 'ylog',
+                'xpad', 'ypad', 'recompute_other_axis'
+            )
         ),
         labels=_pop_mapped(
             kwargs,
@@ -182,22 +172,46 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
                 'unit_fmt'
             ),
             prefix='label_',
-            base='label_fontsize',
-            default=config.fontsizes.resolve('axes_labels')
         ),
-        wcs_grid=_pop_prefixed(
-            kwargs, 'wcs_grid_', base='wcs_grid', default=config.wcs_grid
+        tick=_pop_prefixed(kwargs, 'tick_'),
+        wcsgrid=_pop_prefixed(
+            kwargs, 'wcsgrid', base='wcsgrid', default=config.wcsgrid.enable
         ),
         gridlines=_pop_prefixed(
-            kwargs, 'grid_', base='gridlines', default=config.gridlines
+            kwargs, 'grid_', base='gridlines', default=config.gridlines.enable
         ),
+        vlines=_pop_prefixed(kwargs, 'vlines_', base='vlines', default=None),
+        hlines=_pop_prefixed(kwargs, 'hlines_', base='hlines', default=None),
         colorbar=_pop_prefixed(
             kwargs, 'cbar_', base='colorbar', default=config.colorbar.enable
         ),
         text=_pop_mapped(kwargs, ('highlight',), prefix='text_'),
-        ellipses=_pop_mapped(kwargs, ('ellipses', 'plot_ellipse')),
-        points=_pop_mapped(kwargs, ('points',)),
+        ellipses=_pop_prefixed(kwargs, 'ellipses_', base='ellipses', default=None),
+        points=_pop_prefixed(kwargs, 'points_', base='points', default=None),
     )
+
+    _FONTSIZE_KEYS = [
+        # (params attr, config key, field in params attr)
+        ('labels', 'axes_labels', 'fontsize'),
+        ('tick', 'tick_labels', 'fontsize'),
+        ('title', 'title', 'fontsize'),
+        ('legend', 'legend', 'fontsize'),
+        ('legend', 'legend_title', 'title_fontsize'),
+        ('text', 'text', 'fontsize'),
+        ('colorbar', 'colorbar_label', 'fontsize'),
+        ('colorbar', 'colorbar_tick_labels', 'tick_fontsize'),
+    ]
+
+    for attr, key, field in _FONTSIZE_KEYS:
+        group = getattr(params, attr)
+        if group.get(field) is None:
+            group[field] = config.fontsizes.with_size(key, params.fontsize)
+
+    plot_ellipse = kwargs.pop('plot_ellipse', None)
+    if plot_ellipse is not None:
+        params.ellipses['plot_ellipse'] = plot_ellipse
+
+    return params
 
 
 def _apply_plot_utils(
@@ -205,7 +219,7 @@ def _apply_plot_utils(
     ax: maxes.Axes | WCSAxes,
     x: ArrayLike | None = None,
     y: ArrayLike | None = None,
-    im_list: list | None = None,
+    img: AxesImage | None = None,
     ref_unit: u.UnitBase | u.StructuredUnit | None = None,
     **kwargs
 ) -> None:
@@ -223,16 +237,14 @@ def _apply_plot_utils(
     x, y : ArrayLike | None, optional, default=None
         Plotted x and y data. Used for axis limits and for
         deriving the x and y-axis label (unit).
-    im_list : list | None, optional, default=None
-        Plotted artists (e.g. `AxesImage`, `PathCollection`). Required for
-        the colorbar and the interactive ellipse. The element at
-        `params.reference_idx` is used.
+    img : AxesImage | None, optional, default=None
+        Plotted artists. Required for the colorbar and
+        interactive ellipses.
     ref_unit : astropy.units.UnitBase | astropy.units.StructuredUnit | None, optional, default=None
-        Reference unit for the colorbar label and for `axvline`/`axhline`.
-    labels : sequence | None
-        Plot labels. The legend is drawn only if this key is present,
-        `params.legend['legend']` is truthy, and the label at
-        `params.reference_idx` is not None.
+        Reference unit for the colorbar label.
+    label : sequence | None
+        Plot label. The legend is drawn only if this key is not None,
+        and `params.legend['legend']` is truthy.
     rasterized : bool, optional
         Forwarded to `add_colorbar`. Popped from `kwargs`.
     rotation_step : int | float, optional, default=5
@@ -244,8 +256,8 @@ def _apply_plot_utils(
     """
     # PRE SETTING AXIS LIMITS
     # -----------------------
-    if 'labels' in kwargs and params.legend.pop('legend'):
-        if kwargs['labels'][0] is not None:
+    if 'label' in kwargs and params.legend.pop('legend', None):
+        if kwargs['label'] is not None:
             legend(ax=ax, **params.legend)
 
     plot_ellipses(params.ellipses.pop('ellipses', None), ax)
@@ -253,25 +265,23 @@ def _apply_plot_utils(
         params.points.pop('points', None),
         ax=ax,
         order=params.array_order,
-        index_spec=params.index_spec
+        **params.points
     )
 
-    if params.compute_limits:
-        set_axis_limits(
-            x, y,
-            ax=ax,
-            **params.limits
-        )
+
+    set_limits(
+        ax=ax,
+        **params.limits
+    )
 
     # POST SETTING AXIS LIMITS
     # ------------------------
     ax.tick_params(
-        axis='both',
-        which='major',
-        labelsize=params.ticklabel_fontsize,
+        labelsize=params.tick.pop('fontsize'),
+        **params.tick
     )
 
-    if title := params.title.pop('title', None):
+    if (title := params.title.pop('title', None)):
         set_title(
             title,
             ax=ax,
@@ -280,7 +290,7 @@ def _apply_plot_utils(
 
     labels = params.labels
 
-    label_fontsize = labels.pop('label_fontsize')
+    label_fontsize = labels.pop('fontsize')
     if isinstance(ax, WCSAxes):
         xlabel = labels.get('xlabel')
         if xlabel is None:
@@ -293,60 +303,51 @@ def _apply_plot_utils(
         ax.coords['dec'].set_ticklabel(rotation=90)
 
     else:
-        set_axis_labels(
-            x if x is not None else None,
-            y if y is not None else None,
+        _set_axis_labels(
+            x, y,
             ax=ax,
             fontsize=label_fontsize,
             **labels,
         )
 
-    if params.wcs_grid.pop('wcs_grid', None) and isinstance(ax, WCSAxes):
-        ax.coords.grid(
-            True,
-            zorder=config.zorder.wcs_grid,
-            **params.wcs_grid,
-        )
+    if params.wcsgrid.pop('wcsgrid', None) and isinstance(ax, WCSAxes):
+        wcsgrid(ax=ax, **params.wcsgrid)
 
     if params.gridlines.pop('gridlines', None):
-        ax.grid(
-            True,
-            zorder=config.zorder.gridlines,
-            **params.gridlines,
-        )
+        grid(ax=ax, **params.gridlines)
 
     if params.colorbar.pop('colorbar', None):
-        if im_list is not None and _has_color_mapping(_cycle(im_list, params.reference_idx)):
+        if img is not None and _has_color_mapping(img):
             cparams = params.colorbar
-            cbar_unit = unit_2_string(ref_unit, fmt=config.unit_label_format)
-            clabel = (
-                cparams['cbar_label'] if isinstance(cparams['cbar_label'], str) else
-                cbar_unit if cparams['cbar_label'] else None
+            cbar_unit = unit_2_string(
+                ref_unit, fmt=config.unit_label_format
             )
+            cb = cparams.pop('label', None)
+            if isinstance(cb, str):
+                clabel = cb
+            elif config.colorbar.label:
+                clabel = unit_2_string(ref_unit, fmt=config.unit_label_format)
+            else:
+                clabel = None
             add_colorbar(
-                _cycle(im_list, params.reference_idx),
+                img,
                 ax=ax,
                 label=clabel,
                 rasterized=kwargs.pop('rasterized', _UNSET),
                 **cparams
             )
 
-    axvline(params.vlines, ax, ref_unit)
-    axhline(params.hlines, ax, ref_unit)
+    axvlines(params.vlines.pop('vlines', None), ax=ax, **params.vlines)
+    axhlines(params.hlines.pop('hlines', None), ax=ax, **params.hlines)
 
-    if params.ellipses.pop('plot_ellipse', None) and im_list is not None:
-        im = _cycle(im_list, params.reference_idx)
-        data = im.get_array()
-        if data is not None:
-            if data.ndim == 2:
-                X, Y = data.shape
-            else:
-                X, Y = data.shape[-2:]
-            center = X//2, Y//2
-            w = X//5
-            h = Y//5
+    if params.ellipses.pop('plot_ellipse', None) and img is not None:
+        geometry = _default_ellipse_geometry(img)
+        if geometry is not None:
+            center, w, h = geometry
             plot_interactive_ellipse(
-                center, w, h, ax, params.text.get('loc'),
-                params.text.get('color'), params.text.get('highlight'),
-                rotation_step=kwargs.get('rotation_step', 5)
+                center, w, h, ax,
+                params.text.get('loc'),
+                params.text.get('color'),
+                params.text.get('highlight'),
+                rotation_step=kwargs.get('rotation_step', 5),
             )

@@ -19,8 +19,8 @@ from visualastro.core.config import (
 def add_colorbar(
     im: ScalarMappable,
     ax: maxes.Axes,
-    cbar_width: float | _Unset = _UNSET,
-    cbar_pad: float | _Unset = _UNSET,
+    width: float | _Unset = _UNSET,
+    pad: float | _Unset = _UNSET,
     label: str | None = None,
     fontsize: float | _Unset = _UNSET,
     tick_which: Literal['major', 'minor', 'both'] | _Unset = _UNSET,
@@ -38,10 +38,10 @@ def add_colorbar(
         a plotting function (e.g., 'imshow', 'scatter', etc...).
     ax : matplotlib.axes.Axes
         The axes to which the colorbar will be attached.
-    cbar_width : float | _Unset, optional, default=_UNSET
+    width : float | _Unset, optional, default=_UNSET
         Width of the colorbar in figure coordinates.
         If `_UNSET`, uses `config.colorbar.width`.
-    cbar_pad : float | _Unset, optional, default=_UNSET
+    pad : float | _Unset, optional, default=_UNSET
         Padding between the main axes and the colorbar
         in figure coordinates. If `_UNSET`, uses `config.colorbar.pad`.
     label : str, optional, default=None
@@ -65,8 +65,8 @@ def add_colorbar(
         significantly reduce file size for complex plots.
         If `_UNSET`, uses `config.rasterized`
     """
-    cbar_width = _resolve_default(cbar_width, config.colorbar.width)
-    cbar_pad = _resolve_default(cbar_pad, config.colorbar.pad)
+    width = _resolve_default(width, config.colorbar.width)
+    pad = _resolve_default(pad, config.colorbar.pad)
     fontsize = _resolve_default(
         fontsize, config.fontsizes.resolve('colorbar_label')
     )
@@ -80,8 +80,8 @@ def add_colorbar(
     fig = ax.figure
     cax = fig.add_axes(
         [
-            ax.get_position().x1+cbar_pad, ax.get_position().y0,
-            cbar_width, ax.get_position().height
+            ax.get_position().x1+pad, ax.get_position().y0,
+            width, ax.get_position().height
         ]
     )
 

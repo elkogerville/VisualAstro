@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Audrey Whitmer
 Date Created: 2026-07-17
-Date Modified: 2026-07-31
+Date Modified: 2026-10-28
 Description:
     All optional dependencies are registered here.
     To register an optional dependency in VisualAstro,
@@ -13,6 +13,7 @@ Description:
     the top of each file that imports a type:
         `from __future__ import annotations`
 """
+
 import warnings
 
 from visualastro.optional_dependencies._cmasher import _CMASHER_DEP

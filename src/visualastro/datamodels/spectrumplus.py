@@ -16,7 +16,7 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
 
-from visualastro.core.config import get_config_value
+from visualastro.core.config import config, _resolve_default
 from visualastro.core.units import (
     ensure_common_unit,
     to_spectral_region,
@@ -141,8 +141,8 @@ class SpectrumPlus:
     ):
         _require_dependency('specutils')
         fit_method = kwargs.pop('fit_method', None)
-        fit_method = get_config_value(
-            fit_method, 'spectrum_continuum_fit_method'
+        fit_method = _resolve_default(
+            fit_method, config.spectrum_continuum_fit_method
         )
         region = kwargs.pop('region', None)
         region: SpectralRegion | None = to_spectral_region(region)

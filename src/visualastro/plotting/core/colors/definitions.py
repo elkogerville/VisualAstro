@@ -1,19 +1,16 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-23
+Date Modified: 2026-10-28
 Description:
     VisualAstro color definitions.
 """
 
-from typing import TypeAlias
 import matplotlib as mpl
 from matplotlib.colors import TABLEAU_COLORS
 from matplotlib.typing import ColorType
 
-
-RGBTuple: TypeAlias = tuple[float, float, float]
-RGBATuple: TypeAlias = tuple[float, float, float, float]
+from visualastro.plotting.core.colors.transforms import _soup_of_the_day
 
 
 # ##########################
@@ -52,6 +49,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'MSG': ['#483D8B', '#D81B60', '#DBB0FF', '#26DCBA', '#7D7FF3', '#CFE23C'],
     'MSGII': ['#DC267F', '#7D7FF3', '#483D8B', '#26DCBA', '#DBB0FF', '#CFE23C'],
     'MSG_seq': ['#483d8b', '#7d7ff3', '#dbb0ff', '#D81B60', '#26dcba', '#cfe23c'],
+    'royal': ['#4029BE', '#80537F', '#BF7C3F', '#FFA300', '#FF5200', '#FF2800'],
     'cardstock_dark': ['#000080', '#668035', '#187218', '#991D1B', '#992391', '#4E6767'],
     'cardstock_light': ['#9FD8FB', '#AED75B', '#BDDCBD', '#FB998E', '#E177AB', '#CDCDCD'],
     'crayons': [
@@ -73,6 +71,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'default': list(TABLEAU_COLORS.values()),
     'ibm': ['#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'],
+    'ibmII': ['#7097FD', '#4328C3', '#FFB000', '#FE6100', '#DC267F'],
     'ibm_contrast': [
         '#648FFF', '#DC267F', '#785EF0', '#26DCBA', '#FFB000', '#FE6100'
     ],
@@ -148,6 +147,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tab20b': mpl.color_sequences['tab20b'],
 }
 
+# dict[alias: canonical name]
 COLORSET_ALIASES = {
     'va': 'visualastro',
     'vb': 'ditto',
@@ -172,6 +172,9 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'nebula': '#9FB7FF',
     'unicorn': '#DBB0FF',
     'pondwater': '#CFE23C',
+    'bubbleyum': '#FF1493',
+    'bubblegum': '#FB7AC8',
+    'celeste': '#00BFFF',
     'ibmpur': '#785EF0',
     'ibmpnk': '#DC267F',
     'ibmblu': '#648FFF',
@@ -188,7 +191,8 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'metis merlot': '#7B1242',
     'worm of the day': '#B577AC',
     'worm of the night': '#75415C',
-    'soup of the day': '#848A21',
+    'soup of the day': _soup_of_the_day(),
+    'borscht': '#E80063',
     'melocoton': '#FFAF19',
     'Holy Grey': '#555555',
     'Holy Blue': '#5555FF',
@@ -209,8 +213,36 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'G train': '#72B444',
     '7 train': '#AD3F97',
     'T train': '#00ABCD',
-    'ethernet orange' : '#FB7A1F',
-    'ethernet green' : '#10A807',
-    'ethernet blue' : '#1177F7',
-    'ethernet brown' : '#85450c',
+    'SBB': '#E30613',
+    'ethernet orange': '#FB7A1F',
+    'ethernet green': '#10A807',
+    'ethernet blue': '#1177F7',
+    'ethernet brown': '#85450c',
+    'Jarate': '#FEED86',
+}
+
+# dict[alias: canonical name]
+NAMED_COLOR_ALIASES = {
+    'E train': 'A train',
+    '1 train': '3 train',
+    '2 train': '3 train',
+    '5 train': '4 train',
+    '6 train': '4 train',
+    'B train': 'F train',
+    'D train': 'F train',
+    'M train': 'F train',
+    'N train': 'Q train',
+    'R train': 'Q train',
+    'Z train': 'J train',
+    'S train': 'L train',
+    'CFF': 'SBB',
+    'FFS': 'SBB',
+    'борщ': 'borscht',
+    'laserlemon': 'laser lemon',
+    'batterychargedblue': 'battery charged blue',
+    'soupoftheday': 'soup of the day',
+    'wormoftheday': 'worm of the day',
+    'wormofthenight': 'worm of the night',
+    'pond water': 'pondwater',
+    'joseph roddy': 'jarate',
 }

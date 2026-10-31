@@ -19,7 +19,6 @@ import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 
 from visualastro.core.config import (
-    get_config_value,
     config,
     _Unset,
     _UNSET,
@@ -237,18 +236,22 @@ def write_cube_2_fits(cube, filename, overwrite=False):
         fits.writeto(output_name, cube[i], overwrite=overwrite)
 
 
-def save_array(arr, filename, fmt=None):
+def save_array(
+    arr: NDArray,
+    filename: str,
+    fmt: Literal['dat', 'csv', 'npy', 'txt'] | _Unset = _UNSET
+):
     """
     Save a NumPy array to disk.
 
     Parameters
     ----------
-    arr : np.ndarray
+    arr : NDArray
         Array to be saved.
     filename : str
         Output filename. Should include the extension, otherwise
         the array will be saved according to `fmt`.
-    fmt : {'.dat', '.csv', '.npy', '.txt'} or None, optional, default=None
+    fmt : {'dat', 'csv', 'npy', 'txt'} | _Unset, optional, default=_UNSET
         Default output extension. Only used if filename has
         no extension. If None, uses
         `config.save_format`. The format is correctly recognized
@@ -261,11 +264,11 @@ def save_array(arr, filename, fmt=None):
     """
     VALID_EXTS = {'.dat', '.csv', '.npy', '.txt'}
 
-    fmt = get_config_value(fmt, 'save_format')
-    fmt = f".{fmt.lstrip('.')}"
+    savefmt = _resolve_default(fmt, config.save_format)
+    savefmt = f".{savefmt.lstrip('.')}"
 
-    if fmt not in VALID_EXTS:
-        raise ValueError(f"Invalid fmt '{fmt}'. Must be one of {VALID_EXTS}")
+    if savefmt not in VALID_EXTS:
+        raise ValueError(f"Invalid fmt '{savefmt}'. Must be one of {VALID_EXTS}")
 
     if not isinstance(arr, np.ndarray):
         raise TypeError('arr must be a NumPy ndarray!')
@@ -274,7 +277,7 @@ def save_array(arr, filename, fmt=None):
     ext = ext.lower()
 
     if ext == '':
-        filename = root + fmt
+        filename = root + savefmt
 
     if ext == '.npy':
         np.save(filename, arr)
