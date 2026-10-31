@@ -5,11 +5,13 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+from importlib.metadata import version as _pkg_version
 
 project = 'VisualAstro'
 copyright = '2026, Elko Gerville-Reache'
 author = 'Elko Gerville-Reache'
-release = '0.3.1'
+release = _pkg_version('visualastro')
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -21,12 +23,25 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
 ]
+
+# napoleon
 napoleon_numpy_docstring = True
 napoleon_google_docstring = False
+napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
+napoleon_attr_annotations = True
 
+# autodoc / autosummary
 autosummary_generate = True
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": False,
+    "show-inheritance": True,
+}
+autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+add_module_names = False
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -37,8 +52,6 @@ intersphinx_mapping = {
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
