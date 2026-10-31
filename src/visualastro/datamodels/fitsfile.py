@@ -111,29 +111,6 @@ class FitsFile:
     log: list of str
         List of each log output in primary_header['HISTORY']
 
-    Methods
-    -------
-    header_get(key)
-        Retrieve a value from the fits Header.
-    to(unit, equivalencies=None)
-        Convert the data unit. This method works for
-        `Quantities`, and returns a new FitsFile.
-    update(data=None, header=None, error=None, wcs=None)
-        Update any of the FitsFile attributes in place. All internally
-        stored values are recomputed. If data has units and header has
-        BUNIT, BUNIT will be automatically updated to match the data units.
-
-    Array Interface
-    ---------------
-    __array__
-        Return the underlying data as a Numpy array.
-    __get_item__
-        Return a slice of the data.
-    __len__()
-        Return the length of the first axis.
-    reshape(*shape)
-        Return a reshaped view of the data.
-
     Raises
     ------
     TypeError
@@ -551,11 +528,11 @@ class FitsFile:
         return len(self.data)
 
     def reshape(self, *shape):
-        """
+        r"""
         Return a reshaped view of the data.
         Parameters
         ----------
-        *shape : int
+        \*shape : int
             New shape for the data array.
         Returns
         -------

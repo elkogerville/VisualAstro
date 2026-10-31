@@ -94,13 +94,6 @@ class SpectrumPlus:
     unit : Astropy.Unit
         Unit of flux array.
 
-    Methods
-    -------
-    extract_region(region, return_single_spectrum=False)
-        Extract a subregion of the spectrum.
-    replace_flux_where(mask, values)
-        Replace flux values at selected locations.
-
     Array Interface
     ---------------
     __getattr__
@@ -691,7 +684,7 @@ class SpectrumPlus:
         self, *, spectrum=None, spectral_axis=None,
         flux=None, log_file=None, **kwargs
     ) -> Spectrum:
-        """
+        r"""
         Construct and return a Spectrum instance from either an existing spectrum
         or from spectral axis and flux arrays.
 
@@ -713,7 +706,7 @@ class SpectrumPlus:
             Flux values corresponding to `spectral_axis`. Must be provided together
             with `spectral_axis` if `spectrum` is not given.
 
-        **kwargs
+        \*\*kwargs : dict, optional
             Additional keyword arguments forwarded to the `Spectrum` constructor
             (e.g., velocity_convention, rest_value, wcs, radial_velocity. etc).
 

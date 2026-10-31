@@ -4,9 +4,8 @@ Date Created: 2025-05-23
 Date Modified: 2026-10-28
 """
 
-from importlib.metadata import version
-
-__version__ = version('visualastro')
+from importlib.metadata import version as _version
+__version__ = _version('visualastro')
 
 # core classes
 # ------------
