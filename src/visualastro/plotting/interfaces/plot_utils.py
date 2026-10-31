@@ -125,8 +125,6 @@ class PlotUtilParams:
             Point specification forwarded to `plot_points`.
     """
     array_order: Literal['C', 'c', 'F', 'f', 'fortran']
-    vlines: Sequence[float] | None
-    hlines: Sequence[float] | None
     fontsize: float
 
     legend: dict
@@ -136,6 +134,8 @@ class PlotUtilParams:
     tick: dict
     gridlines: dict
     wcsgrid: dict
+    vlines: dict
+    hlines: dict
     colorbar: dict
     text: dict
     ellipses: dict
@@ -151,8 +151,6 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
     """
     params = PlotUtilParams(
         array_order=_pop_kwargs(kwargs, 'array_order', config.array_order),
-        vlines=_pop_kwargs(kwargs, 'vlines', None),
-        hlines=_pop_kwargs(kwargs, 'hlines', None),
         fontsize=_pop_kwargs(kwargs, 'fontsize', config.fontsizes.size),
 
         legend=_pop_prefixed(kwargs, 'legend_', base='legend', default=True),
@@ -182,6 +180,8 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         gridlines=_pop_prefixed(
             kwargs, 'grid_', base='gridlines', default=config.gridlines.enable
         ),
+        vlines=_pop_prefixed(kwargs, 'vlines_', base='vlines', default=None),
+        hlines=_pop_prefixed(kwargs, 'hlines_', base='hlines', default=None),
         colorbar=_pop_prefixed(
             kwargs, 'cbar_', base='colorbar', default=config.colorbar.enable
         ),
@@ -337,8 +337,8 @@ def _apply_plot_utils(
                 **cparams
             )
 
-    axvlines(params.vlines, ax=ax)
-    axhlines(params.hlines, ax=ax)
+    axvlines(params.vlines.pop('vlines', None), ax=ax, **params.vlines)
+    axhlines(params.hlines.pop('hlines', None), ax=ax, **params.hlines)
 
     if params.ellipses.pop('plot_ellipse', None) and img is not None:
         geometry = _default_ellipse_geometry(img)
