@@ -143,32 +143,6 @@ class DataCube:
     log : list of str
         List of each log output in primary_header['HISTORY']
 
-    Methods
-    -------
-    header_get(key)
-        Retrieve a header value by key from one or multiple headers.
-        If a Header is missing a key, None is returned.
-    inspect(figsize=(10,6), style=None)
-        Plot the mean and standard deviation across each cube slice.
-        Useful for quickly identifying slices of interest in the cube.
-    reproject(
-        reference_wcs, method=None, return_footprint=None,
-        parallel=None, block_size=_UNSET
-    )
-        Reproject the data onto a new target WCS and return a new cube.
-    to(unit, equivalencies=None)
-        Convert the cube unit (flux unit). This method works for
-        `Quantities`, as well as `SpectralCube` flux units. To convert
-        spectral_units for `SpectralCubes` use `with_spectral_unit()`.
-        Returns a new cube.
-    with_mask(mask)
-        Apply a boolean mask to the cube. Works for both `Quantities`
-        and `SpectralCubes`. The original shape is preserved and
-        masked values are replaced with NaNs. Returns a new cube.
-    with_spectral_unit(unit, velocity_convention=None, rest_value=None)
-        Convert the cube spectral unit (wavelength, frequency, speed...).
-        This method only works for `SpectralCube` data. Returns a new cube.
-
     Array Interface
     ---------------
     __array__
@@ -177,7 +151,7 @@ class DataCube:
         Return a slice of the data.
     __len__()
         Return the length of the first axis.
-    reshape(*shape)
+    ``reshape(*shape)``
         Return a reshaped view of the data.
 
     Raises
@@ -657,7 +631,7 @@ class DataCube:
         annotate_peaks: bool = True,
         **kwargs
     ) -> None:
-        """
+        r"""
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
 
@@ -691,7 +665,7 @@ class DataCube:
             If `True`, will annotate the index of the peaks.
         text_color : ColorType, optional, default=config.text_color
             Color of the annotations.
-        **kwargs :
+        \*\*kwargs :
             Additional keyword arguments passed directly to `scipy.signal.find_peaks`.
 
         Notes
@@ -1538,12 +1512,12 @@ class DataCube:
         return len(self.value)
 
     def reshape(self, *shape) -> NDArray:
-        """
+        r"""
         Return a reshaped view of the cube values.
 
         Parameters
         ----------
-        *shape : int
+        \*shape : int
             New shape for the data array.
 
         Returns
