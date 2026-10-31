@@ -222,6 +222,18 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
 
 # dict[alias: canonical name]
 NAMED_COLOR_ALIASES = {
+    'E train': 'A train',
+    '1 train': '3 train',
+    '2 train': '3 train',
+    '5 train': '4 train',
+    '6 train': '4 train',
+    'B train': 'F train',
+    'D train': 'F train',
+    'M train': 'F train',
+    'N train': 'Q train',
+    'R train': 'Q train',
+    'Z train': 'J train',
+    'S train': 'L train',
     'борщ': 'borscht',
     'laserlemon': 'laser lemon',
     'batterychargedblue': 'battery charged blue',
