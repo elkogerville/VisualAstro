@@ -31,6 +31,10 @@ dev = [
     "sphinx",
     "sphinx-rtd-theme",
 ]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
 images = [
     "regions",
     "reproject",
