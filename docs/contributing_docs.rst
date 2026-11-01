@@ -65,77 +65,103 @@ Add a narrative page (guide or tutorial)
 3. Store images in ``docs/_static/images/`` and reference them as
    ``/_static/images/<name>.png`` with an ``:alt:`` entry.
 
+
 .. _docstring-rules:
 
 Docstring rules
 ---------------
 
-Template for a function:
+Use numpy convention when writing docstrings. Use docstring enrichment for linking to other functions
+or writing math, tables, and any other documentation feature. A sample docstring is included below.
+
+Template Docstring
+^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   def func(
-       arg1: dtype1 | dtype2,
-       arg2: dtype1 | None = None,
-       *args: tuple,
-       **kwargs
-   ):
-       r"""
-       One-line summary.
+    def func(
+        *data: NDArray | u.Quantity,
+        axis: int = 0,
+        *args: tuple,
+        unit: str | u.UnitBase | None = None,
+        **kwargs
+    ):
+        r"""
+        One-line summary.
 
-       Extended description (optional).
+        Extended description. Cross-link objects inline:
+        :func:`~visualastro.load_fits`, :class:`~visualastro.DataCube`
+        :meth:`~visualastro.DataCube.to`
+        :class:`~astropy.units.Quantity`
 
-       Parameters
-       ----------
-       arg1 : dtype1 | dtype2
-           Description.
-       arg2 : dtype, optional, default=None
-           Description.
-       \*args : tuple
-           Description. If referenced, should be written
-           as ``*args`` to avoid an unterminated `*`.
-       \*\*kwargs : dict
-           Description.
+        Inline math: :math:`\sigma = \mathrm{FWHM} / 2.355`.
 
-       Returns
-       -------
-       dtype
-           Description.
+        Block math:
 
-       Raises
-       ------
-       ErrorType
-           Condition.
+        .. math::
 
-       See Also
-       --------
-       other_func : Short description.
+           F = \int_{\lambda_1}^{\lambda_2} f_\lambda \, d\lambda
 
-       Notes
-       -----
-       Caveats.
+        .. note::
+           Short callout for the reader.
 
-       Examples
-       --------
-       >>> import visualastro as va
-       """
+        .. warning::
+           Behavior that can silently produce wrong results.
 
-- NumPy convention. Multiple dtypes separated by ``|``:
-  ``var : dtype1 | dtype2, optional, default=value``.
-- Blank line before every section header
-  (``Parameters``, ``Returns``, ``See Also``, ``Notes``, ``Examples``).
-- Blank line before and after every list. Wrapped list lines align with the
-  text after the bullet.
-- Do not add ``Methods`` or ``Attributes`` sections to classes. Members are
-  documented from their own docstrings.
-- Literal code in double backticks: ````reshape(*shape)````.
-- Escape variadic parameter headers and use a raw docstring:
-  ``\*args : tuple``, ``\*\*kwargs : dict``, with ``r"""`` as the opening
-  delimiter.
-- Cross-references: ``:func:`~visualastro.load_fits```,
-  ``:class:`~visualastro.DataCube```,
-  ``:class:`~astropy.units.Quantity``` (intersphinx).
-- Examples use synthetic data so they run without local files.
+        Parameters
+        ----------
+        data : ndarray | astropy.units.Quantity
+            Input array. Can be either
+
+            - numpy.ndarray
+            - astropy.units.Quantity
+
+        axis : int, optional, default=0
+            Axis to operate on.
+        \*args : tuple
+            Passed to ````reshape(*args)````.
+        unit : str | astropy.units.Unit | None, optional, default=None
+            Output unit.
+        \*\*kwargs : dict
+            Forwarded to ``matplotlib.axes.Axes.plot``.
+
+        Returns
+        -------
+        Quantity
+            Description.
+
+        Raises
+        ------
+        ValueError
+            If ``axis`` is out of range.
+
+        Warns
+        -----
+        UserWarning
+            If ``data`` contains NaN.
+
+        See Also
+        --------
+        load_fits : Load an image or cube.
+        visualastro.DataCube : Cube container.
+
+        Notes
+        -----
+        - Implementation details and caveats.
+
+        Examples
+        --------
+        >>> import visualastro as va
+        >>> out = va.func(data)
+        """
+
+
+Classes
+*******
+
+Use the above rules for class docstrings. Do not add ``Methods`` or ``Attributes`` sections to classes.
+Members are documented from their own docstrings.
+
 
 Pre-commit checklist
 --------------------
