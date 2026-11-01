@@ -1,4 +1,4 @@
-name: Test VisualAstro core
+name: Tests
 
 on:
   push:
