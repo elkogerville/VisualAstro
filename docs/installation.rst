@@ -38,18 +38,26 @@ Optional Dependencies
 
 VisualAstro supports several optional add-on packages.
 
-**conda**
 
-.. code-block:: bash
+.. tab-set::
 
-    conda install -c conda-forge cmasher colorspacious dust_extinction regions reproject scienceplots spectral-cube specutils tqdm
-    pip install tol-colors
+   .. tab-item:: pip
 
-**pip**
+      .. code-block:: bash
 
-.. code-block:: bash
+         pip install cmasher colorspacious dust_extinction regions reproject scienceplots spectral-cube specutils tol-colors tqdm
 
-    pip install cmasher colorspacious dust_extinction regions reproject scienceplots spectral-cube specutils tol-colors tqdm
+   .. tab-item:: conda
+
+      .. code-block:: bash
+
+         conda install -c conda-forge cmasher colorspacious dust_extinction regions reproject scienceplots spectral-cube specutils tqdm
+
+   .. tab-item:: uv
+
+      .. code-block:: bash
+
+         uv pip install cmasher colorspacious dust_extinction regions reproject scienceplots spectral-cube specutils tol-colors tqdm
 
 .. note::
 
