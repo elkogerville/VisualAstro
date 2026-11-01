@@ -55,24 +55,25 @@ VisualAstro supports several optional add-on packages.
 
     ``tol-colors`` is not available on conda-forge.
 
+
 Color Utilities
 ~~~~~~~~~~~~~~~
 
-- ``cmasher``: Additional colormaps.
-- ``colorspacious``: Color blindness simulation and color space utilities.
-- ``tol-colors``: Paul Tol colorsets and colormaps.
+- `cmasher <https://github.com/1313e/CMasher>`__: Additional colormaps.
+- `colorspacious <https://github.com/njsmith/colorspacious>`__: Color blindness simulation and color space utilities.
+- `tol-colors <https://github.com/Descanonge/tol_colors>`__: Paul Tol colorsets and colormaps.
 
 Science Utilities
 ~~~~~~~~~~~~~~~~~
 
-- ``dust_extinction``: Dust extinction models.
-- ``regions``: Astropy Regions support.
-- ``reproject``: Astropy Reproject support.
-- ``spectral-cube``: Spectral cube support.
-- ``specutils``: Spectra analysis support.
-- ``tqdm``: Progress bars.
+- `dust_extinction <https://github.com/karllark/dust_extinction>`__: Dust extinction models.
+- `regions <https://github.com/astropy/regions>`__: Astropy Regions support.
+- `reproject <https://github.com/astropy/reproject>`__: Astropy Reproject support.
+- `spectral-cube <https://github.com/radio-astro-tools/spectral-cube>`__: Spectral cube support.
+- `specutils <https://github.com/astropy/specutils>`__: Spectra analysis support.
+- `tqdm <https://github.com/tqdm/tqdm>`__: Progress bars.
 
 Styles
 ~~~~~~
 
-- ``scienceplots``: Scientific matplotlib stylesheets. Requires a LaTeX installation.
+- `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific matplotlib stylesheets. Requires a LaTeX installation.
