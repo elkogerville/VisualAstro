@@ -56,3 +56,9 @@ Examples
     va.set_limits(ax=ax[1], xlim=(8200, 8400), recompute_other_axis=True)
 
     plt.show()
+
+
+.. image:: /_static/images/reference/plotting/recompute_limits.png
+    :scale: 50 %
+    :alt: effect of recompute_other_axis in set_limits
+    :align: center
