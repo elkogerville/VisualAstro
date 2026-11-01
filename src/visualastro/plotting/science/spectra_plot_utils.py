@@ -378,7 +378,7 @@ def spectral_lines(
     draw_hline: bool = False,
     **kwargs,
 ) -> None:
-    """
+    r"""
     Plot multiple spectral lines, grouped and colored by label.
 
     Parameters
@@ -388,6 +388,7 @@ def spectral_lines(
     labels : Sequence[str | None] | None, optional, default=None
         One label per wavelength; `None` entries are unlabeled.
     style : {'marker', 'vline'}, optional, default='vline'
+
         - `'marker'`: if `draw_hline=True`, lines sharing a label are
             drawn as one multi-prong marker with a single label.
             Unlabeled lines are drawn as individual markers. If
@@ -401,6 +402,7 @@ def spectral_lines(
         Scalar (broadcast) or per-line y-coordinate. Required in
         marker mode. If `draw_hline=True`, must be identical for all
         lines sharing a label.
+
         - style='marker': y-coordinate of the base of the markers (required).
         - style='vline': y-coordinate (data) of the label anchor.
           If None, labels anchor at the top of the axes.
@@ -430,7 +432,7 @@ def spectral_lines(
             connecting horizontal bar is omitted, grouping by label is
             disabled, and each line gets its own prong and label
             (equivalent to vline-mode labeling).
-    **kwargs
+    \*\*kwargs
         Forwarded to `spectral_line_marker`.
 
     Returns
