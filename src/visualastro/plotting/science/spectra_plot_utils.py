@@ -386,54 +386,55 @@ def spectral_lines(
     wavelengths : Sequence[float | astropy.units.Quantity] | astropy.units.Quantity | float
         Line positions. A scalar is treated as a single line.
     labels : Sequence[str | None] | None, optional, default=None
-        One label per wavelength; `None` entries are unlabeled.
+        One label per wavelength; ``None`` entries are unlabeled.
     style : {'marker', 'vline'}, optional, default='vline'
 
-        - `'marker'`: if `draw_hline=True`, lines sharing a label are
-            drawn as one multi-prong marker with a single label.
-            Unlabeled lines are drawn as individual markers. If
-            `draw_hline=False`, every line is drawn as an individual
-            marker with its own label.
-        - `'vline'`: one vertical line (and label) per wavelength.
+        - ``'marker'``: if ``draw_hline=True``, lines sharing a label are
+          drawn as one multi-prong marker with a single label.
+          Unlabeled lines are drawn as individual markers. If
+          ``draw_hline=False``, every line is drawn as an individual
+          marker with its own label.
+        - ``'vline'``: one vertical line (and label) per wavelength.
 
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axes on which to draw. If `None`, uses `plt.gca()`.
+        Axes on which to draw. If ``None``, uses ``plt.gca()``.
     y : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line y-coordinate. Required in
-        marker mode. If `draw_hline=True`, must be identical for all
+        marker mode. If ``draw_hline=True``, must be identical for all
         lines sharing a label.
 
-        - style='marker': y-coordinate of the base of the markers (required).
-        - style='vline': y-coordinate (data) of the label anchor.
-          If None, labels anchor at the top of the axes.
+        - ``style='marker'``: y-coordinate of the base of the markers (required).
+        - ``style='vline'``: y-coordinate (data) of the label anchor.
 
+          If None, labels anchor at the top of the axes.
     h : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line marker height. Required in
-        marker mode, ignored in vline mode. If `draw_hline=True`, must
+        marker mode, ignored in vline mode. If ``draw_hline=True``, must
         be identical for all lines sharing a label.
     color : ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None, optional, default=_UNSET
+
         - single color: applied to all lines.
-        - mapping `{label: color}`: per-label color; missing labels
+        - mapping ``{label: color}``: per-label color; missing labels
             fall back to the `spectral_line_marker` default.
         - sequence of colors: assigned to unique labels in order of
             first appearance, cycled if too short. Must be a `list`;
             a tuple of 3 or 4 numbers is read as one RGB(A) color.
 
-        `None` is treated as `_UNSET`. With a palette or mapping,
-        unlabeled lines use the `spectral_line_marker` default unless
-        `unlabeled_color` is given.
+        ``None`` is treated as ``_UNSET``. With a palette or mapping,
+        unlabeled lines use the ``spectral_line_marker`` default unless
+        ``unlabeled_color`` is given.
     unlabeled_color : ColorType | _Unset | None, optional, default=_UNSET
-        Color of lines without a label. Overrides `color` for those
-        lines, including when `color` is a single color. If `_UNSET`
-        or `None`, unlabeled lines follow `color` (single color) or the
-        `spectral_line_marker` default (palette or mapping).
+        Color of lines without a label. Overrides ``color`` for those
+        lines, including when ``color`` is a single color. If ``_UNSET``
+        or ``None``, unlabeled lines follow ``color`` (single color) or the
+        ``spectral_line_marker`` default (palette or mapping).
     draw_hline : bool, optional, default=True
-            Marker mode only; ignored in vline mode. If `False`, the
-            connecting horizontal bar is omitted, grouping by label is
-            disabled, and each line gets its own prong and label
-            (equivalent to vline-mode labeling).
+        Marker mode only; ignored in vline mode. If ``False``, the
+        connecting horizontal bar is omitted, grouping by label is
+        disabled, and each line gets its own prong and label
+        (equivalent to vline-mode labeling).
     \*\*kwargs
-        Forwarded to `spectral_line_marker`.
+        Forwarded to :func:`~visualastro.spectral_line_marker`.
 
     Returns
     -------
@@ -442,22 +443,26 @@ def spectral_lines(
     Raises
     ------
     TypeError
-        - `labels` is a `str`.
+        - ``labels`` is a ``str``.
     ValueError
-        - `style` is not `'marker'` or `'vline'`.
-        - `wavelengths` is empty.
-        - `len(labels) != len(wavelengths)`.
-        - `y` or `h` differ among lines sharing a label (marker mode).
-        - `color` is an empty sequence.
-        - `unlabeled_color` is not a valid color.
-        - Units are inconsistent among wavelengths, or among `y`/`h`.
-        - `y` or `h` differ among lines sharing a label
-          (marker mode, `draw_hline=True`).
+        - ``style`` is not ``'marker'`` or ``'vline'``.
+        - ``wavelengths`` is empty.
+        - ``len(labels) != len(wavelengths)``.
+        - ``y`` or ``h`` differ among lines sharing a label (marker mode).
+        - ``color`` is an empty sequence.
+        - ``unlabeled_color`` is not a valid color.
+        - Units are inconsistent among wavelengths, or among ``y``/``h``.
+        - ``y`` or ``h`` differ among lines sharing a label
+          (marker mode, ``draw_hline=True``).
+
+    See Also
+    --------
+
 
     Notes
     -----
-    - Modifies `ax` in place.
-    - Units of `wavelengths` and of `y`/`h` are checked separately,
+    - Modifies ``ax`` in place.
+    - Units of ``wavelengths`` and of ``y``/``h`` are checked separately,
       since they may differ (e.g. wavelength vs. flux).
     """
     style = str(style).lower()
