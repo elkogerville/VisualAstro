@@ -963,6 +963,8 @@ def _apply_limits(
       axis.
     """
     if xlim is None and ylim is None:
+        ax.margins(x=xpad, y=ypad)
+        ax.autoscale_view()
         return
 
     if xlim is not None:
