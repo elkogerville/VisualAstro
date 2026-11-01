@@ -71,8 +71,12 @@ Add a narrative page (guide or tutorial)
 Docstring rules
 ---------------
 
-Use numpy convention when writing docstrings. Use docstring enrichment for linking to other functions
-or writing math, tables, and any other documentation feature. A sample docstring is included below.
+- Use Numpy convention. See template docstring below for an example.
+- Use double backticks for literal text (i.e. ````var````)
+- Use single backticks for cross-references (i.e. ``:func:`~visualastro.spectral_line_marker```)
+- Escape variadic inputs (i.e. ``\*data`` or ``\*\*kwargs``)
+- Put a blank line before and after every list, directive, and code block. Omit only at the start or end of a docstring.
+
 
 Template Docstring
 ^^^^^^^^^^^^^^^^^^
@@ -113,11 +117,10 @@ Template Docstring
         data : ndarray | astropy.units.Quantity
             Input array. Can be either
 
-            - numpy.ndarray
+            - np.ndarray
             - astropy.units.Quantity
-
         axis : int, optional, default=0
-            Axis to operate on.
+            Axis to operate onto ``data``.
         \*args : tuple
             Passed to ````reshape(*args)````.
         unit : str | astropy.units.Unit | None, optional, default=None
