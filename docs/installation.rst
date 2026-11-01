@@ -23,14 +23,14 @@ Required Dependencies
 
       .. code-block:: bash
 
-        conda install -c conda-forge astropy matplotlib numpy scipy
-        pip install --no-deps visualastro
+         conda install -c conda-forge astropy matplotlib numpy scipy
+         pip install --no-deps visualastro
 
-    .. tab-item:: uv
+   .. tab-item:: uv
 
-        .. code-block:: bash
+      .. code-block:: bash
 
-        uv pip install visualastro
+         uv pip install visualastro
 
 
 Optional Dependencies
