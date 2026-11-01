@@ -64,11 +64,15 @@ VisualAstro supports several optional add-on packages.
     ``tol-colors`` is not available on conda-forge.
 
 
-Color Utilities
-~~~~~~~~~~~~~~~
+Colors and Styles
+~~~~~~~~~~~~~~~~~
+
+VisualAstro registers these optional packages with matplotlib when imported so they
+you can use the additional colors and styles without importing them.
 
 - `cmasher <https://github.com/1313e/CMasher>`__: Additional colormaps.
 - `colorspacious <https://github.com/njsmith/colorspacious>`__: Color blindness simulation and color space utilities.
+- `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific matplotlib stylesheets. Requires a LaTeX installation.
 - `tol-colors <https://github.com/Descanonge/tol_colors>`__: Paul Tol colorsets and colormaps.
 
 Science Utilities
@@ -80,8 +84,3 @@ Science Utilities
 - `spectral-cube <https://github.com/radio-astro-tools/spectral-cube>`__: Spectral cube support.
 - `specutils <https://github.com/astropy/specutils>`__: Spectra analysis support.
 - `tqdm <https://github.com/tqdm/tqdm>`__: Progress bars.
-
-Styles
-~~~~~~
-
-- `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific matplotlib stylesheets. Requires a LaTeX installation.
