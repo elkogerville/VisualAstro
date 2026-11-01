@@ -9,6 +9,11 @@ set_limits
 Examples
 --------
 
+If `recompute_other_axis=True`, and `xlim` is passed without `ylim` (or vice-versa),
+VisualAstro will apply 1D box clipping onto the other axis. This rescales the unset
+axis by only taking into account the portion of the data visible in the window set by
+limit passed in. The effects are illustrated in the plot below.
+
 .. code-block:: python
 
     import astropy.units as u
