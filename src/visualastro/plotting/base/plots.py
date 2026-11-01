@@ -1491,7 +1491,7 @@ def scatter_project(
     facecolors = to_list(params.facecolor)
     labels = to_list(params.label)
 
-    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
+    _configure_axes_scaling(ax, kwargs)
 
     sort_axis = {
         'x': 0,
@@ -1571,7 +1571,7 @@ def scatter_project(
     c_arr_sorted = c_arr[sorted_indeces]
     size_arr_sorted = size_arr[sorted_indeces]
 
-    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
+    _configure_axes_scaling(ax, kwargs)
 
     scatter = ax.scatter(
         pos_sorted[:, ax1], pos_sorted[:, ax2],
