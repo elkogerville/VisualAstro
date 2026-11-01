@@ -47,27 +47,15 @@ $ conda install -c conda-forge \
 Optional dependencies can also be installed if you plan to use related functionalities:
 ```
 $ conda install -c conda-forge \
-    colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
+    cmasher colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
 ```
 And finally run:
 ```
 $ pip install visualastro
 ```
-For additional interactive functionality inside of jupyter lab:
-```
-$ conda install -c conda-forge ipympl ipywidgets jupyterlab
-```
-For classic jupyter notebook users:
-```
-$ conda install -c conda-forge ipympl ipywidgets notebook jupyter_server notebook-shim
-```
-
-NOTE: To ensure that interactive mode works in notebooks, first activate your conda environment and then run jupyter notebook!
-
 
 ## Documentation
-VisualAstro is still under development! A full documentation of the package's features is coming soon.
-
+Check out the [documentation](https://visualastro.readthedocs.io/en/latest/)!
 Check the [examples](examples/) folder for notebook tutorials!
 
 ## Dependencies
