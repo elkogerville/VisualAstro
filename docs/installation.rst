@@ -7,21 +7,31 @@ Requirements
 - Python >= 3.10
 - Use a virtual environment (``conda`` or ``venv``).
 
+
 Required Dependencies
 ---------------------
 
-**conda**
+.. tab-set::
 
-.. code-block:: bash
+   .. tab-item:: pip
 
-    conda install -c conda-forge astropy matplotlib numpy scipy
-    pip install --no-deps visualastro
+      .. code-block:: bash
 
-**pip** (dependencies are installed automatically)
+         pip install visualastro
 
-.. code-block:: bash
+   .. tab-item:: conda
 
-    pip install visualastro
+      .. code-block:: bash
+
+        conda install -c conda-forge astropy matplotlib numpy scipy
+        pip install --no-deps visualastro
+
+    .. tab-item:: uv
+
+        .. code-block:: bash
+
+        uv pip install visualastro
+
 
 Optional Dependencies
 ---------------------
