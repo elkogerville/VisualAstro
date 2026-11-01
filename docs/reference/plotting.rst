@@ -3,12 +3,11 @@ Plotting
 
 .. currentmodule:: visualastro
 
-Overview paragraph: what the plotting API covers and how the pieces fit.
+VisualAstro plotting modules.
+
 
 Axes and limits
 ---------------
-
-Short prose about axes handling.
 
 .. autosummary::
    :nosignatures:
@@ -21,6 +20,7 @@ Short prose about axes handling.
 
    plotting/axes/set_limits
    plotting/axes/set_title
+
 
 Legends
 -------
