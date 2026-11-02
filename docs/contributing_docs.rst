@@ -4,16 +4,20 @@ Documenting VisualAstro
 Requirements
 ------------
 
+Make sure VisualAstro is installed via a developer install by navigating into the
+package root:
+
 .. code-block:: bash
 
-   pip install -e ".[docs]"
+    cd visualastro/
+    pip install -e ".[docs]"
 
 Requires Python 3.11 and the packages listed under the ``docs`` extra in ``pyproject.toml``.
 
-Build Locally
--------------
+Building Locally
+----------------
 
-To create a clean build for scratch:
+To create a clean build from scratch:
 
 .. code-block:: bash
 
