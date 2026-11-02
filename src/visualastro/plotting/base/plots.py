@@ -28,7 +28,7 @@ from visualastro.core.data import get_value, to_list
 from visualastro.core.kwargs import (
     _kwarg, _param, _pop_kwargs, _resolve_kwargs
 )
-from visualastro.core.sequences import _cycle
+from visualastro.core.sequences import _cycle, match_length
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit, _get_xyplot_units
 from visualastro.plotting.core.axes import (
@@ -426,6 +426,8 @@ def hist(
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
+    plot_params.limits['recompute_other_axis'] = False
+
     ax = get_ax(ax, figsize=params.figsize)
 
     _resolve_color_kwargs(
@@ -453,6 +455,9 @@ def hist(
 
     if params.normalize:
         data = _normalize(data)
+
+    if isinstance((col := kwargs.get('color')), list) and isinstance(data, (list, tuple)):
+        kwargs['color'] = match_length(col, data)
 
     artists = ax.hist(
         get_value(data),
