@@ -8,7 +8,7 @@ Description:
 
 from collections.abc import Sequence
 
-from typing import Any, Literal
+from typing import Literal
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -22,14 +22,12 @@ from matplotlib.typing import ColorType
 import numpy as np
 
 from visualastro.core.config import config
-from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.data import as_list, to_list
 from visualastro.core.io import savefig as _savefig
-from visualastro.core.kwargs import _extract_kwargs, _params_from_explicit
 from visualastro.optional_dependencies._colorspacious import (
     deltaE as cs_deltaE
 )
-from visualastro.plotting.core.colormaps import get_cmap, get_norm
-from visualastro.plotting.core.colors.colors import get_color, get_colors
+from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,

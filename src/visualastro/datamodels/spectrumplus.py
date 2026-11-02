@@ -76,40 +76,6 @@ class SpectrumPlus:
         Region used to compute the continuum fit.
         Can be used to remove strong absorption/emission
         lines that can skew the fit.
-    log : list of str
-        List of each log output in primary_header['HISTORY']
-
-    Properties
-    ----------
-    spectral_axis : Quantity or SpectralAxis
-        Spectral axis array of the spectrum.
-    wavelength : Quantity or SpectralAxis
-        Spectral axis array of the spectrum converted to Angstroms.
-    frequency : Quantity or SpectralAxis
-        Spectral axis array of the spectrum converted to GHz.
-    flux : Quantity
-        Flux array of the spectrum.
-    spectral_unit : Astropy.Unit
-        Unit of spectral axis.
-    unit : Astropy.Unit
-        Unit of flux array.
-
-    Array Interface
-    ---------------
-    __getattr__
-        Delegate undefined attributes or methods
-        to the underlying `Spectrum` object.
-    __getitem__
-        Return a slice of the spectrum.
-    __mul__
-        Multiply the spectrum flux by a scalar factor.
-    __rmul__
-        Multiply a scalar value by the spectrum flux.
-    __truediv__
-        Divide the spectrum flux by a scalar factor.
-    __rtruediv__
-        Raise an error as dividing by the spectrum flux
-        is undefined behavior.
 
     Helper Methods
     --------------
@@ -706,7 +672,7 @@ class SpectrumPlus:
             Flux values corresponding to `spectral_axis`. Must be provided together
             with `spectral_axis` if `spectrum` is not given.
 
-        \*\*kwargs : dict, optional
+        **kwargs : dict, optional
             Additional keyword arguments forwarded to the `Spectrum` constructor
             (e.g., velocity_convention, rest_value, wcs, radial_velocity. etc).
 

@@ -71,46 +71,6 @@ class FitsFile:
         The WCS transformation extracted from the header, if valid.
     footprint : ndarray or None
 
-    Properties
-    ----------
-    value : np.ndarray
-        Raw numpy array of the data values.
-    quantity : Quantity
-        Quantity array of data values (values + astropy units).
-    unit : astropy.units.Unit or None
-        The physical unit of the data. Inferred from the input
-        `Quantity` or from the FITS header keyword `BUNIT`.
-    min : float
-        Minimum value in the data, ignoring NaNs.
-    max : float
-        Maximum value in the data, ignoring NaNs.
-    mean : float
-        Mean of all values in the data, ignoring NaNs.
-    median : float
-        Median of all values in the data, ignoring NaNs.
-    sum : float
-        Sum of all values in the data, ignoring NaNs.
-    std : float
-        Standard deviation of all values in the data, ignoring NaNs.
-    shape : tuple
-        Shape of the data array.
-    size : int
-        Total number of elements in the data array.
-    ndim : int
-        Number of dimensions.
-    dtype : numpy.dtype
-        Data type of the array elements.
-    len : int
-        Length of the first axis.
-    has_nan : bool
-        True if the data contains any NaN values.
-    itemsize : int
-        Size in bytes of each array element.
-    nbytes : int
-        Total memory footprint of the array in bytes.
-    log: list of str
-        List of each log output in primary_header['HISTORY']
-
     Raises
     ------
     TypeError
@@ -532,7 +492,7 @@ class FitsFile:
         Return a reshaped view of the data.
         Parameters
         ----------
-        \*shape : int
+        *shape : int
             New shape for the data array.
         Returns
         -------

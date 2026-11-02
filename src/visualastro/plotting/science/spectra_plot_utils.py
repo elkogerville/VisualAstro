@@ -433,7 +433,7 @@ def spectral_lines(
         connecting horizontal bar is omitted, grouping by label is
         disabled, and each line gets its own prong and label
         (equivalent to vline-mode labeling).
-    \*\*kwargs
+    **kwargs
         Forwarded to :func:`~visualastro.spectral_line_marker`.
 
     Returns

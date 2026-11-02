@@ -106,54 +106,6 @@ class DataCube:
     wcs : array-like of WCS or WCS
         WCS(s) associated with the data cube.
 
-    Properties
-    ----------
-    value : np.ndarray
-        Raw NumPy array of the cube values.
-    quantity : Quantity
-        Quantity array of data values (values + astropy units).
-    unit : astropy.units.Unit or None
-        Physical unit of the data if available.
-    min : float
-        Minimum value in the cube, ignoring NaNs.
-    max : float
-        Maximum value in the cube, ignoring NaNs.
-    mean : float
-        Mean of all values in the cube, ignoring NaNs.
-    median : float
-        Median of all values in the cube, ignoring NaNs.
-    sum : float
-        Sum of all values in the cube, ignoring NaNs.
-    std : float
-        Standard deviation of all values in the cube, ignoring NaNs.
-    shape : tuple
-        Shape of the cube (T, N, M).
-    size : int
-        Total number of elements in the cube.
-    ndim : int
-        Number of dimensions.
-    dtype : np.dtype
-        Data type of the array.
-    has_nan : bool
-        True if any element in the cube is NaN.
-    itemsize : int
-        Size of one array element in bytes.
-    nbytes : int
-        Total memory footprint of the data in bytes.
-    log : list of str
-        List of each log output in primary_header['HISTORY']
-
-    Array Interface
-    ---------------
-    __array__
-        Return the underlying data as a NumPy array.
-    __getitem__
-        Return a slice of the data.
-    __len__()
-        Return the length of the first axis.
-    ``reshape(*shape)``
-        Return a reshaped view of the data.
-
     Raises
     ------
     TypeError
@@ -171,6 +123,7 @@ class DataCube:
     Examples
     --------
     Load DataCube from fits file
+
     >>> cube = load_fits(filepath)
     >>> cube.data
     >>> cube.header
@@ -665,7 +618,7 @@ class DataCube:
             If `True`, will annotate the index of the peaks.
         text_color : ColorType, optional, default=config.text_color
             Color of the annotations.
-        \*\*kwargs :
+        **kwargs :
             Additional keyword arguments passed directly to `scipy.signal.find_peaks`.
 
         Notes
@@ -1517,7 +1470,7 @@ class DataCube:
 
         Parameters
         ----------
-        \*shape : int
+        *shape : int
             New shape for the data array.
 
         Returns

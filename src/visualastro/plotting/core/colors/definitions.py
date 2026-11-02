@@ -88,8 +88,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night': ['#719C95', '#9CD6CF', '#FFDA81', '#F3A169', '#8FB3D3', '#6B859C', '#435561'],
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
-    'mos': ['#96534f', '#d18249', '#978f48', '#4c676c', '#5685BE', '#524DAE'],
-    'doucus': [
+    'docus': [
         '#51251A', '#9F452F', '#C77D53', '#DCA96E', '#D6C792',
         '#CED1B1', '#A3A684', '#6F7F80', '#5970A5', '#4972E3'
     ],
