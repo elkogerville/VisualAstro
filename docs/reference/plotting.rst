@@ -13,13 +13,11 @@ Axes and limits
    :nosignatures:
 
    set_limits
-   set_title
 
 .. toctree::
    :hidden:
 
    plotting/axes/set_limits
-   plotting/axes/set_title
 
 
 Legends
