@@ -208,6 +208,77 @@ def _broadcast(
     return values
 
 
+def _broadcast_param(
+    value: Any,
+    n: int,
+    name: str | None = None,
+) -> list:
+    """
+    Expand a parameter into a list of length `n`, using type-based detection.
+
+    Only `list` and `numpy.ndarray` are treated as per-item sequences. All
+    other types, including tuples, are treated as a single value and repeated.
+    This keeps tuple-valued scalars (RGB(A) colors, dash patterns) intact.
+
+    Parameters
+    ----------
+    value : Any
+        Parameter to expand.
+        - `list` | `numpy.ndarray` (ndim > 0): one entry per item.
+        - Length-1 `list` | `numpy.ndarray`: its single entry is repeated `n` times.
+        - Anything else (str, tuple, number, `None`, 0-d array): repeated `n` times.
+    n : int
+        Required length of the returned list.
+    name : str | None, optional, default=None
+        Parameter name used in the error message. If `None`, 'value' is used.
+
+    Returns
+    -------
+    list
+        List of length `n`.
+
+    Raises
+    ------
+    ValueError
+        If `value` is a `list` or `numpy.ndarray` whose length is neither 1
+        nor `n`.
+
+    See Also
+    --------
+    _broadcast : Strict variant. Any non-scalar (per `np.ndim`), including
+        tuples, is treated as a sequence and must have length exactly `n`.
+
+    Notes
+    -----
+    - A length-1 sequence is broadcast so that callers which wrap scalars
+      into single-element lists (e.g. `color='k'` -> `['k']`) are handled.
+      This can mask genuine length mismatches when `n > 1`.
+    - Array-valued `astropy.units.Quantity` is a `numpy.ndarray` subclass and
+      is split into per-element `Quantity` objects.
+    - If `n == 0`, a length-1 input returns `[]`.
+
+    Examples
+    --------
+    >>> _broadcast_param('k', 3)
+    ['k', 'k', 'k']
+    >>> _broadcast_param((0.1, 0.2, 0.3), 2)
+    [(0.1, 0.2, 0.3), (0.1, 0.2, 0.3)]
+    >>> _broadcast_param(['r', 'g', 'b'], 3, 'color')
+    ['r', 'g', 'b']
+    >>> _broadcast_param(['k'], 3, 'color')
+    ['k', 'k', 'k']
+    >>> _broadcast_param(['r', 'g'], 3, 'color')
+    ValueError: len(color)=2, expected 1 or 3
+    """
+    if not isinstance(value, (list, np.ndarray)) or np.ndim(value) == 0:
+        return [value] * n
+    if len(value) == 1:
+        return [value[0]] * n
+    if len(value) != n:
+        raise ValueError(f"len({name or 'value'})={len(value)}, expected 1 or {n}")
+    return list(value)
+
+
 def _common_value(values, name, label):
     """
     Return the value shared by all entries of a group.
