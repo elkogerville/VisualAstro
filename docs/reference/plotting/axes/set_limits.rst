@@ -9,7 +9,7 @@ set_limits
 Examples
 --------
 
-Symmetric limits
+Symmetric Limits
 ^^^^^^^^^^^^^^^^
 
 In addition to ``xlim`` and ``ylim``, shared limits for both axes can be set with ``limits``.

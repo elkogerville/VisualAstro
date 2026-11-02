@@ -6,7 +6,7 @@ Plotting
 VisualAstro plotting modules.
 
 
-Axes and limits
+Axes and Limits
 ---------------
 
 .. autosummary::
@@ -34,7 +34,7 @@ Legends
    plotting/legends/legend
 
 
-Spectra utilities
+Spectra Utilities
 -----------------
 
 .. autosummary::

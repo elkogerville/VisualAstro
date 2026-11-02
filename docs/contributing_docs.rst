@@ -10,7 +10,7 @@ Requirements
 
 Requires Python 3.11 and the packages listed under the ``docs`` extra in ``pyproject.toml``.
 
-Build locally
+Build Locally
 -------------
 
 To create a clean build for scratch:
@@ -26,8 +26,8 @@ To create a clean build for scratch:
 - For new pages, renamed objects, ``conf.py`` or template changes: clean build as above.
 - The build must finish with 0 warnings.
 
-Document a new function or class
---------------------------------
+Documenting a New Function or Class
+-----------------------------------
 
 1. Export it in ``src/visualastro/__init__.py``.
 2. Write a NumPy-style docstring (see :ref:`docstring-rules`).
@@ -47,8 +47,8 @@ Document a new function or class
 5. Rebuild and fix all warnings.
 
 
-Add a reference page
---------------------
+Adding a Reference Page
+-----------------------
 
 1. Create ``docs/reference/<topic>.rst`` with a title, a
    ``.. currentmodule:: visualastro`` line and one or more ``autosummary``
@@ -57,8 +57,8 @@ Add a reference page
 3. Run a clean build.
 
 
-Add a narrative page (guide or tutorial)
-----------------------------------------
+Adding a Guide or Tutorial
+--------------------------
 
 1. Create the ``.rst`` file in ``docs/`` or ``docs/tutorials/``.
 2. List it, without extension, in the nearest ``toctree``.
@@ -68,7 +68,7 @@ Add a narrative page (guide or tutorial)
 
 .. _docstring-rules:
 
-Docstring rules
+Docstring Rules
 ---------------
 
 - Use Numpy convention. See template docstring below for an example.
@@ -166,7 +166,7 @@ Use the above rules for class docstrings. Do not add ``Methods`` or ``Attributes
 Members are documented from their own docstrings.
 
 
-Pre-commit checklist
+Pre-Commit Checklist
 --------------------
 
 - Clean local build with 0 warnings.
