@@ -11,9 +11,10 @@ from typing import Literal
 
 import matplotlib as mpl
 
-from visualastro.plotting.core.colors import (
-    COLORSETS, COLORSET_ALIASES, plot_colors
+from visualastro.plotting.core.colors.definitions import (
+    COLORSETS, COLORSET_ALIASES
 )
+from visualastro.plotting.core.colors.plots import plot_colors
 
 
 class Colorsets:
