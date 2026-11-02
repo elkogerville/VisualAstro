@@ -488,7 +488,7 @@ class FitsFile:
         return len(self.data)
 
     def reshape(self, *shape):
-        r"""
+        """
         Return a reshaped view of the data.
         Parameters
         ----------

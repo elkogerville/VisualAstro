@@ -378,7 +378,7 @@ def spectral_lines(
     draw_hline: bool = False,
     **kwargs,
 ) -> None:
-    r"""
+    """
     Plot multiple spectral lines, grouped and colored by label.
 
     Parameters

@@ -650,7 +650,7 @@ class SpectrumPlus:
         self, *, spectrum=None, spectral_axis=None,
         flux=None, log_file=None, **kwargs
     ) -> Spectrum:
-        r"""
+        """
         Construct and return a Spectrum instance from either an existing spectrum
         or from spectral axis and flux arrays.
 

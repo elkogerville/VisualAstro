@@ -584,7 +584,7 @@ class DataCube:
         annotate_peaks: bool = True,
         **kwargs
     ) -> None:
-        r"""
+        """
         Plot the mean and standard deviation across each cube slice.
         Useful for quickly identifying slices of interest in the cube.
 
@@ -1465,7 +1465,7 @@ class DataCube:
         return len(self.value)
 
     def reshape(self, *shape) -> NDArray:
-        r"""
+        """
         Return a reshaped view of the cube values.
 
         Parameters
