@@ -23,7 +23,6 @@ va.plot(
     show_physical_type=True
 )
 
-
 va.spectral_lines(
     [8318, 8323, 8378, 8488.6, 8532.44, 8652.52, 8679], y=0.4e4,
     labels=[None, None, None, 'Ca II', 'Ca II', 'Ca II', None],
@@ -32,4 +31,5 @@ va.spectral_lines(
     unlabeled_color='grey',
     lw=1
 )
+
 plt.show()

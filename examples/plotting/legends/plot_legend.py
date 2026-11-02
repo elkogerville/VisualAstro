@@ -40,12 +40,12 @@ va.hist(
     bimodal,
     ax=ax[0,0],
     label='bimodal', color='k',
-    legend_loc='upper right',
     vlines=[np.median(bimodal), np.mean(bimodal), np.std(bimodal)],
     vlines_color=['violetred', 'Holy Blue', 'ibmorg'],
     vlines_ls=['solid', 'dotted', 'dashed'],
     vlines_lw=1.5,
 )
+va.legend(ax=ax[0,0], loc='upper right')
 
 va.hist(
     [lognormal, bimodal],
@@ -55,9 +55,8 @@ va.hist(
     ax=ax[0,1],
     label=['lognorm', 'bimodal'],
     color=['r', 'b'],
-    legend_frameon=True,
-    legend_ec='k'
 )
+va.legend(ax=ax[0,1], frameon=True, ec='k')
 
 va.hist(
     nongauss,
@@ -66,14 +65,12 @@ va.hist(
     alpha=0.7,
     ax=ax[1,0],
     label=[r'$\psi$', r'$\phi$', r'$\lambda$', r'$\epsilon$', r'$\nu$'],
-    legend_frameon=True,
-    legend_ec='k',
-    legend_reverse=True,
-    legend_markerfirst=False,
-    legend_fancybox=True,
-    legend_loc='upper left',
     xlim=(-10,20),
 
+)
+va.legend(
+    ax=ax[1,0], frameon=True, ec='k', reverse=True,
+    markerfirst=False, fancybox=True, loc='upper left'
 )
 
 va.hist(
