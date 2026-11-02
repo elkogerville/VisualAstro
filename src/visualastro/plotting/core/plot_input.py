@@ -33,7 +33,7 @@ from visualastro.core.kwargs import (
 )
 from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
-from visualastro.plotting.core.colors.utils import _is_color_sequence
+from visualastro.plotting.core.colors.utils import _is_color_sequence, _is_colorset
 
 
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
@@ -676,7 +676,7 @@ def _resolve_color_kwargs(
     def _convert(value: Any) -> Any:
         if isinstance(value, str) and value == 'none' or value == 'face':
             return value
-        if allow_color_sequences and _is_color_sequence(value):
+        if allow_color_sequences and (_is_color_sequence(value) or _is_colorset(value)):
             return get_colors(value, **modifiers)
         return get_color(value, **modifiers)
 
