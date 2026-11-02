@@ -1,6 +1,7 @@
 Documenting VisualAstro
 =======================
 
+
 Requirements
 ------------
 
@@ -13,6 +14,7 @@ package root:
     pip install -e ".[docs]"
 
 Requires Python 3.11 and the packages listed under the ``docs`` extra in ``pyproject.toml``.
+
 
 Building Locally
 ----------------
@@ -29,6 +31,7 @@ To create a clean build from scratch:
 - For docstring or file content edits only: ``make html``.
 - For new pages, renamed objects, ``conf.py`` or template changes: clean build as above.
 - The build must finish with 0 warnings.
+
 
 Documenting a New Function or Class
 -----------------------------------
@@ -75,12 +78,52 @@ Adding a Guide or Tutorial
 Docstring Rules
 ---------------
 
-- Use Numpy convention. See template docstring below for an example.
-- Use double backticks for literal text (i.e. ````var````)
-- Use single backticks for cross-references (i.e. ``:func:`~visualastro.spectral_line_marker```)
-- Escape variadic inputs (i.e. ``\*data`` or ``\*\*kwargs``)
-- Put a blank line before and after every list, directive, and code block. Omit only at the start or end of a docstring.
+- Use numpydoc convention (parsed by ``sphinx.ext.napoleon``). See :ref:`template docstring <template docstring>`.
 
+- Literal text: double backticks, e.g. ````var````.
+
+- Cross-references: use explicit roles with the target in single backticks, e.g. :func:`~visualastro.load_fits`.
+
+  - Roles: ``:func:``, ``:class:``, ``:meth:``, ``:attr:``, ``:mod:``.
+  - Use fully qualified names for external objects (``astropy.units.Quantity``, ``numpy.ndarray``).
+
+- Variadics:
+
+  - In ``Parameters``: write ``*args`` and ``**kwargs`` unescaped. Napoleon escapes them.
+  - In prose: use double backticks (e.g. ``reshape(*args)``). Bare ``*args`` is parsed as emphasis.
+
+- Types: ``dtype1 | dtype2, optional, default=value``.
+
+  - Use resolvable names.
+  - ``optional`` means the parameter has a default value.
+
+- Blank lines: one before and after every list, directive, and code block, including between a list in a parameter description and the next parameter. Omit only at the start or end of the docstring.
+
+- Directives (``.. note::``, ``.. warning::``, ``.. math::``): blank line after the directive line, body indented.
+
+- Use ``r"""`` only if the docstring contains backslashes (e.g. ``:math:``). Otherwise use ``"""``.
+
+- Sections: use only napoleon section titles, in this order: summary, extended description, ``Parameters``, ``Returns``, ``Raises``, ``Warns``, ``See Also``, ``Notes``, ``Examples``.
+
+- Classes:
+
+  - The class docstring covers the class as a whole: summary, extended description,
+    ``Parameters`` (arguments of ``__init__``, which gets no docstring of its own),
+    ``Attributes``, ``Raises``, ``See Also``, ``Notes``, ``Examples``. Do not add
+    document anything that already has a docstring.
+  - ``Attributes``: only plain instance attributes that autodoc cannot see (set in
+    ``__init__``, no docstring of their own).
+  - Members (methods, properties, class-level attributes) document themselves.
+    Do not list or describe them in the class docstring; this causes duplicate-object warnings and drift.
+
+- Public members: every public method and property needs at least a one-line docstring.
+
+- Private functions (``_name``): not rendered by autodoc, so the rules are advisory.
+
+  - At minimum, write a one line sentence for standalone private functions.
+  - Keep the numpy section layout and type format
+
+.. _template docstring:
 
 Template Docstring
 ^^^^^^^^^^^^^^^^^^
@@ -98,9 +141,11 @@ Template Docstring
         One-line summary.
 
         Extended description. Cross-link objects inline:
-        :func:`~visualastro.load_fits`, :class:`~visualastro.DataCube`
-        :meth:`~visualastro.DataCube.to`
-        :class:`~astropy.units.Quantity`
+
+        - :func:`~visualastro.set_limits`
+        - :class:`~visualastro.Colorsets`
+        - :meth:`~visualastro.Colorsets.plot`
+        - :class:`~astropy.units.Quantity`
 
         Inline math: :math:`\sigma = \mathrm{FWHM} / 2.355`.
 
@@ -108,33 +153,34 @@ Template Docstring
 
         .. math::
 
-           F = \int_{\lambda_1}^{\lambda_2} f_\lambda \, d\lambda
+            F = \int_{\lambda_1}^{\lambda_2} f_\lambda \, d\lambda
 
         .. note::
-           Short callout for the reader.
+
+            Short callout for the reader.
 
         .. warning::
-           Behavior that can silently produce wrong results.
+
+            Behavior that can silently produce wrong results.
 
         Parameters
         ----------
-        data : ndarray | astropy.units.Quantity
-            Input array. Can be either
+        *data : numpy.ndarray | astropy.units.Quantity
+            One or more input arrays. Each can be either:
 
-            - np.ndarray
-            - astropy.units.Quantity
+            - ``numpy.ndarray``
+            - ``astropy.units.Quantity``
+
         axis : int, optional, default=0
-            Axis to operate onto ``data``.
-        \*args : tuple
-            Passed to ````reshape(*args)````.
-        unit : str | astropy.units.Unit | None, optional, default=None
+            Axis to operate on ``data``.
+        unit : str | astropy.units.UnitBase | None, optional, default=None
             Output unit.
-        \*\*kwargs : dict
-            Forwarded to ``matplotlib.axes.Axes.plot``.
+        **kwargs : dict
+            Forwarded to :meth:`matplotlib.axes.Axes.plot`.
 
         Returns
         -------
-        Quantity
+        astropy.units.Quantity
             Description.
 
         Raises
@@ -150,7 +196,7 @@ Template Docstring
         See Also
         --------
         load_fits : Load an image or cube.
-        visualastro.DataCube : Cube container.
+        astropy.units.Quantity : Array with attached units.
 
         Notes
         -----
@@ -161,13 +207,6 @@ Template Docstring
         >>> import visualastro as va
         >>> out = va.func(data)
         """
-
-
-Classes
-*******
-
-Use the above rules for class docstrings. Do not add ``Methods`` or ``Attributes`` sections to classes.
-Members are documented from their own docstrings.
 
 
 Pre-Commit Checklist
