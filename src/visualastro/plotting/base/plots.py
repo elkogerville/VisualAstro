@@ -308,6 +308,7 @@ def hist(
     range: tuple[float, float] | None = None,
     density: bool | _Unset = _UNSET,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
+    normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
     color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
     edgecolor: ColorType | Sequence[ColorType] | None = None,
@@ -352,6 +353,9 @@ def hist(
         If `_UNSET`, uses `config.normalize_hist`.
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Histogram type. If `_UNSET`, uses `config.histtype`.
+    normalize : bool | _Unset, optional, default=_UNSET
+        If ``True``, normalizes each entry in ``data`` by the maximum of the set.
+        If ``_UNSET``, uses ``config.normalize_hist``.
     align : {'left', 'mid', 'right'}, optional, default='mid'
         Horizontal alignment of bars relative to bin edges.
 
@@ -409,6 +413,7 @@ def hist(
         [
             _param('bins', bins, config.bins),
             _param('histtype', histtype, config.histtype),
+            _param('normalize', normalize, config.normalize_hist),
             _param('color', color, config.color),
             _param('density', density, config.normalize_hist),
             _param('label', label, None),
@@ -445,6 +450,9 @@ def hist(
     }
     kwargs.update({k: v for k, v in props.items() if v is not None})
     _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
+
+    if params.normalize:
+        data = _normalize(data)
 
     artists = ax.hist(
         get_value(data),
