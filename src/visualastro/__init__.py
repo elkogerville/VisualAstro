@@ -125,6 +125,7 @@ from visualastro.plotting.core.colormaps import (
     plot_cmap_lightness,
 )
 from visualastro.plotting.core.colors import (
+    Colorsets,
     as_color,
     darken_colors,
     desaturate_colors,
@@ -303,7 +304,7 @@ styles = _register_styles()
 
 # REGISTER COLORSETS
 # ------------------
-def _register_colorsets():
+def _register_colorsets() -> Colorsets:
     """Register VisualAstro colorsets with matplotlib."""
     import matplotlib as mpl
     from visualastro.plotting.core.colors import (
@@ -321,6 +322,7 @@ def _register_colorsets():
 
     return Colorsets()
 
+#: Ready-made instance of :class:`~visualastro.Colorsets`.
 colorsets = _register_colorsets()
 
 
