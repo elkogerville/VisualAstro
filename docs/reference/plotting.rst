@@ -20,6 +20,20 @@ Axes and Limits
    plotting/axes/set_limits
 
 
+Colorsets
+---------
+
+``va.colorsets`` is a ready-made instance of :class:`~visualastro.Colorsets`.
+
+.. autosummary::
+    :toctree: generated/
+
+    Colorsets
+
+.. autodata:: visualastro.colorsets
+    :no-value:
+
+
 Legends
 -------
 
