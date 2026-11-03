@@ -85,6 +85,47 @@ Plot only the colorsets in the range ``[min_length, max_length]``.
     :align: center
 
 
+Setting a Transform
+^^^^^^^^^^^^^^^^^^^
+
+You can set one of the supported color transforms to change all the colorsets automatically.
+
+
+.. literalinclude:: /../examples/plotting/colors/plot_colorset_transform.py
+    :language: python
+
+
+.. image:: /_static/images/reference/plotting/colorset_desaturate.png
+    :scale: 50 %
+    :alt: spectral_lines on spectral data
+    :align: center
+
+
+CVD Simulations
+^^^^^^^^^^^^^^^
+
+.. warning::
+
+   This requires the optional package ``colorspacious``. See :doc:`installation`.
+
+You can preview a colorset as it appears under altered color vision by
+passing ``cvd_type`` as ``'deuteranomaly'``, ``'protanomaly'``,
+``'tritanomaly'``, or ``'all'`` (``'d'``, ``'p'``, and ``'t'`` are also
+accepted). The ``colorspacious`` package simulates how a viewer with that
+color vision type would perceive the colorset. Use ``severity`` to set the
+strength of the effect (0 to 100, default 100).
+
+
+.. literalinclude:: /../examples/plotting/colors/plot_colorset_cvd.py
+    :language: python
+
+
+.. image:: /_static/images/reference/plotting/colorset_cvd.png
+    :scale: 50 %
+    :alt: spectral_lines on spectral data
+    :align: center
+
+
 Plotting All Colorsets
 ^^^^^^^^^^^^^^^^^^^^^^
 
