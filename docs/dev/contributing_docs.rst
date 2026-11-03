@@ -86,6 +86,7 @@ Docstring Rules
 
   - Roles: ``:func:``, ``:class:``, ``:meth:``, ``:attr:``, ``:mod:``.
   - Use fully qualified names for external objects (``astropy.units.Quantity``, ``numpy.ndarray``).
+  - Use ``~`` to omit the full path name.
 
 - Variadics:
 
