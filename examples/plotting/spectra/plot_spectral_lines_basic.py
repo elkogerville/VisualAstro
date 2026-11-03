@@ -27,7 +27,7 @@ va.spectral_lines(
     [8318, 8323, 8378, 8488.6, 8532.44, 8652.52, 8679], y=0.4e4,
     labels=[None, None, None, 'Ca II', 'Ca II', 'Ca II', None],
     label_anchor='left', label_offset_points=[6, 0],
-    color='k',
+    color='7 train',
     unlabeled_color='grey',
     lw=1
 )
