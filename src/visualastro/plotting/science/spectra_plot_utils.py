@@ -76,93 +76,93 @@ def spectral_line_marker(
     *x : float | astropy.units.Quantity
         X-coordinates of the spectral lines. At least one is required.
     y : float | astropy.units.Quantity | None, optional, default=None
-        - style='marker': y-coordinate of the base of the markers (required).
-        - style='vline': y-coordinate (data) of the label anchor.
-          If None, labels anchor at the top of the axes.
+        - ``style='marker'``: y-coordinate of the base of the markers (required).
+        - ``style='vline'``: y-coordinate (data) of the label anchor.
+          If ``None``, labels anchor at the top of the axes.
 
     h : float | astropy.units.Quantity | None, optional, default=None
-        Height of the markers. Required if `style='marker'`; ignored
-        if `style='vline'`.
+        Height of the markers. Required if ``style='marker'``; ignored
+        if ``style='vline'``.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axes on which to draw. If `None`, uses `plt.gca()`.
+        Axes on which to draw. If ``None``, uses ``plt.gca()``.
     style : {'marker', 'vline'}, optional, default='marker'
-        - `'marker'`: multi-prong marker delineating each line.
-        - `'vline'`: `ax.axvline` at each x-value, spanning the full
+        - ``'marker'``: multi-prong marker delineating each line.
+        - ``'vline'``: ``ax.axvline`` at each x-value, spanning the full
           axes height.
 
     label : str | Sequence[str | None] | None, optional, default=None
         Label text.
 
-        - `style='marker'`: `str` only; one label for the whole group.
-        - `style='vline'`: `str` is broadcast to every line; a
-          sequence must satisfy `len(label) == len(x)` and is paired
-          with `x` in the order given. Individual entries may be `None`
+        - ``style='marker'``: ``str`` only; one label for the whole group.
+        - ``style='vline'``: ``str`` is broadcast to every line; a
+          sequence must satisfy ``len(label) == len(x)`` and is paired
+          with ``x`` in the order given. Individual entries may be ``None``
           to skip a line.
 
     direction : {'up', 'down'} | _Unset, optional, default=_UNSET
         Direction in which the prongs point away from the connecting
-        hline. `'up'`: prongs extend upward from `y` to `y - h`;
-        `'down'`: from `y` to `y + h`. Marker mode only. If `_UNSET`, uses
-        `config.spectral_line_marker.marker_direction`.
+        hline. ``'up'``: prongs extend upward from ``y`` to ``y - h``;
+        ``'down'``: from ``y`` to ``y + h``. Marker mode only. If ``_UNSET``, uses
+        ``config.spectral_line_marker.marker_direction``.
     label_offset_points : tuple[float, float] | _Unset, optional, default=_UNSET
-        (dx, dy) label offset in points. The sign of `dy` is overridden
+        (dx, dy) label offset in points. The sign of ``dy`` is overridden
         so that the label always sits outside the marker (marker mode)
-        or below the top axes edge (vline mode). If `_UNSET`, uses
-        `config.spectral_line_marker.label_offset_points`.
+        or below the top axes edge (vline mode). If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_offset_points``.
     label_position : {'center', 'left', 'right'} | _Unset, optional, default=_UNSET
         Label position relative to the marker group (marker mode). If
-        `_UNSET`, uses `config.spectral_line_marker.label_position`.
+        ``_UNSET``, uses ``config.spectral_line_marker.label_position``.
     label_anchor : {'center', 'left', 'right', 'auto'} | _Unset, optional, default=_UNSET
-        Text horizontal alignment (matplotlib `ha`). If `'auto'`, equals
-        `label_position` in marker mode; in vline mode, `'left'` and
-        `'right'` are swapped so that text sits beside the line. If
-        `_UNSET`, uses `config.spectral_line_marker.label_anchor`.
+        Text horizontal alignment (matplotlib ``ha``). If ``'auto'``, equals
+        ``label_position`` in marker mode; in vline mode, ``'left'`` and
+        ``'right'`` are swapped so that text sits beside the line. If
+        ``_UNSET``, uses ``config.spectral_line_marker.label_anchor``.
     label_reference : {'marker', 'hline', 'auto'} | _Unset, optional, default=_UNSET
         Reference for label x-position (marker mode only).
 
-        - `'marker'`: marker x-extent (ignores hline extension).
-        - `'hline'`: hline x-extent (includes extension).
-        - `'auto'`: `'hline'` if `hline_extend` is not `None`, else
-          `'marker'`.
+        - ``'marker'``: marker x-extent (ignores hline extension).
+        - ``'hline'``: hline x-extent (includes extension).
+        - ``'auto'``: ``'hline'`` if ``hline_extend`` is not ``None``, else
+          ``'marker'``.
 
-        If `_UNSET`, uses `config.spectral_line_marker.label_reference`.
+        If ``_UNSET``, uses ``config.spectral_line_marker.label_reference``.
     rotation : float | _Unset, optional, default=_UNSET
-        Label rotation in degrees. If `_UNSET`, uses
-        `config.spectral_line_marker.label_rotation`.
+        Label rotation in degrees. If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_rotation``.
     draw_hline : bool, optional, default=True
-        Marker mode only. If `False`, only the vertical prongs are drawn
-        and the connecting horizontal bar is omitted. `hline_extend` is
+        Marker mode only. If ``False``, only the vertical prongs are drawn
+        and the connecting horizontal bar is omitted. ``hline_extend`` is
         then ignored, including for label placement
-        (`label_reference='hline'` and `'auto'` resolve to the prong
+        (``label_reference='hline'`` and ``'auto'`` resolve to the prong
         extent).
     hline_extend : float | astropy.units.Quantity | None, optional, default=None
-        Marker mode only. If `None`, the connector spans all x-values
-        (drawn only if `len(x) > 1`). Otherwise, the connector spans the
+        Marker mode only. If ``None``, the connector spans all x-values
+        (drawn only if ``len(x) > 1``). Otherwise, the connector spans the
         prongs and is extended by this distance in the direction set by
-        `label_position`:
+        ``label_position``:
 
-        - `'left'`: extends leftward from the leftmost x.
-        - `'right'`: extends rightward from the rightmost x.
-        - `'center'`: extends symmetrically about the center; the
+        - ``'left'``: extends leftward from the leftmost x.
+        - ``'right'``: extends rightward from the rightmost x.
+        - ``'center'``: extends symmetrically about the center; the
             connector never shrinks below the prong span.
 
     fontsize : float | _Unset, optional, default=_UNSET
-        Label font size. If `_UNSET`, uses `config.fontsizes.resolve('text')`.
+        Label font size. If ``_UNSET``, uses ``config.fontsizes.resolve('text')``.
     color : ColorType | _Unset, optional, default=_UNSET
-        Color of markers/lines and label text. If `_UNSET`, uses
-        `config.axline.color`.
+        Color of markers/lines and label text. If ``_UNSET``, uses
+        ``config.axline.color``.
     linewidth : float, optional, default=0.7
-        Linewidth of vlines/markers. If `_UNSET` uses
-        `config.spectral_line_marker.linewidth`.
+        Linewidth of vlines/markers. If ``_UNSET`` uses
+        ``config.spectral_line_marker.linewidth``.
     linestyle : LineStyleType, optional, default='dashed'
-        Linestyle of the vlines/markers. If `_UNSET` uses
-        `config.spectral_line_marker.marker_linestyle` if
-        `style='marker'` else `config.spectral_line_marker.vline_linestyle`
+        Linestyle of the vlines/markers. If ``_UNSET`` uses
+        ``config.spectral_line_marker.marker_linestyle`` if
+        ``style='marker'`` else ``config.spectral_line_marker.vline_linestyle``
     va : {'top', 'bottom', 'center'}, optional, default='top'
-        Vertical alignment of the label in `style='vline'`.
+        Vertical alignment of the label in ``style='vline'``.
     **kwargs
-        Additional keyword arguments passed to `ax.vlines`, `ax.hlines`
-        (marker mode) or `ax.axvline` (vline mode).
+        Additional keyword arguments passed to ``ax.vlines``, ``ax.hlines``
+        (marker mode) or ``ax.axvline`` (vline mode).
 
     Returns
     -------
@@ -171,17 +171,17 @@ def spectral_line_marker(
     Raises
     ------
     ValueError
-        - `style` is not `'marker'` or `'vline'`.
-        - No `x` values given.
-        - `y` or `h` missing in marker mode.
-        - `label` is a sequence in marker mode.
-        - `len(label) != len(x)` in vline mode.
+        - ``style`` is not ``'marker'`` or ``'vline'``.
+        - No ``x`` values given.
+        - ``y`` or ``h`` missing in marker mode.
+        - ``label`` is a sequence in marker mode.
+        - ``len(label) != len(x)`` in vline mode.
 
     Notes
     -----
-    - Modifies `ax` in place.
-    - `y`, `h`, `direction`, `draw_hline`, `hline_extend`, `label_reference` and
-      `label_position` have no effect in vline mode.
+    - Modifies ``ax`` in place.
+    - ``y``, ``h``, ``direction``, ``draw_hline``, ``hline_extend``, ``label_reference`` and
+      ``label_position`` have no effect in vline mode.
     - Vline labels are placed at the top of the axes (axes-fraction
       y = 1.0) via the x-axis blended transform.
     - Marker mode assumes a non-inverted y-axis.
@@ -378,7 +378,7 @@ def spectral_lines(
     draw_hline: bool = False,
     **kwargs,
 ) -> None:
-    r"""
+    """
     Plot multiple spectral lines, grouped and colored by label.
 
     Parameters
@@ -386,54 +386,55 @@ def spectral_lines(
     wavelengths : Sequence[float | astropy.units.Quantity] | astropy.units.Quantity | float
         Line positions. A scalar is treated as a single line.
     labels : Sequence[str | None] | None, optional, default=None
-        One label per wavelength; `None` entries are unlabeled.
+        One label per wavelength; ``None`` entries are unlabeled.
     style : {'marker', 'vline'}, optional, default='vline'
 
-        - `'marker'`: if `draw_hline=True`, lines sharing a label are
-            drawn as one multi-prong marker with a single label.
-            Unlabeled lines are drawn as individual markers. If
-            `draw_hline=False`, every line is drawn as an individual
-            marker with its own label.
-        - `'vline'`: one vertical line (and label) per wavelength.
+        - ``'marker'``: if ``draw_hline=True``, lines sharing a label are
+          drawn as one multi-prong marker with a single label.
+          Unlabeled lines are drawn as individual markers. If
+          ``draw_hline=False``, every line is drawn as an individual
+          marker with its own label.
+        - ``'vline'``: one vertical line (and label) per wavelength.
 
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axes on which to draw. If `None`, uses `plt.gca()`.
+        Axes on which to draw. If ``None``, uses ``plt.gca()``.
     y : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line y-coordinate. Required in
-        marker mode. If `draw_hline=True`, must be identical for all
+        marker mode. If ``draw_hline=True``, must be identical for all
         lines sharing a label.
 
-        - style='marker': y-coordinate of the base of the markers (required).
-        - style='vline': y-coordinate (data) of the label anchor.
-          If None, labels anchor at the top of the axes.
+        - ``style='marker'``: y-coordinate of the base of the markers (required).
+        - ``style='vline'``: y-coordinate (data) of the label anchor.
 
+          If ``None``, labels anchor at the top of the axes.
     h : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
         Scalar (broadcast) or per-line marker height. Required in
-        marker mode, ignored in vline mode. If `draw_hline=True`, must
+        marker mode, ignored in vline mode. If ``draw_hline=True``, must
         be identical for all lines sharing a label.
     color : ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None, optional, default=_UNSET
+
         - single color: applied to all lines.
-        - mapping `{label: color}`: per-label color; missing labels
+        - mapping ``{label: color}``: per-label color; missing labels
             fall back to the `spectral_line_marker` default.
         - sequence of colors: assigned to unique labels in order of
             first appearance, cycled if too short. Must be a `list`;
             a tuple of 3 or 4 numbers is read as one RGB(A) color.
 
-        `None` is treated as `_UNSET`. With a palette or mapping,
-        unlabeled lines use the `spectral_line_marker` default unless
-        `unlabeled_color` is given.
+        ``None`` is treated as ``_UNSET``. With a palette or mapping,
+        unlabeled lines use the ``spectral_line_marker`` default unless
+        ``unlabeled_color`` is given.
     unlabeled_color : ColorType | _Unset | None, optional, default=_UNSET
-        Color of lines without a label. Overrides `color` for those
-        lines, including when `color` is a single color. If `_UNSET`
-        or `None`, unlabeled lines follow `color` (single color) or the
-        `spectral_line_marker` default (palette or mapping).
+        Color of lines without a label. Overrides ``color`` for those
+        lines, including when ``color`` is a single color. If ``_UNSET``
+        or ``None``, unlabeled lines follow ``color`` (single color) or the
+        ``spectral_line_marker`` default (palette or mapping).
     draw_hline : bool, optional, default=True
-            Marker mode only; ignored in vline mode. If `False`, the
-            connecting horizontal bar is omitted, grouping by label is
-            disabled, and each line gets its own prong and label
-            (equivalent to vline-mode labeling).
-    \*\*kwargs
-        Forwarded to `spectral_line_marker`.
+        Marker mode only; ignored in vline mode. If ``False``, the
+        connecting horizontal bar is omitted, grouping by label is
+        disabled, and each line gets its own prong and label
+        (equivalent to vline-mode labeling).
+    **kwargs
+        Forwarded to :func:`~visualastro.spectral_line_marker`.
 
     Returns
     -------
@@ -442,22 +443,26 @@ def spectral_lines(
     Raises
     ------
     TypeError
-        - `labels` is a `str`.
+        - ``labels`` is a ``str``.
     ValueError
-        - `style` is not `'marker'` or `'vline'`.
-        - `wavelengths` is empty.
-        - `len(labels) != len(wavelengths)`.
-        - `y` or `h` differ among lines sharing a label (marker mode).
-        - `color` is an empty sequence.
-        - `unlabeled_color` is not a valid color.
-        - Units are inconsistent among wavelengths, or among `y`/`h`.
-        - `y` or `h` differ among lines sharing a label
-          (marker mode, `draw_hline=True`).
+        - ``style`` is not ``'marker'`` or ``'vline'``.
+        - ``wavelengths`` is empty.
+        - ``len(labels) != len(wavelengths)``.
+        - ``y`` or ``h`` differ among lines sharing a label (marker mode).
+        - ``color`` is an empty sequence.
+        - ``unlabeled_color`` is not a valid color.
+        - Units are inconsistent among wavelengths, or among ``y``/``h``.
+        - ``y`` or ``h`` differ among lines sharing a label
+          (marker mode, ``draw_hline=True``).
+
+    See Also
+    --------
+
 
     Notes
     -----
-    - Modifies `ax` in place.
-    - Units of `wavelengths` and of `y`/`h` are checked separately,
+    - Modifies ``ax`` in place.
+    - Units of ``wavelengths`` and of ``y``/``h`` are checked separately,
       since they may differ (e.g. wavelength vs. flux).
     """
     style = str(style).lower()
@@ -621,19 +626,19 @@ def mark_spectral_lines(
     ax : matplotlib.axes.Axes
         Axes to draw on.
     style : {'marker', 'vline'}, optional, default='marker'
-        If `'marker'`, plots a multi-prong marker delineating
-        each spectral peak location. If `'vline'`, plots a
+        If ``'marker'``, plots a multi-prong marker delineating
+        each spectral peak location. If ``'vline'``, plots a
         ax.axvline at the location of the peak of each line.
     labels : list[str] | None, optional, default=None
-        Line labels. If `None`, no labels shown. Can also be
-        `'auto'` to format from mu values.
+        Line labels. If ``None``, no labels shown. Can also be
+        ``'auto'`` to format from mu values.
     y_offset : u.Quantity | float | None, optional, default=None
         Offset to add to y-position.
     y_reference : {'peak'} | float, optional, default='peak'
         Base y-position for markers:
-        - `'peak'`: Use peak_height from fit
-        - `u.Quantity` | `float`: Start from `y=float`
-        - `Sequence[u.Quantity | float]`: Cycle through y-positions for each line
+        - ``'peak'``: Use peak_height from fit
+        - ``u.Quantity`` | ``float``: Start from ``y=float``
+        - ``Sequence[u.Quantity | float]``: Cycle through y-positions for each line
     style_cycle : list of dict or None, optional
         List of style dicts to cycle through for different lines.
         Each dict can contain color, linestyle, linewidth, etc.
@@ -741,56 +746,56 @@ def spectral_axis_label(
     ----------
     spectral_axis : SpectralAxis or Quantity
         Spectral axis array representing wavelength, frequency, or velocity.
-        Must have valid physical units convertible via `astropy.units.spectral()`
+        Must have valid physical units convertible via ``astropy.units.spectral()``
         equivalencies.
     idx : int | tuple[int, int] | None
         Index or index range specifying the slice:
 
-        - `i` → label corresponding to spectral_axis[i]
-        - `[i]` → label corresponding to spectral_axis[i]
-        - `[i, j]` → label corresponding to midpoint of spectral_axis[i:j]
-        - `None` → label corresponding to midpoint of entire spectral axis
+        - ``i`` → label corresponding to spectral_axis[i]
+        - ``[i]`` → label corresponding to spectral_axis[i]
+        - ``[i, j]`` → label corresponding to midpoint of spectral_axis[i:j]
+        - ``None`` → label corresponding to midpoint of entire spectral axis
 
     ax : matplotlib.axes.Axes
         Target matplotlib Axes on which the label will be rendered.
     ref_unit : u.UnitBase | u.StructuredUnit | str | None, optional, default=None
         Reference unit to which the spectral axis will be converted prior to
-        computing the label (e.g., `u.nm`, `u.AA`, `u.Hz`, `u.km/u.s`).
-        If None, uses the unit from `spectral_axis`.
+        computing the label (e.g., ``u.nm``, ``u.AA``, ``u.Hz``, ``u.km/u.s``).
+        If None, uses the unit from ``spectral_axis``.
     radial_vel : Quantity | float | None, optional, default=None
         Radial velocity used to Doppler-shift the spectral axis before computing
         the representative value. Must be velocity-compatible if provided.
     emission_line : str | None, optional, default=None
         Optional emission line identifier to include in the label
-        (e.g., `"H alpha"`, `"[O III]"`). If provided, this replaces the
+        (e.g., ``"H alpha"``, ``"[O III]"``). If provided, this replaces the
         default spectral symbol prefix.
     as_title : bool, optional, default=False
-        If True, render the label as the axes title. Otherwise, render as text
+        If ``True``, render the label as the axes title. Otherwise, render as text
         inside the axes.
     text_loc : tuple[float, float], optional
         Axes-relative coordinates (x, y) for text placement. Default is
-        `config.text_loc`.
+        ``config.text_loc``.
     text_color : str, optional
-        Text color. Default is `config.text_color`.
+        Text color. Default is ``config.text_color``.
     highlight : bool, optional
-        If True, draw a white background box behind the label text.
-        Default is `config.highlight`.
+        If ``True``, draw a white background box behind the label text.
+        Default is ``config.highlight``.
     unit_fmt : str | _Unset, optional, default=_UNSET
-        Format for unit rendering. Passed to `to_latex_unit`.
+        Format for unit rendering. Passed to ``to_latex_unit``.
 
-        Accepted options are `'latex'`, `'latex_inline'`, `'fits'`,
-        `'unicode'`, `'console'`, `'vounit'`, `'cds'`, `'ogip'`
+        Accepted options are ``'latex'``, ``'latex_inline'``, ``'fits'``,
+        ``'unicode'``, ``'console'``, ``'vounit'``, ``'cds'``, ``'ogip'``
 
-        If `_UNSET`, uses `config.unit_label_format`.
+        If ``_UNSET``, uses ``config.unit_label_format``.
     fontsize : float | _Unset, optional, default=_UNSET
-        Fontsize of spectral label. If `_UNSET`, uses
-        `config.fontsizes.text`, expressed as a scaling
-        factor relative to `config.fontsizes.size`.
+        Fontsize of spectral label. If ``_UNSET``, uses
+        ``config.fontsizes.text``, expressed as a scaling
+        factor relative to ``config.fontsizes.size``.
 
     Raises
     ------
     ValueError
-        If spectral_axis is None or does not have valid units.
+        If ``spectral_axis`` is ``None`` or does not have valid units.
     """
     text_loc = _resolve_default(text_loc, config.text_loc)
     text_color = _resolve_default(text_color, config.text_color)

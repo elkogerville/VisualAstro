@@ -8,7 +8,8 @@ Description:
 
 from collections.abc import Sequence
 
-from typing import Any, Literal
+from functools import partial
+from typing import Literal
 import matplotlib as mpl
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
@@ -21,15 +22,13 @@ import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 
-from visualastro.core.config import config
-from visualastro.core.data import as_list, get_value, to_list
+from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.data import as_list, to_list
 from visualastro.core.io import savefig as _savefig
-from visualastro.core.kwargs import _extract_kwargs, _params_from_explicit
 from visualastro.optional_dependencies._colorspacious import (
     deltaE as cs_deltaE
 )
-from visualastro.plotting.core.colormaps import get_cmap, get_norm
-from visualastro.plotting.core.colors.colors import get_color, get_colors
+from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
@@ -39,9 +38,11 @@ from visualastro.plotting.core.colors.transforms import simulate_colorblindness
 
 def plot_colors(
     color: ColorType | int | Sequence[ColorType] | None = None,
+    show_color_name: bool = True,
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+    factor: float | _Unset = _UNSET,
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
     severity: int = 100,
-    show_color_name: bool = True,
     width: float | int | None = 8,
     savefig: bool = False
 ) -> None:
@@ -53,15 +54,21 @@ def plot_colors(
     color : ColorType | int | Sequence[ColorType] | None, optional, default=None
         Plot each sequence of colors as a set of colored rectangle patches.
         If `None`, plots each colorset in VisualAstro.
+    show_color_name : bool, optional, default=True
+        If `True`, also plots the colorset name. Only applicable to VisualAstro
+        colorsets (as opposed to a sequence of colors).
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+        Method to modify the colors. If `None`, colors are unchanged.
+        If `_UNSET`, uses `config.color_transform`.
+    factor : float | _Unset, optional, default=_UNSET
+        Modification strength, see `get_colors`. If `_UNSET`, uses
+        `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
         Type of colorblindness to simulate. Can be shorthanded to
         `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
         If `None`, no colorblindness simulation is applied.
     severity : float, optional, default=100
         Severity of colorblindness. Must be < 100.
-    show_color_name : bool, optional, default=True
-        If `True`, also plots the colorset name. Only applicable to VisualAstro
-        colorsets (as opposed to a sequence of colors).
     width : float | int | None, optional, default=8
         Width of the colorset plot.
     savefig:
@@ -79,20 +86,25 @@ def plot_colors(
     Display the 'astro' colorset with all colorblindness simulations:
     >>> plot_colors('astro', cvd_type='all')
     """
+    _get_colors = partial(
+        get_colors,
+        transform=transform,
+        factor=factor,
+    )
     cvd_types = (
         ['deuteranomaly', 'protanomaly', 'tritanomaly'] if cvd_type == 'all'
         else ([cvd_type] if cvd_type else [])
     )
     if color is None:
         color_names = COLORSET_NAMES + ['random']
-        colorsets = [get_colors(c) for c in color_names]
+        colorsets = [_get_colors(c) for c in color_names]
     else:
         colors = as_list(color)
         if all(c in COLORSET_NAMES for c in colors):
             color_names = colors
-            colorsets = [get_colors(c) for c in colors]
+            colorsets = [_get_colors(c) for c in colors]
         else:
-            colorsets = [get_colors(color)]
+            colorsets = [_get_colors(color)]
             color_names = ['']*len(colorsets)
     pad = 0.1
     n_rows = len(colorsets) * (1 + len(cvd_types))

@@ -6,6 +6,7 @@ from .colors import (
     random_colors,
     sample_cmap,
 )
+from .colorsets import Colorsets
 from .definitions import (
     COLORSETS,
     COLORSET_ALIASES,

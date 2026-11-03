@@ -6,6 +6,7 @@ Description:
     Functions related to statistical analysis.
 """
 
+from collections.abc import Sequence
 from typing import Literal
 
 import astropy.units as u
@@ -16,7 +17,7 @@ from visualastro.core.units import get_unit, _has_unit
 
 
 def normalize(
-    data: NDArray | u.Quantity | list | tuple,
+    data: NDArray | u.Quantity | Sequence[NDArray | u.Quantity],
     method: Literal['max', 'min', 'mean', 'median'] = 'max',
 ) -> NDArray | u.Quantity | list:
     """
@@ -67,22 +68,25 @@ def normalize(
         )
 
     is_seq = isinstance(data, (list, tuple))
-    has_unit = isinstance(data, u.Quantity)
+
     if is_seq:
         has_unit = any(isinstance(d, u.Quantity) for d in data)
-        arr = u.Quantity(data) if has_unit else np.asarray(data, dtype=float)
+        to_arr = u.Quantity if has_unit else lambda d: np.asarray(d, dtype=float)
+        parts = [to_arr(d) for d in data]
+        norm = norm_method(np.concatenate([p.ravel() for p in parts]))
     else:
-        arr = data
+        parts = data
+        norm = norm_method(data)
 
-    norm = norm_method(arr)
     value = norm.value if isinstance(norm, u.Quantity) else norm
     if not np.isfinite(value) or value == 0:
         raise ValueError(f"Cannot normalize: reference value is {norm}.")
 
-    result = arr / norm
     if is_seq:
-        return result.tolist() if not has_unit else list(result)
-    return result
+        if has_unit:
+            return [(p / norm).to(u.dimensionless_unscaled) for p in parts]
+        return [p / norm for p in parts]
+    return data / norm
 
 
 def percent_difference(a: NDArray | u.Quantity, b: NDArray | u.Quantity) -> NDArray:

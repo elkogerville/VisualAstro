@@ -25,6 +25,8 @@ extensions = [
     "sphinx_design",
 ]
 
+default_role = "py:obj"
+
 # napoleon
 napoleon_numpy_docstring = True
 napoleon_google_docstring = False
@@ -41,7 +43,7 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 autodoc_member_order = "bysource"
-autodoc_typehints = "description"
+autodoc_typehints = "none"
 add_module_names = False
 
 intersphinx_mapping = {

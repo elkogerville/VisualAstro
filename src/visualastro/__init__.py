@@ -125,6 +125,7 @@ from visualastro.plotting.core.colormaps import (
     plot_cmap_lightness,
 )
 from visualastro.plotting.core.colors import (
+    Colorsets,
     as_color,
     darken_colors,
     desaturate_colors,
@@ -303,10 +304,12 @@ styles = _register_styles()
 
 # REGISTER COLORSETS
 # ------------------
-def _register_colorsets() -> None:
+def _register_colorsets() -> Colorsets:
     """Register VisualAstro colorsets with matplotlib."""
     import matplotlib as mpl
-    from visualastro.plotting.core.colors import COLORSETS, COLORSET_ALIASES
+    from visualastro.plotting.core.colors import (
+        COLORSETS, COLORSET_ALIASES, Colorsets
+    )
 
     registry = mpl.color_sequences
     for name, colors in COLORSETS.items():
@@ -317,7 +320,9 @@ def _register_colorsets() -> None:
         if alias not in registry and name in registry:
             registry.register(alias, registry[name])
 
-_register_colorsets()
+    return Colorsets()
+
+colorsets = _register_colorsets()
 
 
 # REGISTER NAMED COLORS

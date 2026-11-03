@@ -812,51 +812,59 @@ def set_limits(
     """
     Set the limits of a Matplotlib Axes.
 
-    If only one of `xlim` or `ylim` is provided, the limits of the other
+    If only one of ``xlim`` or ``ylim`` is provided, the limits of the other
     axis are recomputed from the data visible within the provided range.
     Matplotlib does not do this by itself. Call after all plotting calls.
 
     Parameters
     ----------
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axes to modify. If `None`, uses the current Axes.
+        Axes to modify. If ``None``, uses the current Axes.
     limits : float | tuple[float, float] | None, optional, default=None
-        Limits applied to both axes. Cannot be combined with `xlim` or `ylim`.
-        - If a scalar, sets `xlim = ylim = (-abs(limits), abs(limits))`.
-        - If a `tuple[float, float]`, sets `xlim = ylim = limits` as is.
+        Limits applied to both axes. Cannot be combined with ``xlim`` or ``ylim``.
 
-    xlim, ylim : tuple[float, float] | None, optional, default=None
-        X and Y-axis limits, applied as given (inverted limits invert the axis).
-        If only one is provided and `recompute_other_axis=True`, the limits of the other
-        axis are computed from the data visible within the provided range.
-        If both are provided, no computation is done.
-    xpad, ypad : float | None, optional, default=None
-        Fractional padding of the computed X and Y-axis limits. Must be finite
-        and `> -0.5`. If `None`, uses `ax.margins()[0]` and `ax.margins()[1]`.
-        - `xpad` is only used if `ylim` is provided without `xlim`.
-        - `ypad` is only used if `xlim` is provided without `ylim`.
-        - Both are ignored if `recompute_other_axis=False`, or if `limits` is given.
-        - Padding is never applied to user-provided limits.
+        - If a scalar, sets ``xlim = ylim = (-abs(limits), abs(limits))``.
+        - If a ``tuple[float, float]``, sets ``xlim = ylim = limits`` as is.
+
+    xlim : tuple[float, float] | None, optional, default=None
+        X-axis limits, applied as given (inverted limits invert the axis).
+        If only one of ``xlim``, ``ylim`` is provided and ``recompute_other_axis=True``,
+        the other axis limits are computed from the data visible within the
+        provided range. If both are provided, no computation is done.
+    ylim : tuple[float, float] | None, optional, default=None
+        Y-axis limits. See ``xlim``.
+    xpad : float | None, optional, default=None
+        Fractional padding of the computed X-axis limits. Must be finite
+        and ``> -0.5``. If ``None``, uses ``ax.margins()[0]``.
+
+        - Only used if ``ylim`` is provided without ``xlim``.
+        - Ignored if ``recompute_other_axis=False``, or if ``limits`` is given.
+        - Never applied to user-provided limits.
+
+    ypad : float | None, optional, default=None
+        Fractional padding of the computed Y-axis limits. Only used if ``xlim``
+        is provided without ``ylim``. Otherwise behaves as ``xpad``. If ``None``,
+        uses ``ax.margins()[1]``.
 
     recompute_other_axis : bool | _Unset, optional, default=_UNSET
-        If `True` and only one of `xlim` or `ylim` is provided, the limits
+        If ``True`` and only one of ``xlim`` or ``ylim`` is provided, the limits
         of the other axis are computed from the data visible within the
-        provided range. If `False`, only the provided limits are set and
-        the other axis is autoscaled by Matplotlib. Ignored if `limits` is
-        given or if both `xlim` and `ylim` are provided. If `_UNSET`,
-        uses `config.axes.recompute_other_axis`.
+        provided range. If ``False``, only the provided limits are set and
+        the other axis is autoscaled by Matplotlib. Ignored if ``limits`` is
+        given or if both ``xlim`` and ``ylim`` are provided. If ``_UNSET``,
+        uses ``config.axes.recompute_other_axis``.
 
     Returns
     -------
     xlim, ylim : tuple[float, float]
-        Limits on `ax` after the call.
+        Limits on ``ax`` after the call.
 
     Raises
     ------
     ValueError
-        If `limits` is combined with `xlim` or `ylim`.
-        If `limits` is not a scalar or a `tuple[float, float]`.
-        If `xpad` or `ypad` is not finite or is `<= -0.5`.
+        If ``limits`` is combined with ``xlim`` or ``ylim``.
+        If ``limits`` is not a scalar or a ``tuple[float, float]``.
+        If ``xpad`` or ``ypad`` is not finite or is ``<= -0.5``.
 
     Notes
     -----

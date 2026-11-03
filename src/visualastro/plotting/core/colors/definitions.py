@@ -88,7 +88,7 @@ COLORSETS: dict[str, list[ColorType]] = {
     'tmrw_night': ['#719C95', '#9CD6CF', '#FFDA81', '#F3A169', '#8FB3D3', '#6B859C', '#435561'],
     'tmrw_night_seq': ['#8FB3D3', '#6B859C', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
     '2mrw_nite': ['#9EACD2', '#7C859D', '#719C95', '#9CD6CF', '#FFDA81', '#F3A169'],
-    'doucus': [
+    'docus': [
         '#51251A', '#9F452F', '#C77D53', '#DCA96E', '#D6C792',
         '#CED1B1', '#A3A684', '#6F7F80', '#5970A5', '#4972E3'
     ],
@@ -145,12 +145,19 @@ COLORSETS: dict[str, list[ColorType]] = {
     ],
     'oit': ['#E69F00', '#56B4E9', '#D55E00', '#009E73', '#CC79A7'],
     'tab20b': mpl.color_sequences['tab20b'],
+    'mosaic': [
+        '#512747', '#8A5285', '#CC7FCC', '#264056', '#5685BE', '#95BFF0', '#253a1c',
+        '#465b41', '#739186', '#292356', '#524DAE', '#867EEE', '#5E3127', '#96534f',
+        '#CF847D', '#8d4f10', '#d18249', '#e1ab87', '#616221', '#978f48', '#B7B585',
+        '#223631', '#4c676c', '#9cb9c9', '#3A3F39', '#5A615A', '#777A80'
+    ],
 }
 
 # dict[alias: canonical name]
 COLORSET_ALIASES = {
     'va': 'visualastro',
     'vb': 'ditto',
+    'mozaic': 'mosaic'
 }
 
 COLORSET_NAMES = [key for key in COLORSETS.keys()]

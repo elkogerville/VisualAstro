@@ -20,6 +20,7 @@ from visualastro.core.array_types import _is_1d, _is_iterable
 from visualastro.core.config import config, _Unset, _UNSET
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param
+from visualastro.core.sequences import _broadcast_param
 from visualastro.plotting.core.axes import get_ax, get_wcsax
 
 
@@ -161,10 +162,10 @@ def _axlines(
     *coords: float | u.Quantity | Sequence[float | u.Quantity] | None,
     orientation: Literal['v', 'h'],
     ax: maxes.Axes | None = None,
-    color: ColorType | _Unset = _UNSET,
-    linestyle: LineStyleType | _Unset = _UNSET,
-    linewidth: float | _Unset = _UNSET,
-    alpha: float | _Unset = _UNSET,
+    color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
+    linestyle: LineStyleType | Sequence[LineStyleType] | _Unset = _UNSET,
+    linewidth: float | Sequence[float] | _Unset = _UNSET,
+    alpha: float | Sequence[float] | _Unset = _UNSET,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -180,7 +181,19 @@ def _axlines(
         Line orientation. 'v' draws vertical lines (x coordinates) with
         `Axes.axvline`; 'h' draws horizontal lines (y coordinates) with
         `Axes.axhline`.
-    ax, color, linestyle, linewidth, alpha, unit, equivalencies, **kwargs
+    color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
+        Single color for all lines, or a list/array with one color per line.
+        If _UNSET, uses config.axline.color.
+    linestyle : LineStyleType | Sequence[LineStyleType] | _Unset, optional, default=_UNSET
+        Single linestyle for all lines, or a list/array with one per line.
+        If _UNSET, uses config.axline.linestyle.
+    linewidth : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Single width for all lines, or a list/array with one per line.
+        If _UNSET, uses config.axline.linewidth.
+    alpha : float | Sequence[float] | None | _Unset, optional, default=_UNSET
+        Single alpha for all lines, or a list/array with one per line.
+        If _UNSET, uses config.axline.alpha.
+    ax, unit, equivalencies, **kwargs
         See `axvlines`.
 
     Returns
@@ -191,8 +204,16 @@ def _axlines(
     Raises
     ------
     ValueError
-        If `orientation` is invalid, or any element of `coords` is not a 1D
-        sequence of coordinates.
+        If `orientation` is invalid, if any element of `coords` is not a 1D
+        sequence of coordinates, or if a list/array style parameter does not
+        match the number of lines.
+
+    Notes
+    -----
+    - A `list` or `np.ndarray` style parameter is interpreted as one value
+      per line, in input order across all `coords`. Any other type is applied
+      to all lines.
+    - A single RGB(A) color must be passed as a tuple, not a list.
     """
     if orientation == 'v':
         method, axis, name, zorder = 'axvline', 'x', 'vlines', config.zorder.vlines
@@ -215,10 +236,10 @@ def _axlines(
             _kwarg('zorder', zorder),
         ],
     )
-    line_list = []
     ax = get_ax(ax)
     draw = getattr(ax, method)
 
+    values = []
     for lines in coords:
         if lines is None:
             continue
@@ -237,10 +258,13 @@ def _axlines(
                 if unit is not None:
                     line = line.to(unit, equivalencies=equivalencies)
                 line = line.value
+            values.append(line)
 
-            line_list.append(draw(line, **params, **kwargs))
-
-    return line_list
+    styles = {k: _broadcast_param(v, len(values), k) for k, v in params.items()}
+    return [
+        draw(x, **{k: v[i] for k, v in styles.items()}, **kwargs)
+        for i, x in enumerate(values)
+    ]
 
 
 def grid(

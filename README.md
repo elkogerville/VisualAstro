@@ -55,8 +55,8 @@ $ pip install visualastro
 ```
 
 ## Documentation
-Check out the [documentation](https://visualastro.readthedocs.io/en/latest/)!
-Check the [examples](examples/) folder for notebook tutorials!
+Check out the [documentation](https://visualastro.readthedocs.io/en/latest/) page!
+Check out the [examples](examples/) folder for notebook tutorials!
 
 ## Dependencies
 

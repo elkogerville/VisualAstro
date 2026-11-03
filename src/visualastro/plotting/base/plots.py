@@ -28,7 +28,7 @@ from visualastro.core.data import get_value, to_list
 from visualastro.core.kwargs import (
     _kwarg, _param, _pop_kwargs, _resolve_kwargs
 )
-from visualastro.core.sequences import _cycle
+from visualastro.core.sequences import _cycle, match_length
 from visualastro.core.stats import normalize as _normalize
 from visualastro.core.units import ensure_common_unit, _get_xyplot_units
 from visualastro.plotting.core.axes import (
@@ -308,6 +308,7 @@ def hist(
     range: tuple[float, float] | None = None,
     density: bool | _Unset = _UNSET,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
+    normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
     color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
     edgecolor: ColorType | Sequence[ColorType] | None = None,
@@ -352,6 +353,9 @@ def hist(
         If `_UNSET`, uses `config.normalize_hist`.
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Histogram type. If `_UNSET`, uses `config.histtype`.
+    normalize : bool | _Unset, optional, default=_UNSET
+        If ``True``, normalizes each entry in ``data`` by the maximum of the set.
+        If ``_UNSET``, uses ``config.normalize_hist``.
     align : {'left', 'mid', 'right'}, optional, default='mid'
         Horizontal alignment of bars relative to bin edges.
 
@@ -409,6 +413,7 @@ def hist(
         [
             _param('bins', bins, config.bins),
             _param('histtype', histtype, config.histtype),
+            _param('normalize', normalize, config.normalize_hist),
             _param('color', color, config.color),
             _param('density', density, config.normalize_hist),
             _param('label', label, None),
@@ -421,6 +426,8 @@ def hist(
         ]
     )
     plot_params = _extract_plot_util_kwargs(kwargs)
+    plot_params.limits['recompute_other_axis'] = False
+
     ax = get_ax(ax, figsize=params.figsize)
 
     _resolve_color_kwargs(
@@ -445,6 +452,12 @@ def hist(
     }
     kwargs.update({k: v for k, v in props.items() if v is not None})
     _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
+
+    if params.normalize:
+        data = _normalize(data)
+
+    if isinstance((col := kwargs.get('color')), list) and isinstance(data, (list, tuple)):
+        kwargs['color'] = match_length(col, data)
 
     artists = ax.hist(
         get_value(data),
@@ -1491,7 +1504,7 @@ def scatter_project(
     facecolors = to_list(params.facecolor)
     labels = to_list(params.label)
 
-    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
+    _configure_axes_scaling(ax, kwargs)
 
     sort_axis = {
         'x': 0,
@@ -1571,7 +1584,7 @@ def scatter_project(
     c_arr_sorted = c_arr[sorted_indeces]
     size_arr_sorted = size_arr[sorted_indeces]
 
-    _configure_axes_scaling(ax, kwargs, xlog=params.xlog, ylog=params.ylog)
+    _configure_axes_scaling(ax, kwargs)
 
     scatter = ax.scatter(
         pos_sorted[:, ax1], pos_sorted[:, ax2],

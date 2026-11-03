@@ -7,4 +7,4 @@ dist/
 src/visualastro/dev/
 **/.ipynb_checkpoints/
 docs/_build/
-docs/reference/generated/
+docs/**/generated/

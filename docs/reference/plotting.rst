@@ -6,20 +6,29 @@ Plotting
 VisualAstro plotting modules.
 
 
-Axes and limits
+Axes and Limits
 ---------------
 
 .. autosummary::
    :nosignatures:
 
    set_limits
-   set_title
 
 .. toctree::
    :hidden:
 
    plotting/axes/set_limits
-   plotting/axes/set_title
+
+
+Colorsets
+---------
+
+See :ref:`colorset guide <colorset guide>` for usage examples.
+
+.. autosummary::
+    :toctree: generated/
+
+    Colorsets
 
 
 Legends
@@ -36,7 +45,7 @@ Legends
    plotting/legends/legend
 
 
-Spectra utilities
+Spectra Utilities
 -----------------
 
 .. autosummary::
