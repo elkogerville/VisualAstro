@@ -23,12 +23,7 @@ Axes and Limits
 Colorsets
 ---------
 
-``va.colorsets`` is a ready-made instance of :class:`~visualastro.Colorsets`.
-
-.. autosummary::
-    :toctree: generated/
-
-    Colorsets
+See :ref:`colorset guide <colorset guide>` for usage examples.
 
 .. autodata:: visualastro.colorsets
     :no-value:

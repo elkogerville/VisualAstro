@@ -5,7 +5,7 @@ VisualAstro Documentation Page.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: User Guide
 
    user_guide/installation
