@@ -8,7 +8,8 @@ VisualAstro Documentation Page.
    :maxdepth: 2
    :caption: User Guide
 
-   installation
+   user_guide/installation
+   user_guide/colorsets
 
 .. toctree::
    :maxdepth: 2
@@ -20,4 +21,4 @@ VisualAstro Documentation Page.
     :maxdepth: 1
     :caption: Developer
 
-    contributing_docs
+    dev/contributing_docs
