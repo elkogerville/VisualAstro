@@ -11,10 +11,13 @@ from typing import Literal
 
 import matplotlib as mpl
 
+from visualastro.core.config import _Unset, _UNSET
+from visualastro.plotting.core.colors.colors import get_colorset
 from visualastro.plotting.core.colors.definitions import (
     COLORSETS, COLORSET_ALIASES
 )
 from visualastro.plotting.core.colors.plots import plot_colors
+from visualastro.plotting.core.colors.utils import _find_colorset
 
 
 class Colorsets:
@@ -176,12 +179,18 @@ class Colorsets:
     def plot(
         self,
         colorset: str | None = None,
+        show_color_name: bool = True,
         length : int | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
         sort_by: Literal['name', 'length'] | None = None,
         reverse: bool = False,
-        **kwargs
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
+        severity: int = 100,
+        width: float | int | None = 8,
+        savefig: bool = False
     ) -> None:
         """
         Plot the colorset(s), optionally with additional
@@ -195,6 +204,9 @@ class Colorsets:
         colorset : str | None, optional, default=None
             Colorset name or alias. If ``None``, plots all colorsets
             unless one or more of the filters are used.
+        show_color_name : bool, optional, default=True
+            If `True`, also plots the colorset name. Only applicable to VisualAstro
+            colorsets (as opposed to a sequence of colors).
         length : int | None, optional, default=None
             Absolute length of colors.
         min_length : int | None, optional, default=None
@@ -205,16 +217,41 @@ class Colorsets:
             Sort criterion. If ``None``, registration order is kept.
         reverse : bool, optional, default=False
             Reverse the sort order.
-        **kwargs
-            Forwarded to `plot_colors`.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+            Method to modify the colors. If `None`, colors are unchanged.
+            If `_UNSET`, uses `config.color_transform`.
+        factor : float | _Unset, optional, default=_UNSET
+            Modification strength, see `get_colors`. If `_UNSET`, uses
+            `config.color_transform_factor`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
+            Type of colorblindness to simulate. Can be shorthanded to
+            `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
+            If `None`, no colorblindness simulation is applied.
+        severity : float, optional, default=100
+            Severity of colorblindness. Must be < 100.
+        width : float | int | None, optional, default=8
+            Width of the colorset plot.
+        savefig:
+            If `True`, save the figure to disk with `savefig`.
+            Opens a prompt to set the file name and extention.
 
         Returns
         -------
         None
         """
         if colorset is not None:
-            colorset = self._resolve(colorset)
-            plot_colors(color=colorset, **kwargs)
+            colors = self.get(colorset, transform=None, cvd_type=None)
+            plot_colors(
+                color=colors,
+                show_color_name=show_color_name,
+                transform=transform,
+                factor=factor,
+                cvd_type=cvd_type,
+                severity=severity,
+                width=width,
+                savefig=savefig,
+            )
+            return
 
         query = self.query(
             length=length,
@@ -223,7 +260,16 @@ class Colorsets:
             sort_by=sort_by,
             reverse=reverse,
         )
-        plot_colors(color=query, **kwargs)
+        plot_colors(
+            color=query,
+            show_color_name=show_color_name,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+            width=width,
+            savefig=savefig,
+        )
 
     def __repr__(self) -> str:
         names = ',\n'.join(f'    {name!r}' for name in self.available)
