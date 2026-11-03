@@ -78,9 +78,9 @@ Adding a Guide or Tutorial
 Docstring Rules
 ---------------
 
-- Use numpydoc convention (parsed by ``sphinx.ext.napoleon``). See :ref:`template docstring <template docstring>`.
+- Use numpydoc convention. See :ref:`template docstring <template docstring>`.
 
-- Literal text: double backticks, e.g. ````var````.
+- For literal text, use double backticks, e.g. ````var````.
 
 - Cross-references: use explicit roles with the target in single backticks, e.g. :func:`~visualastro.load_fits`.
 
@@ -89,8 +89,8 @@ Docstring Rules
 
 - Variadics:
 
-  - In ``Parameters``: write ``*args`` and ``**kwargs`` unescaped. Napoleon escapes them.
-  - In prose: use double backticks (e.g. ``reshape(*args)``). Bare ``*args`` is parsed as emphasis.
+  - In ``Parameters``: write ``*args`` and ``**kwargs``.
+  - In prose: use double backticks (e.g. ````reshape(*args)````). Bare ``*args`` is parsed as emphasis.
 
 - Types: ``dtype1 | dtype2, optional, default=value``.
 
