@@ -32,6 +32,18 @@ Alias names are listed separately:
     va.colorsets.aliases
 
 
+Accessing Colorsets
+-------------------
+
+Retrieve a colorset with the :meth:`~Colorsets.get` method or with
+indexing (``va.colorsets['name']``):
+
+.. code-block:: python
+
+    va.colorsets.get('supernatural')
+    va.colorsets['celestial']
+
+
 Querying Colorsets
 ------------------
 
@@ -57,11 +69,31 @@ You can also view the colorsets with :meth:`~Colorsets.plot`. This method works 
 passed in, all colorsets are plotted.
 
 
+Setting Minimum and Maximum Lengths
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Plot only the colorsets in the range ``[min_length, max_length]``.
+
+
 .. literalinclude:: /../examples/plotting/colors/plot_colorset_min_length.py
     :language: python
 
 
 .. image:: /_static/images/reference/plotting/colorset_min_length.png
+    :scale: 50 %
+    :alt: spectral_lines on spectral data
+    :align: center
+
+
+Plotting All Colorsets
+^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. literalinclude:: /../examples/plotting/colors/plot_colorset_all.py
+    :language: python
+
+
+.. image:: /_static/images/reference/plotting/all_colorsets.png
     :scale: 50 %
     :alt: spectral_lines on spectral data
     :align: center
