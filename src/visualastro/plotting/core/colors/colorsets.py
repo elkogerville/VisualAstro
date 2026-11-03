@@ -110,6 +110,54 @@ class Colorsets:
             if alias in self._registry
         }
 
+    def get(
+        self,
+        name: str,
+        fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100,
+    ):
+        """
+        Get a colorset by name or alias.
+
+        Thin wrapper around :func:`~visualastro.get_colorset`. See that
+        function for the full description of the options.
+
+        Parameters
+        ----------
+        name : str
+            Colorset name or alias.
+        fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+            Output color format.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional
+            Color transform to apply. Default is set by ``get_colorset``.
+        factor : float, optional
+            Transform strength. Default is set by ``get_colorset``.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+            Color vision deficiency to simulate.
+        severity : int, optional, default=100
+            Severity of the simulated deficiency.
+
+        Returns
+        -------
+        list
+            Colors in the requested format.
+
+        See Also
+        --------
+        visualastro.get_colorset : Underlying implementation.
+        """
+        return get_colorset(
+            name,
+            fmt=fmt,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        )
+
     def query(
         self,
         length : int | None = None,
