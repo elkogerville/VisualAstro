@@ -85,6 +85,20 @@ Plot only the colorsets in the range ``[min_length, max_length]``.
     :align: center
 
 
+Setting a Set Length
+^^^^^^^^^^^^^^^^^^^^
+
+
+.. literalinclude:: /../examples/plotting/colors/plot_colorset_length.py
+    :language: python
+
+
+.. image:: /_static/images/reference/plotting/colorset_length.png
+    :scale: 50 %
+    :alt: spectral_lines on spectral data
+    :align: center
+
+
 Setting a Transform
 ^^^^^^^^^^^^^^^^^^^
 
