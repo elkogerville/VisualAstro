@@ -25,8 +25,10 @@ Colorsets
 
 See :ref:`colorset guide <colorset guide>` for usage examples.
 
-.. autodata:: visualastro.colorsets
-    :no-value:
+.. autosummary::
+    :toctree: generated/
+
+    Colorsets
 
 
 Legends

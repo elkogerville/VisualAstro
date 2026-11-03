@@ -322,7 +322,6 @@ def _register_colorsets() -> Colorsets:
 
     return Colorsets()
 
-#: ``va.colorsets`` is a ready-made instance of :class:`~visualastro.Colorsets`.
 colorsets = _register_colorsets()
 
 
