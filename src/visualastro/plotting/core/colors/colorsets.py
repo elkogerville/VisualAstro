@@ -308,6 +308,8 @@ class Colorsets:
             sort_by=sort_by,
             reverse=reverse,
         )
+        if len(query) == 0:
+            raise ValueError("Query returned zero results!")
         plot_colors(
             color=query,
             show_color_name=show_color_name,
