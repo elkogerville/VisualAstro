@@ -29,10 +29,15 @@ If we want to install VisualAstro with the optional dependencies, run the follow
     uv pip install visualastro[<group>]
 
 and replace ``<group>`` with a group of optional dependencies you want to install. The options are:
+
 - ``images``: Includes ``regions`` and ``reproject``.
+
 - ``spectralcube``: Includes ``spectral_cube``, ``regions`` and ``reproject``.
+
 - ``spectra``: Includes ``specutils`` and ``dust_extinction``.
+
 - ``styles``: Includes ``scienceplots``.
+
 - ``utils``: Includes ``cmasher``, ``colorspacious``, ``tol-colors``, and ``tqdm``.
 
 You can also use ``all`` to install all optional dependencies, or install multiple groups by separating with commas.
