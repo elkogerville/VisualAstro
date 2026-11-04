@@ -33,10 +33,11 @@
 
 ## Installation
 
-Currently, the most stable version of python for VisualAstro is version >=3.10.
+VisualAstro can be installed with any Python version >=3.11.18. However, due to the [eMudhra root certificate issue](https://emudhra.we-have-a-problem.com/), we recommend using one of the following versions: 3.15.2, 3.14.10, 3.13.18, 3.12.16, or 3.11.18.
+
 To install VisualAstro, it is advised to create a new conda environment if possible:
 ```
-$ conda create -n visualastro -c conda-forge python=3.13
+$ conda create -n visualastro -c conda-forge python
 $ conda activate visualastro
 ```
 Then install the dependencies with:
@@ -98,16 +99,16 @@ If you use VisualAstro for your research, we ask that you please cite the Zenodo
 BibTeX:
 ```
 @software{visualastro,
-  author       = {{Gerville-Reache}, Elko and
-                  {Tian}, Qiushi Chris and
-                  {Whitmer}, Audrey},
+  author       = {Gerville-Reache, Elko and
+                  Tian, Qiushi Chris and
+                  Whitmer, Audrey},
   title        = {VisualAstro},
-  month        = aug,
+  month        = oct,
   year         = 2026,
   publisher    = {Zenodo},
-  version      = {v0.3.1},
-  doi          = {10.5281/zenodo.21729933},
-  url          = {https://doi.org/10.5281/zenodo.21729933},
+  version      = {v0.3.2},
+  doi          = {10.5281/zenodo.23827878},
+  url          = {https://doi.org/10.5281/zenodo.23827878},
 }
 ```
 
