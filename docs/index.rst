@@ -8,6 +8,7 @@ VisualAstro Documentation Page.
    :maxdepth: 1
    :caption: User Guide
 
+   user_guide/req-dep
    user_guide/installation
    user_guide/colorsets
 

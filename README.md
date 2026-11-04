@@ -33,8 +33,11 @@
 
 ## Installation
 
+See the [Installation Guide](https://visualastro.readthedocs.io/en/latest/user_guide/installation.html) on the documentation site for detailed instruction on how to install VisualAstro.
+
 VisualAstro can be installed with any Python version >=3.11.18. However, due to the [eMudhra root certificate issue](https://emudhra.we-have-a-problem.com/), we recommend using one of the following versions: 3.15.2, 3.14.10, 3.13.18, 3.12.16, or 3.11.18.
 
+### Quick Guide: Install with Conda
 To install VisualAstro, it is advised to create a new conda environment if possible:
 ```
 $ conda create -n visualastro -c conda-forge python
@@ -48,11 +51,11 @@ $ conda install -c conda-forge \
 Optional dependencies can also be installed if you plan to use related functionalities:
 ```
 $ conda install -c conda-forge \
-    cmasher colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tqdm
+    cmasher colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tol-colors tqdm
 ```
 And finally run:
 ```
-$ pip install visualastro
+$ pip install --no-deps visualastro
 ```
 
 ## Documentation
