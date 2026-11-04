@@ -34,7 +34,8 @@ dev = [
 docs = [
     "sphinx",
     "sphinx-rtd-theme",
-    "sphinx_design"
+    "sphinx_design",
+    "sphinx_copybutton"
 ]
 images = [
     "regions",
