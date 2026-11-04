@@ -25,30 +25,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "sphinx",
-    "sphinx-rtd-theme",
-]
-docs = [
-    "sphinx",
-    "sphinx-rtd-theme",
-    "sphinx_design",
-    "sphinx_copybutton"
-]
 images = [
-    "regions",
-    "reproject",
-]
-spectralcube = [
-    "spectral_cube",
     "regions",
     "reproject",
 ]
 spectra = [
     "specutils",
     "dust_extinction",
+]
+spectralcube = [
+    "spectral_cube",
+    "visualastro[images]",
 ]
 styles = [
     "scienceplots",
@@ -60,17 +47,23 @@ utils = [
     "tqdm",
 ]
 all = [
-    "cmasher",
-    "colorspacious",
-    "dust_extinction",
-    "regions",
-    "reproject",
-    "scienceplots",
-    "spectral_cube",
-    "specutils",
-    "tol-colors",
-    "tqdm",
+    "visualastro[images,spectra,spectralcube,styles,utils]",
 ]
+
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-design",
+    "sphinx-copybutton",
+]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+dev = [
+    "visualastro[all,docs,test]",
+]
+
 
 [project.urls]
 Homepage = "https://github.com/elkogerville/VisualAstro"
