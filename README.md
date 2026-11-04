@@ -37,9 +37,6 @@ See the [Installation Guide](https://visualastro.readthedocs.io/en/latest/user_g
 
 VisualAstro can be installed with any Python version >=3.11. However, due to the [eMudhra root certificate issue](https://emudhra.we-have-a-problem.com/), we recommend using one of the following versions: 3.15.2, 3.14.10, 3.13.18, 3.12.16, or 3.11.18.
 
-### Installing VisualAstro
-Check out the instructions on how to [install](https:://visualastro.readthedocs.io/en/latest/user_guide/installation) VisualAstro.
-
 ## Documentation
 Check out the [documentation](https://visualastro.readthedocs.io/en/latest/) page!
 Check out the [examples](examples/) folder for notebook tutorials!
