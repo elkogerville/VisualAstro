@@ -45,13 +45,11 @@ $ conda activate visualastro
 ```
 Then install the dependencies with:
 ```
-$ conda install -c conda-forge \
-    astropy matplotlib numpy scipy
+$ conda install -c conda-forge astropy matplotlib numpy scipy
 ```
 Optional dependencies can also be installed if you plan to use related functionalities:
 ```
-$ conda install -c conda-forge \
-    cmasher colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tol-colors tqdm
+$ conda install -c conda-forge cmasher colorspacious dust_extinction regions reproject spectral-cube scienceplots specutils tol-colors tqdm
 ```
 And finally run:
 ```
