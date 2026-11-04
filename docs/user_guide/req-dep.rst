@@ -1,14 +1,14 @@
 .. _req-dep:
 
 Requirements and Dependencies
-============================
+=============================
 
 This page lists the requirements and dependencies of VisualAstro. For instructions on how to install VisualAstro, see :doc:`installation`.
 
 Requirements
 ------------
 
-- Python >= 3.11.18
+- Python >= 3.11
 - Use a virtual environment (``conda``, ``venv``, ``uv``, etc.)
 
 
@@ -28,6 +28,7 @@ Optional Dependencies
 
 VisualAstro supports several optional add-on packages.
 
+
 Colors and Styles
 ~~~~~~~~~~~~~~~~~
 
@@ -38,6 +39,7 @@ you can use the additional colors and styles without importing them.
 - `colorspacious <https://github.com/njsmith/colorspacious>`__: Color blindness simulation and color space utilities.
 - `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific matplotlib stylesheets. Requires a LaTeX installation.
 - `tol-colors <https://github.com/Descanonge/tol_colors>`__: Paul Tol colorsets and colormaps.
+
 
 Science Utilities
 ~~~~~~~~~~~~~~~~~
