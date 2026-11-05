@@ -8,8 +8,8 @@
 from importlib.metadata import version as _pkg_version
 
 project = 'VisualAstro'
-copyright = '2026, Elko Gerville-Reache'
-author = 'Elko Gerville-Reache'
+copyright = '2026, Elko Gerville-Reache and VisualAstro contributors'
+author = 'Elko Gerville-Reache, Qiushi Chris Tian, and Audrey Whitmer'
 release = _pkg_version('visualastro')
 version = release
 
@@ -22,6 +22,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "sphinx_copybutton",
     "sphinx_design",
 ]
 

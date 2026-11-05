@@ -1,6 +1,19 @@
 Documenting VisualAstro
 =======================
 
+To contribute to VisualAstro, install it in editable mode from a local clone.
+Contributing requires `git <https://git-scm.com/downloads>`__ and, to open
+pull requests, a `GitHub <https://github.com>`__ account.
+
+First, `fork <https://github.com/elkogerville/VisualAstro/fork>`__ the repository
+on GitHub, then clone your fork and add the original repository as ``upstream``:
+
+.. code-block:: bash
+
+   git clone https://github.com/<your-username>/VisualAstro.git
+   cd VisualAstro
+   git remote add upstream https://github.com/elkogerville/VisualAstro.git
+
 
 Requirements
 ------------
