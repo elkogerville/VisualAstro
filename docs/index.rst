@@ -11,6 +11,7 @@ VisualAstro Documentation Page.
    user_guide/req-dep
    user_guide/installation
    user_guide/colorsets
+   user_guide/colormaps
 
 .. toctree::
    :maxdepth: 2
