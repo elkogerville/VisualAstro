@@ -61,6 +61,15 @@ or ``'name'`` with ``sort_by``.
     va.colorsets.query(min_length=3, max_length=8, sort_by='length')
 
 
+Preview a Colorset
+------------------
+
+You can plot a sample figure with a colorset using :meth:`~Colorsets.preview`.
+
+.. plot:: ../examples/plotting/colors/plot_colorset_preview.py
+    :include-source: True
+
+
 Plotting Colorsets
 ------------------
 

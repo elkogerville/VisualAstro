@@ -404,6 +404,7 @@ class Colorsets:
             severity=severity,
         )
 
+
     def __repr__(self) -> str:
         names = ',\n'.join(f'    {name!r}' for name in self.available)
         return f'{type(self).__name__}([\n{names}\n])'
