@@ -331,6 +331,79 @@ class Colorsets:
             savefig=savefig,
         )
 
+    def preview(
+        self,
+        colorset: int | ColorType | Sequence[ColorType],
+        *,
+        cmap: Colormap | _Unset = _UNSET,
+        linestyle: LineStyleType = 'solid',
+        linewidth: float = 2,
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        legend: bool = True,
+        loc: str = 'bottom center',
+        ncols: int = 4,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
+        severity: int = 100,
+    ) -> list[list[Line2D] | list[PatchCollection]]:
+        """
+        Plot a sample figure demonstrating a VisualAstro color set.
+
+        Parameters
+        ----------
+        colors : ColorType | int | Sequence[ColorType | int], optional, default='astro_seq'
+            Color set to visualize. Can be either a VisualAstro
+            colorset name, a color, an integer, or a sequence of colors.
+            If an ``int``, generates a sequence of colors by sampling
+            ``cmap``.
+        ax : matplotlib.axes.Axes | None, optional, default=None
+            The Axes object on which to plot the demo orbits. If `None`,
+            uses `plt.gca()`.
+        cmap : Colormap | _Unset, optional, default=_UNSET
+            Colormap used to generate a sequence of colors if
+            ``colors`` is an int. If ``_UNSET`` uses ``config.colors``.
+        linestyle : LineStyleType, optional, default='solid'
+            Line style of each line.
+        linewidth : float, optional, default=2
+            Line width of each line.
+        legend : bool, optional, default=True
+            If `True`, plots the legend.
+        loc : str, optional, default='bottom center'
+            Legend location.
+        ncols : int, optional, default=4
+            Number of columns in the legend.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+            Method to modify the colors. If `None`, colors are unchanged.
+            If `_UNSET`, uses `config.color_transform`.
+        factor : float | _Unset, optional, default=_UNSET
+            Modification strength, see `get_colors`. If `_UNSET`, uses
+            `config.color_transform_factor`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
+            Type of colorblindness to simulate. Can be shorthanded to
+            `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
+            If `None`, no colorblindness simulation is applied.
+        severity : float, optional, default=100
+            Severity of colorblindness. Must be < 100.
+
+        Returns
+        -------
+        list[list[Line2D | PatchCollection]]
+            Artists returned by the plotting functions, grouped by plot element.
+        """
+        return preview_colorset(
+            colors=colorset,
+            cmap=cmap,
+            linestyle=linestyle,
+            linewidth=linewidth,
+            legend=legend,
+            loc=loc,
+            ncols=ncols,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        )
+
     def __repr__(self) -> str:
         names = ',\n'.join(f'    {name!r}' for name in self.available)
         return f'{type(self).__name__}([\n{names}\n])'
