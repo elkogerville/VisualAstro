@@ -17,8 +17,8 @@ from .definitions import (
 from .plots import (
     plot_color_deltaE,
     plot_colors,
-    plot_colorset,
     plot_colortable,
+    preview_colorset,
 )
 from .transforms import (
     darken_colors,

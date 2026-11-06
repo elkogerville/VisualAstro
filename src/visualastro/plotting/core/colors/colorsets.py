@@ -6,17 +6,21 @@ Description:
     VisualAstro colorset registry.
 """
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from typing import Literal
 
 import matplotlib as mpl
+from matplotlib.collections import PatchCollection
+from matplotlib.colors import Colormap
+from matplotlib.lines import Line2D
+from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.config import _Unset, _UNSET
 from visualastro.plotting.core.colors.colors import get_colorset
 from visualastro.plotting.core.colors.definitions import (
     COLORSETS, COLORSET_ALIASES
 )
-from visualastro.plotting.core.colors.plots import plot_colors
+from visualastro.plotting.core.colors.plots import plot_colors, preview_colorset
 from visualastro.plotting.core.colors.utils import _find_colorset
 
 
@@ -113,6 +117,7 @@ class Colorsets:
     def get(
         self,
         name: str,
+        *,
         fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
         transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
         factor: float | _Unset = _UNSET,
@@ -160,6 +165,7 @@ class Colorsets:
 
     def query(
         self,
+        *,
         length : int | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
@@ -226,7 +232,8 @@ class Colorsets:
 
     def plot(
         self,
-        colorset: str | None = None,
+        colorset: ColorType | Sequence[ColorType] | None = None,
+        *,
         show_color_name: bool = True,
         length : int | None = None,
         min_length: int | None = None,
@@ -250,8 +257,8 @@ class Colorsets:
         Parameters
         ----------
         colorset : str | None, optional, default=None
-            Colorset name or alias. If ``None``, plots all colorsets
-            unless one or more of the filters are used.
+            Colorset name or alias, or a color or sequence of colors. If
+            ``None``, plots all colorsets unless one or more of the filters are used.
         show_color_name : bool, optional, default=True
             If `True`, also plots the colorset name. Only applicable to VisualAstro
             colorsets (as opposed to a sequence of colors).
@@ -288,7 +295,10 @@ class Colorsets:
         None
         """
         if colorset is not None:
-            colors = self.get(colorset, transform=None, cvd_type=None)
+            if isinstance(colorset, str):
+                colors = self.get(colorset, transform=None, cvd_type=None)
+            else:
+                colors = colorset
             plot_colors(
                 color=colors,
                 show_color_name=show_color_name,
