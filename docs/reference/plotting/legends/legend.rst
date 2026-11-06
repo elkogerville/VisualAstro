@@ -1,5 +1,5 @@
-set_limits
-==========
+Legend
+======
 
 .. currentmodule:: visualastro
 
@@ -19,11 +19,5 @@ It accepts all of Matplotlib's arguments and adds the following:
   frame.
 
 
-.. literalinclude:: /../examples/plotting/legends/plot_legend.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/legend_hist.png
-    :scale: 50 %
-    :alt: different legend styles
-    :align: center
+.. plot:: ../examples/plotting/legends/plot_legend.py
+    :include-source: True

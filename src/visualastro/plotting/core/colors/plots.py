@@ -19,12 +19,13 @@ from matplotlib.colors import Colormap, LogNorm, Normalize
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from matplotlib.typing import ColorType
+from matplotlib.typing import ColorType, LineStyleType
 import numpy as np
 
 from visualastro.core.config import config, _Unset, _UNSET
 from visualastro.core.data import as_list, to_list
 from visualastro.core.io import savefig as _savefig
+from visualastro.core.kwargs import _param, _resolve_kwargs
 from visualastro.optional_dependencies._colorspacious import (
     deltaE as cs_deltaE
 )
@@ -136,11 +137,16 @@ def plot_colors(
     plt.show()
 
 
-def plot_colorset(
+def preview_colorset(
     colors: ColorType | int | Sequence[ColorType] = 'astro_seq',
     ax: Axes | None = None,
-    lw: float = 2,
+    *,
+    cmap: Colormap | _Unset = _UNSET,
+    linestyle: LineStyleType = 'solid',
+    linewidth: float = 2,
     legend: bool = True,
+    loc: str = 'bottom center',
+    ncols : int = 4,
     **kwargs
 ) -> list[list[Line2D] | list[PatchCollection]]:
     """
@@ -149,16 +155,28 @@ def plot_colorset(
     Parameters
     ----------
     colors : ColorType | int | Sequence[ColorType | int], optional, default='astro_seq'
-        Color set to visualize. Passed to `get_colors`.
+        Color set to visualize. Can be either a VisualAstro
+        colorset name, a color, an integer, or a sequence of colors.
+        If an ``int``, generates a sequence of colors by sampling
+        ``cmap``.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        The Axes object on which to plot the histogram. If `None`,
+        The Axes object on which to plot the demo orbits. If `None`,
         uses `plt.gca()`.
-    lw : float, optional, default=2
-        Linewidth of each line.
+    cmap : Colormap | _Unset, optional, default=_UNSET
+        Colormap used to generate a sequence of colors if
+        ``colors`` is an int. If ``_UNSET`` uses ``config.colors``.
+    linestyle : LineStyleType, optional, default='solid'
+        Line style of each line.
+    linewidth : float, optional, default=2
+        Line width of each line.
     legend : bool, optional, default=True
         If `True`, plots the legend.
+    loc : str, optional, default='bottom center'
+        Legend location.
+    ncols : int, optional, default=4
+        Number of columns in the legend.
     **kwargs
-        Any additional param passed on to `get_colors`.
+        Any additional param passed on to :func:`visualastro.get_colors`.
 
     Returns
     -------
@@ -168,10 +186,19 @@ def plot_colorset(
     from visualastro.plotting.core.axes import get_ax, set_title
     from visualastro.plotting.core.legend import legend as _legend
 
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('cmap', cmap, config.cmap),
+            _param('linewidth', linewidth, 2),
+            _param('linestyle', linestyle, 'solid'),
+        ]
+    )
+
     ax = get_ax(ax, figsize=(6,6))
     if isinstance(colors, str) and colors in mpl.color_sequences:
         set_title(f'colorset: {colors}', ax=ax)
-    colorset = get_colors(colors, **kwargs)
+    colorset = get_colors(colors, cmap=params.cmap, **kwargs)
     N = len(colorset)
 
     r_p = 1.0
@@ -189,13 +216,15 @@ def plot_colorset(
 
     artists = []
     for (x, y, label, col) in zip(x_vals[:N], y_vals[:N], labels, colorset):
-        artists.append(ax.plot(x, y, label=label, color=col, lw=lw))
+        artists.append(ax.plot(
+            x, y, label=label, color=col, lw=params.linewidth, ls=params.linestyle)
+        )
     artists.append(ax.scatter(0, 0, ec='k', fc='w', s=113, marker='*'))
 
     ax.set_xlim(-6, 2)
     ax.set_ylim(-4, 4)
 
-    _legend(ax=ax, loc='bottom center', title='Eccentricity', frameon=True, ncols=4)
+    _legend(ax=ax, loc=loc, title='Eccentricity', frameon=True, ncols=ncols)
 
     return artists
 
