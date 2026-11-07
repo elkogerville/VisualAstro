@@ -100,8 +100,6 @@ from visualastro.plotting.base.plots import (
     scatter3D
 )
 from visualastro.plotting.core.axes import (
-    add_subplot,
-    add_ax3d,
     ax3d,
     ax3d_axis_style,
     ax3d_pane_color,
@@ -109,7 +107,6 @@ from visualastro.plotting.core.axes import (
     inset_axes,
     set_limits,
     set_title,
-    subplot,
     tripanel_figure,
     wcsax,
 )

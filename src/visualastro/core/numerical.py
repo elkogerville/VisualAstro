@@ -6,8 +6,8 @@ Description:
     Numerical and computational functions.
 """
 
-from collections.abc import Sequence
-from typing import Callable, Literal, overload
+from collections.abc import Callable, Sequence
+from typing import Literal, overload
 
 import astropy.units as u
 import numpy as np
