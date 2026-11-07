@@ -67,8 +67,8 @@ va.hist(
     xlim=(-10,20),
 )
 va.legend(
-    ax=ax[1,0], frameon=True, ec='k', reverse=True,
-    markerfirst=False, fancybox=True, loc='upper left'
+    ax=ax[1,0], frameon=True, ec='k', reverse=True, ncols=4,
+    markerfirst=False, fancybox=True, loc='bottom center'
 )
 
 va.hist(
