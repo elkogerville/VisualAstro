@@ -36,8 +36,8 @@ from visualastro.plotting.core.axes import (
     ax3d_pane_color,
     get_ax,
     get_ax3d,
-    _configure_axes_scaling,
 )
+from visualastro.plotting.core.axes.limits import _configure_axes_scaling
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import as_color, get_colors
 from visualastro.plotting.core.colors.plots import _resolve_scatter_norm
