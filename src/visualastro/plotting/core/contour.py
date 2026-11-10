@@ -6,7 +6,8 @@ Description:
     Contour plotting functions.
 """
 
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 from numpy.typing import ArrayLike
 
 import matplotlib.axes as maxes

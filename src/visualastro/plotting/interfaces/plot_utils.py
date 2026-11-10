@@ -42,9 +42,8 @@ from numpy.typing import ArrayLike
 from visualastro.core.config import _UNSET, config
 from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
 from visualastro.core.units import unit_2_string
-from visualastro.plotting.core.axes import (
-    set_limits, set_title, _set_axis_labels
-)
+from visualastro.plotting.core.axes import set_limits, set_title
+from visualastro.plotting.core.axes.labels import _set_axis_labels
 from visualastro.plotting.core.colorbar import add_colorbar
 from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
