@@ -75,7 +75,7 @@ def color_image(  # TODO default to axis('off') for color_image() & imshow()?
 ):
     """
     Make and show a color image.
-    
+
     Pulls relevant cards from FITS header to determine color combination.
 
     # TODO table of astropy.visualization.make_rgb() and .make_lupton_rgb() keywords

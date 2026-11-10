@@ -262,14 +262,12 @@ def get_ax(
     - Current figure has axes: its current axes is returned; `fig_kw` is ignored.
     - Existing figures are never closed.
     """
-
     def create(fig: Figure | None) -> maxes.Axes:
         if fig is None:
             fig = figure(**fig_kw)
         return fig.add_subplot()
 
     return _resolve_ax(ax, maxes.Axes, create)
-
 
 
 def get_wcsax(
@@ -310,7 +308,6 @@ def get_wcsax(
     -----
     Same figure-handling rules as ``get_ax``.
     """
-
     def create(fig: Figure | None) -> WCSAxes:
         if wcs is None:
             raise ValueError('`wcs` is required to create a WCSAxes.')
