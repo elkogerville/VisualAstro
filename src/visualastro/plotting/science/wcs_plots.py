@@ -155,8 +155,9 @@ def color_image(  # TODO default to axis('off') for color_image() & imshow()?
                     'Try explicitly providing `idx_r`, `idx_g`, `idx_b`.'
                 )
 
-    sorted_idx = np.argsort(sort_key_list, descending=True)
-    idx_r, idx_g, idx_b = sorted_idx[0], sorted_idx[1], sorted_idx[2]
+        # numpy>=2.5 can use descending=True instead of [::-1]
+        sorted_idx = np.argsort(sort_key_list)[::-1]
+        idx_r, idx_g, idx_b = sorted_idx[0], sorted_idx[1], sorted_idx[2]
 
     kwargs.update({
         'image_r': hdu_list[idx_r].data,
