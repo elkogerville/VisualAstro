@@ -1,11 +1,14 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-10-28
-Date Modified: 2026-11-07
+Date Modified: 2026-11-11
 Description:
     Module for setting axes limits.
 """
 
+__all__ = ['set_limits']
+
+from collections.abc import Callable
 from typing import Any
 
 import matplotlib.axes as maxes
@@ -15,6 +18,8 @@ from matplotlib.path import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from visualastro.analysis.mechanics import center_of_mass
+from visualastro.core.array_types import _is_scalar
 from visualastro.core.config import (
     config,
     _Unset,
@@ -30,11 +35,15 @@ def set_limits(
     ax: maxes.Axes | None = None,
     *,
     limits: float | tuple[float, float] | None = None,
+    center: str | float | tuple[float, float] | Callable | None = None,
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
+    points: NDArray | None = None,
+    weights: NDArray | None = None,
     xpad: float | None | _Unset = _UNSET,
     ypad: float | None | _Unset = _UNSET,
-    recompute_other_axis: bool | _Unset = _UNSET
+    recompute_other_axis: bool | _Unset = _UNSET,
+    square: bool = False,
 ) -> tuple[tuple[float, float], tuple[float, float]]:
     """
     Set the limits of a Matplotlib Axes.
@@ -48,10 +57,20 @@ def set_limits(
     ax : matplotlib.axes.Axes | None, optional, default=None
         Axes to modify. If ``None``, uses the current Axes.
     limits : float | tuple[float, float] | None, optional, default=None
-        Limits applied to both axes. Cannot be combined with ``xlim`` or ``ylim``.
+        Half-width of the window, applied around ``center``. Cannot be
+        combined with ``xlim`` or ``ylim``.
 
-        - If a scalar, sets ``xlim = ylim = (-abs(limits), abs(limits))``.
-        - If a ``tuple[float, float]``, sets ``xlim = ylim = limits`` as is.
+        - Scalar: ``(c - |limits|, c + |limits|)`` on both axes.
+        - ``tuple[float, float]``: ``(half_width_x, half_width_y)``.
+
+    center : str | float | tuple[float, float] | Callable | None, optional, default=None
+        Window center. Requires ``limits``. None → origin.
+
+        - ``'origin'``, ``'com'``, ``'median'``: named modes. Data-dependent
+          modes read points from ``points``, or from non-connected artists
+          on ``ax`` if ``points`` is None (unit masses).
+        - Scalar or ``(cx, cy)``: explicit center.
+        - Callable: ``fn(points, weights) -> (cx, cy)``.
 
     xlim : tuple[float, float] | None, optional, default=None
         X-axis limits, applied as given (inverted limits invert the axis).
@@ -60,19 +79,20 @@ def set_limits(
         provided range. If both are provided, no computation is done.
     ylim : tuple[float, float] | None, optional, default=None
         Y-axis limits. See ``xlim``.
-    xpad : float | None, optional, default=None
-        Fractional padding of the computed X-axis limits. Must be finite
-        and ``> -0.5``. If ``None``, uses ``ax.margins()[0]``.
-
-        - Only used if ``ylim`` is provided without ``xlim``.
-        - Ignored if ``recompute_other_axis=False``, or if ``limits`` is given.
-        - Never applied to user-provided limits.
-
+    points : np.ndarray | None, optional, default=None
+        Array of shape (N, 2) used to compute the center. If ``None``,
+        uses the data on the ``ax`` instance.
+    weights : np.ndarray | None, optional, default=None
+        Masses of shape (N,). Requires ``points``. Ignored by ``'median'``.
+    xpad : float | None | _Unset, optional, default=_UNSET
+        Fractional padding (finite, ``> -0.5``). Applied via ``ax.margins``
+        when no limits are given, or to the computed X range when only
+        ``ylim`` is given. Ignored if ``limits`` is given. None defaults to
+        current margins.
     ypad : float | None, optional, default=None
         Fractional padding of the computed Y-axis limits. Only used if ``xlim``
         is provided without ``ylim``. Otherwise behaves as ``xpad``. If ``None``,
         uses ``ax.margins()[1]``.
-
     recompute_other_axis : bool | _Unset, optional, default=_UNSET
         If ``True`` and only one of ``xlim`` or ``ylim`` is provided, the limits
         of the other axis are computed from the data visible within the
@@ -80,6 +100,9 @@ def set_limits(
         the other axis is autoscaled by Matplotlib. Ignored if ``limits`` is
         given or if both ``xlim`` and ``ylim`` are provided. If ``_UNSET``,
         uses ``config.axes.recompute_other_axis``.
+    square : bool, optional, default=False
+        If ``True``, make the X and Y ranges of `ax` equal
+        by expanding the narrower one.
 
     Returns
     -------
@@ -110,8 +133,14 @@ def set_limits(
         if pad is not None and not (np.isfinite(pad) and pad > -0.5):
             raise ValueError(f'{name} must be finite and > -0.5! got {pad}!')
 
+    if limits is None and (center is not None or points is not None or weights is not None):
+        raise ValueError('center, points and weights require limits!')
+
     if limits is not None:
-        return _set_symmetric_limits(ax, limits=limits, xlim=xlim, ylim=ylim)
+        return _set_symmetric_limits(
+            ax, limits=limits, xlim=xlim, ylim=ylim,
+            center=center, points=points, weights=weights,
+        )
 
     mx, my = ax.margins()
     _apply_limits(
@@ -124,34 +153,280 @@ def set_limits(
 
     )
 
+    if square:
+        _apply_square_limits(ax)
+
     return ax.get_xlim(), ax.get_ylim()
+
+
+def _apply_square_limits(ax: maxes.Axes) -> None:
+    """
+    Make the X and Y ranges of `ax` equal by expanding the narrower one.
+
+    Each axis keeps its center and direction (inverted limits stay
+    inverted).
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes to modify. Must have linear scales.
+
+    Raises
+    ------
+    ValueError
+        If an axis is not linear, a limit is non-finite, or both
+        ranges are zero.
+    """
+    if ax.get_xscale() != 'linear' or ax.get_yscale() != 'linear':
+        raise ValueError('square limits require linear axes!')
+
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    if not np.isfinite((x0, x1, y0, y1)).all():
+        raise ValueError('limits must be finite!')
+
+    half = max(abs(x1 - x0), abs(y1 - y0)) / 2
+    if half == 0.0:
+        raise ValueError('at least one axis must have non-zero range!')
+
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    sx = -1.0 if x1 < x0 else 1.0
+    sy = -1.0 if y1 < y0 else 1.0
+    ax.set_xlim(cx - sx * half, cx + sx * half)
+    ax.set_ylim(cy - sy * half, cy + sy * half)
 
 
 def _set_symmetric_limits(
     ax: maxes.Axes,
-    limits: float | tuple[float, float] | None,
-    xlim: tuple[float, float] | None,
-    ylim: tuple[float, float] | None,
+    limits: float | tuple[float, float],
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
+    center: str | float | tuple[float, float] | Callable | None = None,
+    points: NDArray | None = None,
+    weights: NDArray | None = None,
 ) -> tuple[tuple[float, float], tuple[float, float]]:
-    """Helper function for setting symmetric limits in `set_limits`."""
+    """Set symmetric axis limits around a resolved center.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes to modify. Must have linear scales.
+    limits : float | tuple[float, float]
+        Half-width. Scalar → both axes; tuple → ``(hx, hy)``.
+    xlim, ylim : tuple[float, float] | None, optional, default=None
+        Must be None. Mutually exclusive with `limits`.
+    center : str | float | tuple[float, float] | Callable | None, optional, default=None
+        Window center. See `_resolve_center`.
+    points : np.ndarray | None, optional, default=None
+        Array of shape (N, 2). If None, read from `ax` when needed.
+    weights : np.ndarray | None, optional, default=None
+        Masses of shape (N,). Requires `points`.
+
+    Returns
+    -------
+    tuple[tuple[float, float], tuple[float, float]]
+        The resulting ``(xlim, ylim)`` of `ax`.
+
+    Raises
+    ------
+    ValueError
+        If combined with `xlim`/`ylim`, a half-width is zero or
+        non-finite, an axis is not linear, or `center` cannot be resolved.
+    TypeError
+        If `limits` or `center` have an unsupported type.
+    """
     if xlim is not None or ylim is not None:
         raise ValueError('limits cannot be combined with xlim or ylim!')
+    if ax.get_xscale() != 'linear' or ax.get_yscale() != 'linear':
+        raise ValueError('symmetric limits require linear axes!')
 
-    if isinstance(limits, (list, tuple)) and len(limits) == 2:
-        lim = (float(get_value(limits[0])), float(get_value(limits[1])))
-    elif (
-        isinstance(limits, (int, float, np.integer, np.floating))
-        and not isinstance(limits, (bool, np.bool_))
-    ):
-        lim = (-abs(float(limits)), abs(float(limits)))
-    else:
-        raise ValueError(
-            'limits must be either a scalar or a tuple[float, float]! '
-            f'got {type(limits).__name__}!'
-        )
-    ax.set_xlim(lim)
-    ax.set_ylim(lim)
+    hx, hy = (abs(h) for h in _as_pair(limits, 'limits'))
+    if hx == 0.0 or hy == 0.0:
+        raise ValueError('limits must be non-zero!')
+
+    cx, cy = _resolve_center(ax, center, points, weights)
+
+    new_xlim = (cx - hx, cx + hx)
+    new_ylim = (cy - hy, cy + hy)
+    if ax.xaxis.get_inverted():
+        new_xlim = new_xlim[::-1]
+    if ax.yaxis.get_inverted():
+        new_ylim = new_ylim[::-1]
+    ax.set_xlim(new_xlim)
+    ax.set_ylim(new_ylim)
     return ax.get_xlim(), ax.get_ylim()
+
+
+def _as_pair(value, name: str) -> tuple[float, float]:
+    """Convert a scalar or length-2 sequence to a pair of floats.
+
+    Parameters
+    ----------
+    value : float | int | tuple[float, float] | list[float] | np.ndarray
+        Scalar (broadcast to both axes) or sequence of length 2.
+    name : str
+        Argument name, used in error messages.
+
+    Returns
+    -------
+    tuple[float, float]
+        Pair of finite floats ``(x, y)``.
+
+    Raises
+    ------
+    TypeError
+        If `value` is a bool or an unsupported type.
+    ValueError
+        If `value` has the wrong length or contains non-finite entries.
+    """
+    if isinstance(value, (bool, np.bool_)):
+        raise TypeError(f'{name} must not be a bool!')
+    if _is_scalar(value):
+        pair = (float(value), float(value))
+    elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 2:
+        pair = (float(get_value(value[0])), float(get_value(value[1])))
+    else:
+        raise TypeError(
+            f'{name} must be a scalar or a length-2 sequence! '
+            f'got {type(value).__name__}!'
+        )
+    if not all(np.isfinite(pair)):
+        raise ValueError(f'{name} must be finite! got {pair}!')
+    return pair
+
+
+_CENTER_MODES = {
+    'origin': lambda pts, w: (0.0, 0.0),
+    'com': lambda pts, w: center_of_mass(pts, w),
+    'median': lambda pts, w: np.median(pts, axis=0),
+}
+
+
+def _resolve_center(
+    ax: maxes.Axes,
+    center: str | float | tuple[float, float] | Callable | None,
+    points: np.ndarray | None,
+    weights: np.ndarray | None,
+) -> tuple[float, float]:
+    """Resolve `center` to a concrete ``(cx, cy)``.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes, used to extract points if `points` is None.
+    center : str | float | tuple[float, float] | Callable | None
+        None → origin. str → key of `_CENTER_MODES`. Callable →
+        ``fn(points, weights) -> (cx, cy)``. Numeric → scalar or pair.
+    points : np.ndarray | None
+        Array of shape (N, 2). If None and needed, read from non-connected
+        artists on `ax`.
+    weights : np.ndarray | None
+        Masses of shape (N,). Requires `points`. Ignored by `'median'`,
+        `'origin'` and numeric centers.
+
+    Returns
+    -------
+    tuple[float, float]
+        Resolved center.
+
+    Raises
+    ------
+    ValueError
+        If `center` is an unknown mode name, `weights` is given without
+        `points`, no points can be found on `ax`, or `points`/`weights`
+        have invalid shapes or non-finite values.
+    TypeError
+        If `center` has an unsupported type.
+    """
+    if center is None:
+        return 0.0, 0.0
+
+    if isinstance(center, str):
+        if center not in _CENTER_MODES:
+            raise ValueError(
+                f'unknown center mode {center!r}! '
+                f'options: {sorted(_CENTER_MODES)}'
+            )
+        if center == 'origin':
+            return 0.0, 0.0
+        fn = _CENTER_MODES[center]
+    elif callable(center):
+        fn = center
+    else:
+        return _as_pair(center, 'center')
+
+    if points is None:
+        if weights is not None:
+            raise ValueError('weights require explicit points!')
+        points = _points_from_ax(ax)
+
+    pts, w = _validate_points(points, weights)
+    return _as_pair(fn(pts, w), 'center')
+
+
+def _validate_points(
+    points: NDArray,
+    weights: NDArray | None,
+) -> tuple[NDArray, NDArray | None]:
+    """Validate point and weight arrays for center computation.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray | None]
+        ``(points, weights)`` as float arrays.
+    """
+    pts = np.asarray(points, dtype=float)
+    if pts.ndim != 2 or pts.shape[1] != 2 or len(pts) == 0:
+        raise ValueError('points must have shape (N, 2), N > 0!')
+    if not np.isfinite(pts).all():
+        raise ValueError('points must be finite!')
+    w = None
+    if weights is not None:
+        w = np.asarray(weights, dtype=float)
+        if w.shape != (len(pts),) or not np.isfinite(w).all():
+            raise ValueError(f'weights must be finite with shape ({len(pts)},)!')
+    return pts, w
+
+
+def _points_from_ax(
+    ax: maxes.Axes,
+    include_connected: bool = False,
+) -> NDArray:
+    """Gather plotted data points from an Axes as one (N, 2) array.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes to read artists from.
+    include_connected : bool, optional, default=False
+        If ``True``, include vertices of connected artists (lines,
+        patches, filled regions). These are weighted by vertex count,
+        so centers computed from them are geometric, not physical.
+
+    Returns
+    -------
+    NDArray
+        Finite points of shape (N, 2).
+
+    Raises
+    ------
+    ValueError
+        If no suitable points are found, or an axis is not linear.
+    """
+    if ax.get_xscale() != 'linear' or ax.get_yscale() != 'linear':
+        raise ValueError('data-dependent centers require linear axes!')
+
+    chunks = [
+        np.column_stack((x, y))
+        for x, y, connected in _get_xy_pairs_from_ax(ax)
+        if include_connected or not connected
+    ]
+    if not chunks:
+        raise ValueError(
+            'no point data found on ax! pass `points` explicitly.'
+        )
+    pts = np.concatenate(chunks, axis=0)
+    return pts[np.isfinite(pts).all(axis=1)]
 
 
 def _apply_limits(
