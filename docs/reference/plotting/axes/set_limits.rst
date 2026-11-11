@@ -93,7 +93,6 @@ requested limits are not preserved exactly.
 
     Equal ranges do not imply equal scaling on screen. On a non-square axes box, use
     ``ax.set_aspect('equal')`` for geometrically correct proportions.
-    ``square=True`` also disables autoscaling on both axes.
 
 
 .. plot:: ../examples/plotting/axes/plot_set_limits_square.py
