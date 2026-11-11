@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import visualastro as va
 
+plt.style.use(['minimal', 'stix'])
+
 rng = np.random.default_rng(42)
 n = 2000
 x = rng.normal(0, 4, n)
