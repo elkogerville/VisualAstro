@@ -57,11 +57,11 @@ def set_limits(
     ax : matplotlib.axes.Axes | None, optional, default=None
         Axes to modify. If ``None``, uses the current Axes.
     limits : float | tuple[float, float] | None, optional, default=None
-        Half-width of the window, applied around ``center``. Cannot be
-        combined with ``xlim`` or ``ylim``.
+        Window applied to both axes, relative to ``center`` (origin if None).
+        Cannot be combined with ``xlim`` or ``ylim``.
 
-        - Scalar: ``(c - |limits|, c + |limits|)`` on both axes.
-        - ``tuple[float, float]``: ``(half_width_x, half_width_y)``.
+        - Scalar: ``(center - |limits|, center + |limits|)``.
+        - ``tuple[float, float]``: ``(center + lo, center + hi)``.
 
     center : str | float | tuple[float, float] | Callable | None, optional, default=None
         Window center. Requires ``limits``. None → origin.
@@ -150,7 +150,6 @@ def set_limits(
         xpad=mx if xpad is None else xpad,
         ypad=my if ypad is None else ypad,
         recompute_other_axis=recompute_other_axis,
-
     )
 
     if square:
@@ -205,14 +204,16 @@ def _set_symmetric_limits(
     points: NDArray | None = None,
     weights: NDArray | None = None,
 ) -> tuple[tuple[float, float], tuple[float, float]]:
-    """Set symmetric axis limits around a resolved center.
+    """Set axis limits as a window around a resolved center.
 
     Parameters
     ----------
     ax : matplotlib.axes.Axes
         Axes to modify. Must have linear scales.
     limits : float | tuple[float, float]
-        Half-width. Scalar → both axes; tuple → ``(hx, hy)``.
+        Window relative to `center`, applied to both axes.
+        Scalar: ``(c - |limits|, c + |limits|)``.
+        Tuple : ``(c + lo, c + hi)``.
     xlim, ylim : tuple[float, float] | None, optional, default=None
         Must be None. Mutually exclusive with `limits`.
     center : str | float | tuple[float, float] | Callable | None, optional, default=None
@@ -230,8 +231,8 @@ def _set_symmetric_limits(
     Raises
     ------
     ValueError
-        If combined with `xlim`/`ylim`, a half-width is zero or
-        non-finite, an axis is not linear, or `center` cannot be resolved.
+        If combined with `xlim`/`ylim`, the window has zero width, an
+        axis is not linear, or `center` cannot be resolved.
     TypeError
         If `limits` or `center` have an unsupported type.
     """
@@ -240,18 +241,24 @@ def _set_symmetric_limits(
     if ax.get_xscale() != 'linear' or ax.get_yscale() != 'linear':
         raise ValueError('symmetric limits require linear axes!')
 
-    hx, hy = (abs(h) for h in _as_pair(limits, 'limits'))
-    if hx == 0.0 or hy == 0.0:
-        raise ValueError('limits must be non-zero!')
-
+    if _is_scalar(limits):
+        h = abs(_as_pair(limits, 'limits')[0])
+        lo, hi = -h, h
+    else:
+        lo, hi = _as_pair(limits, 'limits')
+    if lo == hi:
+        raise ValueError('limits must have non-zero width!')
     cx, cy = _resolve_center(ax, center, points, weights)
 
-    new_xlim = (cx - hx, cx + hx)
-    new_ylim = (cy - hy, cy + hy)
-    if ax.xaxis.get_inverted():
-        new_xlim = new_xlim[::-1]
-    if ax.yaxis.get_inverted():
-        new_ylim = new_ylim[::-1]
+    new_xlim = (cx + lo, cx + hi)
+    new_ylim = (cy + lo, cy + hi)
+
+    if lo < hi:
+        if ax.xaxis.get_inverted():
+            new_xlim = new_xlim[::-1]
+        if ax.yaxis.get_inverted():
+            new_ylim = new_ylim[::-1]
+
     ax.set_xlim(new_xlim)
     ax.set_ylim(new_ylim)
     return ax.get_xlim(), ax.get_ylim()
