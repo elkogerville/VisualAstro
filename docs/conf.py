@@ -65,5 +65,5 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
 
 plot_apply_rcparams = True
-plot_rcparams = {"figure.dpi": 150, "savefig.dpi": 200, "savefig.bbox": "tight"}
+plot_rcparams = {"savefig.bbox": "tight"}
 plot_formats = ["svg"]
