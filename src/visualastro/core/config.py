@@ -8,10 +8,10 @@ Description:
     >>> va.config
 """
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, fields
 from enum import Enum
-from typing import Callable, Literal, TypeVar
+from typing import Literal, TypeVar
 
 from astropy.wcs import WCS
 from astropy.io.fits import Header
@@ -424,6 +424,7 @@ class VisualAstroConfig(PrettyRepr, ResetConfig):
     style: str | None = None # default style
     style_fallback: str = 'default'
     figsize: tuple = (6.4, 4.8)
+    layout: Literal['constrained', 'compressed', 'tight', 'none', None] = None
     reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
     figsize_gridspec: tuple = (12, 6)
     figsize3D: tuple = (7, 7)

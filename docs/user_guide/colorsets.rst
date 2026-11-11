@@ -61,6 +61,15 @@ or ``'name'`` with ``sort_by``.
     va.colorsets.query(min_length=3, max_length=8, sort_by='length')
 
 
+Preview a Colorset
+------------------
+
+You can plot a sample figure with a colorset using :meth:`~Colorsets.preview`.
+
+.. plot:: ../examples/plotting/colors/plot_colorset_preview.py
+    :include-source: True
+
+
 Plotting Colorsets
 ------------------
 
@@ -75,28 +84,16 @@ Setting Minimum and Maximum Lengths
 Plot only the colorsets in the range ``[min_length, max_length]``.
 
 
-.. literalinclude:: /../examples/plotting/colors/plot_colorset_min_length.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/colorset_min_length.png
-    :scale: 50 %
-    :alt: spectral_lines on spectral data
-    :align: center
+.. plot:: ../examples/plotting/colors/plot_colorset_min_length.py
+    :include-source: True
 
 
 Setting a Set Length
 ^^^^^^^^^^^^^^^^^^^^
 
 
-.. literalinclude:: /../examples/plotting/colors/plot_colorset_length.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/colorset_length.png
-    :scale: 50 %
-    :alt: spectral_lines on spectral data
-    :align: center
+.. plot:: ../examples/plotting/colors/plot_colorset_length.py
+    :include-source: True
 
 
 Setting a Transform
@@ -105,14 +102,9 @@ Setting a Transform
 You can set one of the supported color transforms to change all the colorsets automatically.
 
 
-.. literalinclude:: /../examples/plotting/colors/plot_colorset_transform.py
-    :language: python
+.. plot:: ../examples/plotting/colors/plot_colorset_transform.py
+    :include-source: True
 
-
-.. image:: /_static/images/reference/plotting/colorset_desaturate.png
-    :scale: 50 %
-    :alt: spectral_lines on spectral data
-    :align: center
 
 
 CVD Simulations
@@ -130,25 +122,13 @@ color vision type would perceive the colorset. Use ``severity`` to set the
 strength of the effect (0 to 100, default 100).
 
 
-.. literalinclude:: /../examples/plotting/colors/plot_colorset_cvd.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/colorset_cvd.png
-    :scale: 50 %
-    :alt: spectral_lines on spectral data
-    :align: center
+.. plot:: ../examples/plotting/colors/plot_colorset_cvd.py
+    :include-source: True
 
 
 Plotting All Colorsets
 ^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. literalinclude:: /../examples/plotting/colors/plot_colorset_all.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/all_colorsets.png
-    :scale: 50 %
-    :alt: spectral_lines on spectral data
-    :align: center
+.. plot:: ../examples/plotting/colors/plot_colorset_all.py
+    :include-source: True

@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import visualastro as va
 
+plt.style.use(['full', 'cm'])
 rng = np.random.default_rng(42)
 
+# generate some data
 bimodal = np.concatenate([
         rng.normal(-1.5, 0.6, 30000),
         rng.normal(2.0, 1.0, 20000),
@@ -30,10 +32,7 @@ nongauss = [
     rng.chisquare(df=3, size=2300) * 1.5 - 1.0,
 ]
 
-
-
-plt.style.use(['full', 'cm'])
-
+# plot the data
 fig, ax = plt.subplots(2, 2, figsize=(12,12))
 
 va.hist(
@@ -49,10 +48,10 @@ va.legend(ax=ax[0,0], loc='upper right')
 
 va.hist(
     [lognormal, bimodal],
+    ax=ax[0,1],
     histtype='stepfilled',
     ylog=True,
     alpha=0.7,
-    ax=ax[0,1],
     label=['lognorm', 'bimodal'],
     color=['r', 'b'],
 )
@@ -60,24 +59,23 @@ va.legend(ax=ax[0,1], frameon=True, ec='k')
 
 va.hist(
     nongauss,
+    ax=ax[1,0],
     histtype='stepfilled',
     color='celestial',
-    alpha=0.7,
-    ax=ax[1,0],
-    label=[r'$\psi$', r'$\phi$', r'$\lambda$', r'$\epsilon$', r'$\nu$'],
+    alpha=0.8,
+    label=[r'$\psi$', r'$\phi$', r'$\lambda$', r'$\epsilon$', r'$\nu$', r'$\rho$', r'$\chi$', r'$\mu$'],
     xlim=(-10,20),
-
 )
 va.legend(
-    ax=ax[1,0], frameon=True, ec='k', reverse=True,
-    markerfirst=False, fancybox=True, loc='upper left'
+    ax=ax[1,0], frameon=True, ec='k', reverse=True, ncols=4,
+    markerfirst=False, fancybox=True, loc='bottom center'
 )
 
 va.hist(
     normals,
-    histtype='barstacked',
     ax=ax[1,1],
-    color='debos',
+    histtype='barstacked',
+    color='evenaworm',
     labels = [
         r'$\mathcal{N}(\mu=0,\ \sigma=10)$',
         r'$\mathcal{N}(\mu=3.5,\ \sigma=6)$',

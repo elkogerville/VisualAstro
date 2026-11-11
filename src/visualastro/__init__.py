@@ -1,7 +1,7 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-10-28
+Date Modified: 2026-11-10
 """
 
 from importlib.metadata import version as _version
@@ -19,6 +19,9 @@ from visualastro.analysis.ic import blob
 from visualastro.analysis.image_utils import (
     compute_sobel_filter,
     detect_edges,
+    get_filter_wavelength,
+    get_hdu,
+    get_hdu_from_hdu_list,
     image_2_grayscale,
     load_data_cube,
     load_fits,
@@ -100,18 +103,17 @@ from visualastro.plotting.base.plots import (
     scatter3D
 )
 from visualastro.plotting.core.axes import (
-    add_subplot,
-    add_ax3d,
-    ax3d,
     ax3d_axis_style,
     ax3d_pane_color,
+    figure,
     gridspec,
     inset_axes,
     set_limits,
     set_title,
-    subplot,
+    subplots,
+    subplots_3d,
+    subplots_wcs,
     tripanel_figure,
-    wcsax,
 )
 from visualastro.plotting.core.backend import (
     close,
@@ -136,8 +138,8 @@ from visualastro.plotting.core.colors import (
     lighten_colors,
     plot_color_deltaE,
     plot_colors,
-    plot_colorset,
     plot_colortable,
+    preview_colorset,
     random_colors,
     sample_cmap,
     saturate_colors,
@@ -184,6 +186,7 @@ from visualastro.plotting.science.spectra_plot_utils import (
     spectral_lines,
 )
 from visualastro.plotting.science.wcs_plots import (
+    color_image,
     imshow,
     plot_spectral_cube
 )

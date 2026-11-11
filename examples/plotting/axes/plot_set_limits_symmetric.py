@@ -1,24 +1,26 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import visualastro as va
 
-
 plt.style.use(['full', 'concrete'])
+va.config.fontsizes.tick_labels = 0.87
 
-gal = np.load('snapshot_N6000_timestep_1500.npy')
+blob1 = va.blob(5000, as_array=True)
+blob2 = va.blob(2500, as_array=True)
+blob1[:,0] += 5
+blob2[:,1] -= 10
 
-fig, ax = plt.subplots(1, 2, figsize=(12,6))
 
+fig, ax = va.subplots(1, 2, figsize=(11,5))
+
+va.scatter(blob1[:,0], blob1[:,1], ax=ax[0], s=0.1, color='Holy Red', title='limits=(-2,8)')
+va.set_limits(ax=ax[0], limits=(-2, 8))
+
+va.scatter(blob1[:,0], blob1[:,1], ax=ax[1], s=0.1, color='Holy Red', title='limits=15')
 va.scatter(
-    gal, ax=ax[0], xy_indices=(0,1), s=1, color='mediumvioletred',
-    xlabel='X', ylabel='Y', title='limits=(-20, 15)'
+    blob2[:,0], blob2[:,1], ax=ax[1],
+    s=0.1, color='Holy Blue', grid=True,
+    grid_color='blue', grid_ls=':', grid_alpha=0.5
 )
-va.set_limits(ax=ax[0], limits=(-20, 15))
-
-va.scatter(
-    gal, ax=ax[1], xy_indices=(0,2), s=1, color='slateblue',
-    xlabel='X', ylabel='Z', title='limits=-10'
-)
-va.set_limits(ax=ax[1], limits=-10)
+va.set_limits(ax=ax[1], limits=15)
 
 plt.show()

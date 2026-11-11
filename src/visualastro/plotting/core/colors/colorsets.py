@@ -6,17 +6,21 @@ Description:
     VisualAstro colorset registry.
 """
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from typing import Literal
 
 import matplotlib as mpl
+from matplotlib.collections import PatchCollection
+from matplotlib.colors import Colormap
+from matplotlib.lines import Line2D
+from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.config import _Unset, _UNSET
 from visualastro.plotting.core.colors.colors import get_colorset
 from visualastro.plotting.core.colors.definitions import (
     COLORSETS, COLORSET_ALIASES
 )
-from visualastro.plotting.core.colors.plots import plot_colors
+from visualastro.plotting.core.colors.plots import plot_colors, preview_colorset
 from visualastro.plotting.core.colors.utils import _find_colorset
 
 
@@ -113,6 +117,7 @@ class Colorsets:
     def get(
         self,
         name: str,
+        *,
         fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
         transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
         factor: float | _Unset = _UNSET,
@@ -160,6 +165,7 @@ class Colorsets:
 
     def query(
         self,
+        *,
         length : int | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
@@ -226,7 +232,8 @@ class Colorsets:
 
     def plot(
         self,
-        colorset: str | None = None,
+        colorset: ColorType | Sequence[ColorType] | None = None,
+        *,
         show_color_name: bool = True,
         length : int | None = None,
         min_length: int | None = None,
@@ -250,8 +257,8 @@ class Colorsets:
         Parameters
         ----------
         colorset : str | None, optional, default=None
-            Colorset name or alias. If ``None``, plots all colorsets
-            unless one or more of the filters are used.
+            Colorset name or alias, or a color or sequence of colors. If
+            ``None``, plots all colorsets unless one or more of the filters are used.
         show_color_name : bool, optional, default=True
             If `True`, also plots the colorset name. Only applicable to VisualAstro
             colorsets (as opposed to a sequence of colors).
@@ -288,7 +295,10 @@ class Colorsets:
         None
         """
         if colorset is not None:
-            colors = self.get(colorset, transform=None, cvd_type=None)
+            if isinstance(colorset, str):
+                colors = self.get(colorset, transform=None, cvd_type=None)
+            else:
+                colors = colorset
             plot_colors(
                 color=colors,
                 show_color_name=show_color_name,
@@ -320,6 +330,80 @@ class Colorsets:
             width=width,
             savefig=savefig,
         )
+
+    def preview(
+        self,
+        colorset: int | ColorType | Sequence[ColorType],
+        *,
+        cmap: Colormap | _Unset = _UNSET,
+        linestyle: LineStyleType = 'solid',
+        linewidth: float = 2,
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        legend: bool = True,
+        loc: str = 'bottom center',
+        ncols: int = 4,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
+        severity: int = 100,
+    ) -> list[list[Line2D] | list[PatchCollection]]:
+        """
+        Plot a sample figure demonstrating a VisualAstro color set.
+
+        Parameters
+        ----------
+        colors : ColorType | int | Sequence[ColorType | int], optional, default='astro_seq'
+            Color set to visualize. Can be either a VisualAstro
+            colorset name, a color, an integer, or a sequence of colors.
+            If an ``int``, generates a sequence of colors by sampling
+            ``cmap``.
+        ax : matplotlib.axes.Axes | None, optional, default=None
+            The Axes object on which to plot the demo orbits. If `None`,
+            uses `plt.gca()`.
+        cmap : Colormap | _Unset, optional, default=_UNSET
+            Colormap used to generate a sequence of colors if
+            ``colors`` is an int. If ``_UNSET`` uses ``config.colors``.
+        linestyle : LineStyleType, optional, default='solid'
+            Line style of each line.
+        linewidth : float, optional, default=2
+            Line width of each line.
+        legend : bool, optional, default=True
+            If `True`, plots the legend.
+        loc : str, optional, default='bottom center'
+            Legend location.
+        ncols : int, optional, default=4
+            Number of columns in the legend.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+            Method to modify the colors. If `None`, colors are unchanged.
+            If `_UNSET`, uses `config.color_transform`.
+        factor : float | _Unset, optional, default=_UNSET
+            Modification strength, see `get_colors`. If `_UNSET`, uses
+            `config.color_transform_factor`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly', 'all'} | None, optional, default=None
+            Type of colorblindness to simulate. Can be shorthanded to
+            `'d'`, `'p'`, `'t'`. If `'all'`, simulates all cvd types.
+            If `None`, no colorblindness simulation is applied.
+        severity : float, optional, default=100
+            Severity of colorblindness. Must be < 100.
+
+        Returns
+        -------
+        list[list[Line2D | PatchCollection]]
+            Artists returned by the plotting functions, grouped by plot element.
+        """
+        return preview_colorset(
+            colors=colorset,
+            cmap=cmap,
+            linestyle=linestyle,
+            linewidth=linewidth,
+            legend=legend,
+            loc=loc,
+            ncols=ncols,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        )
+
 
     def __repr__(self) -> str:
         names = ',\n'.join(f'    {name!r}' for name in self.available)

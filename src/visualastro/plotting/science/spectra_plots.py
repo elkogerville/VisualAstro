@@ -68,9 +68,8 @@ from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.colors.transforms import _lighten_color
-from visualastro.plotting.core.axes import (
-    set_limits, _set_axis_labels
-)
+from visualastro.plotting.core.axes import set_limits
+from visualastro.plotting.core.axes.labels import _set_axis_labels
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
 from visualastro.plotting.core.utils import _get_zorder

@@ -36,8 +36,8 @@ from visualastro.plotting.core.axes import (
     ax3d_pane_color,
     get_ax,
     get_ax3d,
-    _configure_axes_scaling,
 )
+from visualastro.plotting.core.axes.limits import _configure_axes_scaling
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import as_color, get_colors
 from visualastro.plotting.core.colors.plots import _resolve_scatter_norm
@@ -1340,13 +1340,13 @@ def scatter3D(
                 )
 
     if params.axis_style is not None:
-        ax3d_axis_style(ax, style=params.axis_style)
+        ax3d_axis_style(style=params.axis_style, ax=ax)
 
     ax.set_xlabel(params.xlabel)
     ax.set_ylabel(params.ylabel)
     ax.set_zlabel(params.zlabel)
 
-    ax3d_pane_color(params.pane_color, ax=ax)
+    ax3d_pane_color(pane_color=params.pane_color, ax=ax)
 
     if not grid_lines: ax.grid(False)
     if params.minor_ticks:

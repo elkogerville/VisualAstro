@@ -130,6 +130,31 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, Quantity):
         return obj.unit
 
+    if isinstance(obj, Header):
+        bunit = obj.get('BUNIT', None)
+        return to_unit(bunit)
+
+    if isinstance(obj, (str, bytes, memoryview, np.ndarray, np.generic, int, float, complex, bool)):
+        return None
+
+    unit = getattr(obj, 'unit', None)
+    if unit is not None:
+        return to_unit(unit)
+
+    if hasattr(obj, 'header'):
+        header = getattr(obj, 'header')
+        if header is not obj:
+            unit = get_unit(header)
+            if unit is not None:
+                return unit
+
+    if hasattr(obj, 'data'):
+        data = getattr(obj, 'data')
+        if data is not obj:
+            unit = get_unit(data)
+            if unit is not None:
+                return unit
+
     if _is_iterable(obj):
         units = [get_unit(item) for item in obj]
         non_none_units = [u for u in units if u is not None]
@@ -144,28 +169,6 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
             )
 
         return first_unit
-
-    if isinstance(obj, Header):
-        bunit = obj.get('BUNIT', None)
-        return to_unit(bunit)
-
-    unit = getattr(obj, 'unit', None)
-    if unit is not None:
-        return to_unit(unit)
-
-    if hasattr(obj, 'data'):
-        data = getattr(obj, 'data')
-        if data is not obj:
-            unit = get_unit(data)
-            if unit is not None:
-                return unit
-
-    if hasattr(obj, 'header'):
-        header = getattr(obj, 'header')
-        if header is not obj:
-            unit = get_unit(header)
-            if unit is not None:
-                return unit
 
     return None
 

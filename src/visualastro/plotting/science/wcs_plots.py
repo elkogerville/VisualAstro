@@ -1,17 +1,21 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-10-06
+Date Modified: 2026-11-10
 Description:
     Plotting functions for 2D and 3D astronomical images.
 """
 
 from __future__ import annotations
-from typing import Literal
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Literal, TypeAlias
 import warnings
 
+from astropy.io.fits import HDUList, ImageHDU, PrimaryHDU
 import astropy.units as u
 from astropy.utils.exceptions import AstropyWarning
+from astropy.visualization import make_rgb, make_lupton_rgb
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
 import matplotlib.axes as maxes
@@ -20,7 +24,11 @@ from matplotlib.image import AxesImage
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.analysis.image_utils import stack_cube
+from visualastro.analysis.image_utils import (
+    get_filter_wavelength,
+    get_hdu,
+    stack_cube
+)
 from visualastro.core.config import (
     config,
     _Unset,
@@ -49,12 +57,128 @@ from visualastro.plotting.interfaces.plot_utils import (
 from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label
 
 
+ColorImageTypes: TypeAlias = str | Path | HDUList | ImageHDU | PrimaryHDU
+
 warnings.filterwarnings('ignore', category=AstropyWarning)
+
+
+def color_image(  # TODO default to axis('off') for color_image() & imshow()?
+    *data: ColorImageTypes | Sequence[ColorImageTypes],
+    ax: maxes.Axes | None = None,  # TODO implement WCSAxes?
+    idx_r: int | _Unset = _UNSET,
+    idx_g: int | _Unset = _UNSET,
+    idx_b: int | _Unset = _UNSET,
+    lupton: bool = True,
+    show: bool = True,
+    axis_off: bool = True,
+    **kwargs
+):
+    """
+    Make and show a color image.
+
+    Pulls relevant cards from FITS header to determine color combination.
+
+    # TODO table of astropy.visualization.make_rgb() and .make_lupton_rgb() keywords
+
+    Raises
+    -------
+    ValueError
+        If `data` has length less than 1,
+        if its first element is `None`,
+        or if its only element is not a sequence.
+    """
+
+    # Check input scenario
+    len_data = len(data)
+    if len_data < 1 or data[0] is None:  # TODO rewrite
+        raise ValueError('Input is empty.')
+
+    # Unpack the single element if it is a sequence
+    elif len_data == 1:
+        data = data[0]
+        if not isinstance(data, (tuple, list)):
+            raise ValueError(
+                'Input has to be a sequence of paths, files, or arrays. '  # TODO rewrite
+                f'Got {type(data).__name__!r}.'
+            )
+        # TODO elif is a single path/file, check if it's multi-extension
+
+    # Process input after unpacking
+    # At the point, `data` is guaranteed to be a tuple or a list
+    len_data = len(data)
+    if len_data != 3:  # TODO relax to accept [2, N) number of elements
+        raise ValueError(f'Input must have 3 elements. Got {len_data}.')
+    hdu_list = []
+    for d in data:
+        hdu_list.append(get_hdu(d))
+
+    # --- Determine RGB channels automatically ---
+    if idx_r is _UNSET or idx_g is _UNSET or idx_b is _UNSET:
+        # Verify same telescope and instrument
+        telescopes = [hdu.header['TELESCOP'] for hdu in hdu_list]
+        instruments = [hdu.header['INSTRUME'] for hdu in hdu_list]
+        if len(set(telescopes)) != 1 or len(set(instruments)) != 1:
+            raise ValueError(
+                'Unable to determine RGB channels automatically because '
+                'input FITS files do not all come from '
+                'the same telescope and instrument. '
+                'Try explicitly providing `idx_r`, `idx_g`, `idx_b`.'
+            )
+
+        # 1st choice: sort by PHOTPLAM keyword
+        sort_key_list = []
+        try:
+            for hdu in hdu_list:
+                photplam = hdu.header['PHOTPLAM']
+                if photplam is None:
+                    raise KeyError  # TODO other validation? Units?
+                sort_key_list.append(photplam)
+
+        # 2nd choice: sort by FILTER keyword
+        except KeyError:
+            try:
+                # 2.1. Try converting to wavelengths
+                try:
+                    filter_list = [hdu.header['FILTER'] for hdu in hdu_list]
+                    wavlength_list = get_filter_wavelength(
+                        filter_list, error_mode='every'
+                    )
+                    sort_key_list = wavlength_list
+
+                # 2.2. Sort str directly (HST and JWST)
+                except ValueError:
+                    sort_key_list = filter_list
+            except Exception:
+                raise ValueError(
+                    'Unable to sort input data by wavelength because of '
+                    'missing or invalid PHOTPLAM and/or FILTER keywords. '
+                    'Try explicitly providing `idx_r`, `idx_g`, `idx_b`.'
+                )
+
+        # numpy>=2.5 can use descending=True instead of [::-1]
+        sorted_idx = np.argsort(sort_key_list)[::-1]
+        idx_r, idx_g, idx_b = sorted_idx[0], sorted_idx[1], sorted_idx[2]
+
+    kwargs.update({
+        'image_r': hdu_list[idx_r].data,
+        'image_g': hdu_list[idx_g].data,
+        'image_b': hdu_list[idx_b].data,
+    })
+
+    rgb = make_lupton_rgb(**kwargs) if lupton else make_rgb(**kwargs)
+
+    if show:
+        ax = get_ax(ax)
+        ax.imshow(rgb, origin='lower')
+        if axis_off:
+            ax.axis('off')
+
+    return rgb
 
 
 def imshow(
     images: DataCube | SpectralCube | NDArray | u.Quantity | list[DataCube | SpectralCube | NDArray | u.Quantity],
-    ax: maxes.Axes | WCSAxes,
+    ax: maxes.Axes | WCSAxes,  # TODO add default and use get_ax()?
     idx: int | tuple[int, int] | list[int | tuple[int, int] | None] | None = None,
     vmin: float | None | _Unset = _UNSET,
     vmax: float | None | _Unset = _UNSET,
