@@ -50,7 +50,7 @@ Axes that are already inverted (e.g. RA or magnitude) stay inverted unless the w
 
 
 Centering the Window
-^^^^^^^^^^^^^^^^^^^^
+********************
 
 The window can be moved with ``center``, which requires ``limits``.
 A scalar centers both axes at the same value, and a ``tuple`` ``(cx, cy)`` sets each axis independently.
@@ -70,11 +70,20 @@ plotting calls, or pass ``points`` explicitly.
     :include-source: True
 
 
+The ``points`` argument can be used to center around a subset of the data plotted.
+Here we center around the center of mass of only the second group.
+
+
+.. plot:: ../examples/plotting/axes/plot_set_limits_recenter_window_subset.py
+    :include-source: True
+
+
 Square Limits
 ^^^^^^^^^^^^^
 
 Set ``square=True`` to make the numeric ranges of both axes equal.
 The narrower axis is expanded about its own center, so no data is cut off, and inverted axes stay inverted.
+This is ignored if ``limits`` is not ``None``.
 
 Squaring is applied last, after ``xlim``, ``ylim``, padding, and any recomputed limits, so it composes with every other option.
 If both ``xlim`` and ``ylim`` are given with different ranges, the narrower one is expanded and the
@@ -85,3 +94,7 @@ requested limits are not preserved exactly.
     Equal ranges do not imply equal scaling on screen. On a non-square axes box, use
     ``ax.set_aspect('equal')`` for geometrically correct proportions.
     ``square=True`` also disables autoscaling on both axes.
+
+
+.. plot:: ../examples/plotting/axes/plot_set_limits_square.py
+    :include-source: True
