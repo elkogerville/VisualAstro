@@ -157,8 +157,8 @@ def _extract_plot_util_kwargs(kwargs: dict) -> PlotUtilParams:
         limits=_pop_mapped(
             kwargs,
             (
-                'limits', 'xlim', 'ylim', 'xlog', 'ylog',
-                'xpad', 'ypad', 'recompute_other_axis'
+                'limits', 'center', 'xlim', 'ylim', 'xlog', 'ylog',
+                'xpad', 'ypad', 'recompute_other_axis', 'square',
             )
         ),
         labels=_pop_mapped(
