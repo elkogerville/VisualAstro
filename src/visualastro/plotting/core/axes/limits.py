@@ -102,7 +102,8 @@ def set_limits(
         uses ``config.axes.recompute_other_axis``.
     square : bool, optional, default=False
         If ``True``, make the X and Y ranges of `ax` equal
-        by expanding the narrower one.
+        by expanding the narrower one. Is ignored if ``limits``
+        is not ``None``.
 
     Returns
     -------

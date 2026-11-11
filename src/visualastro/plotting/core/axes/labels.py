@@ -31,10 +31,11 @@ from visualastro.plotting.core.axes.axes import get_ax
 
 def set_title(
     title: str,
+    *,
+    ax: maxes.Axes | WCSAxes | None = None,
     loc: Literal['center', 'left', 'right'] = 'center',
     pad: float | None = None,
     fontsize: float | _Unset = _UNSET,
-    ax: maxes.Axes | WCSAxes | None = None,
     **kwargs
 ) -> Text:
     """
