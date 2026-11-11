@@ -4,7 +4,6 @@ import visualastro as va
 plt.style.use(['full', 'concrete'])
 va.config.fontsizes.tick_labels = 0.87
 va.config.legend.markerscale = 15
-va.config.rasterized = True
 
 blob1 = va.blob(5000, as_array=True)
 blob2 = va.blob(2500, as_array=True)
@@ -12,7 +11,7 @@ blob1[:,0] += 5
 blob2[:,1] -= 10
 
 
-fig, ax = va.subplots(1, 3, figsize=(12,4))
+fig, ax = va.subplots(1, 3, figsize=(13,4))
 
 va.scatter(blob1[:,0], blob1[:,1], ax=ax[0], s=0.1, color='Holy Red', label='Galaxy 1')
 va.scatter(blob2[:,0], blob2[:,1], ax=ax[0], s=0.1, color='Holy Blue', label='Galaxy 2')
