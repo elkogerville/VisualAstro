@@ -730,281 +730,67 @@ def plot_extracted_pixel_map(
         plt.show()
 
 
-# Spectra Plotting Functions
-# --------------------------
 def plot_spectra(
-    extracted_spectra=None,
-    ax=None,
-    plot_continuum=_UNSET,
-    plot_norm_continuum=_UNSET,
-    emission_line=None,
-    wavelength=None,
-    flux=None,
-    continuum=None,
-    color=_UNSET,
-    vline=None,
-    **kwargs
-):
+    spectrum: Spectrum,
+    ax: maxes.Axes | None = None,
+    plot_mode: Literal['step', 'plot'] = 'step',
+    **kwargs,
+) -> list[Line2D]:
     """
-    Plot one or more extracted spectra on a Matplotlib Axes.
+    Plot all spectra in a :class:`specutils.Spectrum` on a Matplotlib Axes.
 
     Parameters
     ----------
-    extracted_spectrums : SpectrumPlus | list[SpectrumPlus], optional, default=None
-        Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
-        and `flux` must be given.
+    spectrum : specutils.Spectrum
+        Spectrum to plot. ``spectrum.flux`` must be 1D (one line) or 2D with
+        shape (n_spectra, n_spectral) (one line per row). All rows share
+        the same spectral axis.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axis to plot on.
-    plot_norm_continuum : bool, optional, default=None
-        If True, plot normalized flux instead of raw flux.
-        If None, uses `plot_normalized_continuum`.
-    plot_continuum : bool, optional, default=None
-        If True, overplot continuum fit. If None, uses
-        the default value set by `config.plot_continuum_fit`.
-    emission_line : str, optional, default=None
-        Label for an emission line to annotate on the plot.
-    wavelength : ArrayLike, optional, default=None
-        Wavelength array (required if `extracted_spectrums` is None).
-    flux : ArrayLike, optional, default=None
-        Flux array (required if `extracted_spectrums` is None).
-    continuum : ArrayLike, optional, default=None
-        Fitted continuum array.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses `config.default_colorset`.
-    vline : Quantity | float | None, optional, default=None
-        If provided, draw a vertical dotted reference line at this wavelength.
-        If unitless, the value is assumed to be in the same units as the
-        spectral axis.
+        Axes to plot on. If ``None``, resolved via ``get_ax``.
+    plot_mode : {'step', 'plot'}, optional, default='step'
+        Plotting backend, case-insensitive.
 
-    **kwargs : dict, optional
-        Additional parameters.
+        - ``'step'``: calls ``visualastro.step``.
+        - ``'plot'``: calls ``visualastro.plot``.
 
-        Supported keywords:
-
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `color` or `c` : list[colors] | None, optional, default=None
-          Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorders`, `zorder` : float, optional, default=None
-          Order of line placement. If None, will increment by 1 for
-          each additional line plotted.
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional, default=None
-          Wavelength range to display.
-        - `ylim` : tuple, optional
-          Flux range to display.
-        - `labels`, `label`, `l` : str | list[str], optional, default=None
-          Legend labels.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Location of legend.
-        - `xlabel` : str, optional
-          Label for the x-axis.
-        - `ylabel` : str, optional
-          Label for the y-axis.
-        - `text_loc` : list[float], optional, default=`config.text_loc`
-          Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+    **kwargs
+        Additional keyword arguments forwarded to the selected backend
+        (``visualastro.step`` or ``visualastro.plot``).
 
     Returns
     -------
-    lines : Line2D | list[Line2D] | PlotSpectrum
-        The plotted line object(s) created by `Axes.plot`.
+    list[matplotlib.lines.Line2D]
+        Plotted line objects, one per spectrum.
 
-        - If `plot_continuum` is False, returns a single `Line2D` object
-          or a list of `Line2D` objects corresponding to the main spectrum.
-        - If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
-          with the following fields:
-
-            - `lines` : Line2D | list[Line2D]
-              The plotted spectrum line(s).
-            - `continuum_lines` : Line2D | list[Line2D]
-              The plotted continuum fit line(s), if available.
+    Raises
+    ------
+    TypeError
+        If `spectrum` is not a :class:`specutils.Spectrum`.
+        If `ax` is not a Matplotlib Axes (raised by `get_ax`).
+    ValueError
+        If `spectrum.flux` has more than 2 dimensions.
+        If `plot_mode` is not 'step' or 'plot'.
     """
     _require_dependency('specutils')
-    params = _resolve_kwargs(
-        kwargs,
-        params=[
-            _param('plot_continuum', plot_continuum, config.plot_continuum_fit),
-            _param('plot_norm_continuum', plot_norm_continuum, config.plot_normalized_continuum),
-            _param('color', color, config.color),
-        ],
-        additional_kwargs=[
-            _kwarg('linestyle', None),
-            _kwarg('linewidth', None),
-            _kwarg('alpha', None),
-            _kwarg('zorder', None),
-            _kwarg('cmap', config.cmap),
-            _kwarg('bad_color', None),
-            _kwarg('label', None),
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
-            _kwarg('loc', config.legend.loc),
-            _kwarg('text_loc', config.plot_spectra_text_loc),
-            _kwarg('unit_bracket_style', config.unit_bracket_style),
-            _kwarg('rasterized', config.rasterized),
-        ]
-    )
-    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
-    fit_colors = [_lighten_color(c) for c in colors]
 
-    alphas = to_list(params.alpha)
-    labels = to_list(params.label)
-    linestyles = to_list(params.linestyle)
-    linewidths = to_list(params.linewidth)
-    zorders = to_list(params.zorder)
-
-    if ax is None:
-        raise ValueError('ax must be a Matplotlib axes object!')
-
-    # construct SpectrumPlus if user passes in wavelength and flux
-    if extracted_spectra is None:
-        # disable normalization because the user provided raw arrays
-        params.plot_norm_continuum = False
-
-        # normalize continuum_fit into a list
-        if isinstance(continuum, (list, tuple)):
-            continuum_list = list(continuum)
-        else:
-            continuum_list = [continuum]
-
-        # case 1: single wavelength/flux array
-        if (
-            isinstance(wavelength, (np.ndarray, Quantity, SpectralAxis)) and
-            isinstance(flux, (np.ndarray, Quantity))
-        ):
-            extracted_spectra = SpectrumPlus(
-                spectral_axis=wavelength,
-                flux=flux,
-                continuum=continuum_list[0]
-            )
-        # case 2: multiple arrays
-        elif (
-            isinstance(wavelength, (list, tuple)) and
-            isinstance(flux, (list, tuple)) and
-            len(wavelength) == len(flux)
-        ):
-            extracted_spectra = [
-                SpectrumPlus(
-                    spectral_axis=w,
-                    flux=f,
-                    continuum=continuum_list[i % len(continuum_list)]
-                )
-                for i, (w, f) in enumerate(zip(wavelength, flux))
-            ]
-        else:
-            raise ValueError(
-                'Either pass `extracted_spectra`, or provide matching '
-                '`wavelength` and `flux` arguments. \nFor multiple spectra, '
-                'use lists of wavelength and flux arrays with equal length.'
-            )
-
-    extracted_spectra = to_list(extracted_spectra)
-    ensure_common_unit(extracted_spectra, on_mismatch=config.unit_mismatch)
-
-    if emission_line is not None:
-        ax.text(
-            params.text_loc[0], params.text_loc[1],
-            f'{emission_line}', transform=ax.transAxes
+    if not isinstance(spectrum, Spectrum):
+        raise TypeError(
+            f'`spectrum` must be a `Spectrum`, got {type(spectrum).__name__}.'
+        )
+    if spectrum.flux.ndim > 2:
+        raise ValueError(
+            f'`spectrum.flux` must be 1D or 2D, got {spectrum.flux.ndim}D.'
         )
 
-    lines = []
-    fit_lines = []
-    wavelength_list = []
-    flux_list = []
-    flux_mask_list = []
-
-    for i, extracted_spectrum in enumerate(extracted_spectra):
-
-        w = extracted_spectrum.spectral_axis
-        if params.plot_norm_continuum:
-            f = extracted_spectrum.normalized
-        else:
-            f = extracted_spectrum.flux
-        wave_arr = _spectral_axis_2_array(w)
-        flux_arr = to_array(f)
-
-        mask = mask_within_range(wave_arr, lim=params.xlim)
-        wavelength_list.append(w[mask])
-        flux_list.append(f)
-        flux_mask_list.append(flux_arr[mask])
-
-        color = _cycle(colors, i)
-        fit_color = _cycle(fit_colors, i)
-        linestyle = _cycle(linestyles, i)
-        linewidth = _cycle(linewidths, i)
-        alpha = _cycle(alphas, i)
-        zorder = _get_zorder(zorders, i, config.zorder.plot_data)
-        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
-
-        l = ax.plot(
-            wave_arr[mask], flux_arr[mask],
-            color=color,
-            ls=linestyle,
-            lw=linewidth,
-            alpha=alpha,
-            zorder=zorder,
-            label=label,
-            rasterized=params.rasterized
+    plot_fn = {'step': step, 'plot': plot}.get(str(plot_mode).lower())
+    if plot_fn is None:
+        raise ValueError(
+            f"`plot_mode` must be 'step' or 'plot', got {plot_mode!r}."
         )
 
-        if params.plot_continuum and extracted_spectrum.continuum is not None:
-            if params.plot_norm_continuum:
-                continuum = extracted_spectrum.continuum/extracted_spectrum.continuum
-            else:
-                continuum = extracted_spectrum.continuum
-            fl = ax.plot(
-                wave_arr[mask], to_array(continuum)[mask],
-                color=fit_color,
-                ls=linestyle,
-                lw=linewidth,
-                alpha=alpha,
-                rasterized=params.rasterized
-            )
+    ax = get_ax(ax)
 
-            fit_lines.append(fl)
-
-        lines.append(l)
-
-    set_limits(
-        ax=ax,
-        xlim=params.xlim, ylim=params.ylim,
-        xpad=0
-    )
-    _set_axis_labels(
-        _cycle(wavelength_list, config.reference_idx),
-        _cycle(flux_list, config.reference_idx),
-        ax,
-        params.xlabel, params.ylabel,
-        unit_bracket_style=params.unit_bracket_style
-    )
-
-    axvlines(vline, ax=ax, unit=_cycle(extracted_spectra, config.reference_idx).unit)
-
-    if labels[0] is not None:
-        ax.legend(loc=params.loc)
-
-    if params.plot_continuum:
-        PlotHandles = namedtuple('PlotSpectrum', ['lines', 'continuum_lines'])
-        return PlotHandles(lines, fit_lines)
-
-    return lines
+    return plot_fn(spectrum.spectral_axis, spectrum.flux, ax=ax, **kwargs)
 
 
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
