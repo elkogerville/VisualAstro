@@ -57,4 +57,5 @@ Spectra
 .. toctree::
    :hidden:
 
+   plotting/spectra/plot_spectra
    plotting/spectra/spectral_lines

@@ -740,7 +740,7 @@ def plot_spectra(
     Plot all spectra in a :class:`~specutils.Spectrum` on a
     Matplotlib :class:`~matplotlib.axes.Axes`.
 
-    Is a thin wrapper of ``visualastro.step`` or ``visualastro.plot``.
+    Is a thin wrapper of :func:`~visualastro.step` or :func:`~visualastro.plot`.
     Plots ``spectrum.spectral_axis`` and ``spectrum.flux``.
     Also sets ``xpad`` to 0 by default.
 
@@ -755,8 +755,8 @@ def plot_spectra(
     plot_mode : {'step', 'plot'}, optional, default='step'
         Plotting backend, case-insensitive.
 
-        - ``'step'``: calls ``visualastro.step``.
-        - ``'plot'``: calls ``visualastro.plot``.
+        - ``'step'``: calls :func:`~visualastro.step`.
+        - ``'plot'``: calls :func:`~visualastro.plot`.
 
     **kwargs
         Additional keyword arguments forwarded to the selected backend
