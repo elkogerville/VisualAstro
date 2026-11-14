@@ -1,15 +1,17 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-25
+Date Modified: 2026-11-14
 Description:
     Plotting input normalization functions.
 """
 
 from collections.abc import Sequence
+from math import lcm
 from typing import Any, Literal
 
 from astropy import units as u
+from matplotlib.axes import Axes
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
@@ -23,17 +25,23 @@ from visualastro.core.config import (
 from visualastro.core.array_types import (
     _is_1d,
     _is_array_like,
+    _is_iterable,
+    _is_iterable_not_tuple,
     _is_ndarray_or_quantity_array,
     _is_scalar,
     _is_wrapped_1d,
 )
-from visualastro.core.data import as_list, get_value, to_list, _array_length, _ndim
+from visualastro.core.data import (
+    as_list, get_value, to_list, _array_length, _ndim
+)
 from visualastro.core.kwargs import (
     _extract_kwargs, _params_from_explicit, _resolve_kwargs
 )
 from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
-from visualastro.plotting.core.colors.utils import _is_color_sequence, _is_colorset
+from visualastro.plotting.core.colors.utils import (
+    _is_color_sequence, _is_color_keyword, _is_colorset
+)
 
 
 def _normalize_order(order: str) -> Literal['c', 'fortran']:
@@ -185,6 +193,7 @@ def _extract_xy(
         - Single input has ndim > 2.
         - `order` is not recognized.
         - `xy_indices` does not have length 2.
+
     IndexError
         If an entry of `xy_indices` is out of bounds for the array.
 
@@ -674,8 +683,17 @@ def _resolve_color_kwargs(
         kwargs['c'] = get_value(c)
 
     def _convert(value: Any) -> Any:
-        if isinstance(value, str) and value == 'none' or value == 'face':
+        if _is_color_keyword(value):
             return value
+        if (
+            _is_iterable(value)
+            and not isinstance(value, str)
+            and any(_is_color_keyword(v) for v in value)
+        ):
+            return [
+                v if _is_color_keyword(v) else get_color(v, **modifiers)
+                for v in value
+            ]
         if allow_color_sequences and (_is_color_sequence(value) or _is_colorset(value)):
             return get_colors(value, **modifiers)
         return get_color(value, **modifiers)
@@ -929,13 +947,14 @@ def _resolve_marker_size(
 
     s_given = s is not _UNSET
     value = np.asarray(get_value(s if s_given else ms), dtype=float)
+    if np.any(value < 0):
+        raise ValueError('Marker sizes must be non-negative.')
 
     if target == 'markersize':
-        if value.ndim != 0:
-            raise ValueError("`plot` does not support per-point sizes; use `scatter`.")
-        if s_given and value < 0:
-            raise ValueError("`s` must be non-negative.")
-        props_kw[target] = float(np.sqrt(value) if s_given else value)
+        if value.ndim > 1:
+            raise ValueError("`plot` size must be a scalar or 1D sequence (per line).")
+        size = np.sqrt(value) if s_given else value
+        props_kw[target] = float(size) if size.ndim == 0 else size.tolist()
     else:
         props_kw[target] = value if s_given else np.square(value)
 
