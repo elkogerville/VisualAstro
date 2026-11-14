@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-30
+Date Modified: 2026-11-14
 Description:
     General plotting functions.
 """
@@ -53,6 +53,7 @@ from visualastro.plotting.core.plot_input import (
     _resolve_props_kwargs,
     _resolve_xy_plot_inputs,
     _scatter_props,
+    _set_prop_cycle_from_kwargs,
 )
 from visualastro.plotting.core.utils import _get_zorder
 from visualastro.plotting.interfaces.plot_utils import (
@@ -307,9 +308,13 @@ def hist(
     bins: int | Sequence[float] | str | _Unset = _UNSET,
     range: tuple[float, float] | None = None,
     density: bool | _Unset = _UNSET,
+    weights: ArrayLike | Sequence[ArrayLike] | None = None,
+    cumulative: bool | Literal[-1] = False,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
+    orientation: Literal['vertical', 'horizontal'] = 'vertical',
+    stacked: bool = False,
     color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
     edgecolor: ColorType | Sequence[ColorType] | None = None,
     facecolor: ColorType | Sequence[ColorType] | None = None,
@@ -351,6 +356,24 @@ def hist(
     density : bool | _Unset, optional, default=_UNSET
         If `True`, normalize to a probability density (area = 1).
         If `_UNSET`, uses `config.normalize_hist`.
+    weights : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
+        Weights associated with each entry in `x`.
+
+        - If `x` is a single array, `weights` must be an array of the same shape.
+        - If `x` is a sequence of arrays, `weights` must be a sequence of arrays
+          of the same length, with `weights[i].shape == x[i].shape`.
+
+        With `density=True`, the weights are normalized so that the integral of
+        the density is 1.
+    cumulative : bool | float, optional, default=False
+        Controls whether the histogram is accumulated.
+
+        - If True, each bin gives the count (or weighted sum) of entries in that
+          bin and all lower bins. With ``density=True``, the last bin equals 1.
+        - If a negative number (e.g. -1), the direction is reversed. With
+        ``density=True``, the first bin equals 1.
+        - If ``False``, bins are not accumulated.
+
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Histogram type. If `_UNSET`, uses `config.histtype`.
     normalize : bool | _Unset, optional, default=_UNSET
@@ -363,6 +386,14 @@ def hist(
         - `'mid'`: centered between edges.
         - `'right'`: centered on right edges.
 
+    orientation : {'vertical', 'horizontal'}, optional, default='vertical'
+        Orientation of the histogram. Uses `matplotlib.axes.Axes.barh` if
+        ``'horizontal'``.
+    stacked : bool, optional, default=False
+        If ``True``, sequence of arrays are stacked ontop of each other.
+        If ``False``, sequences of arrays are aranged side by side
+        for ``histtype='bar'`` and stacked ontop of each other if
+        ``histtype='step'``.
     color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
         Color(s). A single color applies to all histograms. A sequence is
         matched to the datasets. Aliased by `c` in `kwargs`.
@@ -464,8 +495,12 @@ def hist(
         bins=params.bins,
         range=range,
         density=params.density,
+        weights=weights,
+        cumulative=cumulative,
         histtype=params.histtype,
         align=align,
+        orientation=orientation,
+        stacked=stacked,
         hatch=hatch,
         label=params.label,
         rasterized=params.rasterized,

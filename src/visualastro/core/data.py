@@ -14,7 +14,7 @@ from astropy import units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.array_types import _is_1d, _is_iterable, _is_scalar
+from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
     SpectralCube, _HAS_SPECTRAL_CUBE
 )
