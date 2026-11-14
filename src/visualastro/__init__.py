@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-11-10
+Date Modified: 2026-11-14
 """
 
 from importlib.metadata import version as _version
