@@ -13,7 +13,9 @@ from typing import Literal
 
 import astropy.units as u
 from astropy.units import Quantity
+import matplotlib.axes as maxes
 from matplotlib.colors import Colormap, to_rgba
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
@@ -36,7 +38,9 @@ from visualastro.core.config import (
     _UNSET,
     _resolve_default
 )
-from visualastro.core.data import get_value, to_array, to_list
+from visualastro.core.data import (
+    get_value, to_array, to_list, _ensure_iterable
+)
 from visualastro.core.io import savefig
 from visualastro.core.kwargs import (
     _pop_kwargs, _param, _kwarg, _resolve_kwargs
@@ -45,7 +49,7 @@ from visualastro.core.numerical import (
     interpolate as _interpolate,
     mask_within_range
 )
-from visualastro.core.sequences import _cycle, _unwrap_if_single
+from visualastro.core.sequences import _unwrap_if_single
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
@@ -57,257 +61,155 @@ from visualastro.optional_dependencies.register import (
     _require_dependency, _offer_dependency,
 )
 from visualastro.optional_dependencies._spectralcube import SpectralCube
-from visualastro.optional_dependencies._specutils import (
-    SpectralAxis, Spectrum
-)
+from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.plotting.base.plots import plot, step
+from visualastro.plotting.core.axes.axes import get_ax
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
-from visualastro.plotting.core.colors.transforms import _lighten_color
 from visualastro.plotting.core.axes import set_limits
 from visualastro.plotting.core.axes.labels import _set_axis_labels
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.core.utils import _get_zorder
 
 
-def extract_cube_spectra(
-    cubes,
-    flux_extract_method=_UNSET,
-    extract_mode=None,
-    fit_method=_UNSET,
-    region=None,
-    radial_vel=_UNSET,
-    rest_freq=_UNSET,
-    deredden=_UNSET,
-    unit=_UNSET,
-    emission_line=None,
-    plot_continuum=_UNSET,
-    plot_norm_continuum=_UNSET,
+_EXTRACT_METHODS: dict[str, str] = {
+    'mean': 'mean',
+    'median': 'median',
+    'sum': 'sum',
+}
+
+
+def extract_cube_spectrum(
+    cube: DataCube | SpectralCube,
+    flux_extract_method: Literal['mean', 'median', 'sum'] | _Unset = _UNSET,
+    extract_mode: Literal['cube', 'slice', 'ray'] | _Unset = _UNSET,
+    radial_vel: float | u.Quantity | None | _Unset = _UNSET,
+    rest_freq: float | u.Quantity | None | _Unset = _UNSET,
+    unit: str | u.Unit | None | _Unset = _UNSET,
+    convention: str | None = None,
     **kwargs
-):
+) -> Spectrum:
     """
-    Extract 1D spectra from one or more data cubes, with optional continuum normalization,
-    dereddening, and plotting.
+    Extract a 1D spectrum from a single data cube by collapsing both spatial axes.
+
+    The cube is assumed to have axes ordered `(spectral, y, x)`. The spatial
+    axes (1, 2) are collapsed with the chosen statistic.
 
     Parameters
     ----------
-    cubes : DataCube | SpectralCube | list of cubes
-        Input cube(s) from which to extract spectra. The data must either be
-        a SpectralCube, or a DataCube containing a SpectralCube.
-    flux_extract_method : {'mean', 'median', 'sum'} | None, optional, default=None
-        Method for extracting the flux. If None, uses `config.flux_extract_method`.
-    extract_mode : {'cube', 'slice', 'ray'} | None, optional, default=None
-        Specifies how the spectral cube should be traversed during flux
-        extraction. This controls memory usage and performance for large cubes.
+    cube : DataCube | SpectralCube
+        Input cube. Must be a SpectralCube, or a DataCube containing one.
+    flux_extract_method : {'mean', 'median', 'sum'} | None | _Unset, optional, default=_UNSET
+        Statistic used to collapse the spatial axes.
+        If None or `_UNSET`, uses `config.flux_extract_method`.
+    extract_mode : {'cube', 'slice', 'ray'} | None | _Unset, optional, default=_UNSET
+        Traversal strategy for the collapse. Trades memory for speed.
 
-            - 'cube' :
-                Load and operate on the entire cube in memory. This is the
-                simplest mode but may be slow or disabled for very large datasets
-                unless `cube.allow_huge_operations = True` is set.
-            - 'slice' :
-                Process the cube slice-by-slice along the spectral axis. This
-                avoids loading the full cube into memory and is recommended for
-                moderately large datasets.
-            - 'ray' :
-                Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
-                load at the cost of speed. Recommended for extremely large cubes
-                or low-memory environments.
+        - 'cube' : Load the entire cube in memory. Fastest, but blocked for
+          very large cubes unless `cube.allow_huge_operations = True`.
+        - 'slice' : Process slice-by-slice along the spectral axis. Recommended
+          for moderately large cubes.
+        - 'ray' : Process spaxel-by-spaxel. Lowest memory, slowest. Use for
+          very large cubes or low-memory environments.
 
-        If None, uses `config.spectral_cube_extraction_mode`.
-    fit_method : {'fit_continuum', 'generic'} | None, optional, default=None
-        Method used to fit the continuum. If None, uses `config.spectrum_continuum_fit_method`.
-    region : ArrayLike | None, optional, default=None
-        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
-        Ignored for other methods. This allows the user to specify which
-        regions to include in the fit. Removing strong peaks is preferable to
-        avoid skewing the fit up or down.
-        Ex: Remove strong emission peak at 7um from fit
-        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    radial_vel : float | None, optional, default=`_UNSET`
-        Radial velocity in km/s to shift the spectral axis.
-        Astropy units are optional. If None, ignores the radial velocity.
+        If None or `_UNSET`, uses `config.spectral_cube_extraction_mode`.
+    radial_vel : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
+        Radial velocity used to shift the spectral axis. Floats are
+        interpreted as km/s. If None, no shift is applied.
         If `_UNSET`, uses `config.radial_velocity`.
-    rest_freq : float | None, optional, default=`_UNSET`
-        Rest-frame frequency or wavelength of the spectrum. If None,
-        ignores the rest frequency for unit conversions. If `_UNSET`,
-        uses `config.spectra_rest_frequency`.
-    deredden : bool | None, optional, default=None
-        Whether to apply dereddening to the flux using deredden_flux().
-        If None, uses `config.deredden_spectrum`.
-    unit : str | astropy.units.Unit | None, optional, default=`_UNSET`
-        Desired units for the wavelength axis. Converts the default
-        units if possible. If None, does not try and convert. If `_UNSET`,
-        uses `config.wavelength_unit`.
-    emission_line : str | None, optional, default=None
-        Name of an emission line to annotate on the plot.
-    plot_continuum : bool | None, optional, default=None
-        Whether to overplot the continuum fit. If None, uses `config.plot_continuum_fit`.
-    plot_norm_continuum : bool | None, optional, default=None
-        Whether to plot the normalized extracted spectra. If None,
-        uses `config.plot_normalized_continuum`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `how` : str, optional, default=`config.spectral_cube_extraction_mode`
-          Alias for `extract_mode`.
-        - `convention` : str, optional
-          Doppler convention.
-        - `Rv` : float, optional, default=`config.deredden.Rv`
-          Dereddening parameter.
-        - `Ebv` : float, optional, default=`config.deredden.Ebv`
-          Dereddening parameter.
-        - `deredden_method` : str, optional, default=`config.deredden.method`
-          Extinction law to use.
-        - `deredden_region` : str, optional, default=`config.deredden.region`
-          Region/environment for WD01 extinction law.
-        - `figsize` : tuple, optional, default=`config.figsize`
-          Figure size for plotting.
-        - `style` : str, optional, default=`config.style`
-          Plotting style.
-        - `savefig` : bool, optional, default=`config.savefig.enable`
-          Whether to save the figure to disk.
-        - `dpi` : int, optional, default=`config.savefig.dpi`
-          Figure resolution for saving.
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `colors`, `color`, `c` : list[colors] | None, optional, default=None
-          Colors to use for each dataset. If None, default
-          color cycle is used.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorders`, `zorder` : float | None, optional, default=None
-          Order of line placement. If None, will increment by 1 for
-          each additional line plotted.
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional, default=None
-          Wavelength range to display.
-        - `ylim` : tuple, optional
-          Flux range to display.
-        - `labels`, `label`, `l` : str | list[str], optional, default=None
-          Legend labels.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Location of legend.
-        - `xlabel` : str, optional
-          Label for the x-axis.
-        - `ylabel` : str, optional
-          Label for the y-axis.
-        - `text_loc` : list[float], optional, default=`config.text_loc`
-          Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+    rest_freq : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
+        Rest-frame frequency or wavelength stored on the Spectrum as
+        `rest_value`. If None, no rest value is set.
+        If `_UNSET`, uses `config.spectra_rest_frequency`.
+    unit : str | astropy.units.Unit | None | _Unset, optional, default=_UNSET
+        Target unit of the spectral axis. Conversion uses
+        `astropy.units.spectral()` equivalencies, so frequency, wavelength,
+        and energy units are interchangeable. If None, no conversion is
+        performed. If `_UNSET`, uses `config.wavelength_unit`.
+    convention : str | None, optional, default=None
+        Doppler convention (e.g., 'optical', 'radio', 'relativistic').
+        If None, the specutils default is used.
 
     Returns
     -------
-    SpectrumPlus | list[SpectrumPlus]
-        Single object if one cube is provided, list if multiple cubes are provided.
+    Spectrum
+        Collapsed 1D spectrum. The spectral axis is shifted by `radial_vel`
+        and converted to `unit`. The flux carries the unit of `cube`.
+
+    Raises
+    ------
+    ValueError
+        If `flux_extract_method` is not one of 'mean', 'median', 'sum'.
+    ImportError
+        If `spectral-cube` or `specutils` is not installed.
+    astropy.units.UnitConversionError
+        If the spectral axis cannot be converted to `unit`.
     """
     _require_dependency('spectral-cube', 'specutils')
+    kwargs = kwargs.copy()
     params = _resolve_kwargs(
         kwargs,
         params=[
             _param('flux_extract_method', flux_extract_method, config.flux_extract_method),
             _param('extract_mode', extract_mode, config.spectral_cube_extraction_mode),
-            _param('fit_method', fit_method, config.spectrum_continuum_fit_method),
             _param('radial_vel', radial_vel, config.radial_velocity),
             _param('rest_freq', rest_freq, config.spectra_rest_frequency),
-            _param('deredden', deredden, config.deredden_spectrum),
             _param('unit', unit, config.wavelength_unit),
-            _param('plot_continuum', plot_continuum, config.plot_continuum_fit),
-            _param('plot_norm_continuum', plot_norm_continuum, config.plot_normalized_continuum),
         ],
-        additional_kwargs=[
-            _kwarg('convention', None),
-            _kwarg('Rv', config.deredden.Rv),
-            _kwarg('Ebv', config.deredden.Ebv),
-            _kwarg('deredden_method', config.deredden.method),
-            _kwarg('deredden_region', config.deredden.region),
-            _kwarg('figsize', config.figsize),
-            _kwarg('style', config.style),
-            _kwarg('savefigure', config.savefig.enable),
-            _kwarg('dpi', config.savefig.dpi),
-        ]
     )
 
-    methods = {
-        'mean': lambda cube: cube.mean(axis=(1, 2), how=params.extract_mode),
-        'median': lambda cube: cube.median(axis=(1, 2), how=params.extract_mode),
-        'sum': lambda cube: cube.sum(axis=(1, 2), how=params.extract_mode)
+    method_name = _EXTRACT_METHODS.get(params.flux_extract_method)
+    if method_name is None:
+        raise ValueError(
+            f"Invalid flux_extract_method '{params.flux_extract_method}'. "
+            f'Choose from {list(_EXTRACT_METHODS)}.'
+        )
+
+    spectral_axis = shift_to_rest_frame(cube.spectral_axis, params.radial_vel)
+    spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
+
+    flux = u.Quantity(getattr(cube, method_name)(axis=(1, 2), how=params.extract_mode))
+
+    return Spectrum(
+        spectral_axis=spectral_axis,
+        flux=flux,
+        rest_value=params.rest_freq,
+        velocity_convention=convention,
+    )
+
+
+def extract_cube_spectra(
+    cubes: Sequence[DataCube | SpectralCube],
+    flux_extract_method: Literal['mean', 'median', 'sum'] | None | _Unset = _UNSET,
+    extract_mode: Literal['cube', 'slice', 'ray'] | None | _Unset = _UNSET,
+    radial_vel: float | u.Quantity | None | _Unset = _UNSET,
+    rest_freq: float | u.Quantity | None | _Unset = _UNSET,
+    unit: str | u.Unit | None | _Unset = _UNSET,
+    convention: str | None = None,
+    **kwargs
+) -> list[Spectrum]:
+    """
+    Thin wrapper around ``visualastro.extract_cube_spectrum``.
+
+    Extracts a 1D spectrum for each cube in ``cubes``.
+    """
+    args = {
+        'flux_extract_method': flux_extract_method,
+        'extract_mode': extract_mode,
+        'radial_vel': radial_vel,
+        'rest_freq': rest_freq,
+        'unit': unit,
+        'convention': convention,
     }
 
-    extract_method = methods.get(params.flux_extract_method, None)
-    if extract_method is None:
-        raise ValueError(
-            f"Invalid flux_extract_method '{flux_extract_method}'. "
-            f'Choose from {list(methods.keys())}.'
-        )
-
-    cubes = to_list(cubes)
-    ensure_common_unit(cubes)
-
-    extracted_spectra = []
-
-    for cube in cubes:
-
-        spectral_axis = shift_by_radial_vel(cube.spectral_axis, params.radial_vel)
-        spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
-
-        flux = extract_method(cube)
-        # convert to u.Quantity
-        flux = flux.value * flux.unit
-
-        if params.deredden:
-            flux = deredden_flux(
-                spectral_axis, flux, params.Rv, params.Ebv,
-                params.deredden_method, params.deredden_region
-            )
-
-        spectrum = Spectrum(
-            spectral_axis=spectral_axis,
-            flux=flux,
-            rest_value=params.rest_freq,
-            velocity_convention=params.convention
-        )
-
-        continuum = fit_continuum(spectrum, params.fit_method, region)
-
-        flux_normalized = spectrum / continuum
-
-        extracted_spectra.append(SpectrumPlus(
-            spectrum=spectrum,
-            normalized=flux_normalized.flux,
-            continuum=continuum,
-            fit_method=params.fit_method,
-            region=region
-        ))
-
-    with _style_context(params.style):
-        fig, ax = plt.subplots(figsize=params.figsize)
-        _ = plot_spectra(
-            extracted_spectra,
-            ax=ax,
-            plot_continuum=params.plot_continuum,
-            plot_norm_continuum=params.plot_norm_continuum,
-            emission_line=emission_line,
-            **kwargs
-        )
-        if params.savefigure:
-            savefig(dpi=params.dpi)
-        plt.show()
-
-    return extracted_spectra
+    cube_list = _ensure_iterable(cubes)
+    return [
+        extract_cube_spectrum(
+            cube, **args, **kwargs
+        ) for cube in cube_list
+    ]
 
 
 def extract_cube_pixel_spectra(
