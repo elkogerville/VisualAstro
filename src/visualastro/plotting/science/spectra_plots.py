@@ -740,6 +740,10 @@ def plot_spectra(
     Plot all spectra in a :class:`~specutils.Spectrum` on a
     Matplotlib :class:`~matplotlib.axes.Axes`.
 
+    Is a thin wrapper of ``visualastro.step`` or ``visualastro.plot``.
+    Plots ``spectrum.spectral_axis`` and ``spectrum.flux``.
+    Also sets ``xpad`` to 0 by default.
+
     Parameters
     ----------
     spectrum : specutils.Spectrum
@@ -791,7 +795,11 @@ def plot_spectra(
 
     ax = get_ax(ax)
 
-    return plot_fn(spectrum.spectral_axis, spectrum.flux, ax=ax, **kwargs)
+    xpad = kwargs.pop('xpad', 0)
+
+    return plot_fn(
+        spectrum.spectral_axis, spectrum.flux, ax=ax, xpad=xpad, **kwargs
+    )
 
 
 def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
