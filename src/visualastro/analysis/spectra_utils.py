@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-06
+Date Modified: 2026-11-14
 Description:
     Spectra utility functions.
 """
@@ -12,6 +12,7 @@ from dataclasses import dataclass, fields
 from typing import Any, Literal, overload
 import warnings
 
+import astropy.constants as constants
 import astropy.units as u
 from astropy.units import Quantity
 import numpy as np
@@ -187,18 +188,23 @@ def deredden_flux(
     return dereddened_flux
 
 
-def shift_by_radial_vel(spectral_axis, radial_vel):
+def shift_by_radial_vel(
+    spectral_axis: u.Quantity,
+    radial_vel: float | u.Quantity | None,
+) -> u.Quantity:
     """
     Shift spectral axis to rest frame using a radial velocity.
-    If `radial_vel` is None, return `spectral_axis` unchanged.
+
+    Uses the non-relativistic Doppler approximation. If ``radial_vel`` is
+    None, ``spectral_axis`` is returned unchanged.
 
     Parameters
     ----------
     spectral_axis : astropy.units.Quantity
         The spectral axis to shift. Can be in frequency or wavelength units.
     radial_vel : float, astropy.units.Quantity or None
-        Radial velocity in km/s (astropy units are optional). Positive values
-        correspond to a redshift (moving away). If None, no shift is applied.
+        Radial velocity. Floats are interpreted as km/s. Positive values
+        correspond to a redshift (moving away). If ``None``, no shift is applied.
 
     Returns
     -------
@@ -208,19 +214,20 @@ def shift_by_radial_vel(spectral_axis, radial_vel):
         Doppler formula for frequency is applied; otherwise, the classical
         formula for wavelength is applied.
     """
-    # speed of light in km/s in vacuum
-    c = 299792.458 # [km/s]
-    if radial_vel is not None:
-        if isinstance(radial_vel, Quantity):
-            radial_vel = radial_vel.to(u.km/u.s).value # type: ignore
-        # if spectral axis in units of frequency
-        if spectral_axis.unit.is_equivalent(u.Unit('Hz')):
-            return spectral_axis / (1 - radial_vel / c)
-        # if spectral axis in units of wavelength
-        else:
-            return spectral_axis / (1 + radial_vel / c)
+    if radial_vel is None:
+        return spectral_axis
 
-    return spectral_axis
+    beta = (u.Quantity(radial_vel, unit=u.km/u.s) / constants.c).to_value(
+        u.dimensionless_unscaled
+    )
+
+    if spectral_axis.unit.is_equivalent(u.m):
+        return spectral_axis / (1 + beta)
+    if spectral_axis.unit.is_equivalent(u.Hz, u.spectral()):
+        return spectral_axis / (1 - beta)
+    raise u.UnitsError(
+        f"Cannot apply a Doppler shift to unit '{spectral_axis.unit}'."
+    )
 
 
 def estimate_spectrum_line_flux(spectra, spec_range):
