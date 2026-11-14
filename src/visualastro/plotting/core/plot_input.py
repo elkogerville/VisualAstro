@@ -995,3 +995,71 @@ def _resolve_color_alias(
             raise ValueError("'c' and 'color' are mutually exclusive.")
         return c
     return color
+
+
+def _is_marker_sequence(value) -> bool:
+    """
+    Per-line markers are an iterable of str | int, the only types the prop
+    cycler accepts. Tuple markers (6, 2, 0) and vertex lists/arrays
+    [(0, 0), (1, 0), (0, 1)] are single markers.
+    """
+    return (
+        _is_iterable_not_tuple(value)
+        and all(isinstance(m, (str, int, np.integer)) for m in value)
+    )
+
+
+_CYCLED_PROPS = {
+    'color': _is_color_sequence,
+    'linestyle': _is_iterable_not_tuple,
+    'linewidth': _is_iterable,
+    'marker': _is_marker_sequence,
+    'markersize': _is_iterable,
+    'alpha': _is_iterable,
+    'markeredgecolor': _is_color_sequence,
+    'markeredgewidth': _is_iterable,
+    'markerfacecolor': _is_color_sequence,
+    'fillstyle': _is_iterable,
+    'drawstyle': _is_iterable,
+}
+
+
+def _set_prop_cycle_from_kwargs(
+    ax: Axes,
+    kwargs: dict[str, Any],
+) -> None:
+    """
+    Move sequence-valued artist properties from `kwargs` into the Axes prop cycle.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Axes whose property cycle is set.
+    kwargs : dict
+        Keyword arguments with canonical names. Sequence-valued entries among
+        `color`, `linestyle`, `linewidth`, `marker` and `alpha` are popped in
+        place. Scalars are left untouched.
+
+    Raises
+    ------
+    ValueError
+        If a sequence is empty.
+    """
+    cycle_props = {
+        key: kwargs.pop(key)
+        for key, is_sequence in _CYCLED_PROPS.items()
+        if is_sequence(kwargs.get(key))
+    }
+    if not cycle_props:
+        return
+
+    empty = [key for key, value in cycle_props.items() if len(value) == 0]
+    if empty:
+        raise ValueError(f'Empty sequence for {empty}.')
+
+    n = lcm(*(len(value) for value in cycle_props.values()))
+
+    ax.set_prop_cycle(**{
+        key: [value[i % len(value)] for i in range(n)]
+        for key, value in cycle_props.items()
+    })
