@@ -978,6 +978,11 @@ def scatter(
     """
     Scatter plot with automatic labels and plot utilities.
 
+    Call signatures:
+
+        scatter(x, y)   # two 1D sequences or two floats
+        scatter(y)      # singular float, 1D sequence, or 2D array
+
     Parameters
     ----------
     *data : float | Quantity | NDArray | list[float | Quantity]
