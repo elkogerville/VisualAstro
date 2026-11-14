@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-11-10
+Date Modified: 2026-11-14
 Description:
     Plotting functions for 2D and 3D astronomical images.
 """
@@ -684,7 +684,7 @@ def plot_spectral_cube(
 
     _apply_plot_utils(
         plot_params, ax,
-        im_list=images,
+        img=images[0],
         ref_unit=ref_unit,
     )
 
