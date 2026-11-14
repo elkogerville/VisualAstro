@@ -188,7 +188,7 @@ def deredden_flux(
     return dereddened_flux
 
 
-def shift_by_radial_vel(
+def shift_to_rest_frame(
     spectral_axis: u.Quantity,
     radial_vel: float | u.Quantity | None,
 ) -> u.Quantity:

@@ -23,14 +23,11 @@ from visualastro.analysis.image_utils import stack_cube
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
     ExtractedPixelSpectra,
-    deredden_flux,
-    fit_continuum,
     gaussian as _gaussian,
     gaussian_continuum as _gaussian_continuum,
     gaussian_line as _gaussian_line,
-    shift_by_radial_vel,
+    shift_to_rest_frame,
     _get_spectral_axis,
-    _spectral_axis_2_array,
 )
 from visualastro.core.config import (
     get_config_value,

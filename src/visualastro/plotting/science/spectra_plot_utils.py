@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-08
-Date Modified: 2026-10-25
+Date Modified: 2026-11-14
 Description:
     Spectra plot utility functions.
 """
@@ -19,7 +19,7 @@ import numpy as np
 
 from visualastro.analysis.spectra_utils import (
     GaussianFitResult,
-    shift_by_radial_vel,
+    shift_to_rest_frame,
     spectral_idx_2_world,
     _get_spectral_axis,
 )
@@ -815,7 +815,7 @@ def spectral_axis_label(
             'spectral_axis must have a unit!'
         )
 
-    spectral_axis = shift_by_radial_vel(spectral_axis, radial_vel)
+    spectral_axis = shift_to_rest_frame(spectral_axis, radial_vel)
     spectral_value = spectral_idx_2_world(spectral_axis, idx, keep_unit=False)
 
     slice_label = _format_spectral_label(

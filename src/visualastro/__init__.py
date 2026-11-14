@@ -42,7 +42,7 @@ from visualastro.analysis.spectra_utils import (
     gaussian_line,
     mask_spectral_region,
     propagate_flux_errors,
-    shift_by_radial_vel,
+    shift_to_rest_frame,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
     spectral_world_2_idx
