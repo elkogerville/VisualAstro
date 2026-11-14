@@ -46,7 +46,7 @@ def set_limits(
     square: bool = False,
 ) -> tuple[tuple[float, float], tuple[float, float]]:
     """
-    Set the limits of a Matplotlib Axes.
+    Set the limits of a Matplotlib :class:`~matplotlib.axes.Axes`.
 
     If only one of ``xlim`` or ``ylim`` is provided, the limits of the other
     axis are recomputed from the data visible within the provided range.

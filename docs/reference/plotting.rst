@@ -45,12 +45,13 @@ Legends
    plotting/legends/legend
 
 
-Spectra Utilities
------------------
+Spectra
+-------
 
 .. autosummary::
    :nosignatures:
 
+   plot_spectra
    spectral_lines
 
 .. toctree::

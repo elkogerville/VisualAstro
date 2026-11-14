@@ -379,7 +379,7 @@ def spectral_lines(
     **kwargs,
 ) -> None:
     """
-    Plot multiple spectral lines, grouped and colored by label.
+    Plot multiple spectral line markers, grouped and colored by label.
 
     Parameters
     ----------

@@ -737,7 +737,8 @@ def plot_spectra(
     **kwargs,
 ) -> list[Line2D]:
     """
-    Plot all spectra in a :class:`specutils.Spectrum` on a Matplotlib Axes.
+    Plot all spectra in a :class:`~specutils.Spectrum` on a
+    Matplotlib :class:`~matplotlib.axes.Axes`.
 
     Parameters
     ----------

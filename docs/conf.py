@@ -50,9 +50,10 @@ add_module_names = False
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "numpy": ("https://numpy.org/doc/stable/", None),
     "astropy": ("https://docs.astropy.org/en/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "specutils": ("https://specutils.readthedocs.io/en/stable/", None),
 }
 
 templates_path = ['_templates']
