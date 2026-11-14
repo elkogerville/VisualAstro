@@ -100,7 +100,8 @@ from visualastro.plotting.base.plots import (
     scatter,
     scatter_polyfit,
     scatter_project,
-    scatter3D
+    scatter3D,
+    step,
 )
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
@@ -174,6 +175,7 @@ from visualastro.plotting.core.utils import (
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
     extract_cube_spectra,
+    extract_cube_spectrum,
     fit_gaussian_2_spec,
     plot_combine_spectrum,
     plot_extracted_pixel_map,
