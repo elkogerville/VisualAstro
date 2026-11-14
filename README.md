@@ -11,10 +11,10 @@
 
 
 # VisualAstro
-[![Documentation Status](https://readthedocs.org/projects/visualastro/badge/?version=latest)](https://visualastro.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://img.shields.io/readthedocs/visualastro)](https://visualastro.readthedocs.io/en/latest/)
 [![PyPI Version](https://img.shields.io/pypi/v/visualastro?cachebust=1)](https://pypi.org/project/visualastro)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21729933.svg)](https://doi.org/10.5281/zenodo.21729933)
-[![Tests](https://github.com/elkogerville/VisualAstro/actions/workflows/test_core.yml/badge.svg)](https://github.com/elkogerville/VisualAstro/actions/workflows/test_core.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/elkogerville/VisualAstro/test_core.yml?branch=main&label=tests)](https://github.com/elkogerville/VisualAstro/actions/workflows/test_core.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **VisualAstro** is an astrophysical visualization system with functions for easy visualization and manipulation of astronomical data. The package aims to make publication-ready plots with minimal commands and no LaTeX installation.
