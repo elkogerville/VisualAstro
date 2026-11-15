@@ -1048,7 +1048,7 @@ class ExtractedPixelSpectra:
         Combined spectrum computed using `combine_method` if
         `combine_spectra=True`; otherwise None.
     """
-    spectra: SpectrumPlus | list[SpectrumPlus]
+    spectra: Spectrum | list[Spectrum]
     cube_array : NDArray | Quantity
     error_array : NDArray | Quantity | None
     extract_idx: NDArray

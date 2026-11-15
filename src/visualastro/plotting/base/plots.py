@@ -666,6 +666,7 @@ def plot(
         kwargs,
         [
             _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
             _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
@@ -716,7 +717,7 @@ def plot(
     mpl_args = (get_value(y),) if x is None else (get_value(x), get_value(y))
     lines = ax.plot(
         *mpl_args,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=params.zorder,
         **kwargs
@@ -726,7 +727,7 @@ def plot(
         plot_params, ax,
         x=x, y=y,
         img=lines,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         **kwargs
     )
@@ -884,6 +885,7 @@ def step(
         kwargs,
         [
             _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
             _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
@@ -938,7 +940,7 @@ def step(
     lines = ax.step(
         get_value(x), get_value(y),
         where=where,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=params.zorder,
         **kwargs
@@ -948,7 +950,7 @@ def step(
         plot_params, ax,
         x=x, y=y,
         img=lines,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         **kwargs
     )
@@ -1075,6 +1077,7 @@ def scatter(
         kwargs,
         [
             _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
             _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
@@ -1116,7 +1119,7 @@ def scatter(
 
     artist = ax.scatter(
         get_value(x), get_value(y),
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=params.zorder,
         **kwargs
@@ -1126,7 +1129,7 @@ def scatter(
         x=x, y=y,
         img=artist,
         ref_unit=cunit,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         **kwargs
     )
