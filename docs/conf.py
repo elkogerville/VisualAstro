@@ -25,6 +25,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",
     "matplotlib.sphinxext.plot_directive",
+    "pytest_doctestplus.sphinx.doctestplus",
 ]
 
 default_role = "py:obj"
@@ -47,6 +48,13 @@ autodoc_default_options = {
 autodoc_member_order = "bysource"
 autodoc_typehints = "none"
 add_module_names = False
+
+# copybutton
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_only_copy_prompt_lines = True
+copybutton_remove_prompts = True
+
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
