@@ -62,3 +62,19 @@ From a list of tuples of ``Quantity`` bounds:
     >>> region
     Spectral Region, 2 sub-regions:
       (8.3 um, 9.8 um)     (10.2 um, 11.3 um)
+
+
+Converting the Region Unit
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pass in a astropy unit to convert the region unit.
+
+.. code-block:: python
+
+    >>> import astropy.units as u
+    >>> import visualastro as va
+    >>> region = va.spectral_region([(8.3, 9.8), (10.2, 11.3)] * u.um, unit=u.AA)
+    >>> region
+    Spectral Region, 2 sub-regions:
+      (83000.0 Angstrom, 98000.0 Angstrom)
+      (102000.0 Angstrom, 113000.0 Angstrom)
