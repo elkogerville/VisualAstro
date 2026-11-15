@@ -19,6 +19,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
+from visualastro.analysis.spectra_utils import _require_spectral_region
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
 )
@@ -29,7 +30,6 @@ from visualastro.core.units import (
     to_unit,
     unit_2_string,
     _check_unit_equality,
-    _require_spectral_region
 )
 from visualastro.core.validation import (
     _check_shapes_match,

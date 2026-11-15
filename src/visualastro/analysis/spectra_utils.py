@@ -30,8 +30,6 @@ from visualastro.core.units import (
     get_unit,
     _is_spectral_axis,
 )
-from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.spectrumplus import SpectrumPlus
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._dust_extinction import M14, G23, WD01
 from visualastro.optional_dependencies._spectralcube import SpectralCube
@@ -54,7 +52,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
 
     Parameters
     ----------
-    spectrum : Spectrum or SpectrumPlus
+    spectrum : Spectrum
         Input 1D spectrum object containing flux and spectral_axis.
     fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
         Method used for fitting the continuum.
@@ -85,8 +83,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     """
     _require_dependency('specutils')
     region = spectral_region(region)
-    # if input spectrum is SpectrumPlus object
-    # extract the spectrum attribute
+
     if not isinstance(spectrum, Spectrum):
         if hasattr(spectrum, 'spectrum'):
             spectrum = spectrum.spectrum
@@ -242,7 +239,7 @@ def estimate_spectrum_line_flux(spectra, spec_range):
     spectrum : Any | Sequence[Any]
         Spectral object(s) from which a spectral axis, flux, and continuum
         can be extracted. This includes `ExtractedPixelSpectra` or
-        lists of `Spectrum`/`SpectrumPlus`.
+        lists of `Spectrum`.
     spec_range : Quantity | ArrayLike of length 2
         Lower and upper bounds of the spectral interval over which to
         integrate. Must be compatible with the spectral axis units.
@@ -281,7 +278,7 @@ def _estimate_spectrum_line_flux(
     ----------
     spectrum : Any
         Spectral object from which a spectral axis, flux, and continuum
-        can be extracted. Typically a `Spectrum`, `SpectrumPlus`,
+        can be extracted. Typically a `Spectrum`.
         `ExtractedPixelSpectra` or compatible container.
     spec_range : Quantity of length 2
         Lower and upper bounds of the spectral interval over which to
@@ -871,8 +868,8 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
 
     Parameters
     ----------
-    extracted_spectrum : SpectrumPlus
-        `SpectrumPlus` object containing `wavelength` and `flux` attributes.
+    extracted_spectrum : Spectrum
+        `Spectrum` object containing `wavelength` and `flux` attributes.
         These can be `numpy.ndarray` or `astropy.units.Quantity`.
     args : list or array-like
         Additional parameters to append to the initial guess after
@@ -895,7 +892,6 @@ def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
       or similar fitting routines.
     """
     _require_dependency('specutils')
-    # extract wavelength and flux from SpectrumPlus object
     wavelength = get_value(extracted_spectrum.spectral_axis)
     flux = get_value(extracted_spectrum.flux)
     # clip arrays by xlim
@@ -1176,27 +1172,27 @@ class GaussianFitResult:
 @dataclass(frozen=True)
 class ExtractedPixelSpectra:
     """
-    spectra : SpectrumPlus or list of SpectrumPlus
+    spectra : Spectrum | list[Spectrum]
         Extracted per-pixel spectra. If a single index is selected,
-        this is returned as a single `SpectrumPlus` instance;
+        this is returned as a single `Spectrum` instance;
         otherwise, a list is returned.
-    cube_array : np.ndarray or Quantity
+    cube_array : np.ndarray | Quantity
         Cube of array values corresponding to the extracted pixels.
         All other pixels are set to NaN.
-    error_array : np.ndarray, Quantity, or None, optional
+    error_array : np.ndarray | Quantity | None, optional
         Cube of error values corresponding to the extracted pixels.
         All other pixels are set to NaN. Set to None if no error
         extension is present.
-    extract_idx : np.ndarray of int, shape (N,)
+    extract_idx : np.ndarray[int], shape (N,)
         Indices of the extracted spectra corresponding to the ordering
         of valid spatial pixels.
-    coords : np.ndarray of int, shape (N, 2)
+    coords : np.ndarray[int], shape (N, 2)
         Spatial coordinates of extracted pixels in `(y, x)` order.
     colors : list
         Colors assigned to each extracted pixel/spectrum.
-    labels : list of str
+    labels : list[str]
         Human-readable labels of the form `"<idx>: (x=<x>, y=<y>)"`.
-    combined_spectrum : SpectrumPlus or None
+    combined_spectrum : Spectrum | None
         Combined spectrum computed using `combine_method` if
         `combine_spectra=True`; otherwise None.
     """
@@ -1216,9 +1212,9 @@ class ExtractedPixelSpectra:
         n = len(self.extract_idx)
 
         spectra_type = (
-            'SpectrumPlus'
-            if isinstance(self.spectra, SpectrumPlus)
-            else 'list[SpectrumPlus]'
+            'Spectrum'
+            if isinstance(self.spectra, Spectrum)
+            else 'list[Spectrum]'
         )
 
         combined = self.combined_spectrum is not None
@@ -1236,7 +1232,7 @@ class ExtractedPixelSpectra:
 # -------
 @overload
 def _get_spectral_axis(
-    obj: SpectralAxis | Quantity | SpectralCube | DataCube
+    obj: SpectralAxis | Quantity | SpectralCube
 ) -> SpectralAxis | Quantity: ...
 
 @overload
@@ -1360,7 +1356,7 @@ def _get_continuum(
     obj : Any
         Object from which to retrieve or compute a continuum. This may include:
 
-        * a `SpectrumPlus`-like object exposing `.continuum` or `.continuum_fit`
+        * a `Spectrum`-like object exposing `.continuum` or `.continuum_fit`
         * a `specutils.Spectrum`
         * container objects exposing `.spectrum`
         * objects from which both a spectral axis and flux can be inferred
