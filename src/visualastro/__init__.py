@@ -45,6 +45,7 @@ from visualastro.analysis.spectra_utils import (
     shift_to_rest_frame,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
+    spectral_region,
     spectral_world_2_idx
 )
 from visualastro.core.config import config
@@ -87,7 +88,6 @@ from visualastro.core.units import (
     to_unit,
     to_fits_unit,
     to_latex_unit,
-    to_spectral_region,
     unit_2_string
 )
 from visualastro.core.validation import allclose

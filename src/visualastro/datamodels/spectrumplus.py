@@ -16,12 +16,13 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
 
+from visualastro.analysis.spectra_utils import (
+    spectral_region, _require_spectral_region
+)
 from visualastro.core.config import config, _resolve_default
 from visualastro.core.units import (
     ensure_common_unit,
-    to_spectral_region,
     _check_unit_equality,
-    _require_spectral_region
 )
 from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
@@ -104,7 +105,7 @@ class SpectrumPlus:
             fit_method, config.spectrum_continuum_fit_method
         )
         region = kwargs.pop('region', None)
-        region: SpectralRegion | None = to_spectral_region(region)
+        region: SpectralRegion | None = spectral_region(region)
 
         if log_file is None:
             log_file = Header()
@@ -143,7 +144,7 @@ class SpectrumPlus:
         )
         # fit continuum and normalize
         if region is None:
-            region = to_spectral_region(
+            region = spectral_region(
                 (spectrum.spectral_axis.min(),
                  spectrum.spectral_axis.max())
             )
@@ -289,9 +290,9 @@ class SpectrumPlus:
                         f'continuum_region has {len(continuum_region)} elements '
                         f'but {N_regions} spectral regions were specified'
                     )
-                continuum_region = [to_spectral_region(cr) for cr in continuum_region]
+                continuum_region = [spectral_region(cr) for cr in continuum_region]
             else:
-                continuum_region = to_spectral_region(continuum_region)
+                continuum_region = spectral_region(continuum_region)
 
         # extract region
         new_spectrum = self._apply_region(
@@ -355,7 +356,7 @@ class SpectrumPlus:
         region : SpectralRegion | array-like of tuple | None, optional, default=None
             Spectral region(s) to include in the continuum fit. If None,
             the currently stored `self.region` is used. Input is coerced
-            via `to_spectral_region`.
+            via `spectral_region`.
         fit_method : {'fit_continuum', 'generic'} | None, optional, default=None
             Continuum fitting method. If None, the currently stored
             `self.fit_method` is used.
@@ -369,7 +370,7 @@ class SpectrumPlus:
         region = self.region if region is None else region
         fit_method = self.fit_method if fit_method is None else fit_method
 
-        region = to_spectral_region(region)
+        region = spectral_region(region)
 
         self.continuum = self._fit_continuum(self.spectrum, fit_method, region)
         region_log = _region_to_history(region)
@@ -615,7 +616,7 @@ class SpectrumPlus:
             A new ``Spectrum`` object containing only the portion defined
             by ``region``, or None if the input spectrum is None.
         """
-        region = to_spectral_region(region)
+        region = spectral_region(region)
 
         return _extract_region(
             spectrum, region, return_single_spectrum=return_single_spectrum

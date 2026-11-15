@@ -28,9 +28,7 @@ from visualastro.core.units import (
     ensure_common_unit,
     get_spectral_unit,
     get_unit,
-    to_spectral_region,
     _is_spectral_axis,
-    _require_spectral_region
 )
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.spectrumplus import SpectrumPlus
@@ -86,7 +84,7 @@ def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
     * Warnings during the fitting process are suppressed.
     """
     _require_dependency('specutils')
-    region = to_spectral_region(region)
+    region = spectral_region(region)
     # if input spectrum is SpectrumPlus object
     # extract the spectrum attribute
     if not isinstance(spectrum, Spectrum):
@@ -655,6 +653,159 @@ def propagate_flux_errors(
 
 # Science Helper Functions
 # ------------------------
+@overload
+def spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+    )
+) -> SpectralRegion: ...
+
+@overload
+def spectral_region(
+    obj: None
+) -> None: ...
+
+def spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+        | None
+    )
+) -> SpectralRegion | None:
+    """
+    Coerce input into a SpectralRegion with units.
+
+    Parameters
+    ----------
+    obj : SpectralRegion | Quantity | tuple | list[tuple] | None
+        Region specification. Accepted forms:
+
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+        - `None`: returned as-is
+
+    Returns
+    -------
+    SpectralRegion :
+        A SpectralRegion object containing one or more spectral subregions.
+
+    Raises
+    ------
+    ValueError :
+        If a Quantity has incorrect shape (must be (2,) or (N, 2)).
+    ValueError :
+        If the input `obj` cannot be coerced into a `SpectralRegion`.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    # Single region with shared unit
+    >>> spectral_region((6.5, 6.6) * u.um)
+
+    # Multiple regions with shared unit
+    >>> spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)
+
+    # Single region with explicit units
+    >>> spectral_region((6.5*u.um, 6.6*u.um))
+
+    # Multiple regions with explicit units
+    >>> spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
+    """
+    _require_dependency('specutils')
+    if obj is None:
+        return None
+
+    if isinstance(obj, SpectralRegion):
+        return obj
+
+    region: Any = obj
+
+    if isinstance(region, Quantity):
+        arr = np.asarray(obj)
+
+        # single region
+        if arr.shape == (2,):
+            lo = region[0]
+            hi = region[1]
+            region = [(lo, hi)]
+
+        # multiple regions
+        elif arr.ndim == 2 and arr.shape[1] == 2:
+            region = [(row[0], row[1]) for row in region]
+
+        else:
+            raise ValueError(f'Quantity must have shape (2,) or (N,2), got {arr.shape}')
+
+    # case: quantities inside list/tuple
+    elif (isinstance(region, tuple) and
+        len(region) == 2 and
+        all(isinstance(x, Quantity) for x in region)):
+        region = [region]
+
+    elif not isinstance(obj, (list, tuple)):
+        raise TypeError(
+            f'Expected SpectralRegion, Quantity, tuple, or list, got {type(region).__name__}'
+        )
+
+    try:
+        return SpectralRegion(region)
+    except Exception as e:
+        raise ValueError(
+            f'Could not construct SpectralRegion from {type(region).__name__}: {e}'
+        ) from e
+
+
+def _require_spectral_region(
+    obj: (
+        SpectralRegion
+        | Quantity
+        | tuple[Quantity, Quantity]
+        | list[tuple[Quantity, Quantity]]
+    )
+) -> SpectralRegion:
+    """
+    Enforce that the input `obj` is a `SpectralRegion`.
+
+    This is a wrapper of `spectral_region`, which unlike
+    this function allows for None inputs.
+
+    Parameters
+    ----------
+    obj : SpectralRegion, Quantity, tuple, or list
+        Region specification. Accepted forms:
+
+        - `SpectralRegion`: returned as-is
+        - `(low, high) * unit`: single region with shared unit
+        - `[(low, high), ...] * unit`: multiple regions with shared unit
+        - `(Quantity, Quantity)`: single region with explicit units
+        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
+
+    Returns
+    -------
+    SpectralRegion :
+        Input region as a SpectralRegion
+
+    Raises
+    ------
+    ValueError :
+        If input `obj` results in `None` when converted to
+        a SpectralRegion.
+    """
+    region = spectral_region(obj)
+
+    if region is None or not isinstance(region, SpectralRegion):
+        raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
+    return region
+
+
 def _convert_region_units(region, spectral_axis):
     """
     Convert the units of a list of spectral regions to match
@@ -680,7 +831,7 @@ def _convert_region_units(region, spectral_axis):
     --------
     >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
     """
-    region = to_spectral_region(region)
+    region = spectral_region(region)
     if region is None:
         return None
 
@@ -787,6 +938,7 @@ def gaussian(x, A, mu, sigma):
     y = A * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
     return y
+
 
 def gaussian_line(x, A, mu, sigma, m, b):
     """
