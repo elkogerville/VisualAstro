@@ -775,31 +775,21 @@ def propagate_flux_errors(
     return flux_errors
 
 
-# Science Helper Functions
-# ------------------------
 @overload
 def spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-    )
+    obj: SpectralRegionInput,
+    unit: UnitBase | StructuredUnit | None = None
 ) -> SpectralRegion: ...
 
 @overload
 def spectral_region(
-    obj: None
+    obj: None,
+    unit: UnitBase | StructuredUnit | None = None
 ) -> None: ...
 
 def spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-        | None
-    )
+    obj: SpectralRegionInput | None,
+    unit: UnitBase | StructuredUnit | None = None
 ) -> SpectralRegion | None:
     """
     Create a :class:`specutils.spectra.spectral_region.SpectralRegion`
@@ -836,9 +826,25 @@ def spectral_region(
     ValueError
         If the input `obj` cannot be coerced into a `SpectralRegion`.
     """
-    _require_dependency('specutils')
     if obj is None:
         return None
+
+    spectralregion = _to_spectral_region(obj)
+    if unit is None:
+        return spectralregion
+
+    unit = get_unit(unit)
+    bounds = []
+    for lower, upper in spectralregion.subregions:
+        lo = lower.to(unit, equivalencies=u.spectral())
+        hi = upper.to(unit, equivalencies=u.spectral())
+        bounds.append((min(lo, hi), max(lo, hi)))
+    return SpectralRegion(bounds)
+
+
+def _to_spectral_region(obj: SpectralRegionInput) -> SpectralRegion:
+    """Helper for `spectral_region`."""
+    _require_dependency('specutils')
 
     if isinstance(obj, SpectralRegion):
         return obj
@@ -921,54 +927,6 @@ def _require_spectral_region(
     if region is None or not isinstance(region, SpectralRegion):
         raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
     return region
-
-
-def _convert_region_units(region, spectral_axis):
-    """
-    Convert the units of a list of spectral regions to match
-    a given spectral axis. Helper function used when fitting
-    a spectrum continuum.
-
-    Parameters
-    ----------
-    region : list of tuple of astropy.units.Quantity or None
-        Each element is a tuple `(rmin, rmax)` defining a spectral region.
-        Both `rmin` and `rmax` should be `Quantity` objects with units.
-        If `None`, the function returns `None`.
-    spectral_axis : astropy.units.Quantity
-        The spectral axis whose unit is used for conversion.
-
-    Returns
-    -------
-    list of tuple of astropy.units.Quantity or None
-        The input regions converted to the same unit as 'spectral_axis'.
-        Returns `None` if `region` is `None`.
-
-    Examples
-    --------
-    >>> regions = [(1*u.micron, 2*u.micron), (500*u.nm, 700*u.nm)]
-    """
-    region = spectral_region(region)
-    if region is None:
-        return None
-
-    # extract unit
-    unit = spectral_axis.unit
-
-    # convert each element to spectral axis units
-    if isinstance(region, SpectralRegion):
-        converted_bounds = []
-        for subregion in region:
-            rmin = subregion.lower.to(unit)
-            rmax = subregion.upper.to(unit)
-            converted_bounds.append((rmin, rmax))
-        return converted_bounds
-
-    elif isinstance(region, list):
-        return [(rmin.to(unit), rmax.to(unit)) for rmin, rmax in region]
-
-    else:
-        raise TypeError(f'region must be SpectralRegion or list of tuples, got {type(region).__name__}')
 
 
 def _spectral_axis_2_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
