@@ -23,7 +23,7 @@ Axes and Limits
 Colorsets
 ---------
 
-See :ref:`colorset guide <colorset guide>` for usage examples.
+See :ref:`colorset guide <colorset-guide>` for usage examples.
 
 .. autosummary::
     :toctree: generated/
@@ -45,14 +45,12 @@ Legends
    plotting/legends/legend
 
 
+.. _plotting-spectra:
+
 Spectra
 -------
 
-.. autosummary::
-   :nosignatures:
-
-   plot_spectra
-   spectral_lines
+   .. include:: plotting/_spectra_summary.rst.inc
 
 .. toctree::
    :hidden:

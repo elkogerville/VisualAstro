@@ -545,7 +545,7 @@ def plot(
     """
     Plot one or more lines with automatic labels and plot utilities.
 
-    Call signatures:
+    Call signatures::
 
         plot(x, y)    # two 1D sequences
         plot(y)       # 1D sequence or 2D array
@@ -764,7 +764,7 @@ def step(
 
     Most arguments for ``plot`` will work for ``step``.
 
-    Call signatures:
+    Call signatures::
 
         step(x, y)    # two 1D sequences
         step(y)       # 1D sequence or 2D array
@@ -980,7 +980,7 @@ def scatter(
     """
     Scatter plot with automatic labels and plot utilities.
 
-    Call signatures:
+    Call signatures::
 
         scatter(x, y)   # two 1D sequences or two floats
         scatter(y)      # singular float, 1D sequence, or 2D array

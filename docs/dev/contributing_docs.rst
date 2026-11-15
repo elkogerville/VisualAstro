@@ -50,7 +50,7 @@ Documenting a New Function or Class
 -----------------------------------
 
 1. Export it in ``src/visualastro/__init__.py``.
-2. Write a NumPy-style docstring (see :ref:`docstring rules <docstring rules>`).
+2. Write a NumPy-style docstring (see :ref:`docstring rules <docstring-rules>`).
 3. Add its bare name to an ``autosummary`` block in the matching
    ``docs/reference/<topic>.rst``:
 
@@ -86,12 +86,12 @@ Adding a Guide or Tutorial
    ``/_static/images/<name>.png`` with an ``:alt:`` entry.
 
 
-.. _docstring rules:
+.. _docstring-rules:
 
 Docstring Rules
 ---------------
 
-- Use numpydoc convention. See :ref:`template docstring <template docstring>`.
+- Use numpydoc convention. See :ref:`template docstring <template-docstring>`.
 
 - For literal text, use double backticks, e.g. ````var````.
 
@@ -137,7 +137,7 @@ Docstring Rules
   - At minimum, write a one line sentence for standalone private functions.
   - Keep the numpy section layout and type format
 
-.. _template docstring:
+.. _template-docstring:
 
 Template Docstring
 ^^^^^^^^^^^^^^^^^^

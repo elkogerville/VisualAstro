@@ -5,4 +5,5 @@ API Reference
    :maxdepth: 1
 
    plotting
+   spectra
    datamodels

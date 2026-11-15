@@ -675,14 +675,22 @@ def spectral_region(
     )
 ) -> SpectralRegion | None:
     """
-    Coerce input into a SpectralRegion with units.
+    Create a :class:`specutils.spectra.spectral_region.SpectralRegion`
+    instance from a wide range of inputs.
+
+    Call signatures::
+
+        spectral_region((8.3, 9.8) * u.um)
+        spectral_region([(8.3, 9.8), ...] * u.um)
+        spectral_region((8.3*u.um, 9.8*u.um))
+        spectral_region([(8.3*u.um, 9.8*u.um), ...])
 
     Parameters
     ----------
     obj : SpectralRegion | Quantity | tuple | list[tuple] | None
         Region specification. Accepted forms:
 
-        - `SpectralRegion`: returned as-is
+        - :class:`~specutils.SpectralRegion`: returned as-is
         - `(low, high) * unit`: single region with shared unit
         - `[(low, high), ...] * unit`: multiple regions with shared unit
         - `(Quantity, Quantity)`: single region with explicit units
@@ -696,25 +704,10 @@ def spectral_region(
 
     Raises
     ------
-    ValueError :
+    ValueError
         If a Quantity has incorrect shape (must be (2,) or (N, 2)).
-    ValueError :
+    ValueError
         If the input `obj` cannot be coerced into a `SpectralRegion`.
-
-    Examples
-    --------
-    >>> import astropy.units as u
-    # Single region with shared unit
-    >>> spectral_region((6.5, 6.6) * u.um)
-
-    # Multiple regions with shared unit
-    >>> spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)
-
-    # Single region with explicit units
-    >>> spectral_region((6.5*u.um, 6.6*u.um))
-
-    # Multiple regions with explicit units
-    >>> spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
     """
     _require_dependency('specutils')
     if obj is None:

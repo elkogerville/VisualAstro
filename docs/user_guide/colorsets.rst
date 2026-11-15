@@ -1,4 +1,4 @@
-.. _colorset guide:
+.. _colorset-guide:
 
 Colorsets
 =========
