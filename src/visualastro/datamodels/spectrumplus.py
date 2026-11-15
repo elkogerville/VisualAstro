@@ -17,7 +17,7 @@ from astropy.units import Quantity, UnitBase
 import numpy as np
 
 from visualastro.analysis.spectra_utils import (
-    spectral_region, _require_spectral_region
+    compute_continuum, spectral_region, _require_spectral_region
 )
 from visualastro.core.config import config, _resolve_default
 from visualastro.core.units import (
@@ -642,9 +642,9 @@ class SpectrumPlus:
         continuum : Quantity
             Quantity array of continuum values.
         """
-        from visualastro.analysis.spectra_utils import fit_continuum
+        from visualastro.analysis.spectra_utils import compute_continuum
 
-        return fit_continuum(spectrum, fit_method, region)
+        return compute_continuum(spectrum, fit_method, region)
 
 
     def _construct_spectrum(

@@ -1326,7 +1326,7 @@ def _get_flux(obj: Any) -> Quantity | None:
 
 def _get_continuum(
     obj: Any,
-    fit_method: str = 'fit_continuum',
+    fit_method: Literal['fit_continuum', 'generic'] = 'fit_continuum',
     region: SpectralRegion | list[tuple] | None = None
 ) -> Quantity | None:
     """
@@ -1336,7 +1336,7 @@ def _get_continuum(
 
     1. If `obj` exposes a `.continuum` attribute, that value is returned.
     2. If `obj` is a `specutils.Spectrum`, a continuum is computed using
-       `fit_continuum`.
+       `compute_continuum`.
     3. If `obj` exposes a `.spectrum` attribute, the function is applied
        recursively to that attribute.
     4. If both a spectral axis and flux can be extracted from `obj`,
@@ -1370,7 +1370,7 @@ def _get_continuum(
         return obj.continuum
 
     if _HAS_SPECUTILS and isinstance(obj, Spectrum):
-        return fit_continuum(
+        return compute_continuum(
             obj, fit_method=fit_method, region=region
         )
 

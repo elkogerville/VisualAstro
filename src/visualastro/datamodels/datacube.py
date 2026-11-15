@@ -1067,7 +1067,7 @@ class DataCube:
         """
         _require_dependency('spectral-cube', 'specutils')
         _offer_dependency('tqdm')
-        from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
+        from visualastro.analysis.spectra_utils import compute_continuum, mask_spectral_region
 
         fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
         print_info = _resolve_default(print_info, config.print_info)
@@ -1168,7 +1168,7 @@ class DataCube:
 
                 pixel_flux = subcube[:, j, i]
                 spec = Spectrum(spectral_axis=subcube.spectral_axis, flux=pixel_flux)
-                cont_spec = fit_continuum(spec, fit_method, region)
+                cont_spec = compute_continuum(spec, fit_method, region)
                 continuum_cube[:, j, i] = cont_spec
 
         continuum_subtracted_cube = subcube - continuum_cube

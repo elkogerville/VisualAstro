@@ -33,10 +33,10 @@ from visualastro.analysis.image_utils import (
 from visualastro.analysis.spectra_utils import (
     ExtractedPixelSpectra,
     GaussianFitResult,
+    compute_continuum,
     construct_gaussian_p0,
     deredden_flux,
     estimate_spectrum_line_flux,
-    fit_continuum,
     gaussian,
     gaussian_continuum,
     gaussian_line,

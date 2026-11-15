@@ -1021,7 +1021,7 @@ def fit_gaussian_2_spec(
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
 
-        The continuum can be computed with fit_continuum().
+        The continuum can be computed with `compute_continuum()`.
         If ``_UNSET``, uses `config.gaussian_model`.
     spectral_range : tuple[float, float] | None, optional, default=None
         (min, max) spectral axis range to restrict the fit, in the units
