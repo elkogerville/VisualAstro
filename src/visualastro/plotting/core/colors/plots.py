@@ -482,7 +482,8 @@ def plot_colortable(
     ncols: int = 4,
     sort_colors: bool = True,
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
-    severity: int = 100
+    severity: int = 100,
+    savefig: bool = False,
 ) -> None:
     """
     Plot a grid of colors with their names.
@@ -511,6 +512,9 @@ def plot_colortable(
         Number of columns to plot.
     sort_colors : bool, optional, default=True
         If `True`, sort colors by hsv value.
+    savefig:
+        If `True`, save the figure to disk with `savefig`.
+        Opens a prompt to set the file name and extention.
     """
     if isinstance(colors, str) or colors is None:
         colors = str(colors).lower() if isinstance(colors, str) else None
@@ -622,6 +626,9 @@ def plot_colortable(
                 edgecolor='0.7'
             )
         )
+
+    if savefig:
+        _savefig()
 
     plt.show()
 
