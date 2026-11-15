@@ -8,16 +8,19 @@ Description:
 
 from __future__ import annotations
 from collections.abc import Sequence
+import copy
 from dataclasses import dataclass, fields
-from typing import Any, Literal, overload
+from typing import Any, Literal, TypeAlias, overload
 import warnings
 
 import astropy.constants as constants
 import astropy.units as u
-from astropy.units import Quantity
+from astropy.units import Quantity, StructuredUnit
+from astropy.units.core import UnitBase
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from visualastro.core.array_types import _is_iterable
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
 )
@@ -44,71 +47,195 @@ from visualastro.optional_dependencies._specutils import (
 from visualastro.utils.text_utils import pretty_table
 
 
-# Science Spectrum Functions
-# --------------------------
-def fit_continuum(spectrum, fit_method='fit_continuum', region=None):
+SpectralRegionInput: TypeAlias = (
+    SpectralRegion |
+    Quantity |
+    tuple[Quantity, Quantity] |
+    list[tuple[Quantity, Quantity]]
+)
+
+
+def compute_continuum(
+    spectrum: Spectrum,
+    fit_method: Literal['fit_continuum', 'generic'] = 'fit_continuum',
+    region: SpectralRegionInput | None = None
+) -> Quantity:
     """
-    Fit the continuum of a 1D spectrum using a specified method.
+    Compute the continuum of a 1D spectrum.
 
     Parameters
     ----------
     spectrum : Spectrum
-        Input 1D spectrum object containing flux and spectral_axis.
+        Input 1D spectrum containing `flux` and `spectral_axis`.
     fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
-        Method used for fitting the continuum.
+        Continuum fitting method (case-insensitive).
 
-        * 'fit_continuum': uses `fit_continuum` with a specified window
-        * 'generic' : uses `fit_generic_continuum`
+        - 'fit_continuum' : `specutils.fitting.fit_continuum` restricted to `region`.
+        - 'generic' : `specutils.fitting.fit_generic_continuum`.
 
-    region : array-like of tuple, optional
-        Spectral region(s) to include in the continuum fit when
-        `fit_method='fit_continuum'`. Each region is specified as a
-        `(lower, upper)` bound in wavelength or pixel coordinates
-        (typically `Quantity`). Multiple regions may be provided to
-        restrict the fit to selected portions of the spectrum. This
-        is commonly used to exclude strong emission or absorption features
-        that would otherwise bias the continuum model.Ignored for all
-        other fitting methods.
-        Ex: Remove strong emission peak at 7um from fit
-        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
+    region : SpectralRegionInput | None, optional, default=None
+        Spectral region(s) included in the fit. Used only when
+        `fit_method='fit_continuum'`; ignored otherwise.
+
+        - Each region is a `(lower, upper)` pair of `Quantity` bounds
+        - Multiple regions restrict the fit to disjoint windows, e.g. to
+          exclude emission/absorption features that bias the continuum.
+
+        Example: exclude an emission peak at 7 um::
+
+            region = [(6.5 * u.um, 6.9 * u.um), (7.1 * u.um, 7.9 * u.um)]
 
     Returns
     -------
     continuum : Quantity
-        Continuum flux values evaluated at `spectrum.spectral_axis`.
+        Continuum flux evaluated at `spectrum.spectral_axis`.
+
+    Raises
+    ------
+    TypeError
+        If `spectrum` is not a `Spectrum` instance.
+    ValueError
+        If `fit_method` is not one of {'fit_continuum', 'generic'}.
 
     Notes
     -----
-    * Warnings during the fitting process are suppressed.
+    - All warnings raised during fitting are suppressed.
+    - `region` is silently ignored when `fit_method='generic'`.
     """
     _require_dependency('specutils')
-    region = spectral_region(region)
 
     if not isinstance(spectrum, Spectrum):
-        if hasattr(spectrum, 'spectrum'):
-            spectrum = spectrum.spectrum
-        else:
-            raise ValueError (
-                'Input object is not a Spectrum '
-                "or has no `spectrum` attribute. "
-                f'type: {type(spectrum).__name__}'
-            )
-    # extract spectral axis
+        raise TypeError(
+            f'Input object is not a Spectrum: {type(spectrum).__name__}'
+        )
+
+    if spectrum.flux.ndim != 1:
+        raise ValueError(f'Expected 1D spectrum, got ndim={spectrum.flux.ndim}')
+
+    method = str(fit_method).lower()
+    if method not in {'fit_continuum', 'generic'}:
+        raise ValueError(
+            f"Unknown fit_method: {fit_method!r}. "
+            "Expected 'fit_continuum' or 'generic'."
+        )
+
     spectral_axis = spectrum.spectral_axis
 
-    # suppress warnings during continuum fitting
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        # fit continuum with selected method
-        if fit_method=='fit_continuum':
-            # convert region to default units
-            region = _convert_region_units(region, spectral_axis)
-            fit = _fit_continuum(spectrum, window=region)
+        if method == 'fit_continuum':
+            window = spectral_region(region, spectral_axis.unit)
+            fit = _fit_continuum(spectrum, window=window)
         else:
             fit = _fit_generic(spectrum)
 
-    # fit the continuum of the provided spectral axis
     return fit(spectral_axis)
+
+
+@overload
+def continuum_spectrum(
+    spectrum: Spectrum,
+    fit_method: Literal['fit_continuum', 'generic'] = ...,
+    region: SpectralRegionInput | None = ...,
+) -> Spectrum: ...
+
+@overload
+def continuum_spectrum(
+    spectrum: Sequence[Spectrum],
+    fit_method: Literal['fit_continuum', 'generic'] = ...,
+    region: SpectralRegionInput | None = ...,
+) -> list[Spectrum]: ...
+
+@overload
+def continuum_spectrum(
+    spectrum: Spectrum | Sequence[Spectrum],
+    fit_method: Literal['fit_continuum', 'generic'] = ...,
+    region: SpectralRegionInput | None = ...,
+) -> Spectrum | list[Spectrum]: ...
+
+def continuum_spectrum(
+    spectrum: Spectrum | Sequence[Spectrum],
+    fit_method: Literal['fit_continuum', 'generic'] = 'fit_continuum',
+    region: SpectralRegionInput | None = None,
+) -> Spectrum | list[Spectrum]:
+    """
+    Compute the continuum of one or more 1D spectra and return it as `Spectrum`.
+
+    Parameters
+    ----------
+    spectrum : Spectrum | Sequence[Spectrum]
+        Input 1D spectrum or sequence of 1D spectra. Sequence elements may
+        differ in length and spectral axis.
+    fit_method : {'fit_continuum', 'generic'}, optional, default='fit_continuum'
+        Continuum fitting method. See `compute_continuum`.
+    region : SpectralRegionInput | None, optional, default=None
+        Spectral region(s) included in the fit, applied to every spectrum.
+        See `compute_continuum`.
+
+    Returns
+    -------
+    continuum : Spectrum | list[Spectrum]
+        `Spectrum` for `Spectrum` input; `list[Spectrum]` (same order) for
+        sequence input.
+
+        - `meta`, `mask`, redshift, `rest_value`, `velocity_convention`,
+          and `bin_specification` are inherited from the input.
+        - `uncertainty` is not propagated (the fit provides none).
+        - `meta['continuum_fit']` records `fit_method` and `region`.
+
+    Raises
+    ------
+    TypeError
+        If `spectrum` is not a `Spectrum` or a sequence of `Spectrum`.
+    ValueError
+        If `spectrum` is an empty sequence, any spectrum is not 1D, or
+        `fit_method` is invalid.
+
+    Notes
+    -----
+    - Errors in any single fit propagate; no partial results are returned.
+    - Fits run serially.
+    """
+    is_single = isinstance(spectrum, Spectrum)
+    if is_single:
+        return _continuum_spectrum_1d(spectrum, fit_method, region)
+
+    if not isinstance(spectrum, Sequence) or not _is_iterable(spectrum):
+        raise TypeError(
+            'Expected Spectrum or Sequence[Spectrum], '
+            f'got {type(spectrum).__name__}'
+        )
+    if len(spectrum) == 0:
+        raise ValueError('Empty sequence of spectra.')
+
+    bad = {type(s).__name__ for s in spectrum if not isinstance(s, Spectrum)}
+    if bad:
+        raise TypeError(f'Non-Spectrum elements in sequence: {sorted(bad)}')
+
+    results = [_continuum_spectrum_1d(s, fit_method, region) for s in spectrum]
+
+    return results[0] if is_single else results
+
+
+def _continuum_spectrum_1d(
+    spectrum: Spectrum,
+    fit_method: Literal['fit_continuum', 'generic'],
+    region: SpectralRegionInput | None,
+) -> Spectrum:
+    """Helper for `continuum_spectrum`."""
+    continuum = compute_continuum(spectrum, fit_method=fit_method, region=region)
+
+    meta = copy.deepcopy(spectrum.meta)
+
+    return Spectrum(
+        spectral_axis=spectrum.spectral_axis,
+        flux=continuum,
+        mask=spectrum.mask,
+        meta=meta,
+        redshift=spectrum.redshift,
+        rest_value=spectrum.rest_value,
+        velocity_convention=spectrum.velocity_convention,
+    )
 
 
 def deredden_flux(
