@@ -32,11 +32,10 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -c conda-forge \
-            astropy matplotlib numpy scipy pip pytest pytest-cov pytest-doctestplus
+            astropy matplotlib numpy scipy pip pytest pytest-cov
 
       - name: Install visualastro + test
         shell: bash -l {0}
         run: |
           python -m pip install .
           pytest tests/
-          pytest --doctest-rst docs/

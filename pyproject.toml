@@ -50,16 +50,17 @@ all = [
     "visualastro[images,spectra,spectralcube,styles,utils]",
 ]
 
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-doctestplus",
+]
 docs = [
     "sphinx",
     "sphinx-rtd-theme",
     "sphinx-design",
     "sphinx-copybutton",
-]
-test = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "pytest-doctestplus",
+    "visualastro[test]",
 ]
 dev = [
     "visualastro[all,docs,test]",
