@@ -45,7 +45,7 @@ from visualastro.optional_dependencies._specutils import (
     _fit_continuum,
     _fit_generic,
 )
-from visualastro.utils.text_utils import print_pretty_table
+from visualastro.utils.text_utils import pretty_table
 
 
 # Science Spectrum Functions
@@ -938,45 +938,66 @@ class GaussianFitResult:
     fit_config: dict | None = None
 
     def pretty_print(self, **kwargs):
-        """Pretty print the results in table format."""
+        """
+        Print fit results as aligned tables.
 
-        precision = kwargs.get('precision', config.table_precision)
-        sci_notation = kwargs.get('sci_notation', config.table_sci_notation)
-        pad = kwargs.get('pad', config.table_column_pad)
+        Parameters
+        ----------
+        **kwargs : dict, optional
+            Additional parameters.
 
-        fitted_data = [
-            ['Amplitude', self.amplitude, self.amplitude_error],
-            ['Mu (μ)', self.mu, self.mu_error],
-            ['Sigma (σ)', self.sigma, self.sigma_error],
+            Supported keywords:
+
+            - `precision` : int | _Unset, optional, default=_UNSET
+              Number of decimal places. If `_UNSET`, uses `config.table_precision`.
+            - `sci_notation` : bool | _Unset, optional, default=_UNSET
+              If True, use scientific notation. If `_UNSET`, uses `config.table_sci_notation`.
+            - `pad` : int | _Unset, optional, default=_UNSET
+              Spaces between columns. If `_UNSET`, uses `config.table_column_pad`.
+        """
+        def _row(name, value, error):
+            if error is None or isinstance(error, str):
+                return [name, value, None]
+            err = error.to(value.unit)
+            if not np.isfinite(err.value) or err.value <= 0:
+                return [name, value, 'N/A']
+            return [name, value, err]
+
+        fitted = [
+            _row('Amplitude', self.amplitude, self.amplitude_error),
+            _row('Mu (μ)', self.mu, self.mu_error),
+            _row('Sigma (σ)', self.sigma, self.sigma_error),
         ]
-        for param, name in zip(
-            self.additional_parameters, self.parameters_labels
-        ):
-            if getattr(self, param, None) is not None:
-                value = getattr(self, param)
-                error = getattr(self, param+'_error', '')
-                fitted_data.append([name, value, error])
+        for attr, label in zip(self.additional_parameters, self.parameters_labels):
+            value = getattr(self, attr, None)
+            if value is not None:
+                fitted.append(_row(label, value, getattr(self, attr + '_error', None)))
+
+        derived = [
+            _row('Integrated Flux', self.flux, self.flux_error),
+            _row('FWHM', self.FWHM, self.FWHM_error),
+        ]
+
+        lines = pretty_table(
+            headers=['Parameter', 'Value', 'Error'],
+            data=fitted + derived,
+            precision=kwargs.get('precision', _UNSET),
+            sci_notation=kwargs.get('sci_notation', _UNSET),
+            pad=kwargs.get('pad', _UNSET),
+        ).splitlines()
+
+        header, rule, body = lines[0], lines[1], lines[2:]
+        nfit = len(fitted)
 
         print('Fitted Parameters:')
-        print_pretty_table(
-            headers=['Parameter', 'Value', 'Error'],
-            data=fitted_data,
-            precision=precision,
-            sci_notation=sci_notation,
-            pad=pad
-        )
+        print(header)
+        print(rule)
+        print('\n'.join(body[:nfit]))
 
-        print('\nDerived Parameters: ')
-        print_pretty_table(
-            headers=None,
-            data=[
-                ['Integrated Flux', self.flux, self.flux_error],
-                ['FWHM', self.FWHM, self.FWHM_error],
-            ],
-            precision=precision,
-            sci_notation=sci_notation,
-            pad=pad
-        )
+        print('\nDerived Parameters:')
+        print(header)
+        print(rule)
+        print('\n'.join(body[nfit:]))
 
     def __repr__(self) -> str:
         """Returns values ± errors."""
