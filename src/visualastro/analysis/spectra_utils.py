@@ -940,7 +940,7 @@ def _spectral_axis_2_array(spectral_axis: SpectralAxis | u.Quantity) -> NDArray:
 
 # Model Fitting Functions
 # -----------------------
-def construct_gaussian_p0(extracted_spectrum, args, xlim=None):
+def gaussian_p0(extracted_spectrum, args, xlim=None):
     """
     Construct an initial guess (`p0`) for Gaussian fitting of a spectrum.
 
