@@ -430,9 +430,7 @@ def extract_cube_pixel_spectra(
     # gives you each spectrum along a column of voxels
     flux_matrix = data[:, ys, xs].T * data_unit
     spectra = [
-        SpectrumPlus(
-            Spectrum(spectral_axis=spectral_axis, flux=flux)
-        )
+        Spectrum(spectral_axis=spectral_axis, flux=flux)
         for flux in flux_matrix
     ]
 
@@ -480,9 +478,7 @@ def extract_cube_pixel_spectra(
         else:
             raise ValueError(f'Unknown combine_method: {params.combine_method}')
 
-        combined_spec = SpectrumPlus(
-            Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
-        )
+        combined_spec = Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
 
     with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
@@ -499,19 +495,17 @@ def extract_cube_pixel_spectra(
                 ax,
                 color=[colors[i]],
                 label=labels[i],
-                plot_continuum=False,
             )
 
         fluxes = [spec.flux for spec in spectra]
 
-        if combine_spectra and isinstance(combined_spec, SpectrumPlus):
+        if combine_spectra and isinstance(combined_spec, Spectrum):
             plot_spectra(
                 combined_spec,
                 ax,
                 color='k',
                 ls='--',
                 label=f'combined ({params.combine_method})',
-                plot_continuum=False
             )
             fluxes.append(combined_spec.flux)
 
@@ -524,7 +518,7 @@ def extract_cube_pixel_spectra(
         )
 
         if params.legend:
-            ax.legend(
+            legend(
                 ncols=params.ncols,
                 fontsize=8,
                 loc='upper center',
@@ -551,7 +545,7 @@ def extract_cube_pixel_spectra(
         plot_extracted_pixel_map(
             result,
             cube=(
-                masked_data if params.background_cube is None
+                data if params.background_cube is None
                 else params.background_cube
             ),
             savefig=params.savefig,
@@ -694,13 +688,10 @@ def plot_extracted_pixel_map(
 
     with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
-        imshow(
+        ax.imshow(
             background,
-            ax,
             origin='lower',
             cmap='gray',
-            colorbar=False,
-            **kwargs
         )
 
         ax.imshow(overlay, origin='lower')
@@ -1300,7 +1291,7 @@ def fit_gaussian_2_spec(
         fit_config=fit_config
     )
 
-    fig, ax = subplots()
+    fig, ax = subplots(figsize=kwargs.pop('figsize', config.figsize))
 
     xlim = kwargs.pop('xlim', spectral_range)
     colors = get_colors(_resolve_color_alias(kwargs, params.color))
@@ -1309,7 +1300,8 @@ def fit_gaussian_2_spec(
         plot(x, y, ax=ax, color=_cycle(colors, 2), label='Interpolated')
 
     plot(
-        x0, y0,
+        x0*spectral_unit if spectral_unit is not None else x0,
+        y0*flux_unit if flux_unit is not None else y0,
         ax=ax,
         color=_cycle(colors, 0),
         label=kwargs.pop('label', 'Spectrum'),
