@@ -41,7 +41,7 @@ from visualastro.core.config import (
 from visualastro.core.data import (
     get_value, to_array, to_list, _ensure_iterable
 )
-from visualastro.core.io import savefig
+from visualastro.core.io import savefig as savefigure
 from visualastro.core.kwargs import (
     _pop_kwargs, _param, _kwarg, _resolve_kwargs
 )
@@ -49,7 +49,7 @@ from visualastro.core.numerical import (
     interpolate as _interpolate,
     mask_within_range
 )
-from visualastro.core.sequences import _unwrap_if_single
+from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
     ensure_common_unit,
     convert_quantity,
@@ -64,7 +64,8 @@ from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.plotting.base.plots import plot, step
-from visualastro.plotting.core.axes.axes import get_ax
+from visualastro.plotting.core.axes.axes import subplots
+from visualastro.plotting.core.legend import legend
 from visualastro.plotting.science.wcs_plots import imshow
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
@@ -531,7 +532,7 @@ def extract_cube_pixel_spectra(
                 frameon=False,
             )
         if params.savefig:
-            savefig(**kwargs)
+            savefigure(**kwargs)
 
         plt.show()
 
@@ -725,7 +726,7 @@ def plot_extracted_pixel_map(
         ax.set_title(f'Extracted Pixel Locations (n={len(extract_idx)})')
 
         if params.savefig:
-            savefig(**kwargs)
+            savefigure(**kwargs)
 
         plt.show()
 
@@ -793,10 +794,7 @@ def plot_spectra(
             f"`plot_mode` must be 'step' or 'plot', got {plot_mode!r}."
         )
 
-    ax = get_ax(ax)
-
     xpad = kwargs.pop('xpad', 0)
-
     return plot_fn(
         spectrum.spectral_axis, spectrum.flux, ax=ax, xpad=xpad, **kwargs
     )
