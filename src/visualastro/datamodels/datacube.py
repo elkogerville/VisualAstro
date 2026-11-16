@@ -19,7 +19,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
-from visualastro.analysis.spectra_utils import _require_spectral_region
+from visualastro.analysis.spectra.spectral_region import _require_spectral_region
 from visualastro.core.config import (
     config, _resolve_default, _Unset, _UNSET
 )
@@ -936,7 +936,7 @@ class DataCube:
         spectral_world_2_idx : Inverse operation, maps spectral value to index.
         """
         _require_dependency('spectral-cube')
-        from visualastro.analysis.spectra_utils import (
+        from visualastro.analysis.spectra import (
             spectral_idx_2_world as _spectral_idx_2_world
         )
         if not isinstance(self.data, SpectralCube):
@@ -968,7 +968,7 @@ class DataCube:
             If `data` attribute is not a `SpectralCube`.
         """
         _require_dependency('spectral-cube')
-        from visualastro.analysis.spectra_utils import (
+        from visualastro.analysis.spectra import (
             spectral_world_2_idx as _spectral_world_2_idx
         )
         if not isinstance(self.data, SpectralCube):
@@ -1067,7 +1067,7 @@ class DataCube:
         """
         _require_dependency('spectral-cube', 'specutils')
         _offer_dependency('tqdm')
-        from visualastro.analysis.spectra_utils import compute_continuum, mask_spectral_region
+        from visualastro.analysis.spectra import compute_continuum, spectral_region_mask
 
         fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
         print_info = _resolve_default(print_info, config.print_info)
@@ -1092,7 +1092,7 @@ class DataCube:
         continuum_cube = np.full(subcube.shape, np.nan) * subcube.unit
 
         ny, nx = subcube.shape[1:]
-        region_mask = mask_spectral_region(subcube.spectral_axis, region)
+        region_mask = spectral_region_mask(subcube.spectral_axis, region)
 
         flux_data = subcube.filled_data[:]
         finite_flux = np.isfinite(flux_data)
