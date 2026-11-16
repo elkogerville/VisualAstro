@@ -30,23 +30,24 @@ from visualastro.analysis.image_utils import (
     mask_image,
     stack_cube
 )
-from visualastro.analysis.spectra_utils import (
+from visualastro.analysis.spectra import (
     ExtractedPixelSpectra,
     GaussianFitResult,
     compute_continuum,
     continuum_spectrum,
     deredden_flux,
     estimate_spectrum_line_flux,
+    extract_region,
     gaussian,
     gaussian_continuum,
     gaussian_line,
     gaussian_p0,
-    mask_spectral_region,
     propagate_flux_errors,
     shift_to_rest_frame,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
     spectral_region,
+    spectral_region_mask,
     spectral_world_2_idx
 )
 from visualastro.core.config import config
@@ -175,7 +176,6 @@ from visualastro.plotting.core.utils import (
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
-    extract_cube_spectra,
     extract_cube_spectrum,
     fit_gaussian_2_spec,
     plot_combine_spectrum,
