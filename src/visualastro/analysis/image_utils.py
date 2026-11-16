@@ -7,46 +7,51 @@ Description:
 """
 
 from __future__ import annotations
-from collections.abc import Sequence
+
 import glob
+import warnings
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
-import warnings
 
-from astropy.io import fits
-from astropy.io.fits import Header, HDUList, ImageHDU, PrimaryHDU
 import astropy.units as u
-from astropy.units import Quantity
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.io import fits
+from astropy.io.fits import HDUList, Header, ImageHDU, PrimaryHDU
+from astropy.units import Quantity
+from astropy.wcs import WCS
 from numpy.typing import DTypeLike, NDArray
 from scipy.ndimage import convolve
 
 from visualastro.core.array_types import _is_iterable
 from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET,
+    _UNSET,
+    _resolve_default,
+    _Unset,
+    config,
 )
 from visualastro.core.data import get_data, get_value
-from visualastro.core.io import get_errors, _get_dtype
+from visualastro.core.io import _get_dtype, get_errors
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
-)
 from visualastro.optional_dependencies._regions import (
-    PixCoord,
+    _HAS_REGIONS,
     EllipseAnnulusPixelRegion,
     EllipsePixelRegion,
-    _HAS_REGIONS,
+    PixCoord,
 )
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.utils.wcs_utils import _reproject_wcs
-
 
 __all__ = [
     'get_hdu',
@@ -619,9 +624,9 @@ def mask_image(
         master mask followed by individual masks. Otherwise returns a single mask.
     """
     # ---- Kwargs ----
-    center = kwargs.get('center', None)
-    w = kwargs.get('w', None)
-    h = kwargs.get('h', None)
+    center = kwargs.get('center')
+    w = kwargs.get('w')
+    h = kwargs.get('h')
     angle = kwargs.get('angle', 0)
     tolerance = kwargs.get('tolerance', 2)
     if (isinstance(tolerance, (list, tuple))

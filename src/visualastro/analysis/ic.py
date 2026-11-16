@@ -11,7 +11,6 @@ from typing import Literal, overload
 import numpy as np
 from numpy.typing import NDArray
 
-
 __all__ = ['blob']
 
 
