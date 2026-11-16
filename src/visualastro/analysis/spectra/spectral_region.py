@@ -6,18 +6,25 @@ Description:
     Spectral region module.
 """
 
+from __future__ import annotations
 
-from typing import Any, overload
+from typing import Any, TypeAlias, overload
 
 from astropy.units import Quantity, StructuredUnit
 from astropy.units.core import UnitBase
+import numpy as np
 
-
+from visualastro.core.data import get_value
 from visualastro.core.units import get_unit
-from visualastro.optional_dependencies._specutils import (
-    SpectralAxis,
-    SpectralRegion,
-    Spectrum,
+from visualastro.optional_dependencies.register import _require_dependency
+from visualastro.optional_dependencies._specutils import SpectralRegion
+
+
+SpectralRegionInput: TypeAlias = (
+    SpectralRegion |
+    Quantity |
+    tuple[Quantity, Quantity] |
+    list[tuple[Quantity, Quantity]]
 )
 
 
@@ -132,13 +139,67 @@ def _to_spectral_region(obj: SpectralRegionInput) -> SpectralRegion:
         ) from e
 
 
+def spectral_region_mask(x, spectral_region):
+    """
+    Return a boolean mask selecting values within a SpectralRegion.
+
+    This function constructs the union of all subregions in the input
+    SpectralRegion and returns a boolean array that is True for elements
+    of `x` that fall within any subregion.
+
+    Parameters
+    ----------
+    x : array-like or `~astropy.units.Quantity`
+        1D array of spectral coordinates (e.g., wavelength or frequency).
+        If a Quantity is provided, its values are converted to plain
+        numeric values.
+
+    spectral_region : `~specutils.SpectralRegion` or region-like
+        Spectral region definition. May contain multiple disjoint
+        subregions. The mask is the logical union of all subregions.
+
+    Returns
+    -------
+    mask : ndarray of bool
+        Boolean mask with the same shape as `x`. True where the spectral
+        coordinate lies within any subregion, False otherwise.
+
+    Raises
+    ------
+    TypeError
+        If `spectral_region.subregions` is None.
+
+    Notes
+    -----
+    - Subregions are combined using logical OR (union semantics).
+    - This function assumes that `x` and the subregion bounds are in
+        compatible units. No explicit unit conversion is performed.
+    - Boundary comparisons are inclusive (`>= xmin` and `<= xmax`).
+
+    Examples
+    --------
+    >>> mask = spectral_region_mask(wavelength, region)
+    >>> n_valid = np.count_nonzero(mask & np.isfinite(flux))
+    """
+    x = get_value(x)
+    spectral_region = _require_spectral_region(spectral_region)
+    subregions = spectral_region.subregions
+    if subregions is None:
+        raise TypeError(
+            'spectral_region.subregions is None!'
+        )
+
+    mask = np.zeros(x.shape, dtype=bool)
+
+    for region in subregions:
+        xmin, xmax = region[0].value, region[1].value
+        mask |= (x >= xmin) & (x <= xmax)
+
+    return mask
+
+
 def _require_spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-    )
+    obj: SpectralRegionInput
 ) -> SpectralRegion:
     """
     Enforce that the input `obj` is a `SpectralRegion`.
