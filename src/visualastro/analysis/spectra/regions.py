@@ -10,15 +10,14 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias, overload
 
+import numpy as np
 from astropy.units import Quantity, StructuredUnit
 from astropy.units.core import UnitBase
-import numpy as np
 
 from visualastro.core.data import get_value
 from visualastro.core.units import get_unit
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import SpectralRegion
-
+from visualastro.optional_dependencies.register import _require_dependency
 
 SpectralRegionInput: TypeAlias = (
     SpectralRegion |
@@ -26,6 +25,12 @@ SpectralRegionInput: TypeAlias = (
     tuple[Quantity, Quantity] |
     list[tuple[Quantity, Quantity]]
 )
+
+
+__all__ = [
+    'spectral_region',
+    'spectral_region_mask',
+]
 
 
 @overload
