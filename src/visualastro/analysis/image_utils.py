@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-11-10
+Date Modified: 2026-11-17
 Description:
     Utility functions for image manipulations.
 """
@@ -48,6 +48,22 @@ from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.utils.wcs_utils import _reproject_wcs
 
 
+__all__ = [
+    'get_hdu',
+    'get_hdu_from_hdu_list',
+    'load_data_cube',
+    'load_fits',
+    'load_spectral_cube',
+    'stack_cube',
+    'mask_image',
+    'compute_line',
+    'detect_edges',
+    'compute_sobel_filter',
+    'image_2_grayscale',
+    'get_filter_wavelength',
+]
+
+
 # I/O Functions
 # -------------
 def get_hdu(
@@ -59,7 +75,7 @@ def get_hdu(
     """
     if isinstance(input_, (ImageHDU, PrimaryHDU)):
         return input_
-    
+
     if isinstance(input_, (str, Path)):
         input_ = fits.open(input_)
 
@@ -905,7 +921,7 @@ def get_filter_wavelength(
     error_mode: str = 'every'
 ):
     """
-    Convert filter names to wavelengths. 
+    Convert filter names to wavelengths.
     https://en.wikipedia.org/wiki/Photometric_system
 
     # TODO future astroquerry function
@@ -915,23 +931,23 @@ def get_filter_wavelength(
     filter : str or sequence
         A filter name or a sequence of filter names.
     error_mode : str
-        If 'every', raises ValueError if any conversion fails. 
-        If 'all', raises ValueError if all conversions fail, 
-            otherwise uses nan. 
-        If 'nan', uses nan for failed conversions even if all nan. 
-            No error raised in any scenario. 
+        If 'every', raises ValueError if any conversion fails.
+        If 'all', raises ValueError if all conversions fail,
+            otherwise uses nan.
+        If 'nan', uses nan for failed conversions even if all nan.
+            No error raised in any scenario.
         Default: 'every'.
 
     Returns
     -------
     wavelength : list
         List of wavelengths.
-    
+
     Raises
     -------
     ValueError
-        If `error_mode` is not in `('every', 'all', 'nan')`. 
-        If `error_mode` is 'every' and a filter is not found. 
+        If `error_mode` is not in `('every', 'all', 'nan')`.
+        If `error_mode` is 'every' and a filter is not found.
         If `error_mode` is 'all' and all conversions fail.
     """
     map = {
@@ -950,12 +966,12 @@ def get_filter_wavelength(
         'n': 10500,
         'q': 21000
     }
-    
+
     scalar = False
     if not _is_iterable(filter):
         filter = [filter]
         scalar = True
-    
+
     wavelengths = []
     for f in filter:
         try:

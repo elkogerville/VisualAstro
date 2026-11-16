@@ -10,6 +10,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 
+__all__ = ['center_of_mass']
+
+
 def center_of_mass(
     positions: NDArray,
     masses: NDArray | None = None,
