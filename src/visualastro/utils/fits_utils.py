@@ -13,7 +13,7 @@ from astropy.time import Time
 import astropy.units as u
 import numpy as np
 
-from visualastro.analysis.spectra_utils import _require_spectral_region
+from visualastro.analysis.spectra.spectral_region import _require_spectral_region
 from visualastro.optional_dependencies._specutils import SpectralRegion
 
 
