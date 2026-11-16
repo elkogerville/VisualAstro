@@ -50,7 +50,7 @@ Legends
 Spectra
 -------
 
-   .. include:: plotting/_spectra_summary.rst.inc
+.. include:: plotting/_spectra_summary.rst.inc
 
 .. toctree::
    :hidden:
