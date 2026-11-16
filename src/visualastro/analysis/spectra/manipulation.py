@@ -291,10 +291,7 @@ def deredden_flux(
         )
     deredden = methods[dered_method]
 
-    if dered_method == 'WD01':
-        extinction = deredden(region)
-    else:
-        extinction = deredden(Rv=Rv)
+    extinction = deredden(region) if dered_method == 'WD01' else deredden(Rv=Rv)
 
     dereddened_flux = flux / extinction.extinguish(wavelength, Ebv=Ebv)
 

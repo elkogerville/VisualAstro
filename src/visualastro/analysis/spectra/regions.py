@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any, TypeAlias, overload
 
+import astropy.units as u
 import numpy as np
 from astropy.units import Quantity, StructuredUnit
 from astropy.units.core import UnitBase
