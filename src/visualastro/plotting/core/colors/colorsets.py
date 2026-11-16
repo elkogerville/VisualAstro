@@ -15,7 +15,7 @@ from matplotlib.colors import Colormap
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
-from visualastro.core.config import _Unset, _UNSET
+from visualastro.core.configuration import _Unset, _UNSET
 from visualastro.plotting.core.colors.colors import get_colorset
 from visualastro.plotting.core.colors.definitions import (
     COLORSETS, COLORSET_ALIASES

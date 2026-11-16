@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
 import numpy as np
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.data import as_list

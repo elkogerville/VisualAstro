@@ -32,7 +32,7 @@ from visualastro.analysis.spectra import (
     shift_to_rest_frame,
 )
 from visualastro.analysis.spectra.utils import _get_spectral_axis
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     get_config_value,
     config,
     _Unset,

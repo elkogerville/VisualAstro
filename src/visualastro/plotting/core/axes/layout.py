@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import ArrayLike
 
-from visualastro.core.config import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.configuration import config, _Unset, _UNSET, _resolve_default
 
 
 def gridspec(

@@ -15,7 +15,7 @@ import matplotlib.axes as maxes
 from matplotlib.text import Text
 from numpy.typing import ArrayLike
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _Unset,
     _UNSET,

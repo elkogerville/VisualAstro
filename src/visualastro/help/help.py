@@ -20,7 +20,7 @@ from matplotlib import font_manager
 import numpy as np
 
 from visualastro.analysis.ic import blob
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config, _Unset, _UNSET, _resolve_default
 )
 from visualastro.core.data import to_list

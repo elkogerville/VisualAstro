@@ -15,7 +15,7 @@ from matplotlib.colors import Colormap
 from matplotlib.contour import QuadContourSet
 from mpl_toolkits.mplot3d import Axes3D
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config, _Unset, _UNSET,
 )
 from visualastro.core.kwargs import (

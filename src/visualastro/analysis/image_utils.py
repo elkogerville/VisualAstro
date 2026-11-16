@@ -25,7 +25,7 @@ from numpy.typing import DTypeLike, NDArray
 from scipy.ndimage import convolve
 
 from visualastro.core.array_types import _is_iterable
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     _UNSET,
     _resolve_default,
     _Unset,

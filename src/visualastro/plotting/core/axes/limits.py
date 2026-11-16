@@ -20,7 +20,7 @@ from numpy.typing import NDArray
 
 from visualastro.analysis.mechanics import center_of_mass
 from visualastro.core.array_types import _is_scalar
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _Unset,
     _UNSET,

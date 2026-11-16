@@ -24,7 +24,7 @@ from visualastro.analysis.spectra.regions import (
     spectral_region,
 )
 from visualastro.core.array_types import _is_iterable
-from visualastro.core.config import _UNSET, _resolve_default, _Unset, config
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import get_value, to_list
 from visualastro.core.numerical import mask_within_range
 from visualastro.core.units import ensure_common_unit

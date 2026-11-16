@@ -18,7 +18,7 @@ from matplotlib.transforms import Bbox
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _Unset,
     _UNSET,

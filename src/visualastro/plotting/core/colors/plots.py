@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType, LineStyleType
 import numpy as np
 
-from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.configuration import config, _Unset, _UNSET
 from visualastro.core.data import as_list, to_list
 from visualastro.core.io import savefig as _savefig
 from visualastro.core.kwargs import _param, _resolve_kwargs

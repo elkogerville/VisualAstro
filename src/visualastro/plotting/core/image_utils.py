@@ -20,7 +20,7 @@ from numpy.typing import NDArray
 from scipy.spatial.distance import cdist
 
 from visualastro.analysis.image_utils import stack_cube
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _resolve_default,
     _Unset,

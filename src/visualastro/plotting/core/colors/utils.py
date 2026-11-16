@@ -15,7 +15,7 @@ from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType
 import numpy as np
 
-from visualastro.core.config import config, _UNSET, _resolve_default
+from visualastro.core.configuration import config, _UNSET, _resolve_default
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple

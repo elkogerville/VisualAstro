@@ -12,7 +12,7 @@ import matplotlib.axes as maxes
 from matplotlib.transforms import Transform
 from matplotlib.typing import ColorType, LineStyleType
 
-from visualastro.core.config import _Unset, _UNSET
+from visualastro.core.configuration import _Unset, _UNSET
 from visualastro.core.kwargs import _extract_kwargs, _param
 from visualastro.plotting.core.axes.axes import get_ax
 from visualastro.plotting.core.axes.limits import set_limits

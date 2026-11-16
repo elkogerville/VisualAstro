@@ -18,7 +18,7 @@ import numpy as np
 
 from visualastro.analysis.spectra import spectral_region
 from visualastro.analysis.spectra.regions import _require_spectral_region
-from visualastro.core.config import config, _resolve_default
+from visualastro.core.configuration import config, _resolve_default
 from visualastro.core.units import (
     ensure_common_unit,
     _check_unit_equality,

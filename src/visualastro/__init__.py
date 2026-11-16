@@ -50,7 +50,7 @@ from visualastro.analysis.spectra import (
     spectral_region_mask,
     spectral_world_2_idx
 )
-from visualastro.core.config import config
+from visualastro.core.configuration import config
 from visualastro.core.io import (
     get_errors,
     load_quantity,

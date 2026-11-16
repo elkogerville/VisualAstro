@@ -17,7 +17,7 @@ from numpy.typing import NDArray
 
 from visualastro.analysis.spectra.fitting import ExtractedPixelSpectra
 from visualastro.analysis.spectra.manipulation import compute_continuum
-from visualastro.core.config import _UNSET, _resolve_default, _Unset, config
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import get_value, to_list
 from visualastro.core.sequences import _unwrap_if_single
 from visualastro.core.units import (

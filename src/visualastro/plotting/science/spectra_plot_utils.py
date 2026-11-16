@@ -24,7 +24,7 @@ from visualastro.analysis.spectra import (
     spectral_idx_2_world,
 )
 from visualastro.analysis.spectra.utils import _get_spectral_axis
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _Unset,
     _UNSET,

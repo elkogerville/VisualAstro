@@ -14,7 +14,7 @@ from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-from visualastro.core.config import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.configuration import config, _Unset, _UNSET, _resolve_default
 from visualastro.core.data import to_list
 from visualastro.plotting.core.axes.axes import _resolve_ax, figure
 from visualastro.plotting.core.colors.colors import get_colors

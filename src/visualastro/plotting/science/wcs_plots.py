@@ -29,7 +29,7 @@ from visualastro.analysis.image_utils import (
     get_hdu,
     stack_cube
 )
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     _Unset,
     _UNSET

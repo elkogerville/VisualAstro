@@ -19,7 +19,7 @@ from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     get_config_value,
     _Unset, _UNSET,

@@ -15,7 +15,7 @@ import numpy as np
 from astropy.units import Quantity
 from numpy.typing import NDArray
 
-from visualastro.core.config import _UNSET
+from visualastro.core.configuration import _UNSET
 from visualastro.core.data import get_value
 from visualastro.core.numerical import mask_within_range
 from visualastro.optional_dependencies._specutils import Spectrum

@@ -20,7 +20,7 @@ from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
 from visualastro.analysis.spectra.regions import _require_spectral_region
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config, _resolve_default, _Unset, _UNSET
 )
 from visualastro.core.kwargs import _pop_kwargs

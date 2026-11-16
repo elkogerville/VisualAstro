@@ -22,7 +22,7 @@ from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
 import numpy as np
 
-from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.configuration import config, _Unset, _UNSET
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _resolve_default
 from visualastro.optional_dependencies.register import (

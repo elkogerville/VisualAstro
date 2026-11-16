@@ -17,7 +17,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType, LineStyleType, MarkerType
 
-from visualastro.core.config import config
+from visualastro.core.configuration import config
 from visualastro.core.data import as_list
 from visualastro.core.kwargs import _param, _resolve_kwargs
 from visualastro.core.sequences import match_length

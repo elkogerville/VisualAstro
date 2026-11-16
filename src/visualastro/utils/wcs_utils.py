@@ -21,7 +21,7 @@ from astropy.wcs import WCS
 import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     get_config_value, config, _UNSET,
 )
 from visualastro.core.data import to_list
