@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-07-28
+Date Modified: 2026-11-16
 Description:
     SpectrumPlus data structure for 1D spectrum objects.
     This is an extension of the specutils.Spectrum class
@@ -16,9 +16,8 @@ from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
 import numpy as np
 
-from visualastro.analysis.spectra_utils import (
-    compute_continuum, spectral_region, _require_spectral_region
-)
+from visualastro.analysis.spectra import spectral_region
+from visualastro.analysis.spectra.spectral_region import _require_spectral_region
 from visualastro.core.config import config, _resolve_default
 from visualastro.core.units import (
     ensure_common_unit,
@@ -642,7 +641,7 @@ class SpectrumPlus:
         continuum : Quantity
             Quantity array of continuum values.
         """
-        from visualastro.analysis.spectra_utils import compute_continuum
+        from visualastro.analysis.spectra import compute_continuum
 
         return compute_continuum(spectrum, fit_method, region)
 

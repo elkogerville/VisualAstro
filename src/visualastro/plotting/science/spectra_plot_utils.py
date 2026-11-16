@@ -7,6 +7,7 @@ Description:
 """
 
 from __future__ import annotations
+
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Literal
@@ -17,12 +18,12 @@ from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType, LineStyleType
 import numpy as np
 
-from visualastro.analysis.spectra_utils import (
+from visualastro.analysis.spectra import (
     GaussianFitResult,
     shift_to_rest_frame,
     spectral_idx_2_world,
-    _get_spectral_axis,
 )
+from visualastro.analysis.spectra.utils import _get_spectral_axis
 from visualastro.core.config import (
     config,
     _Unset,

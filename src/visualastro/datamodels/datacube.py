@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-07-27
+Date Modified: 2026-11-16
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.

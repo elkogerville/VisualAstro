@@ -3,10 +3,11 @@ Author: Elko Gerville-Reache
 Date Created: 2025-05-23
 Date Modified: 2026-11-15
 Description:
-    Spectra science functions.
+    Spectra plotting functions.
 """
 
 from __future__ import annotations
+
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Literal
@@ -22,15 +23,15 @@ from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import curve_fit
 
 from visualastro.analysis.image_utils import stack_cube
-from visualastro.analysis.spectra_utils import (
+from visualastro.analysis.spectra import (
     GaussianFitResult,
     ExtractedPixelSpectra,
     gaussian as _gaussian,
     gaussian_continuum as _gaussian_continuum,
     gaussian_line as _gaussian_line,
     shift_to_rest_frame,
-    _get_spectral_axis,
 )
+from visualastro.analysis.spectra.utils import _get_spectral_axis
 from visualastro.core.config import (
     get_config_value,
     config,
@@ -43,7 +44,7 @@ from visualastro.core.data import (
 )
 from visualastro.core.io import savefig as savefigure
 from visualastro.core.kwargs import (
-    _pop_kwargs, _param, _kwarg, _resolve_kwargs
+    _extract_kwargs, _pop_kwargs, _param, _kwarg, _resolve_kwargs
 )
 from visualastro.core.numerical import (
     interpolate as _interpolate,
@@ -72,7 +73,6 @@ from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.plot_input import _resolve_color_alias
 from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.science.wcs_plots import imshow
 
 
 _EXTRACT_METHODS: dict[str, str] = {
@@ -83,7 +83,7 @@ _EXTRACT_METHODS: dict[str, str] = {
 
 
 def extract_cube_spectrum(
-    cube: DataCube | SpectralCube,
+    cube: DataCube | SpectralCube | Sequence[DataCube | SpectralCube],
     flux_extract_method: Literal['mean', 'median', 'sum'] | _Unset = _UNSET,
     extract_mode: Literal['cube', 'slice', 'ray'] | _Unset = _UNSET,
     radial_vel: float | u.Quantity | None | _Unset = _UNSET,
@@ -91,17 +91,17 @@ def extract_cube_spectrum(
     unit: str | u.Unit | None | _Unset = _UNSET,
     convention: str | None = None,
     **kwargs
-) -> Spectrum:
+) -> Spectrum | list[Spectrum]:
     """
-    Extract a 1D spectrum from a single data cube by collapsing both spatial axes.
+    Extract 1D spectra from one or more data cubes by collapsing both spatial axes.
 
-    The cube is assumed to have axes ordered `(spectral, y, x)`. The spatial
+    Each cube is assumed to have axes ordered `(spectral, y, x)`. The spatial
     axes (1, 2) are collapsed with the chosen statistic.
 
     Parameters
     ----------
     cube : DataCube | SpectralCube
-        Input cube. Must be a SpectralCube, or a DataCube containing one.
+        Input SpectralCubes(s).
     flux_extract_method : {'mean', 'median', 'sum'} | None | _Unset, optional, default=_UNSET
         Statistic used to collapse the spatial axes.
         If None or `_UNSET`, uses `config.flux_extract_method`.
@@ -117,21 +117,21 @@ def extract_cube_spectrum(
 
         If None or `_UNSET`, uses `config.spectral_cube_extraction_mode`.
     radial_vel : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
-        Radial velocity used to shift the spectral axis. Floats are
-        interpreted as km/s. If None, no shift is applied.
-        If `_UNSET`, uses `config.radial_velocity`.
+        Radial velocity used to shift the spectral axis to the rest frame
+        (`shift_to_rest_frame`). Floats are interpreted as km/s. If None,
+        no shift is applied. If `_UNSET`, uses `config.radial_velocity`.
     rest_freq : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
-        Rest-frame frequency or wavelength stored on the Spectrum as
+        Rest-frame frequency or wavelength stored on each `Spectrum` as
         `rest_value`. If None, no rest value is set.
         If `_UNSET`, uses `config.spectra_rest_frequency`.
     unit : str | astropy.units.Unit | None | _Unset, optional, default=_UNSET
         Target unit of the spectral axis. Conversion uses
-        `astropy.units.spectral()` equivalencies, so frequency, wavelength,
-        and energy units are interchangeable. If None, no conversion is
-        performed. If `_UNSET`, uses `config.wavelength_unit`.
+        `astropy.units.spectral()` equivalencies. If None,
+        no conversion is performed. If `_UNSET`, uses `config.wavelength_unit`.
     convention : str | None, optional, default=None
-        Doppler convention (e.g., 'optical', 'radio', 'relativistic').
-        If None, the specutils default is used.
+        Doppler convention ('optical', 'radio', or 'relativistic'), stored on
+        each `Spectrum` as `velocity_convention`. If None, the specutils
+        default is used.
 
     Returns
     -------
@@ -149,8 +149,7 @@ def extract_cube_spectrum(
         If the spectral axis cannot be converted to `unit`.
     """
     _require_dependency('spectral-cube', 'specutils')
-    kwargs = kwargs.copy()
-    params = _resolve_kwargs(
+    params = _extract_kwargs(
         kwargs,
         params=[
             _param('flux_extract_method', flux_extract_method, config.flux_extract_method),
@@ -158,59 +157,52 @@ def extract_cube_spectrum(
             _param('radial_vel', radial_vel, config.radial_velocity),
             _param('rest_freq', rest_freq, config.spectra_rest_frequency),
             _param('unit', unit, config.wavelength_unit),
+            _param('convention', convention, None),
         ],
     )
 
-    method_name = _EXTRACT_METHODS.get(params.flux_extract_method)
+    method_name = _EXTRACT_METHODS.get(params['flux_extract_method'])
     if method_name is None:
         raise ValueError(
-            f"Invalid flux_extract_method '{params.flux_extract_method}'. "
+            f"Invalid flux_extract_method '{params['flux_extract_method']}'. "
             f'Choose from {list(_EXTRACT_METHODS)}.'
         )
 
-    spectral_axis = shift_to_rest_frame(cube.spectral_axis, params.radial_vel)
-    spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
+    single = isinstance(cube, DataCube | SpectralCube)
+    cubes = [cube] if single else list(cube)
 
-    flux = u.Quantity(getattr(cube, method_name)(axis=(1, 2), how=params.extract_mode))
+    results = [_extract_single_cube_spectrum(c, **params) for c in cubes]
+
+    return results[0] if single else results
+
+
+def _extract_single_cube_spectrum(
+    cube: DataCube | SpectralCube,
+    flux_extract_method: Literal['mean', 'median', 'sum'],
+    extract_mode: Literal['cube', 'slice', 'ray'],
+    radial_vel: float | u.Quantity | None,
+    rest_freq: float | u.Quantity | None,
+    unit: str | u.Unit | None,
+    convention: str | None
+) -> Spectrum:
+
+    if not isinstance(cube, (DataCube, SpectralCube)):
+        raise TypeError(
+            'Input `cube` must be a SpectralCube! '
+            f'got: {type(cube).__name__}'
+        )
+
+    spectral_axis = shift_to_rest_frame(cube.spectral_axis, radial_vel)
+    spectral_axis = convert_quantity(spectral_axis, unit, equivalencies=u.spectral())
+
+    flux = u.Quantity(getattr(cube, flux_extract_method)(axis=(1, 2), how=extract_mode))
 
     return Spectrum(
         spectral_axis=spectral_axis,
         flux=flux,
-        rest_value=params.rest_freq,
+        rest_value=rest_freq,
         velocity_convention=convention,
     )
-
-
-def extract_cube_spectra(
-    cubes: Sequence[DataCube | SpectralCube],
-    flux_extract_method: Literal['mean', 'median', 'sum'] | None | _Unset = _UNSET,
-    extract_mode: Literal['cube', 'slice', 'ray'] | None | _Unset = _UNSET,
-    radial_vel: float | u.Quantity | None | _Unset = _UNSET,
-    rest_freq: float | u.Quantity | None | _Unset = _UNSET,
-    unit: str | u.Unit | None | _Unset = _UNSET,
-    convention: str | None = None,
-    **kwargs
-) -> list[Spectrum]:
-    """
-    Thin wrapper around ``visualastro.extract_cube_spectrum``.
-
-    Extracts a 1D spectrum for each cube in ``cubes``.
-    """
-    args = {
-        'flux_extract_method': flux_extract_method,
-        'extract_mode': extract_mode,
-        'radial_vel': radial_vel,
-        'rest_freq': rest_freq,
-        'unit': unit,
-        'convention': convention,
-    }
-
-    cube_list = _ensure_iterable(cubes)
-    return [
-        extract_cube_spectrum(
-            cube, **args, **kwargs
-        ) for cube in cube_list
-    ]
 
 
 def extract_cube_pixel_spectra(
