@@ -11,16 +11,25 @@ from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import Any
 
-from astropy.units import Quantity
 import numpy as np
+from astropy.units import Quantity
 from numpy.typing import NDArray
 
 from visualastro.core.config import _UNSET
 from visualastro.core.data import get_value
 from visualastro.core.numerical import mask_within_range
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import Spectrum
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.utils.text_utils import pretty_table
+
+__all__ = [
+    'GaussianFitResult',
+    'ExtractedPixelSpectra',
+    'gaussian',
+    'gaussian_continuum',
+    'gaussian_line',
+    'gaussian_p0'
+]
 
 
 def gaussian_p0(extracted_spectrum, args, xlim=None):
