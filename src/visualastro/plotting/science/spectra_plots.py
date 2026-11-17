@@ -37,6 +37,7 @@ from visualastro.analysis.spectra import (
 from visualastro.analysis.spectra import (
     gaussian_line as _gaussian_line,
 )
+from visualastro.analysis.spectra.manipulation import _masked_segments
 from visualastro.analysis.spectra.utils import _get_spectral_axis
 from visualastro.core.configuration import (
     _UNSET,
