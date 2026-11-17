@@ -307,3 +307,34 @@ def _resolve_vertical_loc(legend_kwargs: dict) -> None:
     legend_kwargs.pop('bbox_to_anchor', None)
     legend_kwargs['bbox_to_anchor'] = (_LOC_X[x], _LOC_Y[y])
     legend_kwargs['loc'] = f'{_MPL_VERTICAL[y]} {x}'
+
+
+def _expand_labels(label, n):
+    """
+    Expand a legend label input to one label per plotted segment.
+
+    Single labels are expanded with ``None``.
+
+    Parameters
+    ----------
+    label : str | Sequence[str] | None
+        Label specification. A string labels the first segment only,
+        to avoid duplicate legend entries.
+    n : int
+        Number of segments.
+
+    Returns
+    -------
+    list of str | None
+        List of length `n`.
+    """
+    if label is None:
+        return [None] * n
+    if isinstance(label, str):
+        return [label] + [None] * (n - 1)
+    labels = list(label)
+    if len(labels) != n:
+        raise ValueError(
+            f"`label` has length {len(labels)}, expected {n} (one per segment)."
+        )
+    return labels

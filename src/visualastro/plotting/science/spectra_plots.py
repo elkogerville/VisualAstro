@@ -15,11 +15,11 @@ from typing import Literal
 import astropy.units as u
 import matplotlib.axes as maxes
 import matplotlib.pyplot as plt
-from matplotlib.typing import ColorType
 import numpy as np
 from astropy.units import Quantity
 from matplotlib.colors import Colormap, to_rgba
 from matplotlib.lines import Line2D
+from matplotlib.typing import ColorType
 from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import curve_fit
 
@@ -58,6 +58,7 @@ from visualastro.core.numerical import mask_within_range
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
     convert_quantity,
+    ensure_common_unit,
     get_unit,
 )
 from visualastro.datamodels.datacube import DataCube
@@ -70,13 +71,19 @@ from visualastro.optional_dependencies.register import (
 )
 from visualastro.plotting.base.plots import plot, step
 from visualastro.plotting.core.axes import set_limits, subplots
-from visualastro.plotting.core.axes.labels import _set_axis_labels
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
-from visualastro.plotting.core.legend import legend
+from visualastro.plotting.core.legend import _expand_labels, legend
 from visualastro.plotting.core.lines import axvlines
-from visualastro.plotting.core.plot_input import _resolve_color_alias
+from visualastro.plotting.core.plot_input import (
+    _resolve_color_alias,
+    _set_prop_cycle_from_kwargs,
+)
 from visualastro.plotting.core.style import _style_context
+from visualastro.plotting.interfaces.plot_utils import (
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
+)
 
 _EXTRACT_METHODS: dict[str, str] = {
     'mean': 'mean',
