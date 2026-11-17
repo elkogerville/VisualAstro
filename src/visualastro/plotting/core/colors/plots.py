@@ -36,6 +36,13 @@ from visualastro.plotting.core.colors.definitions import (
 )
 from visualastro.plotting.core.colors.transforms import simulate_colorblindness
 
+__all__ = [
+    'plot_color_deltaE',
+    'plot_colors',
+    'plot_colortable',
+    'preview_colorset',
+]
+
 
 def plot_colors(
     color: ColorType | int | Sequence[ColorType] | None = None,

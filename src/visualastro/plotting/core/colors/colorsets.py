@@ -21,7 +21,8 @@ from visualastro.plotting.core.colors.definitions import (
     COLORSETS, COLORSET_ALIASES
 )
 from visualastro.plotting.core.colors.plots import plot_colors, preview_colorset
-from visualastro.plotting.core.colors.utils import _find_colorset
+
+__all__ = ['Colorsets']
 
 
 class Colorsets:

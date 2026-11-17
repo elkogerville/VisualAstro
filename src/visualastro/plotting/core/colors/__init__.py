@@ -1,30 +1,16 @@
-from .colors import (
-    get_color,
-    get_colors,
-    get_colorset,
-    get_namedcolor,
-    random_colors,
-    sample_cmap,
-)
-from .colorsets import Colorsets
-from .definitions import (
-    COLORSETS,
-    COLORSET_ALIASES,
-    COLORSET_NAMES,
-    VISUALASTRO_NAMED_COLORS,
-    NAMED_COLOR_ALIASES,
-)
-from .plots import (
-    plot_color_deltaE,
-    plot_colors,
-    plot_colortable,
-    preview_colorset,
-)
-from .transforms import (
-    darken_colors,
-    desaturate_colors,
-    lighten_colors,
-    saturate_colors,
-    simulate_colorblindness,
-)
-from .utils import as_color
+
+from . import colors, colorsets, definitions, plots, transforms, utils
+from .colors import *
+from .colorsets import *
+from .definitions import *
+from .plots import *
+from .transforms import *
+from .utils import *
+
+__all__ = []
+__all__ += colors.__all__
+__all__ += colorsets.__all__
+__all__ += definitions.__all__
+__all__ += plots.__all__
+__all__ += transforms.__all__
+__all__ += utils.__all__

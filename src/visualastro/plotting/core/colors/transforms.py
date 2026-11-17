@@ -23,6 +23,13 @@ from visualastro.plotting.core.colors.utils import (
 )
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
+__all__ = [
+    'darken_colors',
+    'desaturate_colors',
+    'lighten_colors',
+    'saturate_colors',
+    'simulate_colorblindness',
+]
 
 
 def simulate_colorblindness(

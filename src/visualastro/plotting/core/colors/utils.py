@@ -20,6 +20,8 @@ from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 
+__all__ = ['as_color']
+
 
 def as_color(
     c: ColorType | Sequence[ColorType],

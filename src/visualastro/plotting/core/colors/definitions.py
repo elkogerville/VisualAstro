@@ -12,6 +12,14 @@ from matplotlib.typing import ColorType
 
 from visualastro.plotting.core.colors.transforms import _soup_of_the_day
 
+__all__ = [
+    'COLORSETS',
+    'COLORSET_ALIASES',
+    'COLORSET_NAMES',
+    'VISUALASTRO_NAMED_COLORS',
+    'NAMED_COLOR_ALIASES',
+]
+
 
 # ##########################
 # VISUALASTRO COLOR PALETTES
