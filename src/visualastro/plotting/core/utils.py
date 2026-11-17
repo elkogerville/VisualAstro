@@ -6,36 +6,35 @@ Description:
     Plotting utility functions.
 """
 
-from typing import Literal
 from functools import partial
+from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.collections import Collection
 from matplotlib.image import AxesImage
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Circle, Ellipse
 from matplotlib.typing import ColorType
-import numpy as np
 from numpy.typing import NDArray
 
 from visualastro.core.configuration import (
+    _UNSET,
+    _resolve_default,
+    _Unset,
     config,
     get_config_value,
-    _Unset, _UNSET,
-    _resolve_default
 )
 from visualastro.core.data import get_value, to_list
 from visualastro.core.sequences import _cycle
+from visualastro.optional_dependencies._regions import EllipsePixelRegion, PixCoord
 from visualastro.optional_dependencies.register import _require_dependency
-from visualastro.optional_dependencies._regions import (
-    PixCoord, EllipsePixelRegion
-)
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.plot_input import (
     _extract_xy_from_ndarray2D,
-    _normalize_order
+    _normalize_order,
 )
 
 

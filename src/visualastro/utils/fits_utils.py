@@ -5,13 +5,14 @@ Date Modified: 2026-07-28
 """
 
 from __future__ import annotations
+
 from collections.abc import Sequence
 from typing import overload
 
-from astropy.io.fits import Header
-from astropy.time import Time
 import astropy.units as u
 import numpy as np
+from astropy.io.fits import Header
+from astropy.time import Time
 
 from visualastro.analysis.spectra.regions import _require_spectral_region
 from visualastro.optional_dependencies._specutils import SpectralRegion

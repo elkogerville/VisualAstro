@@ -12,9 +12,9 @@ from importlib.resources import files
 from pprint import pprint
 from typing import Literal
 
-from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib.typing import ColorType, LineStyleType, MarkerType
 
 from visualastro.core.configuration import config

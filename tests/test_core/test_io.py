@@ -9,9 +9,10 @@ Dependencies:
 """
 
 from types import SimpleNamespace
+
 import pytest
 
-from visualastro.core.configuration import config, _UNSET
+from visualastro.core.configuration import _UNSET, config
 from visualastro.core.kwargs import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 
 

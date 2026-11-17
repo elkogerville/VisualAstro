@@ -6,29 +6,24 @@ Description:
     Functions for I/O operations within VisualAstro.
 """
 
-from dataclasses import dataclass
 import os
-from typing import Literal
 import warnings
+from dataclasses import dataclass
+from typing import Literal
 
-from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
-from matplotlib.transforms import Bbox
 import numpy as np
+from astropy.io import fits
+from matplotlib.transforms import Bbox
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_array, to_list
 from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.units import get_units
-from visualastro.optional_dependencies.register import _offer_dependency
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import _offer_dependency
 
 __all__ = [
     'get_sci_from_hdul',

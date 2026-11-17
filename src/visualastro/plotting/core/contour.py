@@ -8,20 +8,19 @@ Description:
 
 from collections.abc import Callable
 from typing import Literal
-from numpy.typing import ArrayLike
 
 import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
 from matplotlib.contour import QuadContourSet
 from mpl_toolkits.mplot3d import Axes3D
+from numpy.typing import ArrayLike
 
 from visualastro.core.configuration import (
-    config, _Unset, _UNSET,
+    _UNSET,
+    _Unset,
+    config,
 )
-from visualastro.core.kwargs import (
-    _kwarg, _param,
-    _resolve_kwargs
-)
+from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.numerical import kde2d
 from visualastro.plotting.core.colormaps import get_cmap
 

@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     from spectral_cube import SpectralCube
     from spectral_cube.lower_dimensional_structures import Slice

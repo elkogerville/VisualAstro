@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     from colorspacious import cspace_convert, cspace_converter, deltaE
     _HAS_COLORSPACIOUS = True

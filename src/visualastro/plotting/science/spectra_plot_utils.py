@@ -14,9 +14,9 @@ from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType, LineStyleType
-import numpy as np
 
 from visualastro.analysis.spectra import (
     GaussianFitResult,
@@ -24,13 +24,8 @@ from visualastro.analysis.spectra import (
     spectral_idx_2_world,
 )
 from visualastro.analysis.spectra.utils import _get_spectral_axis
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
-from visualastro.core.data import get_value, _ndim
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
+from visualastro.core.data import _ndim, get_value
 from visualastro.core.kwargs import _param, _resolve_kwargs
 from visualastro.core.sequences import _broadcast, _common_value, _cycle
 from visualastro.core.units import (

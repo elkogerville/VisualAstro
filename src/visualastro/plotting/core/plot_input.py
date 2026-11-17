@@ -10,18 +10,12 @@ from collections.abc import Sequence
 from math import lcm
 from typing import Any, Literal
 
+import numpy as np
 from astropy import units as u
 from matplotlib.axes import Axes
 from matplotlib.typing import ColorType
-import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
 from visualastro.core.array_types import (
     _is_1d,
     _is_array_like,
@@ -31,16 +25,19 @@ from visualastro.core.array_types import (
     _is_scalar,
     _is_wrapped_1d,
 )
-from visualastro.core.data import (
-    as_list, get_value, to_list, _array_length, _ndim
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
+from visualastro.core.data import _array_length, _ndim, as_list, get_value, to_list
 from visualastro.core.kwargs import (
-    _extract_kwargs, _params_from_explicit, _resolve_kwargs
+    _extract_kwargs,
+    _params_from_explicit,
+    _resolve_kwargs,
 )
 from visualastro.plotting.core.colormaps import get_cmap, get_norm
 from visualastro.plotting.core.colors.colors import get_color, get_colors
 from visualastro.plotting.core.colors.utils import (
-    _is_color_sequence, _is_color_keyword, _is_colorset
+    _is_color_keyword,
+    _is_color_sequence,
+    _is_colorset,
 )
 
 

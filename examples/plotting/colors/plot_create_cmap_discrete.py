@@ -1,5 +1,6 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
 import visualastro as va
 
 cmap = va.create_cmap('astro_seq', kind='discrete')

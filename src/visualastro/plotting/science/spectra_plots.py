@@ -13,57 +13,59 @@ from collections.abc import Sequence
 from typing import Literal
 
 import astropy.units as u
-from astropy.units import Quantity
 import matplotlib.axes as maxes
-from matplotlib.colors import Colormap, to_rgba
-from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.units import Quantity
+from matplotlib.colors import Colormap, to_rgba
+from matplotlib.lines import Line2D
 from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import curve_fit
 
 from visualastro.analysis.image_utils import stack_cube
 from visualastro.analysis.spectra import (
-    GaussianFitResult,
     ExtractedPixelSpectra,
-    gaussian as _gaussian,
-    gaussian_continuum as _gaussian_continuum,
-    gaussian_line as _gaussian_line,
+    GaussianFitResult,
     shift_to_rest_frame,
+)
+from visualastro.analysis.spectra import (
+    gaussian as _gaussian,
+)
+from visualastro.analysis.spectra import (
+    gaussian_continuum as _gaussian_continuum,
+)
+from visualastro.analysis.spectra import (
+    gaussian_line as _gaussian_line,
 )
 from visualastro.analysis.spectra.utils import _get_spectral_axis
 from visualastro.core.configuration import (
-    get_config_value,
-    config,
-    _Unset,
     _UNSET,
-    _resolve_default
+    _Unset,
+    config,
 )
-from visualastro.core.data import (
-    get_value, to_array, to_list, _ensure_iterable
-)
+from visualastro.core.data import get_value, to_array, to_list
 from visualastro.core.io import savefig as savefigure
 from visualastro.core.kwargs import (
-    _extract_kwargs, _pop_kwargs, _param, _kwarg, _resolve_kwargs
+    _extract_kwargs,
+    _kwarg,
+    _param,
+    _resolve_kwargs,
 )
-from visualastro.core.numerical import (
-    interpolate as _interpolate,
-    mask_within_range
-)
+from visualastro.core.numerical import interpolate as _interpolate
+from visualastro.core.numerical import mask_within_range
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
-    ensure_common_unit,
     convert_quantity,
     get_unit,
 )
 from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.spectrumplus import SpectrumPlus
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
-)
 from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.plotting.base.plots import plot, step
 from visualastro.plotting.core.axes import set_limits, subplots
 from visualastro.plotting.core.axes.labels import _set_axis_labels
@@ -73,7 +75,6 @@ from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.lines import axvlines
 from visualastro.plotting.core.plot_input import _resolve_color_alias
 from visualastro.plotting.core.style import _style_context
-
 
 _EXTRACT_METHODS: dict[str, str] = {
     'mean': 'mean',

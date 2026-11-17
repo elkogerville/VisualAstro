@@ -12,7 +12,7 @@ from typing import IO, Any
 
 from matplotlib import font_manager, ft2font
 
-from visualastro.core.configuration import config, _resolve_default, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 
 
 def pretty_table(

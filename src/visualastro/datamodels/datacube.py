@@ -7,45 +7,42 @@ Description:
     time series data cubes.
 """
 from __future__ import annotations
+
 from typing import Literal, cast
 
-from astropy.io.fits import Header
-from astropy.units import (
-    Quantity, StructuredUnit, Unit, UnitBase, UnitsError
-)
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.io.fits import Header
+from astropy.units import Quantity, StructuredUnit, Unit, UnitBase, UnitsError
+from astropy.wcs import WCS
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
 from visualastro.analysis.spectra.regions import _require_spectral_region
-from visualastro.core.configuration import (
-    config, _resolve_default, _Unset, _UNSET
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.kwargs import _pop_kwargs
 from visualastro.core.units import (
+    _check_unit_equality,
     ensure_common_unit,
     get_unit,
     to_unit,
     unit_2_string,
-    _check_unit_equality,
 )
 from visualastro.core.validation import (
     _check_shapes_match,
     _validate_iterable_type,
-    _validate_type
-)
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
+    _validate_type,
 )
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
-from visualastro.optional_dependencies._specutils import (
-    SpectralRegion, Spectrum
-)
+from visualastro.optional_dependencies._specutils import SpectralRegion, Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
@@ -55,11 +52,11 @@ from visualastro.utils.fits_utils import (
     _update_header_key,
 )
 from visualastro.utils.wcs_utils import (
+    _is_valid_wcs_slice,
+    _reproject_wcs,
     get_header_wcs,
     strip_wcs_from_header,
     update_header_from_wcs,
-    _is_valid_wcs_slice,
-    _reproject_wcs,
 )
 
 
@@ -572,7 +569,7 @@ class DataCube:
             return [h.get(key, None) for h in self.header]
 
         else:
-            raise ValueError(f'Unsupported header type.')
+            raise ValueError('Unsupported header type.')
 
     def inspect(
         self,
@@ -766,7 +763,7 @@ class DataCube:
         # new header free of WCS
         new_header = _copy_headers(self.nowcs_header)
         new_header = _transfer_history(self.primary_header, new_header)
-        _log_history(new_header, f'Reprojected DataCube')
+        _log_history(new_header, 'Reprojected DataCube')
 
         data = self.value
 
@@ -839,7 +836,7 @@ class DataCube:
                 new_error = None
 
         if self.error is not None:
-            _log_history(new_header, f'Reprojected errors')
+            _log_history(new_header, 'Reprojected errors')
 
         ref_wcs = reference_wcs.celestial
         # update new header with reference WCS
@@ -937,7 +934,7 @@ class DataCube:
         """
         _require_dependency('spectral-cube')
         from visualastro.analysis.spectra import (
-            spectral_idx_2_world as _spectral_idx_2_world
+            spectral_idx_2_world as _spectral_idx_2_world,
         )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
@@ -969,7 +966,7 @@ class DataCube:
         """
         _require_dependency('spectral-cube')
         from visualastro.analysis.spectra import (
-            spectral_world_2_idx as _spectral_world_2_idx
+            spectral_world_2_idx as _spectral_world_2_idx,
         )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
@@ -1436,7 +1433,7 @@ class DataCube:
         elif not _is_valid_wcs_slice(key):
             new_wcs = None
             new_hdr = _transfer_history(new_hdr, Header())
-            _log_history(new_hdr, f'Header and WCS dropped due to invalid slice')
+            _log_history(new_hdr, 'Header and WCS dropped due to invalid slice')
         else:
             try:
                 new_wcs = self.wcs[key]

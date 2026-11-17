@@ -6,40 +6,39 @@ Description:
     Visualastro user interface for publication ready plots.
 """
 
+import warnings
 from collections.abc import Sequence
 from typing import Literal
-import warnings
 
-from astropy.io.fits import Header
 import astropy.units as u
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io.fits import Header
 from astropy.wcs import WCS
 from matplotlib.colors import Colormap
 from matplotlib.markers import MarkerStyle
-import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
-import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET
-)
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.io import savefig
 from visualastro.core.sequences import _cycle
-from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.plotting.base.plots import (
     hist,
-    plot_density_histogram,
     plot,
+    plot_density_histogram,
     scatter,
     scatter3D,
     scatter_polyfit,
-    scatter_project
+    scatter_project,
 )
-from visualastro.plotting.core.style import apply_style_modifiers, _style_context
-from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
+from visualastro.plotting.core.style import _style_context, apply_style_modifiers
+from visualastro.plotting.science.spectra_plots import (
+    plot_combine_spectrum,
+    plot_spectra,
+)
+from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
 

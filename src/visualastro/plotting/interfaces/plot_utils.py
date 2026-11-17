@@ -29,18 +29,17 @@ To add the plotting interface to a visualastro plotting function:
         _apply_plot_utils(plot_params, ax=ax) -> applies the plotting utils to the plot
 """
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
 import astropy.units as u
-from astropy.visualization.wcsaxes.core import WCSAxes
 import matplotlib.axes as maxes
+from astropy.visualization.wcsaxes.core import WCSAxes
 from matplotlib.image import AxesImage
 from numpy.typing import ArrayLike
 
 from visualastro.core.configuration import _UNSET, config
-from visualastro.core.kwargs import _pop_kwargs, _pop_prefixed, _pop_mapped
+from visualastro.core.kwargs import _pop_kwargs, _pop_mapped, _pop_prefixed
 from visualastro.core.units import unit_2_string
 from visualastro.plotting.core.axes import set_limits, set_title
 from visualastro.plotting.core.axes.labels import _set_axis_labels
@@ -49,10 +48,10 @@ from visualastro.plotting.core.colors.plots import _has_color_mapping
 from visualastro.plotting.core.legend import legend
 from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcsgrid
 from visualastro.plotting.core.utils import (
+    _default_ellipse_geometry,
     plot_ellipses,
     plot_interactive_ellipse,
     plot_points,
-    _default_ellipse_geometry
 )
 
 

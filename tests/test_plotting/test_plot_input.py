@@ -15,7 +15,7 @@ from visualastro.plotting.core.plot_input import (
     _extract_xy_from_ndarray2D,
     _extract_xyz,
     _resolve_implicit_x,
-    _resolve_xy_plot_inputs
+    _resolve_xy_plot_inputs,
 )
 
 

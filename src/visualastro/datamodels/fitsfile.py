@@ -7,36 +7,28 @@ Description:
 """
 
 from typing import cast
-from astropy.io.fits import Header
-from astropy.units import (
-    Quantity, UnitBase, UnitsError
-)
-from astropy.wcs import WCS
+
 import numpy as np
+from astropy.io.fits import Header
+from astropy.units import Quantity, UnitBase, UnitsError
+from astropy.wcs import WCS
 from numpy.typing import NDArray
-from visualastro.core.units import (
-    get_unit,
-    to_fits_unit,
-    to_unit,
-    _check_unit_equality
-)
-from visualastro.core.validation import (
-    _check_shapes_match,
-    _validate_type
-)
+
+from visualastro.core.units import _check_unit_equality, get_unit, to_fits_unit, to_unit
+from visualastro.core.validation import _check_shapes_match, _validate_type
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
     _log_history,
     _remove_history,
     _transfer_history,
-    _update_header_key
+    _update_header_key,
 )
 from visualastro.utils.wcs_utils import (
+    _is_valid_wcs_slice,
     get_header_wcs,
     strip_wcs_from_header,
     update_header_from_wcs,
-    _is_valid_wcs_slice,
 )
 
 
@@ -457,7 +449,7 @@ class FitsFile:
         if not _is_valid_wcs_slice(key):
             # create new header if invalid slice
             new_hdr = _transfer_history(new_hdr, Header())
-            _log_history(new_hdr, f'Header and WCS dropped due to invalid slice')
+            _log_history(new_hdr, 'Header and WCS dropped due to invalid slice')
 
         else:
             if self.wcs is not None:

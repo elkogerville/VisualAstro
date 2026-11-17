@@ -10,14 +10,14 @@ from collections.abc import Sequence
 from typing import Literal
 
 import astropy.units as u
+import matplotlib.axes as maxes
 from astropy.units import Equivalency, StructuredUnit, UnitBase
 from astropy.visualization.wcsaxes.core import WCSAxes
-import matplotlib.axes as maxes
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.array_types import _is_1d, _is_iterable
-from visualastro.core.configuration import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param
 from visualastro.core.sequences import _broadcast_param

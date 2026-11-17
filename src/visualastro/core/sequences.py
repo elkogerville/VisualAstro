@@ -10,8 +10,8 @@ from collections.abc import Sequence
 from itertools import cycle, islice
 from typing import Any, TypeVar, overload
 
-from astropy.units import Quantity
 import numpy as np
+from astropy.units import Quantity
 from numpy.typing import NDArray
 
 from visualastro.core.array_types import _is_scalar

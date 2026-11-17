@@ -8,12 +8,13 @@ Description:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 import warnings
+from collections.abc import Sequence
 from typing import Any, Literal, overload
 
-from astropy.io.fits import Header
 import astropy.units as u
+import numpy as np
+from astropy.io.fits import Header
 from astropy.units import (
     Quantity,
     StructuredUnit,
@@ -23,21 +24,15 @@ from astropy.units import (
     UnitsError,
 )
 from astropy.units.physical import PhysicalType
-import numpy as np
 from numpy.typing import ArrayLike
 
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
 from visualastro.core.array_types import _is_iterable
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.sequences import _unwrap_if_single
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
-    SpectralAxis, SpectralRegion, _HAS_SPECUTILS
+    _HAS_SPECUTILS,
+    SpectralAxis,
 )
 
 __all__ = [
@@ -100,7 +95,7 @@ def convert_quantity(
 
     try:
         return quantity.to(target_unit, equivalencies=equivalencies)
-    except UnitConversionError as exc:
+    except UnitConversionError:
         if on_failure == 'raise':
             raise UnitConversionError
         if on_failure == 'warn':
@@ -158,14 +153,14 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
         return to_unit(unit)
 
     if hasattr(obj, 'header'):
-        header = getattr(obj, 'header')
+        header = obj.header
         if header is not obj:
             unit = get_unit(header)
             if unit is not None:
                 return unit
 
     if hasattr(obj, 'data'):
-        data = getattr(obj, 'data')
+        data = obj.data
         if data is not obj:
             unit = get_unit(data)
             if unit is not None:
@@ -315,9 +310,7 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
     """
     unit = get_unit(obj)
 
-    if unit is None:
-        return None
-    elif isinstance(unit, StructuredUnit):
+    if unit is None or isinstance(unit, StructuredUnit):
         return None
 
     try:

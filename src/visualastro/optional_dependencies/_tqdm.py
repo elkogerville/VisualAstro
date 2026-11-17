@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     from tqdm import tqdm
     _HAS_TQDM = True

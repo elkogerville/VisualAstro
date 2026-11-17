@@ -6,25 +6,24 @@ Description:
     VisualAstro help documentation class.
 """
 
+import inspect
 from collections.abc import Sequence
 from importlib.resources import files
-import inspect
 from pathlib import Path
 from typing import Literal
 
 import astropy.units as u
-from matplotlib import colors as mcolors, colormaps
 import matplotlib.pyplot as plt
-from matplotlib.typing import ColorType
-from matplotlib import font_manager
 import numpy as np
+from matplotlib import colormaps, font_manager
+from matplotlib import colors as mcolors
+from matplotlib.typing import ColorType
 
 from visualastro.analysis.ic import blob
-from visualastro.core.configuration import (
-    config, _Unset, _UNSET, _resolve_default
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_list
-from visualastro.core.io import imread, savefig as _savefig
+from visualastro.core.io import imread
+from visualastro.core.io import savefig as _savefig
 from visualastro.core.numerical import number_density
 from visualastro.core.sequences import _cycle
 from visualastro.plotting.ax import ax as _ax

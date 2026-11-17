@@ -15,6 +15,7 @@ import numpy as np
 
 from visualastro.core.validation import allclose
 
+
 class TestValidation:
 
     def test_allclose(self):

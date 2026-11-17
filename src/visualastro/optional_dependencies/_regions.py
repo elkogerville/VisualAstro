@@ -8,11 +8,8 @@ Description:
 
 from textwrap import dedent
 
-
 try:
-    from regions import (
-        PixCoord, EllipseAnnulusPixelRegion, EllipsePixelRegion
-    )
+    from regions import EllipseAnnulusPixelRegion, EllipsePixelRegion, PixCoord
     _HAS_REGIONS = True
 except ImportError:
     PixCoord = None

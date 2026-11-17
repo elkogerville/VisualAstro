@@ -12,9 +12,7 @@ import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
 from matplotlib.colorbar import Colorbar
 
-from visualastro.core.configuration import (
-    config, _Unset, _UNSET, _resolve_default
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 
 
 def add_colorbar(

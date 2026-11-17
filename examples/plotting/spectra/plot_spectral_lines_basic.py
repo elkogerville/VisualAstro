@@ -1,8 +1,8 @@
-from astropy.io import fits
 import astropy.units as u
 import matplotlib.pyplot as plt
-import visualastro as va
+from astropy.io import fits
 
+import visualastro as va
 
 plt.style.use(['full', 'cm'])
 

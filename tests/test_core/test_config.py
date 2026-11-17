@@ -7,11 +7,11 @@ Description:
 """
 
 from visualastro.core.configuration import (
-    config,
+    _UNSET,
     VisualAstroConfig,
     _resolve_default,
     _Unset,
-    _UNSET
+    config,
 )
 
 

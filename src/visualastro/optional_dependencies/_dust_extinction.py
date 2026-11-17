@@ -8,10 +8,9 @@ Description:
 
 from textwrap import dedent
 
-
 try:
-    from dust_extinction.parameter_averages import M14, G23
     from dust_extinction.grain_models import WD01
+    from dust_extinction.parameter_averages import G23, M14
     _HAS_DUST_EXTINCTION = True
 except ImportError:
     M14 = None

@@ -21,10 +21,9 @@ from visualastro.optional_dependencies._colorspacious import _COLORSPACIOUS_DEP
 from visualastro.optional_dependencies._dust_extinction import _DUST_EXTINCTION_DEP
 from visualastro.optional_dependencies._regions import _REGIONS_DEP
 from visualastro.optional_dependencies._reproject import _REPROJECT_DEP
-from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
 from visualastro.optional_dependencies._spectralcube import _SPECTRALCUBE_DEP
+from visualastro.optional_dependencies._specutils import _SPECUTILS_DEP
 from visualastro.optional_dependencies._tqdm import _TQDM_DEP
-
 
 _OPTIONAL_DEPS = {
     'cmasher': _CMASHER_DEP,
@@ -56,7 +55,7 @@ def _require_dependency(*dependency: str) -> None:
         If `_OPTIONAL_DEPS.get(dependency)=None`.
     """
     for dep in dependency:
-        dep_info = _OPTIONAL_DEPS.get(dep, None)
+        dep_info = _OPTIONAL_DEPS.get(dep)
         if dep_info is None:
             raise ValueError(
                 'Please specify an optional dependency!'
@@ -85,7 +84,7 @@ def _offer_dependency(*dependency: str) -> None:
         If `_OPTIONAL_DEPS.get(dependency)=None`.
     """
     for dep in dependency:
-        dep_info = _OPTIONAL_DEPS.get(dep, None)
+        dep_info = _OPTIONAL_DEPS.get(dep)
         if dep_info is None:
             raise ValueError(
                 'Please specify an optional dependency!'

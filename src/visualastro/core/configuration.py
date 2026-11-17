@@ -13,16 +13,16 @@ from dataclasses import dataclass, field, fields
 from enum import Enum
 from typing import Literal, TypeVar
 
-from astropy.wcs import WCS
-from astropy.io.fits import Header
 import astropy.units as u
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io.fits import Header
 from astropy.units import physical
+from astropy.wcs import WCS
 from matplotlib import font_manager
 from matplotlib.colors import Colormap
-import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib.typing import ColorType
-import numpy as np
 from numpy.typing import DTypeLike
 
 __all__ = ['config']

@@ -1,5 +1,6 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
 import visualastro as va
 
 cmap = va.create_cmap(['3 train', 'violetred', '7 train', 'Holy Blue', 'A train'], name='mycmap')

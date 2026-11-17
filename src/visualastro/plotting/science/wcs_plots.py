@@ -7,33 +7,26 @@ Description:
 """
 
 from __future__ import annotations
+
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal, TypeAlias
-import warnings
 
-from astropy.io.fits import HDUList, ImageHDU, PrimaryHDU
 import astropy.units as u
+import matplotlib.axes as maxes
+import numpy as np
+from astropy.io.fits import HDUList, ImageHDU, PrimaryHDU
 from astropy.utils.exceptions import AstropyWarning
-from astropy.visualization import make_rgb, make_lupton_rgb
+from astropy.visualization import make_lupton_rgb, make_rgb
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
-import matplotlib.axes as maxes
 from matplotlib.colors import Colormap
 from matplotlib.image import AxesImage
-import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.analysis.image_utils import (
-    get_filter_wavelength,
-    get_hdu,
-    stack_cube
-)
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET
-)
+from visualastro.analysis.image_utils import get_filter_wavelength, get_hdu, stack_cube
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import (
     as_list,
     get_data,
@@ -44,18 +37,19 @@ from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.sequences import _cycle
 from visualastro.core.units import ensure_common_unit
 from visualastro.datamodels.datacube import DataCube
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._spectralcube import (
-    Slice, SpectralCube,
+    Slice,
+    SpectralCube,
 )
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.image_utils import compute_imshow_scale
 from visualastro.plotting.interfaces.plot_utils import (
-    _apply_plot_utils, _extract_plot_util_kwargs
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
 )
 from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label
-
 
 ColorImageTypes: TypeAlias = str | Path | HDUList | ImageHDU | PrimaryHDU
 

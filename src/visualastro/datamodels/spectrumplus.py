@@ -9,32 +9,33 @@ Description:
 """
 
 from __future__ import annotations
+
 import copy
 from typing import Literal, cast
 
+import numpy as np
 from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
-import numpy as np
 
 from visualastro.analysis.spectra import spectral_region
 from visualastro.analysis.spectra.regions import _require_spectral_region
-from visualastro.core.configuration import config, _resolve_default
+from visualastro.core.configuration import _resolve_default, config
 from visualastro.core.units import (
-    ensure_common_unit,
     _check_unit_equality,
+    ensure_common_unit,
 )
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
     SpectralAxis,
     SpectralRegion,
     Spectrum,
-    _extract_region
+    _extract_region,
 )
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
     _log_history,
-    _region_to_history
+    _region_to_history,
 )
 
 
@@ -479,7 +480,7 @@ class SpectrumPlus:
 
         fit_method = self.fit_method
         new_log = _copy_headers(self.log_file)
-        _log_history(new_log, f'Replacing flux at masked locations')
+        _log_history(new_log, 'Replacing flux at masked locations')
 
         return SpectrumPlus(
             spectrum=new_spectrum,

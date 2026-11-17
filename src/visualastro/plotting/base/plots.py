@@ -7,11 +7,13 @@ Description:
 """
 
 from collections import namedtuple
+from collections.abc import Sequence
 from types import SimpleNamespace
-from typing import Literal, Sequence
+from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
@@ -20,17 +22,14 @@ from matplotlib.ticker import AutoMinorLocator, NullLocator
 from matplotlib.typing import ColorType, LineStyleType
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import PathCollection
-import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.configuration import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import get_value, to_list
-from visualastro.core.kwargs import (
-    _kwarg, _param, _pop_kwargs, _resolve_kwargs
-)
+from visualastro.core.kwargs import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.sequences import _cycle, match_length
 from visualastro.core.stats import normalize as _normalize
-from visualastro.core.units import ensure_common_unit, _get_xyplot_units
+from visualastro.core.units import _get_xyplot_units, ensure_common_unit
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
@@ -57,7 +56,8 @@ from visualastro.plotting.core.plot_input import (
 )
 from visualastro.plotting.core.utils import _get_zorder
 from visualastro.plotting.interfaces.plot_utils import (
-    _apply_plot_utils, _extract_plot_util_kwargs
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
 )
 
 
@@ -176,13 +176,13 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     zorders = _pop_kwargs(kwargs, 'zorders', 'zorder', default=None)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
+    xlim = kwargs.get('xlim')
+    ylim = kwargs.get('ylim')
     # labels
     labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.legend.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
+    xlabel = kwargs.get('xlabel')
+    ylabel = kwargs.get('ylabel')
 
     # get default config values
     bins = get_config_value(bins, 'bins')
@@ -1821,11 +1821,11 @@ def scatter_project(
     nrows = [len(x) for x in xpos]
     nsum = sum(nrows)
     pos = np.empty((nsum, 3))
-    size_arr = np.empty((nsum))
+    size_arr = np.empty(nsum)
 
     c_arrs = [np.asarray(c) for c in c_list] if c_list is not None else None
     c_arr = np.empty((nsum, 4))
-    c_arr_1d = np.empty((nsum))
+    c_arr_1d = np.empty(nsum)
 
     scatter_norm = _resolve_scatter_norm(c_arrs, norm)
 

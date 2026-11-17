@@ -10,7 +10,6 @@ Description:
 import astropy.units as u
 import numpy as np
 
-from tests.conftest import generate_test_cube
 from visualastro.core.data import to_array, to_list
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile

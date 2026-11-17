@@ -8,9 +8,8 @@ Description:
 
 from typing import Any, TypeVar
 
-from astropy import units as u
 import numpy as np
-
+from astropy import units as u
 
 T = TypeVar('T')
 

@@ -7,18 +7,19 @@ Description:
 """
 
 from __future__ import annotations
+
 from collections.abc import Iterable, Sequence
 from typing import Any, Literal, TypeVar, overload
 
-from astropy import units as u
 import numpy as np
+from astropy import units as u
 from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
-
 
 T = TypeVar('T')
 
