@@ -15,6 +15,7 @@ from typing import Literal
 import astropy.units as u
 import matplotlib.axes as maxes
 import matplotlib.pyplot as plt
+from matplotlib.typing import ColorType
 import numpy as np
 from astropy.units import Quantity
 from matplotlib.colors import Colormap, to_rgba
