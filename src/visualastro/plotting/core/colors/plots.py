@@ -7,28 +7,26 @@ Description:
 """
 
 from collections.abc import Sequence
-
 from functools import partial
 from typing import Literal
+
 import matplotlib as mpl
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
 from matplotlib.collections import PatchCollection
 from matplotlib.colors import Colormap, LogNorm, Normalize
 from matplotlib.lines import Line2D
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType, LineStyleType
-import numpy as np
 
-from visualastro.core.configuration import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import as_list, to_list
 from visualastro.core.io import savefig as _savefig
 from visualastro.core.kwargs import _param, _resolve_kwargs
-from visualastro.optional_dependencies._colorspacious import (
-    deltaE as cs_deltaE
-)
+from visualastro.optional_dependencies._colorspacious import deltaE as cs_deltaE
 from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,

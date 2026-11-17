@@ -6,22 +6,24 @@ Description:
     Color transformation functions.
 """
 
-from collections.abc import Sequence
 import colorsys
 import datetime
-
+from collections.abc import Sequence
 from typing import Literal
+
+import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.typing import ColorType
-import numpy as np
 
 from visualastro.core.data import as_list, to_list
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._colorspacious import cspace_convert
-from visualastro.plotting.core.colors.utils import (
-    as_color, _convert_color, _get_single_color
-)
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
+from visualastro.plotting.core.colors.utils import (
+    _convert_color,
+    _get_single_color,
+    as_color,
+)
 
 __all__ = [
     'darken_colors',
@@ -155,7 +157,7 @@ def _transform_colors(
             'darken': _darken_color,
             'saturate': _saturate_color,
             'desaturate': _desaturate_color,
-        }.get(transform, None)
+        }.get(transform)
     else:
         method = None
 

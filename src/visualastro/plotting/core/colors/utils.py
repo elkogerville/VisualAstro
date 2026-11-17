@@ -10,12 +10,12 @@ from collections.abc import Sequence
 from typing import Any, Literal, TypeGuard
 
 import matplotlib as mpl
+import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType
-import numpy as np
 
-from visualastro.core.configuration import config, _UNSET, _resolve_default
+from visualastro.core.configuration import _UNSET, _resolve_default, config
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple

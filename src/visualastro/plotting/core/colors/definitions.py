@@ -168,7 +168,7 @@ COLORSET_ALIASES = {
     'mozaic': 'mosaic'
 }
 
-COLORSET_NAMES = [key for key in COLORSETS.keys()]
+COLORSET_NAMES = [key for key in COLORSETS]
 
 
 # ########################
