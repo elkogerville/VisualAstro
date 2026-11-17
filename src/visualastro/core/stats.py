@@ -15,6 +15,8 @@ from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.units import get_unit, _has_unit
 
+__all__ = ['normalize', 'percent_difference', 'relative_error']
+
 
 def normalize(
     data: NDArray | u.Quantity | Sequence[NDArray | u.Quantity],

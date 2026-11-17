@@ -13,6 +13,8 @@ from astropy.units import Quantity
 import numpy as np
 from numpy.typing import ArrayLike
 
+__all__ = ['allclose']
+
 
 def allclose(
     a: ArrayLike | Quantity | Sequence | None,

@@ -16,6 +16,8 @@ from numpy.typing import NDArray
 
 from visualastro.core.array_types import _is_scalar
 
+__all__ = ['match_length']
+
 
 T = TypeVar('T')
 

@@ -6,7 +6,7 @@ Description:
     Tests for config module.
 """
 
-from visualastro.core.config import (
+from visualastro.core.configuration import (
     config,
     VisualAstroConfig,
     _resolve_default,

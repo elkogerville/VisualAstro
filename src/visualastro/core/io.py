@@ -30,6 +30,18 @@ from visualastro.core.units import get_units
 from visualastro.optional_dependencies.register import _offer_dependency
 from visualastro.optional_dependencies._tqdm import tqdm
 
+__all__ = [
+    'get_sci_from_hdul',
+    'get_errors',
+    'write_arrays_2_file',
+    'write_cube_2_fits',
+    'save_array',
+    'save_quantity',
+    'load_quantity',
+    'imread',
+    'savefig',
+]
+
 
 def get_sci_from_hdul(
     hdul: fits.HDUList,

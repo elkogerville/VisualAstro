@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-10-20
-Date Modified: 2026-10-25
+Date Modified: 2026-11-17
 Description:
     VisualAstro configuration. Change function defaults at runtime through config:
     >>> import visualastro as va
@@ -24,6 +24,8 @@ from matplotlib.transforms import Bbox
 from matplotlib.typing import ColorType
 import numpy as np
 from numpy.typing import DTypeLike
+
+__all__ = ['config']
 
 
 T = TypeVar('T')
