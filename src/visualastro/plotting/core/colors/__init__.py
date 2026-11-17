@@ -1,3 +1,10 @@
+"""
+Author: Elko Gerville-Reache
+Date Created: 2026-11-3
+Date Modified: 2026-11-16
+Description:
+    Color manipulation and utility imports.
+"""
 
 from . import colors, colorsets, definitions, plots, transforms, utils
 from .colors import *

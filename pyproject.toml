@@ -74,6 +74,26 @@ text_file_format = "rst"
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE", "FLOAT_CMP"]
 norecursedirs = ["docs/_build", "docs/_static", "build", "*.egg-info"]
 
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F403"]
+
 [project.urls]
 Homepage = "https://github.com/elkogerville/VisualAstro"
 Documentation = "https://visualastro.readthedocs.io"

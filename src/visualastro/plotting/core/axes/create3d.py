@@ -9,16 +9,20 @@ Description:
 from collections.abc import Sequence
 from typing import Any, Literal, cast
 
+import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.typing import ColorType
 from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
 
-from visualastro.core.configuration import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_list
-from visualastro.plotting.core.axes.axes import _resolve_ax, figure
+from visualastro.plotting.core.axes.create import _resolve_ax, figure
 from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.colors.utils import as_color
+
+__all__ = [
+    'ax3d_axis_style', 'ax3d_pane_color', 'get_ax3d', 'subplots_3d'
+]
 
 
 def get_ax3d(
@@ -214,7 +218,7 @@ def ax3d_axis_style(
         'y_panel_front': y_panel_front,
         'cube': cube,
     }
-    edges = axis_modes.get(style, None)
+    edges = axis_modes.get(style)
     if edges is None: return
 
     ax.xaxis.line.set_linewidth(0)

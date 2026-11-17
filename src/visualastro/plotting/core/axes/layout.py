@@ -1,11 +1,13 @@
-from matplotlib import ticker
-from matplotlib.figure import Figure
 import matplotlib.gridspec as _gridspec
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import ticker
+from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 
-from visualastro.core.configuration import config, _Unset, _UNSET, _resolve_default
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
+
+__all__ = ['gridspec', 'tripanel_figure']
 
 
 def gridspec(

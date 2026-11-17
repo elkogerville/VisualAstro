@@ -6,29 +6,24 @@ Description:
     Module for setting axes limits.
 """
 
-__all__ = ['set_limits']
-
 from collections.abc import Callable
 from typing import Any
 
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.collections import PathCollection
 from matplotlib.lines import Line2D
 from matplotlib.path import Path
-import numpy as np
 from numpy.typing import NDArray
 
 from visualastro.analysis.mechanics import center_of_mass
 from visualastro.core.array_types import _is_scalar
-from visualastro.core.configuration import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
-from visualastro.core.data import get_value, _to_xy
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
+from visualastro.core.data import _to_xy, get_value
 from visualastro.core.kwargs import _params_from_explicit, _resolve_kwargs
-from visualastro.plotting.core.axes.axes import get_ax
+from visualastro.plotting.core.axes.create import get_ax
+
+__all__ = ['set_limits']
 
 
 def set_limits(
