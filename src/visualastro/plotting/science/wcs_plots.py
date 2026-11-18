@@ -49,7 +49,7 @@ from visualastro.plotting.interfaces.plot_utils import (
     _apply_plot_utils,
     _extract_plot_util_kwargs,
 )
-from visualastro.plotting.science.spectra_plot_utils import spectral_axis_label
+from visualastro.plotting.science.spectral_axis import spectral_axis_label
 
 ColorImageTypes: TypeAlias = str | Path | HDUList | ImageHDU | PrimaryHDU
 

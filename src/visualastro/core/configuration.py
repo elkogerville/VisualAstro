@@ -22,7 +22,7 @@ from astropy.wcs import WCS
 from matplotlib import font_manager
 from matplotlib.colors import Colormap
 from matplotlib.transforms import Bbox
-from matplotlib.typing import ColorType
+from matplotlib.typing import ColorType, LineStyleType
 from numpy.typing import DTypeLike
 
 __all__ = ['config']
@@ -337,22 +337,17 @@ class RugPlotConfig(PrettyRepr, ResetConfig):
 
 @dataclass(slots=True, repr=False)
 class SpectralLineConfig(PrettyRepr, ResetConfig):
-    """spectral_line_marker config"""
-    marker_direction: Literal['up', 'down'] = 'down'
-    marker_linestyle: str = 'solid'
-    vline_linestyle: str = 'dashed'
+    """`spectral_markers`, `spectral_vlines`, & `spectral_elbow_markers` config."""
     linewidth: float = 0.7
-    label_offset_points: tuple[float, float] = (0.0, 0.0)
-    marker_label_offset_points: tuple[float, float] = (0.0, 0.0)
-    vline_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    unlabeled_color: ColorType = 'grey'
     label_ha: Literal['left', 'center', 'right'] = 'center'
     label_va: Literal['top', 'bottom', 'center', 'baseline'] = 'top'
-    label_position: Literal['center', 'left', 'right'] = 'center'
-    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'center'
-    label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
     label_rotation: float = 0.0
     label_rotation_mode: Literal['default', 'anchor'] = 'default'
-    unlabeled_color: ColorType = 'grey'
+    marker_linestyle: LineStyleType = 'solid'
+    marker_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    vline_linestyle: str = 'dashed'
+    vline_label_offset_points: tuple[float, float] = (0.0, 0.0)
 
 @dataclass(slots=True, repr=False)
 class GridConfig(PrettyRepr, ResetConfig):

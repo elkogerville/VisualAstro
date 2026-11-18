@@ -1,17 +1,14 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-11-14
+Date Modified: 2026-11-18
 """
 
 from importlib.metadata import version as _version
 
 __version__ = _version('visualastro')
 
-# core classes
-# ------------
-# submodules
-# ----------
+
 from visualastro.analysis.ic import blob
 from visualastro.analysis.image_utils import (
     compute_line,
@@ -169,12 +166,6 @@ from visualastro.plotting.core.utils import (
     plot_interactive_ellipse,
     plot_points,
 )
-from visualastro.plotting.science.spectra_plot_utils import (
-    mark_spectral_lines,
-    spectral_axis_label,
-    spectral_line_marker,
-    spectral_vlines,
-)
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
     extract_cube_spectrum,
@@ -182,6 +173,13 @@ from visualastro.plotting.science.spectra_plots import (
     plot_combine_spectrum,
     plot_extracted_pixel_map,
     plot_spectra,
+)
+from visualastro.plotting.science.spectral_axis import spectral_axis_label
+from visualastro.plotting.science.spectral_line_markers import (
+    mark_spectral_lines,
+    spectral_elbow_markers,
+    spectral_markers,
+    spectral_vlines,
 )
 from visualastro.plotting.science.wcs_plots import (
     color_image,
