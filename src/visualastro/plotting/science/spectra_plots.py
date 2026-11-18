@@ -804,192 +804,131 @@ def plot_spectra(
     )
 
 
-def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
-                          concatenate=False, return_spectra=False,
-                          plot_normalize=False, use_samecolor=True,
-                          colors=_UNSET, **kwargs):
+def plot_combine_spectrum(
+    spectra: Spectrum | Sequence[Spectrum],
+    ax: maxes.Axes | None = None,
+    spectral_edges: Sequence[float] | None = None,
+    concatenate: bool = False,
+    plot_normalize: bool = False,
+    color: ColorType | Sequence[ColorType] | int | None = None,
+    single_color: bool = True,
+    label: str | Sequence[str] | None = None,
+    plot_mode: Literal['step', 'plot'] = 'step',
+    **kwargs,
+) -> list[Line2D]:
     """
-    Allows for easily plotting multiple spectra and stiching them together into
-    one `SpectrumPlus` object.
+    Plot one or more spectra on `ax`, optionally stitched into one curve.
 
     Parameters
     ----------
-    extracted_spectra : list[`SpectrumPlus` | `Spectrum`] | list[list[`SpectrumPlus` | `Spectrum`]]
-        List of spectra to plot. Each element should contain wavelength and flux attributes,
-        and optionally the normalize attribute.
-    ax : matplotlib.axes.Axes
-        Axis on which to plot the spectra.
-    idx : int, optional, default=0
-        Index to select a specific spectrum if elements of `extracted_spectra` are lists.
-        This is useful when extracting spectra from multiple regions at once.
-        Ex:
-            spec_1 = [spectrum1, spectrum2]
-            spec_2 = [spectrum3, spectrum4]
-            extracted_spectra = [spec_1[idx], spec_2[idx]]
-    wave_cuttofs : list[float], optional, default=None
-        Wavelength limits of each spectra used to mask spectra when stiching together.
-        If provided, should contain the boundary wavelengths in sequence (e.g., [λ₀, λ₁, λ₂, ...λₙ]).
-        Note:
-            If N spectra are provided, ensure there are N+1 limits. For each i spectra, the
-            program will define the limits as `wave_cuttofs[i]` < `spectra[i]` < `wave_cuttofs[i+1]`.
+    spectra : Spectrum | Sequence[Spectrum]
+        Spectra to plot, in spectral order.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        Axes on which to plot. If None, uses the current axes
+        (see `get_ax`).
+    spectral_edges : Sequence[float | Quantity] | None, optional, default=None
+        Edges ``[e0, ..., eN]`` along the spectral axis delimiting N
+        spectra; see :func:`~visualastro.splice_spectra`. Quantities are
+        converted to the spectral axis unit. Floats are assumed to be in that unit.
     concatenate : bool, optional, default=False
-        If True, concatenate all spectra and plot as a single continuous curve.
-    return_spectra : bool, optional, default=False
-        If True, return the concatenated `SpectrumPlus` object instead of only plotting.
-        If True, `concatenate` is set to True.
+        If True, plot all spectra as one continuous curve
+        (single artist, single color).
     plot_normalize : bool, optional, default=False
-        If True, plot the normalized flux instead of the raw flux.
-    use_samecolor : bool, optional, default=True
-        If True, use the same color for all spectra. If `concatenate` is True,
-        `use_samecolor` is also set to True.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses `config.default_colorset`.
+        If True, plot `spectrum.normalize` instead of `spectrum.flux`.
+    color : ColorType | Sequence[ColorType] | int | None, optional, default=None
+        Color specification passed to `get_colors`. If None, uses the
+        axes property cycle.
+    single_color : bool, optional, default=False
+        If True, draw every segment with the color of the first segment.
+        Redundant with `concatenate=True`.
+    label : str | Sequence[str] | None, optional, default=None
+        Legend label(s). A string labels the first segment only. A
+        sequence must contain exactly one label per segment.
+    plot_mode : {'step', 'plot'}, optional, default='step'
+        Plotting backend, case-insensitive.
 
-    **kwargs : dict, optional
-        Additional parameters.
+        - ``'step'``: calls :func:`~visualastro.step`.
+        - ``'plot'``: calls :func:`~visualastro.plot`.
 
-        Supported keywords:
-
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `ylim` : tuple, optional, default=None
-          y-axis limits as (ymin, ymax).
-        - `color` or `c` : list[colors] | None, optional, default=None
-          Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap name for generating colors.
-        - `label` : str, optional, default=None.
-          Label for the plotted spectrum.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Legend location (e.g., 'best', 'upper right').
-        - `xlabel`, `ylabel` : str, optional, default=None
-          Axis labels.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+    **kwargs
+        Additional keyword arguments. [fill in from the original docstring]
 
     Returns
     -------
-    SpectrumPlus | None
-        If `return_spectra` is True, returns the concatenated spectrum.
-        Otherwise, returns None.
+    list of matplotlib.lines.Line2D
+        One artist per plotted segment.
 
-    Notes
-    -----
-
-    - If `concatenate` is True, all spectra are merged and plotted as one line.
-    - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
-      wavelength interval before plotting.
+    Raises
+    ------
+    ValueError
+        If `plot_mode` is invalid, or if `label` is a sequence whose
+        length differs from the number of segments.
     """
     _require_dependency('specutils')
-    # ---- KWARGS ----
-    # figure params
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    ylim = kwargs.get('ylim', None)
-    # line params
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = _pop_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
-    linewidths = _pop_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
-    alphas = _pop_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
-    cmap = kwargs.get('cmap', config.cmap)
-    # labels
-    label = kwargs.get('label', None)
-    loc = kwargs.get('loc', config.legend.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
 
-    # get default config values
-    colors = _resolve_default(colors, config.color)
-    linestyles = get_config_value(linestyles, 'linestyle')
-    linewidths = get_config_value(linewidths, 'linewidth')
-    alphas = get_config_value(alphas, 'alpha')
+    params = _extract_kwargs(
+        kwargs,
+        params=[
+            _param('color', color, None),
+            _param('label', label, None),
+        ],
+        additional_kwargs=[
+            _kwarg('linewidth', None),
+            _kwarg('linestyle', None),
+            _kwarg('alpha', None),
+            _kwarg('rasterized', config.rasterized),
+        ]
+    )
+    plot_params = _extract_plot_util_kwargs(kwargs)
+    kwargs.update(params)
 
-    # ensure units match and that extracted_spectra is a list
-    extracted_spectra = to_list(extracted_spectra)
-    ensure_common_unit(extracted_spectra)
-    # hardcode behavior to avoid breaking
-    if return_spectra:
-        concatenate = True
+    spectra_list = to_list(spectra)
+    spectral_axes = [spec.spectral_axis for spec in spectra_list]
+    if spectral_edges is not None:
+        spectral_axes.append(spectral_edges)
+
+    ensure_common_unit(spectral_axes)
+    ensure_common_unit([spec.flux for spec in spectra_list])
+
+    segments = _masked_segments(spectra_list, spectral_edges, plot_normalize)
     if concatenate:
-        use_samecolor = True
+        segments = [(
+            np.concatenate([w for w, _ in segments]),
+            np.concatenate([f for _, f in segments]),
+        )]
 
-    # set plot style and colors
-    colors = get_colors(colors, cmap=cmap)
+    if (color := kwargs['color']) is not None:
+        kwargs['color'] = get_colors(color)
 
-    wave_list = []
-    flux_list = []
-    wavelength_lims = []
-    for i, spectrum in enumerate(extracted_spectra):
-        # index spectrum if list
-        spectrum = spectrum[idx] if isinstance(spectrum, list) else spectrum
-        # extract wavelength and flux
-        wavelength = spectrum.spectral_axis
-        flux = spectrum.normalize if plot_normalize else spectrum.flux
-        # compute minimum and maximum wavelength values
-        wmin = np.nanmin(get_value(wavelength))
-        wmax = np.nanmax(get_value(wavelength))
-        wavelength_lims.append( [wmin, wmax] )
-        # mask wavelength and flux if user passes in limits
-        if wave_cuttofs is not None:
-            wave_min: float = wave_cuttofs[i]
-            wave_max: float = wave_cuttofs[i+1]
-            mask = mask_within_range(get_value(wavelength), (wave_min, wave_max))
-            wavelength = wavelength[mask]
-            flux = flux[mask]
+    ax = get_ax(ax)
+    _set_prop_cycle_from_kwargs(ax, kwargs)
 
-        c = colors[0] if use_samecolor else colors[i%len(colors)]
-        # only plot a label for combined spectrum, not each sub spectra
-        l = label if label is not None and i == len(extracted_spectra)-1 else None
-        # append to lists if concatenate
-        if concatenate:
-            wave_list.append(wavelength)
-            flux_list.append(flux)
-        # plot spectrum if not concatenating
-        else:
-            ax.plot(wavelength, flux, color=c,
-                    label=l, ls=linestyles,
-                    lw=linewidths, alpha=alphas,
-                    rasterized=rasterized)
-    # plot entire spectrum if concatenate
-    if concatenate:
-        wavelength = np.concatenate(wave_list)
-        flux = np.concatenate(flux_list)
+    plot_fn = {'step': step, 'plot': plot}.get(str(plot_mode).lower())
+    if plot_fn is None:
+        raise ValueError(
+            f"`plot_mode` must be 'step' or 'plot', got {plot_mode!r}."
+        )
 
-        ax.plot(get_value(wavelength),
-                get_value(flux),
-                color=c, label=l, ls=linestyles,
-                lw=linewidths, alpha=alphas,
-                rasterized=rasterized)
+    label = kwargs.pop('label')
+    labels = _expand_labels(label, len(segments))
+    artists: list[Line2D] = []
 
-    _set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
+    for i, ((wave, flux), lab) in enumerate(zip(segments, labels, strict=True)):
+        lines = plot_fn(get_value(wave), get_value(flux), ax=ax, label=lab, **kwargs)
+        artists.extend(lines)
+        if single_color and i == 0:
+            kwargs['color'] = lines[0].get_color()
 
-    if ylim is not None:
-        ax.set_ylim(ylim[0], ylim[1])
-    if wave_cuttofs is None:
-        xmin = min(l[0] for l in wavelength_lims)
-        xmax = max(l[1] for l in wavelength_lims)
-    else:
-        xmin = wave_cuttofs[0]
-        xmax = wave_cuttofs[-1]
-    ax.set_xlim(xmin, xmax)
+    plot_params.limits['xpad'] = kwargs.pop('xpad', 0)
+    _apply_plot_utils(
+        plot_params, ax,
+        x=segments[0][0], y=segments[0][1],
+        img=artists[0],
+        label=labels[0],
+        **kwargs
+    )
 
-    if label is not None:
-        ax.legend(loc=loc)
-
-    if return_spectra:
-        extracted_spectrum = SpectrumPlus(wavelength, flux)
-
-        return extracted_spectrum
+    return artists
 
 
 # Spectra Fitting Functions
