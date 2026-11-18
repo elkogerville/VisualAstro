@@ -342,11 +342,17 @@ class SpectralLineConfig(PrettyRepr, ResetConfig):
     marker_linestyle: str = 'solid'
     vline_linestyle: str = 'dashed'
     linewidth: float = 0.7
-    label_offset_points: tuple[float, float] = (0.0, 4.0)
+    label_offset_points: tuple[float, float] = (0.0, 0.0)
+    marker_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    vline_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    label_ha: Literal['left', 'center', 'right'] = 'center'
+    label_va: Literal['top', 'bottom', 'center', 'baseline'] = 'top'
     label_position: Literal['center', 'left', 'right'] = 'center'
-    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'auto'
+    label_anchor: Literal['center', 'left', 'right', 'auto'] = 'center'
     label_reference: Literal['marker', 'hline', 'auto'] = 'auto'
-    label_rotation: float = 0
+    label_rotation: float = 0.0
+    label_rotation_mode: Literal['default', 'anchor'] = 'default'
+    unlabeled_color: ColorType = 'grey'
 
 @dataclass(slots=True, repr=False)
 class GridConfig(PrettyRepr, ResetConfig):

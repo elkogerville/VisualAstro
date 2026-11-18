@@ -8,16 +8,14 @@ Description:
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
-import numpy as np
-from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.analysis.spectra import (
@@ -42,7 +40,7 @@ from visualastro.optional_dependencies._specutils import SpectralAxis
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors.colors import get_colors
 from visualastro.plotting.core.colors.utils import _is_colorset
-from visualastro.plotting.core.lines import axvlines, _axlines
+from visualastro.plotting.core.lines import _axlines, axvlines
 
 
 def spectral_line_marker(
@@ -362,239 +360,310 @@ def spectral_line_marker(
     return None
 
 
-def spectral_lines(
-    wavelengths: Sequence[float | u.Quantity] | u.Quantity | float,
-    labels: Sequence[str | None] | None = None,
+def spectral_vlines(
+    x: float | u.Quantity | Sequence[float | u.Quantity],
+    labels: str | Sequence[str | None] | None = None,
     *,
-    style: Literal['marker', 'vline'] = 'vline',
+    y: float | u.Quantity | Sequence[float | u.Quantity | None] | None = None,
     ax: maxes.Axes | None = None,
-    y: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
-    h: float | u.Quantity | Sequence[float | u.Quantity] | None = None,
-    color: (
-        ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None
-    ) = _UNSET,
-    unlabeled_color: ColorType | _Unset | None = _UNSET,
-    draw_hline: bool = False,
+    color: ColorType | str | list[ColorType] | _Unset = _UNSET,
+    unlabeled_color: ColorType | _Unset = _UNSET,
+    linewidth: float | list[float] | _Unset = _UNSET,
+    linestyle: LineStyleType | list[LineStyleType] | _Unset = _UNSET,
+    alpha: float | list[float] | _Unset = _UNSET,
+    unit: u.UnitBase | None = None,
+    equivalencies: u.Equivalency | None = None,
+    fontsize: float | _Unset = _UNSET,
+    rotation: float | _Unset = _UNSET,
+    rotation_mode: Literal['default', 'anchor'] | _Unset = _UNSET,
+    ha: Literal['left', 'center', 'right'] | _Unset = _UNSET,
+    va: Literal['top', 'bottom', 'center', 'baseline'] | _Unset = _UNSET,
+    label_offset_points: tuple[float, float] | _Unset = _UNSET,
+    label_kw: Mapping[str, Any] | None = None,
     **kwargs,
-) -> None:
+) -> tuple[list[Line2D], list[Annotation]]:
     """
-    Plot multiple spectral line markers, grouped and colored by label.
+    Plot full-height vertical lines at spectral line positions with optional labels.
 
     Parameters
     ----------
-    wavelengths : Sequence[float | astropy.units.Quantity] | astropy.units.Quantity | float
+    x : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity]
         Line positions. A scalar is treated as a single line.
-    labels : Sequence[str | None] | None, optional, default=None
-        One label per wavelength; ``None`` entries are unlabeled.
-    style : {'marker', 'vline'}, optional, default='vline'
+    labels : str | Sequence[str | None] | None, optional, default=None
+        - ``str``: broadcast to every line.
+        - sequence: one entry per line (length 1 or ``len(x)``).
+        - ``None``: no labels.
 
-        - ``'marker'``: if ``draw_hline=True``, lines sharing a label are
-          drawn as one multi-prong marker with a single label.
-          Unlabeled lines are drawn as individual markers. If
-          ``draw_hline=False``, every line is drawn as an individual
-          marker with its own label.
-        - ``'vline'``: one vertical line (and label) per wavelength.
-
+        ``None``, ``''``, whitespace-only strings and ``'none'``
+        (case-insensitive) mark a line as unlabeled. Unlabeled lines get no
+        annotation.
+    y : float | Quantity | Sequence[float | Quantity | None] | None, optional, default=None
+        Data y-coordinate of the label anchor. ``Quantity`` values are used
+        as their bare values, without conversion. Scalar is broadcast; a
+        sequence has length 1 or ``len(x)``. ``None`` (or a ``None`` entry)
+        anchors the label at the top of the axes (axes fraction 1.0).
     ax : matplotlib.axes.Axes | None, optional, default=None
         Axes on which to draw. If ``None``, uses ``plt.gca()``.
-    y : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
-        Scalar (broadcast) or per-line y-coordinate. Required in
-        marker mode. If ``draw_hline=True``, must be identical for all
-        lines sharing a label.
+    color : ColorType | str | list[ColorType] | _Unset, optional, default=_UNSET
+        Color of lines and label text. Lines with identical labels share a color.
 
-        - ``style='marker'``: y-coordinate of the base of the markers (required).
-        - ``style='vline'``: y-coordinate (data) of the label anchor.
+        - single color (``str`` | RGB(A) ``tuple``): all lines.
+        - colorset alias (``str``): palette assigned to unique labels in order
+          of first appearance, cycled or cropped.
+        - ``list`` | ``numpy.ndarray``:
 
-          If ``None``, labels anchor at the top of the axes.
-    h : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity] | None, optional, default=None
-        Scalar (broadcast) or per-line marker height. Required in
-        marker mode, ignored in vline mode. If ``draw_hline=True``, must
-        be identical for all lines sharing a label.
-    color : ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None, optional, default=_UNSET
+            - ``len(color) == len(x)``: one color per line, used verbatim.
+              Identical labels are not grouped.
+            - otherwise: palette assigned to unique labels in order of first
+              appearance, cycled if shorter than the number of unique labels
+              and cropped if longer. Identical labels share a color.
 
-        - single color: applied to all lines.
-        - mapping ``{label: color}``: per-label color; missing labels
-            fall back to the `spectral_line_marker` default.
-        - sequence of colors: assigned to unique labels in order of
-            first appearance, cycled if too short. Must be a `list`;
-            a tuple of 3 or 4 numbers is read as one RGB(A) color.
+        If ``_UNSET``, uses ``config.axline.color``.
+    unlabeled_color : ColorType | _Unset, optional, default=_UNSET
+        Color of unlabeled lines when ``color`` is a colorset or a palette
+        ``list``. Ignored if ``color`` is a single color or a per-line ``list``.
+        If ``_UNSET``, uses ``config.spectral_line_marker.unlabeled_color``.
+    linewidth : float | list[float] | _Unset, optional, default=_UNSET
+        Scalar or per-line (``list``) width. If ``_UNSET``, uses
+        ``config.spectral_line_marker.linewidth``.
+    linestyle : LineStyleType | list[LineStyleType] | _Unset, optional, default=_UNSET
+        Scalar or per-line (``list``) style. If ``_UNSET``, uses
+        ``config.spectral_line_marker.vline_linestyle``.
+    alpha : float | list[float] | _Unset, optional, default=_UNSET
+        Scalar or per-line (``list``) alpha. If ``_UNSET``, uses
+        ``config.axline.alpha``.
+    unit : astropy.units.UnitBase | None, optional, default=None
+        Unit to convert ``x`` to. If ``None``, ``Quantity`` values are used
+        as their bare values, without conversion.
+    equivalencies : astropy.units.Equivalency | None, optional, default=None
+        Equivalencies used in the unit conversion of ``x``.
+    fontsize : float | _Unset, optional, default=_UNSET
+        Label font size. If ``_UNSET``, uses ``config.fontsizes.resolve('text')``.
+    rotation : float | _Unset, optional, default=_UNSET
+        Label rotation in degrees (positive turns CCW). If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_rotation``.
+    rotation_mode : {'default', 'anchor'} | _Unset, optional, default=_UNSET
+        Rotation order for the label (matplotlib ``rotation_mode``).
 
-        ``None`` is treated as ``_UNSET``. With a palette or mapping,
-        unlabeled lines use the ``spectral_line_marker`` default unless
-        ``unlabeled_color`` is given.
-    unlabeled_color : ColorType | _Unset | None, optional, default=_UNSET
-        Color of lines without a label. Overrides ``color`` for those
-        lines, including when ``color`` is a single color. If ``_UNSET``
-        or ``None``, unlabeled lines follow ``color`` (single color) or the
-        ``spectral_line_marker`` default (palette or mapping).
-    draw_hline : bool, optional, default=True
-        Marker mode only; ignored in vline mode. If ``False``, the
-        connecting horizontal bar is omitted, grouping by label is
-        disabled, and each line gets its own prong and label
-        (equivalent to vline-mode labeling).
+        - ``'default'``: rotate the text, then align its bbox with ``ha`` and
+            ``va``.
+        - ``'anchor'``: align with ``ha`` and ``va``, then rotate about the
+            pinned point.
+
+        If ``_UNSET``, uses ``config.spectral_line_marker.vline_label_rotation_mode``.
+    ha : {'left', 'center', 'right'} | _Unset, optional, default=_UNSET
+        Horizontal alignment of the label. Selects which point of the text
+        bbox is pinned to the anchor plus offset. If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_ha``.
+    va : {'top', 'bottom', 'center', 'baseline'} | _Unset, optional, default=_UNSET
+        Vertical alignment of the label. Selects which point of the text
+        bbox is pinned to the anchor plus offset (``'top'``: text hangs
+        below the anchor). If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_va``.
+    label_offset_points : tuple[float, float] | _Unset, optional, default=_UNSET
+        Signed ``(dx, dy)`` shift of the label in points, applied after
+        anchoring. Positive ``dx`` moves right, positive ``dy`` moves up,
+        independent of ``ha``, ``va`` and ``rotation``. If ``_UNSET``,
+        ``dx`` is ``config.spectral_line_marker.vline_label_offset_points[0]``
+        and ``dy`` is chosen from ``va`` (``'top'``: -4, ``'bottom'`` and
+        ``'baseline'``: 4, ``'center'``: 0) so the label clears the anchor.
+    label_kw : Mapping[str, Any] | None, optional, default=None
+        Extra keyword arguments for ``ax.annotate``. Override label defaults.
     **kwargs
-        Forwarded to :func:`~visualastro.spectral_line_marker`.
+        Forwarded to :func:`_axlines` (and from there to ``ax.axvline``).
 
     Returns
     -------
-    None
+    lines : list[matplotlib.lines.Line2D]
+        One per ``x`` value, in input order.
+    annotations : list[matplotlib.text.Annotation]
+        One per non-``None`` label, in input order.
 
     Raises
     ------
-    TypeError
-        - ``labels`` is a ``str``.
     ValueError
-        - ``style`` is not ``'marker'`` or ``'vline'``.
-        - ``wavelengths`` is empty.
-        - ``len(labels) != len(wavelengths)``.
-        - ``y`` or ``h`` differ among lines sharing a label (marker mode).
-        - ``color`` is an empty sequence.
-        - ``unlabeled_color`` is not a valid color.
-        - Units are inconsistent among wavelengths, or among ``y``/``h``.
-        - ``y`` or ``h`` differ among lines sharing a label
-          (marker mode, ``draw_hline=True``).
-
-    See Also
-    --------
-
+        - ``x`` is empty.
+        - ``labels``, ``y``, or a ``list`` style parameter has length
+          other than 1 or ``len(x)``.
+        - ``color`` contains an invalid color.
+        - Units are inconsistent among ``x`` (when ``unit`` is ``None``),
+          or among ``y``.
 
     Notes
     -----
-    - Modifies ``ax`` in place.
-    - Units of ``wavelengths`` and of ``y``/``h`` are checked separately,
-      since they may differ (e.g. wavelength vs. flux).
+    - ``tuple`` inputs for ``labels`` and ``y`` are treated as sequences.
+      For ``color``, a ``tuple`` is always a single RGB(A) color.
+    - If no line is labeled, a colorset or palette is cycled per line.
+    - The offset is not tied to ``va``. With ``va='bottom'``, use a positive
+      ``dy`` to place the label above the anchor.
+    - With ``rotation_mode='default'``, ``ha`` and ``va`` act on the rotated
+      text bbox. With ``'anchor'``, they act on the unrotated text, and the
+      rotation pivots about the pinned point.
     """
-    style = str(style).lower()
-    if style not in {'marker', 'vline'}:
-        raise ValueError(f"`style` must be 'marker' or 'vline'; got {style!r}.")
-
-    if isinstance(labels, str):
-        raise TypeError('`labels` must be a sequence of str, not a str.')
-
-    if _ndim(wavelengths) == 0:
-        wavelengths = np.atleast_1d(wavelengths)
-    wavelengths = list(wavelengths)
-    n = len(wavelengths)
+    xs = [x] if _ndim(x) == 0 else list(x)
+    n = len(xs)
     if n == 0:
-        raise ValueError('At least one wavelength is required.')
+        raise ValueError('At least one x value is required.')
 
-    labels = [None] * n if labels is None else list(labels)
-    if len(labels) != n:
-        raise ValueError(f'len(wavelengths)={n} != len(labels)={len(labels)}')
+    labs = [
+        _normalize_label(lab)
+        for lab in _broadcast_param(_tuple_to_list(labels), n, 'labels')
+    ]
+    ys = _broadcast_param(_tuple_to_list(y), n, 'y')
 
-    ys = _broadcast(y, n, 'y')
-    hs = _broadcast(h, n, 'h') if style == 'marker' else [None] * n
-
-    ensure_common_unit(wavelengths)
-    y_h = [v for v in (*ys, *hs) if v is not None]
-    if y_h: ensure_common_unit(y_h)
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('color', color, config.axline.color),
+            _param(
+                'unlabeled_color', unlabeled_color,
+                config.spectral_line_marker.unlabeled_color
+            ),
+            _param('ha', ha, config.spectral_line_marker.label_ha),
+            _param('va', va, config.spectral_line_marker.label_va),
+            _param('rotation', rotation, config.spectral_line_marker.label_rotation),
+            _param(
+                'rotation_mode', rotation_mode,
+                config.spectral_line_marker.label_rotation_mode
+            ),
+            _param('fontsize', fontsize, config.fontsizes.resolve('text')),
+            _param('linewidth', linewidth, config.spectral_line_marker.linewidth),
+            _param('linestyle', linestyle, config.spectral_line_marker.vline_linestyle),
+        ],
+    )
+    if label_offset_points is _UNSET:
+        dx, _ = config.spectral_line_marker.vline_label_offset_points
+        dy = _VA_DEFAULT_DY[params.va]
+    else:
+        dx, dy = label_offset_points
 
     ax = get_ax(ax)
-    color = _UNSET if color is None else color
-    color_by_label, fallback = _label_colors(color, labels)
 
-    if unlabeled_color is not None and unlabeled_color is not _UNSET:
-        if not is_color_like(unlabeled_color):
-            raise ValueError(
-                f'`unlabeled_color` is not a valid color; got {unlabeled_color!r}.'
-            )
-        fallback = unlabeled_color
+    lines = _axlines(
+        xs,
+        orientation='v',
+        ax=ax,
+        color=_label_colors(params.color, labs, params.unlabeled_color),
+        linewidth=params.linewidth,
+        linestyle=params.linestyle,
+        alpha=alpha,
+        unit=unit,
+        equivalencies=equivalencies,
+        **kwargs,
+    )
+    assert lines is not None
 
-    if style == 'vline':
-        for w, lab, yi in zip(wavelengths, labels, ys):
-            spectral_line_marker(
-                w,
-                label=lab,
-                y=yi,
-                color=color_by_label.get(lab, fallback),
-                style='vline',
-                ax=ax,
-                **kwargs,
-            )
-        return None
-
-    records = list(zip(wavelengths, labels, ys, hs))
-
-    if not draw_hline:
-        for w, lab, yi, hi in records:
-            spectral_line_marker(
-                w,
-                label=lab,
-                y=yi,
-                h=hi,
-                color=color_by_label.get(lab, fallback),
-                style='marker',
-                draw_hline=False,
-                ax=ax,
-                **kwargs,
-            )
-        return None
-
-    labeled = defaultdict(list)
-    unlabeled_groups = []
-    for rec in records:
-        lab = rec[1]
+    annotations: list[Annotation] = []
+    for ln, yi, lab in zip(lines, ys, labs, strict=True):
         if lab is None:
-            unlabeled_groups.append((None, [rec]))
+            continue
+        xv = float(ln.get_xdata()[0])
+        if yi is None:
+            xy, xycoords = (xv, 1.0), ax.get_xaxis_transform()
         else:
-            labeled[lab].append(rec)
+            xy, xycoords = (xv, float(get_value(yi))), 'data'
 
-    for lab, members in [*labeled.items(), *unlabeled_groups]:
-        ws, _, ys_g, hs_g = zip(*members)
-        spectral_line_marker(
-            *ws,
-            label=lab,
-            y=_common_value(ys_g, 'y', lab),
-            h=_common_value(hs_g, 'h', lab),
-            color=color_by_label.get(lab, fallback),
-            style='marker',
-            draw_hline=True,
-            ax=ax,
-            **kwargs,
+        text_kw = dict(
+            xytext=(dx, dy),
+            textcoords='offset points',
+            ha=params.ha,
+            va=params.va,
+            rotation=params.rotation,
+            rotation_mode=params.rotation_mode,
+            color=ln.get_color(),
+            fontsize=params.fontsize,
         )
+        text_kw.update(label_kw or {})
+        annotations.append(ax.annotate(lab, xy=xy, xycoords=xycoords, **text_kw))
 
-    return None
+    return lines, annotations
 
 
-def _label_colors(color, labels):
+_VA_DEFAULT_DY = {'top': -4.0, 'bottom': 4.0, 'center': 0.0, 'baseline': 4.0}
+
+
+def _tuple_to_list(v: Any) -> Any:
+    """Convert a ``tuple`` to a ``list`` so ``_broadcast_param`` treats it as a sequence."""
+    return list(v) if isinstance(v, tuple) else v
+
+
+def _label_colors(
+    color: Any, labs: Sequence[str | None], fallback: ColorType
+) -> Any:
     """
-    Map each unique (non-None) label to a color.
+    Expand a colorset or color sequence into one color per line, keyed by label.
 
     Parameters
     ----------
-    color : ColorType | Sequence[ColorType] | Mapping[str, ColorType] | _Unset | None
-        Single color, `{label: color}` mapping, or list of colors
-        assigned to unique labels in order of first appearance
-        (cycled if too short, extras ignored).
-    labels : Sequence[str | None]
-        Per-line labels.
+    color : ColorType | str | list[ColorType]
+        - colorset alias (``str``): palette over unique labels.
+        - ``list`` | ``numpy.ndarray`` with ``len(color) == len(labs)``:
+          returned unchanged (one color per line).
+        - other ``list`` | ``numpy.ndarray``: palette over unique labels.
+        - anything else (single color): returned unchanged.
+    labs : Sequence[str | None]
+        Per-line labels. Lines with equal labels get equal colors.
+    fallback : ColorType
+        Color of unlabeled (``None``) lines.
 
     Returns
     -------
-    mapping : dict[str, ColorType | _Unset]
-        Color per unique label.
-    fallback : ColorType | _Unset | None
-        Color for lines without a label or missing from `mapping`.
+    ColorType | str | list[ColorType]
+        ``color`` unchanged, or a ``list`` of ``len(labs)`` colors.
 
     Raises
     ------
     ValueError
-        If `color` is an empty sequence.
+        If ``color`` is an empty ``list`` or ``numpy.ndarray``.
+
+    Notes
+    -----
+    - Palettes are cycled if shorter than the number of unique labels and
+      cropped if longer.
+    - A sequence of length ``len(labs)`` is always read as per-line, even
+      when labels repeat. Use a colorset alias to force per-label grouping.
     """
-    unique = list(dict.fromkeys(lab for lab in labels if lab is not None))
+    if isinstance(color, str) and _is_colorset(color):
+        palette = get_colors(color)
+    elif isinstance(color, (list, np.ndarray)) and np.ndim(color) > 0:
+        if len(color) == 0:
+            raise ValueError('`color` sequence is empty.')
+        if len(color) == len(labs):
+            return list(color)
+        palette = list(color)
+    else:
+        return color
 
-    if color is _UNSET or color is None or is_color_like(color):
-        return {lab: color for lab in unique}, color
-    if isinstance(color, Mapping):
-        return {lab: color.get(lab, _UNSET) for lab in unique}, _UNSET
+    unique = list(dict.fromkeys(lab for lab in labs if lab is not None))
+    if not unique:
+        return match_length(palette, labs)
+    mapping = dict(zip(unique, match_length(palette, unique), strict=True))
+    return [mapping.get(lab, fallback) for lab in labs]
 
-    palette = get_colors(color)
-    if not palette:
-        raise ValueError('`color` sequence is empty.')
-    return (
-        {lab: palette[i % len(palette)] for i, lab in enumerate(unique)},
-        _UNSET,
-    )
+
+_NO_LABEL = frozenset({'', 'none'})
+
+
+def _normalize_label(lab: Any) -> str | None:
+    """
+    Map empty-like labels to ``None``.
+
+    Parameters
+    ----------
+    lab : Any
+        Label entry. ``None``, ``''``, whitespace-only strings and
+        ``'none'`` (case-insensitive) are treated as no label.
+
+    Returns
+    -------
+    str | None
+        The label as given, or ``None`` if it is empty-like.
+    """
+    if lab is None:
+        return None
+    if isinstance(lab, str) and lab.strip().lower() in _NO_LABEL:
+        return None
+    return lab
 
 
 def mark_spectral_lines(
