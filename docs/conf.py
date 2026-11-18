@@ -11,7 +11,9 @@ project = 'VisualAstro'
 copyright = '2026, Elko Gerville-Reache and VisualAstro contributors'
 author = 'Elko Gerville-Reache, Qiushi Chris Tian, and Audrey Whitmer'
 release = _pkg_version('visualastro')
-version = release
+version = '.'.join(release.split('.')[:3])
+
+html_title = f'VisualAstro {version}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -70,7 +72,13 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = 'pydata_sphinx_theme'
+html_theme_options = {
+    'logo': {'text': f'VisualAstro {version}'},
+    'secondary_sidebar_items': ['page-toc'],
+    'show_toc_level': 2,
+    'navigation_depth': 3,
+}
 html_static_path = ['_static']
 
 plot_apply_rcparams = True
