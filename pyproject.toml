@@ -12,7 +12,14 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
+license-files = [
+    "LICENSE",
+    "THIRD_PARTY_LICENSES.txt",
+    "src/visualastro/stylelib/fontlib/**/LICENSE*",
+    "src/visualastro/stylelib/fontlib/**/OFL*",
+    "src/visualastro/stylelib/fontlib/**/*License*",
+    "src/visualastro/stylelib/fontlib/**/AUTHORS*",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -103,11 +110,14 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["visualastro*"]
-exclude = [
-    "visualastro.data",
-    "visualastro.data.*",
-    "visualastro.stylelib",
-    "visualastro.stylelib.*",
+namespaces = true
+
+[tool.setuptools.package-data]
+"visualastro.stylelib" = [
+    "**/*.mplstyle", "**/*.otf", "**/*.ttf",
+    "fontlib/**/LICENSE*", "fontlib/**/OFL*",
+    "fontlib/**/*License*", "fontlib/**/AUTHORS*", "fontlib/**/README*",
 ]
+"visualastro.data" = ["*.fits", "*.png"]
 
 [tool.setuptools_scm]
