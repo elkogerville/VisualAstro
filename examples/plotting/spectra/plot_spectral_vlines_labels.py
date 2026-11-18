@@ -4,7 +4,7 @@ import visualastro as va
 from visualastro.core.io import example_spectrum
 
 
-SN1987A_N = example_spectrum('SN1987A_north.fits')
+SN1987A_N = example_spectrum()
 emission_labels = ['[Ne II]', '[Ne V]', '[Ne III]', '[S III]']
 line_locs = [12.81370507, 14.32125558, 15.55381827, 18.71226999]
 amplitudes = [0.005332791, 0.00200568, None, None]

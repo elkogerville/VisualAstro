@@ -5,10 +5,12 @@ Date Modified: 2026-10-06
 Description:
     Functions for I/O operations within VisualAstro.
 """
+from __future__ import annotations
 
 import os
 import warnings
 from dataclasses import dataclass
+from importlib.resources import files
 from typing import Literal
 
 import astropy.units as u
@@ -22,8 +24,11 @@ from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, con
 from visualastro.core.data import to_array, to_list
 from visualastro.core.kwargs import _kwarg, _param, _resolve_kwargs
 from visualastro.core.units import get_units
+from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
-from visualastro.optional_dependencies.register import _offer_dependency
+from visualastro.optional_dependencies.register import (
+    _offer_dependency, _require_dependency
+)
 
 __all__ = [
     'get_sci_from_hdul',
@@ -534,3 +539,40 @@ def _get_dtype(
         return np.dtype(data.dtype)
     else:
         return np.dtype(default_dtype)
+
+
+def example_spectrum() -> Spectrum:
+    """
+    Load a bundled example FITS file.
+
+    Returns
+    -------
+    Spectrum
+        Object returned by the package reader.
+    """
+    _require_dependency('specutils')
+    return Spectrum.read(_get_data_path('SN1987A_north.fits'))
+
+
+def _get_data_path(name: str) -> str:
+    """Return the filesystem path of a bundled data file.
+
+    Parameters
+    ----------
+    name : str
+        Filename inside ``visualastro/data``.
+
+    Returns
+    -------
+    str
+        Absolute path to the packaged file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``name`` is not found in the bundled data directory.
+    """
+    path = files('visualastro') / 'data' / name
+    if not path.is_file():
+        raise FileNotFoundError(f"No bundled data file named '{name}'.")
+    return str(path)
