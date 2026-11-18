@@ -1,4 +1,4 @@
-Legend
+legend
 ======
 
 .. currentmodule:: visualastro
