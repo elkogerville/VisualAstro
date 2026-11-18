@@ -27,7 +27,8 @@ from visualastro.core.units import get_units
 from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
 from visualastro.optional_dependencies.register import (
-    _offer_dependency, _require_dependency
+    _offer_dependency,
+    _require_dependency,
 )
 
 __all__ = [

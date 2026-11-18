@@ -1,8 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import astropy.units as u
+import matplotlib.pyplot as plt
+import numpy as np
 from astropy.modeling import models
 from specutils import Spectrum
+
 import visualastro as va
 
 np.random.seed(13)

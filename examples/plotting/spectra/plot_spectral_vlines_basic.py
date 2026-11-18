@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import visualastro as va
 from visualastro.core.io import example_spectrum
 
-
 SN1987A_N = example_spectrum()
 emission_labels = [
     '[Ar II]', '[Ne VI]', '[Ar III]', '[S IV]',

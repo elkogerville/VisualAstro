@@ -10,10 +10,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
-from typing import Literal
+from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+from matplotlib.lines import Line2D
+from matplotlib.text import Annotation
 import numpy as np
 from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType, LineStyleType
@@ -27,7 +29,7 @@ from visualastro.analysis.spectra.utils import _get_spectral_axis
 from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import _ndim, get_value
 from visualastro.core.kwargs import _param, _resolve_kwargs
-from visualastro.core.sequences import _broadcast, _common_value, _cycle
+from visualastro.core.sequences import _broadcast_param, _cycle, match_length
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
@@ -39,7 +41,8 @@ from visualastro.optional_dependencies._spectralcube import SpectralCube
 from visualastro.optional_dependencies._specutils import SpectralAxis
 from visualastro.plotting.core.axes import get_ax
 from visualastro.plotting.core.colors.colors import get_colors
-from visualastro.plotting.core.lines import axvlines
+from visualastro.plotting.core.colors.utils import _is_colorset
+from visualastro.plotting.core.lines import axvlines, _axlines
 
 
 def spectral_line_marker(
