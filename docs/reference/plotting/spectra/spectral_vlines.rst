@@ -19,6 +19,7 @@ Label Placement
 Pass the line positions and labels as parallel sequences. By default (``y=None``) the
 labels are anchored at the top of the axes, independent of the data limits.
 
+
 .. plot:: ../examples/plotting/spectra/plot_spectral_vlines_basic.py
     :include-source: True
 
@@ -40,6 +41,7 @@ Label text placement is further controlled by:
   Positive ``dx`` moves the label right and positive ``dy`` moves it up, regardless of ``ha``,
   ``va`` or ``rotation``.
 
+
 .. plot:: ../examples/plotting/spectra/plot_spectral_vlines_labels.py
     :include-source: True
 
@@ -58,6 +60,7 @@ Unlabeled lines (``None``, ``''`` or ``'none'``) are drawn in ``unlabeled_color`
 colorset or palette is used.
 
 In this example we plot 8 lines with 4 unique labels and one blank label.
+
 
 .. plot:: ../examples/plotting/spectra/plot_spectral_vlines_colors.py
     :include-source: True
