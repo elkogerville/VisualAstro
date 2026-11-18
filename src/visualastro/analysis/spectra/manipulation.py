@@ -389,15 +389,17 @@ def splice_spectra(
     )
 
 
-def _masked_segments(spectra, wave_cutoffs, normalized):
+def _masked_segments(spectra, spectral_edges, normalized):
     """Return `(spectral_axis, flux)` per spectrum, masked to its cutoff window."""
     ensure_common_unit(spectra)
     segments = []
     for i, s in enumerate(spectra):
         wave = s.spectral_axis
         flux = s.normalize if normalized else s.flux
-        if wave_cutoffs is not None:
-            mask = mask_within_range(get_value(wave), (wave_cutoffs[i], wave_cutoffs[i + 1]))
+        if spectral_edges is not None:
+            mask = mask_within_range(
+                get_value(wave), (spectral_edges[i], spectral_edges[i + 1])
+            )
             wave, flux = wave[mask], flux[mask]
         segments.append((wave, flux))
     return segments

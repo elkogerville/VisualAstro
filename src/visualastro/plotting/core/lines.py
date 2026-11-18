@@ -7,12 +7,13 @@ Description:
 """
 
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
 from astropy.units import Equivalency, StructuredUnit, UnitBase
 from astropy.visualization.wcsaxes.core import WCSAxes
+from matplotlib.colors import is_color_like
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
@@ -20,8 +21,10 @@ from visualastro.core.array_types import _is_1d, _is_iterable
 from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param
-from visualastro.core.sequences import _broadcast_param
+from visualastro.core.sequences import _broadcast_param, match_length
 from visualastro.plotting.core.axes import get_ax, get_wcsax
+from visualastro.plotting.core.colors import get_colors
+from visualastro.plotting.core.colors.utils import _is_colorset
 
 
 def axvlines(
@@ -260,11 +263,49 @@ def _axlines(
                 line = line.value
             values.append(line)
 
-    styles = {k: _broadcast_param(v, len(values), k) for k, v in params.items()}
+    styles = {
+        k: _broadcast_param(v, len(values), k)
+        for k, v in params.items() if k != 'color'
+    }
+    styles['color'] = _resolve_axline_colors(params['color'], values)
     return [
         draw(x, **{k: v[i] for k, v in styles.items()}, **kwargs)
         for i, x in enumerate(values)
     ]
+
+
+def _resolve_axline_colors(color: Any, ref: Sequence) -> list[ColorType]:
+    """
+    Resolve a color specification into one color per item of ``ref``.
+
+    Parameters
+    ----------
+    color : ColorType | str | list[ColorType]
+        - colorset alias (``str``): cycled or cropped to ``len(ref)``.
+        - single color (``str`` | ``tuple``): repeated.
+        - ``list`` | ``numpy.ndarray``: one color per item, length 1 or ``len(ref)``.
+    ref : Sequence
+        Reference sequence whose length sets the output length.
+
+    Returns
+    -------
+    list[ColorType]
+        List of length ``len(ref)``.
+
+    Raises
+    ------
+    ValueError
+        - ``color`` is a list whose length is neither 1 nor ``len(ref)``.
+        - Any resolved color is invalid.
+    """
+    if isinstance(color, str) and _is_colorset(color):
+        return match_length(get_colors(color), ref)
+
+    colors = _broadcast_param(color, len(ref), 'color')
+    bad = [c for c in colors if not is_color_like(c)]
+    if bad:
+        raise ValueError(f'Invalid color(s): {bad!r}')
+    return colors
 
 
 def grid(

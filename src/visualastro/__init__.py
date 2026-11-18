@@ -46,6 +46,7 @@ from visualastro.analysis.spectra import (
     spectral_region,
     spectral_region_mask,
     spectral_world_2_idx,
+    splice_spectra,
 )
 from visualastro.core.configuration import config
 from visualastro.core.io import (
