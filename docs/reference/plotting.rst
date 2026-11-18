@@ -56,4 +56,4 @@ Spectra
    :hidden:
 
    plotting/spectra/plot_spectra
-   plotting/spectra/spectral_lines
+   plotting/spectra/spectral_vlines

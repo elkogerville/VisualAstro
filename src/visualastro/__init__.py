@@ -172,7 +172,7 @@ from visualastro.plotting.science.spectra_plot_utils import (
     mark_spectral_lines,
     spectral_axis_label,
     spectral_line_marker,
-    spectral_lines,
+    spectral_vlines,
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,

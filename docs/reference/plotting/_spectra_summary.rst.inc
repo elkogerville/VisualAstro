@@ -2,4 +2,4 @@
    :nosignatures:
 
    plot_spectra
-   spectral_lines
+   spectral_vlines

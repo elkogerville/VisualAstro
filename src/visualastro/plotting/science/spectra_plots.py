@@ -71,6 +71,7 @@ from visualastro.optional_dependencies.register import (
 )
 from visualastro.plotting.base.plots import plot, step
 from visualastro.plotting.core.axes import set_limits, subplots
+from visualastro.plotting.core.axes.create import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
 from visualastro.plotting.core.legend import _expand_labels, legend
@@ -84,6 +85,16 @@ from visualastro.plotting.interfaces.plot_utils import (
     _apply_plot_utils,
     _extract_plot_util_kwargs,
 )
+
+__all__ = [
+    'extract_cube_spectrum',
+    'extract_cube_pixel_spectra',
+    'fit_gaussian_2_spec',
+    'plot_spectra',
+    'plot_combine_spectrum',
+    'plot_extracted_pixel_map',
+]
+
 
 _EXTRACT_METHODS: dict[str, str] = {
     'mean': 'mean',
