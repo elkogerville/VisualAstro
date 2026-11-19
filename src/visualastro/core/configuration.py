@@ -338,7 +338,7 @@ class RugPlotConfig(PrettyRepr, ResetConfig):
 @dataclass(slots=True, repr=False)
 class SpectralLineConfig(PrettyRepr, ResetConfig):
     """`spectral_markers`, `spectral_vlines`, & `spectral_elbow_markers` config."""
-    linewidth: float = 0.7
+    linewidth: float = 1.0
     unlabeled_color: ColorType = 'grey'
     label_ha: Literal['left', 'center', 'right'] = 'center'
     label_va: Literal['top', 'bottom', 'center', 'baseline'] = 'top'
