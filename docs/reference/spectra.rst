@@ -23,4 +23,10 @@ Utilities
 Plotting Spectra
 ----------------
 
-.. include:: plotting/_spectra_summary.rst.inc
+.. include:: plotting/spectra/_plot_summary.rst.inc
+
+
+Labeling Spectral Lines
+-----------------------
+
+.. include:: plotting/spectra/_labels_summary.rst.inc

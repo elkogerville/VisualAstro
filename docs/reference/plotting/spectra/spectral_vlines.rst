@@ -6,12 +6,13 @@ spectral_vlines
 .. autofunction:: spectral_vlines
 
 
-Examples
+Overview
 --------
 
 Plot a spectrum and mark known emission lines with labeled vertical lines.
 Pass the line positions and labels as parallel sequences, and use ``y`` to anchor the
 labels at a data coordinate just above the spectrum.
+
 
 Label Placement
 ^^^^^^^^^^^^^^^
@@ -67,3 +68,10 @@ In this example we plot 8 lines with 4 unique labels and one blank label.
 
 Other line properties such as ``linewidth``, ``linestyle`` and ``alpha`` accept a single
 value or a ``list`` with one value per line.
+
+
+See Also
+^^^^^^^^
+
+- :func:`plot_spectrum`
+- :func:`spectral_markers`

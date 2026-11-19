@@ -36,7 +36,7 @@ from visualastro.plotting.base.plots import (
 from visualastro.plotting.core.style import _style_context, apply_style_modifiers
 from visualastro.plotting.science.spectra_plots import (
     plot_combine_spectrum,
-    plot_spectra,
+    plot_spectrum,
 )
 from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.utils.wcs_utils import get_wcs_celestial
@@ -229,7 +229,7 @@ class ax:
 
 
     @staticmethod
-    def plot_spectra(
+    def plot_spectrum(
         extracted_spectra=None,
         plot_continuum=_UNSET,
         plot_norm_continuum=_UNSET,
@@ -242,16 +242,16 @@ class ax:
         **kwargs
     ):
         """
-        Wrapper for `plot_spectra` with automatic figure creation.
+        Wrapper for `plot_spectrum` with automatic figure creation.
 
-        See `visualastro.plotting.science.spectra_plots.plot_spectra` for full
+        See `visualastro.plotting.science.spectra_plots.plot_spectrum` for full
         documentation.
 
         Equivalent to:
 
             >>> spectrum = Spectrum(spectral_axis, flux)
             >>> fig, ax = plt.subplots()
-            >>> va.plot_spectra(spectrum, idx, ax=ax, **kwargs)
+            >>> va.plot_spectrum(spectrum, idx, ax=ax, **kwargs)
             >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
@@ -262,7 +262,7 @@ class ax:
         with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_spectra(
+            _ = plot_spectrum(
                 extracted_spectra,
                 ax=ax,
                 plot_continuum=plot_continuum,

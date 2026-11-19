@@ -19,7 +19,7 @@ va.config.show_unit_label = True
 va.set_plot_cycle(colors=['darkslateblue', 'mediumvioletred'])
 
 fig, ax = va.subplots(figsize=(13,5))
-va.plot_spectra(SN1987A_N, alpha=0.8, label='NOR')
+va.plot_spectrum(SN1987A_N, alpha=0.8, label='NOR')
 
 va.spectral_vlines(line_locs, emission_labels, alpha=0.5)
 

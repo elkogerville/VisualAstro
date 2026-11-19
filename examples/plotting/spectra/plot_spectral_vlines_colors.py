@@ -25,7 +25,7 @@ spectrum = Spectrum(flux=y * u.Jy, spectral_axis=x * u.AA)
 
 plt.style.use(['full', 'cm'])
 fig, ax = va.subplots(figsize=(12,6))
-va.plot_spectra(spectrum, color='cobalt')
+va.plot_spectrum(spectrum, color='cobalt')
 va.spectral_vlines(
     line_wave, labels,
     color=['4 train', '7 train', '3 train', 'C train'],
@@ -35,3 +35,5 @@ va.spectral_vlines(
     label_offset_points=(8,-4)
 )
 va.set_limits(ylim=(0, 6))
+
+plt.show()

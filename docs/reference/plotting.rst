@@ -49,11 +49,16 @@ Legends
 
 Spectra
 -------
+**Plotting functions:**
 
-.. include:: plotting/_spectra_summary.rst.inc
+.. include:: plotting/spectra/_plot_summary.rst.inc
+
+**Line annotations:**
+
+.. include:: plotting/spectra/_labels_summary.rst.inc
 
 .. toctree::
    :hidden:
+   :glob:
 
-   plotting/spectra/plot_spectra
-   plotting/spectra/spectral_vlines
+   plotting/spectra/*

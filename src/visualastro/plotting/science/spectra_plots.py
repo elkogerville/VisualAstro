@@ -90,7 +90,7 @@ __all__ = [
     'extract_cube_spectrum',
     'extract_cube_pixel_spectra',
     'fit_gaussian_2_spec',
-    'plot_spectra',
+    'plot_spectrum',
     'plot_combine_spectrum',
     'plot_extracted_pixel_map',
 ]
@@ -503,7 +503,7 @@ def extract_cube_pixel_spectra(
             colors = sample_cmap(n_plot, cmap)
 
         for i in tqdm(range(len(spectra)), desc='plotting'):
-            plot_spectra(
+            plot_spectrum(
                 spectra[i],
                 ax,
                 color=[colors[i]],
@@ -513,7 +513,7 @@ def extract_cube_pixel_spectra(
         fluxes = [spec.flux for spec in spectra]
 
         if combine_spectra and isinstance(combined_spec, Spectrum):
-            plot_spectra(
+            plot_spectrum(
                 combined_spec,
                 ax,
                 color='k',
@@ -735,7 +735,7 @@ def plot_extracted_pixel_map(
         plt.show()
 
 
-def plot_spectra(
+def plot_spectrum(
     spectrum: Spectrum,
     ax: maxes.Axes | None = None,
     plot_mode: Literal['step', 'plot'] = 'step',
