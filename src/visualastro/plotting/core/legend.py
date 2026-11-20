@@ -52,7 +52,6 @@ def legend(
     borderaxespad: float | _Unset = _UNSET,
     columnspacing: float | _Unset = _UNSET,
     zorder: float | _Unset = _UNSET,
-    draggable: bool | _Unset = _UNSET,
     **kwargs
 ) -> Legend:
     """
@@ -164,8 +163,6 @@ def legend(
     columnspacing : float | _Unset, optional, default=_UNSET
         Spacing between columns in units of fontsize. If `_UNSET`, uses
         `config.legend.columnspacing`.
-    draggable : bool | _Unset, optional, default=_UNSET
-        Enable legend dragging. If `_UNSET`, uses `config.legend.draggable`.
     zorder : float | _Unset, optional, default=_UNSET
         Legend zorder. If `_UNSET`, uses `config.zorder.legend`.
 
@@ -209,7 +206,6 @@ def legend(
             _param('handleheight', handleheight, 0.7),
             _param('borderaxespad', borderaxespad, config.legend.borderaxespad),
             _param('columnspacing', columnspacing, config.legend.columnspacing),
-            _param('draggable', draggable, config.legend.draggable),
             _param('zorder', zorder, config.zorder.legend),
         ]
     )

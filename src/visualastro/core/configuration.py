@@ -276,7 +276,6 @@ class LegendConfig(PrettyRepr, ResetConfig):
     labelspacing: float = 0.5
     borderaxespad: float = 0.5
     columnspacing: float = 2.0
-    draggable: bool = True
 
 @dataclass(slots=True, repr=False)
 class SavefigConfig(PrettyRepr, ResetConfig):
