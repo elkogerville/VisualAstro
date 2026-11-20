@@ -74,4 +74,5 @@ See Also
 ^^^^^^^^
 
 - :func:`plot_spectrum`
+- :func:`spectral_elbow_markers`
 - :func:`spectral_markers`
