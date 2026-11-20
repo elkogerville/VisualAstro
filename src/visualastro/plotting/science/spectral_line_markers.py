@@ -9,7 +9,7 @@ Description:
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 import astropy.units as u
 import matplotlib.axes as maxes
@@ -38,6 +38,14 @@ from visualastro.plotting.core.lines import _axlines
 __all__ = ['spectral_elbow_markers', 'spectral_markers', 'spectral_vlines']
 
 
+ConnectorExtendType: TypeAlias = (
+    float |
+    u.Quantity |
+    tuple[float | u.Quantity, float | u.Quantity] |
+    list[float | u.Quantity | tuple[float | u.Quantity, float | u.Quantity] | None]
+)
+
+
 def spectral_markers(
     x: float | u.Quantity | Sequence[float | u.Quantity],
     labels: str | Sequence[str | None] | None = None,
@@ -47,7 +55,7 @@ def spectral_markers(
     ax: maxes.Axes | None = None,
     group: bool = True,
     connector: bool = True,
-    connector_extend: float | u.Quantity | tuple[float | u.Quantity, float | u.Quantity] | None = None,
+    connector_extend: ConnectorExtendType | None = None,
     stem: float | u.Quantity | None = None,
     label_loc: Literal['left', 'center', 'right'] | _Unset = _UNSET,
     color: ColorType | str | list[ColorType] | _Unset = _UNSET,
@@ -102,24 +110,22 @@ def spectral_markers(
         individually.
     connector : bool, optional, default=True
         If ``False``, only the prongs are drawn and ``connector_extend`` and
-        ``stem`` are ignored. The connector is drawn only if its length is
-        positive.
-    connector_extend : float | Quantity | tuple[float | Quantity, float | Quantity] | None, optional, default=None
-        Extension of the connector beyond the outermost prongs, in x data
-        units. A scalar extends both sides; a tuple is ``(left, right)``.
-        ``Quantity`` values are converted to ``unit`` if given, without
-        equivalencies.
+        ``stem`` are ignored. The connector is drawn only if its length is positive.
+    connector_extend : ConnectorExtendType | None, optional, default=None
+        Extension of the connector beyond the outermost prongs, in x data units. A
+        scalar extends both sides; a tuple is ``(left, right)``. ``Quantity`` values
+        are converted to ``unit`` if given, without equivalencies.
     stem : float | astropy.units.Quantity | None, optional, default=None
         Length of a vertical segment from the connector anchor to the label,
         in y data units. The stem is drawn at the label anchor x (see
         ``label_loc``), points away from the tips (direction ``sign(h)``)
         and moves the label anchor to ``y + h + sign(h) * stem``. Drawn only
-        for labeled markers and only if ``connector`` is ``True``. ``None``
-        and ``0`` draw no stem. Same unit handling as ``y`` and ``h``.
+        for labeled markers and only where a connector is drawn (``connector=True``
+        and positive connector length). ``None``and ``0`` draw no stem. Same
+        unit handling as ``y`` and ``h``.
     label_loc : {'left', 'center', 'right'} | _Unset, optional, default=_UNSET
         Position of the label anchor along the connector extent (including
-        ``connector_extend``). If ``_UNSET``, uses
-        ``config.spectral_line_marker.label_ha``.
+        ``connector_extend``). If ``_UNSET``, uses ``config.spectral_line_marker.label_ha``.
     color : ColorType | str | list[ColorType] | _Unset, optional, default=_UNSET
         Color of markers and label text. Lines with identical labels share a color.
 
@@ -139,15 +145,13 @@ def spectral_markers(
     unlabeled_color : ColorType | _Unset, optional, default=_UNSET
         Color of unlabeled lines when ``color`` is a colorset or a palette
         ``list``. Ignored if ``color`` is a single color or a per-line
-        ``list``. If ``_UNSET``, uses
-        ``config.spectral_line_marker.unlabeled_color``.
+        ``list``. If ``_UNSET``, uses ``config.spectral_line_marker.unlabeled_color``.
     linewidth : float | list[float] | _Unset, optional, default=_UNSET
         Scalar or per-line (``list``) width. A marker uses the value of its
         first line. If ``_UNSET``, uses ``config.spectral_line_marker.linewidth``.
     linestyle : LineStyleType | list[LineStyleType] | _Unset, optional, default=_UNSET
         Scalar or per-line (``list``) style. A marker uses the value of its
-        first line. If ``_UNSET``, uses
-        ``config.spectral_line_marker.marker_linestyle``.
+        first line. If ``_UNSET``, uses ``config.spectral_line_marker.marker_linestyle``.
     alpha : float | list[float] | _Unset, optional, default=_UNSET
         Scalar or per-line (``list``) alpha of the markers (not applied to
         label text). A marker uses the value of its first line. If
@@ -196,40 +200,6 @@ def spectral_markers(
         One per marker (group), in order of first appearance.
     annotations : list[matplotlib.text.Annotation]
         One per labeled marker, in the same order.
-
-    Raises
-    ------
-    ValueError
-        - ``x`` is empty.
-        - ``labels``, ``y``, ``h``, or a style parameter given as a ``list``
-          has length other than 1 or ``len(x)``.
-        - ``h`` is zero.
-        - ``stem`` is negative.
-        - ``y`` or ``h`` differ among lines of one group.
-        - ``label_loc`` is not ``'left'``, ``'center'`` or ``'right'``.
-        - ``connector_extend`` is negative or a tuple of length != 2.
-        - ``color`` is an empty ``list`` or contains an invalid color.
-        - ``y``, ``h`` and ``stem`` have inconsistent units.
-        - Units are inconsistent among ``x`` and ``connector_extend`` (when
-          ``unit`` is ``None``).
-
-    Notes
-    -----
-    - ``len(markers) == len(x)`` only if ``group=False`` or all labels are unique.
-    - ``tuple`` inputs for ``labels``, ``y`` and ``h`` are treated as
-      sequences. For ``color``, a ``tuple`` is always a single RGB(A) color.
-    - If no line is labeled, a colorset or palette is cycled per line.
-    - ``x`` and ``connector_extend`` are converted only if ``unit`` is given.
-      If ``unit`` is ``None``, they must be given in the same unit.
-      ``y``, ``h`` and ``stem`` are never converted.
-    - ``label_offset_points`` is not tied to ``va`` or the sign of ``h``.
-      Positive ``dy`` always moves the label up.
-    - With ``rotation_mode='default'``, ``ha`` and ``va`` act on the rotated
-      text bbox. With ``'anchor'``, they act on the unrotated text, and the
-      rotation pivots about the pinned point.
-    - Marker types: a bare prong is a scalar ``x`` with ``connector=False``;
-      a bracket is the default; a bracket with a leader to the label is
-      ``stem > 0``.
     """
     xs = [x] if _ndim(x) == 0 else list(x)
     n = len(xs)
@@ -276,7 +246,7 @@ def spectral_markers(
 
     ax = get_ax(ax)
     xv = [float(v) for v in _x_to_values(xs, unit, equivalencies)]
-    ext_lo, ext_hi = _parse_extend(connector_extend, unit, xs)
+    ext = _parse_extend(connector_extend, unit, xs)
     dx_default, _ = config.spectral_line_marker.marker_label_offset_points
 
     colors = _broadcast_param(
@@ -293,12 +263,14 @@ def spectral_markers(
         i0 = idx[0]
         if len({yv[i] for i in idx}) > 1 or len({hv[i] for i in idx}) > 1:
             raise ValueError(
-                f'`y` and `h` must be identical within group {labs[i0]!r}.'
+                f'`y` and `h` must be identical within group {labs[i0]!r}; '
+                'pass `group=False` to draw each line separately.'
             )
         lab = labs[i0]
         xg = [xv[i] for i in idx]
         x_lo, x_hi = min(xg), max(xg)
         y_tip, y_con = yv[i0], yv[i0] + hv[i0]
+        ext_lo, ext_hi = ext[i0]
         c_lo, c_hi = (
             (x_lo - ext_lo, x_hi + ext_hi) if connector else (x_lo, x_hi)
         )
@@ -306,12 +278,13 @@ def spectral_markers(
             'left': c_lo, 'center': 0.5 * (c_lo + c_hi), 'right': c_hi
         }[params.label_loc]
 
+        has_conn = connector and c_hi > c_lo
         segments = [[(xi, y_tip), (xi, y_con)] for xi in xg]
-        if connector and c_hi > c_lo:
+        if has_conn:
             segments.append([(c_lo, y_con), (c_hi, y_con)])
 
         y_lab = y_con
-        if lab is not None and connector and stem_v:
+        if lab is not None and has_conn and stem_v and len(idx) > 1:
             y_lab = y_con + float(np.sign(hv[i0])) * stem_v
             segments.append([(x_anchor, y_con), (x_anchor, y_lab)])
 
@@ -354,7 +327,8 @@ def spectral_elbow_markers(
     y: float | u.Quantity | Sequence[float | u.Quantity],
     h: float | u.Quantity | Sequence[float | u.Quantity],
     label_shift: float | u.Quantity | Sequence[float | u.Quantity | None] | None = None,
-    elbow_frac: float = 0.5,
+    elbow_frac: float | Sequence[float] = 0.5,
+    half_elbow_gap: float | _Unset = _UNSET,
     ax: maxes.Axes | None = None,
     color: ColorType | str | list[ColorType] | _Unset = _UNSET,
     unlabeled_color: ColorType | _Unset = _UNSET,
@@ -375,111 +349,109 @@ def spectral_elbow_markers(
     """
     Plot one elbow marker per spectral line, with the label displaced in x.
 
-    Each line is drawn as a four-point path: vertically from the tip at
-    ``y`` to ``y + elbow_frac * h``, horizontally by ``label_shift``, and
-    vertically to ``y + h``, where the label is placed.
+    Each marker is a path from the tip at ``y`` vertically to
+    ``y + elbow_frac * h``, horizontally by ``label_shift``, then vertically
+    to ``y + h`` (label anchor). With ``elbow_frac=1`` the path is an L: the
+    horizontal run sits at ``y + h`` and the label is placed beside its end.
 
     Parameters
     ----------
-    x : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity]
-        Line positions. A scalar is treated as a single line.
+    x : float | Quantity | Sequence[float | Quantity]
+        Line positions. Scalar is a single line.
     labels : str | Sequence[str | None] | None, optional, default=None
-        - ``str``: broadcast to every line.
-        - sequence: one entry per line (length 1 or ``len(x)``).
-        - ``None``: no labels.
-
-        ``None``, ``''``, whitespace-only strings and ``'none'``
-        (case-insensitive) mark a line as unlabeled. Unlabeled lines get no
-        annotation and are still drawn.
-    y : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity]
-        Data y-coordinate of the path tips. Scalar is broadcast; a
-        sequence has length 1 or ``len(x)``. ``Quantity`` values are used
-        as their bare values, without conversion.
-    h : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity]
-        Signed marker height in data units. The label anchor sits at
-        ``y + h``: ``h > 0`` places it above the tips, ``h < 0`` below. Must
-        be nonzero. Same broadcasting and unit handling as ``y``. Use
-        increasing ``|h|`` across neighboring lines to stagger their labels.
-    label_shift : float | astropy.units.Quantity | Sequence[float | astropy.units.Quantity | None] | None, optional, default=None
-        Signed displacement of each label anchor from its line along x, in x
-        data units; positive moves toward larger ``x``. Scalar is
-        broadcast; a sequence has length 1 or ``len(x)``, and ``None``
-        entries mean no shift. ``Quantity`` values are converted to ``unit``
-        if given, without equivalencies. If ``None``, no label is displaced.
-    elbow_frac : float, optional, default=0.5
-        Fraction of ``h`` at which the horizontal run sits. Must be in (0, 1).
+        Scalar is broadcast; a sequence has length 1 or ``len(x)``. ``None``,
+        ``''``, whitespace-only and ``'none'`` (case-insensitive) mark a line
+        as unlabeled: drawn, but not annotated.
+    y : float | Quantity | Sequence[float | Quantity]
+        Data y-coordinate of the tips. Scalar is broadcast; a sequence has
+        length 1 or ``len(x)``. ``Quantity`` is used as its bare value.
+    h : float | Quantity | Sequence[float | Quantity]
+        Signed marker height in data units; the label anchor sits at ``y + h``
+        (``h > 0``: above the tips). Nonzero. Same handling as ``y``. Increase
+        ``|h|`` across neighboring lines to stagger labels.
+    label_shift : float | Quantity | Sequence[float | Quantity | None] | None, optional, default=None
+        Signed x displacement of the label anchor in x data units. Scalar is
+        broadcast; a sequence has length 1 or ``len(x)``. ``None`` means no
+        shift. ``Quantity`` is converted to ``unit`` if given, without
+        equivalencies.
+    elbow_frac : float | Sequence[float], optional, default=0.5
+        Fraction of ``h`` at which the horizontal run sits. Scalar is
+        broadcast; a sequence has length 1 or ``len(x)``. Each value in
+        (0, 1]; ``1`` selects the half-elbow (L) for that line.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axes on which to draw. If ``None``, uses ``plt.gca()``.
+        Target axes. If ``None``, uses ``plt.gca()``.
     color : ColorType | str | list[ColorType] | _Unset, optional, default=_UNSET
-        Color of markers and label text. Lines with identical labels share a color.
+        Color of markers and label text. Lines with identical labels share a
+        color.
 
         - single color (``str`` | RGB(A) ``tuple``): all markers.
-        - colorset alias (``str``): palette assigned to unique labels in
-          order of first appearance, cycled or cropped.
-        - ``list`` | ``numpy.ndarray``:
-
-          - ``len(color) == len(x)``: one color per line, used verbatim.
-          - otherwise: palette assigned to unique labels, cycled if shorter
-            than the number of unique labels and cropped if longer.
-            Identical labels share a color.
+        - colorset alias (``str``): palette assigned to unique labels in order
+          of first appearance, cycled or cropped.
+        - ``list`` | ``numpy.ndarray``: one color per line if
+          ``len(color) == len(x)`` (verbatim); otherwise a palette assigned
+          to unique labels, cycled or cropped.
 
         If ``_UNSET``, uses ``config.axline.color``.
     unlabeled_color : ColorType | _Unset, optional, default=_UNSET
-        Color of unlabeled lines when ``color`` is a colorset or a palette
-        ``list``. Ignored if ``color`` is a single color or a per-line
-        ``list``. If ``_UNSET``, uses
+        Color of unlabeled lines when ``color`` is a colorset or palette
+        ``list``; ignored otherwise. If ``_UNSET``, uses
         ``config.spectral_line_marker.unlabeled_color``.
     linewidth : float | list[float] | _Unset, optional, default=_UNSET
-        Scalar or per-line (``list``) width. If ``_UNSET``, uses
+        Scalar or per-line width. If ``_UNSET``, uses
         ``config.spectral_line_marker.linewidth``.
     linestyle : LineStyleType | list[LineStyleType] | _Unset, optional, default=_UNSET
-        Scalar or per-line (``list``) style. If ``_UNSET``, uses
+        Scalar or per-line style. If ``_UNSET``, uses
         ``config.spectral_line_marker.marker_linestyle``.
     alpha : float | list[float] | _Unset, optional, default=_UNSET
-        Scalar or per-line (``list``) alpha of the markers (not applied to
-        label text). If ``_UNSET``, uses ``config.axline.alpha``.
+        Scalar or per-line marker alpha (not applied to text). If ``_UNSET``,
+        uses ``config.axline.alpha``.
     unit : astropy.units.UnitBase | None, optional, default=None
-        Unit to convert ``x`` and ``label_shift`` to. If ``None``,
-        ``Quantity`` values are used as their bare values, without
-        conversion.
+        Unit to convert ``x`` and ``label_shift`` to. If ``None``, ``Quantity``
+        values are used as bare values.
     equivalencies : astropy.units.Equivalency | None, optional, default=None
-        Equivalencies used in the unit conversion of ``x``.
+        Equivalencies for the conversion of ``x``.
     fontsize : float | _Unset, optional, default=_UNSET
         Label font size. If ``_UNSET``, uses ``config.fontsizes.resolve('text')``.
     rotation : float | _Unset, optional, default=_UNSET
-        Label rotation in degrees (positive turns CCW). If ``_UNSET``, uses
+        Label rotation in degrees (CCW positive). If ``_UNSET``, uses
         ``config.spectral_line_marker.label_rotation``.
     rotation_mode : {'default', 'anchor'} | _Unset, optional, default=_UNSET
-        Rotation order for the label (matplotlib ``rotation_mode``).
+        Matplotlib ``rotation_mode``.
 
-        - ``'default'``: rotate the text, then align its bbox with ``ha`` and
-          ``va``.
-        - ``'anchor'``: align with ``ha`` and ``va``, then rotate about the
-          pinned point.
+        - ``'default'``: rotate, then align the bbox with ``ha``/``va``.
+        - ``'anchor'``: align with ``ha``/``va``, then rotate about the pinned
+          point.
 
         If ``_UNSET``, uses ``config.spectral_line_marker.label_rotation_mode``.
     ha : {'left', 'center', 'right'} | _Unset, optional, default=_UNSET
-        Horizontal alignment of the label. Selects which point of the text
-        bbox is pinned to the anchor plus offset. If ``_UNSET``, uses
-        ``config.spectral_line_marker.label_ha``.
+        Horizontal label alignment. If ``_UNSET``, uses
+        ``config.spectral_line_marker.label_ha``; for half-elbows with nonzero
+        ``label_shift``, ``'left'`` if positive, ``'right'`` if negative.
     va : {'top', 'bottom', 'center', 'baseline'} | _Unset, optional, default=_UNSET
-        Vertical alignment of the label. Selects which point of the text
-        bbox is pinned to the anchor plus offset (``'top'``: text hangs
-        below the anchor). If ``_UNSET``, ``'bottom'`` when ``h > 0`` and
-        ``'top'`` otherwise, so the label sits outside the marker.
+        Vertical label alignment (``'top'``: text hangs below the anchor). If
+        ``_UNSET``, ``'bottom'`` if ``h > 0`` else ``'top'``; for half-elbows
+        with nonzero ``label_shift``, ``'center'``.
     label_offset_points : tuple[float, float] | _Unset, optional, default=_UNSET
-        Signed ``(dx, dy)`` shift of the label in points, applied after
-        anchoring. Positive ``dx`` moves right, positive ``dy`` moves up,
-        independent of ``ha``, ``va`` and ``rotation``. If ``_UNSET``, ``dx``
-        is ``config.spectral_line_marker.marker_label_offset_points[0]`` and
-        ``dy`` is chosen from ``va`` (``'top'``: -4, ``'bottom'`` and
-        ``'baseline'``: 4, ``'center'``: 0).
+        Signed ``(dx, dy)`` label shift in points, applied after anchoring.
+        ``+dx`` is right and ``+dy`` is up, independent of ``ha``, ``va`` and
+        ``rotation``. If ``_UNSET``:
+
+        - ``dx`` is ``config.spectral_line_marker.marker_label_offset_points[0]``,
+          and ``dy`` follows ``va`` (``'top'``: -4, ``'bottom'``/``'baseline'``:
+          4, ``'center'``: 0).
+        - half-elbows with nonzero ``label_shift``:
+          ``(sign(label_shift) * half_elbow_gap, 0)``.
+
+    half_elbow_gap : float | _Unset, optional, default=_UNSET
+        Gap in points between the end of the horizontal run and the label for
+        half-elbows with nonzero ``label_shift``. Magnitude only; direction
+        follows ``sign(label_shift)``. Ignored if ``label_offset_points`` is
+        given. If ``_UNSET``, uses ``config.spectral_line_marker.half_elbow_label_gap``.
     label_kw : Mapping[str, Any] | None, optional, default=None
-        Extra keyword arguments for ``ax.annotate``. Override label defaults.
+        Extra keyword arguments for ``ax.annotate``; override label defaults.
     **kwargs
         Forwarded to :class:`matplotlib.collections.LineCollection`. Do not
-        pass ``colors``, ``linewidths`` or ``linestyles``; use ``color``,
-        ``linewidth`` and ``linestyle``.
+        pass ``colors``, ``linewidths`` or ``linestyles``.
 
     Returns
     -------
@@ -487,44 +459,6 @@ def spectral_elbow_markers(
         One per line, in input order.
     annotations : list[matplotlib.text.Annotation]
         One per labeled line, in input order.
-
-    Raises
-    ------
-    ValueError
-        - ``x`` is empty.
-        - ``labels``, ``y``, ``h``, ``label_shift``, or a style parameter
-          given as a ``list`` has length other than 1 or ``len(x)``.
-        - ``h`` is zero.
-        - ``elbow_frac`` is not in (0, 1).
-        - ``color`` is an empty ``list`` or contains an invalid color.
-        - ``y`` and ``h`` have inconsistent units.
-        - Units are inconsistent among ``x`` and ``label_shift`` (when
-          ``unit`` is ``None``).
-
-    Notes
-    -----
-    - ``tuple`` inputs for ``labels``, ``y``, ``h`` and ``label_shift`` are
-      treated as sequences. For ``color``, a ``tuple`` is always a single
-      RGB(A) color.
-    - A ``list`` ``color`` of length ``len(x)`` is always read as per-line,
-      even when labels repeat. Use a colorset alias to force per-label color
-      sharing.
-    - If no line is labeled, a colorset or palette is cycled per line.
-    - ``x`` is converted with ``equivalencies``; ``label_shift`` is converted
-      without. Conversion happens only if ``unit`` is given. If ``unit`` is
-      ``None``, both must be given in the same unit. ``y`` and ``h`` are
-      never converted.
-    - Label widths are not measured. ``label_shift`` and ``h`` must be
-      chosen against the final axes limits, figure size and ``fontsize``;
-      they are fixed in data units and do not follow later changes of ``xlim``.
-    - Adding the markers updates the data limits, including the shifted
-      label anchor x; no explicit autoscale is requested. Labels do not
-      affect the limits.
-    - ``label_offset_points`` is not tied to ``va`` or the sign of ``h``.
-      Positive ``dy`` always moves the label up.
-    - With ``rotation_mode='default'``, ``ha`` and ``va`` act on the rotated
-      text bbox. With ``'anchor'``, they act on the unrotated text, and the
-      rotation pivots about the pinned point.
     """
     xs = [x] if _ndim(x) == 0 else list(x)
     n = len(xs)
@@ -546,12 +480,16 @@ def spectral_elbow_markers(
     hv = [float(get_value(v)) for v in hs]
     if any(v == 0 for v in hv):
         raise ValueError('`h` must be nonzero.')
-    if not 0 < elbow_frac < 1:
-        raise ValueError(f'`elbow_frac` must be in (0, 1); got {elbow_frac!r}.')
+    fracs = [float(f) for f in _broadcast_param(_tuple_to_list(elbow_frac), n, 'elbow_frac')]
+    if any(not 0 <= f <= 1 for f in fracs):
+        raise ValueError(f'`elbow_frac` must be in [0, 1]; got {elbow_frac!r}.')
+    half = elbow_frac == 1
 
     params = _resolve_kwargs(
         kwargs,
         [
+            _param('half_elbow_gap', half_elbow_gap,
+                   config.spectral_line_marker.half_elbow_label_gap),
             _param('ha', ha, config.spectral_line_marker.label_ha),
             _param('color', color, config.axline.color),
             _param('unlabeled_color', unlabeled_color,
@@ -586,11 +524,17 @@ def spectral_elbow_markers(
 
     for i in range(n):
         y_tip, y_lab = yv[i], yv[i] + hv[i]
-        y_mid = y_tip + elbow_frac * hv[i]
         x_lab = xv[i] + sv[i]
+        half = fracs[i] == 1
+
+        if half:
+            path = [(xv[i], y_tip), (xv[i], y_lab), (x_lab, y_lab)]
+        else:
+            y_mid = y_tip + fracs[i] * hv[i]
+            path = [(xv[i], y_tip), (xv[i], y_mid), (x_lab, y_mid), (x_lab, y_lab)]
 
         lc = LineCollection(
-            [[(xv[i], y_tip), (xv[i], y_mid), (x_lab, y_mid), (x_lab, y_lab)]],
+            [path],
             colors=colors[i],
             linewidths=widths[i],
             linestyles=styles[i],
@@ -602,13 +546,23 @@ def spectral_elbow_markers(
 
         if labs[i] is None:
             continue
-        va_i = va if va is not _UNSET else ('bottom' if hv[i] > 0 else 'top')
+        ha_i, va_i, off_i = params.ha, va, label_offset_points
+        if half and sv[i] != 0:
+            sign = 1 if sv[i] > 0 else -1
+            if ha is _UNSET:
+                ha_i = 'left' if sign > 0 else 'right'
+            if va is _UNSET:
+                va_i = 'center'
+            if label_offset_points is _UNSET:
+                off_i = (sign * params.half_elbow_gap, 0.0)
+        elif va is _UNSET:
+            va_i = 'bottom' if hv[i] > 0 else 'top'
         annotations.append(
             _annotate_label(
                 ax, labs[i], (x_lab, y_lab), 'data',
-                offset=label_offset_points,
+                offset=off_i,
                 dx_default=dx_default,
-                ha=params.ha, va=va_i,
+                ha=ha_i, va=va_i,
                 rotation=params.rotation,
                 rotation_mode=params.rotation_mode,
                 color=colors[i],
@@ -738,27 +692,6 @@ def spectral_vlines(
         One per ``x`` value, in input order.
     annotations : list[matplotlib.text.Annotation]
         One per non-``None`` label, in input order.
-
-    Raises
-    ------
-    ValueError
-        - ``x`` is empty.
-        - ``labels``, ``y``, or a ``list`` style parameter has length
-          other than 1 or ``len(x)``.
-        - ``color`` contains an invalid color.
-        - Units are inconsistent among ``x`` (when ``unit`` is ``None``),
-          or among ``y``.
-
-    Notes
-    -----
-    - ``tuple`` inputs for ``labels`` and ``y`` are treated as sequences.
-      For ``color``, a ``tuple`` is always a single RGB(A) color.
-    - If no line is labeled, a colorset or palette is cycled per line.
-    - The offset is not tied to ``va``. With ``va='bottom'``, use a positive
-      ``dy`` to place the label above the anchor.
-    - With ``rotation_mode='default'``, ``ha`` and ``va`` act on the rotated
-      text bbox. With ``'anchor'``, they act on the unrotated text, and the
-      rotation pivots about the pinned point.
     """
     xs = [x] if _ndim(x) == 0 else list(x)
     n = len(xs)
@@ -918,46 +851,65 @@ def _x_to_values(coords, unit, equivalencies) -> list:
 
 
 def _parse_extend(
-    extend: float | u.Quantity | tuple[float | u.Quantity, float | u.Quantity] | None,
+    extend: ConnectorExtendType | None,
     unit: u.UnitBase | None,
     xs: Sequence[float | u.Quantity],
-) -> tuple[float, float]:
+) -> list[tuple[float, float]]:
     """
-    Resolve ``connector_extend`` to a non-negative ``(left, right)`` pair.
+    Resolve ``connector_extend`` to a non-negative ``(left, right)`` pair per line.
 
     Parameters
     ----------
-    extend : float | astropy.units.Quantity | tuple[float | astropy.units.Quantity, float | astropy.units.Quantity] | None
-        Scalar (both sides) or ``(left, right)`` tuple. ``None`` gives ``(0, 0)``.
+    extend : ConnectorExtendType | None
+        - scalar: extends both sides, for every line.
+        - ``tuple``: ``(left, right)``, for every line.
+        - ``list``: length 1 or ``len(xs)``, one scalar or ``tuple`` per
+          line. ``None`` entries mean no extension.
+        - ``None``: no extension.
+
     unit : astropy.units.UnitBase | None
         Unit to convert ``Quantity`` values to, without equivalencies.
     xs : Sequence[float | astropy.units.Quantity]
-        Line positions. Used only to check unit consistency with ``extend``
-        when ``unit`` is ``None``.
+        Line positions. Used for the length of the output and, when ``unit``
+        is ``None``, to check unit consistency with ``extend``.
 
     Returns
     -------
-    tuple[float, float]
-        Bare ``(left, right)`` extensions.
+    list[tuple[float, float]]
+        Bare ``(left, right)`` extensions, one per line.
 
     Raises
     ------
     ValueError
-        - ``extend`` is a tuple of length != 2.
-        - Either extension is negative.
+        - ``extend`` is a ``list`` of length other than 1 or ``len(xs)``.
+        - An entry is a ``tuple`` of length != 2.
+        - Any extension is negative.
         - Units of ``extend`` and ``xs`` are inconsistent (``unit`` is ``None``).
     """
-    if extend is None:
-        return 0.0, 0.0
-    pair = extend if isinstance(extend, tuple) else (extend, extend)
-    if len(pair) != 2:
-        raise ValueError('`connector_extend` must be a scalar or a (left, right) tuple.')
+    entries = _broadcast_param(extend, len(xs), 'connector_extend')
+    pairs = [
+        None if e is None else (e if isinstance(e, tuple) else (e, e))
+        for e in entries
+    ]
+    if any(p is not None and len(p) != 2 for p in pairs):
+        raise ValueError(
+            '`connector_extend` entries must be a scalar or a (left, right) tuple.'
+        )
     if unit is None:
-        ensure_common_unit([*xs, *pair])
-    lo, hi = (float(v) for v in _x_to_values(list(pair), unit, None))
-    if lo < 0 or hi < 0:
-        raise ValueError(f'`connector_extend` must be >= 0; got {extend!r}.')
-    return lo, hi
+        given = [v for p in pairs if p is not None for v in p]
+        if given:
+            ensure_common_unit([*xs, *given])
+
+    out = []
+    for p in pairs:
+        if p is None:
+            out.append((0.0, 0.0))
+            continue
+        lo, hi = (float(v) for v in _x_to_values(list(p), unit, None))
+        if lo < 0 or hi < 0:
+            raise ValueError(f'`connector_extend` must be >= 0; got {p!r}.')
+        out.append((lo, hi))
+    return out
 
 
 def _group_indices(labs, group) -> list[tuple[int, ...]]:

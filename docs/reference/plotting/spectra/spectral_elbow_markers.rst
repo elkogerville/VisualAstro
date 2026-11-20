@@ -72,9 +72,6 @@ Label text placement is further controlled by:
   Positive ``dx`` moves the label right and positive ``dy`` moves it up, regardless of ``ha``,
   ``va`` or ``rotation``.
 
-Label widths are not measured. ``label_shift`` and ``h`` are fixed in data units and do not
-follow later ``xlim`` changes. Choose them against the final limits, figure size and ``fontsize``.
-
 
 See Also
 ^^^^^^^^

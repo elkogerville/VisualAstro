@@ -348,6 +348,7 @@ class SpectralLineConfig(PrettyRepr, ResetConfig):
     marker_label_offset_points: tuple[float, float] = (0.0, 0.0)
     vline_linestyle: str = 'dashed'
     vline_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    half_elbow_label_gap: float = 4
 
 @dataclass(slots=True, repr=False)
 class GridConfig(PrettyRepr, ResetConfig):

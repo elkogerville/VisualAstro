@@ -176,7 +176,6 @@ from visualastro.plotting.science.spectra_plots import (
 )
 from visualastro.plotting.science.spectral_axis import spectral_axis_label
 from visualastro.plotting.science.spectral_line_markers import (
-    mark_spectral_lines,
     spectral_elbow_markers,
     spectral_markers,
     spectral_vlines,
