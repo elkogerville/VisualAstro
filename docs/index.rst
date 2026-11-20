@@ -9,3 +9,16 @@ VisualAstro Documentation Page.
    user_guide/index
    reference/index
    dev/index
+
+
+.. image:: _static/visualastro_logo_light.svg
+    :align: left
+    :width: 500px
+    :alt: VisualAstro
+    :class: only-light
+
+.. image:: _static/visualastro_logo_dark.svg
+    :align: left
+    :width: 500px
+    :alt: VisualAstro
+    :class: only-dark

@@ -74,7 +74,11 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'pydata_sphinx_theme'
 html_theme_options = {
-    'logo': {'text': f'VisualAstro {version}'},
+    'logo': {
+        "image_light": "_static/visualastro_logo_light.svg",
+        "image_dark": "_static/visualastro_logo_dark.svg",
+        'text': f'VisualAstro {version}'
+    },
     'secondary_sidebar_items': ['page-toc'],
     'show_toc_level': 2,
     'navigation_depth': 3,
