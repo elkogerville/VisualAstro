@@ -37,9 +37,9 @@ va.legend(
 x = np.arange(500)
 y1, y2, y3 = np.cumsum(rng.normal(size=(3, x.size)), axis=1)
 
-va.step(x, y1, color='stratosphere blue', label='A')
-va.step(x, y2, color='soup of the day', label='B')
-va.step(x, y3, color='aurora green', label='C')
+va.step(x, y1, color='stratosphere blue', label=r'$A$')
+va.step(x, y2, color='soup of the day', label=r'$B$')
+va.step(x, y3, color='aurora green', label=r'$C$')
 
 va.legend(loc='top center', ncols=3, borderaxespad=-1, frameon=True, ec='k')
 plt.show()
