@@ -73,6 +73,20 @@ Label text placement is further controlled by:
   ``va`` or ``rotation``.
 
 
+Changing the Color
+^^^^^^^^^^^^^^^^^^
+
+``color`` accepts a single color, a VisualAstro colorset, or a ``list`` of colors.
+A colorset, or a ``list`` whose length differs from the number of lines, is a palette
+assigned to the unique labels in order of first appearance. It is cycled or cropped as
+needed, so lines with identical labels always share a color. A ``list`` with exactly one
+color per line is used as given, without grouping. The label text inherits the color of
+its line.
+
+
+.. plot:: ../examples/plotting/spectra/plot_spectral_elbow_markers_color.py
+    :include-source: True
+
 See Also
 ^^^^^^^^
 
