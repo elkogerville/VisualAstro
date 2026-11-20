@@ -18,14 +18,8 @@ axis by only taking into account the portion of the data visible in the window s
 limit passed in. The effects are illustrated in the plot below.
 
 
-.. literalinclude:: /../examples/plotting/axes/plot_set_limits_recompute.py
-    :language: python
-
-
-.. image:: /_static/images/reference/plotting/recompute_limits.png
-    :scale: 50 %
-    :alt: effect of recompute_other_axis in set_limits
-    :align: center
+.. plot:: ../examples/plotting/axes/plot_set_limits_recompute.py
+    :include-source: True
 
 
 Symmetric Limits
