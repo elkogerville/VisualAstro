@@ -34,6 +34,7 @@ def axvlines(
     linestyle: LineStyleType | _Unset = _UNSET,
     linewidth: float | _Unset = _UNSET,
     alpha: float | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -64,6 +65,10 @@ def axvlines(
         Unit to which `Quantity` values in `vlines` are converted before
         plotting. If None, no conversion is applied and the bare `.value` of
         each `Quantity` is used.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     equivalencies : astropy.units.Equivalency | None, optional, default=None
         Equivalencies used in the unit conversion. Ignored if `unit` is None.
     **kwargs
@@ -88,6 +93,7 @@ def axvlines(
         linestyle=linestyle,
         linewidth=linewidth,
         alpha=alpha,
+        label=label,
         unit=unit,
         equivalencies=equivalencies,
         **kwargs,
@@ -101,6 +107,7 @@ def axhlines(
     linestyle: LineStyleType | _Unset = _UNSET,
     linewidth: float | _Unset = _UNSET,
     alpha: float | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -131,6 +138,10 @@ def axhlines(
         Unit to which `Quantity` values in `hlines` are converted before
         plotting. If None, no conversion is applied and the bare `.value` of
         each `Quantity` is used.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     equivalencies : astropy.units.Equivalency | None, optional, default=None
         Equivalencies used in the unit conversion. Ignored if `unit` is None.
     **kwargs
@@ -155,6 +166,7 @@ def axhlines(
         linestyle=linestyle,
         linewidth=linewidth,
         alpha=alpha,
+        label=label,
         unit=unit,
         equivalencies=equivalencies,
         **kwargs,
@@ -169,6 +181,7 @@ def _axlines(
     linestyle: LineStyleType | Sequence[LineStyleType] | _Unset = _UNSET,
     linewidth: float | Sequence[float] | _Unset = _UNSET,
     alpha: float | Sequence[float] | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -196,6 +209,10 @@ def _axlines(
     alpha : float | Sequence[float] | None | _Unset, optional, default=_UNSET
         Single alpha for all lines, or a list/array with one per line.
         If _UNSET, uses config.axline.alpha.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     ax, unit, equivalencies, **kwargs
         See `axvlines`.
 
@@ -234,6 +251,7 @@ def _axlines(
             _param('linestyle', linestyle, config.axline.linestyle),
             _param('linewidth', linewidth, config.axline.linewidth),
             _param('alpha', alpha, config.axline.alpha),
+            _param('label', label, None),
         ],
         additional_kwargs=[
             _kwarg('zorder', zorder),
@@ -263,11 +281,17 @@ def _axlines(
                 line = line.value
             values.append(line)
 
+    labels = to_list(params.pop('label'))
     styles = {
         k: _broadcast_param(v, len(values), k)
         for k, v in params.items() if k != 'color'
     }
     styles['color'] = _resolve_axline_colors(params['color'], values)
+    N_lines = len(values)
+    delta = N_lines - len(labels)
+    for _ in range(delta):
+        labels.append(None)
+    styles['label'] = labels
     return [
         draw(x, **{k: v[i] for k, v in styles.items()}, **kwargs)
         for i, x in enumerate(values)

@@ -21,6 +21,7 @@ va.hist(
     vlines_color=['violetred', 'Holy Blue', 'ibmorg'],
     vlines_ls=['solid', 'dotted', 'dashed'],
     vlines_lw=1.5,
+    vlines_labels=['median', 'mean', 'std'],
 )
 va.legend(ax=ax, loc='upper right')
 
