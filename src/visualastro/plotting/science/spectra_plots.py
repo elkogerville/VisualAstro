@@ -1,317 +1,229 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-05-23
-Date Modified: 2026-10-06
+Date Modified: 2026-11-15
 Description:
-    Spectra science functions.
+    Spectra plotting functions.
 """
 
 from __future__ import annotations
+
 from collections import namedtuple
 from collections.abc import Sequence
 from typing import Literal
 
 import astropy.units as u
-from astropy.units import Quantity
-from matplotlib.colors import Colormap, to_rgba
+import matplotlib.axes as maxes
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
+from astropy.units import Quantity
+from matplotlib.colors import Colormap, to_rgba
+from matplotlib.lines import Line2D
+from matplotlib.typing import ColorType
+from numpy.typing import ArrayLike, NDArray
 from scipy.optimize import curve_fit
 
 from visualastro.analysis.image_utils import stack_cube
-from visualastro.analysis.spectra_utils import (
-    GaussianFitResult,
+from visualastro.analysis.spectra import (
     ExtractedPixelSpectra,
-    deredden_flux,
-    fit_continuum,
-    gaussian as _gaussian,
-    gaussian_continuum as _gaussian_continuum,
-    gaussian_line as _gaussian_line,
-    shift_by_radial_vel,
-    _get_spectral_axis,
-    _spectral_axis_2_array,
+    GaussianFitResult,
+    shift_to_rest_frame,
 )
-from visualastro.core.config import (
-    get_config_value,
-    config,
-    _Unset,
+from visualastro.analysis.spectra import (
+    gaussian as _gaussian,
+)
+from visualastro.analysis.spectra import (
+    gaussian_continuum as _gaussian_continuum,
+)
+from visualastro.analysis.spectra import (
+    gaussian_line as _gaussian_line,
+)
+from visualastro.analysis.spectra.manipulation import _masked_segments
+from visualastro.analysis.spectra.utils import _get_spectral_axis
+from visualastro.core.configuration import (
     _UNSET,
-    _resolve_default
+    _Unset,
+    config,
 )
 from visualastro.core.data import get_value, to_array, to_list
-from visualastro.core.io import savefig
+from visualastro.core.io import savefig as savefigure
 from visualastro.core.kwargs import (
-    _pop_kwargs, _param, _kwarg, _resolve_kwargs
+    _extract_kwargs,
+    _kwarg,
+    _param,
+    _resolve_kwargs,
 )
-from visualastro.core.numerical import (
-    interpolate as _interpolate,
-    mask_within_range
-)
+from visualastro.core.numerical import interpolate as _interpolate
+from visualastro.core.numerical import mask_within_range
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.core.units import (
-    ensure_common_unit,
     convert_quantity,
+    ensure_common_unit,
     get_unit,
 )
 from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.spectrumplus import SpectrumPlus
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
-)
 from visualastro.optional_dependencies._spectralcube import SpectralCube
-from visualastro.optional_dependencies._specutils import (
-    SpectralAxis, Spectrum
-)
+from visualastro.optional_dependencies._specutils import Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
-from visualastro.plotting.science.wcs_plots import imshow
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
+from visualastro.plotting.base.plots import plot, step
+from visualastro.plotting.core.axes import set_limits, subplots
+from visualastro.plotting.core.axes.create import get_ax
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import get_colors, sample_cmap
-from visualastro.plotting.core.colors.transforms import _lighten_color
-from visualastro.plotting.core.axes import (
-    set_limits, _set_axis_labels
-)
+from visualastro.plotting.core.legend import _expand_labels, legend
 from visualastro.plotting.core.lines import axvlines
+from visualastro.plotting.core.plot_input import (
+    _resolve_color_alias,
+    _set_prop_cycle_from_kwargs,
+)
 from visualastro.plotting.core.style import _style_context
-from visualastro.plotting.core.utils import _get_zorder
+from visualastro.plotting.interfaces.plot_utils import (
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
+)
+
+__all__ = [
+    'extract_cube_spectrum',
+    'extract_cube_pixel_spectra',
+    'fit_gaussian_2_spec',
+    'plot_spectrum',
+    'plot_combine_spectrum',
+    'plot_extracted_pixel_map',
+]
 
 
-def extract_cube_spectra(
-    cubes,
-    flux_extract_method=_UNSET,
-    extract_mode=None,
-    fit_method=_UNSET,
-    region=None,
-    radial_vel=_UNSET,
-    rest_freq=_UNSET,
-    deredden=_UNSET,
-    unit=_UNSET,
-    emission_line=None,
-    plot_continuum=_UNSET,
-    plot_norm_continuum=_UNSET,
+_EXTRACT_METHODS: dict[str, str] = {
+    'mean': 'mean',
+    'median': 'median',
+    'sum': 'sum',
+}
+
+
+def extract_cube_spectrum(
+    cube: DataCube | SpectralCube | Sequence[DataCube | SpectralCube],
+    flux_extract_method: Literal['mean', 'median', 'sum'] | _Unset = _UNSET,
+    extract_mode: Literal['cube', 'slice', 'ray'] | _Unset = _UNSET,
+    radial_vel: float | u.Quantity | None | _Unset = _UNSET,
+    rest_freq: float | u.Quantity | None | _Unset = _UNSET,
+    unit: str | u.Unit | None | _Unset = _UNSET,
+    convention: str | None = None,
     **kwargs
-):
+) -> Spectrum | list[Spectrum]:
     """
-    Extract 1D spectra from one or more data cubes, with optional continuum normalization,
-    dereddening, and plotting.
+    Extract 1D spectra from one or more data cubes by collapsing both spatial axes.
+
+    Each cube is assumed to have axes ordered `(spectral, y, x)`. The spatial
+    axes (1, 2) are collapsed with the chosen statistic.
 
     Parameters
     ----------
-    cubes : DataCube | SpectralCube | list of cubes
-        Input cube(s) from which to extract spectra. The data must either be
-        a SpectralCube, or a DataCube containing a SpectralCube.
-    flux_extract_method : {'mean', 'median', 'sum'} | None, optional, default=None
-        Method for extracting the flux. If None, uses `config.flux_extract_method`.
-    extract_mode : {'cube', 'slice', 'ray'} | None, optional, default=None
-        Specifies how the spectral cube should be traversed during flux
-        extraction. This controls memory usage and performance for large cubes.
+    cube : DataCube | SpectralCube
+        Input SpectralCubes(s).
+    flux_extract_method : {'mean', 'median', 'sum'} | None | _Unset, optional, default=_UNSET
+        Statistic used to collapse the spatial axes.
+        If None or `_UNSET`, uses `config.flux_extract_method`.
+    extract_mode : {'cube', 'slice', 'ray'} | None | _Unset, optional, default=_UNSET
+        Traversal strategy for the collapse. Trades memory for speed.
 
-            - 'cube' :
-                Load and operate on the entire cube in memory. This is the
-                simplest mode but may be slow or disabled for very large datasets
-                unless `cube.allow_huge_operations = True` is set.
-            - 'slice' :
-                Process the cube slice-by-slice along the spectral axis. This
-                avoids loading the full cube into memory and is recommended for
-                moderately large datasets.
-            - 'ray' :
-                Traverse the cube voxel-by-voxel ('ray-wise'), minimizing memory
-                load at the cost of speed. Recommended for extremely large cubes
-                or low-memory environments.
+        - 'cube' : Load the entire cube in memory. Fastest, but blocked for
+          very large cubes unless `cube.allow_huge_operations = True`.
+        - 'slice' : Process slice-by-slice along the spectral axis. Recommended
+          for moderately large cubes.
+        - 'ray' : Process spaxel-by-spaxel. Lowest memory, slowest. Use for
+          very large cubes or low-memory environments.
 
-        If None, uses `config.spectral_cube_extraction_mode`.
-    fit_method : {'fit_continuum', 'generic'} | None, optional, default=None
-        Method used to fit the continuum. If None, uses `config.spectrum_continuum_fit_method`.
-    region : ArrayLike | None, optional, default=None
-        Wavelength or pixel region(s) to use when `fit_method='fit_continuum'`.
-        Ignored for other methods. This allows the user to specify which
-        regions to include in the fit. Removing strong peaks is preferable to
-        avoid skewing the fit up or down.
-        Ex: Remove strong emission peak at 7um from fit
-        region = [(6.5*u.um, 6.9*u.um), (7.1*u.um, 7.9*u.um)]
-    radial_vel : float | None, optional, default=`_UNSET`
-        Radial velocity in km/s to shift the spectral axis.
-        Astropy units are optional. If None, ignores the radial velocity.
-        If `_UNSET`, uses `config.radial_velocity`.
-    rest_freq : float | None, optional, default=`_UNSET`
-        Rest-frame frequency or wavelength of the spectrum. If None,
-        ignores the rest frequency for unit conversions. If `_UNSET`,
-        uses `config.spectra_rest_frequency`.
-    deredden : bool | None, optional, default=None
-        Whether to apply dereddening to the flux using deredden_flux().
-        If None, uses `config.deredden_spectrum`.
-    unit : str | astropy.units.Unit | None, optional, default=`_UNSET`
-        Desired units for the wavelength axis. Converts the default
-        units if possible. If None, does not try and convert. If `_UNSET`,
-        uses `config.wavelength_unit`.
-    emission_line : str | None, optional, default=None
-        Name of an emission line to annotate on the plot.
-    plot_continuum : bool | None, optional, default=None
-        Whether to overplot the continuum fit. If None, uses `config.plot_continuum_fit`.
-    plot_norm_continuum : bool | None, optional, default=None
-        Whether to plot the normalized extracted spectra. If None,
-        uses `config.plot_normalized_continuum`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `how` : str, optional, default=`config.spectral_cube_extraction_mode`
-          Alias for `extract_mode`.
-        - `convention` : str, optional
-          Doppler convention.
-        - `Rv` : float, optional, default=`config.deredden.Rv`
-          Dereddening parameter.
-        - `Ebv` : float, optional, default=`config.deredden.Ebv`
-          Dereddening parameter.
-        - `deredden_method` : str, optional, default=`config.deredden.method`
-          Extinction law to use.
-        - `deredden_region` : str, optional, default=`config.deredden.region`
-          Region/environment for WD01 extinction law.
-        - `figsize` : tuple, optional, default=`config.figsize`
-          Figure size for plotting.
-        - `style` : str, optional, default=`config.style`
-          Plotting style.
-        - `savefig` : bool, optional, default=`config.savefig.enable`
-          Whether to save the figure to disk.
-        - `dpi` : int, optional, default=`config.savefig.dpi`
-          Figure resolution for saving.
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `colors`, `color`, `c` : list[colors] | None, optional, default=None
-          Colors to use for each dataset. If None, default
-          color cycle is used.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorders`, `zorder` : float | None, optional, default=None
-          Order of line placement. If None, will increment by 1 for
-          each additional line plotted.
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional, default=None
-          Wavelength range to display.
-        - `ylim` : tuple, optional
-          Flux range to display.
-        - `labels`, `label`, `l` : str | list[str], optional, default=None
-          Legend labels.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Location of legend.
-        - `xlabel` : str, optional
-          Label for the x-axis.
-        - `ylabel` : str, optional
-          Label for the y-axis.
-        - `text_loc` : list[float], optional, default=`config.text_loc`
-          Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+        If None or `_UNSET`, uses `config.spectral_cube_extraction_mode`.
+    radial_vel : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
+        Radial velocity used to shift the spectral axis to the rest frame
+        (`shift_to_rest_frame`). Floats are interpreted as km/s. If None,
+        no shift is applied. If `_UNSET`, uses `config.radial_velocity`.
+    rest_freq : float | astropy.units.Quantity | None | _Unset, optional, default=_UNSET
+        Rest-frame frequency or wavelength stored on each `Spectrum` as
+        `rest_value`. If None, no rest value is set.
+        If `_UNSET`, uses `config.spectra_rest_frequency`.
+    unit : str | astropy.units.Unit | None | _Unset, optional, default=_UNSET
+        Target unit of the spectral axis. Conversion uses
+        `astropy.units.spectral()` equivalencies. If None,
+        no conversion is performed. If `_UNSET`, uses `config.wavelength_unit`.
+    convention : str | None, optional, default=None
+        Doppler convention ('optical', 'radio', or 'relativistic'), stored on
+        each `Spectrum` as `velocity_convention`. If None, the specutils
+        default is used.
 
     Returns
     -------
-    SpectrumPlus | list[SpectrumPlus]
-        Single object if one cube is provided, list if multiple cubes are provided.
+    Spectrum
+        Collapsed 1D spectrum. The spectral axis is shifted by `radial_vel`
+        and converted to `unit`. The flux carries the unit of `cube`.
+
+    Raises
+    ------
+    ValueError
+        If `flux_extract_method` is not one of 'mean', 'median', 'sum'.
+    ImportError
+        If `spectral-cube` or `specutils` is not installed.
+    astropy.units.UnitConversionError
+        If the spectral axis cannot be converted to `unit`.
     """
     _require_dependency('spectral-cube', 'specutils')
-    params = _resolve_kwargs(
+    params = _extract_kwargs(
         kwargs,
         params=[
             _param('flux_extract_method', flux_extract_method, config.flux_extract_method),
             _param('extract_mode', extract_mode, config.spectral_cube_extraction_mode),
-            _param('fit_method', fit_method, config.spectrum_continuum_fit_method),
             _param('radial_vel', radial_vel, config.radial_velocity),
             _param('rest_freq', rest_freq, config.spectra_rest_frequency),
-            _param('deredden', deredden, config.deredden_spectrum),
             _param('unit', unit, config.wavelength_unit),
-            _param('plot_continuum', plot_continuum, config.plot_continuum_fit),
-            _param('plot_norm_continuum', plot_norm_continuum, config.plot_normalized_continuum),
+            _param('convention', convention, None),
         ],
-        additional_kwargs=[
-            _kwarg('convention', None),
-            _kwarg('Rv', config.deredden.Rv),
-            _kwarg('Ebv', config.deredden.Ebv),
-            _kwarg('deredden_method', config.deredden.method),
-            _kwarg('deredden_region', config.deredden.region),
-            _kwarg('figsize', config.figsize),
-            _kwarg('style', config.style),
-            _kwarg('savefigure', config.savefig.enable),
-            _kwarg('dpi', config.savefig.dpi),
-        ]
     )
 
-    methods = {
-        'mean': lambda cube: cube.mean(axis=(1, 2), how=params.extract_mode),
-        'median': lambda cube: cube.median(axis=(1, 2), how=params.extract_mode),
-        'sum': lambda cube: cube.sum(axis=(1, 2), how=params.extract_mode)
-    }
-
-    extract_method = methods.get(params.flux_extract_method, None)
-    if extract_method is None:
+    method_name = _EXTRACT_METHODS.get(params['flux_extract_method'])
+    if method_name is None:
         raise ValueError(
-            f"Invalid flux_extract_method '{flux_extract_method}'. "
-            f'Choose from {list(methods.keys())}.'
+            f"Invalid flux_extract_method '{params['flux_extract_method']}'. "
+            f'Choose from {list(_EXTRACT_METHODS)}.'
         )
 
-    cubes = to_list(cubes)
-    ensure_common_unit(cubes)
+    single = isinstance(cube, DataCube | SpectralCube)
+    cubes = [cube] if single else list(cube)
 
-    extracted_spectra = []
+    results = [_extract_single_cube_spectrum(c, **params) for c in cubes]
 
-    for cube in cubes:
+    return results[0] if single else results
 
-        spectral_axis = shift_by_radial_vel(cube.spectral_axis, params.radial_vel)
-        spectral_axis = convert_quantity(spectral_axis, params.unit, equivalencies=u.spectral())
 
-        flux = extract_method(cube)
-        # convert to u.Quantity
-        flux = flux.value * flux.unit
+def _extract_single_cube_spectrum(
+    cube: DataCube | SpectralCube,
+    flux_extract_method: Literal['mean', 'median', 'sum'],
+    extract_mode: Literal['cube', 'slice', 'ray'],
+    radial_vel: float | u.Quantity | None,
+    rest_freq: float | u.Quantity | None,
+    unit: str | u.Unit | None,
+    convention: str | None
+) -> Spectrum:
 
-        if params.deredden:
-            flux = deredden_flux(
-                spectral_axis, flux, params.Rv, params.Ebv,
-                params.deredden_method, params.deredden_region
-            )
-
-        spectrum = Spectrum(
-            spectral_axis=spectral_axis,
-            flux=flux,
-            rest_value=params.rest_freq,
-            velocity_convention=params.convention
+    if not isinstance(cube, (DataCube, SpectralCube)):
+        raise TypeError(
+            'Input `cube` must be a SpectralCube! '
+            f'got: {type(cube).__name__}'
         )
 
-        continuum = fit_continuum(spectrum, params.fit_method, region)
+    spectral_axis = shift_to_rest_frame(cube.spectral_axis, radial_vel)
+    spectral_axis = convert_quantity(spectral_axis, unit, equivalencies=u.spectral())
 
-        flux_normalized = spectrum / continuum
+    flux = u.Quantity(getattr(cube, flux_extract_method)(axis=(1, 2), how=extract_mode))
 
-        extracted_spectra.append(SpectrumPlus(
-            spectrum=spectrum,
-            normalized=flux_normalized.flux,
-            continuum=continuum,
-            fit_method=params.fit_method,
-            region=region
-        ))
-
-    with _style_context(params.style):
-        fig, ax = plt.subplots(figsize=params.figsize)
-        _ = plot_spectra(
-            extracted_spectra,
-            ax=ax,
-            plot_continuum=params.plot_continuum,
-            plot_norm_continuum=params.plot_norm_continuum,
-            emission_line=emission_line,
-            **kwargs
-        )
-        if params.savefigure:
-            savefig(dpi=params.dpi)
-        plt.show()
-
-    return extracted_spectra
+    return Spectrum(
+        spectral_axis=spectral_axis,
+        flux=flux,
+        rest_value=rest_freq,
+        velocity_convention=convention,
+    )
 
 
 def extract_cube_pixel_spectra(
@@ -531,9 +443,7 @@ def extract_cube_pixel_spectra(
     # gives you each spectrum along a column of voxels
     flux_matrix = data[:, ys, xs].T * data_unit
     spectra = [
-        SpectrumPlus(
-            Spectrum(spectral_axis=spectral_axis, flux=flux)
-        )
+        Spectrum(spectral_axis=spectral_axis, flux=flux)
         for flux in flux_matrix
     ]
 
@@ -581,9 +491,7 @@ def extract_cube_pixel_spectra(
         else:
             raise ValueError(f'Unknown combine_method: {params.combine_method}')
 
-        combined_spec = SpectrumPlus(
-            Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
-        )
+        combined_spec = Spectrum(spectral_axis=spectral_axis, flux=combined_flux)
 
     with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
@@ -595,24 +503,22 @@ def extract_cube_pixel_spectra(
             colors = sample_cmap(n_plot, cmap)
 
         for i in tqdm(range(len(spectra)), desc='plotting'):
-            plot_spectra(
+            plot_spectrum(
                 spectra[i],
                 ax,
                 color=[colors[i]],
                 label=labels[i],
-                plot_continuum=False,
             )
 
         fluxes = [spec.flux for spec in spectra]
 
-        if combine_spectra and isinstance(combined_spec, SpectrumPlus):
-            plot_spectra(
+        if combine_spectra and isinstance(combined_spec, Spectrum):
+            plot_spectrum(
                 combined_spec,
                 ax,
                 color='k',
                 ls='--',
                 label=f'combined ({params.combine_method})',
-                plot_continuum=False
             )
             fluxes.append(combined_spec.flux)
 
@@ -625,7 +531,7 @@ def extract_cube_pixel_spectra(
         )
 
         if params.legend:
-            ax.legend(
+            legend(
                 ncols=params.ncols,
                 fontsize=8,
                 loc='upper center',
@@ -633,7 +539,7 @@ def extract_cube_pixel_spectra(
                 frameon=False,
             )
         if params.savefig:
-            savefig(**kwargs)
+            savefigure(**kwargs)
 
         plt.show()
 
@@ -652,7 +558,7 @@ def extract_cube_pixel_spectra(
         plot_extracted_pixel_map(
             result,
             cube=(
-                masked_data if params.background_cube is None
+                data if params.background_cube is None
                 else params.background_cube
             ),
             savefig=params.savefig,
@@ -795,13 +701,10 @@ def plot_extracted_pixel_map(
 
     with _style_context(params.style):
         fig, ax = plt.subplots(figsize=params.figsize)
-        imshow(
+        ax.imshow(
             background,
-            ax,
             origin='lower',
             cmap='gray',
-            colorbar=False,
-            **kwargs
         )
 
         ax.imshow(overlay, origin='lower')
@@ -827,513 +730,259 @@ def plot_extracted_pixel_map(
         ax.set_title(f'Extracted Pixel Locations (n={len(extract_idx)})')
 
         if params.savefig:
-            savefig(**kwargs)
+            savefigure(**kwargs)
 
         plt.show()
 
 
-# Spectra Plotting Functions
-# --------------------------
-def plot_spectra(
-    extracted_spectra=None,
-    ax=None,
-    plot_continuum=_UNSET,
-    plot_norm_continuum=_UNSET,
-    emission_line=None,
-    wavelength=None,
-    flux=None,
-    continuum=None,
-    color=_UNSET,
-    vline=None,
-    **kwargs
-):
+def plot_spectrum(
+    spectrum: Spectrum,
+    ax: maxes.Axes | None = None,
+    plot_mode: Literal['step', 'plot'] = 'step',
+    **kwargs,
+) -> list[Line2D]:
     """
-    Plot one or more extracted spectra on a Matplotlib Axes.
+    Plot all spectra in a :class:`~specutils.Spectrum` on a
+    Matplotlib :class:`~matplotlib.axes.Axes`.
+
+    Is a thin wrapper of :func:`~visualastro.step` or :func:`~visualastro.plot`.
+    Plots ``spectrum.spectral_axis`` and ``spectrum.flux``.
+    Also sets ``xpad`` to 0 by default.
 
     Parameters
     ----------
-    extracted_spectrums : SpectrumPlus | list[SpectrumPlus], optional, default=None
-        Pre-computed spectrum object(s) to plot. If not provided, `wavelength`
-        and `flux` must be given.
+    spectrum : specutils.Spectrum
+        Spectrum to plot. ``spectrum.flux`` must be 1D (one line) or 2D with
+        shape (n_spectra, n_spectral) (one line per row). All rows share
+        the same spectral axis.
     ax : matplotlib.axes.Axes | None, optional, default=None
-        Axis to plot on.
-    plot_norm_continuum : bool, optional, default=None
-        If True, plot normalized flux instead of raw flux.
-        If None, uses `plot_normalized_continuum`.
-    plot_continuum : bool, optional, default=None
-        If True, overplot continuum fit. If None, uses
-        the default value set by `config.plot_continuum_fit`.
-    emission_line : str, optional, default=None
-        Label for an emission line to annotate on the plot.
-    wavelength : ArrayLike, optional, default=None
-        Wavelength array (required if `extracted_spectrums` is None).
-    flux : ArrayLike, optional, default=None
-        Flux array (required if `extracted_spectrums` is None).
-    continuum : ArrayLike, optional, default=None
-        Fitted continuum array.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses `config.default_colorset`.
-    vline : Quantity | float | None, optional, default=None
-        If provided, draw a vertical dotted reference line at this wavelength.
-        If unitless, the value is assumed to be in the same units as the
-        spectral axis.
+        Axes to plot on. If ``None``, resolved via ``get_ax``.
+    plot_mode : {'step', 'plot'}, optional, default='step'
+        Plotting backend, case-insensitive.
 
-    **kwargs : dict, optional
-        Additional parameters.
+        - ``'step'``: calls :func:`~visualastro.step`.
+        - ``'plot'``: calls :func:`~visualastro.plot`.
 
-        Supported keywords:
-
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `color` or `c` : list[colors] | None, optional, default=None
-          Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `zorders`, `zorder` : float, optional, default=None
-          Order of line placement. If None, will increment by 1 for
-          each additional line plotted.
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap to use if `colors` is not provided.
-        - `xlim` : tuple, optional, default=None
-          Wavelength range to display.
-        - `ylim` : tuple, optional
-          Flux range to display.
-        - `labels`, `label`, `l` : str | list[str], optional, default=None
-          Legend labels.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Location of legend.
-        - `xlabel` : str, optional
-          Label for the x-axis.
-        - `ylabel` : str, optional
-          Label for the y-axis.
-        - `text_loc` : list[float], optional, default=`config.text_loc`
-          Location for emission line annotation text in axes coordinates.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
+    **kwargs
+        Additional keyword arguments forwarded to the selected backend
+        (``visualastro.step`` or ``visualastro.plot``).
 
     Returns
     -------
-    lines : Line2D | list[Line2D] | PlotSpectrum
-        The plotted line object(s) created by `Axes.plot`.
+    list[matplotlib.lines.Line2D]
+        Plotted line objects, one per spectrum.
 
-        - If `plot_continuum` is False, returns a single `Line2D` object
-          or a list of `Line2D` objects corresponding to the main spectrum.
-        - If `plot_continuum` is True, returns a `PlotSpectrum` named tuple
-          with the following fields:
-
-            - `lines` : Line2D | list[Line2D]
-              The plotted spectrum line(s).
-            - `continuum_lines` : Line2D | list[Line2D]
-              The plotted continuum fit line(s), if available.
+    Raises
+    ------
+    TypeError
+        If `spectrum` is not a :class:`specutils.Spectrum`.
+        If `ax` is not a Matplotlib Axes (raised by `get_ax`).
+    ValueError
+        If `spectrum.flux` has more than 2 dimensions.
+        If `plot_mode` is not 'step' or 'plot'.
     """
     _require_dependency('specutils')
-    params = _resolve_kwargs(
+
+    if not isinstance(spectrum, Spectrum):
+        raise TypeError(
+            f'`spectrum` must be a `Spectrum`, got {type(spectrum).__name__}.'
+        )
+    if spectrum.flux.ndim > 2:
+        raise ValueError(
+            f'`spectrum.flux` must be 1D or 2D, got {spectrum.flux.ndim}D.'
+        )
+
+    plot_fn = {'step': step, 'plot': plot}.get(str(plot_mode).lower())
+    if plot_fn is None:
+        raise ValueError(
+            f"`plot_mode` must be 'step' or 'plot', got {plot_mode!r}."
+        )
+
+    xpad = kwargs.pop('xpad', 0)
+    return plot_fn(
+        spectrum.spectral_axis, spectrum.flux, ax=ax, xpad=xpad, **kwargs
+    )
+
+
+def plot_combine_spectrum(
+    spectra: Spectrum | Sequence[Spectrum],
+    ax: maxes.Axes | None = None,
+    spectral_edges: Sequence[float] | None = None,
+    concatenate: bool = False,
+    plot_normalize: bool = False,
+    color: ColorType | Sequence[ColorType] | int | None = None,
+    single_color: bool = True,
+    label: str | Sequence[str] | None = None,
+    plot_mode: Literal['step', 'plot'] = 'step',
+    **kwargs,
+) -> list[Line2D]:
+    """
+    Plot one or more spectra on `ax`, optionally stitched into one curve.
+
+    Parameters
+    ----------
+    spectra : Spectrum | Sequence[Spectrum]
+        Spectra to plot, in spectral order.
+    ax : matplotlib.axes.Axes | None, optional, default=None
+        Axes on which to plot. If None, uses the current axes
+        (see `get_ax`).
+    spectral_edges : Sequence[float | Quantity] | None, optional, default=None
+        Edges ``[e0, ..., eN]`` along the spectral axis delimiting N
+        spectra; see :func:`~visualastro.splice_spectra`. Quantities are
+        converted to the spectral axis unit. Floats are assumed to be in that unit.
+    concatenate : bool, optional, default=False
+        If True, plot all spectra as one continuous curve
+        (single artist, single color).
+    plot_normalize : bool, optional, default=False
+        If True, plot `spectrum.normalize` instead of `spectrum.flux`.
+    color : ColorType | Sequence[ColorType] | int | None, optional, default=None
+        Color specification passed to `get_colors`. If None, uses the
+        axes property cycle.
+    single_color : bool, optional, default=False
+        If True, draw every segment with the color of the first segment.
+        Redundant with `concatenate=True`.
+    label : str | Sequence[str] | None, optional, default=None
+        Legend label(s). A string labels the first segment only. A
+        sequence must contain exactly one label per segment.
+    plot_mode : {'step', 'plot'}, optional, default='step'
+        Plotting backend, case-insensitive.
+
+        - ``'step'``: calls :func:`~visualastro.step`.
+        - ``'plot'``: calls :func:`~visualastro.plot`.
+
+    **kwargs
+        Additional keyword arguments. [fill in from the original docstring]
+
+    Returns
+    -------
+    list of matplotlib.lines.Line2D
+        One artist per plotted segment.
+
+    Raises
+    ------
+    ValueError
+        If `plot_mode` is invalid, or if `label` is a sequence whose
+        length differs from the number of segments.
+    """
+    _require_dependency('specutils')
+
+    params = _extract_kwargs(
         kwargs,
         params=[
-            _param('plot_continuum', plot_continuum, config.plot_continuum_fit),
-            _param('plot_norm_continuum', plot_norm_continuum, config.plot_normalized_continuum),
-            _param('color', color, config.color),
+            _param('color', color, None),
+            _param('label', label, None),
         ],
         additional_kwargs=[
-            _kwarg('linestyle', None),
             _kwarg('linewidth', None),
+            _kwarg('linestyle', None),
             _kwarg('alpha', None),
-            _kwarg('zorder', None),
-            _kwarg('cmap', config.cmap),
-            _kwarg('bad_color', None),
-            _kwarg('label', None),
-            _kwarg('xlabel', None),
-            _kwarg('ylabel', None),
-            _kwarg('xlim', None),
-            _kwarg('ylim', None),
-            _kwarg('xpad', config.axes.xpad),
-            _kwarg('ypad', config.axes.ypad),
-            _kwarg('loc', config.legend.loc),
-            _kwarg('text_loc', config.plot_spectra_text_loc),
-            _kwarg('unit_bracket_style', config.unit_bracket_style),
             _kwarg('rasterized', config.rasterized),
         ]
     )
-    cmap = get_cmap(params.cmap, bad_color=params.bad_color)
-    colors = get_colors(params.color, cmap=cmap)
-    fit_colors = [_lighten_color(c) for c in colors]
+    plot_params = _extract_plot_util_kwargs(kwargs)
+    kwargs.update(params)
 
-    alphas = to_list(params.alpha)
-    labels = to_list(params.label)
-    linestyles = to_list(params.linestyle)
-    linewidths = to_list(params.linewidth)
-    zorders = to_list(params.zorder)
+    spectra_list = to_list(spectra)
+    spectral_axes = [spec.spectral_axis for spec in spectra_list]
+    if spectral_edges is not None:
+        spectral_axes.append(spectral_edges)
 
-    if ax is None:
-        raise ValueError('ax must be a Matplotlib axes object!')
+    ensure_common_unit(spectral_axes)
+    ensure_common_unit([spec.flux for spec in spectra_list])
 
-    # construct SpectrumPlus if user passes in wavelength and flux
-    if extracted_spectra is None:
-        # disable normalization because the user provided raw arrays
-        params.plot_norm_continuum = False
+    segments = _masked_segments(spectra_list, spectral_edges, plot_normalize)
+    if concatenate:
+        segments = [(
+            np.concatenate([w for w, _ in segments]),
+            np.concatenate([f for _, f in segments]),
+        )]
 
-        # normalize continuum_fit into a list
-        if isinstance(continuum, (list, tuple)):
-            continuum_list = list(continuum)
-        else:
-            continuum_list = [continuum]
+    if (color := kwargs['color']) is not None:
+        kwargs['color'] = get_colors(color)
 
-        # case 1: single wavelength/flux array
-        if (
-            isinstance(wavelength, (np.ndarray, Quantity, SpectralAxis)) and
-            isinstance(flux, (np.ndarray, Quantity))
-        ):
-            extracted_spectra = SpectrumPlus(
-                spectral_axis=wavelength,
-                flux=flux,
-                continuum=continuum_list[0]
-            )
-        # case 2: multiple arrays
-        elif (
-            isinstance(wavelength, (list, tuple)) and
-            isinstance(flux, (list, tuple)) and
-            len(wavelength) == len(flux)
-        ):
-            extracted_spectra = [
-                SpectrumPlus(
-                    spectral_axis=w,
-                    flux=f,
-                    continuum=continuum_list[i % len(continuum_list)]
-                )
-                for i, (w, f) in enumerate(zip(wavelength, flux))
-            ]
-        else:
-            raise ValueError(
-                'Either pass `extracted_spectra`, or provide matching '
-                '`wavelength` and `flux` arguments. \nFor multiple spectra, '
-                'use lists of wavelength and flux arrays with equal length.'
-            )
+    ax = get_ax(ax)
+    _set_prop_cycle_from_kwargs(ax, kwargs)
 
-    extracted_spectra = to_list(extracted_spectra)
-    ensure_common_unit(extracted_spectra, on_mismatch=config.unit_mismatch)
-
-    if emission_line is not None:
-        ax.text(
-            params.text_loc[0], params.text_loc[1],
-            f'{emission_line}', transform=ax.transAxes
+    plot_fn = {'step': step, 'plot': plot}.get(str(plot_mode).lower())
+    if plot_fn is None:
+        raise ValueError(
+            f"`plot_mode` must be 'step' or 'plot', got {plot_mode!r}."
         )
 
-    lines = []
-    fit_lines = []
-    wavelength_list = []
-    flux_list = []
-    flux_mask_list = []
+    label = kwargs.pop('label')
+    labels = _expand_labels(label, len(segments))
+    artists: list[Line2D] = []
 
-    for i, extracted_spectrum in enumerate(extracted_spectra):
+    for i, ((wave, flux), lab) in enumerate(zip(segments, labels, strict=True)):
+        lines = plot_fn(get_value(wave), get_value(flux), ax=ax, label=lab, **kwargs)
+        artists.extend(lines)
+        if single_color and i == 0:
+            kwargs['color'] = lines[0].get_color()
 
-        w = extracted_spectrum.spectral_axis
-        if params.plot_norm_continuum:
-            f = extracted_spectrum.normalized
-        else:
-            f = extracted_spectrum.flux
-        wave_arr = _spectral_axis_2_array(w)
-        flux_arr = to_array(f)
-
-        mask = mask_within_range(wave_arr, lim=params.xlim)
-        wavelength_list.append(w[mask])
-        flux_list.append(f)
-        flux_mask_list.append(flux_arr[mask])
-
-        color = _cycle(colors, i)
-        fit_color = _cycle(fit_colors, i)
-        linestyle = _cycle(linestyles, i)
-        linewidth = _cycle(linewidths, i)
-        alpha = _cycle(alphas, i)
-        zorder = _get_zorder(zorders, i, config.zorder.plot_data)
-        label = labels[i] if (_cycle(labels, i) is not None and i < len(labels)) else None
-
-        l = ax.plot(
-            wave_arr[mask], flux_arr[mask],
-            color=color,
-            ls=linestyle,
-            lw=linewidth,
-            alpha=alpha,
-            zorder=zorder,
-            label=label,
-            rasterized=params.rasterized
-        )
-
-        if params.plot_continuum and extracted_spectrum.continuum is not None:
-            if params.plot_norm_continuum:
-                continuum = extracted_spectrum.continuum/extracted_spectrum.continuum
-            else:
-                continuum = extracted_spectrum.continuum
-            fl = ax.plot(
-                wave_arr[mask], to_array(continuum)[mask],
-                color=fit_color,
-                ls=linestyle,
-                lw=linewidth,
-                alpha=alpha,
-                rasterized=params.rasterized
-            )
-
-            fit_lines.append(fl)
-
-        lines.append(l)
-
-    set_limits(
-        ax=ax,
-        xlim=params.xlim, ylim=params.ylim,
-        xpad=0
-    )
-    _set_axis_labels(
-        _cycle(wavelength_list, config.reference_idx),
-        _cycle(flux_list, config.reference_idx),
-        ax,
-        params.xlabel, params.ylabel,
-        unit_bracket_style=params.unit_bracket_style
+    plot_params.limits['xpad'] = kwargs.pop('xpad', 0)
+    _apply_plot_utils(
+        plot_params, ax,
+        x=segments[0][0], y=segments[0][1],
+        img=artists[0],
+        label=labels[0],
+        **kwargs
     )
 
-    axvlines(vline, ax=ax, unit=_cycle(extracted_spectra, config.reference_idx).unit)
-
-    if labels[0] is not None:
-        ax.legend(loc=params.loc)
-
-    if params.plot_continuum:
-        PlotHandles = namedtuple('PlotSpectrum', ['lines', 'continuum_lines'])
-        return PlotHandles(lines, fit_lines)
-
-    return lines
-
-
-def plot_combine_spectrum(extracted_spectra, ax, idx=0, wave_cuttofs=None,
-                          concatenate=False, return_spectra=False,
-                          plot_normalize=False, use_samecolor=True,
-                          colors=_UNSET, **kwargs):
-    """
-    Allows for easily plotting multiple spectra and stiching them together into
-    one `SpectrumPlus` object.
-
-    Parameters
-    ----------
-    extracted_spectra : list[`SpectrumPlus` | `Spectrum`] | list[list[`SpectrumPlus` | `Spectrum`]]
-        List of spectra to plot. Each element should contain wavelength and flux attributes,
-        and optionally the normalize attribute.
-    ax : matplotlib.axes.Axes
-        Axis on which to plot the spectra.
-    idx : int, optional, default=0
-        Index to select a specific spectrum if elements of `extracted_spectra` are lists.
-        This is useful when extracting spectra from multiple regions at once.
-        Ex:
-            spec_1 = [spectrum1, spectrum2]
-            spec_2 = [spectrum3, spectrum4]
-            extracted_spectra = [spec_1[idx], spec_2[idx]]
-    wave_cuttofs : list[float], optional, default=None
-        Wavelength limits of each spectra used to mask spectra when stiching together.
-        If provided, should contain the boundary wavelengths in sequence (e.g., [λ₀, λ₁, λ₂, ...λₙ]).
-        Note:
-            If N spectra are provided, ensure there are N+1 limits. For each i spectra, the
-            program will define the limits as `wave_cuttofs[i]` < `spectra[i]` < `wave_cuttofs[i+1]`.
-    concatenate : bool, optional, default=False
-        If True, concatenate all spectra and plot as a single continuous curve.
-    return_spectra : bool, optional, default=False
-        If True, return the concatenated `SpectrumPlus` object instead of only plotting.
-        If True, `concatenate` is set to True.
-    plot_normalize : bool, optional, default=False
-        If True, plot the normalized flux instead of the raw flux.
-    use_samecolor : bool, optional, default=True
-        If True, use the same color for all spectra. If `concatenate` is True,
-        `use_samecolor` is also set to True.
-    colors : list of colors, str, or None, optional, default=None
-        Colors to use for each scatter group or dataset.
-        If None, uses `config.default_colorset`.
-
-    **kwargs : dict, optional
-        Additional parameters.
-
-        Supported keywords:
-
-        - `rasterized` : bool, optional, default=`config.rasterized`
-          Whether to rasterize plot artists. Rasterization
-          converts the artist to a bitmap when saving to
-          vector formats (e.g., PDF, SVG), which can
-          significantly reduce file size for complex plots.
-        - `ylim` : tuple, optional, default=None
-          y-axis limits as (ymin, ymax).
-        - `color` or `c` : list[colors] | None, optional, default=None
-          Aliases for `colors`.
-        - `linestyles`, `linestyle`, `ls` : str | list[str], optional, default=`config.linestyle`
-          Line style of plotted lines. Accepted styles: {'-', '--', '-.', ':', ''}.
-        - `linewidths`, `linewidth`, `lw` : float | list[float], optional, default=`config.linewidth`
-          Line width for the plotted lines.
-        - `alphas`, `alpha`, `a` : float | list[float], optional, default=`config.alpha`
-          The alpha blending value, between 0 (transparent) and 1 (opaque).
-        - `cmap` : str, optional, default=`config.cmap`
-          Colormap name for generating colors.
-        - `label` : str, optional, default=None.
-          Label for the plotted spectrum.
-        - `loc` : str, optional, default=`config.legend.loc`
-          Legend location (e.g., 'best', 'upper right').
-        - `xlabel`, `ylabel` : str, optional, default=None
-          Axis labels.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
-
-    Returns
-    -------
-    SpectrumPlus | None
-        If `return_spectra` is True, returns the concatenated spectrum.
-        Otherwise, returns None.
-
-    Notes
-    -----
-
-    - If `concatenate` is True, all spectra are merged and plotted as one line.
-    - If `wave_cuttofs` is provided, each spectrum is masked to its corresponding
-      wavelength interval before plotting.
-    """
-    _require_dependency('specutils')
-    # ---- KWARGS ----
-    # figure params
-    rasterized = kwargs.get('rasterized', config.rasterized)
-    ylim = kwargs.get('ylim', None)
-    # line params
-    colors = _pop_kwargs(kwargs, 'color', 'c', default=colors)
-    linestyles = _pop_kwargs(kwargs, 'linestyles', 'linestyle', 'ls', default=None)
-    linewidths = _pop_kwargs(kwargs, 'linewidths', 'linewidth', 'lw', default=None)
-    alphas = _pop_kwargs(kwargs, 'alphas', 'alpha', 'a', default=None)
-    cmap = kwargs.get('cmap', config.cmap)
-    # labels
-    label = kwargs.get('label', None)
-    loc = kwargs.get('loc', config.legend.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
-
-    # get default config values
-    colors = _resolve_default(colors, config.color)
-    linestyles = get_config_value(linestyles, 'linestyle')
-    linewidths = get_config_value(linewidths, 'linewidth')
-    alphas = get_config_value(alphas, 'alpha')
-
-    # ensure units match and that extracted_spectra is a list
-    extracted_spectra = to_list(extracted_spectra)
-    ensure_common_unit(extracted_spectra)
-    # hardcode behavior to avoid breaking
-    if return_spectra:
-        concatenate = True
-    if concatenate:
-        use_samecolor = True
-
-    # set plot style and colors
-    colors = get_colors(colors, cmap=cmap)
-
-    wave_list = []
-    flux_list = []
-    wavelength_lims = []
-    for i, spectrum in enumerate(extracted_spectra):
-        # index spectrum if list
-        spectrum = spectrum[idx] if isinstance(spectrum, list) else spectrum
-        # extract wavelength and flux
-        wavelength = spectrum.spectral_axis
-        flux = spectrum.normalize if plot_normalize else spectrum.flux
-        # compute minimum and maximum wavelength values
-        wmin = np.nanmin(get_value(wavelength))
-        wmax = np.nanmax(get_value(wavelength))
-        wavelength_lims.append( [wmin, wmax] )
-        # mask wavelength and flux if user passes in limits
-        if wave_cuttofs is not None:
-            wave_min: float = wave_cuttofs[i]
-            wave_max: float = wave_cuttofs[i+1]
-            mask = mask_within_range(get_value(wavelength), (wave_min, wave_max))
-            wavelength = wavelength[mask]
-            flux = flux[mask]
-
-        c = colors[0] if use_samecolor else colors[i%len(colors)]
-        # only plot a label for combined spectrum, not each sub spectra
-        l = label if label is not None and i == len(extracted_spectra)-1 else None
-        # append to lists if concatenate
-        if concatenate:
-            wave_list.append(wavelength)
-            flux_list.append(flux)
-        # plot spectrum if not concatenating
-        else:
-            ax.plot(wavelength, flux, color=c,
-                    label=l, ls=linestyles,
-                    lw=linewidths, alpha=alphas,
-                    rasterized=rasterized)
-    # plot entire spectrum if concatenate
-    if concatenate:
-        wavelength = np.concatenate(wave_list)
-        flux = np.concatenate(flux_list)
-
-        ax.plot(get_value(wavelength),
-                get_value(flux),
-                color=c, label=l, ls=linestyles,
-                lw=linewidths, alpha=alphas,
-                rasterized=rasterized)
-
-    _set_axis_labels(wavelength, flux, ax, xlabel, ylabel, unit_bracket_style)
-
-    if ylim is not None:
-        ax.set_ylim(ylim[0], ylim[1])
-    if wave_cuttofs is None:
-        xmin = min(l[0] for l in wavelength_lims)
-        xmax = max(l[1] for l in wavelength_lims)
-    else:
-        xmin = wave_cuttofs[0]
-        xmax = wave_cuttofs[-1]
-    ax.set_xlim(xmin, xmax)
-
-    if label is not None:
-        ax.legend(loc=loc)
-
-    if return_spectra:
-        extracted_spectrum = SpectrumPlus(wavelength, flux)
-
-        return extracted_spectrum
+    return artists
 
 
 # Spectra Fitting Functions
 # -------------------------
 def fit_gaussian_2_spec(
-    extracted_spectrum, p0, *, model=None, spectral_range=None,
-    fit_method=None, absolute_sigma=None, yerror=None,
-    interpolate=_UNSET, samples=None, interp_method=None,
-    error_interp_method=None, return_fit_params=None,
-    plot_interp=False, print_vals=None, **kwargs
-):
+    spectrum: Spectrum,
+    p0: ArrayLike,
+    *,
+    model: Literal['gaussian', 'gaussian_line', 'gaussian_continuum'] | _Unset = _UNSET,
+    spectral_range: tuple[float, float] | None = None,
+    fit_method: Literal['lm', 'trf', 'dogbox'] | _Unset = _UNSET,
+    absolute_sigma: bool | _Unset = _UNSET,
+    yerror: Quantity | ArrayLike | None = None,
+    interpolate: bool | _Unset = _UNSET,
+    samples: int | _Unset = _UNSET,
+    interp_method: Literal['cubic', 'cubic_spline', 'linear'] | _Unset = _UNSET,
+    error_interp_method: Literal['cubic', 'cubic_spline', 'linear'] | _Unset = _UNSET,
+    return_fit_params: bool | _Unset = _UNSET,
+    plot_interp: bool = False,
+    print_vals: bool | _Unset = _UNSET,
+    **kwargs
+) -> GaussianFitResult | tuple:
     """
     Fit a Gaussian-like model to a Spectrum, optionally including the continuum.
 
     Parameters
     ----------
-    extracted_spectrum : SpectrumPlus | Spectrum
-        Spectrum object to be gaussian fitted.
-    p0 : list
+    spectrum : Spectrum
+        :class:`~specutils.Spectrum` object to be gaussian fitted.
+    p0 : ArrayLike
         Initial guess for the Gaussian fit parameters.
         This should match the input arguments of the
         gaussian model (excluding the first argument
-        which is wavelength).
-    model : {'gaussian', 'gaussian_line', 'gaussian_continuum'} | None, optional, default=None
+        which is the spectral axis). For `model='gaussian_continuum'`,
+        the last element must be the continuum array, with the
+        same shape as `spectrum.flux`. It is removed from `p0`
+        before fitting.
+    model : {'gaussian', 'gaussian_line', 'gaussian_continuum'} | _Unset, optional, default=_UNSET
         Type of Gaussian model to fit:
 
         - 'gaussian' : standard Gaussian
         - 'gaussian_line' : Gaussian with linear continuum
         - 'gaussian_continuum' : Gaussian with computed continuum array
 
-        The continuum can be computed with fit_continuum().
-        If None, uses `config.gaussian_model`.
-    spectral_range : ArrayLike | None, optional, default=None
-        (min, max) wavelength range to restrict the fit.
-        If None, computes the min and max from the wavelength.
-    fit_method : {'lm', 'trf', 'dogbox'} | None, optional, default=None
+        The continuum can be computed with `compute_continuum()`.
+        If ``_UNSET``, uses `config.gaussian_model`.
+    spectral_range : tuple[float, float] | None, optional, default=None
+        (min, max) spectral axis range to restrict the fit, in the units
+        of `spectrum.spectral_axis`. If ``None``, computes the min and max
+        from the spectral axis.
+    fit_method : {'lm', 'trf', 'dogbox'} | _Unset, optional, default=_UNSET
         Curve fitting algorithm used by `scipy.optimize.curve_fit`.
-        If None, uses `config.curve_fit.method`.
-    absolute_sigma : boolean, optional, default=None
+        If ``_UNSET``, uses ``config.curve_fit.method``.
+    absolute_sigma : bool | _Unset, optional, default=_UNSET
         If True, the values provided in `yerror` are interpreted as absolute
         1σ uncertainties on the flux measurements. In this case, the returned
         covariance matrix reflects these absolute uncertainties, and parameter
@@ -1345,61 +994,43 @@ def fit_gaussian_2_spec(
         Set this to True when `yerror` represents well-calibrated observational
         uncertainties (e.g., photon-counting or pipeline-provided errors).
         Set this to False when `yerror` is used only for weighting the fit.
-        If None, uses `config.curve_fit.absolute_sigma`.
-    yerror : ArrayLike | None, optional, default=None
-        Flux uncertainties to be used in the fit. If None,
-        uncertainties are ignored when computing the fit.
-        This is passed to `curve_fit` as the `sigma` parameter.
+        If `_UNSET`, uses `config.curve_fit.absolute_sigma`.
+    yerror : Quantity | ArrayLike | None, optional, default=None
+        Flux uncertainties to be used in the fit, in the units of
+        `spectrum.flux`. If None, uncertainties are ignored when
+        computing the fit. This is passed to `curve_fit` as the
+        `sigma` parameter.
     interpolate : bool | _Unset, optional, default=_UNSET
-        Whether to interpolate the spectrum over a regular wavelength grid.
+        Whether to interpolate the spectrum over a regular spectral axis grid.
         The number of samples is controlled by `samples`. If `_UNSET`, uses `config.curve_fit.interpolate`.
-    samples : int | None, optional, default=None
-        Number of points in interpolated wavelength grid. If
-        None, uses `config.curve_fit.samples`.
-    interp_method : {'cubic', 'cubic_spline', 'linear'} | None, optional, default=None
-        Interpolation method used. If None, uses `config.curve_fit.interpolation_method`.
-    error_interp_method : {'cubic', 'cubic_spline', 'linear'} | None, optional, default=None
-        Method to interpolate yerror if provided. If None, uses
-        the default value set by `config.curve_fit.error_interpolation_method`.
-    return_fit_params : bool | None, optional, default=None
+    samples : int | _Unset, optional, default=_UNSET
+        Number of points in interpolated spectral axis grid. If
+        `_UNSET`, uses `config.curve_fit.samples`.
+    interp_method : {'cubic', 'cubic_spline', 'linear'} | _Unset, optional, default=_UNSET
+        Interpolation method used. If `_UNSET`, uses
+        `config.curve_fit.interpolation_method`.
+    error_interp_method : {'cubic', 'cubic_spline', 'linear'} | _Unset, optional, default=_UNSET
+        Method to interpolate yerror if provided. If `_UNSET`, uses
+        `config.curve_fit.error_interpolation_method`.
+    return_fit_params : bool | _Unset, optional, default=_UNSET
         If True, return full computed best-fit parameters for all parameters,
         including popt, pcov, and perr. If False, return only Flux, FWHM, and mu.
-        If None, uses `config.return_gaussian_fit_parameters`.
+        If `_UNSET`, uses `config.return_gaussian_fit_parameters`.
     plot_interp : bool, optional, default=False
         If True, plot the interpolated spectrum. This is
         provided for debugging purposes.
-    print_vals : bool | None, optional, default=None
-        If True, print a table of best-fit parameters,
-        errors, and computed quantities. If None, uses `config.print_gaussian_values`.
+    print_vals : bool | _Unset, optional, default=_UNSET
+        If ``True``, print a table of best-fit parameters,
+        errors, and computed quantities. If `_UNSET`,
+        uses `config.print_gaussian_values`.
 
     **kwargs : dict, optional
-        Additional parameters.
 
-        Supported keywords:
-
-        - `figsize` : list | tuple, optional, default=`config.figsize`
-          Figure size.
-        - `style` : str | {'astro', 'latex', 'minimal', 'default'}, optional, default=`config.style`
-          Plot style used. Can either be a Matplotlib mplstyle
-          or an included VisualAstro style.
         - `xlim` : tuple, optional, default=None
-          Wavelength range for plotting. If None, uses `wave_range`.
-        - `plot_type` : {'plot', 'scatter'}, optional, default='plot'
-          Matplotlib plotting style to use.
-        - `label` : str, optional, default=None
-          Spectrum legend label.
-        - `xlabel` : str, optional, default=None
-          Plot x-axis label.
-        - `ylabel` : str, optional, default=None
-          Plot y-axis label.
-        - `colors` : str | list, optional, default=`config.color`
-          Plot colors. If None, will use default VisualAstro color colorset.
-        - `unit_bracket_style` : {'round', 'square'}, optional, default=`config.unit_bracket_style`
-          If `'round`' displays spectra units as (unit). If `'square`' as [unit].
-        - `savefig` : bool, optional, default=`config.savefig.enable`
+          Wavelength range for plotting. If None, uses `spectral_range`.
+        - `savefig` : bool, optional, default=False
           If True, save current figure to disk.
-        - `dpi` : float | int, optional, default=`config.savefig.dpi`
-          Resolution in dots per inch.
+        - Any parameter passed on to :func:`~visualastro.plot`
 
     Returns
     -------
@@ -1420,38 +1051,28 @@ def fit_gaussian_2_spec(
                 1σ uncertainties on the above quantities.
     """
     _require_dependency('specutils')
-    # ---- KWARGS ----
-    # figure params
-    figsize = kwargs.get('figsize', config.figsize)
-    style = kwargs.get('style', config.style)
-    xlim = kwargs.get('xlim', None)
-    plot_type = kwargs.get('plot_type', 'plot')
-    # labels
-    label = kwargs.get('label', None)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
-    colors = _pop_kwargs(kwargs, 'colors', 'color', 'c', default=None)
-    unit_bracket_style = kwargs.get('unit_bracket_style', config.unit_bracket_style)
-    # savefig
-    savefig = kwargs.get('savefig', config.savefig.enable)
-    dpi = kwargs.get('dpi', config.savefig.dpi)
 
-    # get default config values
-    colors = get_config_value(colors, 'colors')
-    model = get_config_value(model, 'gaussian_model')
-    fit_method = _resolve_default(fit_method, config.curve_fit.interpolation_method)
-    absolute_sigma = _resolve_default(absolute_sigma, config.curve_fit.absolute_sigma)
-    interpolate = _resolve_default(interpolate, config.curve_fit.interpolate)
-    interp_method = _resolve_default(interp_method, config.curve_fit.interpolation_method)
-    error_interp_method = _resolve_default(error_interp_method, config.curve_fit.error_interpolation_method)
-    samples = _resolve_default(samples, config.curve_fit.samples)
-    return_fit_params = get_config_value(return_fit_params, 'return_gaussian_fit_parameters')
-    print_vals = get_config_value(print_vals, 'print_gaussian_values')
+    params = _resolve_kwargs(
+        kwargs,
+        params=[
+            _param('model', model, config.gaussian_model),
+            _param('fit_method', fit_method, config.curve_fit.method),
+            _param('absolute_sigma', absolute_sigma, config.curve_fit.absolute_sigma),
+            _param('interpolate', interpolate, config.curve_fit.interpolate),
+            _param('samples', samples, config.curve_fit.samples),
+            _param('interp_method', interp_method, config.curve_fit.interpolation_method),
+            _param('error_interp_method', error_interp_method, config.curve_fit.error_interpolation_method),
+            _param('return_fit_params', return_fit_params, config.return_gaussian_fit_parameters),
+            _param('print_vals', print_vals, config.print_gaussian_values),
+        ],
+        additional_kwargs=[
+            _kwarg('color', _UNSET),
+            _kwarg('savefig', config.savefig.enable),
+        ]
+    )
 
-    # ensure arrays are not quantity objects
-    spectral_axis = extracted_spectrum.spectral_axis
-    flux = extracted_spectrum.flux
-
+    spectral_axis = spectrum.spectral_axis
+    flux = spectrum.flux
     spectral_unit = spectral_axis.unit
     flux_unit = flux.unit
 
@@ -1467,7 +1088,7 @@ def fit_gaussian_2_spec(
     if spectral_range is None:
         spectral_range = (np.nanmin(x0), np.nanmax(x0))
 
-    if model == 'gaussian_continuum':
+    if params.model == 'gaussian_continuum':
         # remove continuum values to ensure it is not
         # included as a free parameter during minimization
         continuum = np.asarray(p0.pop(-1))
@@ -1481,7 +1102,7 @@ def fit_gaussian_2_spec(
     y0 = y0[spectral_mask]
     if yerror is not None:
         yerror = yerror[spectral_mask]
-    if model == 'gaussian_continuum' and continuum is not None:
+    if params.model == 'gaussian_continuum' and continuum is not None:
         continuum = continuum[spectral_mask]
 
     finite_mask = np.isfinite(x0) & np.isfinite(y0)
@@ -1492,7 +1113,7 @@ def fit_gaussian_2_spec(
     if yerror is not None:
         yerror = yerror[finite_mask]
 
-    if model == 'gaussian_continuum' and continuum is not None:
+    if params.model == 'gaussian_continuum' and continuum is not None:
         continuum = continuum[finite_mask]
 
     if len(x0) == 0:
@@ -1501,29 +1122,38 @@ def fit_gaussian_2_spec(
         )
 
     # interpolate arrays
-    if interpolate:
+    if params.interpolate:
         # interpolate wavelength and flux arrays
         x, y = _interpolate(
-            x0, y0, spectral_range, samples, method=interp_method
+            x0, y0,
+            x_range=spectral_range,
+            N_samples=params.samples,
+            method=params.interp_method,
         )
         # interpolate y error values
         if yerror is not None:
             _, yerror = _interpolate(
-                x0, yerror, spectral_range, samples, method=error_interp_method
+                x0, yerror,
+                x_range=spectral_range,
+                N_samples=params.samples,
+                method=params.error_interp_method
             )
         # interpolate continuum array
-        if model == 'gaussian_continuum' and continuum is not None:
+        if params.model == 'gaussian_continuum' and continuum is not None:
             _, continuum = _interpolate(
-                x0, continuum, spectral_range, samples, method=interp_method
+                x0, continuum,
+                x_range=spectral_range,
+                N_samples=params.samples,
+                method=params.interp_method,
             )
     else:
         x, y = x0, y0
 
-    if model == 'gaussian_continuum' and continuum is not None:
+    if params.model == 'gaussian_continuum' and continuum is not None:
         def function(x, A, mu, sigma):
             return _gaussian_continuum(x, A, mu, sigma, continuum)
 
-    elif model == 'gaussian_line':
+    elif params.model == 'gaussian_line':
         function = _gaussian_line
 
     else:
@@ -1533,8 +1163,8 @@ def fit_gaussian_2_spec(
     popt, pcov = curve_fit(
         function, x, y, p0,
         sigma=yerror,
-        absolute_sigma=absolute_sigma,
-        method=fit_method
+        absolute_sigma=params.absolute_sigma,
+        method=params.fit_method
     )
 
     # estimate errors
@@ -1560,7 +1190,7 @@ def fit_gaussian_2_spec(
     FWHM: Quantity = 2*sigma * np.sqrt(2*np.log(2))
     FWHM_error: Quantity = 2*sigma_error * np.sqrt(2*np.log(2))
 
-    if model == 'gaussian_line' and len(popt) > 3:
+    if params.model == 'gaussian_line' and len(popt) > 3:
         m = popt[3] * (flux_unit / spectral_unit)
         m_error = perr[3] * (flux_unit / spectral_unit)
         b = popt[4] * flux_unit
@@ -1571,23 +1201,23 @@ def fit_gaussian_2_spec(
         b = None
         b_error = None
 
-    if model == 'gaussian_continuum' and continuum is not None:
+    if params.model == 'gaussian_continuum' and continuum is not None:
         continuum_at_mu = np.interp(mu.value, x, continuum)
         peak_flux = (amplitude.value + continuum_at_mu) * flux_unit
     else:
         peak_flux = function(mu.value, *popt) * flux_unit
 
     fit_config={
-        'gaussian_model': model,
-        'curve_fit_method': fit_method,
-        'absolute_sigma': absolute_sigma,
-        'interpolate': interpolate,
+        'gaussian_model': params.model,
+        'curve_fit_method': params.fit_method,
+        'absolute_sigma': params.absolute_sigma,
+        'interpolate': params.interpolate,
     }
-    if interpolate:
+    if params.interpolate:
         fit_config.update(
-            interpolate_method=interp_method,
-            error_interp_method=error_interp_method,
-            interpolate_samples=samples
+            interpolate_method=params.interp_method,
+            error_interp_method=params.error_interp_method,
+            interpolate_samples=params.samples
         )
 
     result = GaussianFitResult(
@@ -1613,55 +1243,41 @@ def fit_gaussian_2_spec(
         fit_config=fit_config
     )
 
-    # set plot style and colors
-    colors = get_colors(colors)
+    fig, ax = subplots(figsize=kwargs.pop('figsize', config.figsize))
 
-    with _style_context(style):
-        fig, ax = plt.subplots(figsize=figsize)
-        # determine plot type
-        plt_plot = {
-            'plot': ax.plot,
-            'scatter': ax.scatter
-        }.get(plot_type, ax.plot)
-        # plot interpolated data
-        if plot_interp and interpolate:
-            plt_plot(
-                x, y, c=colors[2%len(colors)], label='Interpolated'
-            )
-        # plot original data
-        # clip values outisde of plotting range
-        xlim = spectral_range if xlim is None else xlim
-        plot_mask = mask_within_range(x0, xlim)
-        gauss_mask = mask_within_range(x, xlim)
-        label = label if label is not None else 'Spectrum'
+    xlim = kwargs.pop('xlim', spectral_range)
+    colors = get_colors(_resolve_color_alias(kwargs, params.color))
 
-        plt_plot(x0[plot_mask], y0[plot_mask],
-                 c=colors[0%len(colors)], label=label)
-        # plot gaussian model
-        gaussian = function(x, *popt)
-        ax.plot(
-            x,
-            gaussian,
-            c=colors[1%len(colors)],
-            label='Gaussian Model'
-        )
-        # set axis labels and limits
-        _set_axis_labels(
-            spectral_axis, flux, ax, xlabel, ylabel, unit_bracket_style
-        )
-        set_limits(
-            ax=ax, xlim=xlim
-        )
+    if plot_interp and params.interpolate:
+        plot(x, y, ax=ax, color=_cycle(colors, 2), label='Interpolated')
 
-        plt.legend()
-        if savefig:
-            savefig(dpi=dpi)
-        plt.show()
+    plot(
+        x0*spectral_unit if spectral_unit is not None else x0,
+        y0*flux_unit if flux_unit is not None else y0,
+        ax=ax,
+        color=_cycle(colors, 0),
+        label=kwargs.pop('label', 'Spectrum'),
+        **kwargs,
+    )
 
-    if print_vals:
-        result.pretty_print(**kwargs)
+    gaussian = function(x, *popt)
+    ax.plot(
+        x, gaussian,
+        color=_cycle(colors, 1),
+        label='Gaussian Model'
+    )
+    set_limits(ax=ax, xlim=xlim)
 
-    if return_fit_params:
+    legend(ax=ax)
+
+    if params.savefig:
+        savefigure()
+    plt.show()
+
+    if params.print_vals:
+        result.pretty_print()
+
+    if params.return_fit_params:
         return result
     else:
         default_return = ['flux', 'FWHM', 'mu', 'flux_error', 'FWHM_error', 'mu_error']

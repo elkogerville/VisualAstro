@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-06-08
-Date Modified: 2026-06-08
+Date Modified: 2026-11-17
 Description:
     Data creation functions.
 """
@@ -10,6 +10,8 @@ from typing import Literal, overload
 
 import numpy as np
 from numpy.typing import NDArray
+
+__all__ = ['blob']
 
 
 @overload

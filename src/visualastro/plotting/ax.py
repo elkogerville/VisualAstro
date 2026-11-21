@@ -6,40 +6,39 @@ Description:
     Visualastro user interface for publication ready plots.
 """
 
+import warnings
 from collections.abc import Sequence
 from typing import Literal
-import warnings
 
-from astropy.io.fits import Header
 import astropy.units as u
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io.fits import Header
 from astropy.wcs import WCS
 from matplotlib.colors import Colormap
 from matplotlib.markers import MarkerStyle
-import matplotlib.pyplot as plt
 from matplotlib.typing import ColorType
-import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.config import (
-    config,
-    _Unset,
-    _UNSET
-)
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.io import savefig
 from visualastro.core.sequences import _cycle
-from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.plotting.base.plots import (
     hist,
-    plot_density_histogram,
     plot,
+    plot_density_histogram,
     scatter,
     scatter3D,
     scatter_polyfit,
-    scatter_project
+    scatter_project,
 )
-from visualastro.plotting.core.style import apply_style_modifiers, _style_context
-from visualastro.plotting.science.spectra_plots import plot_combine_spectrum, plot_spectra
+from visualastro.plotting.core.style import _style_context, apply_style_modifiers
+from visualastro.plotting.science.spectra_plots import (
+    plot_combine_spectrum,
+    plot_spectrum,
+)
+from visualastro.plotting.science.wcs_plots import imshow, plot_spectral_cube
 from visualastro.utils.wcs_utils import get_wcs_celestial
 
 
@@ -230,7 +229,7 @@ class ax:
 
 
     @staticmethod
-    def plot_spectra(
+    def plot_spectrum(
         extracted_spectra=None,
         plot_continuum=_UNSET,
         plot_norm_continuum=_UNSET,
@@ -243,16 +242,16 @@ class ax:
         **kwargs
     ):
         """
-        Wrapper for `plot_spectra` with automatic figure creation.
+        Wrapper for `plot_spectrum` with automatic figure creation.
 
-        See `visualastro.plotting.science.spectra_plots.plot_spectra` for full
+        See `visualastro.plotting.science.spectra_plots.plot_spectrum` for full
         documentation.
 
         Equivalent to:
 
             >>> spectrum = Spectrum(spectral_axis, flux)
             >>> fig, ax = plt.subplots()
-            >>> va.plot_spectra(spectrum, idx, ax=ax, **kwargs)
+            >>> va.plot_spectrum(spectrum, idx, ax=ax, **kwargs)
             >>> plt.show()
         """
         figsize = kwargs.pop('figsize', config.figsize)
@@ -263,7 +262,7 @@ class ax:
         with _style_context(style):
             fig, ax = plt.subplots(figsize=figsize)
 
-            _ = plot_spectra(
+            _ = plot_spectrum(
                 extracted_spectra,
                 ax=ax,
                 plot_continuum=plot_continuum,

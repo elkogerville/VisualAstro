@@ -6,12 +6,12 @@ Description:
     Tests for config module.
 """
 
-from visualastro.core.config import (
-    config,
+from visualastro.core.configuration import (
+    _UNSET,
     VisualAstroConfig,
     _resolve_default,
     _Unset,
-    _UNSET
+    config,
 )
 
 

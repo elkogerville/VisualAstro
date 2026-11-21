@@ -7,21 +7,24 @@ Description:
 """
 
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal
 
 import astropy.units as u
+import matplotlib.axes as maxes
 from astropy.units import Equivalency, StructuredUnit, UnitBase
 from astropy.visualization.wcsaxes.core import WCSAxes
-import matplotlib.axes as maxes
+from matplotlib.colors import is_color_like
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.array_types import _is_1d, _is_iterable
-from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _kwarg, _param
-from visualastro.core.sequences import _broadcast_param
+from visualastro.core.sequences import _broadcast_param, match_length
 from visualastro.plotting.core.axes import get_ax, get_wcsax
+from visualastro.plotting.core.colors import get_colors
+from visualastro.plotting.core.colors.utils import _is_colorset
 
 
 def axvlines(
@@ -31,6 +34,7 @@ def axvlines(
     linestyle: LineStyleType | _Unset = _UNSET,
     linewidth: float | _Unset = _UNSET,
     alpha: float | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -61,6 +65,10 @@ def axvlines(
         Unit to which `Quantity` values in `vlines` are converted before
         plotting. If None, no conversion is applied and the bare `.value` of
         each `Quantity` is used.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     equivalencies : astropy.units.Equivalency | None, optional, default=None
         Equivalencies used in the unit conversion. Ignored if `unit` is None.
     **kwargs
@@ -85,6 +93,7 @@ def axvlines(
         linestyle=linestyle,
         linewidth=linewidth,
         alpha=alpha,
+        label=label,
         unit=unit,
         equivalencies=equivalencies,
         **kwargs,
@@ -98,6 +107,7 @@ def axhlines(
     linestyle: LineStyleType | _Unset = _UNSET,
     linewidth: float | _Unset = _UNSET,
     alpha: float | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -128,6 +138,10 @@ def axhlines(
         Unit to which `Quantity` values in `hlines` are converted before
         plotting. If None, no conversion is applied and the bare `.value` of
         each `Quantity` is used.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     equivalencies : astropy.units.Equivalency | None, optional, default=None
         Equivalencies used in the unit conversion. Ignored if `unit` is None.
     **kwargs
@@ -152,6 +166,7 @@ def axhlines(
         linestyle=linestyle,
         linewidth=linewidth,
         alpha=alpha,
+        label=label,
         unit=unit,
         equivalencies=equivalencies,
         **kwargs,
@@ -166,6 +181,7 @@ def _axlines(
     linestyle: LineStyleType | Sequence[LineStyleType] | _Unset = _UNSET,
     linewidth: float | Sequence[float] | _Unset = _UNSET,
     alpha: float | Sequence[float] | _Unset = _UNSET,
+    label: str | Sequence[str] | None = None,
     unit: UnitBase | StructuredUnit | None = None,
     equivalencies: Equivalency | None = None,
     **kwargs,
@@ -193,6 +209,10 @@ def _axlines(
     alpha : float | Sequence[float] | None | _Unset, optional, default=_UNSET
         Single alpha for all lines, or a list/array with one per line.
         If _UNSET, uses config.axline.alpha.
+    label : str | Sequence[str] | None, optional, default=None
+        Label(s) of the lines. Labels are assigned sequentially in the same
+        order as `vlines`. The number of labels must be equal to or fewer
+        than the number of lines.
     ax, unit, equivalencies, **kwargs
         See `axvlines`.
 
@@ -231,6 +251,7 @@ def _axlines(
             _param('linestyle', linestyle, config.axline.linestyle),
             _param('linewidth', linewidth, config.axline.linewidth),
             _param('alpha', alpha, config.axline.alpha),
+            _param('label', label, None),
         ],
         additional_kwargs=[
             _kwarg('zorder', zorder),
@@ -260,11 +281,55 @@ def _axlines(
                 line = line.value
             values.append(line)
 
-    styles = {k: _broadcast_param(v, len(values), k) for k, v in params.items()}
+    labels = to_list(params.pop('label'))
+    styles = {
+        k: _broadcast_param(v, len(values), k)
+        for k, v in params.items() if k != 'color'
+    }
+    styles['color'] = _resolve_axline_colors(params['color'], values)
+    N_lines = len(values)
+    delta = N_lines - len(labels)
+    for _ in range(delta):
+        labels.append(None)
+    styles['label'] = labels
     return [
         draw(x, **{k: v[i] for k, v in styles.items()}, **kwargs)
         for i, x in enumerate(values)
     ]
+
+
+def _resolve_axline_colors(color: Any, ref: Sequence) -> list[ColorType]:
+    """
+    Resolve a color specification into one color per item of ``ref``.
+
+    Parameters
+    ----------
+    color : ColorType | str | list[ColorType]
+        - colorset alias (``str``): cycled or cropped to ``len(ref)``.
+        - single color (``str`` | ``tuple``): repeated.
+        - ``list`` | ``numpy.ndarray``: one color per item, length 1 or ``len(ref)``.
+    ref : Sequence
+        Reference sequence whose length sets the output length.
+
+    Returns
+    -------
+    list[ColorType]
+        List of length ``len(ref)``.
+
+    Raises
+    ------
+    ValueError
+        - ``color`` is a list whose length is neither 1 nor ``len(ref)``.
+        - Any resolved color is invalid.
+    """
+    if isinstance(color, str) and _is_colorset(color):
+        return match_length(get_colors(color), ref)
+
+    colors = _broadcast_param(color, len(ref), 'color')
+    bad = [c for c in colors if not is_color_like(c)]
+    if bad:
+        raise ValueError(f'Invalid color(s): {bad!r}')
+    return colors
 
 
 def grid(

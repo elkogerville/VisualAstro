@@ -7,35 +7,42 @@ Description:
 """
 
 from collections.abc import Sequence
-
 from typing import Literal
-import matplotlib as mpl
-from matplotlib import colors as mcolors
-import matplotlib.pyplot as plt
-from matplotlib.typing import ColorType
-import numpy as np
 
-from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET
-)
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import colors as mcolors
+from matplotlib.typing import ColorType
+
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _roll
 from visualastro.plotting.core.colormaps import get_cmap
+from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
 from visualastro.plotting.core.colors.definitions import COLORSETS
 from visualastro.plotting.core.colors.transforms import (
-    simulate_colorblindness,
     _transform_colors,
+    simulate_colorblindness,
 )
 from visualastro.plotting.core.colors.utils import (
-    as_color,
     _convert_color,
-    _get_single_color,
     _find_colorset,
+    _get_single_color,
     _is_color_like,
     _is_colorset,
     _is_cycled_colorset,
+    as_color,
 )
-from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
+
+__all__ = [
+    'get_color',
+    'get_colors',
+    'get_colorset',
+    'get_namedcolor',
+    'random_colors',
+    'sample_cmap',
+]
 
 
 def get_color(

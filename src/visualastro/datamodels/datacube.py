@@ -1,51 +1,48 @@
 """
 Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-07-27
+Date Modified: 2026-11-16
 Description:
     DataCube data structure for 3D SpectralCubes or
     time series data cubes.
 """
 from __future__ import annotations
+
 from typing import Literal, cast
 
-from astropy.io.fits import Header
-from astropy.units import (
-    Quantity, StructuredUnit, Unit, UnitBase, UnitsError
-)
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.io.fits import Header
+from astropy.units import Quantity, StructuredUnit, Unit, UnitBase, UnitsError
+from astropy.wcs import WCS
 from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
-from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET
-)
+from visualastro.analysis.spectra.regions import _require_spectral_region
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.kwargs import _pop_kwargs
 from visualastro.core.units import (
+    _check_unit_equality,
     ensure_common_unit,
     get_unit,
     to_unit,
     unit_2_string,
-    _check_unit_equality,
-    _require_spectral_region
 )
 from visualastro.core.validation import (
     _check_shapes_match,
     _validate_iterable_type,
-    _validate_type
-)
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
+    _validate_type,
 )
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
-from visualastro.optional_dependencies._specutils import (
-    SpectralRegion, Spectrum
-)
+from visualastro.optional_dependencies._specutils import SpectralRegion, Spectrum
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
@@ -55,11 +52,11 @@ from visualastro.utils.fits_utils import (
     _update_header_key,
 )
 from visualastro.utils.wcs_utils import (
+    _is_valid_wcs_slice,
+    _reproject_wcs,
     get_header_wcs,
     strip_wcs_from_header,
     update_header_from_wcs,
-    _is_valid_wcs_slice,
-    _reproject_wcs,
 )
 
 
@@ -572,7 +569,7 @@ class DataCube:
             return [h.get(key, None) for h in self.header]
 
         else:
-            raise ValueError(f'Unsupported header type.')
+            raise ValueError('Unsupported header type.')
 
     def inspect(
         self,
@@ -766,7 +763,7 @@ class DataCube:
         # new header free of WCS
         new_header = _copy_headers(self.nowcs_header)
         new_header = _transfer_history(self.primary_header, new_header)
-        _log_history(new_header, f'Reprojected DataCube')
+        _log_history(new_header, 'Reprojected DataCube')
 
         data = self.value
 
@@ -839,7 +836,7 @@ class DataCube:
                 new_error = None
 
         if self.error is not None:
-            _log_history(new_header, f'Reprojected errors')
+            _log_history(new_header, 'Reprojected errors')
 
         ref_wcs = reference_wcs.celestial
         # update new header with reference WCS
@@ -936,8 +933,8 @@ class DataCube:
         spectral_world_2_idx : Inverse operation, maps spectral value to index.
         """
         _require_dependency('spectral-cube')
-        from visualastro.analysis.spectra_utils import (
-            spectral_idx_2_world as _spectral_idx_2_world
+        from visualastro.analysis.spectra import (
+            spectral_idx_2_world as _spectral_idx_2_world,
         )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
@@ -968,8 +965,8 @@ class DataCube:
             If `data` attribute is not a `SpectralCube`.
         """
         _require_dependency('spectral-cube')
-        from visualastro.analysis.spectra_utils import (
-            spectral_world_2_idx as _spectral_world_2_idx
+        from visualastro.analysis.spectra import (
+            spectral_world_2_idx as _spectral_world_2_idx,
         )
         if not isinstance(self.data, SpectralCube):
             raise ValueError(
@@ -1067,7 +1064,7 @@ class DataCube:
         """
         _require_dependency('spectral-cube', 'specutils')
         _offer_dependency('tqdm')
-        from visualastro.analysis.spectra_utils import fit_continuum, mask_spectral_region
+        from visualastro.analysis.spectra import compute_continuum, spectral_region_mask
 
         fit_method = _resolve_default(fit_method, config.spectrum_continuum_fit_method)
         print_info = _resolve_default(print_info, config.print_info)
@@ -1092,7 +1089,7 @@ class DataCube:
         continuum_cube = np.full(subcube.shape, np.nan) * subcube.unit
 
         ny, nx = subcube.shape[1:]
-        region_mask = mask_spectral_region(subcube.spectral_axis, region)
+        region_mask = spectral_region_mask(subcube.spectral_axis, region)
 
         flux_data = subcube.filled_data[:]
         finite_flux = np.isfinite(flux_data)
@@ -1168,7 +1165,7 @@ class DataCube:
 
                 pixel_flux = subcube[:, j, i]
                 spec = Spectrum(spectral_axis=subcube.spectral_axis, flux=pixel_flux)
-                cont_spec = fit_continuum(spec, fit_method, region)
+                cont_spec = compute_continuum(spec, fit_method, region)
                 continuum_cube[:, j, i] = cont_spec
 
         continuum_subtracted_cube = subcube - continuum_cube
@@ -1436,7 +1433,7 @@ class DataCube:
         elif not _is_valid_wcs_slice(key):
             new_wcs = None
             new_hdr = _transfer_history(new_hdr, Header())
-            _log_history(new_hdr, f'Header and WCS dropped due to invalid slice')
+            _log_history(new_hdr, 'Header and WCS dropped due to invalid slice')
         else:
             try:
                 new_wcs = self.wcs[key]

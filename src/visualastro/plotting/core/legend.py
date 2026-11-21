@@ -13,7 +13,7 @@ import matplotlib.axes as maxes
 from matplotlib.legend import Legend
 from matplotlib.transforms import Bbox, Transform
 
-from visualastro.core.config import config, _resolve_default, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _extract_kwargs, _param
 from visualastro.plotting.core.axes import get_ax
@@ -52,7 +52,6 @@ def legend(
     borderaxespad: float | _Unset = _UNSET,
     columnspacing: float | _Unset = _UNSET,
     zorder: float | _Unset = _UNSET,
-    draggable: bool | _Unset = _UNSET,
     **kwargs
 ) -> Legend:
     """
@@ -164,8 +163,6 @@ def legend(
     columnspacing : float | _Unset, optional, default=_UNSET
         Spacing between columns in units of fontsize. If `_UNSET`, uses
         `config.legend.columnspacing`.
-    draggable : bool | _Unset, optional, default=_UNSET
-        Enable legend dragging. If `_UNSET`, uses `config.legend.draggable`.
     zorder : float | _Unset, optional, default=_UNSET
         Legend zorder. If `_UNSET`, uses `config.zorder.legend`.
 
@@ -209,7 +206,6 @@ def legend(
             _param('handleheight', handleheight, 0.7),
             _param('borderaxespad', borderaxespad, config.legend.borderaxespad),
             _param('columnspacing', columnspacing, config.legend.columnspacing),
-            _param('draggable', draggable, config.legend.draggable),
             _param('zorder', zorder, config.zorder.legend),
         ]
     )
@@ -307,3 +303,34 @@ def _resolve_vertical_loc(legend_kwargs: dict) -> None:
     legend_kwargs.pop('bbox_to_anchor', None)
     legend_kwargs['bbox_to_anchor'] = (_LOC_X[x], _LOC_Y[y])
     legend_kwargs['loc'] = f'{_MPL_VERTICAL[y]} {x}'
+
+
+def _expand_labels(label, n):
+    """
+    Expand a legend label input to one label per plotted segment.
+
+    Single labels are expanded with ``None``.
+
+    Parameters
+    ----------
+    label : str | Sequence[str] | None
+        Label specification. A string labels the first segment only,
+        to avoid duplicate legend entries.
+    n : int
+        Number of segments.
+
+    Returns
+    -------
+    list of str | None
+        List of length `n`.
+    """
+    if label is None:
+        return [None] * n
+    if isinstance(label, str):
+        return [label] + [None] * (n - 1)
+    labels = list(label)
+    if len(labels) != n:
+        raise ValueError(
+            f"`label` has length {len(labels)}, expected {n} (one per segment)."
+        )
+    return labels

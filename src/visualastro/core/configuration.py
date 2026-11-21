@@ -1,0 +1,660 @@
+"""
+Author: Elko Gerville-Reache
+Date Created: 2025-10-20
+Date Modified: 2026-11-17
+Description:
+    VisualAstro configuration. Change function defaults at runtime through config:
+    >>> import visualastro as va
+    >>> va.config
+"""
+
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field, fields
+from enum import Enum
+from typing import Literal, TypeVar
+
+import astropy.units as u
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io.fits import Header
+from astropy.units import physical
+from astropy.wcs import WCS
+from matplotlib import font_manager
+from matplotlib.colors import Colormap
+from matplotlib.transforms import Bbox
+from matplotlib.typing import ColorType, LineStyleType
+from numpy.typing import DTypeLike
+
+__all__ = ['config']
+
+
+T = TypeVar('T')
+
+class _Unset(Enum):
+    """
+    Default placeholder sentinel value for
+    VisualAstro functions.
+    """
+    UNSET = 'UNSET'
+
+_UNSET = _Unset.UNSET
+
+
+@dataclass(slots=True)
+class PrettyRepr:
+    """Template class for adding a pretty __repr__ to config dataclasses."""
+    def __repr__(self) -> str:
+        fields = {k: getattr(self, k) for k in self.__dataclass_fields__}
+        field_str = '\n'.join(f'  {k}: {v!r}' for k, v in fields.items())
+        return f'{self.__class__.__name__}(\n{field_str}\n)'
+
+
+@dataclass(slots=True)
+class ResetConfig:
+    def reset(self) -> None:
+        """
+        Reset all configuration values to defaults.
+        """
+        default = type(self)()
+
+        for f in fields(self):
+            setattr(self, f.name, getattr(default, f.name))
+
+@dataclass(slots=True, repr=False)
+class AxesConfig(PrettyRepr, ResetConfig):
+    """matplotlib.axes config"""
+    recompute_other_axis: bool = True
+    autoscale: bool = True
+    autoscale3d: bool = True
+    xpad: float | None = None
+    ypad: float | None = None
+    label_fontsize: float = 13
+    xlog: bool = False
+    ylog: bool = False
+    xlog_hist: bool = True
+    ylog_hist: bool = True
+    sharex: bool = False
+    sharey: bool = False
+    hspace = None
+    wspace = None
+    Nticks = None
+    aspect = None
+
+@dataclass(slots=True, repr=False)
+class FontSizeConfig(ResetConfig):
+    """
+    Fontsize Config for VisualAstro.
+
+    Paramaters
+    ----------
+    size : float
+        Global text size in points. Affects
+        the fontsize of all parameters.
+    title : float
+        Title fontsize relative to `size`.
+    axes_labels : float
+        Axes labels fontsize relative to `size`.
+    legend_title : float
+        Legend title fontsize relative to `size`.
+    legend : float
+        Legend fontsize relative to `size`.
+    text : float
+        Text fontsize relative to `size`.
+    tick_labels : float
+        Axes tick label fontsize relative to `size`.
+    colorbar_label : float, optional, default=1.0
+        Colorbar label fontsize relative to `size`.
+    colorbar_tick_labels : float, optional, default=0.85
+        Colorbar tick label fontsize relative to `size`.
+    """
+    size: float = 13
+    title: float = 1.2
+    axes_labels: float = 1.0
+    legend_title: float = 1.0
+    legend: float = 0.9
+    text: float = 0.9
+    tick_labels: float = 0.8
+    colorbar_label: float = 1.0
+    colorbar_tick_labels: float = 0.8
+
+    def resolve(self, param: str) -> float:
+        """
+        Convert a scaling factor to points.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `'size'`).
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * size`, in points.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
+            If `self.size` is not a valid Matplotlib font size.
+        """
+        return self.with_size(param, self.size)
+
+    def with_size(self, param: str, size: float | str) -> float:
+        """
+        Convert a scaling factor to points relative to `size`.
+
+        Parameters
+        ----------
+        param : str
+            Name of the scale parameter (any field except `'size'`).
+        size : float | str
+            Base size in points, or a Matplotlib named size.
+
+        Returns
+        -------
+        float
+            `getattr(self, param) * size`, in points.
+
+        Raises
+        ------
+        ValueError
+            If `param` is `'size'` or not a valid field.
+            If `size` is not a valid Matplotlib font size.
+        """
+        if param == 'size' or param not in {f.name for f in fields(self)}:
+            raise ValueError(
+                f"param must be a scale field other than 'size'! got {param!r}!"
+            )
+        return getattr(self, param) * self._size_to_points(size)
+
+    def update_rcparams(self) -> None:
+        """Mutate global rcParams permanently with this config's values."""
+        plt.rcParams.update(self._to_rcparams_dict())
+
+    def _to_rcparams_dict(self) -> dict[str, float]:
+        """
+        Map fontsize fields onto Matplotlib rcParams keys.
+
+        Returns
+        -------
+        dict[str, float] :
+            rcParams dict. `colorbar_label` and `colorbar_tick_labels`
+            have no dedicated rcParams key and are excluded — apply them
+            per-artist via `cbar.set_label` / `cbar.ax.tick_params` instead.
+        """
+        tick = self.resolve('tick_labels')
+        return {
+            'font.size': self.resolve('text'),
+            'axes.titlesize': self.resolve('title'),
+            'axes.labelsize': self.resolve('axes_labels'),
+            'legend.fontsize': self.resolve('legend'),
+            'legend.title_fontsize': self.resolve('legend_title'),
+            'xtick.labelsize': tick,
+            'ytick.labelsize': tick,
+        }
+
+    def _size_to_points(self, size: float | str) -> float:
+        """
+        Convert a Matplotlib font size to points.
+
+        Parameters
+        ----------
+        size : float | str
+            Size in points, a numeric string, or a Matplotlib named size
+            (e.g. `'small'`, `'x-large'`).
+
+        Returns
+        -------
+        float
+            Size in points.
+
+        Raises
+        ------
+        ValueError
+            If `size` is not a valid Matplotlib font size.
+        """
+        return float(font_manager.FontProperties(size=size).get_size_in_points())
+
+    def __repr__(self) -> str:
+        """Return both scale factor and size in points of each field."""
+        lines = [f'size: {self.size:.2f}pt (base)']
+        for name in self.__dataclass_fields__:
+            if name == 'size':
+                continue
+            scale = getattr(self, name)
+            pt = self.resolve(name)
+            lines.append(f'{name}: scale={scale:.2f}, pt={pt:.2f}')
+        body = ',\n  '.join(lines)
+        return f'{type(self).__name__}(\n  {body}\n)'
+
+@dataclass(slots=True, repr=False)
+class ZorderLayers(PrettyRepr, ResetConfig):
+    axes: float = 0
+    gridlines: float = 10
+    wcsgrid: float = 11
+    contourf: float = 20
+    plot_data: float = 30
+    contour: float = 50
+    vlines: float = 60
+    hlines: float = 60
+    regions: float = 70
+    text: float = 90
+    legend: float = 100
+
+@dataclass(slots=True, repr=False)
+class AXLineConfig(PrettyRepr, ResetConfig):
+    """ax.vline / ax.hline config"""
+    linestyle: Literal['-', '--', '-.', ':', ''] = ':'
+    linewidth: float = 1.0
+    color: ColorType = 'k'
+    alpha: float | None = 0.7
+    zorder: float = 0
+
+@dataclass(slots=True, repr=False)
+class LegendConfig(PrettyRepr, ResetConfig):
+    """ax.legend config"""
+    handles: Sequence | None = None
+    labels: Sequence[str] | None = None
+    loc: str = 'best'
+    ncols: int = 1
+    fontsize: float | Literal['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'] | _Unset = _UNSET
+    labelcolor: str | list[str] | Literal['none', 'linecolor', 'mec', 'mfc'] = 'none'
+    numpoints: int = 1
+    scatterpoints: int = 1
+    markerscale: float = 1.0
+    markerfirst: bool = True
+    reverse: bool = False
+    frameon: bool = False
+    fancybox: bool = False
+    framealpha: float = 1.0
+    facecolor: Literal['inherit'] | ColorType = 'inherit'
+    edgecolor: Literal['inherit'] | ColorType = 'w'
+    linewidth: float | Literal['spines'] | None = 'spines'
+    title: str | None = None
+    alignment: Literal['center', 'left', 'right'] = 'center'
+    borderpad: float = 0.4
+    labelspacing: float = 0.5
+    borderaxespad: float = 0.5
+    columnspacing: float = 2.0
+
+@dataclass(slots=True, repr=False)
+class SavefigConfig(PrettyRepr, ResetConfig):
+    """plt.savefig config"""
+    enable: bool = False
+    dpi: float = 600
+    pdf_compression: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] = 6
+    transparent: bool = False
+    bbox_inches: str | Bbox | None = 'tight'
+    allowed_formats = {'eps', 'pdf', 'png', 'svg', 'jpg'}
+
+@dataclass(slots=True, repr=False)
+class CurveFitConfig(PrettyRepr, ResetConfig):
+    """scipy.curve_fit config"""
+    method: Literal['lm', 'trf', 'dogbox'] = 'trf'
+    absolute_sigma: bool = False
+    samples: int = 10000
+    interpolate: bool = False
+    interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+    error_interpolation_method: Literal['linear', 'cubic', 'cubic_spline'] = 'cubic_spline'
+
+@dataclass(slots=True, repr=False)
+class ErrorBarConfig(PrettyRepr, ResetConfig):
+    """ax.errorbar config"""
+    fmt: str = 'none' # use 'none' to plot errorbars without any data markers.
+    colors: ColorType | None = None
+    linewidth: float | None = 1
+    capsize: float = 3 # cap length in points
+    capthick: float | None = 1 # cap thickness in points
+    barsabove: bool = False
+    markeredgecolor: ColorType | None = None
+
+@dataclass(slots=True, repr=False)
+class ColorbarConfig(PrettyRepr, ResetConfig):
+    enable: bool = True
+    width: float = 0.03
+    pad: float = 0.015
+    label: bool = True
+    tick_which: Literal['major', 'minor', 'both'] = 'both'
+    tick_dir: Literal['in', 'out', 'inout'] = 'out'
+
+@dataclass(slots=True, repr=False)
+class ContourConfig(PrettyRepr, ResetConfig):
+    levels: int = 20
+    method: Literal['contour', 'contourf'] = 'contour'
+    bw_method: Literal['scott', 'silverman'] | float | Callable = 'scott'
+    gridsize: int = 200
+    padding: float = 0.2
+    clabel: bool = False
+    zdir : Literal['x', 'y', 'z'] = 'z'
+
+@dataclass(slots=True, repr=False)
+class RugPlotConfig(PrettyRepr, ResetConfig):
+    color: ColorType | int | Sequence[ColorType | int] = 'k'
+    marker: str | Sequence[str] = '+'
+    markersize: float | Sequence[float] = 2
+    linewidth: float | Sequence[float] = 1
+
+@dataclass(slots=True, repr=False)
+class SpectralLineConfig(PrettyRepr, ResetConfig):
+    """`spectral_markers`, `spectral_vlines`, & `spectral_elbow_markers` config."""
+    linewidth: float = 1.0
+    unlabeled_color: ColorType = 'grey'
+    label_ha: Literal['left', 'center', 'right'] = 'center'
+    label_va: Literal['top', 'bottom', 'center', 'baseline'] = 'top'
+    label_rotation: float = 0.0
+    label_rotation_mode: Literal['default', 'anchor'] = 'default'
+    marker_linestyle: LineStyleType = 'solid'
+    marker_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    vline_linestyle: str = 'dashed'
+    vline_label_offset_points: tuple[float, float] = (0.0, 0.0)
+    half_elbow_label_gap: float = 4
+
+@dataclass(slots=True, repr=False)
+class GridConfig(PrettyRepr, ResetConfig):
+    enable: bool = False
+    which: Literal['major', 'minor', 'both'] = 'major'
+    axis: Literal['both', 'x', 'y'] = 'both'
+    color: ColorType = 'k'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
+class WCSGridConfig(PrettyRepr, ResetConfig):
+    enable: bool = False
+    grid_type: Literal['lines', 'contours'] | None = None
+    color: ColorType = 'w'
+    linestyle: 'str' = 'dotted'
+    linewidth: float = 0.8
+    alpha: float = 0.8
+
+@dataclass(slots=True, repr=False)
+class DereddenConfig(PrettyRepr, ResetConfig):
+    method: str | _Unset = _UNSET
+    region: str | _Unset = _UNSET
+    Rv: float | _Unset = _UNSET
+    Ebv: float | _Unset = _UNSET
+
+@dataclass(slots=True, repr=False)
+class HDUConfig(PrettyRepr, ResetConfig):
+    """HDU config"""
+    index: int = 0
+    error_extensions: list[str] = field(
+        default_factory=lambda: [
+        'ERR', 'ERROR', 'UNCERT'
+    ])
+    variance_extensions: list[str] = field(
+        default_factory=lambda: [
+        'VAR', 'VARIANCE', 'VAR_POISSON', 'VAR_RNOISE', 'STAT'
+    ])
+
+
+@dataclass(slots=True, repr=False)
+class VisualAstroConfig(PrettyRepr, ResetConfig):
+    """
+    Global configuration object for controlling default behavior
+    across the VisualAstro package.
+
+    VisualAstro function parameters are often set to `_UNSET`,
+    which at runtime gets resolved to the default hardcoded value
+    set in `VisualAstroConfig`. Modifying this file will update
+    the default values.
+
+    Users can also modify attributes at runtime by modifying the config
+    object attributes. This avoids permanently changing the default values.
+    i.e.:
+        >>> import visualastro as va
+        >>> va.config.style = 'latex'
+        >>> va.config.figsize = (6, 6)
+    """
+    # I/O params
+    unit_mismatch: Literal['warn', 'ignore', 'raise'] | None = 'warn'
+    default_dtype: DTypeLike = np.float64
+    hdu_idx: int = 0
+    print_info: bool = False
+    transpose: bool = False
+    mask_non_positive: bool = False
+    mask_out_value: float = np.nan
+    invert_wcs_if_transpose: bool = True
+    target_wcs: Header | WCS | None = None
+    hdu: HDUConfig = field(default_factory=HDUConfig)
+    array_order: Literal['C', 'c', 'F', 'f', 'fortran'] = 'c'
+    index_specification: Literal['implicit', 'explicit'] | tuple[int, int] | None = None
+    xy_indices: tuple[int, int] | None = None
+    index_specification_3D: tuple[int, int, int] = (0, 1, 2)
+
+    # figure params
+    style: str | None = None # default style
+    style_fallback: str = 'default'
+    figsize: tuple = (6.4, 4.8)
+    layout: Literal['constrained', 'compressed', 'tight', 'none', None] = None
+    reference_idx: int = 0 # which index is considered the reference for plot labels, cbars, etc..
+    figsize_gridspec: tuple = (12, 6)
+    figsize3D: tuple = (7, 7)
+    figsizeWCS: tuple = (7, 7)
+    # if _UNSET, defaults to `self.default_colorset`.
+    # To define a custom default colorset,
+    # define it in `get_colors` and change the `default_colorset`.
+    color: ColorType | int | Sequence[ColorType] | None | _Unset = None
+    default_colorset: str = 'astro_seq' # see `get_colors` in plot_utils.py
+    color_cycle_idx: int = 0
+    color_transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None
+    color_transform_factor: float = 0.5
+    random_colors_max_N: int = 20
+    alpha: int | None = None
+    nrows: int = 1 # make_grid_plot() nrows
+    ncols: int = 2 # make_grid_plot() ncols
+    rasterized: bool = False # rasterize plot artists wherever possible
+    show_plot: bool = True
+    elev: float = 30
+    azim: float = -60
+    roll: float = 0
+    pane_color: ColorType = 'white'
+    ax3d_axis_style: Literal['triad', 'semi', 'cube'] | None = None
+    thorlabs_loc: Literal['best', 'lower left', 'lower right', 'upper left', 'upper right'] | None = 'best'
+    thorlabs_transparent: bool = False
+    thorlabs_darkmode: bool = False
+
+    # data params
+    normalize_data: bool = False
+
+    # histogram params
+    histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] = 'step'
+    bins: int | Sequence[float] | str = 'auto'
+    normalize_hist: bool = False
+
+    # line2D params
+    linestyle: Literal['solid', '-', 'dotted', ':', 'dashed', '--', 'dashdot', '-.'] | None = None
+    linewidth: float | None = None
+
+    axline: AXLineConfig = field(default_factory=AXLineConfig)
+
+    # scatter params
+    markersize: float = 6
+    marker: str | None = None
+    plot_marker : str | None = None
+    edgecolor: ColorType | None = None
+    facecolor: ColorType | None = None
+
+    # errorbar params
+    errorbar: ErrorBarConfig = field(default_factory=ErrorBarConfig)
+
+    # imshow params
+    cmap: Colormap | str = 'turbo'
+    sample_cmap: Colormap | str = 'turbo'
+    origin: Literal['lower', 'upper'] = 'lower'
+    norm: Literal['asinh', 'asinhnorm', 'log', 'power', 'twoslope', 'linear'] | None = 'asinh'
+    linear_width: float = 1 # AsinhNorm linear width
+    gamma: float = 0.5 # PowerNorm exponent
+    vmin: float | None = None
+    vmax: float | None = None
+    percentile: tuple[float, float] | None = (3.0, 99.5)
+    aspect: Literal['auto', 'equal'] | float | None = None
+
+    axes: AxesConfig = field(default_factory=AxesConfig)
+    fontsizes: FontSizeConfig = field(default_factory=FontSizeConfig)
+    zorder: ZorderLayers = field(default_factory=ZorderLayers)
+    legend: LegendConfig = field(default_factory=LegendConfig)
+    savefig: SavefigConfig = field(default_factory=SavefigConfig)
+    colorbar: ColorbarConfig = field(default_factory=ColorbarConfig)
+    contour: ContourConfig = field(default_factory=ContourConfig)
+    plot_rug: RugPlotConfig = field(default_factory=RugPlotConfig)
+    gridlines: GridConfig = field(default_factory=GridConfig)
+    wcsgrid: WCSGridConfig = field(default_factory=WCSGridConfig)
+
+    # text params
+    text_color: ColorType = 'k'
+    text_loc: tuple[float, float] = (0.03, 0.03)
+
+    # label params
+    unit_bracket_style: Literal['round', 'square'] = 'square' # display units as [unit] instead of (unit)
+    _unit_bracket_styles = {
+        'round': ('(', ')'),
+        'square': ('[', ']'),
+    }
+    right_ascension_label: str = 'Right Ascension'
+    declination_label: str = 'Declination'
+    highlight: bool = True
+    show_type_label: bool = False
+    show_unit_label: bool = True
+    unit_label_format: Literal['latex', 'latex_inline', 'fits', 'unicode', 'console', 'vounit', 'cds', 'ogip'] = 'latex_inline'
+    _PHYSICAL_TYPE_LABELS = {
+        u.adu.physical_type: 'ADU',          # type: ignore
+        u.count.physical_type: 'Counts',     # type: ignore
+        u.electron.physical_type: 'Counts',  # type: ignore
+        u.mag.physical_type: 'Magnitude',    # type: ignore
+        physical.length: 'Distance',
+        physical.power_density: 'Flux',
+        physical.spectral_flux_density: 'Flux Density',
+        physical.surface_brightness: 'Surface Brightness',
+    }
+
+    _SPECTRAL_TYPE_LABELS = {
+        physical.length: 'Wavelength',
+        physical.frequency: 'Frequency',
+        physical.energy: 'Energy',
+        physical.speed: 'Velocity',
+    }
+
+    # circles params
+    circle_linewidth: float = 2
+    circle_fill: bool = False
+    ellipse_label_loc: tuple[float, float] = (0.03, 0.03)
+
+    # Science Params
+    # --------------
+    # data params
+    wavelength_unit = None
+    radial_velocity: float | None = None
+
+    # data cube params
+    stack_cube_method: Literal['mean', 'median', 'sum', 'max', 'min', 'std'] = 'sum'
+    _STACK_METHODS = {
+        'mean': np.nanmean,
+        'median': np.nanmedian,
+        'sum': np.nansum,
+        'max': np.nanmax,
+        'min': np.nanmin,
+        'std': np.nanstd,
+    }
+
+    # extract_cube_spectrum params
+    spectra_rest_frequency: float | None = None
+    flux_extract_method: Literal['mean', 'median', 'sum'] = 'mean'
+    spectral_cube_extraction_mode = 'cube'
+    spectrum_continuum_fit_method: str = 'fit_continuum'
+    deredden_spectrum: bool = False
+    plot_normalized_continuum: bool = False
+    plot_continuum_fit: bool = False
+
+    # plot_spectra params
+    plot_spectra_text_loc: tuple[float, float] = (0.025, 0.95)
+
+    deredden: DereddenConfig = field(default_factory=DereddenConfig)
+    curve_fit: CurveFitConfig = field(default_factory=CurveFitConfig)
+
+    # gaussian fitting params
+    gaussian_model: Literal['gaussian', 'gaussian_line', 'gaussian_continuum'] = 'gaussian'
+    return_gaussian_fit_parameters: bool = True
+    print_gaussian_values: bool = True
+
+    # reprojection parameters
+    reproject_method: Literal['interp', 'exact'] = 'interp'
+    return_footprint: bool = False
+    reproject_block_size: Literal['auto'] | tuple | None = None
+    reproject_parallel: bool = False
+
+    # error propagation
+    propagate_flux_error_method: Literal['mean', 'sum', 'median'] | _Unset = _UNSET
+
+    # Utils Params
+    # ------------
+    # pretty table params
+    table_precision: int = 7
+    table_sci_notation: bool = True
+    table_column_pad: int = 3
+
+    # numpy save
+    save_format = '.npy'
+
+    spectral_line_marker: SpectralLineConfig = field(default_factory=SpectralLineConfig)
+
+    @property
+    def elinewidth(self) -> float | None:
+        return self.errorbar.linewidth
+
+    @elinewidth.setter
+    def elinewidth(self, value: float | None) -> None:
+        self.errorbar.linewidth = value
+
+
+config = VisualAstroConfig()
+
+
+def _resolve_default(value: T | _Unset, fallback: T) -> T:
+    """
+    Fallback to a default configuration value if
+    value is `_UNSET`.
+
+    Parameters
+    ----------
+    value : T | _Unset
+        Variable to be resolved.
+
+    fallback : T
+        Default value if `value` is `_UNSET`.
+        Should be a `config` attribute.
+        i.e. `config.figsize`.
+
+    Returns
+    -------
+    resolved_value : T
+        Either `value` if value is not `_UNSET`
+        or `fallback` if `value` is `_UNSET`.
+    """
+    if value is _UNSET:
+        return fallback
+    return value
+
+
+def get_config_value(var, attribute):
+    """
+    Retrieve a configuration value, falling back to the
+    default from `config` if `var` is None.
+
+    Parameters
+    ----------
+    var : any
+        User-specified value. If not None, this value is returned.
+    attribute : str
+        Name of the attribute to retrieve from `config` when `var` is None.
+
+    Returns
+    -------
+    value : any
+        The user-specified `var` if provided, otherwise the
+        corresponding default value from `config`.
+    """
+    if var is None:
+        return getattr(config, attribute)
+    return var

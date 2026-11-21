@@ -17,10 +17,10 @@ For more information on the requirements and dependent packages of VisualAstro, 
 
         .. include:: _install/conda.rst.inc
 
-    .. tab-item:: venv
-        :sync: venv
+    .. tab-item:: pip
+        :sync: pip
 
-        .. include:: _install/venv.rst.inc
+        .. include:: _install/pip.rst.inc
 
     .. tab-item:: uv
         :sync: uv

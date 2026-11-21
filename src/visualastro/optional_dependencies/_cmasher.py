@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     import cmasher
     _HAS_CMASHER = True

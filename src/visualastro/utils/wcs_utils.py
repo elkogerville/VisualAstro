@@ -7,36 +7,42 @@ Description:
 """
 
 from __future__ import annotations
-from collections.abc import Sequence
+
 import copy
+from collections.abc import Sequence
 from typing import Any, Literal, cast, overload
 
+import astropy.units as u
+import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
-import astropy.units as u
 from astropy.units import Quantity, UnitBase
 from astropy.wcs import WCS
-import numpy as np
 from numpy.typing import NDArray
 
-from visualastro.core.config import (
-    get_config_value, config, _UNSET,
+from visualastro.core.configuration import (
+    _UNSET,
+    config,
+    get_config_value,
 )
 from visualastro.core.data import to_list
 from visualastro.core.sequences import _unwrap_if_single
-from visualastro.optional_dependencies.register import (
-    _offer_dependency, _require_dependency
-)
+from visualastro.core.units import get_unit
 from visualastro.optional_dependencies._reproject import (
-    reproject_exact, reproject_interp
+    reproject_exact,
+    reproject_interp,
 )
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
 from visualastro.optional_dependencies._tqdm import tqdm
-from visualastro.core.units import get_unit
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.utils.fits_utils import _log_history
 
 
@@ -617,7 +623,7 @@ def _reproject_wcs(
     ValueError
         If the inputs are not able to be reprojected.
     """
-    description = kwargs.get('description', None)
+    description = kwargs.get('description')
 
     method = get_config_value(method, 'reproject_method')
     return_footprint = get_config_value(return_footprint, 'return_footprint')

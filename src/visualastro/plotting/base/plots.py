@@ -1,17 +1,19 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-30
+Date Modified: 2026-11-14
 Description:
     General plotting functions.
 """
 
 from collections import namedtuple
+from collections.abc import Sequence
 from types import SimpleNamespace
-from typing import Literal, Sequence
+from typing import Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
+import numpy as np
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
 from matplotlib.markers import MarkerStyle
@@ -20,24 +22,21 @@ from matplotlib.ticker import AutoMinorLocator, NullLocator
 from matplotlib.typing import ColorType, LineStyleType
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import PathCollection
-import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import get_value, to_list
-from visualastro.core.kwargs import (
-    _kwarg, _param, _pop_kwargs, _resolve_kwargs
-)
+from visualastro.core.kwargs import _kwarg, _param, _pop_kwargs, _resolve_kwargs
 from visualastro.core.sequences import _cycle, match_length
 from visualastro.core.stats import normalize as _normalize
-from visualastro.core.units import ensure_common_unit, _get_xyplot_units
+from visualastro.core.units import _get_xyplot_units, ensure_common_unit
 from visualastro.plotting.core.axes import (
     ax3d_axis_style,
     ax3d_pane_color,
     get_ax,
     get_ax3d,
-    _configure_axes_scaling,
 )
+from visualastro.plotting.core.axes.limits import _configure_axes_scaling
 from visualastro.plotting.core.colormaps import get_cmap
 from visualastro.plotting.core.colors import as_color, get_colors
 from visualastro.plotting.core.colors.plots import _resolve_scatter_norm
@@ -53,10 +52,12 @@ from visualastro.plotting.core.plot_input import (
     _resolve_props_kwargs,
     _resolve_xy_plot_inputs,
     _scatter_props,
+    _set_prop_cycle_from_kwargs,
 )
 from visualastro.plotting.core.utils import _get_zorder
 from visualastro.plotting.interfaces.plot_utils import (
-    _apply_plot_utils, _extract_plot_util_kwargs
+    _apply_plot_utils,
+    _extract_plot_util_kwargs,
 )
 
 
@@ -175,13 +176,13 @@ def plot_density_histogram(X, Y, ax, ax_histx, ax_histy, bins=None,
     zorders = _pop_kwargs(kwargs, 'zorders', 'zorder', default=None)
     cmap = kwargs.get('cmap', config.cmap)
     # figure params
-    xlim = kwargs.get('xlim', None)
-    ylim = kwargs.get('ylim', None)
+    xlim = kwargs.get('xlim')
+    ylim = kwargs.get('ylim')
     # labels
     labels = _pop_kwargs(kwargs, 'labels', 'label', 'l', default=None)
     loc = kwargs.get('loc', config.legend.loc)
-    xlabel = kwargs.get('xlabel', None)
-    ylabel = kwargs.get('ylabel', None)
+    xlabel = kwargs.get('xlabel')
+    ylabel = kwargs.get('ylabel')
 
     # get default config values
     bins = get_config_value(bins, 'bins')
@@ -307,9 +308,13 @@ def hist(
     bins: int | Sequence[float] | str | _Unset = _UNSET,
     range: tuple[float, float] | None = None,
     density: bool | _Unset = _UNSET,
+    weights: ArrayLike | Sequence[ArrayLike] | None = None,
+    cumulative: bool | Literal[-1] = False,
     histtype: Literal['bar', 'barstacked', 'step', 'stepfilled'] | _Unset = _UNSET,
     normalize: bool | _Unset = _UNSET,
     align: Literal['left', 'mid', 'right'] = 'mid',
+    orientation: Literal['vertical', 'horizontal'] = 'vertical',
+    stacked: bool = False,
     color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
     edgecolor: ColorType | Sequence[ColorType] | None = None,
     facecolor: ColorType | Sequence[ColorType] | None = None,
@@ -351,6 +356,24 @@ def hist(
     density : bool | _Unset, optional, default=_UNSET
         If `True`, normalize to a probability density (area = 1).
         If `_UNSET`, uses `config.normalize_hist`.
+    weights : ArrayLike | Sequence[ArrayLike] | None, optional, default=None
+        Weights associated with each entry in `x`.
+
+        - If `x` is a single array, `weights` must be an array of the same shape.
+        - If `x` is a sequence of arrays, `weights` must be a sequence of arrays
+          of the same length, with `weights[i].shape == x[i].shape`.
+
+        With `density=True`, the weights are normalized so that the integral of
+        the density is 1.
+    cumulative : bool | float, optional, default=False
+        Controls whether the histogram is accumulated.
+
+        - If True, each bin gives the count (or weighted sum) of entries in that
+          bin and all lower bins. With ``density=True``, the last bin equals 1.
+        - If a negative number (e.g. -1), the direction is reversed. With
+        ``density=True``, the first bin equals 1.
+        - If ``False``, bins are not accumulated.
+
     histtype : {'bar', 'barstacked', 'step', 'stepfilled'} | _Unset, optional, default=_UNSET
         Histogram type. If `_UNSET`, uses `config.histtype`.
     normalize : bool | _Unset, optional, default=_UNSET
@@ -363,6 +386,14 @@ def hist(
         - `'mid'`: centered between edges.
         - `'right'`: centered on right edges.
 
+    orientation : {'vertical', 'horizontal'}, optional, default='vertical'
+        Orientation of the histogram. Uses `matplotlib.axes.Axes.barh` if
+        ``'horizontal'``.
+    stacked : bool, optional, default=False
+        If ``True``, sequence of arrays are stacked ontop of each other.
+        If ``False``, sequences of arrays are aranged side by side
+        for ``histtype='bar'`` and stacked ontop of each other if
+        ``histtype='step'``.
     color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
         Color(s). A single color applies to all histograms. A sequence is
         matched to the datasets. Aliased by `c` in `kwargs`.
@@ -464,8 +495,12 @@ def hist(
         bins=params.bins,
         range=range,
         density=params.density,
+        weights=weights,
+        cumulative=cumulative,
         histtype=params.histtype,
         align=align,
+        orientation=orientation,
+        stacked=stacked,
         hatch=hatch,
         label=params.label,
         rasterized=params.rasterized,
@@ -487,18 +522,18 @@ def hist(
 def plot(
     *data: float | u.Quantity | NDArray | list[float | u.Quantity],
     ax: maxes.Axes | None = None,
-    color: ColorType | _Unset = _UNSET,
-    linestyle: LineStyleType | _Unset = _UNSET,
-    linewidth: float | _Unset = _UNSET,
-    marker: str | Path | MarkerStyle | None | _Unset = _UNSET,
-    markersize: float | _Unset = _UNSET,
-    size: float | _Unset = _UNSET,
-    alpha: float | _Unset = _UNSET,
-    markeredgecolor: ColorType | None = None,
-    markeredgewidth: float | None = None,
-    markerfacecolor: ColorType | None = None,
-    fillstyle: Literal['full', 'left', 'right', 'bottom', 'top', 'none'] = 'full',
-    drawstyle: Literal['default', 'steps', 'steps-pre', 'steps-mid', 'steps-post'] = 'default',
+    color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
+    linestyle: LineStyleType | Sequence[LineStyleType] | _Unset = _UNSET,
+    linewidth: float | Sequence[float] | _Unset = _UNSET,
+    marker: str | Path | MarkerStyle | Sequence[str | Path | MarkerStyle] | None | _Unset = _UNSET,
+    markersize: float | Sequence[float] | _Unset = _UNSET,
+    size: float | Sequence[float] | _Unset = _UNSET,
+    alpha: float | Sequence[float] | _Unset = _UNSET,
+    markeredgecolor: ColorType | Sequence[ColorType] | None = None,
+    markeredgewidth: float | Sequence[float] | None = None,
+    markerfacecolor: ColorType | Sequence[ColorType] | None = None,
+    fillstyle: Literal['full', 'left', 'right', 'bottom', 'top', 'none'] | Sequence[str] = 'full',
+    drawstyle: Literal['default', 'steps', 'steps-pre', 'steps-mid', 'steps-post'] | Sequence[str] = 'default',
     label: str | Sequence[str] | None = None,
     normalize: bool | _Unset = _UNSET,
     xlog: bool | _Unset = _UNSET,
@@ -510,6 +545,11 @@ def plot(
     """
     Plot one or more lines with automatic labels and plot utilities.
 
+    Call signatures::
+
+        plot(x, y)    # two 1D sequences
+        plot(y)       # 1D sequence or 2D array
+
     Parameters
     ----------
     *data : float | Quantity | NDArray | list[float | Quantity | NDArray]
@@ -519,45 +559,59 @@ def plot(
           `np.arange(len(y))`.
         - `(y)`: 2D array.
 
-          - If `xy_indices` is a tuple, split into `(x, y)` using
-            `array_order` and `xy_indices`.
-          - If `xy_indices` is None, plot `y` with one line per column
-            (transposed if `array_order='fortran'`).
+            - If `xy_indices` is a tuple, split into `(x, y)` using
+              `array_order` and `xy_indices`.
+            - If `xy_indices` is None, plot `y` with one line per column
+              (transposed if `array_order='fortran'`).
+
         - `(x, y)`: used as given. `y` may be a list of arrays or a 2D
           array to plot multiple lines.
 
         Unit labels are added to the axes labels if
-        `config.show_unit_label` is True.
+        ``config.show_unit_label`` is ``True``.
     ax : Axes | None, optional, default=None
         Axes to plot on. If None, resolved by `get_ax`.
-    color : ColorType | _Unset, optional, default=_UNSET
+    color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
         Line color(s). If an int, that many colors are generated from
-        `cmap`. Mutually exclusive with `c`. If `_UNSET` and `c` is not
-        given, uses `config.color`.
-    linestyle : LineStyleType | _Unset, optional, default=_UNSET
-        Line style. If `_UNSET`, uses `config.linestyle`.
-    linewidth : float | _Unset, optional, default=_UNSET
-        Line width. If `_UNSET`, uses `config.linewidth`.
-    marker : str | Path | MarkerStyle | None | _Unset, optional, default=_UNSET
-        Marker style. If `_UNSET`, uses `config.plot_marker`.
-    markersize : float | _Unset, optional, default=_UNSET
-        Marker diameter in points. If `_UNSET`, uses `config.markersize`.
-        Only one of `markersize` and `size` can be set.
-    size : float | _Unset, optional, default=_UNSET
-        Marker area in points**2. If `_UNSET` uses `(config.markersize)**2`.
-        Only one of `size` and `markersize` can be set.
-    alpha : float | _Unset, optional, default=_UNSET
-        Line transparency, in [0, 1]. If `_UNSET`, uses `config.alpha`.
-    markeredgecolor : ColorType | None, optional, default=None
-        Marker edge color.
-    markeredgewidth : float | None, optional, default=None
-        Marker edge width.
-    markerfacecolor : ColorType | None, optional, default=None
-        Marker face color.
-    fillstyle : {'full', 'left', 'right', 'bottom', 'top', 'none'}, optional, default='full'
-        Marker fill style.
-    drawstyle : {'default', 'steps', 'steps-pre', 'steps-mid', 'steps-post'}, optional, default='default'
-        Line connection style.
+        ``cmap``. Mutually exclusive with `c`. Can also be a ``Sequence`` of colors
+        for 2D arrays. If `_UNSET` and `c` is not given, uses `config.color`.
+    linestyle : LineStyleType | Sequence[LineStyleType] | _Unset, optional, default=_UNSET
+        Line style(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.linestyle`.
+    linewidth : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Line width(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.linewidth`.
+    marker : str | Path | MarkerStyle | Sequence[str | Path | MarkerStyle] | None | _Unset, optional, default=_UNSET
+        Marker style(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.plot_marker`.
+    markersize : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Marker diameter in points. A sequence is cycled per line.
+        If `_UNSET`, uses `config.markersize`. Only one of `markersize`
+        and `size` can be set.
+    size : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Marker area in points**2. A sequence is cycled per line.
+        If `_UNSET` uses `(config.markersize)**2`. Only one of `size`
+        and `markersize` can be set.
+    alpha : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Line transparency, in [0, 1]. A sequence is cycled per line.
+        If `_UNSET`, uses `config.alpha`.
+    markeredgecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Marker edge color(s). A sequence is cycled per line. Accepts the
+        keywords `'none'` and `'face'` as elements. If None, uses the property
+        cycle or matplotlib defaults.
+    markeredgewidth : float | Sequence[float] | None, optional, default=None
+        Marker edge width(s) in points. A sequence is cycled per line.
+        If None, uses the property cycle or matplotlib defaults.
+    markerfacecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Marker face color(s). A sequence is cycled per line. Accepts the
+        keyword `'none'` as an element. If None, uses the property cycle or
+        matplotlib defaults.
+    fillstyle : str | Sequence[str], optional, default='full'
+        Marker fill style(s). A sequence is cycled per line.
+        Options: `'full'`, `'left'`, `'right'`, `'bottom'`, `'top'`, `'none'`.
+    drawstyle : str | Sequence[str], optional, default='default'
+        Line connection style(s). A sequence is cycled per line.
+        Options: `'default'`, `'steps'`, `'steps-pre'`, `'steps-mid'`, `'steps-post'`.
     label : str | Sequence[str] | None, optional, default=None
         Legend label(s).
     normalize : bool | _Unset, optional, default=_UNSET
@@ -607,17 +661,12 @@ def plot(
     See Also
     --------
     matplotlib.axes.Axes.plot
-
-    Examples
-    --------
-    >>> plot(x, y)
-    >>> plot(np.random.rand(100, 2))
-    >>> plot(flux)
     """
     params = _resolve_kwargs(
         kwargs,
         [
             _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
             _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
@@ -639,8 +688,11 @@ def plot(
     _resolve_color_kwargs(
         kwargs,
         allow_c=False,
+        allow_color_sequences=True,
         color=_resolve_color_alias(kwargs, color),
-        color_keys=_plot_color_keys()
+        color_keys=_plot_color_keys(),
+        markeredgecolor=markeredgecolor,
+        markerfacecolor=markerfacecolor,
     )
     _resolve_props_kwargs(
         kwargs,
@@ -652,12 +704,11 @@ def plot(
         linestyle=linestyle,
         linewidth=linewidth,
         alpha=alpha,
-        markeredgecolor=markeredgecolor,
         markeredgewidth=markeredgewidth,
-        markerfacecolor=markerfacecolor,
         fillstyle=fillstyle,
         drawstyle=drawstyle,
     )
+    _set_prop_cycle_from_kwargs(ax, kwargs)
     _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
 
     if params.normalize:
@@ -666,7 +717,7 @@ def plot(
     mpl_args = (get_value(y),) if x is None else (get_value(x), get_value(y))
     lines = ax.plot(
         *mpl_args,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=params.zorder,
         **kwargs
@@ -676,7 +727,230 @@ def plot(
         plot_params, ax,
         x=x, y=y,
         img=lines,
-        label=label,
+        label=params.label,
+        rasterized=params.rasterized,
+        **kwargs
+    )
+
+    return lines
+
+
+def step(
+    *data: float | u.Quantity | NDArray | list[float | u.Quantity],
+    ax: maxes.Axes | None = None,
+    where: Literal['pre', 'post', 'mid'] = 'pre',
+    color: ColorType | Sequence[ColorType] | _Unset = _UNSET,
+    linestyle: LineStyleType | Sequence[LineStyleType] | _Unset = _UNSET,
+    linewidth: float | Sequence[float] | _Unset = _UNSET,
+    marker: str | Path | MarkerStyle | Sequence[str | Path | MarkerStyle] | None | _Unset = _UNSET,
+    markersize: float | Sequence[float] | _Unset = _UNSET,
+    size: float | Sequence[float] | _Unset = _UNSET,
+    alpha: float | Sequence[float] | _Unset = _UNSET,
+    markeredgecolor: ColorType | Sequence[ColorType] | None = None,
+    markeredgewidth: float | Sequence[float] | None = None,
+    markerfacecolor: ColorType | Sequence[ColorType] | None = None,
+    fillstyle: Literal['full', 'left', 'right', 'bottom', 'top', 'none'] | Sequence[str] = 'full',
+    drawstyle: Literal['default', 'steps', 'steps-pre', 'steps-mid', 'steps-post'] | Sequence[str] = 'default',
+    label: str | Sequence[str] | None = None,
+    normalize: bool | _Unset = _UNSET,
+    xlog: bool | _Unset = _UNSET,
+    ylog: bool | _Unset = _UNSET,
+    zorder: float | list[float] | None = None,
+    array_order: Literal['c', 'fortran'] | _Unset = _UNSET,
+    **kwargs
+):
+    """
+    Plot one or more stepped lines with automatic labels and plot utilities.
+
+    Most arguments for ``plot`` will work for ``step``.
+
+    Call signatures::
+
+        step(x, y)    # two 1D sequences
+        step(y)       # 1D sequence or 2D array
+
+    Parameters
+    ----------
+    *data : float | Quantity | NDArray | list[float | Quantity | NDArray]
+        One or two positional inputs. Accepted signatures:
+
+        - `(y)`: scalar or 1D. `x` is generated by matplotlib as
+          `np.arange(len(y))`.
+        - `(y)`: 2D array.
+
+            - If `xy_indices` is a tuple, split into `(x, y)` using
+              `array_order` and `xy_indices`.
+            - If `xy_indices` is None, plot `y` with one line per column
+              (transposed if `array_order='fortran'`).
+
+        - `(x, y)`: used as given. `y` may be a list of arrays or a 2D
+          array to plot multiple lines.
+
+        Unit labels are added to the axes labels if
+        ``config.show_unit_label`` is ``True``.
+    ax : Axes | None, optional, default=None
+        Axes to plot on. If None, resolved by `get_ax`.
+    color : ColorType | Sequence[ColorType] | _Unset, optional, default=_UNSET
+        Line color(s). If an int, that many colors are generated from
+        ``cmap``. Mutually exclusive with `c`. Can also be a ``Sequence`` of colors
+        for 2D arrays. If `_UNSET` and `c` is not given, uses `config.color`.
+    linestyle : LineStyleType | Sequence[LineStyleType] | _Unset, optional, default=_UNSET
+        Line style(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.linestyle`.
+    linewidth : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Line width(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.linewidth`.
+    marker : str | Path | MarkerStyle | Sequence[str | Path | MarkerStyle] | None | _Unset, optional, default=_UNSET
+        Marker style(s). A sequence is cycled per line.
+        If `_UNSET`, uses `config.plot_marker`.
+    markersize : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Marker diameter in points. A sequence is cycled per line.
+        If `_UNSET`, uses `config.markersize`. Only one of `markersize`
+        and `size` can be set.
+    size : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Marker area in points**2. A sequence is cycled per line.
+        If `_UNSET` uses `(config.markersize)**2`. Only one of `size`
+        and `markersize` can be set.
+    alpha : float | Sequence[float] | _Unset, optional, default=_UNSET
+        Line transparency, in [0, 1]. A sequence is cycled per line.
+        If `_UNSET`, uses `config.alpha`.
+    markeredgecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Marker edge color(s). A sequence is cycled per line. Accepts the
+        keywords `'none'` and `'face'` as elements. If None, uses the property
+        cycle or matplotlib defaults.
+    markeredgewidth : float | Sequence[float] | None, optional, default=None
+        Marker edge width(s) in points. A sequence is cycled per line.
+        If None, uses the property cycle or matplotlib defaults.
+    markerfacecolor : ColorType | Sequence[ColorType] | None, optional, default=None
+        Marker face color(s). A sequence is cycled per line. Accepts the
+        keyword `'none'` as an element. If None, uses the property cycle or
+        matplotlib defaults.
+    fillstyle : str | Sequence[str], optional, default='full'
+        Marker fill style(s). A sequence is cycled per line.
+        Options: `'full'`, `'left'`, `'right'`, `'bottom'`, `'top'`, `'none'`.
+    drawstyle : str | Sequence[str], optional, default='default'
+        Line connection style(s). A sequence is cycled per line.
+        Options: `'default'`, `'steps'`, `'steps-pre'`, `'steps-mid'`, `'steps-post'`.
+    label : str | Sequence[str] | None, optional, default=None
+        Legend label(s).
+    normalize : bool | _Unset, optional, default=_UNSET
+        Normalize each dataset in `y` by its maximum value via `_normalize`
+        before plotting. If `_UNSET`, uses `config.normalize_data`.
+    xlog, ylog : bool | _Unset, optional, default=_UNSET
+        Use logarithmic x and y axes scales. If `_UNSET`, uses
+        `config.axes.xlog` and `config.axes.ylog` respectively.
+    zorder : float | list[float] | None, optional, default=None
+        Drawing order. Lines are drawn from lowest to highest zorder.
+        If None, starts at `config.zorder.plot_data` and increments by 1
+        for each subsequent line.
+    array_order : Literal['c', 'fortran'] | _Unset, optional, default=_UNSET
+        Memory order used to interpret multidimensional input.
+        If `_UNSET`, uses `config.array_order`.
+    **kwargs
+        Additional keyword arguments. For a complete list see:
+
+        - `_resolve_xy_plot_inputs`
+        - `_extract_plot_util_kwargs`
+        - `_resolve_color_kwargs`
+        - `_resolve_props_kwargs`
+        - `_configure_axes_scaling`
+        - `_apply_plot_utils`
+
+    Other Parameters
+    ----------------
+    c : ColorType, optional
+        Alias of `color`. Mutually exclusive with `color`.
+    figsize : tuple[float, float], optional, default=config.figsize
+        Figure size. Used only if a new figure is created.
+    rasterized : bool, optional, default=config.rasterized
+        Rasterize the line artists.
+
+    Returns
+    -------
+    list[Line2D]
+        Line artists created by ``Axes.step``, one per plotted line.
+
+    Raises
+    ------
+    ValueError
+        If both ``c`` and ``color`` are given.
+    TypeError
+        If an unsupported keyword argument is passed to a resolver.
+
+    See Also
+    --------
+    matplotlib.axes.Axes.step
+    """
+    params = _resolve_kwargs(
+        kwargs,
+        [
+            _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
+            _param('zorder', zorder, config.zorder.plot_data),
+        ],
+        [
+            _kwarg('figsize', config.figsize),
+            _kwarg('rasterized', config.rasterized),
+        ]
+    )
+
+    plot_params = _extract_plot_util_kwargs(kwargs)
+    ax = get_ax(ax, figsize=params.figsize)
+    args = _resolve_xy_plot_inputs(
+        *data,
+        kwargs=kwargs,
+        order=array_order,
+        mode='plot',
+    )
+    if len(args) == 1:
+        y = np.asarray(args[0])
+        x = np.arange(y.shape[0])
+    else:
+        x, y = args
+
+    _resolve_color_kwargs(
+        kwargs,
+        allow_c=False,
+        allow_color_sequences=True,
+        color=_resolve_color_alias(kwargs, color),
+        color_keys=_plot_color_keys(),
+        markeredgecolor=markeredgecolor,
+        markerfacecolor=markerfacecolor,
+    )
+    _resolve_props_kwargs(
+        kwargs,
+        defaults=_plot_props(),
+        size_target='markersize',
+        marker=marker,
+        s=size,
+        markersize=markersize,
+        linestyle=linestyle,
+        linewidth=linewidth,
+        alpha=alpha,
+        markeredgewidth=markeredgewidth,
+        fillstyle=fillstyle,
+        drawstyle=drawstyle,
+    )
+    _set_prop_cycle_from_kwargs(ax, kwargs)
+    _configure_axes_scaling(ax, kwargs, xlog=xlog, ylog=ylog)
+
+    if params.normalize:
+        y = _normalize(y)
+
+    lines = ax.step(
+        get_value(x), get_value(y),
+        where=where,
+        label=params.label,
+        rasterized=params.rasterized,
+        zorder=params.zorder,
+        **kwargs
+    )
+
+    _apply_plot_utils(
+        plot_params, ax,
+        x=x, y=y,
+        img=lines,
+        label=params.label,
         rasterized=params.rasterized,
         **kwargs
     )
@@ -705,6 +979,11 @@ def scatter(
 ) -> PathCollection:
     """
     Scatter plot with automatic labels and plot utilities.
+
+    Call signatures::
+
+        scatter(x, y)   # two 1D sequences or two floats
+        scatter(y)      # singular float, 1D sequence, or 2D array
 
     Parameters
     ----------
@@ -798,6 +1077,7 @@ def scatter(
         kwargs,
         [
             _param('normalize', normalize, config.normalize_data),
+            _param('label', label, None),
             _param('zorder', zorder, config.zorder.plot_data),
         ],
         [
@@ -839,7 +1119,7 @@ def scatter(
 
     artist = ax.scatter(
         get_value(x), get_value(y),
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         zorder=params.zorder,
         **kwargs
@@ -849,7 +1129,7 @@ def scatter(
         x=x, y=y,
         img=artist,
         ref_unit=cunit,
-        label=label,
+        label=params.label,
         rasterized=params.rasterized,
         **kwargs
     )
@@ -1340,13 +1620,13 @@ def scatter3D(
                 )
 
     if params.axis_style is not None:
-        ax3d_axis_style(ax, style=params.axis_style)
+        ax3d_axis_style(style=params.axis_style, ax=ax)
 
     ax.set_xlabel(params.xlabel)
     ax.set_ylabel(params.ylabel)
     ax.set_zlabel(params.zlabel)
 
-    ax3d_pane_color(params.pane_color, ax=ax)
+    ax3d_pane_color(pane_color=params.pane_color, ax=ax)
 
     if not grid_lines: ax.grid(False)
     if params.minor_ticks:
@@ -1541,11 +1821,11 @@ def scatter_project(
     nrows = [len(x) for x in xpos]
     nsum = sum(nrows)
     pos = np.empty((nsum, 3))
-    size_arr = np.empty((nsum))
+    size_arr = np.empty(nsum)
 
     c_arrs = [np.asarray(c) for c in c_list] if c_list is not None else None
     c_arr = np.empty((nsum, 4))
-    c_arr_1d = np.empty((nsum))
+    c_arr_1d = np.empty(nsum)
 
     scatter_norm = _resolve_scatter_norm(c_arrs, norm)
 

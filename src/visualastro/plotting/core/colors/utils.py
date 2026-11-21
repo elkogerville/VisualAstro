@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2026-04-10
-Date Modified: 2026-10-06
+Date Modified: 2026-11-14
 Description:
     Color utility functions.
 """
@@ -10,15 +10,17 @@ from collections.abc import Sequence
 from typing import Any, Literal, TypeGuard
 
 import matplotlib as mpl
+import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.colors import is_color_like
 from matplotlib.typing import ColorType
-import numpy as np
 
-from visualastro.core.config import config, _UNSET, _resolve_default
+from visualastro.core.configuration import _UNSET, _resolve_default, config
 from visualastro.core.data import as_list
 from visualastro.core.sequences import _cycle, _unwrap_if_single
 from visualastro.plotting.core.colors._types import RGBATuple, RGBTuple
+
+__all__ = ['as_color']
 
 
 def as_color(
@@ -187,3 +189,11 @@ def _is_cycled_colorset(colors) -> bool:
             return True
         return False
     return isinstance(colors, str) and _is_colorset(colors)
+
+
+_COLOR_KEYWORDS = ('none', 'face')
+
+
+def _is_color_keyword(v: Any) -> bool:
+    """Check if a color input is a matplotlib color keyword."""
+    return isinstance(v, str) and v in _COLOR_KEYWORDS

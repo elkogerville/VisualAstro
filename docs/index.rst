@@ -3,23 +3,22 @@ VisualAstro
 
 VisualAstro Documentation Page.
 
-
 .. toctree::
-   :maxdepth: 1
-   :caption: User Guide
+   :hidden:
 
-   user_guide/req-dep
-   user_guide/installation
-   user_guide/colorsets
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Reference
-
+   user_guide/index
    reference/index
+   dev/index
 
-.. toctree::
-    :maxdepth: 1
-    :caption: Developer
 
-    dev/contributing_docs
+.. image:: _static/visualastro_logo_light.svg
+    :align: left
+    :width: 500px
+    :alt: VisualAstro
+    :class: only-light
+
+.. image:: _static/visualastro_logo_dark.svg
+    :align: left
+    :width: 500px
+    :alt: VisualAstro
+    :class: only-dark

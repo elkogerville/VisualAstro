@@ -10,11 +10,14 @@ from collections.abc import Sequence
 from itertools import cycle, islice
 from typing import Any, TypeVar, overload
 
-from astropy.units import Quantity
 import numpy as np
+from astropy.units import Quantity
 from numpy.typing import NDArray
 
 from visualastro.core.array_types import _is_scalar
+from visualastro.core.data import _ndim
+
+__all__ = ['match_length']
 
 
 T = TypeVar('T')
@@ -270,7 +273,7 @@ def _broadcast_param(
     >>> _broadcast_param(['r', 'g'], 3, 'color')
     ValueError: len(color)=2, expected 1 or 3
     """
-    if not isinstance(value, (list, np.ndarray)) or np.ndim(value) == 0:
+    if not isinstance(value, (list, np.ndarray)) or _ndim(value) == 0:
         return [value] * n
     if len(value) == 1:
         return [value[0]] * n

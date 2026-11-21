@@ -7,12 +7,14 @@ Description:
 """
 
 from __future__ import annotations
-from collections.abc import Sequence
+
 import warnings
+from collections.abc import Sequence
 from typing import Any, Literal, overload
 
-from astropy.io.fits import Header
 import astropy.units as u
+import numpy as np
+from astropy.io.fits import Header
 from astropy.units import (
     Quantity,
     StructuredUnit,
@@ -22,22 +24,31 @@ from astropy.units import (
     UnitsError,
 )
 from astropy.units.physical import PhysicalType
-import numpy as np
 from numpy.typing import ArrayLike
 
-from visualastro.core.config import (
-    config,
-    _Unset,
-    _UNSET,
-    _resolve_default
-)
 from visualastro.core.array_types import _is_iterable
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.sequences import _unwrap_if_single
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
-    SpectralAxis, SpectralRegion, _HAS_SPECUTILS
+    _HAS_SPECUTILS,
+    SpectralAxis,
 )
+
+__all__ = [
+    'convert_quantity',
+    'get_unit',
+    'get_units',
+    'get_spectral_unit',
+    'get_physical_type',
+    'to_unit',
+    'unit_2_string',
+    'to_latex_unit',
+    'to_fits_unit',
+    'get_unit_label',
+    'ensure_common_unit',
+    'stack_quantities',
+]
 
 
 # define units
@@ -84,7 +95,7 @@ def convert_quantity(
 
     try:
         return quantity.to(target_unit, equivalencies=equivalencies)
-    except UnitConversionError as exc:
+    except UnitConversionError:
         if on_failure == 'raise':
             raise UnitConversionError
         if on_failure == 'warn':
@@ -130,6 +141,31 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
     if isinstance(obj, Quantity):
         return obj.unit
 
+    if isinstance(obj, Header):
+        bunit = obj.get('BUNIT', None)
+        return to_unit(bunit)
+
+    if isinstance(obj, (str, bytes, memoryview, np.ndarray, np.generic, int, float, complex, bool)):
+        return None
+
+    unit = getattr(obj, 'unit', None)
+    if unit is not None:
+        return to_unit(unit)
+
+    if hasattr(obj, 'header'):
+        header = obj.header
+        if header is not obj:
+            unit = get_unit(header)
+            if unit is not None:
+                return unit
+
+    if hasattr(obj, 'data'):
+        data = obj.data
+        if data is not obj:
+            unit = get_unit(data)
+            if unit is not None:
+                return unit
+
     if _is_iterable(obj):
         units = [get_unit(item) for item in obj]
         non_none_units = [u for u in units if u is not None]
@@ -144,28 +180,6 @@ def get_unit(obj: Any) -> UnitBase | StructuredUnit | None:
             )
 
         return first_unit
-
-    if isinstance(obj, Header):
-        bunit = obj.get('BUNIT', None)
-        return to_unit(bunit)
-
-    unit = getattr(obj, 'unit', None)
-    if unit is not None:
-        return to_unit(unit)
-
-    if hasattr(obj, 'data'):
-        data = getattr(obj, 'data')
-        if data is not obj:
-            unit = get_unit(data)
-            if unit is not None:
-                return unit
-
-    if hasattr(obj, 'header'):
-        header = getattr(obj, 'header')
-        if header is not obj:
-            unit = get_unit(header)
-            if unit is not None:
-                return unit
 
     return None
 
@@ -296,9 +310,7 @@ def get_physical_type(obj: Any) -> PhysicalType | None:
     """
     unit = get_unit(obj)
 
-    if unit is None:
-        return None
-    elif isinstance(unit, StructuredUnit):
+    if unit is None or isinstance(unit, StructuredUnit):
         return None
 
     try:
@@ -512,159 +524,6 @@ def get_unit_label(
     unit_str = unit_2_string(data_unit, fmt=unit_fmt)
 
     return fr'{brackets[0]}{unit_str}{brackets[1]}'
-
-
-@overload
-def to_spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-    )
-) -> SpectralRegion: ...
-
-@overload
-def to_spectral_region(
-    obj: None
-) -> None: ...
-
-def to_spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-        | None
-    )
-) -> SpectralRegion | None:
-    """
-    Coerce input into a SpectralRegion with units.
-
-    Parameters
-    ----------
-    obj : SpectralRegion | Quantity | tuple | list[tuple] | None
-        Region specification. Accepted forms:
-
-        - `SpectralRegion`: returned as-is
-        - `(low, high) * unit`: single region with shared unit
-        - `[(low, high), ...] * unit`: multiple regions with shared unit
-        - `(Quantity, Quantity)`: single region with explicit units
-        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
-        - `None`: returned as-is
-
-    Returns
-    -------
-    SpectralRegion :
-        A SpectralRegion object containing one or more spectral subregions.
-
-    Raises
-    ------
-    ValueError :
-        If a Quantity has incorrect shape (must be (2,) or (N, 2)).
-    ValueError :
-        If the input `obj` cannot be coerced into a `SpectralRegion`.
-
-    Examples
-    --------
-    >>> import astropy.units as u
-    # Single region with shared unit
-    >>> to_spectral_region((6.5, 6.6) * u.um)
-
-    # Multiple regions with shared unit
-    >>> to_spectral_region([(6.5, 6.6), (7.0, 7.5)] * u.um)
-
-    # Single region with explicit units
-    >>> to_spectral_region((6.5*u.um, 6.6*u.um))
-
-    # Multiple regions with explicit units
-    >>> to_spectral_region([(6.5*u.um, 6.6*u.um), (7.0*u.um, 7.5*u.um)])
-    """
-    _require_dependency('specutils')
-    if obj is None:
-        return None
-
-    if isinstance(obj, SpectralRegion):
-        return obj
-
-    region: Any = obj
-
-    if isinstance(region, Quantity):
-        arr = np.asarray(obj)
-
-        # single region
-        if arr.shape == (2,):
-            lo = region[0]
-            hi = region[1]
-            region = [(lo, hi)]
-
-        # multiple regions
-        elif arr.ndim == 2 and arr.shape[1] == 2:
-            region = [(row[0], row[1]) for row in region]
-
-        else:
-            raise ValueError(f'Quantity must have shape (2,) or (N,2), got {arr.shape}')
-
-    # case: quantities inside list/tuple
-    elif (isinstance(region, tuple) and
-        len(region) == 2 and
-        all(isinstance(x, Quantity) for x in region)):
-        region = [region]
-
-    elif not isinstance(obj, (list, tuple)):
-        raise TypeError(
-            f'Expected SpectralRegion, Quantity, tuple, or list, got {type(region).__name__}'
-        )
-
-    try:
-        return SpectralRegion(region)
-    except Exception as e:
-        raise ValueError(
-            f'Could not construct SpectralRegion from {type(region).__name__}: {e}'
-        ) from e
-
-
-def _require_spectral_region(
-    obj: (
-        SpectralRegion
-        | Quantity
-        | tuple[Quantity, Quantity]
-        | list[tuple[Quantity, Quantity]]
-    )
-) -> SpectralRegion:
-    """
-    Enforce that the input `obj` is a `SpectralRegion`.
-
-    This is a wrapper of `to_spectral_region`, which unlike
-    this function allows for None inputs.
-
-    Parameters
-    ----------
-    obj : SpectralRegion, Quantity, tuple, or list
-        Region specification. Accepted forms:
-
-        - `SpectralRegion`: returned as-is
-        - `(low, high) * unit`: single region with shared unit
-        - `[(low, high), ...] * unit`: multiple regions with shared unit
-        - `(Quantity, Quantity)`: single region with explicit units
-        - `[(Quantity, Quantity), ...]`: multiple regions with explicit units
-
-    Returns
-    -------
-    SpectralRegion :
-        Input region as a SpectralRegion
-
-    Raises
-    ------
-    ValueError :
-        If input `obj` results in `None` when converted to
-        a SpectralRegion.
-    """
-    region = to_spectral_region(obj)
-
-    if region is None or not isinstance(region, SpectralRegion):
-        raise ValueError(f'A SpectralRegion is required; got {type(region).__name__}')
-    return region
 
 
 def ensure_common_unit(

@@ -10,10 +10,9 @@ from typing import Literal
 
 import matplotlib.axes as maxes
 from matplotlib.cm import ScalarMappable
+from matplotlib.colorbar import Colorbar
 
-from visualastro.core.config import (
-    config, _Unset, _UNSET, _resolve_default
-)
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset, config
 
 
 def add_colorbar(
@@ -27,7 +26,7 @@ def add_colorbar(
     tick_dir: Literal['in', 'out', 'inout'] | _Unset = _UNSET,
     tick_fontsize: float | _Unset = _UNSET,
     rasterized: bool | _Unset = _UNSET
-) -> None:
+) -> Colorbar:
     """
     Add a colorbar next to an Axes.
 
@@ -64,6 +63,10 @@ def add_colorbar(
         vector formats (e.g., PDF, SVG), which can
         significantly reduce file size for complex plots.
         If `_UNSET`, uses `config.rasterized`
+
+    Returns
+    -------
+    matplotlib.colorbar.Colorbar
     """
     width = _resolve_default(width, config.colorbar.width)
     pad = _resolve_default(pad, config.colorbar.pad)
@@ -96,3 +99,6 @@ def add_colorbar(
 
     if rasterized:
         cbar.solids.set_rasterized(True)
+
+    fig.sca(ax)
+    return cbar

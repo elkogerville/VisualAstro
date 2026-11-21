@@ -9,8 +9,7 @@ Description:
 from types import SimpleNamespace
 from typing import Any
 
-from visualastro.core.config import _Unset, _UNSET, _resolve_default
-
+from visualastro.core.configuration import _UNSET, _resolve_default, _Unset
 
 # KWARGS
 # ------

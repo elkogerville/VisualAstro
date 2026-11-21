@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     from reproject import reproject_exact, reproject_interp
     _HAS_REPROJECT = True

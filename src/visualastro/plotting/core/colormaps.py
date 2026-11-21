@@ -8,29 +8,30 @@ Description:
     the bottom of this file in `VISUALASTRO_CMAPS`.
 """
 
+import warnings
 from collections.abc import Sequence
 from typing import Literal
-import warnings
 
-from astropy.visualization import AsinhStretch, ImageNormalize
 import matplotlib as mpl
-from matplotlib.axes import Axes
-from matplotlib.collections import PathCollection
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
+from astropy.visualization import AsinhStretch, ImageNormalize
+from matplotlib.axes import Axes
+from matplotlib.collections import PathCollection
 from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import ColorType
-import numpy as np
 
-from visualastro.core.config import config, _Unset, _UNSET
+from visualastro.core.configuration import _UNSET, _Unset, config
 from visualastro.core.data import to_list
 from visualastro.core.kwargs import _resolve_default
-from visualastro.optional_dependencies.register import (
-    _offer_dependency, _require_dependency
-)
-from visualastro.optional_dependencies._cmasher import cmasher, _HAS_CMASHER
+from visualastro.optional_dependencies._cmasher import _HAS_CMASHER, cmasher
 from visualastro.optional_dependencies._colorspacious import cspace_converter
 from visualastro.optional_dependencies._tol_colors import _HAS_TOLCOLORS
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.plotting.core.colors.utils import _is_colorset
 
 
@@ -373,7 +374,7 @@ if _HAS_TOLCOLORS:
     VISUALASTRO_CMAPS['iridescent'] = iridescent
     VISUALASTRO_CMAPS['tol_rainbow'] = tol_rainbow
 
-CMAPNAMES = [key for key in VISUALASTRO_CMAPS.keys()]
+CMAPNAMES = [key for key in VISUALASTRO_CMAPS]
 
 
 def _is_valid_cmap(cmap: str | mcolors.Colormap) -> bool:

@@ -13,7 +13,9 @@ import astropy.units as u
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from visualastro.core.units import get_unit, _has_unit
+from visualastro.core.units import _has_unit, get_unit
+
+__all__ = ['normalize', 'percent_difference', 'relative_error']
 
 
 def normalize(

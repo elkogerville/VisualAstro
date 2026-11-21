@@ -1,27 +1,25 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-06
+Date Modified: 2026-11-14
 Description:
     Array properties inspection functions.
 """
 
-from collections.abc import Sequence
 from typing import Any, TypeVar
 
-from astropy import units as u
 import numpy as np
-
+from astropy import units as u
 
 T = TypeVar('T')
 
 
-def _is_scalar_quantity(obj) -> bool:
+def _is_scalar_quantity(obj: Any) -> bool:
     """Check if `obj` is a scalar Quantity (0-dimensional)."""
     return isinstance(obj, u.Quantity) and obj.ndim == 0
 
 
-def _is_scalar(obj) -> bool:
+def _is_scalar(obj: Any) -> bool:
     """Check if `obj` is a scalar or scalar Quantity."""
     if isinstance(obj, str):
         return False
@@ -34,8 +32,8 @@ def _is_scalar(obj) -> bool:
     return _is_scalar_quantity(obj)
 
 
-def _is_iterable(obj) -> bool:
-    """Check that an object is an iterable container (array-like)."""
+def _is_iterable(obj: Any) -> bool:
+    """Check that an object is an ``ArrayLike`` sequence."""
     if isinstance(obj, (list, tuple)):
         return True
     if isinstance(obj, (np.ndarray, u.Quantity)):
@@ -43,14 +41,19 @@ def _is_iterable(obj) -> bool:
     return False
 
 
-def _is_array_like(obj) -> bool:
+def _is_iterable_not_tuple(obj: Any) -> bool:
+    """Check that an object is an ``ArrayLike`` but not a ``tuple``."""
+    return _is_iterable(obj) and not isinstance(obj, tuple)
+
+
+def _is_array_like(obj: Any) -> bool:
     """Check if object is array-like (list, ndarray, or array Quantity)."""
     if _is_scalar_quantity(obj):
         return False
     return isinstance(obj, (list, tuple, np.ndarray)) or (hasattr(obj, 'unit') and np.ndim(obj) >= 1)
 
 
-def _is_ndarray_or_quantity_array(obj) -> bool:
+def _is_ndarray_or_quantity_array(obj: Any) -> bool:
     """
     Check if an object is either a `NDArray` or a `u.Quantity` array.
     `u.Quantity` scalars return `False`.
@@ -60,7 +63,7 @@ def _is_ndarray_or_quantity_array(obj) -> bool:
     return _is_array_like(obj)
 
 
-def _is_sequence_of_sequences(obj: Sequence) -> bool:
+def _is_sequence_of_sequences(obj: Any) -> bool:
     """
     Check if an object is a list[array-like]
     or a tuple[array-like]. Array-like includes
@@ -97,7 +100,7 @@ def _is_2d(obj: Any) -> bool:
     return False
 
 
-def _is_wrapped_1d(obj) -> bool:
+def _is_wrapped_1d(obj: Any) -> bool:
     """
     Check that an object is either a Sequence of sequences of len 1,
     or is a 2D array with shape (N,1) or (1,N).

@@ -1,7 +1,7 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-07-28
+Date Modified: 2026-11-16
 Description:
     SpectrumPlus data structure for 1D spectrum objects.
     This is an extension of the specutils.Spectrum class
@@ -9,32 +9,33 @@ Description:
 """
 
 from __future__ import annotations
+
 import copy
 from typing import Literal, cast
 
+import numpy as np
 from astropy.io.fits import Header
 from astropy.units import Quantity, UnitBase
-import numpy as np
 
-from visualastro.core.config import config, _resolve_default
+from visualastro.analysis.spectra import spectral_region
+from visualastro.analysis.spectra.regions import _require_spectral_region
+from visualastro.core.configuration import _resolve_default, config
 from visualastro.core.units import (
-    ensure_common_unit,
-    to_spectral_region,
     _check_unit_equality,
-    _require_spectral_region
+    ensure_common_unit,
 )
-from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.optional_dependencies._specutils import (
     SpectralAxis,
     SpectralRegion,
     Spectrum,
-    _extract_region
+    _extract_region,
 )
+from visualastro.optional_dependencies.register import _require_dependency
 from visualastro.utils.fits_utils import (
     _copy_headers,
     _get_history,
     _log_history,
-    _region_to_history
+    _region_to_history,
 )
 
 
@@ -104,7 +105,7 @@ class SpectrumPlus:
             fit_method, config.spectrum_continuum_fit_method
         )
         region = kwargs.pop('region', None)
-        region: SpectralRegion | None = to_spectral_region(region)
+        region: SpectralRegion | None = spectral_region(region)
 
         if log_file is None:
             log_file = Header()
@@ -143,7 +144,7 @@ class SpectrumPlus:
         )
         # fit continuum and normalize
         if region is None:
-            region = to_spectral_region(
+            region = spectral_region(
                 (spectrum.spectral_axis.min(),
                  spectrum.spectral_axis.max())
             )
@@ -289,9 +290,9 @@ class SpectrumPlus:
                         f'continuum_region has {len(continuum_region)} elements '
                         f'but {N_regions} spectral regions were specified'
                     )
-                continuum_region = [to_spectral_region(cr) for cr in continuum_region]
+                continuum_region = [spectral_region(cr) for cr in continuum_region]
             else:
-                continuum_region = to_spectral_region(continuum_region)
+                continuum_region = spectral_region(continuum_region)
 
         # extract region
         new_spectrum = self._apply_region(
@@ -355,7 +356,7 @@ class SpectrumPlus:
         region : SpectralRegion | array-like of tuple | None, optional, default=None
             Spectral region(s) to include in the continuum fit. If None,
             the currently stored `self.region` is used. Input is coerced
-            via `to_spectral_region`.
+            via `spectral_region`.
         fit_method : {'fit_continuum', 'generic'} | None, optional, default=None
             Continuum fitting method. If None, the currently stored
             `self.fit_method` is used.
@@ -369,7 +370,7 @@ class SpectrumPlus:
         region = self.region if region is None else region
         fit_method = self.fit_method if fit_method is None else fit_method
 
-        region = to_spectral_region(region)
+        region = spectral_region(region)
 
         self.continuum = self._fit_continuum(self.spectrum, fit_method, region)
         region_log = _region_to_history(region)
@@ -479,7 +480,7 @@ class SpectrumPlus:
 
         fit_method = self.fit_method
         new_log = _copy_headers(self.log_file)
-        _log_history(new_log, f'Replacing flux at masked locations')
+        _log_history(new_log, 'Replacing flux at masked locations')
 
         return SpectrumPlus(
             spectrum=new_spectrum,
@@ -615,7 +616,7 @@ class SpectrumPlus:
             A new ``Spectrum`` object containing only the portion defined
             by ``region``, or None if the input spectrum is None.
         """
-        region = to_spectral_region(region)
+        region = spectral_region(region)
 
         return _extract_region(
             spectrum, region, return_single_spectrum=return_single_spectrum
@@ -641,9 +642,9 @@ class SpectrumPlus:
         continuum : Quantity
             Quantity array of continuum values.
         """
-        from visualastro.analysis.spectra_utils import fit_continuum
+        from visualastro.analysis.spectra import compute_continuum
 
-        return fit_continuum(spectrum, fit_method, region)
+        return compute_continuum(spectrum, fit_method, region)
 
 
     def _construct_spectrum(

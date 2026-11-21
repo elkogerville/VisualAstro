@@ -7,11 +7,13 @@ Description:
 """
 
 from collections.abc import Sequence
-from typing import Any, Literal, Tuple, Type, TypeVar, cast, overload
+from typing import Any, Literal, TypeVar, cast, overload
 
-from astropy.units import Quantity
 import numpy as np
+from astropy.units import Quantity
 from numpy.typing import ArrayLike
+
+__all__ = ['allclose']
 
 
 def allclose(
@@ -154,7 +156,7 @@ T = TypeVar('T')
 @overload
 def _validate_type(
     data: object,
-    types: Type[T] | Tuple[Type[T], ...],
+    types: type[T] | tuple[type[T], ...],
     default: T | None = None,
     allow_none: Literal[False] = ...,
     name: str = 'data',
@@ -163,7 +165,7 @@ def _validate_type(
 @overload
 def _validate_type(
     data: object,
-    types: Type[T] | Tuple[Type[T], ...],
+    types: type[T] | tuple[type[T], ...],
     default: T | None = None,
     allow_none: bool = True,
     name: str = 'data',
@@ -171,7 +173,7 @@ def _validate_type(
 
 def _validate_type(
     data: object | None,
-    types: Type[T] | Tuple[Type[T], ...],
+    types: type[T] | tuple[type[T], ...],
     default: T | None = None,
     allow_none: bool = True,
     name: str = 'data',
@@ -246,7 +248,7 @@ def _validate_iterable_type(
 
 def _validate_iterable_type(
     obj: Sequence[Any],
-    types: Type[T] | Tuple[Type[T], ...],
+    types: type[T] | tuple[type[T], ...],
     name: str = 'object',
 ) -> Sequence[T]:
     """

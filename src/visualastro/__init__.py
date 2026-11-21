@@ -1,63 +1,64 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-05-23
-Date Modified: 2026-10-28
+Date Modified: 2026-11-18
 """
 
 from importlib.metadata import version as _version
+
 __version__ = _version('visualastro')
 
-# core classes
-# ------------
-from visualastro.datamodels.datacube import DataCube
-from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.datamodels.spectrumplus import SpectrumPlus
 
-# submodules
-# ----------
 from visualastro.analysis.ic import blob
 from visualastro.analysis.image_utils import (
+    compute_line,
     compute_sobel_filter,
     detect_edges,
+    get_filter_wavelength,
+    get_hdu,
+    get_hdu_from_hdu_list,
     image_2_grayscale,
     load_data_cube,
     load_fits,
     load_spectral_cube,
-    compute_line,
     mask_image,
-    stack_cube
+    stack_cube,
 )
-from visualastro.analysis.spectra_utils import (
+from visualastro.analysis.spectra import (
     ExtractedPixelSpectra,
     GaussianFitResult,
-    construct_gaussian_p0,
+    compute_continuum,
+    continuum_spectrum,
     deredden_flux,
     estimate_spectrum_line_flux,
-    fit_continuum,
+    extract_region,
     gaussian,
     gaussian_continuum,
     gaussian_line,
-    mask_spectral_region,
+    gaussian_p0,
     propagate_flux_errors,
-    shift_by_radial_vel,
+    shift_to_rest_frame,
     sort_spectra_by_line_strength,
     spectral_idx_2_world,
-    spectral_world_2_idx
+    spectral_region,
+    spectral_region_mask,
+    spectral_world_2_idx,
+    splice_spectra,
 )
-from visualastro.core.config import config
+from visualastro.core.configuration import config
 from visualastro.core.io import (
     get_errors,
     load_quantity,
     save_array,
-    savefig,
     save_quantity,
+    savefig,
     write_arrays_2_file,
-    write_cube_2_fits
+    write_cube_2_fits,
 )
 from visualastro.core.numerical import (
+    flatten,
     get_finite_mask,
     interpolate,
-    flatten,
     kde1d,
     kde2d,
     keep_finite,
@@ -67,51 +68,49 @@ from visualastro.core.numerical import (
 from visualastro.core.sequences import (
     match_length,
 )
-from visualastro.core.stats import (
-    normalize,
-    percent_difference,
-    relative_error
-)
+from visualastro.core.stats import normalize, percent_difference, relative_error
 from visualastro.core.units import (
     convert_quantity,
     ensure_common_unit,
     get_physical_type,
     get_spectral_unit,
     get_unit,
-    get_units,
     get_unit_label,
+    get_units,
     stack_quantities,
-    to_unit,
     to_fits_unit,
     to_latex_unit,
-    to_spectral_region,
-    unit_2_string
+    to_unit,
+    unit_2_string,
 )
 from visualastro.core.validation import allclose
-from visualastro.help.help import help, getsource
+from visualastro.datamodels.datacube import DataCube
+from visualastro.datamodels.fitsfile import FitsFile
+from visualastro.datamodels.spectrumplus import SpectrumPlus
+from visualastro.help.help import getsource, help
 from visualastro.plotting.ax import ax
 from visualastro.plotting.base.plots import (
     hist,
-    plot_density_histogram,
     plot,
+    plot_density_histogram,
     scatter,
+    scatter3D,
     scatter_polyfit,
     scatter_project,
-    scatter3D
+    step,
 )
 from visualastro.plotting.core.axes import (
-    add_subplot,
-    add_ax3d,
-    ax3d,
     ax3d_axis_style,
     ax3d_pane_color,
+    figure,
     gridspec,
     inset_axes,
     set_limits,
     set_title,
-    subplot,
+    subplots,
+    subplots_3d,
+    subplots_wcs,
     tripanel_figure,
-    wcsax,
 )
 from visualastro.plotting.core.backend import (
     close,
@@ -136,8 +135,8 @@ from visualastro.plotting.core.colors import (
     lighten_colors,
     plot_color_deltaE,
     plot_colors,
-    plot_colorset,
     plot_colortable,
+    preview_colorset,
     random_colors,
     sample_cmap,
     saturate_colors,
@@ -154,9 +153,7 @@ from visualastro.plotting.core.image_utils import (
     thorlabs_logo,
 )
 from visualastro.plotting.core.legend import legend
-from visualastro.plotting.core.lines import (
-    axhlines, axvlines, grid, wcsgrid
-)
+from visualastro.plotting.core.lines import axhlines, axvlines, grid, wcsgrid
 from visualastro.plotting.core.style import (
     print_rcParams,
     reset_rcParams,
@@ -171,21 +168,22 @@ from visualastro.plotting.core.utils import (
 )
 from visualastro.plotting.science.spectra_plots import (
     extract_cube_pixel_spectra,
-    extract_cube_spectra,
+    extract_cube_spectrum,
     fit_gaussian_2_spec,
     plot_combine_spectrum,
     plot_extracted_pixel_map,
-    plot_spectra
+    plot_spectrum,
 )
-from visualastro.plotting.science.spectra_plot_utils import (
-    mark_spectral_lines,
-    spectral_axis_label,
-    spectral_line_marker,
-    spectral_lines,
+from visualastro.plotting.science.spectral_axis import spectral_axis_label
+from visualastro.plotting.science.spectral_line_markers import (
+    spectral_elbow_markers,
+    spectral_markers,
+    spectral_vlines,
 )
 from visualastro.plotting.science.wcs_plots import (
+    color_image,
     imshow,
-    plot_spectral_cube
+    plot_spectral_cube,
 )
 from visualastro.utils.text_utils import (
     check_font,
@@ -193,14 +191,14 @@ from visualastro.utils.text_utils import (
     pprint,
     pretty_table,
     print_font_info,
-    print_pretty_table
+    print_pretty_table,
 )
 from visualastro.utils.wcs_utils import (
     crop2D,
     get_header_wcs,
     get_wcs,
     get_wcs_celestial,
-    reproject_wcs
+    reproject_wcs,
 )
 
 
@@ -213,8 +211,9 @@ def _register_fonts() -> None:
     `VisualAstro/src/visualastro/stylelib/fontlib`
     with `.ttf` or `.otf` files.
     """
-    from pathlib import Path
     import warnings
+    from pathlib import Path
+
     import matplotlib.font_manager as fm
 
     src = Path(__file__).parent
@@ -252,14 +251,13 @@ def _register_styles():
     Available under `plt.style.use('stylename')`
     after importing VisualAstro.
     """
+    import warnings
     from importlib.resources import files
     from pathlib import Path
-    import warnings
+
     import matplotlib.pyplot as plt
 
-    from visualastro.plotting.core.style import (
-        STYLE_ALIASES, VisualAstroStyles
-    )
+    from visualastro.plotting.core.style import STYLE_ALIASES, VisualAstroStyles
 
     stylelib = files('visualastro') / 'stylelib'
 
@@ -299,6 +297,7 @@ def _register_styles():
     return VisualAstroStyles(available_styles)
 
 from visualastro.optional_dependencies import _scienceplots
+
 styles = _register_styles()
 
 
@@ -307,9 +306,8 @@ styles = _register_styles()
 def _register_colorsets() -> Colorsets:
     """Register VisualAstro colorsets with matplotlib."""
     import matplotlib as mpl
-    from visualastro.plotting.core.colors import (
-        COLORSETS, COLORSET_ALIASES, Colorsets
-    )
+
+    from visualastro.plotting.core.colors import COLORSET_ALIASES, COLORSETS, Colorsets
 
     registry = mpl.color_sequences
     for name, colors in COLORSETS.items():
@@ -338,10 +336,12 @@ def _register_colors() -> None:
     - Warns on any name collision.
     """
     import warnings
+
     import matplotlib as mpl
+
     from visualastro.plotting.core.colors import (
-        VISUALASTRO_NAMED_COLORS,
         NAMED_COLOR_ALIASES,
+        VISUALASTRO_NAMED_COLORS,
     )
 
     cmap = mpl.colors.get_named_colors_mapping()
@@ -377,12 +377,12 @@ _register_colors()
 def _register_cmaps() -> None:
     """Register additional colormaps with Matplotlib."""
     import matplotlib as mpl
-    from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
-    from visualastro.optional_dependencies._cmasher import (
-        cmasher, _HAS_CMASHER
-    )
+
+    from visualastro.optional_dependencies._cmasher import _HAS_CMASHER, cmasher
+
     # register tol-colors cmaps upon import
     from visualastro.optional_dependencies._tol_colors import tol_colors
+    from visualastro.plotting.core.colormaps import VISUALASTRO_CMAPS
 
     mpl_cmaps = set(mpl.colormaps.keys())
 

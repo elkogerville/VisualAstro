@@ -6,14 +6,12 @@ Description:
     Tests for stats module.
 """
 
+import astropy.units as u
 import numpy as np
 import pytest
-import astropy.units as u
 from astropy.units import UnitConversionError
 
-from visualastro.core.stats import (
-    normalize, percent_difference, relative_error
-)
+from visualastro.core.stats import normalize, percent_difference, relative_error
 
 
 class TestNormalize:

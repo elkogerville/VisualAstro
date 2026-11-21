@@ -6,7 +6,6 @@ Description:
     Optional tol-colors package imports.
 """
 
-from textwrap import dedent
 
 
 try:

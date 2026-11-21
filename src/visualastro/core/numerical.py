@@ -6,8 +6,8 @@ Description:
     Numerical and computational functions.
 """
 
-from collections.abc import Sequence
-from typing import Callable, Literal, overload
+from collections.abc import Callable, Sequence
+from typing import Literal, overload
 
 import astropy.units as u
 import numpy as np
@@ -19,12 +19,23 @@ from scipy.special import gamma
 
 from visualastro.core.data import get_value, to_array
 
+__all__ = [
+    'interpolate',
+    'kde1d',
+    'kde2d',
+    'number_density',
+    'flatten',
+    'keep_finite',
+    'get_finite_mask',
+    'mask_within_range',
+]
+
 
 @overload
 def interpolate(
     xp: u.Quantity,
     yp: u.Quantity,
-    x_range: Sequence | NDArray,
+    x_range: tuple[float, float],
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
 ) -> tuple[u.Quantity, u.Quantity]: ...
@@ -33,7 +44,7 @@ def interpolate(
 def interpolate(
     xp: NDArray,
     yp: NDArray,
-    x_range: Sequence | NDArray,
+    x_range: tuple[float, float],
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
 ) -> tuple[NDArray, NDArray]: ...
@@ -41,7 +52,7 @@ def interpolate(
 def interpolate(
     xp: NDArray | u.Quantity,
     yp: NDArray | u.Quantity,
-    x_range: Sequence | NDArray,
+    x_range: tuple[float, float],
     N_samples: int,
     method: Literal['linear', 'cubic', 'cubic_spline'] = 'linear'
 ) -> tuple[NDArray | u.Quantity, NDArray | u.Quantity]:
@@ -50,13 +61,13 @@ def interpolate(
 
     Parameters
     ----------
-    xp : ArrayLike
+    xp : NDArray | u.Quantity
         The x-coordinates of the data points. Must be 1D.
         Must be convertable to an array with `np.asarray`.
-    yp : ArrayLike
+    yp : NDArray | u.Quantity
         The y-coordinates of the data points. Must be 1D.
         Must be convertable to an array with `np.asarray`.
-    x_range : tuple of float
+    x_range : tuple[float, float]
         The (min, max) range over which to interpolate.
     N_samples : int
         Number of points in the interpolated output.

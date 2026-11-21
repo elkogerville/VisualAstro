@@ -1,24 +1,25 @@
 """
 Author: Elko Gerville-Reache
 Date Created: 2025-09-22
-Date Modified: 2026-10-28
+Date Modified: 2026-11-14
 Description:
     Public data / array related functions.
 """
 
 from __future__ import annotations
-from collections.abc import Sequence
+
+from collections.abc import Iterable, Sequence
 from typing import Any, Literal, TypeVar, overload
 
-from astropy import units as u
 import numpy as np
+from astropy import units as u
 from numpy.typing import ArrayLike, NDArray
 
 from visualastro.core.array_types import _is_scalar
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
-
 
 T = TypeVar('T')
 
@@ -153,7 +154,7 @@ def to_array(obj: Any, keep_unit: bool = False) -> NDArray | u.Quantity:
 def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
     """
     Normalize input to a list. If input is a tuple,
-    convert it to a list via `tuple(obj)`. To simply
+    convert it to a list via `list(obj)`. To simply
     wrap in a list an object that isnt a list, use `as_list`.
 
     Thus `to_list((1,2,3))` returns `[1,2,3]`
@@ -179,26 +180,76 @@ def to_list(obj: T | list[T] | tuple[T, ...]) -> list[T]:
 
 def as_list(obj: T | list[T]) -> list[T]:
     """
-    Ensure return value is always a list.
-    If `obj` is not a list, wrap it in a list.
-    Otherwise, return `obj`. To simply
-    convert a tuple into a list use `to_list`.
+    Ensure the return value is a list.
 
-    Thus `to_list((1,2,3))` returns `[1,2,3]`
-    while `as_list((1,2,3))` returns `[(1,2,3)]`
+    If `obj` is a list, it is returned unchanged. Any other object,
+    including tuples, arrays and generators, is wrapped in a single-element
+    list. To convert a tuple (or other iterable) into a list element-wise,
+    use `to_list`.
+
+    `as_list((1, 2, 3))` returns `[(1, 2, 3)]`, while
+    `to_list((1, 2, 3))` returns `[1, 2, 3]`.
 
     Parameters
     ----------
-    obj : object or list/tuple of objects
-        Input data.
+    obj : T | list[T]
+        Single object or list of objects. Tuples are treated as single objects.
 
     Returns
     -------
-    list
-        A list containing `obj` if `obj` is not a list,
-        or `obj` itself it is already a list.
+    list[T]
+        `obj` itself if it is a list (aliased, not copied), otherwise `[obj]`.
+
+    Notes
+    -----
+    - If `T` is itself a list, the input is ambiguous and is treated as a
+      list of items.
+    - `None` is wrapped as `[None]`. Handle `None` before calling.
     """
     return obj if isinstance(obj, list) else [obj]
+
+
+def _ensure_iterable(obj: T | Sequence[T] | NDArray) -> Sequence[T] | NDArray:
+    """
+    Ensure `obj` can be iterated over, wrapping single items in a list.
+
+    Lists, tuples and arrays (ndarray, Quantity) with ndim >= 1 are treated
+    as collections and returned unchanged (no copy, no element-wise
+    conversion). Everything else is treated as a single item.
+
+    Parameters
+    ----------
+    obj : T | Sequence[T] | numpy.ndarray | astropy.units.Quantity
+        Single item or collection of items. Strings, 0-d arrays and
+        scalar Quantity are single items. Other iterables
+        (generators, sets) are materialized into a list.
+
+    Returns
+    -------
+    Sequence[T] | numpy.ndarray
+        `obj` itself if it is a list, tuple or array with ndim >= 1
+        (aliased, not copied), otherwise a new list.
+
+    Notes
+    -----
+    - Arrays with ndim > 1 iterate over the first axis.
+    - `None` is wrapped as `[None]`. Handle `None` before calling.
+    - Do not use for parameters where a tuple is a single value
+      (e.g., `xlim`, `figsize`).
+    """
+    if isinstance(obj, str):
+        return [obj]
+
+    if getattr(obj, 'ndim', None) == 0:
+        return [obj]
+
+    if isinstance(obj, (list, tuple, np.ndarray)):
+        return obj
+
+    if isinstance(obj, Iterable):
+        return list(obj)
+
+    return [obj]
 
 
 def _array_length(

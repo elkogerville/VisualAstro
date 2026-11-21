@@ -8,7 +8,6 @@ Description:
 
 from textwrap import dedent
 
-
 try:
     from specutils import SpectralAxis, SpectralRegion, Spectrum
     from specutils.fitting import fit_continuum as _fit_continuum

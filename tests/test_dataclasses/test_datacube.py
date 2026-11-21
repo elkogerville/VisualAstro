@@ -8,16 +8,16 @@ Description:
 
 from __future__ import annotations
 
-from astropy.io.fits import Header
 import astropy.units as u
-from astropy.wcs import WCS
 import numpy as np
+from astropy.io.fits import Header
+from astropy.wcs import WCS
 from numpy.typing import NDArray
 
-from tests.conftest import generate_test_cube
 from visualastro.datamodels.datacube import DataCube
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
 
 

@@ -1,52 +1,113 @@
 """
-Author: Elko Gerville-Reache
+Author: Elko Gerville-Reache, Qiushi Chris Tian
 Date Created: 2025-09-22
-Date Modified: 2026-10-06
+Date Modified: 2026-11-17
 Description:
     Utility functions for image manipulations.
 """
 
 from __future__ import annotations
-import glob
-from typing import Literal
-import warnings
 
-from astropy.io import fits
-from astropy.io.fits import Header
+import glob
+import warnings
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Literal
+
 import astropy.units as u
-from astropy.units import Quantity
-from astropy.wcs import WCS
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.io import fits
+from astropy.io.fits import HDUList, Header, ImageHDU, PrimaryHDU
+from astropy.units import Quantity
+from astropy.wcs import WCS
 from numpy.typing import DTypeLike, NDArray
 from scipy.ndimage import convolve
 
-from visualastro.core.config import (
-    config, _resolve_default, _Unset, _UNSET,
+from visualastro.core.array_types import _is_iterable
+from visualastro.core.configuration import (
+    _UNSET,
+    _resolve_default,
+    _Unset,
+    config,
 )
 from visualastro.core.data import get_data, get_value
-from visualastro.core.io import get_errors, _get_dtype
+from visualastro.core.io import _get_dtype, get_errors
 from visualastro.core.units import get_unit
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
-from visualastro.optional_dependencies.register import (
-    _require_dependency, _offer_dependency,
-)
 from visualastro.optional_dependencies._regions import (
-    PixCoord,
+    _HAS_REGIONS,
     EllipseAnnulusPixelRegion,
     EllipsePixelRegion,
-    _HAS_REGIONS,
+    PixCoord,
 )
 from visualastro.optional_dependencies._spectralcube import (
-    SpectralCube, _HAS_SPECTRAL_CUBE,
+    _HAS_SPECTRAL_CUBE,
+    SpectralCube,
 )
 from visualastro.optional_dependencies._tqdm import tqdm
+from visualastro.optional_dependencies.register import (
+    _offer_dependency,
+    _require_dependency,
+)
 from visualastro.utils.wcs_utils import _reproject_wcs
+
+__all__ = [
+    'get_hdu',
+    'get_hdu_from_hdu_list',
+    'load_data_cube',
+    'load_fits',
+    'load_spectral_cube',
+    'stack_cube',
+    'mask_image',
+    'compute_line',
+    'detect_edges',
+    'compute_sobel_filter',
+    'image_2_grayscale',
+    'get_filter_wavelength',
+]
 
 
 # I/O Functions
 # -------------
+def get_hdu(
+    input_: str | Path | HDUList | ImageHDU | PrimaryHDU,
+    hdu_idx: int | _Unset = _UNSET
+) -> ImageHDU | PrimaryHDU:
+    """
+    Get an HDU object from a path, HDUList, or an HDU object.
+    """
+    if isinstance(input_, (ImageHDU, PrimaryHDU)):
+        return input_
+
+    if isinstance(input_, (str, Path)):
+        input_ = fits.open(input_)
+
+    if not isinstance(input_, HDUList):
+        raise ValueError(
+            'Input must be a path, HDUList, ImageHDU, or PrimaryHDU. '
+            f'Got {type(input_).__name__!r}.'
+        )
+
+    return get_hdu_from_hdu_list(input_, hdu_idx)
+
+
+def get_hdu_from_hdu_list(
+    hdu_list: HDUList,
+    hdu_idx: int | _Unset = _UNSET
+) -> ImageHDU | PrimaryHDU:
+    """
+    Get an HDU object from an HDUList object.
+    """
+    hdu_idx = _resolve_default(hdu_idx, config.hdu_idx)
+
+    # TODO implement header concatenate logic here
+    hdu = hdu_list[hdu_idx]
+
+    return hdu
+
+
 def load_data_cube(
     filepath: str,
     error: bool = True,
@@ -563,9 +624,9 @@ def mask_image(
         master mask followed by individual masks. Otherwise returns a single mask.
     """
     # ---- Kwargs ----
-    center = kwargs.get('center', None)
-    w = kwargs.get('w', None)
-    h = kwargs.get('h', None)
+    center = kwargs.get('center')
+    w = kwargs.get('w')
+    h = kwargs.get('h')
     angle = kwargs.get('angle', 0)
     tolerance = kwargs.get('tolerance', 2)
     if (isinstance(tolerance, (list, tuple))
@@ -856,3 +917,79 @@ def image_2_grayscale(
         return image[:,:,0:3] @ [0.299, 0.587, 0.114]
     else:
         return np.sum(image, axis=2)
+
+
+# Filter Functions
+# ----------------
+def get_filter_wavelength(
+    filter: str | Sequence[str],
+    error_mode: str = 'every'
+):
+    """
+    Convert filter names to wavelengths.
+    https://en.wikipedia.org/wiki/Photometric_system
+
+    # TODO future astroquerry function
+
+    Parameters
+    ----------
+    filter : str or sequence
+        A filter name or a sequence of filter names.
+    error_mode : str
+        If 'every', raises ValueError if any conversion fails.
+        If 'all', raises ValueError if all conversions fail,
+            otherwise uses nan.
+        If 'nan', uses nan for failed conversions even if all nan.
+            No error raised in any scenario.
+        Default: 'every'.
+
+    Returns
+    -------
+    wavelength : list
+        List of wavelengths.
+
+    Raises
+    -------
+    ValueError
+        If `error_mode` is not in `('every', 'all', 'nan')`.
+        If `error_mode` is 'every' and a filter is not found.
+        If `error_mode` is 'all' and all conversions fail.
+    """
+    map = {
+        'u': 365,
+        'b': 445,
+        'g': 464,
+        'v': 551,
+        'r': 658,
+        'i': 806,
+        'z': 900,
+        'j': 1220,
+        'h': 1630,
+        'k': 2190,
+        'l': 3450,
+        'm': 4750,
+        'n': 10500,
+        'q': 21000
+    }
+
+    scalar = False
+    if not _is_iterable(filter):
+        filter = [filter]
+        scalar = True
+
+    wavelengths = []
+    for f in filter:
+        try:
+            wavelengths.append(map[f.casefold().replace("'", '')])
+        except KeyError:
+            if error_mode == 'every':
+                raise ValueError(f'Filter {f} not found.')
+            elif error_mode in ('all', 'nan'):
+                wavelengths.append(np.nan)
+            else:
+                raise ValueError(f'Invalid error_mode: {error_mode}')
+
+    if error_mode == 'all' and all(np.isnan(wavelengths)):
+        raise ValueError('All filters not found.')
+
+    return wavelengths[0] if scalar else wavelengths

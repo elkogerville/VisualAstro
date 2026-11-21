@@ -7,28 +7,27 @@ Description:
 """
 
 from __future__ import annotations
-from typing import Any, Literal
+
 from importlib.resources import files
+from typing import Any, Literal
 
 import astropy.units as u
 import matplotlib.axes as maxes
-from matplotlib.colors import Normalize
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import Normalize
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from numpy.typing import NDArray
 from scipy.spatial.distance import cdist
 
 from visualastro.analysis.image_utils import stack_cube
-from visualastro.core.config import (
-    config,
+from visualastro.core.configuration import (
+    _UNSET,
     _resolve_default,
     _Unset,
-    _UNSET,
+    config,
 )
-from visualastro.core.data import (
-    get_data, get_value, to_array
-)
+from visualastro.core.data import get_data, get_value, to_array
 from visualastro.datamodels.datacube import DataCube
 from visualastro.datamodels.fitsfile import FitsFile
 from visualastro.optional_dependencies._spectralcube import SpectralCube
