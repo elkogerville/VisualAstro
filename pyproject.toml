@@ -67,10 +67,11 @@ docs = [
     "pydata_sphinx_theme",
     "sphinx-design",
     "sphinx-copybutton",
-    "visualastro[test]",
+    "pytest-doctestplus",
+    "visualastro[all]",
 ]
 dev = [
-    "visualastro[all,docs,test]",
+    "visualastro[docs,test]",
 ]
 
 [tool.pytest.ini_options]
