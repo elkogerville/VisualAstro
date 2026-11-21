@@ -6,3 +6,4 @@ API Reference
 
    plotting
    spectra
+   analysis

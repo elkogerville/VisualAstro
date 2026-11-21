@@ -45,6 +45,20 @@ Legends
    plotting/legends/legend
 
 
+Images
+------
+
+.. autosummary::
+   :nosignatures:
+
+   color_image
+
+.. toctree::
+   :hidden:
+
+   plotting/science/color_image
+
+
 .. _plotting-spectra:
 
 Spectra
