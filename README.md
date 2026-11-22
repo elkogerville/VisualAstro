@@ -110,7 +110,7 @@ Libertinus Math, distributed under the SIL OPEN FONT LICENSE from a release by:
 ```
 authors = Caleb Maclennan, Libertinus Project Authors
 year = 2012-2024
-url = https://github.com/alerque/libertinus V7.051
+url = https://github.com/alerque/libertinus/releases/tag/v7.051
 ```
 
 New Computer Modern, distributed under the GNU GENERAL PUBLIC LICENSE from a release by:
