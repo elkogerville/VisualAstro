@@ -6,5 +6,6 @@ User Guide
 
    req-dep
    installation
+   colors
    colorsets
    colormaps

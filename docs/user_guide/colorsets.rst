@@ -100,11 +100,11 @@ Setting a Transform
 ^^^^^^^^^^^^^^^^^^^
 
 You can set one of the supported color transforms to change all the colorsets automatically.
-
+Supported transforms include ``'lighten'``, ``'darken'``, ``'saturate'``, and ``'desaturate'``.
+The intensity is controlled by ``factor``.
 
 .. plot:: ../examples/plotting/colors/plot_colorset_transform.py
     :include-source: True
-
 
 
 CVD Simulations
