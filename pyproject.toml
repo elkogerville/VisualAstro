@@ -13,12 +13,14 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = [
-    "LICENSE",
-    "THIRD_PARTY_LICENSES.txt",
-    "src/visualastro/stylelib/fontlib/**/LICENSE*",
-    "src/visualastro/stylelib/fontlib/**/OFL*",
-    "src/visualastro/stylelib/fontlib/**/*License*",
-    "src/visualastro/stylelib/fontlib/**/AUTHORS*",
+  "LICENSE",
+  "THIRD_PARTY_LICENSES.txt",
+  "src/visualastro/stylelib/fontlib/concmath-otf/OFL.txt",
+  "src/visualastro/stylelib/fontlib/LibertinusMath/OFL.txt",
+  "src/visualastro/stylelib/fontlib/LibertinusMath/AUTHORS.txt",
+  "src/visualastro/stylelib/fontlib/NewComputerModern/License.txt",
+  "src/visualastro/stylelib/fontlib/NewComputerModern/GUST-FONT-LICENSE.txt",
+  "src/visualastro/stylelib/fontlib/smplotlibHershey/LICENSE",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
