@@ -369,8 +369,172 @@ class Colorsets(_ColorRegistry[list[ColorType]]):
             cvd_type=cvd_type,
             severity=severity,
         )
+        plt.show()
 
 
-    def __repr__(self) -> str:
-        names = ',\n'.join(f'    {name!r}' for name in sorted(self.available))
-        return f'{type(self).__name__}([\n{names}\n])'
+class Colors(_ColorRegistry[ColorType]):
+    """Query and plot registered VisualAstro named colors."""
+
+    _names = VISUALASTRO_NAMED_COLORS
+    _alias_names = NAMED_COLOR_ALIASES
+
+    def __init__(self):
+        self._registry = mcolors.get_named_colors_mapping()
+
+    @property
+    def available(self) -> list[str]:
+        """
+        Canonical names of the registered VisualAstro named colors.
+
+        Aliases and Matplotlib named colors are excluded.
+        Use :attr:`aliases` to list alias names.
+
+        Returns
+        -------
+        list of str
+            Colorset names present in both ``COLORSETS`` and the Matplotlib
+            color sequence registry, in registration order.
+
+        See Also
+        --------
+        aliases : Mapping of alias names to canonical names.
+        """
+        return self._available
+
+    @property
+    def aliases(self) -> dict[str, str]:
+        """
+        Mapping of named color aliases to canonical names.
+
+        Only aliases registered in the Matplotlib color sequence registry
+        are included.
+
+        Returns
+        -------
+        dict of str to str
+            Keys are alias names, values are the canonical names in
+            :attr:`available` they resolve to.
+
+        See Also
+        --------
+        available : Canonical colorset names.
+        """
+        return self._aliases
+
+    def get(
+        self,
+        name: str,
+        *,
+        fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100,
+    ):
+        """
+        Retrieve a single color to the requested format, optionally applying a
+        color transform and a color vision deficiency (CVD) simulation.
+
+        Parameters
+        ----------
+        color : str
+            A single color name.
+        fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+            Output color format.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+            Transform applied to the color.
+
+            - `None`: no transform.
+            - `_UNSET`: use `config.color_transform`.
+
+        factor : float | _Unset, optional, default=_UNSET
+            Transform strength, see `get_colors`. Ignored if `transform` is `None`.
+            If `_UNSET`, use `config.color_transform_factor`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+            CVD type to simulate, applied after `transform`. Shorthands
+            `'d'`, `'p'`, `'t'` are accepted.
+
+            - `'all'`: simulate every CVD type.
+            - `None`: no simulation.
+
+        severity : int, optional, default=100
+            CVD severity in [0, 100], where 100 is complete color blindness.
+            Ignored if `cvd_type` is `None`.
+
+        Returns
+        -------
+        str | RGBTuple | RGBATuple
+            `str` for `fmt='hex'`, `RGBTuple` for `fmt='rgb'`,
+            `RGBATuple` for `fmt='rgba'`.
+        """
+        return get_color(
+            self._resolve(name),
+            fmt=fmt,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        )
+
+    def plot(
+        self,
+        family = None,
+        *,
+        ncols: int = 4,
+        sort_colors: bool = True,
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None,
+        factor: int | float = 0.5,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ):
+        """
+        Plot a grid of colors with their names.
+
+        This function is adapted from a Matplotlib gallery example:
+        https://matplotlib.org/stable/gallery/color/named_colors.html
+
+        Copyright (c) 2012-2023 Matplotlib Development Team.
+        Licensed under the Matplotlib License (BSD-compatible)
+        https://matplotlib.org/stable/users/project/license.html
+
+        Parameters
+        ----------
+        colors : dict[str, ColorType] | str | None, optional, default=None
+            Dictionary containing colors to plot, or one of the following:
+
+            - `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+            - `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+            - `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+            - `'visualastro'` or `'va'`: VisualAstro named colors
+            - `'base'` or `'base_colors'`: Matplotlib base colors
+            - `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+            - `'all'` or `'all_colors'`: All of the above
+
+        ncols : int, optional, default=4
+            Number of columns to plot.
+        sort_colors : bool, optional, default=True
+            If `True`, sort colors by hsv value.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default=None
+            Transform applied to every color before sorting and CVD simulation.
+            If `None`, colors are unchanged.
+        factor : int | float, optional, default=0.5
+            Transform strength. Ignored if `transform` is `None`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+            CVD type to simulate, applied after `transform`. If `None`,
+            no simulation is applied.
+        severity : int, optional, default=100
+            CVD severity in [0, 100], where 100 is complete color blindness.
+            Ignored if `cvd_type` is `None`.
+        savefig:
+            If `True`, save the figure to disk with `savefig`.
+            Opens a prompt to set the file name and extention.
+        """
+        plot_colortable(
+            colors=family,
+            ncols=ncols,
+            sort_colors=sort_colors,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity
+        )
