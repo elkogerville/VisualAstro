@@ -6,22 +6,29 @@ Description:
     VisualAstro colorset registry.
 """
 
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Sequence
 from typing import Literal
 
-import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.colors as mcolors
-from matplotlib.collections import PatchCollection
-from matplotlib.colors import ColorSequenceRegistry, Colormap
-from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
+from matplotlib.colors import Colormap
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.configuration import _UNSET, _Unset
 from visualastro.plotting.core.colors._registry import _ColorRegistry
 from visualastro.plotting.core.colors.colors import get_color, get_colorset
-from visualastro.plotting.core.colors.definitions import COLORSET_ALIASES, COLORSETS, NAMED_COLOR_ALIASES, VISUALASTRO_NAMED_COLORS
-from visualastro.plotting.core.colors.plots import plot_colors, plot_colortable, preview_colorset
+from visualastro.plotting.core.colors.definitions import (
+    COLORSET_ALIASES,
+    COLORSETS,
+    NAMED_COLOR_ALIASES,
+    VISUALASTRO_NAMED_COLORS,
+)
+from visualastro.plotting.core.colors.plots import (
+    plot_colors,
+    plot_colortable,
+    preview_colorset,
+)
 
 __all__ = ['Colorsets', 'Colors']
 

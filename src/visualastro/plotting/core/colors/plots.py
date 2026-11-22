@@ -33,7 +33,8 @@ from visualastro.plotting.core.colors.definitions import (
     VISUALASTRO_NAMED_COLORS,
 )
 from visualastro.plotting.core.colors.transforms import (
-    _transform_colors, simulate_colorblindness
+    _transform_colors,
+    simulate_colorblindness,
 )
 
 __all__ = [

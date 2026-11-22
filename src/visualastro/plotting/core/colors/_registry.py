@@ -9,9 +9,6 @@ Description:
 from collections.abc import Iterator, Mapping
 from typing import Generic, Literal, TypeVar
 
-from matplotlib.colors import _ColorMapping, ColorSequenceRegistry
-from matplotlib.typing import ColorType
-
 T = TypeVar('T')
 
 
