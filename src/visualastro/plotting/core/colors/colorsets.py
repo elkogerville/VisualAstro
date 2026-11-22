@@ -9,21 +9,24 @@ Description:
 from collections.abc import Callable, Iterator, Sequence
 from typing import Literal
 
+import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.colors as mcolors
 from matplotlib.collections import PatchCollection
-from matplotlib.colors import Colormap
+from matplotlib.colors import ColorSequenceRegistry, Colormap
 from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.configuration import _UNSET, _Unset
-from visualastro.plotting.core.colors.colors import get_colorset
-from visualastro.plotting.core.colors.definitions import COLORSET_ALIASES, COLORSETS
-from visualastro.plotting.core.colors.plots import plot_colors, preview_colorset
+from visualastro.plotting.core.colors._registry import _ColorRegistry
+from visualastro.plotting.core.colors.colors import get_color, get_colorset
+from visualastro.plotting.core.colors.definitions import COLORSET_ALIASES, COLORSETS, NAMED_COLOR_ALIASES, VISUALASTRO_NAMED_COLORS
+from visualastro.plotting.core.colors.plots import plot_colors, plot_colortable, preview_colorset
 
-__all__ = ['Colorsets']
+__all__ = ['Colorsets', 'Colors']
 
 
-class Colorsets:
+class Colorsets(_ColorRegistry[list[ColorType]]):
     """Query and plot registered VisualAstro colorsets."""
 
     _SORT_KEYS: dict[str, Callable[[str, list], object]] = {
@@ -31,40 +34,11 @@ class Colorsets:
         'length': lambda name, colors: len(colors),
     }
 
+    _names = COLORSETS
+    _alias_names = COLORSET_ALIASES
+
     def __init__(self):
         self._registry = mpl.color_sequences
-
-    def _resolve(self, name: str) -> str:
-        """
-        Resolve an alias to its canonical colorset name.
-
-        Raises
-        ------
-        KeyError
-            If `name` is not a registered VisualAstro colorset or alias.
-        """
-        name = COLORSET_ALIASES.get(name, name)
-        if name not in COLORSETS or name not in self._registry:
-            raise KeyError(
-                f'Unknown colorset {name!r}. Available: {self.available}'
-            )
-        return name
-
-    def __getitem__(self, name: str) -> list:
-        return self._registry[self._resolve(name)]
-
-    def __contains__(self, name: str) -> bool:
-        try:
-            self._resolve(name)
-        except KeyError:
-            return False
-        return True
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.available)
-
-    def __len__(self) -> int:
-        return len(self.available)
 
     @property
     def available(self) -> list[str]:
@@ -85,10 +59,7 @@ class Colorsets:
         aliases : Mapping of alias names to canonical names.
         query : Filter and sort colorset names.
         """
-        return [
-            name for name in COLORSETS
-            if name in self._registry and name not in COLORSET_ALIASES
-        ]
+        return self._available
 
     @property
     def aliases(self) -> dict[str, str]:
@@ -108,10 +79,7 @@ class Colorsets:
         --------
         available : Canonical colorset names.
         """
-        return {
-            alias: name for alias, name in COLORSET_ALIASES.items()
-            if alias in self._registry
-        }
+        return self._aliases
 
     def get(
         self,
@@ -344,7 +312,7 @@ class Colorsets:
         factor: float | _Unset = _UNSET,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
         severity: int = 100,
-    ) -> list[list[Line2D] | list[PatchCollection]]:
+    ) -> None:
         """
         Plot a sample figure demonstrating a VisualAstro color set.
 
@@ -386,10 +354,9 @@ class Colorsets:
 
         Returns
         -------
-        list[list[Line2D | PatchCollection]]
-            Artists returned by the plotting functions, grouped by plot element.
+        None
         """
-        return preview_colorset(
+        preview_colorset(
             colors=colorset,
             cmap=cmap,
             linestyle=linestyle,
