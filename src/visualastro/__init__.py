@@ -124,6 +124,7 @@ from visualastro.plotting.core.colormaps import (
     plot_cmap_lightness,
 )
 from visualastro.plotting.core.colors import (
+    Colors,
     Colorsets,
     as_color,
     darken_colors,
@@ -325,7 +326,7 @@ colorsets = _register_colorsets()
 
 # REGISTER NAMED COLORS
 # ---------------------
-def _register_colors() -> None:
+def _register_colors() -> Colors:
     """
     Register additional named colors with Matplotlib.
 
@@ -369,7 +370,9 @@ def _register_colors() -> None:
             continue
         _register(alias, cmap[name])
 
-_register_colors()
+    return Colors()
+
+colors = _register_colors()
 
 
 # REGISTER COLORMAPS
