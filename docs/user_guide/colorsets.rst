@@ -9,12 +9,6 @@ VisualAstro provides ``va.colorsets``, an interface for viewing, querying, and
 plotting the registered colorsets. See :class:`~visualastro.Colorsets` for the
 full API.
 
-The examples on this page assume:
-
-.. code-block:: python
-
-   import visualastro as va
-
 
 Listing Colorsets
 -----------------
@@ -23,13 +17,17 @@ List the names of all available colorsets:
 
 .. code-block:: python
 
-    va.colorsets.available
+    >>> import visualastro as va
+    >>> va.colorsets.available
+    ['visualastro', 'ditto', ..., 'mosaic']
 
 Alias names are listed separately:
 
 .. code-block:: python
 
-    va.colorsets.aliases
+    >>> import visualastro as va
+    >>> va.colorsets.aliases
+    {'va': 'visualastro', 'vb': 'ditto', 'mozaic': 'mosaic'}
 
 
 Accessing Colorsets
@@ -40,8 +38,11 @@ indexing (``va.colorsets['name']``):
 
 .. code-block:: python
 
-    va.colorsets.get('supernatural')
-    va.colorsets['celestial']
+    >>> import visualastro as va
+    >>> va.colorsets.get('turbo6')
+    ['#35359a', '#4f65ff', '#5bffd9', '#c4ff05', '#ff7d3c', '#ab0449']
+    >>> va.colorsets['celestial']
+    ['#08E3B2', '#0DB1FF', '#2E7F91', '#6565B5', '#3137A1', '#1F2861', '#A10E4F', '#CF3C4F', '#C76AAE']
 
 
 Querying Colorsets

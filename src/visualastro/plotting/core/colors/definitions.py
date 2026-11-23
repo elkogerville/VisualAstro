@@ -226,6 +226,7 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'soup of the day': _soup_of_the_day(),
     'borscht': '#E80063',
     'melocoton': '#FFAF19',
+    'Jarate': '#FEED86',
     'Holy Grey': '#555555',
     'Holy Blue': '#5555FF',
     'Holy Green': '#55FF55',
@@ -250,7 +251,6 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'ethernet green': '#10A807',
     'ethernet blue': '#1177F7',
     'ethernet brown': '#85450c',
-    'Jarate': '#FEED86',
 }
 
 # dict[alias: canonical name]

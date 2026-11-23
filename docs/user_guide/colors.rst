@@ -10,12 +10,6 @@ The colors are registered with Matplotlib so they work natively.
 To preview and query the colorsets, use the ``va.colors`` interface.
 See :class:`~visualastro.Colors` for the full api.
 
-The examples on this page assume:
-
-.. code-block:: python
-
-   import visualastro as va
-
 
 Listing Named Colors
 --------------------
@@ -25,12 +19,16 @@ List the names of all available named colors:
 .. code-block:: python
 
     va.colors.available
+    ['violetred', 'jade', ..., 'ethernet brown']
 
 Alias names are listed separately:
 
 .. code-block:: python
 
-    va.colors.aliases
+    >>> import visualastro as va
+    >>> va.colors.aliases
+    {'E train': 'A train', '1 train': '3 train', ..., 'celeste': 'battery charged blue'}
+
 
 
 Accessing Named Colors
@@ -41,8 +39,11 @@ indexing (``va.colors['name']``):
 
 .. code-block:: python
 
-    va.colors.get('pondwater')
-    va.colors['dark verdigris']
+    >>> import visualastro as va
+    >>> va.colors.get('pondwater')
+    '#cfe23c'
+    >>> va.colors['dark verdigris']
+    '#43B3AE'
 
 
 Plotting Colors Tables
