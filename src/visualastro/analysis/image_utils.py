@@ -73,10 +73,27 @@ __all__ = [
 # -------------
 def get_hdu(
     input_: str | Path | HDUList | ImageHDU | PrimaryHDU,
-    hdu_idx: int | _Unset = _UNSET
+    hdu_idx: int | _Unset = _UNSET,
+    concatenate_jwst_header: bool = True
 ) -> ImageHDU | PrimaryHDU:
     """
-    Get an HDU object from a path, HDUList, or an HDU object.
+    Get an HDU object from a path, `~astropy.io.fits.HDUList`,
+    or an HDU object.
+
+    Parameters
+    ----------
+    input_ : str | Path | HDUList | ImageHDU | PrimaryHDU
+        The input to get the HDU object from.
+    hdu_idx : int | _Unset, optional, default=_UNSET
+        The index of the HDU object to get.
+    concatenate_jwst_header : bool, optional, default=True
+        Whether to concatenate the header of the JWST primary HDU with
+        the header of the image HDU if `concatenate_jwst_header` is True.
+
+    Returns
+    -------
+    hdu : `~astropy.io.fits.ImageHDU` | `~astropy.io.fits.PrimaryHDU`
+        The HDU object.
     """
     if isinstance(input_, (ImageHDU, PrimaryHDU)):
         return input_
@@ -90,21 +107,52 @@ def get_hdu(
             f'Got {type(input_).__name__!r}.'
         )
 
-    return get_hdu_from_hdu_list(input_, hdu_idx)
+    return get_hdu_from_hdu_list(input_, hdu_idx, concatenate_jwst_header)
 
 
 def get_hdu_from_hdu_list(
     hdu_list: HDUList,
-    hdu_idx: int | _Unset = _UNSET
+    hdu_idx: int | _Unset = _UNSET,
+    concatenate_jwst_header: bool = True
 ) -> ImageHDU | PrimaryHDU:
     """
-    Get an HDU object from an HDUList object.
+    Get an HDU object from an `~astropy.io.fits.HDUList` object.
+    
+    JWST data products store the image in the second HDU,
+    with the primary HDU containing metadata about the observation.
+    This function will concatenate the header of the primary HDU
+    with the header of the image HDU if `concatenate_jwst_header`
+    is True.
+
+    Parameters
+    ----------
+    hdu_list : `~astropy.io.fits.HDUList`
+        The HDU list to get the HDU object from.
+    hdu_idx : int | _Unset, optional, default=_UNSET
+        The index of the HDU object to get.
+    concatenate_jwst_header : bool, optional, default=True
+        Whether to concatenate the header of the JWST primary HDU with
+        the header of the image HDU if `concatenate_jwst_header` is True.
+
+    Returns
+    -------
+    hdu : `~astropy.io.fits.ImageHDU` | `~astropy.io.fits.PrimaryHDU`
+        The HDU object.
     """
-    hdu_idx = _resolve_default(hdu_idx, config.hdu_idx)
-
-    # TODO implement header concatenate logic here
-    hdu = hdu_list[hdu_idx]
-
+    hdu_0_header = hdu_list[0].header
+    if (
+        concatenate_jwst_header
+        and hdu_idx == _UNSET
+        and hdu_0_header['TELESCOP'] == 'JWST'
+        and hdu_0_header['NAXIS'] < 1
+    ):
+        hdu = hdu_list[1]
+        hdu_1_header = hdu.header.copy()
+        hdu.header = hdu_0_header
+        hdu.header.update(hdu_1_header)
+    else:
+        hdu_idx = _resolve_default(hdu_idx, config.hdu_idx)
+        hdu = hdu_list[hdu_idx]
     return hdu
 
 

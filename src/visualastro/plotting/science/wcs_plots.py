@@ -72,7 +72,36 @@ def color_image(  # TODO default to axis('off') for color_image() & imshow()?
 
     Pulls relevant cards from FITS header to determine color combination.
 
-    # TODO table of astropy.visualization.make_rgb() and .make_lupton_rgb() keywords
+    # TODO table of `~astropy.visualization.make_rgb` and
+    # `~astropy.visualization.make_lupton_rgb` keywords
+
+    Parameters
+    ----------
+    data : ColorImageTypes | Sequence[ColorImageTypes]
+        The input to get the HDU object from.
+    ax : maxes.Axes | None, optional, default=None
+        The axes to plot the image on.
+    idx_r : int | _Unset, optional, default=_UNSET
+        The index of the HDU object to get.
+    idx_g : int | _Unset, optional, default=_UNSET
+        The index of the HDU object to get.
+    idx_b : int | _Unset, optional, default=_UNSET
+        The index of the HDU object to get.
+    lupton : bool, optional, default=True
+        Whether to use `~astropy.visualization.make_lupton_rgb`.
+    show : bool, optional, default=True
+        Whether to show the image.
+    axis_off : bool, optional, default=True
+        Whether to turn off the axes.
+    **kwargs
+        Additional keyword arguments to pass to
+        `~astropy.visualization.make_rgb` or
+        `~astropy.visualization.make_lupton_rgb`.
+
+    Returns
+    -------
+    rgb : `~numpy.ndarray`
+        The RGB image.
 
     Raises
     -------
@@ -81,7 +110,6 @@ def color_image(  # TODO default to axis('off') for color_image() & imshow()?
         if its first element is `None`,
         or if its only element is not a sequence.
     """
-
     # Check input scenario
     len_data = len(data)
     if len_data < 1 or data[0] is None:  # TODO rewrite
