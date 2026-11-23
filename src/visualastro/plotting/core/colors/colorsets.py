@@ -34,7 +34,11 @@ __all__ = ['Colorsets', 'Colors']
 
 
 class Colorsets(_ColorRegistry[list[ColorType]]):
-    """Query and plot registered VisualAstro colorsets."""
+    """
+    Query and plot registered VisualAstro colorsets.
+
+    See :ref:`colorset guide <colorset-guide>` for usage documentation.
+    """
 
     _SORT_KEYS: dict[str, Callable[[str, list], object]] = {
         'name': lambda name, colors: name.lower(),
@@ -380,7 +384,11 @@ class Colorsets(_ColorRegistry[list[ColorType]]):
 
 
 class Colors(_ColorRegistry[ColorType]):
-    """Query and plot registered VisualAstro named colors."""
+    """
+    Query and plot registered VisualAstro named colors.
+
+    See :ref:`color guide <color-guide>` for usage documentation.
+    """
 
     _names = VISUALASTRO_NAMED_COLORS
     _alias_names = NAMED_COLOR_ALIASES
