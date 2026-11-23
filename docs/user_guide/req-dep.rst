@@ -37,7 +37,7 @@ you can use the additional colors and styles without importing them.
 
 - `cmasher <https://github.com/1313e/CMasher>`__: Additional colormaps.
 - `colorspacious <https://github.com/njsmith/colorspacious>`__: Color blindness simulation and color space utilities.
-- `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific matplotlib stylesheets. Requires a LaTeX installation.
+- `scienceplots <https://github.com/garrettj403/SciencePlots>`__: Scientific Matplotlib stylesheets. Requires a LaTeX installation.
 - `tol-colors <https://github.com/Descanonge/tol_colors>`__: Paul Tol colorsets and colormaps.
 
 

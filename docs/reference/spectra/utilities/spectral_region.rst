@@ -67,7 +67,7 @@ From a list of tuples of ``Quantity`` bounds:
 Converting the Region Unit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Pass in a astropy unit to convert the region unit.
+Pass in an Astropy unit to convert the region unit.
 
 .. code-block:: python
 

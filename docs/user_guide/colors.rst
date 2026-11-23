@@ -5,8 +5,8 @@ Named Colors
 
 .. currentmodule:: visualastro
 
-VisualAstro adds many colors to matplotlib when you import the package!
-The colors are registered with matplotlib so they work natively.
+VisualAstro adds many colors to Matplotlib when you import the package!
+The colors are registered with Matplotlib so they work natively.
 To preview and query the colorsets, use the ``va.colors`` interface.
 See :class:`~visualastro.Colors` for the full api.
 
@@ -49,7 +49,7 @@ Plotting Colors Tables
 ----------------------
 
 VisualAstro organizes the recognized colors in colortables. These are collections of curated colors,
-like the VisualAstro named colors, the default matplotlib colors, or xkcd colors. You can view a
+like the VisualAstro named colors, the default Matplotlib colors, or xkcd colors. You can view a
 colortable with :meth:`~Colorsets.plot`. Possible inputs are
 
 - ``'named_colors'`` or ``None``: VisualAstro and Matplotlib named colors
@@ -60,7 +60,7 @@ colortable with :meth:`~Colorsets.plot`. Possible inputs are
 - `'tableau'`: Matplotlib tableau colors
 - `'all'` or `'all_colors'`: All of the above
 
-If no input is passed in, all VisualAstro and matplotlib colors are plotted. By default,
+If no input is passed in, all VisualAstro and Matplotlib colors are plotted. By default,
 the colors are sorted by hue. Turn off this behavior with ``sort_colors=False``.
 
 
@@ -106,7 +106,7 @@ strength of the effect (0 to 100, default 100).
 Matplotlib Named Colors
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-You can see the default matplotlib colors as well:
+You can see the default Matplotlib colors as well:
 
 .. plot:: ../examples/plotting/colors/plot_colors_matplotlib.py
     :include-source: True

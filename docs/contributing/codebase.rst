@@ -17,7 +17,7 @@ Quote conventions:
 
 Docstring style:
 
-- Use a numpy docstring for all public functions (see :doc:`docstrings`).
+- Use a Numpy docstring for all public functions (see :doc:`docstrings`).
   You can also see a template docstring :ref:`here <template-docstring>`.
 
 We also lint our code using `ruff <https://docs.astral.sh/ruff/>`__.

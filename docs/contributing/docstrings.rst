@@ -47,7 +47,7 @@ Docstring Rules
 - Private functions (``_name``): not rendered by autodoc, so the rules are advisory.
 
   - At minimum, write a one line sentence for standalone private functions.
-  - Keep the numpy section layout and type format.
+  - Keep the Numpy section layout and type format.
 
 
 .. _template-docstring:
