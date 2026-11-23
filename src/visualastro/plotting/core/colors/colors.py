@@ -55,11 +55,11 @@ def get_color(
     severity: int = 100,
 ) -> str | RGBTuple | RGBATuple:
     """
-    Convert a single Matplotlib color to the requested format.
+    Convert a single color to the requested format, optionally applying a
+    color transform and a color vision deficiency (CVD) simulation.
 
-    Named colors (including bare xkcd names) are resolved first. All other
-    inputs are passed to `as_color`. Colorset names are not supported, see
-    `get_colorset`. Modifiers are applied once.
+    Resolves named color aliases, including most bare xkcd names.
+    Colorset names are not supported, see `get_colorset`.
 
     Parameters
     ----------
@@ -68,17 +68,23 @@ def get_color(
     fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
         Output color format.
     transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
-        Method to modify the color. If `None`, the color is unchanged.
-        If `_UNSET`, uses `config.color_transform`.
+        Transform applied to the color.
+
+        - `None`: no transform.
+        - `_UNSET`: use `config.color_transform`.
+
     factor : float | _Unset, optional, default=_UNSET
-        Modification strength, see `get_colors`. If `_UNSET`, uses
-        `config.color_transform_factor`.
+        Transform strength, see `get_colors`. Ignored if `transform` is `None`.
+        If `_UNSET`, use `config.color_transform_factor`.
     cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
-        Type of colorblindness to simulate after `transform`. Can be
-        shorthanded to `'d'`, `'p'`, `'t'`. If `'all'`, simulates all
-        cvd types. If `None`, no colorblindness simulation is applied.
+        CVD type to simulate, applied after `transform`. Shorthands
+        `'d'`, `'p'`, `'t'` are accepted.
+
+        - `'all'`: simulate every CVD type.
+        - `None`: no simulation.
+
     severity : int, optional, default=100
-        CVD severity in [0, 100]. 100 = complete colorblindness.
+        CVD severity in [0, 100], where 100 is complete color blindness.
         Ignored if `cvd_type` is `None`.
 
     Returns
@@ -91,6 +97,11 @@ def get_color(
     ------
     ValueError
         If `color` is not a valid Matplotlib color.
+
+    See Also
+    --------
+    get_colorset : Retrieve a colorset by name.
+    as_color : Convert a color to a given format without modifiers.
     """
     if isinstance(color, str) and (named := _get_namedcolor(color)) is not None:
         color = named

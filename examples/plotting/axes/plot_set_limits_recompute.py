@@ -19,6 +19,7 @@ y = (
 )
 spectrum = Spectrum(flux=y*u.erg*u.cm**-2*u.s**-1, spectral_axis=x * u.AA)
 
+plt.style.use('concrete')
 va.config.show_type_label = False
 fig, ax = va.subplots(1, 2, figsize=(12,5))
 

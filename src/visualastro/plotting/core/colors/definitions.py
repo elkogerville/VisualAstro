@@ -193,14 +193,13 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'vermillion': '#CF3C4F',
     'cinnabar': '#880001',
     'cobalt': '#2E45AF',
-    'cobalt2': '#332288',
-    'very dark purple': '#3e2a53',
+    'void blue': '#332288',
+    'void purple': '#3e2a53',
     'slate purple': '#9884BC',
     'man o war': '#9151B8',
     'bubbleyum': '#FF1493',
     'bubblegum': '#FB7AC8',
     'cotton candy': '#F6A3FF',
-    'celeste': '#00BFFF',
     'twilight': '#7D7FF3',
     'dark twilight': '#4E518B',
     'ibmpur': '#785EF0',
@@ -227,6 +226,7 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'soup of the day': _soup_of_the_day(),
     'borscht': '#E80063',
     'melocoton': '#FFAF19',
+    'Jarate': '#FEED86',
     'Holy Grey': '#555555',
     'Holy Blue': '#5555FF',
     'Holy Green': '#55FF55',
@@ -251,7 +251,6 @@ VISUALASTRO_NAMED_COLORS: dict[str, ColorType] = {
     'ethernet green': '#10A807',
     'ethernet blue': '#1177F7',
     'ethernet brown': '#85450c',
-    'Jarate': '#FEED86',
 }
 
 # dict[alias: canonical name]
@@ -285,4 +284,5 @@ NAMED_COLOR_ALIASES = {
     'pvr': 'palevioletred',
     'mam': 'mediumaquamarine',
     'msg': 'mediumseagreen',
+    'celeste': 'battery charged blue',
 }

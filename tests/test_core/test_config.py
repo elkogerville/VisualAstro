@@ -40,3 +40,24 @@ class TestConfig:
         param = 3
         value = _resolve_default(param, 4)
         assert value == 3
+
+    def test_reset(self):
+        figsize = config.figsize
+        config.figsize = (200, 200)
+        assert config.figsize == (200, 200)
+        assert config.figsize != figsize
+        config.reset()
+        assert config.figsize == figsize
+
+    def test_subconfig_reset(self):
+        config.figsize = (700, 700)
+        config.axes.xlog = 70
+        assert config.colorbar.label
+        config.colorbar.label = False
+        assert not config.colorbar.label
+
+        config.colorbar.reset()
+        assert config.colorbar.label
+        assert config.figsize == (700, 700)
+        assert config.axes.xlog == 70
+        config.reset()

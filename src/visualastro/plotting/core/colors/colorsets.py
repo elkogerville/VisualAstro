@@ -6,65 +6,50 @@ Description:
     VisualAstro colorset registry.
 """
 
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Sequence
 from typing import Literal
 
 import matplotlib as mpl
-from matplotlib.collections import PatchCollection
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
-from matplotlib.lines import Line2D
 from matplotlib.typing import ColorType, LineStyleType
 
 from visualastro.core.configuration import _UNSET, _Unset
-from visualastro.plotting.core.colors.colors import get_colorset
-from visualastro.plotting.core.colors.definitions import COLORSET_ALIASES, COLORSETS
-from visualastro.plotting.core.colors.plots import plot_colors, preview_colorset
+from visualastro.plotting.core.colors._registry import _ColorRegistry
+from visualastro.plotting.core.colors.colors import get_color, get_colorset
+from visualastro.plotting.core.colors.definitions import (
+    COLORSET_ALIASES,
+    COLORSETS,
+    NAMED_COLOR_ALIASES,
+    VISUALASTRO_NAMED_COLORS,
+)
+from visualastro.plotting.core.colors.plots import (
+    plot_colors,
+    plot_colortable,
+    preview_colorset,
+)
 
-__all__ = ['Colorsets']
+__all__ = ['Colorsets', 'Colors']
 
 
-class Colorsets:
-    """Query and plot registered VisualAstro colorsets."""
+class Colorsets(_ColorRegistry[list[ColorType]]):
+    """
+    Query and plot registered VisualAstro colorsets.
+
+    See :ref:`colorset guide <colorset-guide>` for usage documentation.
+    """
 
     _SORT_KEYS: dict[str, Callable[[str, list], object]] = {
         'name': lambda name, colors: name.lower(),
         'length': lambda name, colors: len(colors),
     }
 
+    _names = COLORSETS
+    _alias_names = COLORSET_ALIASES
+
     def __init__(self):
         self._registry = mpl.color_sequences
-
-    def _resolve(self, name: str) -> str:
-        """
-        Resolve an alias to its canonical colorset name.
-
-        Raises
-        ------
-        KeyError
-            If `name` is not a registered VisualAstro colorset or alias.
-        """
-        name = COLORSET_ALIASES.get(name, name)
-        if name not in COLORSETS or name not in self._registry:
-            raise KeyError(
-                f'Unknown colorset {name!r}. Available: {self.available}'
-            )
-        return name
-
-    def __getitem__(self, name: str) -> list:
-        return self._registry[self._resolve(name)]
-
-    def __contains__(self, name: str) -> bool:
-        try:
-            self._resolve(name)
-        except KeyError:
-            return False
-        return True
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.available)
-
-    def __len__(self) -> int:
-        return len(self.available)
 
     @property
     def available(self) -> list[str]:
@@ -85,10 +70,7 @@ class Colorsets:
         aliases : Mapping of alias names to canonical names.
         query : Filter and sort colorset names.
         """
-        return [
-            name for name in COLORSETS
-            if name in self._registry and name not in COLORSET_ALIASES
-        ]
+        return self._available
 
     @property
     def aliases(self) -> dict[str, str]:
@@ -108,10 +90,7 @@ class Colorsets:
         --------
         available : Canonical colorset names.
         """
-        return {
-            alias: name for alias, name in COLORSET_ALIASES.items()
-            if alias in self._registry
-        }
+        return self._aliases
 
     def get(
         self,
@@ -344,7 +323,7 @@ class Colorsets:
         factor: float | _Unset = _UNSET,
         cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly', 'all'] | None = None,
         severity: int = 100,
-    ) -> list[list[Line2D] | list[PatchCollection]]:
+    ) -> None:
         """
         Plot a sample figure demonstrating a VisualAstro color set.
 
@@ -386,10 +365,9 @@ class Colorsets:
 
         Returns
         -------
-        list[list[Line2D | PatchCollection]]
-            Artists returned by the plotting functions, grouped by plot element.
+        None
         """
-        return preview_colorset(
+        preview_colorset(
             colors=colorset,
             cmap=cmap,
             linestyle=linestyle,
@@ -402,8 +380,176 @@ class Colorsets:
             cvd_type=cvd_type,
             severity=severity,
         )
+        plt.show()
 
 
-    def __repr__(self) -> str:
-        names = ',\n'.join(f'    {name!r}' for name in self.available)
-        return f'{type(self).__name__}([\n{names}\n])'
+class Colors(_ColorRegistry[ColorType]):
+    """
+    Query and plot registered VisualAstro named colors.
+
+    See :ref:`color guide <color-guide>` for usage documentation.
+    """
+
+    _names = VISUALASTRO_NAMED_COLORS
+    _alias_names = NAMED_COLOR_ALIASES
+
+    def __init__(self):
+        self._registry = mcolors.get_named_colors_mapping()
+
+    @property
+    def available(self) -> list[str]:
+        """
+        Canonical names of the registered VisualAstro named colors.
+
+        Aliases and Matplotlib named colors are excluded.
+        Use :attr:`aliases` to list alias names.
+
+        Returns
+        -------
+        list of str
+            Colorset names present in both ``COLORSETS`` and the Matplotlib
+            color sequence registry, in registration order.
+
+        See Also
+        --------
+        aliases : Mapping of alias names to canonical names.
+        """
+        return self._available
+
+    @property
+    def aliases(self) -> dict[str, str]:
+        """
+        Mapping of named color aliases to canonical names.
+
+        Only aliases registered in the Matplotlib color sequence registry
+        are included.
+
+        Returns
+        -------
+        dict of str to str
+            Keys are alias names, values are the canonical names in
+            :attr:`available` they resolve to.
+
+        See Also
+        --------
+        available : Canonical colorset names.
+        """
+        return self._aliases
+
+    def get(
+        self,
+        name: str,
+        *,
+        fmt: Literal['hex', 'rgb', 'rgba'] = 'hex',
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None | _Unset = _UNSET,
+        factor: float | _Unset = _UNSET,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100,
+    ):
+        """
+        Retrieve a single color to the requested format, optionally applying a
+        color transform and a color vision deficiency (CVD) simulation.
+
+        Parameters
+        ----------
+        color : str
+            A single color name.
+        fmt : {'hex', 'rgb', 'rgba'}, optional, default='hex'
+            Output color format.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None | _Unset, optional, default=_UNSET
+            Transform applied to the color.
+
+            - `None`: no transform.
+            - `_UNSET`: use `config.color_transform`.
+
+        factor : float | _Unset, optional, default=_UNSET
+            Transform strength, see `get_colors`. Ignored if `transform` is `None`.
+            If `_UNSET`, use `config.color_transform_factor`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+            CVD type to simulate, applied after `transform`. Shorthands
+            `'d'`, `'p'`, `'t'` are accepted.
+
+            - `'all'`: simulate every CVD type.
+            - `None`: no simulation.
+
+        severity : int, optional, default=100
+            CVD severity in [0, 100], where 100 is complete color blindness.
+            Ignored if `cvd_type` is `None`.
+
+        Returns
+        -------
+        str | RGBTuple | RGBATuple
+            `str` for `fmt='hex'`, `RGBTuple` for `fmt='rgb'`,
+            `RGBATuple` for `fmt='rgba'`.
+        """
+        return get_color(
+            self._resolve(name),
+            fmt=fmt,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity,
+        )
+
+    def plot(
+        self,
+        family = None,
+        *,
+        ncols: int = 4,
+        sort_colors: bool = True,
+        transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None,
+        factor: int | float = 0.5,
+        cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
+        severity: int = 100
+    ):
+        """
+        Plot a grid of colors with their names.
+
+        This function is adapted from a Matplotlib gallery example:
+        https://matplotlib.org/stable/gallery/color/named_colors.html
+
+        Copyright (c) 2012-2023 Matplotlib Development Team.
+        Licensed under the Matplotlib License (BSD-compatible)
+        https://matplotlib.org/stable/users/project/license.html
+
+        Parameters
+        ----------
+        colors : dict[str, ColorType] | str | None, optional, default=None
+            Dictionary containing colors to plot, or one of the following:
+
+            - `'named_colors'` or `None`: VisualAstro and Matplotlib named colors
+            - `'mpl'` or `'matplotlib'` or `'mpl_colors'` or `'matplotlib_colors'` or `'css4'`: Matplotlib named colors
+            - `'xkcd'` or `'xkcd_colors'`: XKCD named colors
+            - `'visualastro'` or `'va'`: VisualAstro named colors
+            - `'base'` or `'base_colors'`: Matplotlib base colors
+            - `'tableau'` or `'tableau_colors'`: Matplotlib tableau colors
+            - `'all'` or `'all_colors'`: All of the above
+
+        ncols : int, optional, default=4
+            Number of columns to plot.
+        sort_colors : bool, optional, default=True
+            If `True`, sort colors by hsv value.
+        transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default=None
+            Transform applied to every color before sorting and CVD simulation.
+            If `None`, colors are unchanged.
+        factor : int | float, optional, default=0.5
+            Transform strength. Ignored if `transform` is `None`.
+        cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+            CVD type to simulate, applied after `transform`. If `None`,
+            no simulation is applied.
+        severity : int, optional, default=100
+            CVD severity in [0, 100], where 100 is complete color blindness.
+            Ignored if `cvd_type` is `None`.
+        savefig:
+            If `True`, save the figure to disk with `savefig`.
+            Opens a prompt to set the file name and extention.
+        """
+        plot_colortable(
+            colors=family,
+            ncols=ncols,
+            sort_colors=sort_colors,
+            transform=transform,
+            factor=factor,
+            cvd_type=cvd_type,
+            severity=severity
+        )

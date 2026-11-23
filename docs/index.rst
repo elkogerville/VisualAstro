@@ -8,7 +8,7 @@ VisualAstro Documentation Page.
 
    user_guide/index
    reference/index
-   dev/index
+   contributing/index
 
 
 .. image:: _static/visualastro_logo_light.svg

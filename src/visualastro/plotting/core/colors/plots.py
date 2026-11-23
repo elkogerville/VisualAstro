@@ -32,7 +32,10 @@ from visualastro.plotting.core.colors.definitions import (
     COLORSET_NAMES,
     VISUALASTRO_NAMED_COLORS,
 )
-from visualastro.plotting.core.colors.transforms import simulate_colorblindness
+from visualastro.plotting.core.colors.transforms import (
+    _transform_colors,
+    simulate_colorblindness,
+)
 
 __all__ = [
     'plot_color_deltaE',
@@ -486,6 +489,8 @@ def plot_colortable(
     *,
     ncols: int = 4,
     sort_colors: bool = True,
+    transform: Literal['lighten', 'darken', 'saturate', 'desaturate'] | None = None,
+    factor: int | float = 0.5,
     cvd_type: Literal['deuteranomaly', 'protanomaly', 'tritanomaly'] | None = None,
     severity: int = 100,
     savefig: bool = False,
@@ -517,6 +522,17 @@ def plot_colortable(
         Number of columns to plot.
     sort_colors : bool, optional, default=True
         If `True`, sort colors by hsv value.
+    transform : {'lighten', 'darken', 'saturate', 'desaturate'} | None, optional, default=None
+        Transform applied to every color before sorting and CVD simulation.
+        If `None`, colors are unchanged.
+    factor : int | float, optional, default=0.5
+        Transform strength. Ignored if `transform` is `None`.
+    cvd_type : {'deuteranomaly', 'protanomaly', 'tritanomaly'} | None, optional, default=None
+        CVD type to simulate, applied after `transform`. If `None`,
+        no simulation is applied.
+    severity : int, optional, default=100
+        CVD severity in [0, 100], where 100 is complete color blindness.
+        Ignored if `cvd_type` is `None`.
     savefig:
         If `True`, save the figure to disk with `savefig`.
         Opens a prompt to set the file name and extention.
@@ -569,6 +585,18 @@ def plot_colortable(
     cell_height = 22
     swatch_width = 48
     margin = 12
+
+    if transform is not None:
+        colors = dict(zip(
+            colors.keys(),
+            _transform_colors(
+                list(colors.values()),
+                transform=transform,
+                factor=factor,
+                fmt='hex',
+            ),
+            strict=True
+        ))
 
     if sort_colors is True:
         names = sorted(

@@ -3,7 +3,7 @@ Colormaps
 
 .. currentmodule:: visualastro
 
-VisualAstro provides modules for working with colormaps. VisualAstro registers its colormaps with matplotlib
+VisualAstro provides modules for working with colormaps. VisualAstro registers its colormaps with Matplotlib
 at import time
 
 The examples on this page assume:
@@ -53,7 +53,7 @@ Discrete colormap:
 Plot All Colormaps
 ------------------
 
-Plot every colormap currently registered with matplotlib with :meth:`~visualastro.help.cmap`.
+Plot every colormap currently registered with Matplotlib with :meth:`~visualastro.help.cmap`.
 
 .. plot:: ../examples/plotting/colors/plot_all_cmaps.py
     :include-source: True
@@ -68,7 +68,7 @@ Plot Colormap Lightness
 
 
 Plot the lightness :math:`L^*` values of a colormap, similar to the plots by
-`matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html#lightness-of-matplotlib-colormaps>`__.
+`Matplotlib <https://matplotlib.org/stable/users/explain/colors/colormaps.html#lightness-of-matplotlib-colormaps>`__.
 
 
 .. plot:: ../examples/plotting/colors/plot_cmap_L.py

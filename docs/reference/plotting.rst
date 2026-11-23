@@ -20,14 +20,15 @@ Axes and Limits
    plotting/axes/set_limits
 
 
-Colorsets
----------
+Colors and Colorsets
+--------------------
 
-See :ref:`colorset guide <colorset-guide>` for usage examples.
+See the :ref:`color guide <color-guide>` and :ref:`colorset guide <colorset-guide>` for usage examples.
 
 .. autosummary::
     :toctree: generated/
 
+    Colors
     Colorsets
 
 
