@@ -18,6 +18,7 @@ license-files = [
   "src/visualastro/stylelib/fontlib/concmath-otf/OFL.txt",
   "src/visualastro/stylelib/fontlib/LibertinusMath/OFL.txt",
   "src/visualastro/stylelib/fontlib/LibertinusMath/AUTHORS.txt",
+  "src/visualastro/stylelib/fontlib/LibertinusMath/CONTRIBUTORS.txt",
   "src/visualastro/stylelib/fontlib/NewComputerModern/License.txt",
   "src/visualastro/stylelib/fontlib/NewComputerModern/GUST-FONT-LICENSE.txt",
   "src/visualastro/stylelib/fontlib/smplotlibHershey/LICENSE",

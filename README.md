@@ -85,12 +85,12 @@ BibTeX:
                   Tian, Qiushi Chris and
                   Whitmer, Audrey},
   title        = {VisualAstro},
-  month        = oct,
+  month        = nov,
   year         = 2026,
   publisher    = {Zenodo},
-  version      = {v0.3.2},
-  doi          = {10.5281/zenodo.23827878},
-  url          = {https://doi.org/10.5281/zenodo.23827878},
+  version      = {v0.3.3},
+  doi          = {10.5281/zenodo.21729933},
+  url          = {https://doi.org/10.5281/zenodo.21729933},
 }
 ```
 
